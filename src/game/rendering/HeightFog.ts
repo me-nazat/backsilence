@@ -18,6 +18,7 @@ export function applyHeightFog(material: Material, options: HeightFogOptions = {
   const falloff = options.falloff ?? 0.75;
   const density = options.density ?? 0.45;
 
+  // eslint-disable-next-line @typescript-eslint/unbound-method
   const prevCompile = material.onBeforeCompile;
 
   material.onBeforeCompile = (shader, renderer) => {

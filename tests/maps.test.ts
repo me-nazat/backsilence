@@ -54,7 +54,7 @@ describe('Maps: Determinism, Validity & Reachability (50 Seeds per Map)', () => 
 
   for (const mapId of mapIds) {
     it(`validates ${mapId} across 50 seeded layouts deterministically`, () => {
-      const def = MAPS[mapId]!;
+      const def = MAPS[mapId];
       let passCount = 0;
       let maxRetries = 0;
 

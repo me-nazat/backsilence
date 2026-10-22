@@ -7,10 +7,6 @@
 
 import {
   MeshStandardMaterial,
-  MeshBasicMaterial,
-  Mesh,
-  BoxGeometry,
-  Group,
   Vector3,
   Color,
 } from 'three';
@@ -23,8 +19,8 @@ import type {
   PropDef,
   BuildEnv,
 } from '../MapTypes.js';
+import type { Vec3 } from '../../types/contracts.js';
 import type { MapInstance } from './MapInstance.js';
-import { Rng } from '../../procedural/core/prng.js';
 import { TextureRegistry } from '../../procedural/textures/TextureRegistry.js';
 import { WATER_PROFILES } from '../../game/water/WaterProfile.js';
 import { buildStandardMapInstance } from './CommonMapBuilder.js';
@@ -64,11 +60,9 @@ export const DrownedMetroMap: MapDefinition = {
     lift: [0.02, 0.03, 0.02],
     saturation: 0.95,
     gain: [0.98, 1.02, 0.96],
-    vignette: 0.32,
   },
 
   generateLayout(ctx: LayoutCtx): LayoutData {
-    const rng = new Rng(ctx.seed);
     const bounds = { minX: -90, minZ: -30, maxX: 90, maxZ: 30 }; // 180 x 60m
 
     const platforms: PlatformDef[] = [];
@@ -225,10 +219,10 @@ export const DrownedMetroMap: MapDefinition = {
     // Monster spawn in flooded west end of T1 (>= 45m from player spawn)
     const monsterSpawn = { x: -45, y: -0.9, z: -19 };
 
-    const monsters = [
+    const monsters: Array<{ id: string; variant: 'standard' | 'elder' | 'juvenile'; spawn: Vec3 }> = [
       {
         id: 'monster_metro_1',
-        variant: 'standard' as const,
+        variant: 'standard',
         spawn: monsterSpawn,
       },
     ];
@@ -236,7 +230,7 @@ export const DrownedMetroMap: MapDefinition = {
     if (ctx.difficulty === 'deafening' || ctx.playerCount >= 3) {
       monsters.push({
         id: 'monster_metro_2',
-        variant: 'juvenile' as const,
+        variant: 'juvenile',
         spawn: { x: 20, y: -0.9, z: 5.0 },
       });
     }
@@ -286,22 +280,22 @@ export const DrownedMetroMap: MapDefinition = {
 
   async build(layout: LayoutData, env: BuildEnv): Promise<MapInstance> {
     const tex = TextureRegistry.getInstance();
-    const subwayTileTex = tex.getOrMake('subway_tile', () => tex.makeTile('pool'));
-    const concreteTex = tex.getOrMake('concrete_metro', () => tex.makeTile('concrete'));
+    const subwayTileTex = tex.getTileSet('wall', layout.seed);
+    const concreteTex = tex.getConcreteSet('tunnel', layout.seed);
 
     const platformMat = new MeshStandardMaterial({
       map: concreteTex.albedo,
       roughness: 0.5,
       metalness: 0.05,
     });
-    applyWetDarkening(platformMat, 0.0);
+    applyWetDarkening(platformMat, { waterY: 0.0 });
 
     const wallMat = new MeshStandardMaterial({
       map: subwayTileTex.albedo,
       roughness: 0.25,
       metalness: 0.02,
     });
-    applyWetDarkening(wallMat, 0.0);
+    applyWetDarkening(wallMat, { waterY: 0.0 });
 
     const floorMat = new MeshStandardMaterial({
       map: concreteTex.albedo,
@@ -316,7 +310,7 @@ export const DrownedMetroMap: MapDefinition = {
     });
 
     // Populate GhostTrain (period 85s, first at 45s)
-    const ghostTrain = new GhostTrain(layout.seed, 85.0);
+    const ghostTrain = new GhostTrain(layout.seed);
     // Add refuge alcoves to GhostTrain
     for (const p of layout.platforms) {
       if (p.id.startsWith('refuge_alcove_')) {

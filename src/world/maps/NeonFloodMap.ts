@@ -7,10 +7,6 @@
 
 import {
   MeshStandardMaterial,
-  MeshBasicMaterial,
-  Mesh,
-  BoxGeometry,
-  Group,
   Vector3,
   Color,
 } from 'three';
@@ -23,8 +19,8 @@ import type {
   PropDef,
   BuildEnv,
 } from '../MapTypes.js';
+import type { Vec3 } from '../../types/contracts.js';
 import type { MapInstance } from './MapInstance.js';
-import { Rng } from '../../procedural/core/prng.js';
 import { TextureRegistry } from '../../procedural/textures/TextureRegistry.js';
 import { WATER_PROFILES } from '../../game/water/WaterProfile.js';
 import { buildStandardMapInstance } from './CommonMapBuilder.js';
@@ -59,11 +55,9 @@ export const NeonFloodMap: MapDefinition = {
     lift: [0.0, 0.01, 0.04],
     saturation: 1.25,
     gain: [1.05, 0.95, 1.1],
-    vignette: 0.38,
   },
 
   generateLayout(ctx: LayoutCtx): LayoutData {
-    const rng = new Rng(ctx.seed);
     const bounds = { minX: -65, minZ: -55, maxX: 65, maxZ: 55 }; // 130 x 110m
 
     const platforms: PlatformDef[] = [];
@@ -223,10 +217,10 @@ export const NeonFloodMap: MapDefinition = {
     const playerSpawn = { x: 0, y: 0.3, z: -48 }; // in south alley
     const monsterSpawn = { x: 0, y: -0.9, z: 0 }; // flooded plaza >= 45m from spawn (48m away)
 
-    const monsters = [
+    const monsters: Array<{ id: string; variant: 'standard' | 'elder' | 'juvenile'; spawn: Vec3 }> = [
       {
         id: 'monster_city_1',
-        variant: 'standard' as const,
+        variant: 'standard',
         spawn: monsterSpawn,
       },
     ];
@@ -234,7 +228,7 @@ export const NeonFloodMap: MapDefinition = {
     if (ctx.difficulty === 'deafening' || ctx.playerCount >= 3) {
       monsters.push({
         id: 'monster_city_2',
-        variant: 'juvenile' as const,
+        variant: 'juvenile',
         spawn: { x: -35, y: -0.9, z: 0 },
       });
     }
@@ -283,22 +277,22 @@ export const NeonFloodMap: MapDefinition = {
 
   async build(layout: LayoutData, env: BuildEnv): Promise<MapInstance> {
     const tex = TextureRegistry.getInstance();
-    const asphaltTex = tex.getOrMake('asphalt_city', () => tex.makeTile('concrete'));
-    const metalTex = tex.getOrMake('metal_city', () => tex.makeTile('concrete'));
+    const asphaltTex = tex.getConcreteSet('tunnel', layout.seed);
+    const metalTex = tex.getRustMetalSet(layout.seed);
 
     const platformMat = new MeshStandardMaterial({
       map: asphaltTex.albedo,
       roughness: 0.35,
       metalness: 0.2,
     });
-    applyWetDarkening(platformMat, 0.0);
+    applyWetDarkening(platformMat, { waterY: 0.0 });
 
     const wallMat = new MeshStandardMaterial({
       map: metalTex.albedo,
       roughness: 0.5,
       metalness: 0.4,
     });
-    applyWetDarkening(wallMat, 0.0);
+    applyWetDarkening(wallMat, { waterY: 0.0 });
 
     const floorMat = new MeshStandardMaterial({
       map: asphaltTex.albedo,

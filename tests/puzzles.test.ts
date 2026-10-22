@@ -21,6 +21,11 @@ import { UtilityTunnelsMap } from '../src/world/maps/UtilityTunnelsMap.js';
 import { MarbleAtriumMap } from '../src/world/maps/MarbleAtriumMap.js';
 import { HydroMazeMap } from '../src/world/maps/HydroMazeMap.js';
 import { DrainageCoreMap } from '../src/world/maps/DrainageCoreMap.js';
+import { NatatoriumMap } from '../src/world/maps/NatatoriumMap.js';
+import { DrownedSchoolMap } from '../src/world/maps/DrownedSchoolMap.js';
+import { SunkenJungleMap } from '../src/world/maps/SunkenJungleMap.js';
+import { NeonFloodMap } from '../src/world/maps/NeonFloodMap.js';
+import { DrownedMetroMap } from '../src/world/maps/DrownedMetroMap.js';
 import { generateValidLayout } from '../src/world/validate/LayoutValidator.js';
 
 function makeCtx(now = 0, playerCount = 1): PuzzleCtx {
@@ -257,13 +262,18 @@ describe('Puzzle Nodes: State Machine & Solvability', () => {
     });
   });
 
-  describe('Headless Puzzle Solvers across All 5 Generated Maps', () => {
+  describe('Headless Puzzle Solvers across All 10 Generated Maps', () => {
     const maps = [
       { id: 'poolrooms' as const, def: PoolroomsMap },
       { id: 'utility_tunnels' as const, def: UtilityTunnelsMap },
       { id: 'marble_atrium' as const, def: MarbleAtriumMap },
       { id: 'hydro_maze' as const, def: HydroMazeMap },
       { id: 'drainage_core' as const, def: DrainageCoreMap },
+      { id: 'natatorium' as const, def: NatatoriumMap },
+      { id: 'drowned_school' as const, def: DrownedSchoolMap },
+      { id: 'sunken_jungle' as const, def: SunkenJungleMap },
+      { id: 'neon_flood' as const, def: NeonFloodMap },
+      { id: 'drowned_metro' as const, def: DrownedMetroMap },
     ];
 
     const solverTable: Array<{

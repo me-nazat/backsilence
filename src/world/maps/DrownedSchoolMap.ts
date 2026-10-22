@@ -7,11 +7,6 @@
 
 import {
   MeshStandardMaterial,
-  MeshBasicMaterial,
-  Mesh,
-  BoxGeometry,
-  PlaneGeometry,
-  Group,
   Vector3,
   Color,
 } from 'three';
@@ -30,9 +25,7 @@ import { TextureRegistry } from '../../procedural/textures/TextureRegistry.js';
 import { WATER_PROFILES } from '../../game/water/WaterProfile.js';
 import { buildStandardMapInstance } from './CommonMapBuilder.js';
 import { PerchSystem } from '../../sim/PerchSystem.js';
-import { createWorldProfile } from '../../sim/WorldProfile.js';
 import { applyWetDarkening } from '../../game/rendering/WetDarkening.js';
-import { bakeVertexAO } from '../../procedural/geometry/VertexAO.js';
 import type { LightStreak } from '../../game/water/WaterMaterial.js';
 
 const PASSWORD_WORDS = ['HUSH', 'DRIP', 'MUTE', 'TIDE', 'WADE', 'SILT'];
@@ -325,22 +318,22 @@ export const DrownedSchoolMap: MapDefinition = {
 
   async build(layout: LayoutData, env: BuildEnv): Promise<MapInstance> {
     const tex = TextureRegistry.getInstance();
-    const linoleumTiles = tex.getOrMake('tiles_linoleum', () => tex.makeTile('pool'));
-    const concreteTex = tex.getOrMake('concrete_school', () => tex.makeTile('concrete'));
+    const linoleumTiles = tex.getTileSet('platform', layout.seed);
+    const concreteTex = tex.getConcreteSet('tunnel', layout.seed);
 
     const platformMat = new MeshStandardMaterial({
       map: linoleumTiles.albedo,
       roughness: 0.4,
       metalness: 0.02,
     });
-    applyWetDarkening(platformMat, 0.0);
+    applyWetDarkening(platformMat, { waterY: 0.0 });
 
     const wallMat = new MeshStandardMaterial({
       map: concreteTex.albedo,
       roughness: 0.6,
       metalness: 0.02,
     });
-    applyWetDarkening(wallMat, 0.0);
+    applyWetDarkening(wallMat, { waterY: 0.0 });
 
     const floorMat = new MeshStandardMaterial({
       map: linoleumTiles.albedo,

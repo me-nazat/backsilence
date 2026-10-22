@@ -8,7 +8,7 @@ import type { Vec3 } from '../types/contracts.js';
 import type { GroundGrid } from './GroundGrid.js';
 import type { ColliderSet } from './Colliders.js';
 
-export type ProjectileKind = 'pebble' | 'noisemaker';
+export type ProjectileKind = 'pebble' | 'noisemaker' | 'emp' | 'bottle';
 
 export interface ProjectileImpact {
   x: number;

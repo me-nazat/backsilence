@@ -7,14 +7,6 @@
 
 import {
   MeshStandardMaterial,
-  MeshBasicMaterial,
-  Mesh,
-  BoxGeometry,
-  CylinderGeometry,
-  IcosahedronGeometry,
-  Group,
-  Vector3,
-  Color,
 } from 'three';
 import type {
   LayoutCtx,
@@ -25,15 +17,14 @@ import type {
   PropDef,
   BuildEnv,
 } from '../MapTypes.js';
+import type { Vec3 } from '../../types/contracts.js';
 import type { MapInstance } from './MapInstance.js';
-import { Rng } from '../../procedural/core/prng.js';
 import { TextureRegistry } from '../../procedural/textures/TextureRegistry.js';
 import { WATER_PROFILES } from '../../game/water/WaterProfile.js';
 import { buildStandardMapInstance } from './CommonMapBuilder.js';
 import { FlowField } from '../../sim/FlowField.js';
 import { PerchSystem } from '../../sim/PerchSystem.js';
 import { applyWetDarkening } from '../../game/rendering/WetDarkening.js';
-import { bakeVertexAO } from '../../procedural/geometry/VertexAO.js';
 import { createLightShaftMesh, createDustMotes } from '../../game/rendering/LightShafts.js';
 
 export const SunkenJungleMap: MapDefinition = {
@@ -71,7 +62,6 @@ export const SunkenJungleMap: MapDefinition = {
   },
 
   generateLayout(ctx: LayoutCtx): LayoutData {
-    const rng = new Rng(ctx.seed);
     const bounds = { minX: -70, minZ: -70, maxX: 70, maxZ: 70 }; // 140 x 140m
 
     const platforms: PlatformDef[] = [];
@@ -232,10 +222,10 @@ export const SunkenJungleMap: MapDefinition = {
     const playerSpawn = { x: -55, y: 0.4, z: -55 };
     const monsterSpawn = { x: 20, y: -0.85, z: -35 }; // in large pond >= 45m from player
 
-    const monsters = [
+    const monsters: Array<{ id: string; variant: 'standard' | 'elder' | 'juvenile'; spawn: Vec3 }> = [
       {
         id: 'monster_jungle_1',
-        variant: 'standard' as const,
+        variant: 'standard',
         spawn: monsterSpawn,
       },
     ];
@@ -243,7 +233,7 @@ export const SunkenJungleMap: MapDefinition = {
     if (ctx.difficulty === 'deafening' || ctx.playerCount >= 3) {
       monsters.push({
         id: 'monster_jungle_2',
-        variant: 'juvenile' as const,
+        variant: 'juvenile',
         spawn: { x: -30, y: -0.85, z: 25 },
       });
     }
@@ -292,22 +282,22 @@ export const SunkenJungleMap: MapDefinition = {
 
   async build(layout: LayoutData, env: BuildEnv): Promise<MapInstance> {
     const tex = TextureRegistry.getInstance();
-    const stoneTex = tex.getOrMake('stone_jungle', () => tex.makeTile('marble'));
-    const mossTex = tex.getOrMake('moss_jungle', () => tex.makeTile('pool'));
+    const stoneTex = tex.getMarbleSet(layout.seed);
+    const mossTex = tex.getTileSet('floorWet', layout.seed);
 
     const platformMat = new MeshStandardMaterial({
       map: stoneTex.albedo,
       roughness: 0.75,
       metalness: 0.02,
     });
-    applyWetDarkening(platformMat, 0.0);
+    applyWetDarkening(platformMat, { waterY: 0.0 });
 
     const wallMat = new MeshStandardMaterial({
       map: mossTex.albedo,
       roughness: 0.8,
       metalness: 0.01,
     });
-    applyWetDarkening(wallMat, 0.0);
+    applyWetDarkening(wallMat, { waterY: 0.0 });
 
     const floorMat = new MeshStandardMaterial({
       map: stoneTex.albedo,
@@ -344,7 +334,7 @@ export const SunkenJungleMap: MapDefinition = {
           (p.rect[1] + p.rect[3]) * 0.5,
           (p.rect[2] - p.rect[0]) * 0.5,
           p.topY,
-          { isPerch: true, wobbly: false },
+          { isPerch: true },
         );
       }
     }

@@ -25,6 +25,7 @@ export function applyWetDarkening(
   const darkeningFactor = options.darkeningFactor ?? 0.60;
   const glossBoost = options.glossBoost ?? 0.5;
 
+  // eslint-disable-next-line @typescript-eslint/unbound-method
   const previousOnBeforeCompile = material.onBeforeCompile;
 
   material.onBeforeCompile = (shader, renderer) => {

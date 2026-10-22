@@ -482,11 +482,11 @@ export class GameSession {
     } else if (this.mapId === 'sunken_jungle') {
       this.audio.play('ambience_jungle', { gain: 0.65 });
     } else if (this.mapId === 'neon_flood') {
-      this.audio.play('ambience_city', { gain: 0.65 });
+      this.audio.play('rain_loop', { gain: 0.65 });
     } else if (this.mapId === 'drowned_metro') {
-      this.audio.play('ambience_station', { gain: 0.7 });
+      this.audio.play('rail_sing_loop', { gain: 0.65 });
     } else {
-      this.audio.play('ambience_poolrooms', { gain: 0.65 });
+      this.audio.play('lap_loop', { gain: 0.65 });
     }
   }
 
@@ -956,7 +956,7 @@ export class GameSession {
                 this.sluiceAccuracy = 'Mistakes made';
                 this.audio.play('waterfall_loop', { gain: 1.0 });
                 this.simWorld.broadcastNoise({
-                  kind: 'splash_run',
+                  kind: 'splash',
                   position: sPos,
                   loudness: 0.9,
                   sourcePlayerId: 'world',
@@ -1755,7 +1755,7 @@ export class GameSession {
     // 7. Batch 5: Schoolhouse Systems
     if (this.mapId === 'drowned_school') {
       this.paCooldown = Math.max(0, this.paCooldown - dt);
-      const isPerched = this.simWorld.perchSystem.isPlayerPerched('player_local');
+      const isPerched = this.simWorld.perchSystem.isPlayerPerched(pSnap.pos, pSnap.onGround, this.layout.waterBodies[0]?.waterY ?? 0);
       if (isPerched) {
         this.perchedTimeTotal += dt;
         if (pSnap.pos.y < 0.25) {
@@ -1794,7 +1794,7 @@ export class GameSession {
 
     // 8. Batch 5: Sunken Jungle Systems
     if (this.mapId === 'sunken_jungle') {
-      const flow = this.simWorld.flowField.flowAt(pSnap.pos.x, pSnap.pos.z);
+      const flow = this.simWorld.flowField ? this.simWorld.flowField.flowAt(pSnap.pos.x, pSnap.pos.z) : { x: 0, z: 0 };
       let nearestDist = 999;
       for (const m of this.simWorld.monsters) {
         const mPos = m.getSnapshot().pos;
@@ -1815,75 +1815,104 @@ export class GameSession {
       const weather = this.simWorld.weather;
       let droneLock = false;
       for (const d of this.simWorld.drones) {
-        if (d.getDetection() >= 1.0) {
+        if (d.detectionMeter >= 1.0) {
           droneLock = true;
           break;
         }
       }
 
-      this.hud.update({
-        uplinksRemaining: 3 - this.hackedUplinks.size,
-        stormWindow: {
-          active: weather.isDownpour(),
-          timeRemaining: weather.getDownpourRemaining(),
-          nextStormIn: weather.getTimeToNextDownpour(),
-        },
-        droneLockWarning: droneLock ? { locked: true, angleDeg: 0 } : null,
-        empCount: this.empCount,
-      });
+      if (weather) {
+        const isDownpour = weather.isDownpourAt(this.simWorld.simTime);
+        this.hud.update({
+          uplinksRemaining: 3 - this.hackedUplinks.size,
+          stormWindow: {
+            active: isDownpour,
+            timeRemaining: isDownpour ? 8.0 : 0,
+            nextStormIn: weather.timeToNextThunder(this.simWorld.simTime),
+          },
+          droneLockWarning: droneLock ? { locked: true, angleDeg: 0 } : null,
+          empCount: this.empCount,
+        });
+      }
     }
 
     // 10. Batch 5: Drowned Metro Systems
     if (this.mapId === 'drowned_metro') {
       const train = this.simWorld.ghostTrain;
-      const trainSnap = train.getSnapshot();
+      if (train) {
+        const trainSnap = train.getPhaseAtTime(this.simWorld.simTime);
 
-      if (trainSnap.phase === 'PASS') {
-        if (pSnap.pos.z >= 3.4 && pSnap.pos.z <= 6.6 && !this.godMode) {
-          this.triggerDeath('KILLED BY THE GHOST TRAIN');
-          return;
-        }
-        if (Math.abs(pSnap.pos.z - 5.0) < 3.6 && Math.abs(pSnap.pos.z - 5.0) >= 1.6) {
-          this.nearMissExpressCount++;
-        }
-      }
-
-      if (this.engineStarted && this.boardingTimer > 0) {
-        this.boardingTimer -= dt;
-        if (this.boardingTimer <= 0) {
-          if (pSnap.pos.x >= 30 && pSnap.pos.x <= 60 && pSnap.pos.z >= -24 && pSnap.pos.z <= -14) {
-            this.exitUnlocked = true;
-            this.hasEscaped = true;
-            this.ghostTrainsSurvivedCount++;
-            this.callbacks.onWin({
-              mapId: this.mapId,
-              timeSurvived: this.timeSurvived,
-              noisesMade: this.noisesMade,
-              closestCall: this.closestCall,
-              alertsCount: this.alertsCount,
-              retries: 0,
-              ghostTrainsSurvived: this.ghostTrainsSurvivedCount,
-              nearMissCount: this.nearMissExpressCount,
-            });
-            return;
-          } else {
-            this.triggerDeath('LEFT BEHIND ON THE PLATFORM');
+        if (trainSnap.phase === 'PASS') {
+          if (pSnap.pos.z >= 3.4 && pSnap.pos.z <= 6.6 && !this.godMode) {
+            this.triggerDeath('KILLED BY THE GHOST TRAIN');
             return;
           }
+          if (Math.abs(pSnap.pos.z - 5.0) < 3.6 && Math.abs(pSnap.pos.z - 5.0) >= 1.6) {
+            this.nearMissExpressCount++;
+          }
         }
-      }
 
-      this.hud.update({
-        ghostTrainSchedule: {
-          timeToTrain: trainSnap.timeToNextPass,
-          trainDurationRemaining: trainSnap.phaseTimer,
-          active: trainSnap.phase === 'PASS',
-          warning: trainSnap.phase === 'APPROACH',
-        },
-        boardingCountdown: this.engineStarted ? this.boardingTimer : null,
-        bottleCount: this.bottlesCount,
-      });
+        if (this.engineStarted && this.boardingTimer > 0) {
+          this.boardingTimer -= dt;
+          if (this.boardingTimer <= 0) {
+            if (pSnap.pos.x >= 30 && pSnap.pos.x <= 60 && pSnap.pos.z >= -24 && pSnap.pos.z <= -14) {
+              this.exitUnlocked = true;
+              this.hasEscaped = true;
+              this.ghostTrainsSurvivedCount++;
+              this.callbacks.onWin({
+                mapId: this.mapId,
+                timeSurvived: this.timeSurvived,
+                noisesMade: this.noisesMade,
+                closestCall: this.closestCall,
+                alertsCount: this.alertsCount,
+                retries: 0,
+                ghostTrainsSurvived: this.ghostTrainsSurvivedCount,
+                nearMissCount: this.nearMissExpressCount,
+              });
+              return;
+            } else {
+              this.triggerDeath('LEFT BEHIND ON THE PLATFORM');
+              return;
+            }
+          }
+        }
+
+        this.hud.update({
+          ghostTrainSchedule: {
+            timeToTrain: trainSnap.timeToNextTrain,
+            trainDurationRemaining: trainSnap.duration - trainSnap.elapsed,
+            active: trainSnap.phase === 'PASS',
+            warning: trainSnap.phase === 'APPROACH',
+          },
+          boardingCountdown: this.engineStarted ? this.boardingTimer : null,
+          bottleCount: this.bottlesCount,
+        });
+      }
     }
+  }
+
+  private triggerDeath(_reason: string): void {
+    if (this.isDead || this.hasEscaped) return;
+    this.isDead = true;
+    this.audio.play('train_horn', { gain: 1.0 });
+    this.postFX.triggerJumpscare();
+    const isReducedMotion =
+      this.settings.accessibility.reducedMotion === 'on' ||
+      (this.settings.accessibility.reducedMotion === 'system' &&
+        typeof window !== 'undefined' &&
+        window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+    const fakeHead = new Vector3(this.camera.position.x, this.camera.position.y, this.camera.position.z + 1.0);
+    this.jumpscare?.trigger(
+      this.camera,
+      fakeHead,
+      0,
+      {
+        timeSurvived: this.timeSurvived,
+        noisesMade: this.noisesMade,
+        closestCall: this.closestCall,
+      },
+      isReducedMotion,
+    );
   }
 
   private launchEquippedThrowable(holdTime: number): void {
@@ -1955,8 +1984,8 @@ export class GameSession {
         sourcePlayerId: 'player_local',
       });
       for (const d of this.simWorld.drones) {
-        if (Math.hypot(pos.x - d.getPosition().x, pos.z - d.getPosition().z) < 25) {
-          d.applyEmp(20.0);
+        if (Math.hypot(pos.x - d.pos.x, pos.z - d.pos.z) < 25) {
+          d.applyEmp(pos, 25.0, 20.0);
           this.dronesEmpdCount++;
         }
       }

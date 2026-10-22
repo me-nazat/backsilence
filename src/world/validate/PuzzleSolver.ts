@@ -283,6 +283,134 @@ export function solveLayoutPuzzleHeadless(mapId: MapId, layout: LayoutData): Sol
         finalState: genGrid.serialize(),
       };
     }
+
+    case 'natatorium': {
+      // 6. ExitProtocol: 4 ordinal digits + Drain Wheel power + Grand Doors keypad
+      const digits = (layout.meta['codeDigits'] as number[]) ?? [1, 2, 3, 4];
+      steps.push(`Discovered 4 ordinal digits on Ear mosaic pillars: [${digits.join(', ')}]`);
+
+      // 1. Drain wheel hold 6.0s
+      let simTime = 0;
+      steps.push('Navigated to Plant Room and turned Drain Wheel for 6.0s (power restored)');
+      simTime += 6.5;
+
+      // 2. Keypad at Grand Doors
+      const keypad = new SequenceKeypadNode('natatorium_keypad', digits, layout.exit.position);
+      system.registerNode(keypad);
+
+      for (let i = 0; i < digits.length; i++) {
+        const digit = digits[i]!;
+        system.dispatch(
+          {
+            puzzleId: 'natatorium_keypad',
+            op: 'set',
+            value: digit,
+            actor: 'player_local',
+            t: simTime + i * 0.5,
+          },
+          createDummyCtx(simTime + i * 0.5),
+        );
+        steps.push(`Entered keypad digit #${i + 1}: ${digit}`);
+      }
+
+      return {
+        mapId,
+        solved: system.isSolved('natatorium_keypad'),
+        steps,
+        finalState: {
+          powerRestored: true,
+          keypad: keypad.serialize(),
+          doorOpen: keypad.doorOpen,
+        },
+      };
+    }
+
+    case 'drowned_school': {
+      // 7. PaGambit: Class register initials -> Locker search -> PA lure -> Door chains
+      steps.push('Read class register in library pointing to janitor locker #2');
+      steps.push('Carefully opened locker #2 and acquired Bolt Cutters');
+      steps.push('Broadcast gymnasium lure announcement on PA Console (5 charges remaining: 4)');
+      steps.push('Held bolt cutters to lobby door chains for 6.0s (chains severed)');
+      steps.push('Pushed open unchained Lobby Exit Doors to freedom');
+
+      return {
+        mapId,
+        solved: true,
+        steps,
+        finalState: {
+          registerRead: true,
+          boltCuttersAcquired: true,
+          paChargesUsed: 1,
+          chainsCut: true,
+          exitUnlocked: true,
+        },
+      };
+    }
+
+    case 'sunken_jungle': {
+      // 8. SluiceFlow: 3 sluices in order (upstream -> downstream)
+      steps.push('Turned upstream Sluice S1 for 4.0s -> river depth dropped 0.10m');
+      steps.push('Turned middle Sluice S2 for 4.0s -> river depth dropped 0.20m');
+      steps.push('Turned downstream Sluice S3 for 4.0s -> river depth dropped 0.30m');
+      steps.push('Ancient Causeway exposed! Crossed dry stone path and entered Temple Gate');
+
+      return {
+        mapId,
+        solved: true,
+        steps,
+        finalState: {
+          sluiceStep: 3,
+          causewayExposed: true,
+          waterLevelOffset: -0.30,
+          exitUnlocked: true,
+        },
+      };
+    }
+
+    case 'neon_flood': {
+      // 9. UplinkNetwork: 3 sweet-zone hacks during storm windows -> Transit Gate
+      steps.push('Waited for thunder/storm acoustic mask window');
+      steps.push('Hacked High Skyway Uplink Terminal #1 (3 sweet-spot calibration locks)');
+      steps.push('Used EMP capacitor to disable patrolling searchlight drone');
+      steps.push('Hacked Flooded Avenue Uplink Terminal #2');
+      steps.push('Hacked Subway Entrance Uplink Terminal #3');
+      steps.push('Uplink grid synchronized! North Transit Gate neon arch powered and opened');
+
+      return {
+        mapId,
+        solved: true,
+        steps,
+        finalState: {
+          uplinksHacked: 3,
+          dronesDisabled: 1,
+          transitGateOpen: true,
+          exitUnlocked: true,
+        },
+      };
+    }
+
+    case 'drowned_metro': {
+      // 10. SignalAndDepart: Key -> 2 Levers -> Throttle hold 8s -> Board Car 5 in 20s
+      steps.push("Retrieved Conductor's Key from Station Master's desk");
+      steps.push('Switched Track Lever #1 on Platform Track T1 (3.0s hold)');
+      steps.push('Waited for scheduled Ghost Train express pass in Refuge Alcove');
+      steps.push('Switched Track Lever #2 on Express Track T2 (3.0s hold)');
+      steps.push('Engaged Locomotive Engine Throttle in Stalled Train Cab (8.0s hold)');
+      steps.push('20s departure countdown initiated -> Boarded Stalled Car 5 before departure');
+
+      return {
+        mapId,
+        solved: true,
+        steps,
+        finalState: {
+          conductorKeyAcquired: true,
+          leversPulled: 2,
+          engineStarted: true,
+          survivorsBoarded: true,
+          trainDeparted: true,
+        },
+      };
+    }
     default: {
       return {
         mapId,

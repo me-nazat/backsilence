@@ -92,7 +92,7 @@ describe('Batch 5: Audio Synthesis & Rendering Systems', () => {
 
       const colorAttr = box.getAttribute('color');
       expect(colorAttr).toBeDefined();
-      expect(colorAttr.count).toBe(box.getAttribute('position')!.count);
+      expect(colorAttr.count).toBe(box.getAttribute('position').count);
 
       let foundDarkened = false;
       let foundBright = false;
@@ -131,7 +131,7 @@ describe('Batch 5: Audio Synthesis & Rendering Systems', () => {
         bounds: { minX: -5, maxX: 5, minY: 0, maxY: 4, minZ: -5, maxZ: 5 },
       });
       expect(motes).toBeDefined();
-      expect(motes.geometry.getAttribute('position')!.count).toBe(50);
+      expect(motes.geometry.getAttribute('position').count).toBe(50);
     });
   });
 });

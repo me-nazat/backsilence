@@ -1002,12 +1002,12 @@ export class Hud {
     if (this.schoolStatusEl) {
       if (data.tideLevel !== undefined && data.tideLevel !== null) {
         this.schoolStatusEl.style.display = 'flex';
-        const tideText = this.schoolStatusEl.querySelector('#hud-school-tide-text');
+        const tideText = this.schoolStatusEl.querySelector<HTMLElement>('#hud-school-tide-text');
         if (tideText) {
           const sign = data.tideLevel >= 0 ? '+' : '';
           tideText.textContent = `TIDE ${sign}${data.tideLevel.toFixed(2)} m`;
         }
-        const paText = this.schoolStatusEl.querySelector('#hud-school-pa-text');
+        const paText = this.schoolStatusEl.querySelector<HTMLElement>('#hud-school-pa-text');
         if (paText && data.paStatus) {
           const blocks = '■'.repeat(data.paStatus.charges) + '□'.repeat(data.paStatus.maxCharges - data.paStatus.charges);
           const cd = data.paStatus.cooldownRemaining > 0 ? ` (${Math.ceil(data.paStatus.cooldownRemaining)}s)` : ' READY';
@@ -1023,16 +1023,16 @@ export class Hud {
     if (this.jungleStatusEl) {
       if (data.sluiceGatesRemaining !== undefined && data.sluiceGatesRemaining !== null) {
         this.jungleStatusEl.style.display = 'flex';
-        const gatesText = this.jungleStatusEl.querySelector('#hud-jungle-gates-text');
+        const gatesText = this.jungleStatusEl.querySelector<HTMLElement>('#hud-jungle-gates-text');
         if (gatesText) {
           gatesText.textContent = `GATES ${3 - data.sluiceGatesRemaining}/3 ALIGNED`;
           gatesText.style.color = data.sluiceGatesRemaining === 0 ? 'var(--water, #86cfa0)' : '#d8b36a';
         }
-        const flowText = this.jungleStatusEl.querySelector('#hud-jungle-flow-text');
+        const flowText = this.jungleStatusEl.querySelector<HTMLElement>('#hud-jungle-flow-text');
         if (flowText && data.riverFlow) {
           flowText.textContent = `FLOW: ➔ ${data.riverFlow.speed.toFixed(1)} m/s`;
         }
-        const faunaText = this.jungleStatusEl.querySelector('#hud-jungle-fauna-text');
+        const faunaText = this.jungleStatusEl.querySelector<HTMLElement>('#hud-jungle-fauna-text');
         if (faunaText) {
           if (data.faunaHushState === 'hushed') {
             faunaText.textContent = 'FAUNA HUSH: SILENT (MONSTER NEAR)';
@@ -1054,12 +1054,12 @@ export class Hud {
     if (this.neonStatusEl) {
       if (data.uplinksRemaining !== undefined && data.uplinksRemaining !== null) {
         this.neonStatusEl.style.display = 'flex';
-        const uplinksText = this.neonStatusEl.querySelector('#hud-neon-uplinks-text');
+        const uplinksText = this.neonStatusEl.querySelector<HTMLElement>('#hud-neon-uplinks-text');
         if (uplinksText) {
           uplinksText.textContent = `UPLINKS ${3 - data.uplinksRemaining}/3 HACKED`;
           uplinksText.style.color = data.uplinksRemaining === 0 ? '#00e5ff' : '#d8b36a';
         }
-        const stormText = this.neonStatusEl.querySelector('#hud-neon-storm-text');
+        const stormText = this.neonStatusEl.querySelector<HTMLElement>('#hud-neon-storm-text');
         if (stormText && data.stormWindow) {
           if (data.stormWindow.active) {
             const rem = Math.ceil(data.stormWindow.timeRemaining);
@@ -1071,7 +1071,7 @@ export class Hud {
             stormText.style.color = '#ffeb3b';
           }
         }
-        const empText = this.neonStatusEl.querySelector('#hud-neon-emp-text');
+        const empText = this.neonStatusEl.querySelector<HTMLElement>('#hud-neon-emp-text');
         if (empText && data.empCount !== undefined && data.empCount !== null) {
           empText.textContent = `EMP CHARGES: x${data.empCount}`;
         }
@@ -1084,7 +1084,7 @@ export class Hud {
     if (this.metroStatusEl) {
       if (data.ghostTrainSchedule) {
         this.metroStatusEl.style.display = 'flex';
-        const trainText = this.metroStatusEl.querySelector('#hud-metro-train-text');
+        const trainText = this.metroStatusEl.querySelector<HTMLElement>('#hud-metro-train-text');
         if (trainText) {
           if (data.ghostTrainSchedule.active) {
             trainText.textContent = '⚡ TRAIN PASSING (KILL ZONE) ⚡';
@@ -1099,7 +1099,7 @@ export class Hud {
             trainText.style.color = 'var(--water, #86cfa0)';
           }
         }
-        const bottleText = this.metroStatusEl.querySelector('#hud-metro-bottle-text');
+        const bottleText = this.metroStatusEl.querySelector<HTMLElement>('#hud-metro-bottle-text');
         if (bottleText && data.bottleCount !== undefined && data.bottleCount !== null) {
           bottleText.textContent = `BOTTLES: x${data.bottleCount}`;
         }

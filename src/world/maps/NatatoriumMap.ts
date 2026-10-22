@@ -7,12 +7,8 @@
 
 import {
   MeshStandardMaterial,
-  MeshBasicMaterial,
   Mesh,
   PlaneGeometry,
-  BoxGeometry,
-  CylinderGeometry,
-  Group,
   Vector3,
   Color,
 } from 'three';
@@ -26,6 +22,7 @@ import type {
   PropDef,
   BuildEnv,
 } from '../MapTypes.js';
+import type { Vec3 } from '../../types/contracts.js';
 import type { MapInstance } from './MapInstance.js';
 import { Rng } from '../../procedural/core/prng.js';
 import { TextureRegistry } from '../../procedural/textures/TextureRegistry.js';
@@ -480,10 +477,10 @@ export const NatatoriumMap: MapDefinition = {
     // Monster spawn in Grand Pool Hall, >= 45m from player spawn
     const monsterSpawn = { x: 0, y: -0.9, z: -15 }; // distance = sqrt(0 + 65^2) = 65m >= 45m
 
-    const monsters = [
+    const monsters: Array<{ id: string; variant: 'standard' | 'elder' | 'juvenile'; spawn: Vec3 }> = [
       {
         id: 'monster_1',
-        variant: 'standard' as const,
+        variant: 'standard',
         spawn: monsterSpawn,
       },
     ];
@@ -491,7 +488,7 @@ export const NatatoriumMap: MapDefinition = {
     if (ctx.difficulty === 'deafening' || ctx.playerCount >= 3) {
       monsters.push({
         id: 'monster_2',
-        variant: 'juvenile' as const,
+        variant: 'juvenile',
         spawn: { x: -28, y: -0.9, z: -20 },
       });
     }
@@ -541,9 +538,8 @@ export const NatatoriumMap: MapDefinition = {
 
   async build(layout: LayoutData, env: BuildEnv): Promise<MapInstance> {
     const tex = TextureRegistry.getInstance();
-    const poolTiles = tex.getOrMake('tiles_poolrooms', () => tex.makeTile('pool'));
-    const marbleTex = tex.getOrMake('marble_atrium', () => tex.makeTile('marble'));
-    const concreteTex = tex.getOrMake('concrete_drain', () => tex.makeTile('concrete'));
+    const poolTiles = tex.getTileSet('platform', layout.seed);
+    const marbleTex = tex.getMarbleSet(layout.seed);
 
     const platformMat = new MeshStandardMaterial({
       map: poolTiles.albedo,
@@ -552,7 +548,7 @@ export const NatatoriumMap: MapDefinition = {
       roughness: 0.35,
       metalness: 0.02,
     });
-    applyWetDarkening(platformMat, 0.0);
+    applyWetDarkening(platformMat, { waterY: 0.0 });
 
     const wallMat = new MeshStandardMaterial({
       map: marbleTex.albedo,
@@ -561,7 +557,7 @@ export const NatatoriumMap: MapDefinition = {
       roughness: 0.45,
       metalness: 0.05,
     });
-    applyWetDarkening(wallMat, 0.0);
+    applyWetDarkening(wallMat, { waterY: 0.0 });
 
     const floorMat = new MeshStandardMaterial({
       map: poolTiles.albedo,
