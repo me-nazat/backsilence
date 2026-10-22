@@ -7,6 +7,7 @@ import type { Vec3, MapId, PostGrade } from '../types/contracts.js';
 import type { MonsterDef } from '../sim/MonsterBrain.js';
 import type { MapInstance } from './maps/MapInstance.js';
 import type { WaterProfile } from '../game/water/WaterProfile.js';
+import type { ReverbPreset } from '../audio/Reverb.js';
 
 export interface LayoutCtx {
   seed: number;
@@ -139,7 +140,7 @@ export interface MapDefinition {
   name: string;
   tagline: string;
   stars: 1 | 2 | 3 | 4 | 5;
-  reverb: 'poolroom' | 'tunnel' | 'atrium' | 'drain';
+  reverb: ReverbPreset;
   acoustics: {
     hearingMul: number;
     maskZones?: boolean;

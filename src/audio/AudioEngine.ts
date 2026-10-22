@@ -84,6 +84,50 @@ import {
   playTapeInsert,
   playStaticBurst,
 } from './voices/TapeSounds.js';
+import {
+  playCreak,
+  playLockerOpenFast,
+  playLockerOpenCareful,
+  playChainGrindLoop,
+  playPaChime,
+  playPaBlast,
+  playPaGarble,
+  playChalkScratch,
+  playPianoClunk,
+  playAmbienceSchool,
+} from './voices/SchoolSounds.js';
+import {
+  playRiverLoop,
+  playWaterfallLoop,
+  playFrogChorusLoop,
+  playCricketLoop,
+  playBirdCall,
+  playInsectDrone,
+  playWindLeaves,
+  playAmbienceJungle,
+} from './voices/JungleSounds.js';
+import {
+  playRainLoop,
+  playThunder,
+  playNeonBuzzLoop,
+  playDroneWhirrLoop,
+  playSirenWail,
+  playEmpPulse,
+  playTerminalBeep,
+  playHackSuccess,
+  playHackFail,
+  playHoloHum,
+} from './voices/CitySounds.js';
+import {
+  playRailSingLoop,
+  playTrainRumbleLoop,
+  playTrainHorn,
+  playLeverClunk,
+  playBottleShatter,
+  playStationAnnounceChime,
+  playMonsterSwipe,
+  playMonsterCollapse,
+} from './voices/MetroSounds.js';
 
 export type VoiceName =
   | 'splash_small'
@@ -141,7 +185,44 @@ export type VoiceName =
   | 'tape_rewind'
   | 'tape_eject'
   | 'tape_insert'
-  | 'static_burst';
+  | 'static_burst'
+  // Batch 5 additions
+  | 'creak'
+  | 'locker_open_fast'
+  | 'locker_open_careful'
+  | 'chain_grind_loop'
+  | 'pa_chime'
+  | 'pa_blast'
+  | 'pa_garble'
+  | 'chalk_scratch'
+  | 'piano_clunk'
+  | 'ambience_school'
+  | 'river_loop'
+  | 'waterfall_loop'
+  | 'frog_chorus_loop'
+  | 'cricket_loop'
+  | 'bird_call'
+  | 'insect_drone'
+  | 'wind_leaves'
+  | 'ambience_jungle'
+  | 'rain_loop'
+  | 'thunder'
+  | 'neon_buzz_loop'
+  | 'drone_whirr_loop'
+  | 'siren_wail'
+  | 'emp_pulse'
+  | 'terminal_beep'
+  | 'hack_success'
+  | 'hack_fail'
+  | 'holo_hum'
+  | 'rail_sing_loop'
+  | 'train_rumble_loop'
+  | 'train_horn'
+  | 'lever_clunk'
+  | 'bottle_shatter'
+  | 'station_announce_chime'
+  | 'monster_swipe'
+  | 'monster_collapse';
 
 export interface PlayOptions {
   position?: Vec3;
@@ -515,6 +596,115 @@ export class AudioEngine implements AudioEngineApi {
       case 'static_burst':
         handle = playStaticBurst(voiceCtx);
         break;
+      // Batch 5 cases
+      case 'creak':
+        handle = playCreak(voiceCtx);
+        break;
+      case 'locker_open_fast':
+        handle = playLockerOpenFast(voiceCtx);
+        break;
+      case 'locker_open_careful':
+        handle = playLockerOpenCareful(voiceCtx);
+        break;
+      case 'chain_grind_loop':
+        handle = playChainGrindLoop(voiceCtx);
+        break;
+      case 'pa_chime':
+        handle = playPaChime(voiceCtx);
+        break;
+      case 'pa_blast':
+        handle = playPaBlast(voiceCtx);
+        break;
+      case 'pa_garble':
+        handle = playPaGarble(voiceCtx);
+        break;
+      case 'chalk_scratch':
+        handle = playChalkScratch(voiceCtx);
+        break;
+      case 'piano_clunk':
+        handle = playPianoClunk(voiceCtx);
+        break;
+      case 'ambience_school':
+        handle = playAmbienceSchool(voiceCtx);
+        break;
+      case 'river_loop':
+        handle = playRiverLoop(voiceCtx);
+        break;
+      case 'waterfall_loop':
+        handle = playWaterfallLoop(voiceCtx);
+        break;
+      case 'frog_chorus_loop':
+        handle = playFrogChorusLoop(voiceCtx);
+        break;
+      case 'cricket_loop':
+        handle = playCricketLoop(voiceCtx);
+        break;
+      case 'bird_call':
+        handle = playBirdCall(voiceCtx);
+        break;
+      case 'insect_drone':
+        handle = playInsectDrone(voiceCtx);
+        break;
+      case 'wind_leaves':
+        handle = playWindLeaves(voiceCtx);
+        break;
+      case 'ambience_jungle':
+        handle = playAmbienceJungle(voiceCtx);
+        break;
+      case 'rain_loop':
+        handle = playRainLoop(voiceCtx);
+        break;
+      case 'thunder':
+        handle = playThunder(voiceCtx);
+        break;
+      case 'neon_buzz_loop':
+        handle = playNeonBuzzLoop(voiceCtx);
+        break;
+      case 'drone_whirr_loop':
+        handle = playDroneWhirrLoop(voiceCtx);
+        break;
+      case 'siren_wail':
+        handle = playSirenWail(voiceCtx);
+        break;
+      case 'emp_pulse':
+        handle = playEmpPulse(voiceCtx);
+        break;
+      case 'terminal_beep':
+        handle = playTerminalBeep(voiceCtx);
+        break;
+      case 'hack_success':
+        handle = playHackSuccess(voiceCtx);
+        break;
+      case 'hack_fail':
+        handle = playHackFail(voiceCtx);
+        break;
+      case 'holo_hum':
+        handle = playHoloHum(voiceCtx);
+        break;
+      case 'rail_sing_loop':
+        handle = playRailSingLoop(voiceCtx);
+        break;
+      case 'train_rumble_loop':
+        handle = playTrainRumbleLoop(voiceCtx);
+        break;
+      case 'train_horn':
+        handle = playTrainHorn(voiceCtx);
+        break;
+      case 'lever_clunk':
+        handle = playLeverClunk(voiceCtx);
+        break;
+      case 'bottle_shatter':
+        handle = playBottleShatter(voiceCtx);
+        break;
+      case 'station_announce_chime':
+        handle = playStationAnnounceChime(voiceCtx);
+        break;
+      case 'monster_swipe':
+        handle = playMonsterSwipe(voiceCtx);
+        break;
+      case 'monster_collapse':
+        handle = playMonsterCollapse(voiceCtx);
+        break;
       default:
         handle = playUiClick(voiceCtx);
     }
@@ -563,13 +753,35 @@ export class AudioEngine implements AudioEngineApi {
   }
 
   private defaultBusForVoice(name: VoiceName): AudioBusName {
-    if (name === 'ripple_tick' || name.startsWith('ui_') || name === 'keypad_beep' || name === 'door_clunk') {
+    if (
+      name === 'ripple_tick' ||
+      name.startsWith('ui_') ||
+      name === 'keypad_beep' ||
+      name === 'door_clunk' ||
+      name === 'terminal_beep' ||
+      name === 'hack_success' ||
+      name === 'hack_fail' ||
+      name === 'pa_chime' ||
+      name === 'station_announce_chime'
+    ) {
       return 'ui';
     }
-    if (name === 'monster_footfall' || name.startsWith('monster_') || name === 'jumpscare' || name === 'heartbeat') {
+    if (
+      name === 'monster_footfall' ||
+      name.startsWith('monster_') ||
+      name === 'jumpscare' ||
+      name === 'heartbeat'
+    ) {
       return 'monster';
     }
-    if (name.endsWith('_loop') || name === 'drip') {
+    if (
+      name.endsWith('_loop') ||
+      name === 'drip' ||
+      name.startsWith('ambience_') ||
+      name === 'insect_drone' ||
+      name === 'wind_leaves' ||
+      name === 'holo_hum'
+    ) {
       return 'ambient';
     }
     if (name.startsWith('tape_') || name === 'vhs_glitch' || name === 'static_burst') {

@@ -50,6 +50,50 @@ import {
   playTapeInsert,
   playStaticBurst,
 } from '../audio/voices/TapeSounds.js';
+import {
+  playCreak,
+  playLockerOpenFast,
+  playLockerOpenCareful,
+  playChainGrindLoop,
+  playPaChime,
+  playPaBlast,
+  playPaGarble,
+  playChalkScratch,
+  playPianoClunk,
+  playAmbienceSchool,
+} from '../audio/voices/SchoolSounds.js';
+import {
+  playRiverLoop,
+  playWaterfallLoop,
+  playFrogChorusLoop,
+  playCricketLoop,
+  playBirdCall,
+  playInsectDrone,
+  playWindLeaves,
+  playAmbienceJungle,
+} from '../audio/voices/JungleSounds.js';
+import {
+  playRainLoop,
+  playThunder,
+  playNeonBuzzLoop,
+  playDroneWhirrLoop,
+  playSirenWail,
+  playEmpPulse,
+  playTerminalBeep,
+  playHackSuccess,
+  playHackFail,
+  playHoloHum,
+} from '../audio/voices/CitySounds.js';
+import {
+  playRailSingLoop,
+  playTrainRumbleLoop,
+  playTrainHorn,
+  playLeverClunk,
+  playBottleShatter,
+  playStationAnnounceChime,
+  playMonsterSwipe,
+  playMonsterCollapse,
+} from '../audio/voices/MetroSounds.js';
 
 import { TextureRegistry } from '../procedural/textures/TextureRegistry.js';
 import { makeTileSet } from '../procedural/textures/TileTexture.js';
@@ -136,6 +180,43 @@ const ALL_VOICES: VoiceName[] = [
   'tape_eject',
   'tape_insert',
   'static_burst',
+  // Batch 5
+  'creak',
+  'locker_open_fast',
+  'locker_open_careful',
+  'chain_grind_loop',
+  'pa_chime',
+  'pa_blast',
+  'pa_garble',
+  'chalk_scratch',
+  'piano_clunk',
+  'ambience_school',
+  'river_loop',
+  'waterfall_loop',
+  'frog_chorus_loop',
+  'cricket_loop',
+  'bird_call',
+  'insect_drone',
+  'wind_leaves',
+  'ambience_jungle',
+  'rain_loop',
+  'thunder',
+  'neon_buzz_loop',
+  'drone_whirr_loop',
+  'siren_wail',
+  'emp_pulse',
+  'terminal_beep',
+  'hack_success',
+  'hack_fail',
+  'holo_hum',
+  'rail_sing_loop',
+  'train_rumble_loop',
+  'train_horn',
+  'lever_clunk',
+  'bottle_shatter',
+  'station_announce_chime',
+  'monster_swipe',
+  'monster_collapse',
 ];
 
 /**
@@ -233,6 +314,43 @@ export async function audioSelfTest(): Promise<{ passed: boolean; results: Audio
         case 'tape_eject': playTapeEject(voiceCtx); break;
         case 'tape_insert': playTapeInsert(voiceCtx); break;
         case 'static_burst': playStaticBurst(voiceCtx); break;
+        // Batch 5 additions
+        case 'creak': playCreak(voiceCtx); break;
+        case 'locker_open_fast': playLockerOpenFast(voiceCtx); break;
+        case 'locker_open_careful': playLockerOpenCareful(voiceCtx); break;
+        case 'chain_grind_loop': playChainGrindLoop(voiceCtx); break;
+        case 'pa_chime': playPaChime(voiceCtx); break;
+        case 'pa_blast': playPaBlast(voiceCtx); break;
+        case 'pa_garble': playPaGarble(voiceCtx); break;
+        case 'chalk_scratch': playChalkScratch(voiceCtx); break;
+        case 'piano_clunk': playPianoClunk(voiceCtx); break;
+        case 'ambience_school': playAmbienceSchool(voiceCtx); break;
+        case 'river_loop': playRiverLoop(voiceCtx); break;
+        case 'waterfall_loop': playWaterfallLoop(voiceCtx); break;
+        case 'frog_chorus_loop': playFrogChorusLoop(voiceCtx); break;
+        case 'cricket_loop': playCricketLoop(voiceCtx); break;
+        case 'bird_call': playBirdCall(voiceCtx); break;
+        case 'insect_drone': playInsectDrone(voiceCtx); break;
+        case 'wind_leaves': playWindLeaves(voiceCtx); break;
+        case 'ambience_jungle': playAmbienceJungle(voiceCtx); break;
+        case 'rain_loop': playRainLoop(voiceCtx); break;
+        case 'thunder': playThunder(voiceCtx); break;
+        case 'neon_buzz_loop': playNeonBuzzLoop(voiceCtx); break;
+        case 'drone_whirr_loop': playDroneWhirrLoop(voiceCtx); break;
+        case 'siren_wail': playSirenWail(voiceCtx); break;
+        case 'emp_pulse': playEmpPulse(voiceCtx); break;
+        case 'terminal_beep': playTerminalBeep(voiceCtx); break;
+        case 'hack_success': playHackSuccess(voiceCtx); break;
+        case 'hack_fail': playHackFail(voiceCtx); break;
+        case 'holo_hum': playHoloHum(voiceCtx); break;
+        case 'rail_sing_loop': playRailSingLoop(voiceCtx); break;
+        case 'train_rumble_loop': playTrainRumbleLoop(voiceCtx); break;
+        case 'train_horn': playTrainHorn(voiceCtx); break;
+        case 'lever_clunk': playLeverClunk(voiceCtx); break;
+        case 'bottle_shatter': playBottleShatter(voiceCtx); break;
+        case 'station_announce_chime': playStationAnnounceChime(voiceCtx); break;
+        case 'monster_swipe': playMonsterSwipe(voiceCtx); break;
+        case 'monster_collapse': playMonsterCollapse(voiceCtx); break;
       }
 
       const renderedBuffer = await offlineCtx.startRendering();

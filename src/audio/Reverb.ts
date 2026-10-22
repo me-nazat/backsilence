@@ -5,7 +5,7 @@
 
 import { mulberry32 } from '../procedural/core/prng.js';
 
-export type ReverbPreset = 'poolroom' | 'tunnel' | 'atrium' | 'drain';
+export type ReverbPreset = 'poolroom' | 'tunnel' | 'atrium' | 'drain' | 'school' | 'jungle' | 'city' | 'station';
 
 export interface ReverbPresetConfig {
   duration: number;
@@ -43,6 +43,34 @@ export const PRESET_CONFIGS: Record<ReverbPreset, ReverbPresetConfig> = {
     brightness: 0.35,
     flutter: 0.08,
     preDelay: 0.02,
+  },
+  school: {
+    duration: 1.4,
+    decay: 2.8,
+    brightness: 0.92,
+    flutter: 0.08,
+    preDelay: 0.01,
+  },
+  jungle: {
+    duration: 1.1,
+    decay: 3.5,
+    brightness: 0.35,
+    flutter: 0.01,
+    preDelay: 0.02,
+  },
+  city: {
+    duration: 2.2,
+    decay: 2.0,
+    brightness: 0.7,
+    flutter: 0.18,
+    preDelay: 0.045,
+  },
+  station: {
+    duration: 3.8,
+    decay: 1.5,
+    brightness: 0.85,
+    flutter: 0.06,
+    preDelay: 0.025,
   },
 };
 

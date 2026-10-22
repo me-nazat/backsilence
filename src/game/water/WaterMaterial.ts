@@ -18,6 +18,14 @@ import {
 import type { GraphicsTier } from '../../types/contracts.js';
 import type { WaterProfile } from './WaterProfile.js';
 
+export interface LightStreak {
+  pos: Vector3;
+  dir: Vector3;
+  size: number;
+  color: Color;
+  intensity: number;
+}
+
 export interface WaterMaterialOptions {
   tier?: GraphicsTier | undefined;
   normalTexture: Texture;
@@ -28,6 +36,7 @@ export interface WaterMaterialOptions {
   wakeParams: Vector4[];
   waterY?: number | undefined;
   profile?: WaterProfile | undefined;
+  streaks?: LightStreak[] | undefined;
 }
 
 const vertexShader = /* glsl */ `
@@ -127,6 +136,14 @@ uniform float uScrollSpeed;
 uniform vec3 uBiolumColor;
 uniform float uBiolumRipple;
 uniform float uBiolumAmbient;
+
+// Light Streaks (up to 16 area/line light proxies)
+uniform vec3 uStreakPos[16];
+uniform vec3 uStreakDir[16];
+uniform float uStreakSize[16];
+uniform vec3 uStreakColor[16];
+uniform float uStreakIntensity[16];
+uniform int uStreakCount;
 
 varying vec3 vWorldPos;
 varying vec3 vViewPos;
@@ -251,6 +268,31 @@ void main() {
   float spec = pow(max(0.0, dot(normal, halfVec)), 64.0);
   waterColor += vec3(1.0, 0.96, 0.85) * spec * 0.5;
 
+  // 7b. Elongated specular LightStreaks (up to 16 area/line light proxies)
+  for (int i = 0; i < 16; i++) {
+    if (i >= uStreakCount) break;
+    vec3 sPos = uStreakPos[i];
+    vec3 sDir = uStreakDir[i];
+    float sSize = uStreakSize[i];
+    vec3 sCol = uStreakColor[i];
+    float sInt = uStreakIntensity[i];
+
+    vec3 toSurf = vWorldPos - sPos;
+    float tSeg = clamp(dot(toSurf, sDir), -sSize * 0.5, sSize * 0.5);
+    vec3 closestP = sPos + sDir * tSeg;
+
+    vec3 lightVec = closestP - vWorldPos;
+    float distSq = dot(lightVec, lightVec);
+    vec3 lDir = normalize(lightVec);
+
+    vec3 halfV = normalize(lDir + viewDir);
+    float NdotH = max(0.0, dot(normal, halfV));
+    float sSpec = pow(NdotH, 32.0);
+    float atten = 1.0 / (1.0 + 0.08 * distSq);
+
+    waterColor += sCol * (sSpec * atten * sInt);
+  }
+
   // 8. Foam (Shoreline foam where distToDry < 0.35m + ripple crests + wakes)
   float shoreFoam = 0.0;
   if (distToDry < 0.35) {
@@ -313,8 +355,28 @@ export function createWaterMaterial(options: WaterMaterialOptions): ShaderMateri
       uBiolumColor: { value: new Color(prof?.bioluminescence?.color ?? '#3ff2c8') },
       uBiolumRipple: { value: prof?.bioluminescence?.ripple ?? 0.0 },
       uBiolumAmbient: { value: prof?.bioluminescence?.ambient ?? 0.0 },
+      // LightStreaks (up to 16)
+      uStreakPos: { value: Array.from({ length: 16 }, () => new Vector3()) },
+      uStreakDir: { value: Array.from({ length: 16 }, () => new Vector3(0, 0, 1)) },
+      uStreakSize: { value: new Float32Array(16) },
+      uStreakColor: { value: Array.from({ length: 16 }, () => new Vector3(1, 1, 1)) },
+      uStreakIntensity: { value: new Float32Array(16) },
+      uStreakCount: { value: 0 },
     },
   ]);
+
+  if (options.streaks && options.streaks.length > 0) {
+    const count = Math.min(16, options.streaks.length);
+    uniforms['uStreakCount']!.value = count;
+    for (let i = 0; i < count; i++) {
+      const s = options.streaks[i]!;
+      (uniforms['uStreakPos']!.value as Vector3[])[i]!.copy(s.pos);
+      (uniforms['uStreakDir']!.value as Vector3[])[i]!.copy(s.dir).normalize();
+      (uniforms['uStreakSize']!.value as Float32Array)[i] = s.size;
+      (uniforms['uStreakColor']!.value as Vector3[])[i]!.set(s.color.r, s.color.g, s.color.b);
+      (uniforms['uStreakIntensity']!.value as Float32Array)[i] = s.intensity;
+    }
+  }
 
   const mat = new ShaderMaterial({
     vertexShader,

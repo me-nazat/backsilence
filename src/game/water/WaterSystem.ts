@@ -148,6 +148,20 @@ export class WaterSystem {
     }
   }
 
+  setLightStreaks(streaks: import('./WaterMaterial.js').LightStreak[]): void {
+    const u = this.material.uniforms;
+    const count = Math.min(16, streaks.length);
+    if (u['uStreakCount']) u['uStreakCount'].value = count;
+    for (let i = 0; i < count; i++) {
+      const s = streaks[i]!;
+      (u['uStreakPos']!.value as import('three').Vector3[])[i]!.copy(s.pos);
+      (u['uStreakDir']!.value as import('three').Vector3[])[i]!.copy(s.dir).normalize();
+      (u['uStreakSize']!.value as Float32Array)[i] = s.size;
+      (u['uStreakColor']!.value as import('three').Vector3[])[i]!.set(s.color.r, s.color.g, s.color.b);
+      (u['uStreakIntensity']!.value as Float32Array)[i] = s.intensity;
+    }
+  }
+
   onRipple(ev: RippleEvent): void {
     this.ripples.addRipple(ev.position.x, ev.position.z, ev.strength, ev.t);
   }
