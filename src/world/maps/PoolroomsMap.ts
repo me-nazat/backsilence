@@ -39,6 +39,11 @@ export const PoolroomsMap: MapDefinition = {
     },
   },
   waterProfile: WATER_PROFILES.poolrooms,
+  postGrade: {
+    lift: [0.03, 0.025, 0.015],
+    saturation: 1.06,
+    gain: [1.0, 0.99, 0.97],
+  },
 
   generateLayout(ctx: LayoutCtx): LayoutData {
     const rng = new Rng(ctx.seed);

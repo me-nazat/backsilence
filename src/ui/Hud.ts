@@ -4,6 +4,8 @@
  *  VHS OSD, interaction prompt, and directional sound captions.
  * ──────────────────────────────────────────────────────────────────────── */
 
+import type { PostFXOsdState } from '../engine/PostFX.js';
+
 export interface InventorySlot {
   kind: 'pebble' | 'noisemaker' | 'fuse_core';
   count: number;
@@ -37,6 +39,7 @@ export interface HudData {
   damageVignette: number; // 0..1
   vhsTime?: string;
   showVhsOsd?: boolean;
+  vhsOsdState?: PostFXOsdState;
   multiplayerRoster?: Array<{ name: string; alive: boolean }>;
   roster?: RosterMember[] | undefined;
   spectator?: SpectatorHudData | undefined;
@@ -188,14 +191,14 @@ export class Hud {
       <!-- VHS OSD Elements -->
       <div id="hud-vhs-osd" style="display: block;">
         <div style="position: absolute; top: 24px; left: 24px; font-size: 13px; letter-spacing: 0.1em; display: flex; align-items: center; gap: 8px;">
-          <span style="color: var(--danger, #b3261e); font-size: 16px;">●</span>
-          <span>REC</span>
-          <span id="vhs-timestamp" style="margin-left: 8px; opacity: 0.85;">00:12:44</span>
+          <span id="vhs-rec-dot" style="color: var(--danger, #b3261e); font-size: 16px;">●</span>
+          <span id="vhs-rec-label">REC</span>
+          <span id="vhs-timestamp" style="margin-left: 8px; opacity: 0.85;">AUG 14 1998  00:12:44</span>
         </div>
         <div style="position: absolute; top: 24px; right: 24px; font-size: 12px; opacity: 0.75; letter-spacing: 0.1em;">
-          SP 0:00:00 · BACKSILENCE
+          SP [■■■□] · BACKSILENCE
         </div>
-        <div style="position: absolute; bottom: 24px; left: 24px; font-size: 12px; opacity: 0.75; letter-spacing: 0.1em;">
+        <div id="vhs-play-mode" style="position: absolute; bottom: 24px; left: 24px; font-size: 12px; opacity: 0.75; letter-spacing: 0.1em;">
           PLAY ▶
         </div>
       </div>
@@ -601,8 +604,33 @@ export class Hud {
     if (this.vhsOsdEl) {
       this.vhsOsdEl.style.display = data.showVhsOsd === false ? 'none' : 'block';
     }
-    if (data.vhsTime) {
-      const timeSpan = this.el.querySelector('#vhs-timestamp');
+    if (data.vhsOsdState) {
+      const timeSpan = this.el?.querySelector('#vhs-timestamp');
+      if (timeSpan) timeSpan.textContent = data.vhsOsdState.timestamp;
+      const recDot = this.el?.querySelector<HTMLElement>('#vhs-rec-dot');
+      if (recDot) recDot.style.opacity = data.vhsOsdState.recBlink ? '1.0' : '0.1';
+      const playMode = this.el?.querySelector('#vhs-play-mode');
+      if (playMode) {
+        switch (data.vhsOsdState.mode) {
+          case 'REW':
+            playMode.textContent = '◀◀ REW';
+            break;
+          case 'EJECT':
+            playMode.textContent = '⏏ EJECT';
+            break;
+          case 'TRACKING':
+            playMode.textContent = 'TRACKING…';
+            break;
+          case 'SIGNAL_LOST':
+            playMode.textContent = 'SIGNAL LOST';
+            break;
+          default:
+            playMode.textContent = 'PLAY ▶';
+            break;
+        }
+      }
+    } else if (data.vhsTime) {
+      const timeSpan = this.el?.querySelector('#vhs-timestamp');
       if (timeSpan) timeSpan.textContent = data.vhsTime;
     }
 

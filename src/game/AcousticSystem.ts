@@ -26,6 +26,10 @@ export class AcousticSystem {
     this.settings = settings;
   }
 
+  get tension(): number {
+    return this.currentTension;
+  }
+
   update(
     dt: number,
     playerPos: Vec3,

@@ -293,3 +293,11 @@ export interface DatabaseNetworkAdapter {
   kick?(id: PlayerId): Promise<void>;
   claimHost?(): Promise<boolean>;
 }
+
+export interface PostGrade {
+  lift?: [number, number, number];
+  gamma?: [number, number, number];
+  gain?: [number, number, number];
+  saturation?: number;
+  tint?: [number, number, number];
+}

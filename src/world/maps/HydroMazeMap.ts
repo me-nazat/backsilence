@@ -40,6 +40,10 @@ export const HydroMazeMap: MapDefinition = {
     },
   },
   waterProfile: WATER_PROFILES.hydro_maze,
+  postGrade: {
+    tint: [0.9, 1.05, 1.03],
+    saturation: 1.02,
+  },
 
   generateLayout(ctx: LayoutCtx): LayoutData {
     const rng = new Rng(ctx.seed);

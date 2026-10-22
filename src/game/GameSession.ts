@@ -21,6 +21,7 @@ import {
   Float32BufferAttribute,
 } from 'three';
 import { EngineRenderer } from '../engine/Renderer.js';
+import { PostFX } from '../engine/PostFX.js';
 import { AudioEngine } from '../audio/AudioEngine.js';
 import type { Settings, NoiseEvent, RippleEvent, MapId, Vec3, PlayerId, PuzzleOp } from '../types/contracts.js';
 import { WORLD } from '../app/Config.js';
@@ -60,6 +61,7 @@ export class GameSession {
   readonly scene: Scene;
   readonly camera: PerspectiveCamera;
   readonly renderer: EngineRenderer;
+  readonly postFX: PostFX;
   private readonly audio = AudioEngine.getInstance();
   private readonly hud: Hud;
   private readonly callbacks: GameSessionCallbacks;
@@ -184,6 +186,10 @@ export class GameSession {
     );
 
     this.renderer = new EngineRenderer(container, settings);
+    this.postFX = new PostFX(this.renderer.renderer, container, settings);
+    if (typeof window !== 'undefined') {
+      (window as unknown as { __backsilence_session?: unknown }).__backsilence_session = this;
+    }
     this.setupDebugTools();
 
     // Start async build pipeline
@@ -202,6 +208,9 @@ export class GameSession {
 
       // 1. Atmosphere Setup
       this.setupAtmosphere(this.mapDef);
+      this.postFX.setPostGrade(this.mapDef.postGrade);
+      this.audio.play('tape_insert');
+      this.postFX.triggerTracking(0.8);
 
       // 2. Build 3D Map Presentation & Physical Terrain
       const quality = this.settings.graphics.quality;
@@ -377,7 +386,10 @@ export class GameSession {
                 return;
               }
             }
-            this.callbacks.onDeath(stats);
+            this.audio.play('tape_rewind');
+            this.postFX.triggerDeathRewind(() => {
+              this.callbacks.onDeath(stats);
+            });
           },
         },
         this.audio,
@@ -836,6 +848,8 @@ export class GameSession {
   setSettings(newSettings: Settings): void {
     this.settings = newSettings;
     this.renderer.applySettings(newSettings);
+    this.postFX.applySettings(newSettings);
+    this.audio.setVhsIntensity(newSettings.graphics.vhsIntensity);
     this.playerCamera.setSettings(newSettings);
     this.playerInput.setSettings(newSettings);
     this.acoustics.setSettings(newSettings);
@@ -886,10 +900,16 @@ export class GameSession {
   update(dt: number): void {
     if (this.isDisposed || this.isPaused || !this.isLoaded) return;
 
+    const pVel = this.simWorld?.player ? this.simWorld.player.getState().vel : { x: 0, y: 0, z: 0 };
+    const cameraSpeed = Math.hypot(pVel.x, pVel.z);
+    this.postFX.update(dt, cameraSpeed);
+    this.postFX.setTension(this.acoustics ? this.acoustics.tension : 0);
+
     // Jumpscare update takes priority if active
     if (this.jumpscare.isActive()) {
       this.jumpscare.update(dt);
-      this.renderer.render(this.scene, this.camera);
+      this.hud.update({ vhsOsdState: this.postFX.getOsdState() });
+      this.postFX.render(this.scene, this.camera, dt);
       return;
     }
 
@@ -919,7 +939,8 @@ export class GameSession {
       this.pingMarkers.update(this.camera, this.simWorld.simTime);
       this.updateRemoteAvatars(dt);
 
-      this.renderer.render(this.scene, this.camera);
+      this.hud.update({ vhsOsdState: this.postFX.getOsdState() });
+      this.postFX.render(this.scene, this.camera, dt);
       return;
     }
 
@@ -1048,6 +1069,7 @@ export class GameSession {
             typeof window !== 'undefined' &&
             window.matchMedia('(prefers-reduced-motion: reduce)').matches);
 
+        this.postFX.triggerJumpscare();
         this.jumpscare.trigger(
           this.camera,
           headWorld,
@@ -1095,6 +1117,7 @@ export class GameSession {
       stamina: currSnap.stamina / 100.0,
       status: statusText,
       interactionPrompt: promptState.visible ? promptState.label : null,
+      vhsOsdState: this.postFX.getOsdState(),
     });
 
     // 12. Multiplayer Replication & Ping Markers
@@ -1148,7 +1171,7 @@ export class GameSession {
     }
 
     // 15. Render Scene
-    this.renderer.render(this.scene, this.camera);
+    this.postFX.render(this.scene, this.camera, dt);
   }
 
   private stepSubsystems(dt: number): void {
@@ -1452,6 +1475,8 @@ export class GameSession {
 
     if (dist <= 2.5 && this.exitUnlocked) {
       this.isWon = true;
+      this.audio.play('tape_eject');
+      this.postFX.triggerTapeEjected();
 
       if (this.netSession) {
         this.hasEscaped = true;
@@ -1913,6 +1938,13 @@ export class GameSession {
     this.remoteAvatars.clear();
     this.netSession?.dispose();
 
+    if (typeof window !== 'undefined') {
+      const g = window as unknown as { __backsilence_session?: unknown };
+      if (g.__backsilence_session === this) {
+        delete g.__backsilence_session;
+      }
+    }
+    this.postFX.dispose();
     this.renderer.dispose();
   }
 }

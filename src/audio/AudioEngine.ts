@@ -77,6 +77,13 @@ import {
   playAmbienceDrain,
   playMonsterAmbientFar,
 } from './voices/AmbienceBeds.js';
+import {
+  playVhsGlitch,
+  playTapeRewind,
+  playTapeEject,
+  playTapeInsert,
+  playStaticBurst,
+} from './voices/TapeSounds.js';
 
 export type VoiceName =
   | 'splash_small'
@@ -129,7 +136,12 @@ export type VoiceName =
   | 'ambience_tunnels'
   | 'ambience_atrium'
   | 'ambience_filtration'
-  | 'ambience_drain';
+  | 'ambience_drain'
+  | 'vhs_glitch'
+  | 'tape_rewind'
+  | 'tape_eject'
+  | 'tape_insert'
+  | 'static_burst';
 
 export interface PlayOptions {
   position?: Vec3;
@@ -160,6 +172,7 @@ export interface AudioEngineApi {
   setReverbPreset(p: ReverbPreset): void;
   setUnderwater(amount: number): void;
   setTension(amount: number): void;
+  setVhsIntensity(intensity: number): void;
   applySettings(s: Settings['audio']): void;
   startAmbience(): void;
   stopAmbience(fade?: number): void;
@@ -180,6 +193,9 @@ export class AudioEngine implements AudioEngineApi {
   private isInitialized = false;
   private muteOnBlur = true;
   private voiceSeq = 0;
+  private tapeHissSource: AudioBufferSourceNode | null = null;
+  private tapeHissGain: GainNode | null = null;
+  private vhsIntensity = 0.5;
 
   static getInstance(): AudioEngine {
     if (!AudioEngine.instance) {
@@ -238,6 +254,34 @@ export class AudioEngine implements AudioEngineApi {
     });
 
     this.isInitialized = true;
+
+    // Tape Hiss Bed (high-passed pink noise)
+    if (this.noiseBuffers && this.ctx) {
+      try {
+        const hiss = this.ctx.createBufferSource();
+        hiss.buffer = this.noiseBuffers.pink;
+        hiss.loop = true;
+
+        const hp = this.ctx.createBiquadFilter();
+        hp.type = 'highpass';
+        hp.frequency.setValueAtTime(1200, this.ctx.currentTime);
+
+        const hissGain = this.ctx.createGain();
+        hissGain.gain.setValueAtTime(0.02 * this.vhsIntensity, this.ctx.currentTime);
+
+        hiss.connect(hp);
+        hp.connect(hissGain);
+        if (this.mixer) {
+          hissGain.connect(this.mixer.ambientGain);
+        }
+
+        hiss.start();
+        this.tapeHissSource = hiss;
+        this.tapeHissGain = hissGain;
+      } catch (e) {
+        console.warn('[AudioEngine] Tape hiss bed initialization error:', e);
+      }
+    }
   }
 
   play(name: VoiceName, opts: PlayOptions = {}): VoiceHandle {
@@ -456,6 +500,21 @@ export class AudioEngine implements AudioEngineApi {
       case 'ambience_drain':
         handle = playAmbienceDrain(voiceCtx);
         break;
+      case 'vhs_glitch':
+        handle = playVhsGlitch(voiceCtx);
+        break;
+      case 'tape_rewind':
+        handle = playTapeRewind(voiceCtx);
+        break;
+      case 'tape_eject':
+        handle = playTapeEject(voiceCtx);
+        break;
+      case 'tape_insert':
+        handle = playTapeInsert(voiceCtx);
+        break;
+      case 'static_burst':
+        handle = playStaticBurst(voiceCtx);
+        break;
       default:
         handle = playUiClick(voiceCtx);
     }
@@ -513,6 +572,9 @@ export class AudioEngine implements AudioEngineApi {
     if (name.endsWith('_loop') || name === 'drip') {
       return 'ambient';
     }
+    if (name.startsWith('tape_') || name === 'vhs_glitch' || name === 'static_burst') {
+      return 'sfx';
+    }
     return 'sfx';
   }
 
@@ -558,6 +620,14 @@ export class AudioEngine implements AudioEngineApi {
     this.director?.setTension(amount);
   }
 
+  setVhsIntensity(intensity: number): void {
+    this.vhsIntensity = Math.max(0, Math.min(1, intensity));
+    if (this.tapeHissGain && this.ctx) {
+      const now = this.ctx.currentTime;
+      this.tapeHissGain.gain.linearRampToValueAtTime(0.035 * this.vhsIntensity, now + 0.1);
+    }
+  }
+
   duckBus(bus: AudioBusName, amount: number, attack = 0.05, release = 1.0): void {
     this.mixer?.duck(bus, amount, attack, release);
   }
@@ -601,6 +671,14 @@ export class AudioEngine implements AudioEngineApi {
   }
 
   dispose(): void {
+    if (this.tapeHissSource) {
+      try {
+        this.tapeHissSource.stop();
+      } catch (err) {
+        void err;
+      }
+      this.tapeHissSource = null;
+    }
     this.director?.dispose();
     this.mixer?.dispose();
     this.reverb?.dispose();

@@ -3,7 +3,7 @@
  *  definitions, atmosphere presets, and rendering builders.
  * ──────────────────────────────────────────────────────────────────────── */
 
-import type { Vec3, MapId } from '../types/contracts.js';
+import type { Vec3, MapId, PostGrade } from '../types/contracts.js';
 import type { MonsterDef } from '../sim/MonsterBrain.js';
 import type { MapInstance } from './maps/MapInstance.js';
 import type { WaterProfile } from '../game/water/WaterProfile.js';
@@ -146,6 +146,7 @@ export interface MapDefinition {
   };
   atmosphere: AtmospherePreset;
   waterProfile: WaterProfile;
+  postGrade?: PostGrade;
 
   /** Pure and deterministic layout generation */
   generateLayout(ctx: LayoutCtx): LayoutData;

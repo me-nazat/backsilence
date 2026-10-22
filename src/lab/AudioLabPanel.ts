@@ -178,6 +178,11 @@ export class AudioLabPanel {
       'ui_error',
       'keypad_beep',
       'door_clunk',
+      'vhs_glitch',
+      'tape_rewind',
+      'tape_eject',
+      'tape_insert',
+      'static_burst',
     ];
 
     const container = this.panelEl?.querySelector('#voice-buttons');

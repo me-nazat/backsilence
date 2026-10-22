@@ -38,6 +38,11 @@ export const DrainageCoreMap: MapDefinition = {
     },
   },
   waterProfile: WATER_PROFILES.drainage_core,
+  postGrade: {
+    lift: [-0.03, -0.01, 0.0],
+    tint: [0.92, 1.02, 1.05],
+    saturation: 0.85,
+  },
 
   generateLayout(ctx: LayoutCtx): LayoutData {
     const bounds = { minX: -60, minZ: -60, maxX: 60, maxZ: 60 };

@@ -39,6 +39,11 @@ export const MarbleAtriumMap: MapDefinition = {
     },
   },
   waterProfile: WATER_PROFILES.marble_atrium,
+  postGrade: {
+    lift: [0.01, 0.02, 0.03],
+    tint: [0.96, 0.98, 1.04],
+    saturation: 0.95,
+  },
 
   generateLayout(ctx: LayoutCtx): LayoutData {
     const rng = new Rng(ctx.seed);

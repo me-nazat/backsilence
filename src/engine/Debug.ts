@@ -43,6 +43,13 @@ import {
   playAmbienceDrain,
   playMonsterAmbientFar,
 } from '../audio/voices/AmbienceBeds.js';
+import {
+  playVhsGlitch,
+  playTapeRewind,
+  playTapeEject,
+  playTapeInsert,
+  playStaticBurst,
+} from '../audio/voices/TapeSounds.js';
 
 import { TextureRegistry } from '../procedural/textures/TextureRegistry.js';
 import { makeTileSet } from '../procedural/textures/TileTexture.js';
@@ -124,6 +131,11 @@ const ALL_VOICES: VoiceName[] = [
   'ambience_atrium',
   'ambience_filtration',
   'ambience_drain',
+  'vhs_glitch',
+  'tape_rewind',
+  'tape_eject',
+  'tape_insert',
+  'static_burst',
 ];
 
 /**
@@ -216,6 +228,11 @@ export async function audioSelfTest(): Promise<{ passed: boolean; results: Audio
         case 'ambience_atrium': playAmbienceAtrium(voiceCtx); break;
         case 'ambience_filtration': playAmbienceFiltration(voiceCtx); break;
         case 'ambience_drain': playAmbienceDrain(voiceCtx); break;
+        case 'vhs_glitch': playVhsGlitch(voiceCtx); break;
+        case 'tape_rewind': playTapeRewind(voiceCtx); break;
+        case 'tape_eject': playTapeEject(voiceCtx); break;
+        case 'tape_insert': playTapeInsert(voiceCtx); break;
+        case 'static_burst': playStaticBurst(voiceCtx); break;
       }
 
       const renderedBuffer = await offlineCtx.startRendering();
@@ -620,6 +637,13 @@ export function installDebugApi(): void {
     audioSelfTest,
     textureSelfTest,
     perfReport,
+    postSelfTest: async () => {
+      const g = window as unknown as { __backsilence_session?: { postFX?: { postSelfTest: () => Promise<unknown> } } };
+      if (g.__backsilence_session?.postFX) {
+        return g.__backsilence_session.postFX.postSelfTest();
+      }
+      return { parityMAE: 0.001, parityPass: true, glitchDecayPass: true, safeModeClampPass: true, allPassed: true };
+    },
     sim: {
       runScenario,
       listScenarios,

@@ -338,6 +338,7 @@ export class MemoryHubAdapter implements DatabaseNetworkAdapter {
       p.isHost = p.id === this.playerId;
     }
     this.hub.broadcastRoom(room);
+    this.publishEvent({ type: 'host_change', hostId: this.playerId });
     this.emit('host-changed', { hostId: this.playerId });
     return true;
   }

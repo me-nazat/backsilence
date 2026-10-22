@@ -40,6 +40,11 @@ export const UtilityTunnelsMap: MapDefinition = {
     },
   },
   waterProfile: WATER_PROFILES.utility_tunnels,
+  postGrade: {
+    lift: [-0.02, -0.02, -0.02],
+    tint: [1.08, 0.95, 0.95],
+    saturation: 0.92,
+  },
 
   generateLayout(ctx: LayoutCtx): LayoutData {
     const rng = new Rng(ctx.seed);

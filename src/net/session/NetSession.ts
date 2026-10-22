@@ -131,9 +131,19 @@ export class NetSession {
   private subscribeAdapterEvents(): void {
     this.unsubscribes.push(
       this.adapter.on('room', (room) => {
+        const prevHost = this.room?.hostId;
         this.room = room;
         this.syncRoster(room);
         this.callbacks.onRosterChanged?.(room);
+        if (prevHost && room.hostId !== prevHost) {
+          if (room.hostId === this.localPlayerId) {
+            (this as { role: SessionRole }).role = 'host';
+          }
+          this.callbacks.onHostChanged?.(room.hostId);
+        } else if (!prevHost && room.hostId === this.localPlayerId && this.role === 'client') {
+          (this as { role: SessionRole }).role = 'host';
+          this.callbacks.onHostChanged?.(room.hostId);
+        }
       }),
       this.adapter.on('snapshot', (snap) => {
         this.handleInboundSnapshot(snap);
