@@ -34,6 +34,7 @@ export function installNetworkGuard(isSoloActive: () => boolean): void {
 
   // 2. XMLHttpRequest
   if (typeof XMLHttpRequest !== 'undefined') {
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     const originalOpen = XMLHttpRequest.prototype.open;
     XMLHttpRequest.prototype.open = function (
       this: XMLHttpRequest,

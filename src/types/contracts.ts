@@ -240,11 +240,11 @@ export interface NetStats {
 
 export interface AdapterConfig {
   provider: 'null' | 'loopback' | 'memory' | 'local-tab' | 'supabase' | 'firebase' | 'turso' | 'webrtc-db';
-  url?: string;
-  key?: string;
-  signalProvider?: 'supabase' | 'firebase' | 'turso';
-  iceServers?: RTCIceServer[];
-  extra?: Record<string, string>;
+  url?: string | undefined;
+  key?: string | undefined;
+  signalProvider?: 'supabase' | 'firebase' | 'turso' | undefined;
+  iceServers?: RTCIceServer[] | undefined;
+  extra?: Record<string, string> | undefined;
 }
 
 export type Unsubscribe = () => void;
