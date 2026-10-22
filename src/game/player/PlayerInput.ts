@@ -1,7 +1,7 @@
 /* ── PlayerInput.ts ────────────────────────────────────────────────────────
  *  First-person player input aggregator.
- *  Combines keyboard, pointer-locked mouse look, and touch controls into
- *  a single deterministic PlayerIntent for the pure physics simulation.
+ *  Combines keyboard, mouse clicks/drag, pointer-locked mouse look,
+ *  and touch controls into a single deterministic PlayerIntent and action signals.
  * ──────────────────────────────────────────────────────────────────────── */
 
 import type { PlayerIntent } from '../../sim/PlayerMotor.js';
@@ -10,6 +10,8 @@ import { TouchControls } from './TouchControls.js';
 
 export interface PlayerInputCallbacks {
   onPauseRequested: () => void;
+  onCycleItem?: () => void;
+  onToggleFlashlight?: () => void;
 }
 
 export class PlayerInput {
@@ -20,6 +22,14 @@ export class PlayerInput {
 
   private mouseDeltaX = 0;
   private mouseDeltaY = 0;
+
+  // Throw state (Right Click / KeyG)
+  private isThrowing = false;
+  private throwHoldTime = 0;
+  private throwReadyToLaunch: number | null = null;
+
+  // Crank state (KeyC)
+  private isCranking = false;
 
   private touchControls: TouchControls;
   private callbacks: PlayerInputCallbacks;
@@ -51,11 +61,60 @@ export class PlayerInput {
       // Escape or Pause binding triggers pause
       if (e.code === 'Escape' || e.code === this.settings.controls.bindings.pause) {
         this.callbacks.onPauseRequested();
+      } else if (e.code === 'KeyQ') {
+        if (this.callbacks.onCycleItem) this.callbacks.onCycleItem();
+      } else if (e.code === 'KeyF') {
+        if (this.callbacks.onToggleFlashlight) this.callbacks.onToggleFlashlight();
+      } else if (e.code === 'KeyG') {
+        if (!this.isThrowing) {
+          this.isThrowing = true;
+          this.throwHoldTime = 0;
+        }
+      } else if (e.code === 'KeyC') {
+        this.isCranking = true;
       }
     });
 
     window.addEventListener('keyup', (e) => {
       this.keysDown.delete(e.code);
+      if (e.code === 'KeyG') {
+        if (this.isThrowing) {
+          this.throwReadyToLaunch = this.throwHoldTime;
+          this.isThrowing = false;
+          this.throwHoldTime = 0;
+        }
+      } else if (e.code === 'KeyC') {
+        this.isCranking = false;
+      }
+    });
+
+    // Mouse button events for throw and interact
+    window.addEventListener('mousedown', (e) => {
+      if (this.freezeInput) return;
+      if (e.button === 2) {
+        // Right click: start aiming throw
+        e.preventDefault();
+        this.isThrowing = true;
+        this.throwHoldTime = 0;
+      }
+    });
+
+    window.addEventListener('mouseup', (e) => {
+      if (e.button === 2) {
+        // Right click release: launch projectile
+        e.preventDefault();
+        if (this.isThrowing) {
+          this.throwReadyToLaunch = this.throwHoldTime;
+          this.isThrowing = false;
+          this.throwHoldTime = 0;
+        }
+      }
+    });
+
+    window.addEventListener('contextmenu', (e) => {
+      if (this.isLocked) {
+        e.preventDefault();
+      }
     });
 
     window.addEventListener('mousemove', (e) => {
@@ -78,12 +137,16 @@ export class PlayerInput {
     // Auto-pause and clear keys on window blur or visibility loss
     window.addEventListener('blur', () => {
       this.keysDown.clear();
+      this.isThrowing = false;
+      this.isCranking = false;
       this.callbacks.onPauseRequested();
     });
 
     document.addEventListener('visibilitychange', () => {
       if (document.hidden) {
         this.keysDown.clear();
+        this.isThrowing = false;
+        this.isCranking = false;
         this.callbacks.onPauseRequested();
       }
     });
@@ -109,7 +172,33 @@ export class PlayerInput {
     this.freezeInput = freeze;
     if (freeze) {
       this.keysDown.clear();
+      this.isThrowing = false;
+      this.isCranking = false;
     }
+  }
+
+  updateThrowHold(dt: number): void {
+    if (this.isThrowing) {
+      this.throwHoldTime = Math.min(1.0, this.throwHoldTime + dt);
+    }
+  }
+
+  isThrowHeld(): boolean {
+    return this.isThrowing;
+  }
+
+  getThrowHoldDuration(): number {
+    return this.throwHoldTime;
+  }
+
+  consumeThrowLaunch(): number | null {
+    const val = this.throwReadyToLaunch;
+    this.throwReadyToLaunch = null;
+    return val;
+  }
+
+  isCrankActive(): boolean {
+    return this.isCranking;
   }
 
   pollIntent(): PlayerIntent {

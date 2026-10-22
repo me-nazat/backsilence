@@ -49,6 +49,34 @@ import {
   playDoorClunk,
   playRippleTick,
 } from './voices/UiSounds.js';
+import {
+  playSteamHiss,
+  playPipeGroan,
+  playValveTurn,
+  playValveRelease,
+  playWaterInflowLoop,
+  playCrankLoop,
+  playGeneratorLoop,
+  playGeneratorCord,
+  playAlarmKlaxon,
+  playShutterRumble,
+  playSocketClunk,
+} from './voices/Machinery.js';
+import {
+  playBell,
+  playStoneCreak,
+  playPebbleClack,
+  playFlashlightClick,
+  playKeypadBuzz,
+  playEscaped,
+} from './voices/Interactables.js';
+import {
+  playAmbienceTunnels,
+  playAmbienceAtrium,
+  playAmbienceFiltration,
+  playAmbienceDrain,
+  playMonsterAmbientFar,
+} from './voices/AmbienceBeds.js';
 
 export type VoiceName =
   | 'splash_small'
@@ -79,7 +107,29 @@ export type VoiceName =
   | 'ui_error'
   | 'keypad_beep'
   | 'door_clunk'
-  | 'ripple_tick';
+  | 'ripple_tick'
+  | 'steam_hiss'
+  | 'pipe_groan'
+  | 'valve_turn'
+  | 'valve_release'
+  | 'water_inflow_loop'
+  | 'bell'
+  | 'stone_creak'
+  | 'pebble_clack'
+  | 'flashlight_click'
+  | 'crank_loop'
+  | 'generator_loop'
+  | 'generator_cord'
+  | 'alarm_klaxon'
+  | 'shutter_rumble'
+  | 'socket_clunk'
+  | 'keypad_buzz'
+  | 'monster_ambient_far'
+  | 'escaped'
+  | 'ambience_tunnels'
+  | 'ambience_atrium'
+  | 'ambience_filtration'
+  | 'ambience_drain';
 
 export interface PlayOptions {
   position?: Vec3;
@@ -339,6 +389,72 @@ export class AudioEngine implements AudioEngineApi {
         break;
       case 'monster_footfall':
         handle = playMonsterFootfall(voiceCtx);
+        break;
+      case 'steam_hiss':
+        handle = playSteamHiss(voiceCtx);
+        break;
+      case 'pipe_groan':
+        handle = playPipeGroan(voiceCtx);
+        break;
+      case 'valve_turn':
+        handle = playValveTurn(voiceCtx);
+        break;
+      case 'valve_release':
+        handle = playValveRelease(voiceCtx);
+        break;
+      case 'water_inflow_loop':
+        handle = playWaterInflowLoop(voiceCtx);
+        break;
+      case 'bell':
+        handle = playBell(voiceCtx);
+        break;
+      case 'stone_creak':
+        handle = playStoneCreak(voiceCtx);
+        break;
+      case 'pebble_clack':
+        handle = playPebbleClack(voiceCtx);
+        break;
+      case 'flashlight_click':
+        handle = playFlashlightClick(voiceCtx);
+        break;
+      case 'crank_loop':
+        handle = playCrankLoop(voiceCtx);
+        break;
+      case 'generator_loop':
+        handle = playGeneratorLoop(voiceCtx);
+        break;
+      case 'generator_cord':
+        handle = playGeneratorCord(voiceCtx);
+        break;
+      case 'alarm_klaxon':
+        handle = playAlarmKlaxon(voiceCtx);
+        break;
+      case 'shutter_rumble':
+        handle = playShutterRumble(voiceCtx);
+        break;
+      case 'socket_clunk':
+        handle = playSocketClunk(voiceCtx);
+        break;
+      case 'keypad_buzz':
+        handle = playKeypadBuzz(voiceCtx);
+        break;
+      case 'monster_ambient_far':
+        handle = playMonsterAmbientFar(voiceCtx);
+        break;
+      case 'escaped':
+        handle = playEscaped(voiceCtx);
+        break;
+      case 'ambience_tunnels':
+        handle = playAmbienceTunnels(voiceCtx);
+        break;
+      case 'ambience_atrium':
+        handle = playAmbienceAtrium(voiceCtx);
+        break;
+      case 'ambience_filtration':
+        handle = playAmbienceFiltration(voiceCtx);
+        break;
+      case 'ambience_drain':
+        handle = playAmbienceDrain(voiceCtx);
         break;
       default:
         handle = playUiClick(voiceCtx);

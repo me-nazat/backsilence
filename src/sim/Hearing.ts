@@ -7,6 +7,43 @@
 import type { Vec3, NoiseEvent } from '../types/contracts.js';
 import type { ColliderSet } from './Colliders.js';
 
+export interface MaskZone {
+  center: Vec3;
+  radius: number;
+  factor: number;
+  from?: number; // active time start
+  to?: number;   // active time end
+}
+
+export class MaskZoneManager {
+  private readonly zones: MaskZone[] = [];
+
+  addZone(zone: MaskZone): void {
+    this.zones.push(zone);
+  }
+
+  clear(): void {
+    this.zones.length = 0;
+  }
+
+  getMaskFactor(pos: Vec3, simTime = 0): number {
+    let factor = 1.0;
+    for (let i = 0; i < this.zones.length; i++) {
+      const z = this.zones[i]!;
+      if (z.from !== undefined && simTime < z.from) continue;
+      if (z.to !== undefined && simTime > z.to) continue;
+
+      const dx = pos.x - z.center.x;
+      const dz = pos.z - z.center.z;
+      const dist = Math.hypot(dx, dz);
+      if (dist <= z.radius) {
+        factor = Math.min(factor, z.factor);
+      }
+    }
+    return factor;
+  }
+}
+
 export interface HearingContext {
   difficultyHearing: number; // Whisper: 0.75, Normal: 1.0, Deafening: 1.3
   maskFactor?: (pos: Vec3) => number;

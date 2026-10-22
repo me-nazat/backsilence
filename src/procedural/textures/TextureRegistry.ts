@@ -10,6 +10,12 @@ import { makeWaterNormalMap } from './WaterNormal.js';
 import { makeRippleStamp } from './RippleStamp.js';
 import { makeTaglineDecal, makeWarningDecal, type WarningKind } from './GraffitiDecals.js';
 import { makeNumberDecal, type NumberDecalOptions } from './NumberDecals.js';
+import { makeConcreteSet, type ConcreteVariant, type ConcreteSetResult } from './ConcreteTexture.js';
+import { makeRustMetalSet, makeGrateTexture, type MetalSetResult } from './RustMetalTexture.js';
+import { makeMarbleSet, type MarbleSetResult } from './MarbleTexture.js';
+import { makeBronzeSet, type BronzeSetResult } from './BronzeTexture.js';
+import { makeAlgaeGlowTexture } from './AlgaeGlowMask.js';
+import { makePaintedLabel, makePipeDiagramTexture, type LabelOptions } from './PaintedLabel.js';
 import { runJobQueue, type CooperativeJob } from '../core/scheduler.js';
 
 export interface TextureStats {
@@ -28,6 +34,13 @@ export class TextureRegistry {
   private taglineMap = new Map<string, Texture>();
   private warningMap = new Map<string, Texture>();
   private numberMap = new Map<string, Texture>();
+  private concreteSets = new Map<string, ConcreteSetResult>();
+  private metalSets = new Map<string, MetalSetResult>();
+  private grateMap = new Map<string, Texture>();
+  private marbleSets = new Map<string, MarbleSetResult>();
+  private bronzeSets = new Map<string, BronzeSetResult>();
+  private algaeGlowMap = new Map<string, Texture>();
+  private labelMap = new Map<string, Texture>();
 
   private registeredTextures = new Set<Texture>();
 
@@ -128,6 +141,104 @@ export class TextureRegistry {
     return tex;
   }
 
+  getConcreteSet(variant: ConcreteVariant = 'tunnel', seed = 42, size = 512): ConcreteSetResult {
+    const key = `concrete:${variant}:${seed}:${size}`;
+    let set = this.concreteSets.get(key);
+    if (!set) {
+      set = makeConcreteSet(variant, seed, size);
+      this.trackTexture(set.albedo, size, size);
+      this.trackTexture(set.normal, size, size);
+      this.trackTexture(set.roughness, size, size);
+      this.concreteSets.set(key, set);
+    }
+    return set;
+  }
+
+  getRustMetalSet(seed = 42, size = 512): MetalSetResult {
+    const key = `rustMetal:${seed}:${size}`;
+    let set = this.metalSets.get(key);
+    if (!set) {
+      set = makeRustMetalSet(seed, size);
+      this.trackTexture(set.albedo, size, size);
+      this.trackTexture(set.normal, size, size);
+      this.trackTexture(set.roughness, size, size);
+      this.trackTexture(set.metalness, size, size);
+      this.metalSets.set(key, set);
+    }
+    return set;
+  }
+
+  getGrateTexture(size = 256): Texture {
+    const key = `grate:${size}`;
+    let tex = this.grateMap.get(key);
+    if (!tex) {
+      tex = makeGrateTexture(size);
+      this.trackTexture(tex, size, size);
+      this.grateMap.set(key, tex);
+    }
+    return tex;
+  }
+
+  getMarbleSet(seed = 42, size = 512): MarbleSetResult {
+    const key = `marble:${seed}:${size}`;
+    let set = this.marbleSets.get(key);
+    if (!set) {
+      set = makeMarbleSet(seed, size);
+      this.trackTexture(set.albedo, size, size);
+      this.trackTexture(set.normal, size, size);
+      this.trackTexture(set.roughness, size, size);
+      this.marbleSets.set(key, set);
+    }
+    return set;
+  }
+
+  getBronzeSet(seed = 88, size = 256): BronzeSetResult {
+    const key = `bronze:${seed}:${size}`;
+    let set = this.bronzeSets.get(key);
+    if (!set) {
+      set = makeBronzeSet(seed, size);
+      this.trackTexture(set.albedo, size, size);
+      this.trackTexture(set.normal, size, size);
+      this.trackTexture(set.roughness, size, size);
+      this.trackTexture(set.metalness, size, size);
+      this.bronzeSets.set(key, set);
+    }
+    return set;
+  }
+
+  getAlgaeGlow(seed = 105, size = 256): Texture {
+    const key = `algae:${seed}:${size}`;
+    let tex = this.algaeGlowMap.get(key);
+    if (!tex) {
+      tex = makeAlgaeGlowTexture(seed, size);
+      this.trackTexture(tex, size, size);
+      this.algaeGlowMap.set(key, tex);
+    }
+    return tex;
+  }
+
+  getPaintedLabel(opts: LabelOptions): Texture {
+    const key = `label:${opts.text}:${opts.subtext ?? ''}:${opts.color ?? ''}`;
+    let tex = this.labelMap.get(key);
+    if (!tex) {
+      tex = makePaintedLabel(opts);
+      this.trackTexture(tex, opts.width ?? 512, opts.height ?? 256);
+      this.labelMap.set(key, tex);
+    }
+    return tex;
+  }
+
+  getPipeDiagram(order: string[]): Texture {
+    const key = `diagram:${order.join(',')}`;
+    let tex = this.labelMap.get(key);
+    if (!tex) {
+      tex = makePipeDiagramTexture(order);
+      this.trackTexture(tex, 512, 256);
+      this.labelMap.set(key, tex);
+    }
+    return tex;
+  }
+
   /**
    * Warm up baseline Map 1 textures cooperatively using the time-slicer.
    */
@@ -217,5 +328,12 @@ export class TextureRegistry {
     this.taglineMap.clear();
     this.warningMap.clear();
     this.numberMap.clear();
+    this.concreteSets.clear();
+    this.metalSets.clear();
+    this.grateMap.clear();
+    this.marbleSets.clear();
+    this.bronzeSets.clear();
+    this.algaeGlowMap.clear();
+    this.labelMap.clear();
   }
 }

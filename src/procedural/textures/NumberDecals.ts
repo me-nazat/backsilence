@@ -10,8 +10,9 @@ import { drawSpray, drawMarker } from './brush.js';
 import { acquireCanvas } from '../core/canvasPool.js';
 
 export interface NumberDecalOptions {
-  seed?: number;
-  style?: 'spray' | 'marker';
+  seed?: number | undefined;
+  style?: 'spray' | 'marker' | undefined;
+  subtext?: string | undefined;
 }
 
 const numberCache = new Map<string, CanvasTexture>();
@@ -25,8 +26,9 @@ export function makeNumberDecal(
 ): CanvasTexture {
   const seed = options.seed ?? 100 + n;
   const style = options.style ?? 'spray';
+  const subtext = options.subtext ?? '';
 
-  const cacheKey = `${n}:${seed}:${style}`;
+  const cacheKey = `${n}:${seed}:${style}:${subtext}`;
   const cached = numberCache.get(cacheKey);
   if (cached) return cached;
 
@@ -85,6 +87,28 @@ export function makeNumberDecal(
       width: numStr.length === 1 ? 22 : 16,
       color,
       seed,
+    });
+  }
+
+  // Draw small ordinal marker e.g. "#1" below digit if provided
+  if (subtext) {
+    const subLayout = layoutText(subtext, {
+      size: 56,
+      tracking: 0.1,
+      wobble: 0.02,
+      rng: () => rng.next(),
+    });
+    const subShifted: Polyline[] = subLayout.polylines.map((stroke) => {
+      return stroke.map(([x, y]) => {
+        const lx = x - subLayout.width * 0.5;
+        const ly = y - subLayout.height * 0.5;
+        return [centerX + lx, height * 0.82 + ly] as Point2D;
+      });
+    });
+    drawMarker(ctx, subShifted, {
+      width: 10,
+      color: '#0d0b06',
+      seed: seed + 7,
     });
   }
 

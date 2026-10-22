@@ -1,6 +1,7 @@
 /* ── WaterSystem.ts ────────────────────────────────────────────────────────
  *  Master presentation water manager integrating camera-following displaced mesh,
- *  analytic ripples, Kelvin wakes, map data texture, foam, and underwater detection.
+ *  analytic ripples, Kelvin wakes, map data texture, foam, underwater detection,
+ *  dynamic water levels, and Map 5 bioluminescent floating motes.
  * ──────────────────────────────────────────────────────────────────────── */
 
 import {
@@ -13,9 +14,15 @@ import {
   type Scene,
   type FogExp2,
   Color,
+  InstancedMesh,
+  Matrix4,
+  DynamicDrawUsage,
+  MeshBasicMaterial,
+  CircleGeometry,
 } from 'three';
 import type { GroundGrid } from '../../sim/GroundGrid.js';
 import type { GraphicsTier, RippleEvent } from '../../types/contracts.js';
+import type { WaterProfile } from './WaterProfile.js';
 import { RippleBuffer } from './RippleBuffer.js';
 import { WakeEmitters } from './WakeEmitters.js';
 import { buildWaterMapData, type WaterMapResult } from './WaterMapData.js';
@@ -30,6 +37,7 @@ export interface WaterSystemOptions {
   tier?: GraphicsTier;
   waterY?: number;
   audio?: AudioEngine | undefined;
+  profile?: WaterProfile;
 }
 
 export class WaterSystem {
@@ -41,10 +49,14 @@ export class WaterSystem {
   readonly splashes: SplashSystem;
   readonly mapData: WaterMapResult;
 
-  readonly waterY: number;
+  currentWaterY: number;
   private readonly planeSize = 192.0;
   private readonly segStep: number;
   private readonly audio?: AudioEngine | undefined;
+
+  // Bioluminescent floating motes (Map 5)
+  private motesMesh: InstancedMesh | null = null;
+  private motesData: Array<{ x: number; y: number; z: number; phase: number; speed: number }> = [];
 
   // Underwater state tracking
   private isUnderwater = false;
@@ -55,7 +67,7 @@ export class WaterSystem {
 
   constructor(parent: Object3D, options: WaterSystemOptions) {
     this.root = parent;
-    this.waterY = options.waterY ?? 0.0;
+    this.currentWaterY = options.waterY ?? 0.0;
     this.audio = options.audio;
     const tier = options.tier ?? 'high';
 
@@ -80,7 +92,8 @@ export class WaterSystem {
       ripples: this.ripples.uniformArray,
       wakes: this.wakes.wakesUniform,
       wakeParams: this.wakes.paramsUniform,
-      waterY: this.waterY,
+      waterY: this.currentWaterY,
+      profile: options.profile,
     });
 
     // 3. Water Plane Geometry (XZ plane rotated from XY)
@@ -91,6 +104,48 @@ export class WaterSystem {
     this.mesh.frustumCulled = false;
     this.mesh.renderOrder = 10; // Render after opaque geometry
     parent.add(this.mesh);
+
+    // 4. Bioluminescent Motes for Map 5
+    const motesCount = options.profile?.bioluminescence?.motes ?? 0;
+    if (motesCount > 0) {
+      const moteGeom = new CircleGeometry(0.04, 6);
+      const moteMat = new MeshBasicMaterial({
+        color: new Color(options.profile?.bioluminescence?.color ?? '#3ff2c8'),
+        transparent: true,
+        opacity: 0.7,
+        depthWrite: false,
+      });
+
+      this.motesMesh = new InstancedMesh(moteGeom, moteMat, motesCount);
+      this.motesMesh.instanceMatrix.setUsage(DynamicDrawUsage);
+      this.motesMesh.renderOrder = 11;
+
+      const dummy = new Matrix4();
+      for (let i = 0; i < motesCount; i++) {
+        const x = (Math.random() - 0.5) * 60.0;
+        const z = (Math.random() - 0.5) * 60.0;
+        const y = this.currentWaterY + 0.1 + Math.random() * 0.8;
+        const phase = Math.random() * Math.PI * 2.0;
+        const speed = 0.5 + Math.random() * 0.8;
+
+        this.motesData.push({ x, y, z, phase, speed });
+        dummy.setPosition(x, y, z);
+        this.motesMesh.setMatrixAt(i, dummy);
+      }
+      this.motesMesh.instanceMatrix.needsUpdate = true;
+      parent.add(this.motesMesh);
+    }
+  }
+
+  get waterY(): number {
+    return this.currentWaterY;
+  }
+
+  updateWaterY(newY: number): void {
+    this.currentWaterY = newY;
+    if (this.material.uniforms['uWaterY']) {
+      this.material.uniforms['uWaterY'].value = newY;
+    }
   }
 
   onRipple(ev: RippleEvent): void {
@@ -118,8 +173,22 @@ export class WaterSystem {
     // 4. Update splash particles
     this.splashes.update(dt, camera.position);
 
-    // 5. Underwater camera check
-    const isCameraBelow = camera.position.y < this.waterY;
+    // 5. Update bioluminescent motes
+    if (this.motesMesh && this.motesData.length > 0) {
+      const dummy = new Matrix4();
+      for (let i = 0; i < this.motesData.length; i++) {
+        const m = this.motesData[i]!;
+        const driftY = m.y + Math.sin(time * m.speed + m.phase) * 0.15;
+        const driftX = m.x + Math.cos(time * 0.4 + m.phase) * 0.2;
+        const driftZ = m.z + Math.sin(time * 0.3 + m.phase) * 0.2;
+        dummy.setPosition(driftX, driftY, driftZ);
+        this.motesMesh.setMatrixAt(i, dummy);
+      }
+      this.motesMesh.instanceMatrix.needsUpdate = true;
+    }
+
+    // 6. Underwater camera check
+    const isCameraBelow = camera.position.y < this.currentWaterY;
     if (isCameraBelow !== this.isUnderwater) {
       this.isUnderwater = isCameraBelow;
       this.material.side = isCameraBelow ? DoubleSide : FrontSide;
@@ -129,7 +198,7 @@ export class WaterSystem {
       }
     }
 
-    // 6. Smooth underwater fog transition if scene has fog
+    // 7. Smooth underwater fog transition if scene has fog
     if (sceneFog) {
       const targetT = this.isUnderwater ? 1.0 : 0.0;
       this.underwaterT += (targetT - this.underwaterT) * Math.min(1.0, dt * 5.0);
@@ -150,5 +219,11 @@ export class WaterSystem {
     this.mapData.texture.dispose();
     this.splashes.dispose();
     this.mesh.removeFromParent();
+
+    if (this.motesMesh) {
+      this.motesMesh.geometry.dispose();
+      (this.motesMesh.material as MeshBasicMaterial).dispose();
+      this.motesMesh.removeFromParent();
+    }
   }
 }

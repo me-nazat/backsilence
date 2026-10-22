@@ -1,7 +1,8 @@
 /* ── UIManager.ts ─────────────────────────────────────────────────────────
  *  Master UI orchestrator for BackSilence:
  *  Coordinates all analog horror screens, transitions, modal stacks,
- *  keyboard navigation (ESC back), and live settings application.
+ *  keyboard navigation (ESC back), loading screens, results screens,
+ *  keypad modals, and live settings application.
  * ──────────────────────────────────────────────────────────────────────── */
 
 import type { Settings, MapId } from '../types/contracts.js';
@@ -20,6 +21,10 @@ import { HowToPlay } from './HowToPlay.js';
 import { Hud, type HudData } from './Hud.js';
 import { PauseMenu } from './PauseMenu.js';
 import { DeathScreen } from './DeathScreen.js';
+import { LoadingScreen } from './LoadingScreen.js';
+import { ResultsScreen, type RunResults } from './ResultsScreen.js';
+import { KeypadModal } from './KeypadModal.js';
+import type { MapDefinition, LayoutData } from '../world/MapTypes.js';
 import type { AudioLabPanel } from '../lab/AudioLabPanel.js';
 
 export type UIView =
@@ -30,7 +35,8 @@ export type UIView =
   | 'HOW_TO_PLAY'
   | 'GAME'
   | 'PAUSE'
-  | 'DEATH';
+  | 'DEATH'
+  | 'RESULTS';
 
 export interface UIManagerOptions {
   container: HTMLElement;
@@ -61,6 +67,9 @@ export class UIManager {
   private hud: Hud;
   private pauseMenu: PauseMenu;
   private deathScreen: DeathScreen;
+  private loadingScreen: LoadingScreen;
+  private resultsScreen: ResultsScreen;
+  private keypadModal: KeypadModal;
 
   private audioLabPanel: AudioLabPanel | null = null;
   private isAudioUnlocked = false;
@@ -147,6 +156,19 @@ export class UIManager {
       onMenu: () => this.quitToMenu(),
     });
 
+    this.loadingScreen = new LoadingScreen();
+    this.resultsScreen = new ResultsScreen({
+      onContinue: () => {
+        this.navigateTo('MODE_SELECT');
+      },
+    });
+
+    this.keypadModal = new KeypadModal({
+      onSubmit: () => false,
+      onCancel: () => {},
+      onLockout: () => {},
+    });
+
     this.mountAll();
     this.bindGlobalKeyboard();
     this.applySettings(initialSettings);
@@ -161,6 +183,9 @@ export class UIManager {
     this.hud.mount(this.container);
     this.pauseMenu.mount(this.container);
     this.deathScreen.mount(this.container);
+    this.loadingScreen.mount(this.container);
+    this.resultsScreen.mount(this.container);
+    this.keypadModal.mount(this.container);
 
     this.updateViewVisibility();
   }
@@ -241,6 +266,7 @@ export class UIManager {
     this.howToPlay.hide();
     this.pauseMenu.hide();
     this.deathScreen.hide();
+    this.resultsScreen.hide();
 
     switch (this.currentView) {
       case 'MENU':
@@ -273,6 +299,17 @@ export class UIManager {
         this.deathScreen.show();
         this.hud.show();
         break;
+      case 'RESULTS':
+        this.resultsScreen.show({
+          mapId: 'poolrooms',
+          timeSurvived: 0,
+          noisesMade: 0,
+          closestCall: 0,
+          alertsCount: 0,
+          retries: 0,
+        });
+        this.hud.hide();
+        break;
     }
   }
 
@@ -290,6 +327,31 @@ export class UIManager {
     if (this.onStartGame) {
       this.onStartGame(config);
     }
+  }
+
+  showLoading(def: MapDefinition, layout: LayoutData): void {
+    this.loadingScreen.show(def, layout);
+  }
+
+  setLoadingProgress(pct: number): void {
+    this.loadingScreen.setProgress(pct);
+  }
+
+  hideLoading(): void {
+    this.loadingScreen.hide();
+  }
+
+  showResults(results: RunResults): void {
+    this.currentView = 'RESULTS';
+    this.updateViewVisibility();
+    this.resultsScreen.show(results);
+    if (this.stateMachine.canTransition('MENU')) {
+      this.stateMachine.transition('MENU');
+    }
+  }
+
+  getKeypadModal(): KeypadModal {
+    return this.keypadModal;
   }
 
   private resumeGame(): void {
@@ -327,7 +389,9 @@ export class UIManager {
   private bindGlobalKeyboard(): void {
     window.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
-        if (this.currentView === 'GAME') {
+        if (this.keypadModal.isOpen()) {
+          this.keypadModal.close();
+        } else if (this.currentView === 'GAME') {
           this.showPause();
         } else if (this.currentView === 'PAUSE') {
           this.resumeGame();

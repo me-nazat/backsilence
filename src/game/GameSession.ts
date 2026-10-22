@@ -1,7 +1,10 @@
 /* ── GameSession.ts ─────────────────────────────────────────────────────────
- *  Full playable game session in the "Proving Grounds" arena.
- *  Integrates 60Hz deterministic sim, character motor, water shader & physics,
- *  blind monster AI with IK presentation, 3D jumpscare sequence, and HUD wiring.
+ *  Full playable game session supporting all five BackSilence procedural maps:
+ *  1. Map 1: The Flooded Poolrooms (archipelago, 4 code pillars + decoys, SequenceKeypad)
+ *  2. Map 2: Sub-Aquatic Utility Tunnels (spine & ribs, catwalk clang, steam mask, ValveSequence)
+ *  3. Map 3: The Echoing Marble Atrium (atrium tiers, sinking stones, pebble ballistics, ResonanceSequence)
+ *  4. Map 4: The Hydro-Filtration Maze (90s tidal flip cycle, 2 NavGrids, FuseCores)
+ *  5. Map 5: The Abyssal Drainage Core (total darkness, bioluminescent water, flashlight/crank, 3 beasts, GeneratorGrid)
  * ──────────────────────────────────────────────────────────────────────── */
 
 import {
@@ -9,6 +12,7 @@ import {
   PerspectiveCamera,
   HemisphereLight,
   DirectionalLight,
+  SpotLight,
   FogExp2,
   Vector3,
   Line,
@@ -18,14 +22,9 @@ import {
 } from 'three';
 import { EngineRenderer } from '../engine/Renderer.js';
 import { AudioEngine } from '../audio/AudioEngine.js';
-import type { Settings, NoiseEvent } from '../types/contracts.js';
+import type { Settings, NoiseEvent, MapId, Vec3 } from '../types/contracts.js';
 import { WORLD } from '../app/Config.js';
 import { SimWorld } from '../sim/SimWorld.js';
-import {
-  createProvingGroundsSim,
-  ARENA_MONSTER_SPAWN,
-} from '../sim/ProvingGroundsData.js';
-import { ProvingGrounds } from '../world/arena/ProvingGrounds.js';
 import { WaterSystem } from './water/WaterSystem.js';
 import { MonsterManager } from './monster/MonsterManager.js';
 import { JumpscareSequence, type JumpscareStats } from './monster/Jumpscare.js';
@@ -34,12 +33,22 @@ import { PlayerInput } from './player/PlayerInput.js';
 import { PlayerFootsteps } from './player/Footsteps.js';
 import { InteractionSystem } from './interaction/InteractionSystem.js';
 import { AcousticSystem } from './AcousticSystem.js';
-import type { Hud } from '../ui/Hud.js';
+import type { Hud, InventorySlot } from '../ui/Hud.js';
+import type { RunResults } from '../ui/ResultsScreen.js';
+import type { KeypadModal } from '../ui/KeypadModal.js';
+import { getMapDefinition } from '../world/MapRegistry.js';
+import { generateValidLayout } from '../world/validate/LayoutValidator.js';
+import type { LayoutData, MapDefinition } from '../world/MapTypes.js';
+import type { MapInstance } from '../world/maps/MapInstance.js';
+import { ProjectileSystem, type ProjectileState } from '../sim/Projectile.js';
+import { WaterLevelCycle } from '../sim/WaterLevelCycle.js';
 
 export interface GameSessionCallbacks {
   onPause: () => void;
   onDeath: (stats: JumpscareStats) => void;
+  onWin: (results: RunResults) => void;
   onExit: () => void;
+  onOpenKeypad?: (onSubmit: (code: string) => boolean) => void;
 }
 
 export class GameSession {
@@ -53,9 +62,13 @@ export class GameSession {
   private settings: Settings;
   private difficulty: 'whisper' | 'normal' | 'deafening';
   private seed: number;
+  private mapId: MapId;
+  private keypadModal?: KeypadModal | undefined;
 
   // Presentation & Sim components
-  private map!: ProvingGrounds;
+  private mapDef!: MapDefinition;
+  private layout!: LayoutData;
+  private mapInstance!: MapInstance;
   private simWorld!: SimWorld;
   private water!: WaterSystem;
   private monsters!: MonsterManager;
@@ -67,17 +80,58 @@ export class GameSession {
   private interactions!: InteractionSystem;
   private acoustics!: AcousticSystem;
 
+  // Flashlight & Hand Crank (Map 5 / general item)
+  private flashlightLight: SpotLight | null = null;
+  private flashlightActive = false;
+  private flashlightBattery = 1.0; // 0..1 (150 seconds total life)
+  private readonly FLASHLIGHT_MAX_DURATION = 150.0;
+  private crankNoiseTimer = 0;
+
+  // Projectiles & Inventory
+  private projectileSystem = new ProjectileSystem();
+  private activeProjectiles: ProjectileState[] = [];
+  private trajectoryLine: Line | null = null;
+  private inventory: InventorySlot[] = [];
+  private selectedInventoryIndex = 0;
+
+  // Map 1 Puzzle Data
+  private inspectedPillars = new Map<number, number>(); // ordinal -> digit
+  private exitUnlocked = false;
+
+  // Map 2 Puzzle Data (Valves A/B/C)
+  private valveOrder: string[] = ['A', 'B', 'C'];
+  private currentValveStep = 0;
+  private steamVents: Array<{ pos: Vec3; cycleTime: number; timer: number; active: boolean }> = [];
+  private catwalkClangTimer = 0;
+
+  // Map 3 Puzzle Data (Resonance Bells)
+  private melodyNotes: number[] = [0, 1, 2, 3];
+  private melodyProgress = 0;
+
+  // Map 4 Puzzle Data (Hydro Maze Tidal Flip)
+  private waterCycle: WaterLevelCycle | null = null;
+  private carriedCores = 0;
+  private insertedCores = 0;
+
+  // Map 5 Puzzle Data (Generators & Beasts)
+  private generators = new Map<string, { state: 'idle' | 'primed' | 'running'; runtime: number; primeProgress: number; pullCount: number }>();
+  private allGeneratorsSimultaneousTime = 0;
+  private blastDoorsOpen = false;
+
   // Fixed timestep physics accumulator
   private readonly FIXED_DT = 1 / 60;
   private accumulator = 0;
   private timeScale = 1.0;
   private isPaused = false;
   private isDisposed = false;
+  private isWon = false;
+  private isLoaded = false;
 
   // Stats tracking
   private timeSurvived = 0;
   private noisesMade = 0;
   private closestCall = 999.0;
+  private alertsCount = 0;
   private godMode = false;
 
   // Debug visualizers
@@ -92,133 +146,601 @@ export class GameSession {
     callbacks: GameSessionCallbacks,
     difficulty: 'whisper' | 'normal' | 'deafening' = 'normal',
     seed = 42,
+    mapId: MapId = 'poolrooms',
+    keypadModal?: KeypadModal,
   ) {
     this.settings = settings;
     this.hud = hud;
     this.callbacks = callbacks;
     this.difficulty = difficulty;
     this.seed = seed;
+    this.mapId = mapId;
+    this.keypadModal = keypadModal;
 
     this.scene = new Scene();
     this.camera = new PerspectiveCamera(
       settings.graphics.fov,
       container.clientWidth / container.clientHeight,
       0.1,
-      80.0,
+      mapId === 'drainage_core' ? 60.0 : 85.0,
     );
 
     this.renderer = new EngineRenderer(container, settings);
-    this.setupAtmosphere();
-    this.initSession();
     this.setupDebugTools();
+
+    // Start async build pipeline
+    void this.initAsync();
   }
 
-  private setupAtmosphere(): void {
-    // Creamy backrooms pool fog & warm ambient lighting
-    const fogColor = 0xd9d3a2;
-    this.scene.fog = new FogExp2(fogColor, 0.038);
+  private async initAsync(): Promise<void> {
+    try {
+      this.mapDef = await getMapDefinition(this.mapId);
+      this.layout = generateValidLayout(this.mapDef, {
+        seed: this.seed,
+        difficulty: this.difficulty,
+        playerCount: 1,
+      });
 
-    const hemi = new HemisphereLight(0xf5edd6, 0x1a2e22, 0.75);
+      // 1. Atmosphere Setup
+      this.setupAtmosphere(this.mapDef);
+
+      // 2. Build 3D Map Presentation & Physical Terrain
+      const quality = this.settings.graphics.quality;
+      const tier = quality === 'auto' ? 'high' : quality;
+
+      this.mapInstance = await this.mapDef.build(this.layout, {
+        parent: this.scene,
+        textures: undefined,
+        audio: this.audio,
+        difficulty: this.difficulty,
+      });
+      this.scene.add(this.mapInstance.root);
+
+      // 3. SimWorld instantiation
+      const playerSpawn = this.layout.spawns.player[0] ?? { x: 0, y: 1.0, z: 0 };
+      let discreteWaterLevels: number[] | undefined;
+      let levelProvider: WaterLevelCycle | undefined;
+
+      if (this.mapId === 'hydro_maze') {
+        this.waterCycle = new WaterLevelCycle();
+        levelProvider = this.waterCycle;
+        discreteWaterLevels = [-0.2, 0.55];
+      }
+
+      this.simWorld = new SimWorld({
+        bounds: this.layout.bounds,
+        playerSpawn,
+        waterY: this.mapInstance.waterY,
+        waterLevelProvider: levelProvider ?? undefined,
+        discreteWaterLevels: discreteWaterLevels ?? undefined,
+        difficulty: this.difficulty,
+        ground: this.mapInstance.ground,
+        colliders: this.mapInstance.colliders,
+      });
+
+      // 4. Water System Setup
+      this.water = new WaterSystem(this.scene, {
+        scene: this.scene,
+        ground: this.simWorld.ground,
+        tier,
+        waterY: this.mapInstance.waterY,
+        audio: this.audio,
+        profile: this.mapDef.waterProfile,
+      });
+
+      // 5. Monster Presentation & AI Setup
+      this.monsters = new MonsterManager(this.water, this.audio);
+      this.scene.add(this.monsters.root);
+
+      for (const mDef of this.layout.spawns.monsters) {
+        this.monsters.addMonster({
+          id: mDef.id,
+          variant: mDef.variant,
+          spawn: mDef.spawn,
+        });
+
+        this.simWorld.addMonster(
+          {
+            id: mDef.id,
+            variant: mDef.variant,
+            spawn: mDef.spawn,
+            spawnGrace: this.difficulty === 'deafening' ? 4.0 : 8.0,
+          },
+          this.seed,
+        );
+      }
+
+      // Compute terrain distance transform and all level NavGrids
+      this.simWorld.finalizeTerrain();
+
+      // 6. Player presentation & Input Controls
+      this.playerInput = new PlayerInput(this.settings, {
+        onPauseRequested: () => this.togglePause(),
+        onCycleItem: () => this.cycleInventory(),
+        onToggleFlashlight: () => this.toggleFlashlight(),
+      });
+      this.playerInput.attach(this.renderer.canvas);
+
+      this.playerCamera = new PlayerCamera(this.camera, this.settings);
+      this.footsteps = new PlayerFootsteps(this.audio);
+      this.interactions = new InteractionSystem();
+      this.acoustics = new AcousticSystem(this.audio, this.hud, this.settings);
+
+      // 7. Flashlight Setup (Map 5)
+      if (this.mapId === 'drainage_core') {
+        this.flashlightLight = new SpotLight(0xfff8e7, 2.4, 30, (28 * Math.PI) / 180, 0.5, 1.2);
+        this.flashlightLight.position.set(0.2, -0.2, 0.1);
+        if (tier !== 'low') {
+          this.flashlightLight.castShadow = true;
+          this.flashlightLight.shadow.mapSize.width = 1024;
+          this.flashlightLight.shadow.mapSize.height = 1024;
+        }
+        this.camera.add(this.flashlightLight);
+        this.scene.add(this.camera);
+        this.flashlightActive = true;
+      }
+
+      // 8. 3D Jumpscare sequence
+      this.jumpscare = new JumpscareSequence(
+        {
+          onFreezeInput: () => this.playerInput.setFreeze(true),
+          setTimeScale: (scale: number) => {
+            this.timeScale = scale;
+          },
+          onDeath: (stats: JumpscareStats) => {
+            this.callbacks.onDeath(stats);
+          },
+        },
+        this.audio,
+      );
+
+      // 9. Map-Specific Mechanics & Puzzle Setup
+      this.initMapPuzzles();
+
+      // 10. Audio Reverb & Ambience Bed
+      this.audio.setReverbPreset(this.mapDef.reverb);
+      this.startMapAmbience();
+
+      // Inventory HUD click binding
+      this.hud.setInventoryCycleCallback(() => this.cycleInventory());
+
+      this.isLoaded = true;
+    } catch (err: unknown) {
+      console.error('[GameSession] Failed to initialize map session:', err);
+    }
+  }
+
+  private setupAtmosphere(def: MapDefinition): void {
+    const fogColor = parseInt(def.atmosphere.fog.color.replace('#', '0x'), 16);
+    this.scene.fog = new FogExp2(fogColor, def.atmosphere.fog.density);
+
+    const skyColor = parseInt(def.atmosphere.hemisphere.sky.replace('#', '0x'), 16);
+    const groundColor = parseInt(def.atmosphere.hemisphere.ground.replace('#', '0x'), 16);
+    const hemi = new HemisphereLight(skyColor, groundColor, 0.75);
     this.scene.add(hemi);
 
-    const sun = new DirectionalLight(0xfff8e7, 1.2);
-    sun.position.set(20, 40, 15);
-    sun.castShadow = true;
-    sun.shadow.mapSize.width = 1024;
-    sun.shadow.mapSize.height = 1024;
-    this.scene.add(sun);
+    if (def.atmosphere.sun) {
+      const sunColor = parseInt(def.atmosphere.sun.color.replace('#', '0x'), 16);
+      const sun = new DirectionalLight(sunColor, def.atmosphere.sun.intensity);
+      const dir = def.atmosphere.sun.direction;
+      sun.position.set(dir.x * 30, dir.y * 30, dir.z * 30);
+      if (def.atmosphere.sun.castShadow) {
+        sun.castShadow = true;
+        sun.shadow.mapSize.width = 1024;
+        sun.shadow.mapSize.height = 1024;
+      }
+      this.scene.add(sun);
+    }
   }
 
-  private initSession(): void {
-    // 1. Create Simulation World
-    this.simWorld = createProvingGroundsSim(this.difficulty);
+  private startMapAmbience(): void {
+    if (this.mapId === 'utility_tunnels') {
+      this.audio.play('ambience_tunnels', { gain: 0.65 });
+    } else if (this.mapId === 'marble_atrium') {
+      this.audio.play('ambience_atrium', { gain: 0.65 });
+    } else if (this.mapId === 'hydro_maze') {
+      this.audio.play('ambience_filtration', { gain: 0.65 });
+    } else if (this.mapId === 'drainage_core') {
+      this.audio.play('ambience_drain', { gain: 0.7 });
+    }
+  }
 
-    // 2. Proving Grounds 3D Map
-    this.map = new ProvingGrounds();
-    this.scene.add(this.map.root);
+  private initMapPuzzles(): void {
+    switch (this.mapId) {
+      case 'poolrooms': {
+        this.hud.update({
+          objective: 'Inspect numbered pillars to discover the 4-digit code. Avoid making splashes.',
+          notebookNumbers: ['#1: ?', '#2: ?', '#3: ?', '#4: ?'],
+        });
 
-    // 3. Water System
-    const quality = this.settings.graphics.quality;
-    const tier = quality === 'auto' ? 'high' : quality;
-    this.water = new WaterSystem(this.scene, {
-      scene: this.scene,
-      ground: this.map.ground,
-      tier,
-      waterY: this.map.waterY,
-      audio: this.audio,
+        // Register keypad at exit door
+        this.interactions.register({
+          id: 'exit_keypad',
+          position: this.layout.exit.position,
+          radius: 2.2,
+          label: () => (this.exitUnlocked ? '[E] Exit Unlocked' : '[E] Enter 4-Digit Keypad Code'),
+          canUse: () => !this.exitUnlocked,
+          onUse: () => {
+            this.openKeypad();
+          },
+        });
+        break;
+      }
+
+      case 'utility_tunnels': {
+        this.valveOrder = (this.layout.meta['valveOrder'] as string[]) ?? ['A', 'B', 'C'];
+        this.hud.update({
+          objective: 'Read pipe diagram on the spine wall. Turn valves in specified sequence (Valves 0/3).',
+        });
+
+        // Initialize 4 steam vents
+        for (let i = 0; i < 4; i++) {
+          this.steamVents.push({
+            pos: { x: 15 + i * 20, y: 2.0, z: i % 2 === 0 ? 3.0 : -3.0 },
+            cycleTime: 18 + i * 4,
+            timer: 0,
+            active: false,
+          });
+        }
+
+        // Register 3 valves
+        for (const vLetter of ['A', 'B', 'C']) {
+          const vProp = this.layout.props.find((p) => p.kind === 'valve_wheel' && (p.params?.['id'] as string)?.includes(vLetter.toLowerCase()));
+          const vPos = vProp?.position ?? { x: 20 + ['A', 'B', 'C'].indexOf(vLetter) * 25, y: 0.5, z: 8.0 };
+
+          this.interactions.register({
+            id: `valve_${vLetter}`,
+            position: vPos,
+            radius: 2.0,
+            holdTime: 4.0,
+            label: () => `[HOLD E] Turn Valve ${vLetter}`,
+            canUse: () => true,
+            onUse: () => {
+              this.handleValveComplete(vLetter, vPos);
+            },
+          });
+        }
+
+        // Main gate at end of spine
+        this.interactions.register({
+          id: 'tunnel_main_gate',
+          position: this.layout.exit.position,
+          radius: 2.5,
+          holdTime: 5.0,
+          label: () => (this.currentValveStep >= 3 ? '[HOLD E] Turn Main Gate Wheel' : '[LOCKED] Turn All 3 Valves First'),
+          canUse: () => this.currentValveStep >= 3 && !this.exitUnlocked,
+          onUse: () => {
+            this.exitUnlocked = true;
+            this.audio.play('door_clunk', { gain: 1.0 });
+            this.simWorld.broadcastNoise({
+              kind: 'door',
+              position: this.layout.exit.position,
+              loudness: 0.8,
+              sourcePlayerId: 'player_local',
+            });
+            this.hud.update({ objective: 'Main gate opened! Reach the exit.' });
+          },
+        });
+        break;
+      }
+
+      case 'marble_atrium': {
+        this.melodyNotes = (this.layout.meta['melodyNotes'] as number[]) ?? [0, 1, 2, 3];
+        this.inventory = [{ kind: 'pebble', count: 3 }];
+        this.hud.update({
+          objective: 'Listen to the melody at the central fountain console. Ring bells in harmony (Bells 0/4).',
+          inventory: this.inventory,
+          selectedItemIndex: 0,
+        });
+
+        // Fountain console
+        const consolePos = { x: 0, y: 0.3, z: 0 };
+        this.interactions.register({
+          id: 'melody_console',
+          position: consolePos,
+          radius: 2.4,
+          label: () => '[E] Play Resonance Melody',
+          canUse: () => true,
+          onUse: () => {
+            this.playMelodyAudio();
+            this.simWorld.broadcastNoise({
+              kind: 'bell',
+              position: consolePos,
+              loudness: 0.15,
+              sourcePlayerId: 'world',
+            });
+            this.hud.update({ objective: `Melody: ${this.melodyNotes.map((n) => `[Note ${n + 1}]`).join(' ')}` });
+          },
+        });
+
+        // 4 Bells
+        const bellProps = this.layout.props.filter((p) => p.kind === 'bell');
+        bellProps.forEach((bp, idx) => {
+          this.interactions.register({
+            id: `bell_${idx}`,
+            position: bp.position,
+            radius: 2.0,
+            label: () => `[E] Ring Bell ${idx + 1}`,
+            canUse: () => !this.exitUnlocked,
+            onUse: () => {
+              this.handleBellRung(idx, bp.position);
+            },
+          });
+        });
+
+        // Pebble piles
+        for (let i = 0; i < 15; i++) {
+          const angle = (i / 15) * Math.PI * 2;
+          const r = 16 + (i % 3) * 8;
+          const pPos = { x: Math.cos(angle) * r, y: 0.3, z: Math.sin(angle) * r };
+          this.interactions.register({
+            id: `pebble_pile_${i}`,
+            position: pPos,
+            radius: 1.8,
+            label: () => '[E] Collect Pebbles',
+            canUse: () => {
+              const currentPebbles = this.inventory.find((it) => it.kind === 'pebble')?.count ?? 0;
+              return currentPebbles < 6;
+            },
+            onUse: () => {
+              let slot = this.inventory.find((it) => it.kind === 'pebble');
+              if (!slot) {
+                slot = { kind: 'pebble', count: 0 };
+                this.inventory.push(slot);
+              }
+              slot.count = Math.min(6, slot.count + 2);
+              this.audio.play('stone_creak', { gain: 0.4 });
+              this.hud.update({ inventory: this.inventory });
+              this.interactions.unregister(`pebble_pile_${i}`);
+            },
+          });
+        }
+        break;
+      }
+
+      case 'hydro_maze': {
+        this.hud.update({
+          objective: 'Retrieve 3 Fuse Cores from upper walkways. Insert them into the central Fuse Bay (0/3).',
+        });
+
+        // 3 Fuse Core Pedestals
+        const coreProps = this.layout.props.filter((p) => p.kind === 'fuse_core');
+        coreProps.forEach((cp, idx) => {
+          this.interactions.register({
+            id: `fuse_core_${idx}`,
+            position: cp.position,
+            radius: 1.8,
+            holdTime: 1.0,
+            label: () => `[HOLD E] Lift Fuse Core #${idx + 1}`,
+            canUse: () => true,
+            onUse: () => {
+              this.carriedCores++;
+              this.audio.play('socket_clunk', { gain: 0.8 });
+              this.interactions.unregister(`fuse_core_${idx}`);
+              this.hud.update({
+                objective: `Cores carried: ${this.carriedCores} (Inserted: ${this.insertedCores}/3)`,
+              });
+            },
+          });
+        });
+
+        // Central Fuse Bay
+        const bayPos = { x: 0, y: 0.3, z: 0 };
+        this.interactions.register({
+          id: 'fuse_bay',
+          position: bayPos,
+          radius: 2.4,
+          label: () => (this.carriedCores > 0 ? '[E] Insert Fuse Core into Bay' : '[EMPTY] Bring Fuse Cores Here'),
+          canUse: () => this.carriedCores > 0,
+          onUse: () => {
+            this.carriedCores--;
+            this.insertedCores++;
+            this.audio.play('socket_clunk', { gain: 1.0 });
+            this.simWorld.broadcastNoise({
+              kind: 'door',
+              position: bayPos,
+              loudness: 0.4,
+              sourcePlayerId: 'player_local',
+            });
+            if (this.insertedCores >= 3) {
+              this.exitUnlocked = true;
+              this.audio.play('shutter_rumble', { gain: 1.0 });
+              this.simWorld.broadcastNoise({
+                kind: 'door',
+                position: this.layout.exit.position,
+                loudness: 0.7,
+                sourcePlayerId: 'world',
+              });
+              this.hud.update({ objective: 'Exit shutter powered and opened! Escape the filtration maze.' });
+            } else {
+              this.hud.update({
+                objective: `Fuse Bay: ${this.insertedCores}/3 Cores Installed.`,
+              });
+            }
+          },
+        });
+        break;
+      }
+
+      case 'drainage_core': {
+        this.inventory = [{ kind: 'noisemaker', count: 2 }];
+        this.hud.update({
+          objective: 'Prime and start all 3 Core Generators. Keep them running simultaneously for 5s to open the Blast Doors.',
+          inventory: this.inventory,
+          flashlight: { active: this.flashlightActive, battery: this.flashlightBattery },
+        });
+
+        for (const genId of ['G1', 'G2', 'G3']) {
+          this.generators.set(genId, {
+            state: 'idle',
+            runtime: 0,
+            primeProgress: 0,
+            pullCount: 0,
+          });
+
+          const gProp = this.layout.props.find((p) => p.kind === 'generator' && (p.params?.['id'] as string)?.includes(genId.toLowerCase()));
+          const gPos = gProp?.position ?? { x: 30, y: 0.3, z: 30 };
+
+          this.interactions.register({
+            id: `gen_${genId}`,
+            position: gPos,
+            radius: 2.5,
+            holdTime: 6.0,
+            label: () => {
+              const g = this.generators.get(genId)!;
+              if (g.state === 'running') return `[RUNNING] Generator ${genId} (${Math.ceil(g.runtime)}s left)`;
+              return `[HOLD E] Prime Generator ${genId}`;
+            },
+            canUse: () => {
+              const g = this.generators.get(genId);
+              return g !== undefined && g.state !== 'running';
+            },
+            onUse: () => {
+              const g = this.generators.get(genId)!;
+              g.state = 'running';
+              g.runtime = 90.0;
+              this.audio.play('generator_cord', { gain: 0.9 });
+              this.audio.play('generator_loop', { gain: 0.9 });
+              this.simWorld.broadcastNoise({
+                kind: 'generator',
+                position: gPos,
+                loudness: 0.9,
+                sourcePlayerId: 'world',
+              });
+              this.hud.update({
+                objective: `Generator ${genId} online! Start the remaining generators.`,
+              });
+            },
+          });
+        }
+        break;
+      }
+    }
+  }
+
+  private openKeypad(): void {
+    if (this.keypadModal) {
+      this.playerInput.exitPointerLock();
+      this.keypadModal.open();
+    } else if (this.callbacks.onOpenKeypad) {
+      this.playerInput.exitPointerLock();
+      this.callbacks.onOpenKeypad((code: string) => this.submitKeypadCode(code));
+    }
+  }
+
+  submitKeypadCode(code: string): boolean {
+    const expected = (this.layout.meta['code'] as string) ?? '1234';
+    if (code === expected) {
+      this.exitUnlocked = true;
+      this.audio.play('door_clunk', { gain: 1.0 });
+      this.simWorld.broadcastNoise({
+        kind: 'door',
+        position: this.layout.exit.position,
+        loudness: 0.7,
+        sourcePlayerId: 'player_local',
+      });
+      this.hud.update({ objective: 'Access granted! Proceed through the open door.' });
+      return true;
+    } else {
+      // Wrong code -> alarm noise 0.8 at keypad, beast hears it!
+      this.simWorld.broadcastNoise({
+        kind: 'alarm',
+        position: this.layout.exit.position,
+        loudness: 0.8,
+        sourcePlayerId: 'player_local',
+      });
+      return false;
+    }
+  }
+
+  private handleValveComplete(vLetter: string, pos: Vec3): void {
+    const expected = this.valveOrder[this.currentValveStep];
+    if (vLetter === expected) {
+      this.currentValveStep++;
+      this.audio.play('valve_release', { gain: 0.9 });
+      this.hud.update({ objective: `Valves Turned: ${this.currentValveStep}/3 in sequence.` });
+    } else {
+      // Wrong order surge!
+      this.currentValveStep = 0;
+      this.audio.play('alarm_klaxon', { gain: 1.0 });
+      this.simWorld.broadcastNoise({
+        kind: 'alarm',
+        position: pos,
+        loudness: 0.9,
+        sourcePlayerId: 'world',
+      });
+      this.hud.update({ objective: 'SURGE! Valves reset to zero. Consult pipe diagram.' });
+    }
+  }
+
+  private playMelodyAudio(): void {
+    this.melodyNotes.forEach((note, idx) => {
+      setTimeout(() => {
+        this.audio.play('bell', { gain: 0.35, pitch: 1.0 + note * 0.1 });
+      }, idx * 600);
+    });
+  }
+
+  private handleBellRung(bellIdx: number, pos: Vec3): void {
+    const expected = this.melodyNotes[this.melodyProgress];
+    this.audio.play('bell', { gain: 0.9, pitch: 1.0 + bellIdx * 0.1 });
+    this.simWorld.broadcastNoise({
+      kind: 'bell',
+      position: pos,
+      loudness: 0.9,
+      sourcePlayerId: 'player_local',
     });
 
-    // 4. Monster Manager
-    this.monsters = new MonsterManager(this.water, this.audio);
-    this.scene.add(this.monsters.root);
-
-    // Spawn standard monster
-    this.monsters.addMonster({
-      id: 'monster_1',
-      variant: 'standard',
-      spawn: ARENA_MONSTER_SPAWN,
-    });
-
-    this.simWorld.addMonster(
-      {
-        id: 'monster_1',
-        variant: 'standard',
-        spawn: ARENA_MONSTER_SPAWN,
-        spawnGrace: this.difficulty === 'deafening' ? 3.0 : 8.0,
-      },
-      this.seed,
-    );
-
-    // 5. Player presentation & Controls
-    this.playerInput = new PlayerInput(this.settings, {
-      onPauseRequested: () => this.togglePause(),
-    });
-    this.playerInput.attach(this.renderer.canvas);
-
-    this.playerCamera = new PlayerCamera(this.camera, this.settings);
-    this.footsteps = new PlayerFootsteps(this.audio);
-    this.interactions = new InteractionSystem();
-    this.acoustics = new AcousticSystem(this.audio, this.hud, this.settings);
-
-    // Register interactive pressure plate on Island B
-    this.interactions.register({
-      id: 'plate_island_b',
-      position: this.map.getPlatePosition(),
-      radius: 1.4,
-      label: () => '[E] Press Heavy Plate',
-      canUse: () => true,
-      onUse: () => {
-        this.audio.play('door_clunk', { position: this.map.getPlatePosition(), gain: 1.0 });
+    if (bellIdx === expected) {
+      this.melodyProgress++;
+      if (this.melodyProgress >= 4) {
+        this.exitUnlocked = true;
+        this.audio.play('shutter_rumble', { gain: 1.0 });
         this.simWorld.broadcastNoise({
           kind: 'door',
-          position: { ...this.map.getPlatePosition() },
-          loudness: 0.6,
-          t: this.simWorld.getTime(),
+          position: this.layout.exit.position,
+          loudness: 0.7,
           sourcePlayerId: 'world',
         });
-      },
-    });
+        this.hud.update({ objective: 'Harmonic resonance achieved! The exit gate is open.' });
+      } else {
+        this.hud.update({ objective: `Resonance Sequence: ${this.melodyProgress}/4 bells matched.` });
+      }
+    } else {
+      // Wrong bell -> reset
+      this.melodyProgress = 0;
+      this.audio.play('door_clunk', { gain: 0.6 });
+      this.simWorld.broadcastNoise({
+        kind: 'alarm',
+        position: pos,
+        loudness: 0.5,
+        sourcePlayerId: 'player_local',
+      });
+      this.hud.update({ objective: 'Dissonance! Melody reset. Replay at fountain if needed.' });
+    }
+  }
 
-    // 6. 3D Jumpscare sequence
-    this.jumpscare = new JumpscareSequence(
-      {
-        onFreezeInput: () => this.playerInput.setFreeze(true),
-        setTimeScale: (scale: number) => {
-          this.timeScale = scale;
-        },
-        onDeath: (stats: JumpscareStats) => {
-          this.callbacks.onDeath(stats);
-        },
-      },
-      this.audio,
-    );
-
-    // Initial HUD State
+  private cycleInventory(): void {
+    if (this.inventory.length === 0) return;
+    this.selectedInventoryIndex = (this.selectedInventoryIndex + 1) % this.inventory.length;
+    this.audio.play('flashlight_click', { gain: 0.4 });
     this.hud.update({
-      objective: 'Reach Island B silently. Avoid alerting the blind beast.',
-      status: 'DRY',
-      stamina: 1.0,
-      noiseLoudness: 0,
+      inventory: this.inventory,
+      selectedItemIndex: this.selectedInventoryIndex,
+    });
+  }
+
+  private toggleFlashlight(): void {
+    if (!this.flashlightLight) return;
+    if (this.flashlightBattery <= 0) {
+      this.audio.play('flashlight_click', { gain: 0.3 });
+      return;
+    }
+    this.flashlightActive = !this.flashlightActive;
+    this.flashlightLight.visible = this.flashlightActive;
+    this.audio.play('flashlight_click', { gain: 0.6 });
+    this.hud.update({
+      flashlight: { active: this.flashlightActive, battery: this.flashlightBattery },
     });
   }
 
@@ -241,34 +763,18 @@ export class GameSession {
     this.jumpscare.reset();
     this.playerInput.setFreeze(false);
 
-    // Clear monster Presentation
-    this.monsters.dispose();
-    this.simWorld.monsters.length = 0;
-
-    // Reset SimWorld
-    this.simWorld = createProvingGroundsSim(this.difficulty);
-    this.monsters.addMonster({
-      id: 'monster_1',
-      variant: 'standard',
-      spawn: ARENA_MONSTER_SPAWN,
-    });
-
-    this.simWorld.addMonster(
-      {
-        id: 'monster_1',
-        variant: 'standard',
-        spawn: ARENA_MONSTER_SPAWN,
-        spawnGrace: 8.0,
-      },
-      this.seed,
-    );
-
+    // Reset Sim & presentation
     this.timeSurvived = 0;
     this.noisesMade = 0;
     this.closestCall = 999.0;
+    this.alertsCount = 0;
     this.timeScale = 1.0;
     this.accumulator = 0;
     this.isPaused = false;
+    this.isWon = false;
+
+    const spawn = this.layout.spawns.player[0] ?? { x: 0, y: 1.0, z: 0 };
+    this.simWorld.player.teleport(spawn);
 
     this.playerInput.requestPointerLock();
   }
@@ -289,7 +795,7 @@ export class GameSession {
   }
 
   update(dt: number): void {
-    if (this.isDisposed || this.isPaused) return;
+    if (this.isDisposed || this.isPaused || !this.isLoaded) return;
 
     // Jumpscare update takes priority if active
     if (this.jumpscare.isActive()) {
@@ -302,12 +808,19 @@ export class GameSession {
     this.accumulator += scaledDt;
 
     // 1. Poll Player Intent
+    this.playerInput.updateThrowHold(dt);
     const intent = this.playerInput.pollIntent();
 
     // 2. Fixed Timestep Physics Simulation
     const recentNoises: NoiseEvent[] = [];
 
     while (this.accumulator >= this.FIXED_DT) {
+      // Dynamic Water Level Step (Map 4)
+      if (this.waterCycle) {
+        const curWaterY = this.waterCycle.levelAt(this.simWorld.simTime);
+        this.water.updateWaterY(curWaterY);
+      }
+
       // Step character motor and monster brains
       this.simWorld.step(this.FIXED_DT, intent);
 
@@ -326,6 +839,8 @@ export class GameSession {
         }
       });
 
+      this.stepSubsystems(this.FIXED_DT);
+
       this.timeSurvived += this.FIXED_DT;
       this.accumulator -= this.FIXED_DT;
     }
@@ -337,7 +852,7 @@ export class GameSession {
     const currSnap = this.simWorld.player.getSnapshot();
 
     this.playerCamera.update(dt, prevSnap, currSnap, renderAlpha);
-    this.footsteps.update(currSnap, this.playerCamera.getBobPhase(), this.camera, this.map.waterY);
+    this.footsteps.update(currSnap, this.playerCamera.getBobPhase(), this.camera, this.simWorld.waterY);
 
     // 4. Player Wake in Water
     const playerSpeed = Math.hypot(currSnap.vel.x, currSnap.vel.z);
@@ -396,6 +911,9 @@ export class GameSession {
       if (dist < this.closestCall) {
         this.closestCall = dist;
       }
+      if (mSnap.state === 'ALERTED' || mSnap.state === 'HUNT') {
+        this.alertsCount++;
+      }
 
       if (mSnap.state === 'ATTACK' && !this.godMode && !this.jumpscare.isActive()) {
         const body = this.monsters.getBody(m.id);
@@ -430,7 +948,13 @@ export class GameSession {
     // 8. Water System update
     this.water.update(dt, this.simWorld.simTime, this.camera, this.scene.fog as FogExp2);
 
-    // 9. Acoustic System & HUD Feed
+    // 9. MapInstance update (e.g. sinking platforms)
+    this.mapInstance.update(dt);
+
+    // 10. Check Win Condition
+    this.checkWinCondition(currSnap.pos);
+
+    // 11. Acoustic System & HUD Feed
     this.acoustics.update(
       dt,
       currSnap.pos,
@@ -452,13 +976,329 @@ export class GameSession {
       interactionPrompt: promptState.visible ? promptState.label : null,
     });
 
-    // 10. Debug visualizations update
+    // 12. Trajectory preview update
+    this.updateTrajectoryPreview(currSnap.pos);
+
+    // 13. Debug visualizations
     if (this.debugMode) {
       this.updateDebugVisuals(dt);
     }
 
-    // 11. Render Scene
+    // 14. Render Scene
     this.renderer.render(this.scene, this.camera);
+  }
+
+  private stepSubsystems(dt: number): void {
+    const pSnap = this.simWorld.player.getState();
+
+    // 1. Hand Crank & Flashlight Battery (Map 5)
+    if (this.flashlightLight) {
+      if (this.playerInput.isCrankActive()) {
+        this.flashlightBattery = Math.min(1.0, this.flashlightBattery + 0.06 * dt);
+        this.crankNoiseTimer += dt;
+        if (this.crankNoiseTimer >= 0.5) {
+          this.crankNoiseTimer = 0;
+          this.audio.play('crank_loop', { gain: 0.5 });
+          this.simWorld.broadcastNoise({
+            kind: 'generator',
+            position: pSnap.pos,
+            loudness: 0.3,
+            sourcePlayerId: 'player_local',
+          });
+        }
+      }
+
+      if (this.flashlightActive && this.flashlightBattery > 0) {
+        this.flashlightBattery = Math.max(0, this.flashlightBattery - dt / this.FLASHLIGHT_MAX_DURATION);
+        if (this.flashlightBattery < 0.15 && Math.random() < 0.2) {
+          this.flashlightLight.intensity = Math.random() < 0.5 ? 0.3 : 2.4;
+        } else {
+          this.flashlightLight.intensity = 2.4;
+        }
+        if (this.flashlightBattery <= 0) {
+          this.flashlightActive = false;
+          this.flashlightLight.visible = false;
+        }
+      }
+
+      this.hud.update({
+        flashlight: { active: this.flashlightActive, battery: this.flashlightBattery },
+      });
+    }
+
+    // 2. Active Projectiles Simulation
+    for (let i = this.activeProjectiles.length - 1; i >= 0; i--) {
+      const proj = this.activeProjectiles[i]!;
+      const impact = this.projectileSystem.step(
+        proj,
+        dt,
+        this.simWorld.ground,
+        this.simWorld.colliders,
+        this.simWorld.waterY,
+        this.simWorld.simTime,
+      );
+
+      if (impact !== null) {
+        this.activeProjectiles.splice(i, 1);
+        this.handleProjectileImpact(impact);
+      } else if (!proj.active) {
+        this.activeProjectiles.splice(i, 1);
+      }
+    }
+
+    // Check throw launch
+    const throwLaunch = this.playerInput.consumeThrowLaunch();
+    if (throwLaunch !== null) {
+      this.launchEquippedThrowable(throwLaunch);
+    }
+
+    // 3. Map 1: Pillar inspection check
+    if (this.mapId === 'poolrooms') {
+      for (const pillar of this.layout.pillars) {
+        if (pillar.ordinal === undefined || pillar.decalNumber === undefined) continue;
+        const dx = pillar.x - pSnap.pos.x;
+        const dz = pillar.z - pSnap.pos.z;
+        const dist = Math.hypot(dx, dz);
+        if (dist <= 8.0) {
+          const lookDirX = -Math.sin(pSnap.yaw);
+          const lookDirZ = -Math.cos(pSnap.yaw);
+          const toPillarX = dx / dist;
+          const toPillarZ = dz / dist;
+          const dot = lookDirX * toPillarX + lookDirZ * toPillarZ;
+
+          if (dot > 0.9) {
+            this.inspectedPillars.set(pillar.ordinal, pillar.decalNumber);
+            const notebook = [1, 2, 3, 4].map(
+              (ord) => `#${ord}: ${this.inspectedPillars.get(ord) ?? '?'}`,
+            );
+            this.hud.update({ notebookNumbers: notebook });
+          }
+        }
+      }
+    }
+
+    // 4. Map 2: Metal Catwalk Clang & Steam Vents
+    if (this.mapId === 'utility_tunnels') {
+      const pSpeed = Math.hypot(pSnap.vel.x, pSnap.vel.z);
+      if (pSnap.onGround && pSpeed > 4.5) {
+        this.catwalkClangTimer += dt;
+        if (this.catwalkClangTimer >= 0.5) {
+          this.catwalkClangTimer = 0;
+          this.audio.play('valve_release', { gain: 0.3 });
+          this.simWorld.broadcastNoise({
+            kind: 'clang',
+            position: pSnap.pos,
+            loudness: 0.3,
+            sourcePlayerId: 'player_local',
+          });
+        }
+      }
+
+      // Update Steam Vents
+      let nearActiveSteam = false;
+      for (const vent of this.steamVents) {
+        vent.timer += dt;
+        if (vent.timer >= vent.cycleTime - 3.0 && vent.timer < vent.cycleTime - 2.8) {
+          this.audio.play('pipe_groan', { position: vent.pos, gain: 0.8 });
+        }
+        if (vent.timer >= vent.cycleTime) {
+          vent.active = true;
+          this.audio.play('steam_hiss', { position: vent.pos, gain: 0.9 });
+          if (vent.timer >= vent.cycleTime + 5.0) {
+            vent.timer = 0;
+            vent.active = false;
+          }
+        }
+
+        if (vent.active) {
+          const d = Math.hypot(vent.pos.x - pSnap.pos.x, vent.pos.z - pSnap.pos.z);
+          if (d <= 18.0) {
+            nearActiveSteam = true;
+            this.simWorld.hearingCtx.maskFactor = () => 0.45;
+          }
+        }
+      }
+
+      if (!nearActiveSteam) {
+        delete this.simWorld.hearingCtx.maskFactor;
+      }
+      this.hud.update({ steamWarning: nearActiveSteam });
+    }
+
+    // 5. Map 4: Level Shift Timer & Warning
+    if (this.waterCycle) {
+      const rem = this.waterCycle.secondsToNextShift(this.simWorld.simTime);
+      const phase = this.waterCycle.phaseAt(this.simWorld.simTime);
+      this.hud.update({
+        levelShift: {
+          timeRemaining: rem,
+          phase,
+          warning: rem <= 10.0,
+        },
+      });
+    }
+
+    // 6. Map 5: Generators Runtime & Simultaneous Blast Doors
+    if (this.mapId === 'drainage_core') {
+      let runningCount = 0;
+      const genStatus: Array<{ id: string; running: boolean; remaining: number }> = [];
+
+      for (const [id, g] of this.generators.entries()) {
+        if (g.state === 'running') {
+          g.runtime = Math.max(0, g.runtime - dt);
+          if (g.runtime <= 0) {
+            g.state = 'idle';
+          } else {
+            runningCount++;
+          }
+        }
+        genStatus.push({ id, running: g.state === 'running', remaining: g.runtime });
+      }
+
+      if (runningCount === 3) {
+        this.allGeneratorsSimultaneousTime += dt;
+        if (this.allGeneratorsSimultaneousTime >= 5.0 && !this.blastDoorsOpen) {
+          this.blastDoorsOpen = true;
+          this.exitUnlocked = true;
+          this.audio.play('shutter_rumble', { gain: 1.0 });
+          this.simWorld.broadcastNoise({
+            kind: 'door',
+            position: this.layout.exit.position,
+            loudness: 0.7,
+            sourcePlayerId: 'world',
+          });
+          this.hud.update({ objective: 'ALL 3 GENERATORS SYNCHRONIZED! Blast doors open. ESCAPE!' });
+        }
+      } else {
+        this.allGeneratorsSimultaneousTime = 0;
+      }
+
+      this.hud.update({
+        generatorStatus: genStatus,
+        blastDoorsRemaining: this.allGeneratorsSimultaneousTime > 0 ? 5.0 - this.allGeneratorsSimultaneousTime : null,
+      });
+    }
+  }
+
+  private launchEquippedThrowable(holdTime: number): void {
+    const slot = this.inventory[this.selectedInventoryIndex];
+    if (!slot || slot.count <= 0) return;
+
+    slot.count--;
+    const pSnap = this.simWorld.player.getState();
+    const vel = this.projectileSystem.calculateLaunchVelocity(pSnap.yaw, pSnap.pitch, holdTime);
+
+    this.activeProjectiles.push({
+      id: `proj_${Date.now()}`,
+      kind: slot.kind === 'noisemaker' ? 'noisemaker' : 'pebble',
+      pos: { x: pSnap.pos.x, y: pSnap.pos.y + 1.4, z: pSnap.pos.z },
+      vel,
+      active: true,
+      spawnTime: this.simWorld.simTime,
+    });
+
+    this.audio.play('stone_creak', { gain: 0.4 });
+    this.hud.update({ inventory: this.inventory });
+  }
+
+  private handleProjectileImpact(impact: { x: number; y: number; z: number; isWater: boolean; kind: string }): void {
+    const pos = { x: impact.x, y: impact.y, z: impact.z };
+
+    if (impact.kind === 'noisemaker') {
+      this.audio.play('generator_cord', { position: pos, gain: 0.9 });
+      this.simWorld.broadcastNoise({
+        kind: 'beacon',
+        position: pos,
+        loudness: 0.7,
+        sourcePlayerId: 'player_local',
+      });
+      return;
+    }
+
+    if (impact.isWater) {
+      this.audio.play('pebble_plink', { position: pos, gain: 0.8 });
+      this.water.onRipple({
+        position: pos,
+        strength: 0.5,
+        t: this.simWorld.simTime,
+        sourcePlayerId: 'player_local',
+      });
+      this.simWorld.broadcastNoise({
+        kind: 'pebble',
+        position: pos,
+        loudness: 0.6,
+        sourcePlayerId: 'player_local',
+      });
+    } else {
+      this.audio.play('pebble_clack', { position: pos, gain: 0.6 });
+      this.simWorld.broadcastNoise({
+        kind: 'clack',
+        position: pos,
+        loudness: 0.2,
+        sourcePlayerId: 'player_local',
+      });
+    }
+  }
+
+  private updateTrajectoryPreview(pPos: Vec3): void {
+    if (!this.playerInput.isThrowHeld()) {
+      if (this.trajectoryLine) {
+        this.scene.remove(this.trajectoryLine);
+        this.trajectoryLine.geometry.dispose();
+        (this.trajectoryLine.material as LineBasicMaterial).dispose();
+        this.trajectoryLine = null;
+      }
+      return;
+    }
+
+    const pSnap = this.simWorld.player.getState();
+    const holdDuration = this.playerInput.getThrowHoldDuration();
+    const points = this.projectileSystem.predictTrajectory(
+      { x: pPos.x, y: pPos.y + 1.4, z: pPos.z },
+      pSnap.yaw,
+      pSnap.pitch,
+      holdDuration,
+      this.simWorld.ground,
+      this.simWorld.colliders,
+      this.simWorld.waterY,
+    );
+
+    const flatPoints: number[] = [];
+    for (const p of points) {
+      flatPoints.push(p.x, p.y, p.z);
+    }
+
+    if (!this.trajectoryLine) {
+      const geo = new BufferGeometry();
+      geo.setAttribute('position', new Float32BufferAttribute(flatPoints, 3));
+      const mat = new LineBasicMaterial({ color: 0x86cfa0, transparent: true, opacity: 0.75 });
+      this.trajectoryLine = new Line(geo, mat);
+      this.scene.add(this.trajectoryLine);
+    } else {
+      this.trajectoryLine.geometry.dispose();
+      this.trajectoryLine.geometry = new BufferGeometry();
+      this.trajectoryLine.geometry.setAttribute('position', new Float32BufferAttribute(flatPoints, 3));
+    }
+  }
+
+  private checkWinCondition(pPos: Vec3): void {
+    if (this.isWon) return;
+
+    const exitPos = this.layout.exit.position;
+    const dist = Math.hypot(pPos.x - exitPos.x, pPos.z - exitPos.z);
+
+    if (dist <= 2.5 && this.exitUnlocked) {
+      this.isWon = true;
+      this.playerInput.exitPointerLock();
+      this.callbacks.onWin({
+        mapId: this.mapId,
+        timeSurvived: this.timeSurvived,
+        noisesMade: this.noisesMade,
+        closestCall: this.closestCall,
+        alertsCount: this.alertsCount,
+        retries: 0,
+      });
+    }
   }
 
   private spawnHearingRing(noise: NoiseEvent): void {
@@ -505,13 +1345,11 @@ export class GameSession {
           this.timeScale = this.timeScale === 4.0 ? 1.0 : 4.0;
           break;
         case 'KeyK':
-          // Kill all monsters
           this.simWorld.monsters.length = 0;
           this.monsters.dispose();
           this.hud.update({ objective: 'DEBUG: All monsters eliminated' });
           break;
         case 'KeyM': {
-          // Spawn monster at player or look position
           const id = `monster_${Date.now()}`;
           const spawnPos = { ...this.simWorld.player.getState().pos };
           spawnPos.x += 6;
@@ -529,14 +1367,10 @@ export class GameSession {
           this.hud.update({ objective: `DEBUG: Spawned monster ${id}` });
           break;
         }
-        case 'KeyC': {
-          // Teleport player forward 8m
-          const snap = this.simWorld.player.getState();
-          this.simWorld.player.teleport({
-            x: snap.pos.x - Math.sin(snap.yaw) * 8.0,
-            y: snap.pos.y,
-            z: snap.pos.z - Math.cos(snap.yaw) * 8.0,
-          });
+        case 'KeyP': {
+          // Debug instant win / unlock exit
+          this.exitUnlocked = true;
+          this.hud.update({ objective: 'DEBUG: Exit unlocked instantly' });
           break;
         }
       }
@@ -560,7 +1394,6 @@ export class GameSession {
   }
 
   private updateDebugVisuals(dt: number): void {
-    // 1. Update hearing rings
     for (let i = this.hearingRings.length - 1; i >= 0; i--) {
       const ring = this.hearingRings[i]!;
       ring.age += dt;
@@ -576,7 +1409,6 @@ export class GameSession {
       }
     }
 
-    // 2. Monster A* path visualization
     if (this.simWorld.monsters.length === 0) return;
     const primary = this.simWorld.monsters[0]!;
     const path = primary.getCurrentPath();
@@ -614,13 +1446,20 @@ export class GameSession {
       (this.pathLine.material as LineBasicMaterial).dispose();
       this.pathLine = null;
     }
+    if (this.trajectoryLine) {
+      this.scene.remove(this.trajectoryLine);
+      this.trajectoryLine.geometry.dispose();
+      (this.trajectoryLine.material as LineBasicMaterial).dispose();
+      this.trajectoryLine = null;
+    }
+
     this.jumpscare.dispose();
     this.playerInput.dispose();
     this.footsteps.dispose();
     this.interactions.dispose();
     this.water.dispose();
     this.monsters.dispose();
-    this.map.dispose();
+    this.mapInstance.dispose();
 
     this.renderer.dispose();
   }

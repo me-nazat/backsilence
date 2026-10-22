@@ -192,9 +192,52 @@ export class NavGrid {
           }
         }
       }
-      if (found) break; // Found within this smallest radius ring
+      if (found) break;
+    }
+
+    return found ? { x: bestX, z: bestZ } : null;
+  }
+
+  findNearestWalkableCell(
+    targetX: number,
+    targetZ: number,
+    maxRadius = 15.0,
+  ): { x: number; z: number } | null {
+    const center = this.worldToGrid(targetX, targetZ);
+    const maxSteps = Math.ceil(maxRadius / this.cellSize);
+
+    if (this.isWalkable(center.gx, center.gz)) {
+      return this.gridToWorld(center.gx, center.gz);
+    }
+
+    let bestDistSq = Infinity;
+    let bestX = 0;
+    let bestZ = 0;
+    let found = false;
+
+    for (let r = 1; r <= maxSteps; r++) {
+      for (let dx = -r; dx <= r; dx++) {
+        for (let dz = -r; dz <= r; dz++) {
+          if (Math.abs(dx) !== r && Math.abs(dz) !== r) continue;
+          const gx = center.gx + dx;
+          const gz = center.gz + dz;
+
+          if (this.isWalkable(gx, gz)) {
+            const world = this.gridToWorld(gx, gz);
+            const dSq = (world.x - targetX) ** 2 + (world.z - targetZ) ** 2;
+            if (dSq < bestDistSq) {
+              bestDistSq = dSq;
+              bestX = world.x;
+              bestZ = world.z;
+              found = true;
+            }
+          }
+        }
+      }
+      if (found) break;
     }
 
     return found ? { x: bestX, z: bestZ } : null;
   }
 }
+

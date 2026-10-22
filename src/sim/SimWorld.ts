@@ -1,7 +1,7 @@
 /* ── SimWorld.ts ───────────────────────────────────────────────────────────
  *  Container managing the pure 60Hz deterministic simulation.
- *  Owns terrain, colliders, navigation, player physics, monsters, and event queue.
- *  Zero Three.js, DOM, or Audio imports.
+ *  Owns terrain, colliders, navigation, player physics, monsters, dynamic water,
+ *  and the event queue. Zero Three.js, DOM, or Audio imports.
  * ──────────────────────────────────────────────────────────────────────── */
 
 import type { Vec3, NoiseKind, PlayerId } from '../types/contracts.js';
@@ -12,12 +12,17 @@ import { PlayerMotor, type PlayerIntent, type PlayerMotorState } from './PlayerM
 import { MonsterBrain, type MonsterDef, type MonsterSnapshot } from './MonsterBrain.js';
 import { EventRingBuffer, type SimEvent } from './Events.js';
 import type { HearingContext } from './Hearing.js';
+import type { WaterLevelProvider } from './WaterLevelCycle.js';
 
 export interface SimWorldConfig {
   bounds: GridBounds;
   playerSpawn: Vec3;
   waterY: number;
-  difficulty?: 'whisper' | 'normal' | 'deafening';
+  waterLevelProvider?: WaterLevelProvider | undefined;
+  discreteWaterLevels?: number[] | undefined;
+  difficulty?: ('whisper' | 'normal' | 'deafening') | undefined;
+  ground?: GroundGrid | undefined;
+  colliders?: ColliderSet | undefined;
 }
 
 export class SimWorld {
@@ -28,14 +33,27 @@ export class SimWorld {
   readonly player: PlayerMotor;
   readonly monsters: MonsterBrain[] = [];
 
-  readonly waterY: number;
+  readonly baseWaterY: number;
+  currentWaterY: number;
+  waterLevelProvider?: WaterLevelProvider | undefined;
+  readonly discreteWaterLevels: number[] = [];
+  readonly navGridsByLevel = new Map<number, NavGrid>();
+
   hearingCtx: HearingContext;
   simTime = 0;
 
   constructor(config: SimWorldConfig) {
-    this.waterY = config.waterY;
-    this.ground = new GroundGrid(config.bounds, 0.25);
-    this.colliders = new ColliderSet(4.0);
+    this.baseWaterY = config.waterY;
+    this.currentWaterY = config.waterY;
+    if (config.waterLevelProvider !== undefined) {
+      this.waterLevelProvider = config.waterLevelProvider;
+    }
+    if (config.discreteWaterLevels) {
+      this.discreteWaterLevels = [...config.discreteWaterLevels].sort((a, b) => a - b);
+    }
+
+    this.ground = config.ground ?? new GroundGrid(config.bounds, 0.25);
+    this.colliders = config.colliders ?? new ColliderSet(4.0);
     this.events = new EventRingBuffer(256);
 
     const diff = config.difficulty ?? 'normal';
@@ -46,7 +64,11 @@ export class SimWorld {
     this.player = new PlayerMotor('player_local', config.playerSpawn);
 
     // Initial dummy nav grid, rebuilt after terrain is populated
-    this.nav = new NavGrid(this.ground, this.waterY, 0.5);
+    this.nav = new NavGrid(this.ground, this.currentWaterY, 0.5);
+  }
+
+  get waterY(): number {
+    return this.currentWaterY;
   }
 
   get bounds(): GridBounds {
@@ -79,11 +101,42 @@ export class SimWorld {
   }
 
   /**
-   * Finalize terrain generation: compute distance transform and build nav grid.
+   * Finalize terrain generation: compute distance transform and build nav grids.
    */
   finalizeTerrain(): void {
-    this.ground.computeDistanceTransform(this.waterY);
-    this.nav = new NavGrid(this.ground, this.waterY, 0.5);
+    this.ground.computeDistanceTransform(this.baseWaterY);
+
+    if (this.discreteWaterLevels.length > 0) {
+      for (const level of this.discreteWaterLevels) {
+        const grid = new NavGrid(this.ground, level, 0.5);
+        this.navGridsByLevel.set(level, grid);
+      }
+      this.updateActiveNavGrid();
+    } else {
+      this.nav = new NavGrid(this.ground, this.baseWaterY, 0.5);
+    }
+  }
+
+  private updateActiveNavGrid(): void {
+    if (this.discreteWaterLevels.length === 0) return;
+
+    // Pick closest discrete level based on transition midpoints
+    let bestLevel = this.discreteWaterLevels[0]!;
+    let minDiff = Math.abs(this.currentWaterY - bestLevel);
+
+    for (let i = 1; i < this.discreteWaterLevels.length; i++) {
+      const lvl = this.discreteWaterLevels[i]!;
+      const diff = Math.abs(this.currentWaterY - lvl);
+      if (diff < minDiff) {
+        minDiff = diff;
+        bestLevel = lvl;
+      }
+    }
+
+    const grid = this.navGridsByLevel.get(bestLevel);
+    if (grid && grid !== this.nav) {
+      this.nav = grid;
+    }
   }
 
   addMonster(def: MonsterDef, seed?: number): MonsterBrain {
@@ -95,20 +148,38 @@ export class SimWorld {
   step(dt: number, intent: PlayerIntent): void {
     this.simTime += dt;
 
-    // 1. Step Player Motor
-    this.player.step(dt, intent, this.ground, this.colliders, this.events, this.simTime, this.waterY);
+    // 0. Update dynamic water level and nav grid
+    if (this.waterLevelProvider) {
+      this.currentWaterY = this.waterLevelProvider.levelAt(this.simTime);
+      this.updateActiveNavGrid();
+    }
 
-    // 2. Broadcast pending noise events to all monsters
+    // 1. Step Player Motor
+    this.player.step(
+      dt,
+      intent,
+      this.ground,
+      this.colliders,
+      this.events,
+      this.simTime,
+      this.currentWaterY,
+    );
+
     // 2. Broadcast pending noise events emitted in this step to all monsters
     this.events.peek((ev: SimEvent) => {
       if (ev.type === 'noise' && ev.data.t >= this.simTime - dt * 1.1) {
         for (let m = 0; m < this.monsters.length; m++) {
-          this.monsters[m]!.onNoiseEvent(ev.data, this.colliders, this.hearingCtx, this.simTime);
+          this.monsters[m]!.onNoiseEvent(
+            ev.data,
+            this.colliders,
+            this.hearingCtx,
+            this.simTime,
+          );
         }
       }
     });
 
-    // 3. Step all monsters
+    // 3. Step all monsters with current nav grid
     for (let m = 0; m < this.monsters.length; m++) {
       this.monsters[m]!.step(
         dt,

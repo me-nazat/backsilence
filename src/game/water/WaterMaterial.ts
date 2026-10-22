@@ -1,7 +1,8 @@
 /* ── WaterMaterial.ts ──────────────────────────────────────────────────────
  *  Custom ShaderMaterial for the final water system.
  *  Features: analytic expanding ripples, Kelvin wakes, depth absorption,
- *  edge foam, fog integration, underwater mode, and normal perturbing.
+ *  edge foam, fog integration, underwater mode, normal perturbing, murk,
+ *  and dynamic bioluminescence emission for Map 5.
  * ──────────────────────────────────────────────────────────────────────── */
 
 import {
@@ -15,16 +16,18 @@ import {
   type Vector4,
 } from 'three';
 import type { GraphicsTier } from '../../types/contracts.js';
+import type { WaterProfile } from './WaterProfile.js';
 
 export interface WaterMaterialOptions {
-  tier?: GraphicsTier;
+  tier?: GraphicsTier | undefined;
   normalTexture: Texture;
   mapDataTexture: Texture;
   mapBounds: Vector4;
   ripples: Vector4[];
   wakes: Vector4[];
   wakeParams: Vector4[];
-  waterY?: number;
+  waterY?: number | undefined;
+  profile?: WaterProfile | undefined;
 }
 
 const vertexShader = /* glsl */ `
@@ -116,6 +119,14 @@ uniform vec3 uSunDir;
 uniform float uOpacityMin;
 uniform float uOpacityMax;
 uniform float uUnderwater;
+uniform float uMurk;
+uniform float uNormalScale;
+uniform float uScrollSpeed;
+
+// Bioluminescence (Map 5)
+uniform vec3 uBiolumColor;
+uniform float uBiolumRipple;
+uniform float uBiolumAmbient;
 
 varying vec3 vWorldPos;
 varying vec3 vViewPos;
@@ -167,11 +178,11 @@ void main() {
   float depth = max(0.0, uWaterY - groundHeight);
 
   // 2. Normal Perturbation from two scrolling normal map samples
-  vec2 normalUv1 = p * 0.12 + vec2(uTime * 0.02, uTime * 0.015);
-  vec2 normalUv2 = p * 0.06 - vec2(uTime * 0.015, -uTime * 0.025);
+  vec2 normalUv1 = p * 0.12 + vec2(uTime * uScrollSpeed * 0.5, uTime * uScrollSpeed * 0.35);
+  vec2 normalUv2 = p * 0.06 - vec2(uTime * uScrollSpeed * 0.4, -uTime * uScrollSpeed * 0.6);
   vec3 norm1 = texture2D(uNormalMap, normalUv1).rgb * 2.0 - 1.0;
   vec3 norm2 = texture2D(uNormalMap, normalUv2).rgb * 2.0 - 1.0;
-  vec3 combinedNormal = normalize(norm1 + norm2);
+  vec3 combinedNormal = normalize(norm1 + norm2) * uNormalScale;
 
   // 3. Add analytic ripple gradient
   vec2 rippleGrad = vec2(0.0);
@@ -226,12 +237,13 @@ void main() {
   // 5. Water Color by depth absorption
   vec3 waterColor = mix(uColorShallow, uColorDeep, 1.0 - exp(-depth * 1.1));
   float alpha = mix(uOpacityMin, uOpacityMax, 1.0 - exp(-depth * 1.6));
+  alpha = clamp(alpha + uMurk, 0.0, 1.0);
 
   // 6. Fresnel reflection of creamy haze / sky
   vec3 viewDir = normalize(vViewPos);
   float NdotV = max(0.0, dot(normal, viewDir));
   float fresnel = pow(1.0 - NdotV, 3.5);
-  vec3 skyHazeColor = vec3(0.92, 0.88, 0.78); // creamy hazy sky
+  vec3 skyHazeColor = vec3(0.92, 0.88, 0.78);
   waterColor = mix(waterColor, skyHazeColor, fresnel * 0.65);
 
   // 7. Sun Specular Streak
@@ -253,6 +265,15 @@ void main() {
   waterColor = mix(waterColor, foamColor, totalFoam * 0.85);
   alpha = max(alpha, totalFoam * 0.9);
 
+  // 9. Bioluminescence (Map 5: glows where disturbed)
+  if (uBiolumRipple > 0.0) {
+    float rippleEnergy = abs(vRippleHeight) * 14.0;
+    float wakeEnergy = wakeFoam * 1.5;
+    float ambientPulse = (sin(p.x * 1.5 + uTime * 0.8) * cos(p.y * 1.5 - uTime * 0.6) * 0.5 + 0.5);
+    float glow = clamp(rippleEnergy * uBiolumRipple + wakeEnergy * 0.8 + ambientPulse * uBiolumAmbient, 0.0, 2.5);
+    waterColor += uBiolumColor * glow;
+  }
+
   // Underwater hint: Snell's window brightening
   if (uUnderwater > 0.5) {
     waterColor = mix(waterColor * 0.6, vec3(0.2, 0.45, 0.45), 0.5);
@@ -266,6 +287,8 @@ void main() {
 `;
 
 export function createWaterMaterial(options: WaterMaterialOptions): ShaderMaterial {
+  const prof = options.profile;
+
   const uniforms = UniformsUtils.merge([
     UniformsLib.fog,
     {
@@ -278,12 +301,18 @@ export function createWaterMaterial(options: WaterMaterialOptions): ShaderMateri
       uRippleCount: { value: 0 },
       uWakes: { value: options.wakes },
       uWakeParams: { value: options.wakeParams },
-      uColorShallow: { value: new Color('#52b3b0') },
-      uColorDeep: { value: new Color('#164345') },
+      uColorShallow: { value: new Color(prof?.shallow ?? '#52b3b0') },
+      uColorDeep: { value: new Color(prof?.deep ?? '#164345') },
       uSunDir: { value: new Vector3(0.4, 0.8, 0.4).normalize() },
-      uOpacityMin: { value: 0.55 },
-      uOpacityMax: { value: 0.93 },
+      uOpacityMin: { value: prof?.opacityMin ?? 0.55 },
+      uOpacityMax: { value: prof?.opacityMax ?? 0.93 },
       uUnderwater: { value: 0.0 },
+      uMurk: { value: prof?.murk ?? 0.0 },
+      uNormalScale: { value: prof?.normalStrength ?? 1.0 },
+      uScrollSpeed: { value: prof?.scroll ?? 0.04 },
+      uBiolumColor: { value: new Color(prof?.bioluminescence?.color ?? '#3ff2c8') },
+      uBiolumRipple: { value: prof?.bioluminescence?.ripple ?? 0.0 },
+      uBiolumAmbient: { value: prof?.bioluminescence?.ambient ?? 0.0 },
     },
   ]);
 

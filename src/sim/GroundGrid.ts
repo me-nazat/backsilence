@@ -131,6 +131,10 @@ export class GroundGrid {
     return this.distToDry(x, z);
   }
 
+  computeDistToDryField(waterY = 0): void {
+    this.computeDistanceTransform(waterY);
+  }
+
   /**
    * Two-pass chamfer distance transform to compute distance (in meters)
    * from every water cell to the nearest dry platform or void boundary.

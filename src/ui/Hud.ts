@@ -1,7 +1,13 @@
 /* ── Hud.ts ───────────────────────────────────────────────────────────────
  *  In-game HUD overlay: reactive Noise Meter, stamina bar, status chips,
- *  notebook sequence strip, VHS OSD, interaction prompt, and sound captions.
+ *  notebook sequence strip, inventory strip, battery meter, level-shift timer,
+ *  VHS OSD, interaction prompt, and directional sound captions.
  * ──────────────────────────────────────────────────────────────────────── */
+
+export interface InventorySlot {
+  kind: 'pebble' | 'noisemaker' | 'fuse_core';
+  count: number;
+}
 
 export interface HudData {
   noiseLoudness: number; // 0..1
@@ -15,6 +21,23 @@ export interface HudData {
   vhsTime?: string;
   showVhsOsd?: boolean;
   multiplayerRoster?: Array<{ name: string; alive: boolean }>;
+
+  // Batch 3 Interactive HUD Additions
+  inventory?: InventorySlot[];
+  selectedItemIndex?: number;
+  flashlight?: {
+    active: boolean;
+    battery: number; // 0..1
+  };
+  levelShift?: {
+    timeRemaining: number;
+    phase: 'LOW' | 'RISE' | 'HIGH' | 'FALL' | 'low' | 'rise' | 'high' | 'fall';
+    warning: boolean;
+  } | null;
+  sinkingWarning?: boolean;
+  steamWarning?: boolean;
+  generatorStatus?: Array<{ id: string; running: boolean; remaining: number }>;
+  blastDoorsRemaining?: number | null;
 }
 
 export class Hud {
@@ -29,6 +52,22 @@ export class Hud {
   private captionEl: HTMLElement | null = null;
   private vignetteEl: HTMLElement | null = null;
   private vhsOsdEl: HTMLElement | null = null;
+
+  // Batch 3 Elements
+  private inventoryEl: HTMLElement | null = null;
+  private flashlightEl: HTMLElement | null = null;
+  private batteryBarEl: HTMLElement | null = null;
+  private batteryPctEl: HTMLElement | null = null;
+  private levelShiftEl: HTMLElement | null = null;
+  private levelBorderEl: HTMLElement | null = null;
+  private hazardAlertEl: HTMLElement | null = null;
+  private generatorStatusEl: HTMLElement | null = null;
+
+  private onCycleInventoryCallback?: () => void;
+
+  setInventoryCycleCallback(cb: () => void): void {
+    this.onCycleInventoryCallback = cb;
+  }
 
   mount(container: HTMLElement): void {
     const el = document.createElement('div');
@@ -51,6 +90,16 @@ export class Hud {
         background: radial-gradient(circle, transparent 50%, rgba(179,38,30,0.8) 100%);
         opacity: 0;
         transition: opacity 0.15s ease-out;
+      "></div>
+
+      <!-- Level Shift Warning Border (Map 4) -->
+      <div id="hud-level-border" style="
+        position: absolute;
+        inset: 0;
+        box-shadow: inset 0 0 35px rgba(255,59,48,0.7);
+        opacity: 0;
+        transition: opacity 0.3s ease-in-out;
+        pointer-events: none;
       "></div>
 
       <!-- Center Crosshair and Directional Arc Ring -->
@@ -112,7 +161,7 @@ export class Hud {
       </div>
 
       <!-- Top-Right Notebook Sequence Strip -->
-      <div style="position: absolute; top: 56px; right: 24px; display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
+      <div id="hud-notebook-container" style="position: absolute; top: 56px; right: 24px; display: none; flex-direction: column; align-items: flex-end; gap: 4px;">
         <div style="font-size: 10px; opacity: 0.6; letter-spacing: 0.1em;">PILLAR SEQUENCE</div>
         <div id="hud-notebook" style="
           background: #080603;
@@ -123,7 +172,50 @@ export class Hud {
           font-weight: bold;
           color: var(--water, #86cfa0);
           letter-spacing: 0.2em;
-        ">#1: 4 · #2: 2 · #3: ?</div>
+        ">#1: ? · #2: ? · #3: ? · #4: ?</div>
+      </div>
+
+      <!-- Top-Right Level Shift Timer (Map 4) -->
+      <div id="hud-level-shift" style="
+        position: absolute;
+        top: 56px;
+        right: 24px;
+        display: none;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 4px;
+        background: #0d0b06;
+        border: 1px solid #3d2f18;
+        padding: 6px 12px;
+        border-radius: 4px;
+      ">
+        <div style="font-size: 10px; opacity: 0.6; letter-spacing: 0.1em;">HYDRO-PUMP CYCLE</div>
+        <div id="hud-level-timer-text" style="font-size: 13px; font-weight: bold; color: var(--water, #86cfa0); letter-spacing: 0.1em;">
+          LEVEL SHIFT 0:37
+        </div>
+      </div>
+
+      <!-- Top-Right Generator Status (Map 5) -->
+      <div id="hud-generator-status" style="
+        position: absolute;
+        top: 56px;
+        right: 24px;
+        display: none;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 4px;
+        background: #0d0b06;
+        border: 1px solid #3d2f18;
+        padding: 6px 12px;
+        border-radius: 4px;
+      ">
+        <div style="font-size: 10px; opacity: 0.6; letter-spacing: 0.1em;">CORE GENERATORS</div>
+        <div id="hud-generator-text" style="font-size: 12px; font-weight: bold; color: var(--water, #86cfa0); letter-spacing: 0.15em;">
+          G1 ○  G2 ○  G3 ○
+        </div>
+        <div id="hud-blastdoors-text" style="font-size: 11px; color: #ffeb3b; display: none;">
+          Blast Doors: 5.0s
+        </div>
       </div>
 
       <!-- Top-Center Objective Line -->
@@ -133,13 +225,73 @@ export class Hud {
         left: 50%;
         transform: translateX(-50%);
         font-size: 12px;
-        background: rgba(13, 11, 6, 0.6);
+        background: rgba(13, 11, 6, 0.7);
         border: 1px solid rgba(217, 211, 162, 0.2);
         padding: 5px 14px;
         border-radius: 12px;
         color: var(--fog, #d9d3a2);
         letter-spacing: 0.05em;
+        white-space: nowrap;
       ">Find the numbered pillars. Avoid making splashes.</div>
+
+      <!-- Hazard / Mask Alert Icon (Map 2 steam / Map 3 sinking) -->
+      <div id="hud-hazard-alert" style="
+        position: absolute;
+        top: 60px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 11px;
+        font-weight: bold;
+        padding: 4px 10px;
+        border-radius: 4px;
+        display: none;
+        letter-spacing: 0.1em;
+      "></div>
+
+      <!-- Left Bottom: Inventory Strip & Flashlight Battery -->
+      <div style="
+        position: absolute;
+        bottom: 28px;
+        left: 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        pointer-events: auto;
+      ">
+        <!-- Inventory Strip -->
+        <div id="hud-inventory-strip" style="
+          display: none;
+          gap: 6px;
+          background: rgba(13, 11, 6, 0.85);
+          border: 1px solid #3d2f18;
+          padding: 6px;
+          border-radius: 4px;
+          cursor: pointer;
+        ">
+          <!-- Populated dynamically -->
+        </div>
+
+        <!-- Flashlight Battery Meter (Map 5) -->
+        <div id="hud-flashlight-meter" style="
+          display: none;
+          flex-direction: column;
+          gap: 3px;
+          background: rgba(13, 11, 6, 0.85);
+          border: 1px solid #3d2f18;
+          padding: 6px 10px;
+          border-radius: 4px;
+          width: 140px;
+        ">
+          <div style="display: flex; justify-content: space-between; font-size: 10px; opacity: 0.75;">
+            <span>FLASHLIGHT [F]</span>
+            <span id="hud-battery-pct">100%</span>
+          </div>
+          <div style="width: 100%; height: 4px; background: rgba(217,211,162,0.15); border-radius: 2px; overflow: hidden;">
+            <div id="hud-battery-bar" style="width: 100%; height: 100%; background: var(--water, #86cfa0); transition: width 0.1s linear;"></div>
+          </div>
+          <div style="font-size: 9px; opacity: 0.6; text-align: right;">HOLD [C] TO CRANK</div>
+        </div>
+      </div>
 
       <!-- Bottom-Center: The Acoustic Noise Meter & Stamina -->
       <div style="
@@ -194,7 +346,7 @@ export class Hud {
       <!-- Sound Visualizer Caption -->
       <div id="hud-caption" style="
         position: absolute;
-        bottom: 50px;
+        bottom: 60px;
         left: 24px;
         font-size: 12px;
         color: var(--water, #86cfa0);
@@ -218,6 +370,21 @@ export class Hud {
     this.captionEl = el.querySelector('#hud-caption');
     this.vignetteEl = el.querySelector('#hud-vignette');
     this.vhsOsdEl = el.querySelector('#hud-vhs-osd');
+
+    this.inventoryEl = el.querySelector('#hud-inventory-strip');
+    this.flashlightEl = el.querySelector('#hud-flashlight-meter');
+    this.batteryBarEl = el.querySelector('#hud-battery-bar');
+    this.batteryPctEl = el.querySelector('#hud-battery-pct');
+    this.levelShiftEl = el.querySelector('#hud-level-shift');
+    this.levelBorderEl = el.querySelector('#hud-level-border');
+    this.hazardAlertEl = el.querySelector('#hud-hazard-alert');
+    this.generatorStatusEl = el.querySelector('#hud-generator-status');
+
+    this.inventoryEl?.addEventListener('click', () => {
+      if (this.onCycleInventoryCallback) {
+        this.onCycleInventoryCallback();
+      }
+    });
   }
 
   private currentData: HudData = {
@@ -242,7 +409,6 @@ export class Hud {
     const loudnessPct = Math.min(100, Math.max(0, data.noiseLoudness * 100));
     if (this.noiseBarEl) {
       this.noiseBarEl.style.width = `${loudnessPct}%`;
-      // Calm cream -> Warning red color transition
       if (data.noiseLoudness < 0.35) {
         this.noiseBarEl.style.background = 'var(--fog, #d9d3a2)';
       } else if (data.noiseLoudness < 0.7) {
@@ -300,8 +466,16 @@ export class Hud {
     }
 
     // 5. Notebook sequence strip
-    if (this.notebookEl && data.notebookNumbers.length > 0) {
-      this.notebookEl.textContent = data.notebookNumbers.join(' · ');
+    const notebookContainer = this.el.querySelector<HTMLElement>('#hud-notebook-container');
+    if (notebookContainer) {
+      if (data.notebookNumbers && data.notebookNumbers.length > 0) {
+        notebookContainer.style.display = 'flex';
+        if (this.notebookEl) {
+          this.notebookEl.textContent = data.notebookNumbers.join(' · ');
+        }
+      } else {
+        notebookContainer.style.display = 'none';
+      }
     }
 
     // 6. Sound visualizer caption
@@ -326,6 +500,126 @@ export class Hud {
     if (data.vhsTime) {
       const timeSpan = this.el.querySelector('#vhs-timestamp');
       if (timeSpan) timeSpan.textContent = data.vhsTime;
+    }
+
+    // 9. Inventory Strip Update
+    if (this.inventoryEl) {
+      if (data.inventory && data.inventory.length > 0) {
+        this.inventoryEl.style.display = 'flex';
+        const activeIdx = data.selectedItemIndex ?? 0;
+        this.inventoryEl.innerHTML = data.inventory
+          .map((item, idx) => {
+            const isSelected = idx === activeIdx;
+            const label = item.kind.replace('_', ' ').toUpperCase();
+            return `
+              <div style="
+                padding: 4px 8px;
+                border: 1px solid ${isSelected ? 'var(--water, #86cfa0)' : 'rgba(217,211,162,0.2)'};
+                background: ${isSelected ? 'rgba(134,207,160,0.15)' : 'transparent'};
+                color: ${isSelected ? 'var(--water, #86cfa0)' : 'var(--fog, #d9d3a2)'};
+                font-size: 11px;
+                border-radius: 2px;
+                display: flex;
+                gap: 6px;
+                align-items: center;
+              ">
+                <span>${label}</span>
+                <span style="font-weight: bold; opacity: 0.8;">x${item.count}</span>
+              </div>
+            `;
+          })
+          .join('');
+      } else {
+        this.inventoryEl.style.display = 'none';
+      }
+    }
+
+    // 10. Flashlight Battery Update
+    if (this.flashlightEl) {
+      if (data.flashlight) {
+        this.flashlightEl.style.display = 'flex';
+        const pct = Math.round(data.flashlight.battery * 100);
+        if (this.batteryPctEl) this.batteryPctEl.textContent = `${pct}%`;
+        if (this.batteryBarEl) {
+          this.batteryBarEl.style.width = `${pct}%`;
+          if (pct < 15) {
+            this.batteryBarEl.style.background = 'var(--danger, #b3261e)';
+          } else {
+            this.batteryBarEl.style.background = 'var(--water, #86cfa0)';
+          }
+        }
+      } else {
+        this.flashlightEl.style.display = 'none';
+      }
+    }
+
+    // 11. Level Shift Timer Update (Map 4)
+    if (this.levelShiftEl) {
+      if (data.levelShift) {
+        this.levelShiftEl.style.display = 'flex';
+        const timerText = this.el.querySelector<HTMLElement>('#hud-level-timer-text');
+        if (timerText) {
+          const s = Math.ceil(data.levelShift.timeRemaining);
+          const pUpper = data.levelShift.phase.toUpperCase();
+          const icon = pUpper === 'RISE' ? '▲ RISING' : pUpper === 'FALL' ? '▼ FALLING' : pUpper;
+          timerText.textContent = `${icon} 0:${String(s).padStart(2, '0')}`;
+          timerText.style.color = data.levelShift.warning ? '#ff3b30' : 'var(--water, #86cfa0)';
+        }
+        if (this.levelBorderEl) {
+          this.levelBorderEl.style.opacity = data.levelShift.warning ? '1' : '0';
+        }
+      } else {
+        this.levelShiftEl.style.display = 'none';
+        if (this.levelBorderEl) this.levelBorderEl.style.opacity = '0';
+      }
+    }
+
+    // 12. Hazard Alert (Sinking Platform or Steam Burst)
+    if (this.hazardAlertEl) {
+      if (data.sinkingWarning) {
+        this.hazardAlertEl.style.display = 'block';
+        this.hazardAlertEl.style.background = 'rgba(179,38,30,0.85)';
+        this.hazardAlertEl.style.border = '1px solid #ff3b30';
+        this.hazardAlertEl.style.color = '#ffffff';
+        this.hazardAlertEl.textContent = '⚠ PLATFORM SINKING — MOVE';
+      } else if (data.steamWarning) {
+        this.hazardAlertEl.style.display = 'block';
+        this.hazardAlertEl.style.background = 'rgba(134,207,160,0.85)';
+        this.hazardAlertEl.style.border = '1px solid #86cfa0';
+        this.hazardAlertEl.style.color = '#000000';
+        this.hazardAlertEl.textContent = '☁ STEAM BURST ZONE (ACOUSTIC MASK ACTIVE)';
+      } else {
+        this.hazardAlertEl.style.display = 'none';
+      }
+    }
+
+    // 13. Generator Status (Map 5)
+    if (this.generatorStatusEl) {
+      if (data.generatorStatus && data.generatorStatus.length > 0) {
+        this.generatorStatusEl.style.display = 'flex';
+        const genText = this.el.querySelector('#hud-generator-text');
+        if (genText) {
+          genText.innerHTML = data.generatorStatus
+            .map((g) => {
+              const dot = g.running ? '●' : '○';
+              const color = g.running ? '#86cfa0' : '#888888';
+              const rem = g.running ? ` (${Math.ceil(g.remaining)}s)` : '';
+              return `<span style="color: ${color};">${g.id.toUpperCase()} ${dot}${rem}</span>`;
+            })
+            .join('&nbsp;&nbsp;');
+        }
+        const blastEl = this.el.querySelector<HTMLElement>('#hud-blastdoors-text');
+        if (blastEl) {
+          if (data.blastDoorsRemaining !== undefined && data.blastDoorsRemaining !== null && data.blastDoorsRemaining > 0) {
+            blastEl.style.display = 'block';
+            blastEl.textContent = `Blast doors opening in: ${data.blastDoorsRemaining.toFixed(1)}s`;
+          } else {
+            blastEl.style.display = 'none';
+          }
+        }
+      } else {
+        this.generatorStatusEl.style.display = 'none';
+      }
     }
   }
 
@@ -361,7 +655,6 @@ export class Hud {
     const pathEl = this.el.querySelector<SVGPathElement>('#hud-sound-arc-path');
     if (!svgEl || !pathEl) return;
 
-    // Draw an arc of 45 deg centered at angleRad
     const r = 20;
     const cx = 24;
     const cy = 24;

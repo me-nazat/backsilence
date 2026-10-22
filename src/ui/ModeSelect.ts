@@ -1,10 +1,12 @@
 /* ── ModeSelect.ts ────────────────────────────────────────────────────────
  *  Mode and Map Selector with procedural 2D canvas thumbnails, difficulty scales,
  *  seed generator, and offline/online routing.
+ *  Batch 3: All 5 maps unlocked with live procedural thumbnail rendering.
  * ──────────────────────────────────────────────────────────────────────── */
 
 import type { MapId } from '../types/contracts.js';
 import { AudioEngine } from '../audio/AudioEngine.js';
+import { getMapPreviewLayout } from '../world/MapRegistry.js';
 
 export interface ModeSelectCallbacks {
   onBack: () => void;
@@ -29,26 +31,26 @@ const MAPS: MapDef[] = [
   {
     id: 'utility_tunnels',
     name: 'Utility Tunnels',
-    tagline: 'Narrow concrete maintenance crawlspaces with surging pipes.',
-    locked: true,
+    tagline: 'Narrow concrete maintenance crawlspaces with surging steam.',
+    locked: false,
   },
   {
     id: 'marble_atrium',
     name: 'Marble Atrium',
-    tagline: 'Vast echoing hall of deep submerged statues.',
-    locked: true,
+    tagline: 'Vast echoing hall of bells and sinking stones.',
+    locked: false,
   },
   {
     id: 'hydro_maze',
-    name: 'Hydro Maze',
-    tagline: 'Disorienting trench labyrinths with rising tides.',
-    locked: true,
+    name: 'Hydro-Filtration Maze',
+    tagline: 'Industrial labyrinth with 45-second tidal flips.',
+    locked: false,
   },
   {
     id: 'drainage_core',
-    name: 'Drainage Core',
-    tagline: 'Industrial abyssal sump pits and roaring intake grates.',
-    locked: true,
+    name: 'Abyssal Drainage Core',
+    tagline: 'Near-total darkness, bioluminescent water, and 3 beasts.',
+    locked: false,
   },
 ];
 
@@ -91,7 +93,7 @@ export class ModeSelect {
         <!-- Header -->
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(134,207,160,0.3); padding-bottom: 12px;">
           <div>
-            <h2 style="font-size: clamp(1.4rem, 3vw, 2.0rem); color: var(--water, #86cfa0); margin: 0;">SELECT MODE & MAP</h2>
+            <h2 style="font-size: clamp(1.4rem, 3vw, 2.0rem); color: var(--water, #86cfa0); margin: 0;">SELECT SECTOR & EXPEDITION</h2>
             <div style="font-size: 11px; opacity: 0.7;">Prepare your expedition into the submerged levels</div>
           </div>
           <button id="btn-mode-back" class="analog-btn" style="width: auto; padding: 6px 16px;">ESC BACK</button>
@@ -102,8 +104,8 @@ export class ModeSelect {
           <!-- Singleplayer Card -->
           <div id="card-mode-single" class="mode-card ${this.selectedMode === 'single' ? 'selected' : ''}">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-              <span style="font-weight: bold; font-size: 14px;">SINGLE-PLAYER</span>
-              <span class="badge">No network required</span>
+              <span style="font-weight: bold; font-size: 14px;">SOLO EXPEDITION</span>
+              <span class="badge">Offline</span>
             </div>
             <div style="font-size: 11px; opacity: 0.8; line-height: 1.4;">
               Pure survival horror. Explore the silent labyrinth alone. Sound is your only feedback.
@@ -113,7 +115,7 @@ export class ModeSelect {
           <!-- Multiplayer Card -->
           <div id="card-mode-multi" class="mode-card ${this.selectedMode === 'multi' ? 'selected' : ''}">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-              <span style="font-weight: bold; font-size: 14px;">MULTIPLAYER</span>
+              <span style="font-weight: bold; font-size: 14px;">COOPERATIVE</span>
               <span class="badge" style="border-color: #d8b36a; color: #d8b36a;">Co-op Room</span>
             </div>
             <div style="font-size: 11px; opacity: 0.8; line-height: 1.4;">
@@ -127,15 +129,10 @@ export class ModeSelect {
           <div style="font-size: 12px; font-weight: bold; color: var(--water, #86cfa0); margin-bottom: 8px;">SELECT MAP</div>
           <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px;">
             ${MAPS.map((m) => `
-              <div class="map-card ${m.id === this.selectedMap ? 'selected' : ''} ${m.locked ? 'locked' : ''}" data-map="${m.id}">
-                <canvas id="thumb-${m.id}" width="160" height="90" style="width: 100%; height: 90px; border-radius: 3px; display: block; margin-bottom: 6px;"></canvas>
+              <div class="map-card ${m.id === this.selectedMap ? 'selected' : ''}" data-map="${m.id}" style="cursor: pointer; padding: 8px; border: 1px solid #3d2f18; border-radius: 4px; background: rgba(0,0,0,0.4);">
+                <canvas id="thumb-${m.id}" width="160" height="90" style="width: 100%; height: 90px; border-radius: 3px; display: block; margin-bottom: 6px; background: #080603;"></canvas>
                 <div style="font-weight: bold; font-size: 11px; margin-bottom: 3px;">${m.name}</div>
                 <div style="font-size: 9px; opacity: 0.7; line-height: 1.3;">${m.tagline}</div>
-                ${m.locked ? `
-                  <div style="display: flex; align-items: center; gap: 4px; font-size: 9px; color: #d8b36a; margin-top: 6px;">
-                    <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
-                    Locked
-                  </div>` : ''}
               </div>
             `).join('')}
           </div>
@@ -190,53 +187,13 @@ export class ModeSelect {
       const w = canvas.width;
       const h = canvas.height;
 
-      // Base gradient
-      const grad = ctx.createLinearGradient(0, 0, 0, h);
-      if (m.id === 'poolrooms') {
-        grad.addColorStop(0, '#d9d3a2');
-        grad.addColorStop(0.5, '#d8b36a');
-        grad.addColorStop(1, '#3f9c6b');
-      } else if (m.id === 'utility_tunnels') {
-        grad.addColorStop(0, '#4a4237');
-        grad.addColorStop(1, '#1f1b16');
-      } else if (m.id === 'marble_atrium') {
-        grad.addColorStop(0, '#e8e8e8');
-        grad.addColorStop(1, '#2c4a43');
-      } else if (m.id === 'hydro_maze') {
-        grad.addColorStop(0, '#86cfa0');
-        grad.addColorStop(1, '#1b3b2b');
-      } else {
-        grad.addColorStop(0, '#592e2b');
-        grad.addColorStop(1, '#0d0b06');
-      }
-      ctx.fillStyle = grad;
-      ctx.fillRect(0, 0, w, h);
-
-      // Tiled grid preview
-      ctx.strokeStyle = 'rgba(0, 0, 0, 0.25)';
-      ctx.lineWidth = 1;
-      const step = 14;
-      for (let x = 0; x < w; x += step) {
-        ctx.beginPath();
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, h);
-        ctx.stroke();
-      }
-      for (let y = 0; y < h; y += step) {
-        ctx.beginPath();
-        ctx.moveTo(0, y);
-        ctx.lineTo(w, y);
-        ctx.stroke();
-      }
-
-      // Procedural water reflection band
-      ctx.fillStyle = 'rgba(134, 207, 160, 0.25)';
-      ctx.fillRect(0, h * 0.55, w, h * 0.45);
-
-      if (m.locked) {
-        ctx.fillStyle = 'rgba(13, 11, 6, 0.65)';
-        ctx.fillRect(0, 0, w, h);
-      }
+      // Draw procedural layout preview asynchronously
+      void getMapPreviewLayout(m.id).then(({ def, layout }) => {
+        if (!ctx) return;
+        def.drawThumbnail(ctx, layout, w, h);
+      }).catch((err: unknown) => {
+        console.warn(`[ModeSelect] Thumbnail error for ${m.id}:`, err);
+      });
     }
   }
 
@@ -270,19 +227,15 @@ export class ModeSelect {
       if (startBtn) startBtn.textContent = 'PROCEED TO LOBBY';
     });
 
-    // Map selection (only poolrooms is selectable)
+    // Map selection (all 5 maps selectable)
     const mapCards = this.el.querySelectorAll('.map-card');
     mapCards.forEach((c) => {
       c.addEventListener('click', () => {
         const id = c.getAttribute('data-map') as MapId;
-        if (id === 'poolrooms') {
-          engine.play('ui_click');
-          this.selectedMap = id;
-          mapCards.forEach((mc) => mc.classList.remove('selected'));
-          c.classList.add('selected');
-        } else {
-          engine.play('ui_error');
-        }
+        engine.play('ui_click');
+        this.selectedMap = id;
+        mapCards.forEach((mc) => mc.classList.remove('selected'));
+        c.classList.add('selected');
       });
     });
 

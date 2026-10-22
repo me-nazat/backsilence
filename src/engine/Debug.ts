@@ -15,6 +15,34 @@ import { playLapLoop, playHumLoop, playDroneLoop } from '../audio/voices/Loops.j
 import { playMonsterRoar, playMonsterSnarl, playMonsterBreathLoop, playMonsterSniff, playMonsterWade, playMonsterFootfall } from '../audio/voices/Monster.js';
 import { playJumpscare, playHeartbeat } from '../audio/voices/Jumpscare.js';
 import { playUiHover, playUiClick, playUiConfirm, playUiError, playKeypadBeep, playDoorClunk, playRippleTick } from '../audio/voices/UiSounds.js';
+import {
+  playSteamHiss,
+  playPipeGroan,
+  playValveTurn,
+  playValveRelease,
+  playWaterInflowLoop,
+  playCrankLoop,
+  playGeneratorLoop,
+  playGeneratorCord,
+  playAlarmKlaxon,
+  playShutterRumble,
+  playSocketClunk,
+} from '../audio/voices/Machinery.js';
+import {
+  playBell,
+  playStoneCreak,
+  playPebbleClack,
+  playFlashlightClick,
+  playKeypadBuzz,
+  playEscaped,
+} from '../audio/voices/Interactables.js';
+import {
+  playAmbienceTunnels,
+  playAmbienceAtrium,
+  playAmbienceFiltration,
+  playAmbienceDrain,
+  playMonsterAmbientFar,
+} from '../audio/voices/AmbienceBeds.js';
 
 import { TextureRegistry } from '../procedural/textures/TextureRegistry.js';
 import { makeTileSet } from '../procedural/textures/TileTexture.js';
@@ -74,6 +102,28 @@ const ALL_VOICES: VoiceName[] = [
   'keypad_beep',
   'door_clunk',
   'ripple_tick',
+  'steam_hiss',
+  'pipe_groan',
+  'valve_turn',
+  'valve_release',
+  'water_inflow_loop',
+  'bell',
+  'stone_creak',
+  'pebble_clack',
+  'flashlight_click',
+  'crank_loop',
+  'generator_loop',
+  'generator_cord',
+  'alarm_klaxon',
+  'shutter_rumble',
+  'socket_clunk',
+  'keypad_buzz',
+  'monster_ambient_far',
+  'escaped',
+  'ambience_tunnels',
+  'ambience_atrium',
+  'ambience_filtration',
+  'ambience_drain',
 ];
 
 /**
@@ -144,6 +194,28 @@ export async function audioSelfTest(): Promise<{ passed: boolean; results: Audio
         case 'keypad_beep': playKeypadBeep(voiceCtx); break;
         case 'door_clunk': playDoorClunk(voiceCtx); break;
         case 'ripple_tick': playRippleTick(voiceCtx); break;
+        case 'steam_hiss': playSteamHiss(voiceCtx); break;
+        case 'pipe_groan': playPipeGroan(voiceCtx); break;
+        case 'valve_turn': playValveTurn(voiceCtx); break;
+        case 'valve_release': playValveRelease(voiceCtx); break;
+        case 'water_inflow_loop': playWaterInflowLoop(voiceCtx); break;
+        case 'bell': playBell(voiceCtx); break;
+        case 'stone_creak': playStoneCreak(voiceCtx); break;
+        case 'pebble_clack': playPebbleClack(voiceCtx); break;
+        case 'flashlight_click': playFlashlightClick(voiceCtx); break;
+        case 'crank_loop': playCrankLoop(voiceCtx); break;
+        case 'generator_loop': playGeneratorLoop(voiceCtx); break;
+        case 'generator_cord': playGeneratorCord(voiceCtx); break;
+        case 'alarm_klaxon': playAlarmKlaxon(voiceCtx); break;
+        case 'shutter_rumble': playShutterRumble(voiceCtx); break;
+        case 'socket_clunk': playSocketClunk(voiceCtx); break;
+        case 'keypad_buzz': playKeypadBuzz(voiceCtx); break;
+        case 'monster_ambient_far': playMonsterAmbientFar(voiceCtx); break;
+        case 'escaped': playEscaped(voiceCtx); break;
+        case 'ambience_tunnels': playAmbienceTunnels(voiceCtx); break;
+        case 'ambience_atrium': playAmbienceAtrium(voiceCtx); break;
+        case 'ambience_filtration': playAmbienceFiltration(voiceCtx); break;
+        case 'ambience_drain': playAmbienceDrain(voiceCtx); break;
       }
 
       const renderedBuffer = await offlineCtx.startRendering();

@@ -5,7 +5,7 @@
  *  Zero Three.js, DOM, or Audio imports.
  * ──────────────────────────────────────────────────────────────────────── */
 
-import type { Vec3, MonsterState } from '../types/contracts.js';
+import type { Vec3, MonsterState, NoiseEvent } from '../types/contracts.js';
 import type { NavGrid } from './NavGrid.js';
 import { AStarPathfinder, type PathPoint } from './AStar.js';
 import type { ColliderSet } from './Colliders.js';
@@ -158,6 +158,10 @@ export class MonsterBrain {
     }
   }
 
+  hydrate(s: MonsterNetState | MonsterSnapshot): void {
+    this.applyNet(s as MonsterNetState);
+  }
+
   /** Test/debug helper to enter state deterministically */
   forceState(
     state: MonsterState,
@@ -221,8 +225,36 @@ export class MonsterBrain {
       }
     }
 
-    // 3. Process audible noise events from the sim
-    // We check events handled through handleAudibleNoise(...)
+    // 2.5. Check if current cell became unwalkable (stranded by water level drop)
+    if (this.state !== 'DORMANT' && this.state !== 'ATTACK' && distToPlayer > MonsterBrain.ATTACK_RANGE) {
+      const g = nav.worldToGrid(this.pos.x, this.pos.z);
+      if (!nav.isWalkable(g.gx, g.gz)) {
+        const nearest = nav.findNearestWalkableCell(this.pos.x, this.pos.z, 15.0);
+        if (nearest) {
+          // Retreat at hunt speed to nearest walkable water cell
+          const dx = nearest.x - this.pos.x;
+          const dz = nearest.z - this.pos.z;
+          const dist = Math.hypot(dx, dz);
+          if (dist > 0.2) {
+            const targetYaw = Math.atan2(dx, -dz);
+            this.yaw = this.steerTowards(this.yaw, targetYaw, MonsterBrain.TURN_RATE_HUNT * dt);
+            const moveSpeed = MonsterBrain.SPEED_HUNT * this.speedMul;
+            this.pos.x += Math.sin(this.yaw) * moveSpeed * dt;
+            this.pos.z -= Math.cos(this.yaw) * moveSpeed * dt;
+            this.vel.x = Math.sin(this.yaw) * moveSpeed;
+            this.vel.z = -Math.cos(this.yaw) * moveSpeed;
+            return;
+          }
+        } else {
+          // Despawn / settle into DORMANT crouch
+          this.state = 'DORMANT';
+          this.stateTimer = 999.0;
+          this.vel.x = 0;
+          this.vel.z = 0;
+          return;
+        }
+      }
+    }
 
     // 4. State Machine Execution
     switch (this.state) {
@@ -254,7 +286,7 @@ export class MonsterBrain {
    * Evaluate heard noise against acoustic perception and retargeting criteria.
    */
   onNoiseEvent(
-    noise: import('../types/contracts.js').NoiseEvent,
+    noise: NoiseEvent,
     colliders: ColliderSet,
     hearingCtx: HearingContext,
     simTime: number,

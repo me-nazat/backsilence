@@ -248,7 +248,7 @@ async function boot(): Promise<void> {
     }
     labScene.renderer.canvas.style.display = 'none';
 
-    const diffStr = cfg.difficulty === 0 ? 'whisper' : cfg.difficulty === 2 ? 'deafening' : 'normal';
+    const diffStr = cfg.difficulty <= 0.75 || cfg.difficulty === 0 ? 'whisper' : cfg.difficulty >= 1.3 || cfg.difficulty === 2 ? 'deafening' : 'normal';
     activeGameSession = new GameSession(
       canvasContainer,
       settings,
@@ -259,12 +259,17 @@ async function boot(): Promise<void> {
           ui.showDeath('YOU MADE A SOUND');
           ui.getDeathScreen().setStats(stats.timeSurvived, stats.noisesMade, stats.closestCall);
         },
+        onWin: (results) => {
+          ui.showResults(results);
+        },
         onExit: () => {
           ui.navigateTo('MENU');
         },
       },
       diffStr,
       cfg.seed,
+      cfg.mapId,
+      ui.getKeypadModal(),
     );
     g.__backsilence_session = activeGameSession;
     stateMachine.transition('PLAYING');
@@ -296,6 +301,14 @@ async function boot(): Promise<void> {
   if (isLab) {
     ui.navigateTo('GAME');
     ui.showToast('Material & Audio Lab active. Controls: WASD + mouse. Press H for HUD, B for Audio Lab.', 'info');
+  } else if (route.map) {
+    // Direct launch via ?map=<id>&seed=<n>
+    bus.emit('game:start', {
+      mode: 'single',
+      mapId: route.map,
+      difficulty: 1.0,
+      seed: route.seed ?? 12345,
+    });
   } else if (route.room) {
     ui.navigateTo('ROOM_LINK');
   }

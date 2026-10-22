@@ -14,8 +14,16 @@
 | Wade (sprint) | water | 0.75 | Within ~30 m |
 | Mantle onto platform from water | water edge | 0.5 | Within ~20 m |
 | Jump or dive into water | water | 1.0 | Within 40 m |
-| Pebble lands in water (Batch 3) | water | 0.6 | Within ~24 m |
-| Valve turning / generator running (Batch 3) | world | 0.8 / 0.9 (sustained) | Within ~32 / ~36 m |
+| Sprint on metal catwalk (Map 2) | metal | 0.3 (`clang`) | Within ~12 m |
+| Pebble lands in water | water | 0.6 (`pebble`) | Within ~24 m |
+| Pebble lands on dry stone | dry stone | 0.2 (`clack`) | Within ~8 m |
+| Valve turning | world | 0.8 (`valve`, sustained) | Within ~32 m |
+| Generator running | world | 0.9 (`generator`, sustained) | Within ~36 m |
+| Bell ring | world | 0.9 (`bell`) | Within ~36 m |
+| Noisemaker beacon | world | 0.7 (`beacon`, sustained 8s) | Within ~28 m |
+| Alarm (wrong code / valve surge) | world | 0.8–0.9 (`alarm`) | Within ~32–36 m |
+| Heavy shutter / blast door | world | 0.7 (`door`) | Within ~28 m |
+
 
 ## Hearing Radius Formula
 

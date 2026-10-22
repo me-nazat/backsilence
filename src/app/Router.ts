@@ -3,7 +3,7 @@
  *  Never reloads the page.
  * ──────────────────────────────────────────────────────────────────────── */
 
-import { SAFE_ALPHABET } from '../types/contracts.js';
+import { SAFE_ALPHABET, type MapId } from '../types/contracts.js';
 import type { RoomCode } from '../types/contracts.js';
 
 export interface ParsedRoute {
@@ -13,6 +13,10 @@ export interface ParsedRoute {
   lab: boolean;
   /** Whether ?debug=1 was set. */
   debug: boolean;
+  /** Map from ?map=<id> */
+  map?: MapId | null;
+  /** Seed from ?seed=<n> */
+  seed?: number | null;
 }
 
 /**
@@ -50,6 +54,9 @@ export function parseRoute(search?: string): ParsedRoute {
 
   const lab = params.get('lab') === '1';
   const debug = params.get('debug') === '1';
+  const mapRaw = params.get('map') as MapId | null;
+  const seedRaw = params.get('seed');
+  const seed = seedRaw !== null ? parseInt(seedRaw, 10) : null;
 
-  return { room, lab, debug };
+  return { room, lab, debug, map: mapRaw, seed };
 }
