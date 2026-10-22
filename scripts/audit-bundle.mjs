@@ -16,6 +16,7 @@ const DIST = join(process.cwd(), 'dist');
 const ALLOWED_EXTS = new Set(['.html', '.js', '.css', '.map']);
 const BOOT_BUDGET_BYTES = 35 * 1024;   // 35 KB gzipped
 const TOTAL_BUDGET_BYTES = 450 * 1024;  // 450 KB gzipped
+const MAP_CHUNK_BUDGET_BYTES = 35 * 1024; // 35 KB gzipped per map lazy chunk
 
 /** Recursively list all files under a directory. */
 function walkDir(dir) {
@@ -80,6 +81,15 @@ for (const filePath of files) {
     console.log(
       `│ ${name} │ ${formatBytes(raw.length).padStart(7)} │ ${formatBytes(gzipSize).padStart(12)} │`,
     );
+
+    // Validate map lazy chunk budget (<= 35 KB gzipped)
+    if (rel.includes('Map-') && ext === '.js') {
+      if (gzipSize > MAP_CHUNK_BUDGET_BYTES) {
+        errors.push(
+          `Map lazy chunk ${rel} exceeds budget: ${formatBytes(gzipSize)} > ${formatBytes(MAP_CHUNK_BUDGET_BYTES)}`,
+        );
+      }
+    }
   }
 }
 

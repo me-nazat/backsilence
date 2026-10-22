@@ -136,6 +136,40 @@ export class GameSession {
   private allGeneratorsSimultaneousTime = 0;
   private blastDoorsOpen = false;
 
+  // Batch 5 Puzzle & Mechanics Data
+  private powerRestored = false;
+
+  // School
+  private paCharges = 5;
+  private paCooldown = 0;
+  private boltCuttersAcquired = false;
+  private wobblyChairTimer = 0;
+  private isWobblyChairTipping = false;
+
+  // Jungle
+  private sluiceStep = 0;
+  private sluiceAccuracy = '100%';
+
+  // Neon Flood
+  private hackedUplinks = new Set<string>();
+  private empCount = 0;
+  private stormSprintDistTotal = 0;
+  private dronesEmpdCount = 0;
+
+  // Metro
+  private conductorKeyAcquired = false;
+  private pulledLevers = new Set<string>();
+  private bottlesCount = 3;
+  private engineStarted = false;
+  private boardingTimer = 0;
+  private ghostTrainsSurvivedCount = 0;
+  private nearMissExpressCount = 0;
+
+  // Batch 5 Per-map stats
+  private perchedTimeTotal = 0;
+  private wobblyEscapesCount = 0;
+  private rapidsCrossedCount = 0;
+
   // Fixed timestep physics accumulator
   private readonly FIXED_DT = 1 / 60;
   private accumulator = 0;
@@ -443,6 +477,16 @@ export class GameSession {
       this.audio.play('ambience_filtration', { gain: 0.65 });
     } else if (this.mapId === 'drainage_core') {
       this.audio.play('ambience_drain', { gain: 0.7 });
+    } else if (this.mapId === 'drowned_school') {
+      this.audio.play('ambience_school', { gain: 0.65 });
+    } else if (this.mapId === 'sunken_jungle') {
+      this.audio.play('ambience_jungle', { gain: 0.65 });
+    } else if (this.mapId === 'neon_flood') {
+      this.audio.play('ambience_city', { gain: 0.65 });
+    } else if (this.mapId === 'drowned_metro') {
+      this.audio.play('ambience_station', { gain: 0.7 });
+    } else {
+      this.audio.play('ambience_poolrooms', { gain: 0.65 });
     }
   }
 
@@ -714,6 +758,349 @@ export class GameSession {
             },
           });
         }
+        break;
+      }
+
+      case 'natatorium': {
+        this.hud.update({
+          objective: 'Locate 4 ordinal pillars on the Ear mosaic. Restore power at Plant Room Drain Wheel, then enter keypad code.',
+          notebookNumbers: ['#1: ?', '#2: ?', '#3: ?', '#4: ?'],
+        });
+
+        const wheelProp = this.layout.props.find((p) => p.kind === 'drain_wheel');
+        const wheelPos = wheelProp?.position ?? { x: 0, y: 0.3, z: -48 };
+        this.interactions.register({
+          id: 'drain_wheel',
+          position: wheelPos,
+          radius: 2.5,
+          holdTime: 6.0,
+          label: () => (this.powerRestored ? '[POWER ON] Drain Wheel Locked' : '[HOLD E] Restore Power via Drain Wheel'),
+          canUse: () => !this.powerRestored,
+          onUse: () => {
+            this.powerRestored = true;
+            this.audio.play('door_clunk', { gain: 1.0 });
+            this.simWorld.broadcastNoise({
+              kind: 'creak',
+              position: wheelPos,
+              loudness: 0.8,
+              sourcePlayerId: 'player_local',
+            });
+            this.hud.update({
+              objective: 'Power restored! Enter the 4-digit code at the North Grand Doors keypad.',
+            });
+          },
+        });
+
+        this.interactions.register({
+          id: 'exit_keypad',
+          position: this.layout.exit.position,
+          radius: 2.4,
+          label: () => (!this.powerRestored ? '[UNPOWERED] Restore Power at Plant Room' : this.exitUnlocked ? '[E] Exit Open' : '[E] Enter 4-Digit Keypad Code'),
+          canUse: () => this.powerRestored && !this.exitUnlocked,
+          onUse: () => {
+            this.openKeypad();
+          },
+        });
+        break;
+      }
+
+      case 'drowned_school': {
+        this.hud.update({
+          objective: 'Find Janitor Bolt Cutters in locker. Use PA Console to lure beast away, then cut lobby door chains.',
+          tideLevel: 0.0,
+          paStatus: { charges: this.paCharges, maxCharges: 5, cooldownRemaining: 0 },
+        });
+
+        const lockers = this.layout.props.filter((p) => p.kind === 'locker');
+        lockers.forEach((l, idx) => {
+          let opened = false;
+          this.interactions.register({
+            id: `locker_${idx}`,
+            position: l.position,
+            radius: 2.0,
+            holdTime: 3.0,
+            label: () => (opened ? '[EMPTY] Locker' : '[HOLD E: QUIET | TAP: FAST] Search Locker'),
+            canUse: () => !opened,
+            onUse: () => {
+              opened = true;
+              this.audio.play('locker_open_careful', { gain: 0.6 });
+              this.simWorld.broadcastNoise({
+                kind: 'locker',
+                position: l.position,
+                loudness: 0.15,
+                sourcePlayerId: 'player_local',
+              });
+              if (idx === 1 || lockers.length <= 1) {
+                this.boltCuttersAcquired = true;
+                this.audio.play('chain_grind_loop', { gain: 0.5 });
+                this.hud.update({
+                  objective: 'Bolt Cutters acquired! Cut chains on the Lobby Exit Doors.',
+                });
+              } else {
+                this.hud.update({ objective: 'Locker empty. Continue searching.' });
+              }
+            },
+          });
+        });
+
+        const registerProp = this.layout.props.find((p) => p.kind === 'library_register');
+        if (registerProp) {
+          this.interactions.register({
+            id: 'library_register',
+            position: registerProp.position,
+            radius: 2.0,
+            label: () => '[E] Read Class Register (Initials: B.C. = Janitor Locker)',
+            canUse: () => true,
+            onUse: () => {
+              this.audio.play('ui_click');
+              this.hud.update({
+                objective: 'Register Note: "Janitor B.C. keeps cutters in Locker #2".',
+              });
+            },
+          });
+        }
+
+        const paProp = this.layout.props.find((p) => p.kind === 'pa_console');
+        const paPos = paProp?.position ?? { x: -35, y: 0.4, z: -15 };
+        this.interactions.register({
+          id: 'pa_console',
+          position: paPos,
+          radius: 2.4,
+          label: () => (this.paCharges > 0 && this.paCooldown <= 0 ? `[E] Broadcast PA Lure (${this.paCharges} Left)` : '[COOLDOWN / EMPTY] PA Console'),
+          canUse: () => this.paCharges > 0 && this.paCooldown <= 0,
+          onUse: () => {
+            this.paCharges--;
+            this.paCooldown = 15.0;
+            this.audio.play('pa_chime', { gain: 0.9 });
+            setTimeout(() => this.audio.play('pa_blast', { gain: 0.95 }), 400);
+            const lurePos = { x: 30, y: 0.3, z: 15 };
+            this.simWorld.broadcastNoise({
+              kind: 'siren',
+              position: lurePos,
+              loudness: 0.95,
+              sourcePlayerId: 'world',
+            });
+            this.hud.update({
+              objective: 'PA Announcement sounding in Gymnasium! Monsters lured away.',
+              paStatus: { charges: this.paCharges, maxCharges: 5, cooldownRemaining: 15.0 },
+            });
+          },
+        });
+
+        this.interactions.register({
+          id: 'chained_lobby_doors',
+          position: this.layout.exit.position,
+          radius: 2.5,
+          holdTime: 6.0,
+          label: () => (this.exitUnlocked ? '[E] Doors Unchained' : this.boltCuttersAcquired ? '[HOLD E] Cut Door Chains' : '[LOCKED] Requires Bolt Cutters'),
+          canUse: () => this.boltCuttersAcquired && !this.exitUnlocked,
+          onUse: () => {
+            this.exitUnlocked = true;
+            this.audio.play('chain_grind_loop', { gain: 1.0 });
+            this.simWorld.broadcastNoise({
+              kind: 'chain',
+              position: this.layout.exit.position,
+              loudness: 0.45,
+              sourcePlayerId: 'player_local',
+            });
+            this.hud.update({ objective: 'Chains cut! Push open lobby doors to escape.' });
+          },
+        });
+        break;
+      }
+
+      case 'sunken_jungle': {
+        this.hud.update({
+          objective: 'Turn 3 Sluice Wheels from upstream to downstream (S1 -> S2 -> S3) to lower the river.',
+          sluiceGatesRemaining: 3,
+          riverFlow: { angleRad: 0.785, speed: 1.4 },
+          faunaHushState: 'safe',
+        });
+
+        for (let sIdx = 1; sIdx <= 3; sIdx++) {
+          const sProp = this.layout.props.find((p) => p.kind === 'sluice_wheel' && (p.params?.['index'] === sIdx || (p.params?.['id'] as string)?.includes(String(sIdx))));
+          const sPos = sProp?.position ?? { x: -30 + sIdx * 25, y: 0.5, z: -30 + sIdx * 25 };
+
+          this.interactions.register({
+            id: `sluice_${sIdx}`,
+            position: sPos,
+            radius: 2.2,
+            holdTime: 4.0,
+            label: () => `[HOLD E] Align Sluice Wheel S${sIdx}`,
+            canUse: () => true,
+            onUse: () => {
+              if (sIdx === this.sluiceStep + 1) {
+                this.sluiceStep++;
+                this.audio.play('door_clunk', { gain: 0.8 });
+                this.simWorld.broadcastNoise({
+                  kind: 'creak',
+                  position: sPos,
+                  loudness: 0.4,
+                  sourcePlayerId: 'player_local',
+                });
+                if (this.sluiceStep >= 3) {
+                  this.exitUnlocked = true;
+                  this.audio.play('shutter_rumble', { gain: 1.0 });
+                  this.hud.update({
+                    objective: 'All 3 Sluices aligned! Ancient Causeway exposed. Enter Temple Gate!',
+                    sluiceGatesRemaining: 0,
+                  });
+                } else {
+                  this.hud.update({
+                    objective: `Sluice S${sIdx} open! Water dropping. Locate Sluice S${this.sluiceStep + 1}.`,
+                    sluiceGatesRemaining: 3 - this.sluiceStep,
+                  });
+                }
+              } else {
+                this.sluiceStep = 0;
+                this.sluiceAccuracy = 'Mistakes made';
+                this.audio.play('waterfall_loop', { gain: 1.0 });
+                this.simWorld.broadcastNoise({
+                  kind: 'splash_run',
+                  position: sPos,
+                  loudness: 0.9,
+                  sourcePlayerId: 'world',
+                });
+                this.hud.update({
+                  objective: 'FLASH FLOOD! Sluice wheels reset. Turn upstream S1 first!',
+                  sluiceGatesRemaining: 3,
+                });
+              }
+            },
+          });
+        }
+        break;
+      }
+
+      case 'neon_flood': {
+        this.empCount = 2;
+        this.hud.update({
+          objective: 'Hack 3 Uplink Terminals across high skyways and subway during storm windows.',
+          uplinksRemaining: 3,
+          empCount: this.empCount,
+          stormWindow: { active: false, timeRemaining: 0, nextStormIn: 25.0 },
+        });
+
+        for (let uIdx = 1; uIdx <= 3; uIdx++) {
+          const uProp = this.layout.props.find((p) => p.kind === 'uplink_terminal' && (p.params?.['index'] === uIdx || (p.params?.['id'] as string)?.includes(String(uIdx))));
+          const uPos = uProp?.position ?? { x: (uIdx - 2) * 20, y: 0.5, z: (uIdx - 2) * 20 };
+
+          this.interactions.register({
+            id: `uplink_${uIdx}`,
+            position: uPos,
+            radius: 2.2,
+            holdTime: 3.5,
+            label: () => (this.hackedUplinks.has(`u_${uIdx}`) ? '[ONLINE] Uplink Hacked' : `[HOLD E] Hack Uplink Terminal #${uIdx}`),
+            canUse: () => !this.hackedUplinks.has(`u_${uIdx}`),
+            onUse: () => {
+              this.hackedUplinks.add(`u_${uIdx}`);
+              this.audio.play('hack_success', { gain: 0.9 });
+              this.simWorld.broadcastNoise({
+                kind: 'terminal',
+                position: uPos,
+                loudness: 0.2,
+                sourcePlayerId: 'player_local',
+              });
+              if (this.hackedUplinks.size >= 3) {
+                this.exitUnlocked = true;
+                this.audio.play('siren_wail', { gain: 0.7 });
+                this.hud.update({
+                  objective: 'Grid synchronized! North Transit Gate neon arch powered. Escape!',
+                  uplinksRemaining: 0,
+                });
+              } else {
+                this.hud.update({
+                  objective: `Uplink #${uIdx} synchronized (${this.hackedUplinks.size}/3 complete).`,
+                  uplinksRemaining: 3 - this.hackedUplinks.size,
+                });
+              }
+            },
+          });
+        }
+        break;
+      }
+
+      case 'drowned_metro': {
+        this.bottlesCount = 3;
+        this.hud.update({
+          objective: 'Find Conductor Key, pull 2 track levers (mind the Ghost Train!), and board Stalled Car 5.',
+          ghostTrainSchedule: { timeToTrain: 45.0, trainDurationRemaining: 0, active: false, warning: false },
+          bottleCount: this.bottlesCount,
+        });
+
+        const keyProp = this.layout.props.find((p) => p.kind === 'conductor_key');
+        const keyPos = keyProp?.position ?? { x: 55, y: 1.0, z: -11 };
+        this.interactions.register({
+          id: 'conductor_key',
+          position: keyPos,
+          radius: 2.0,
+          label: () => (this.conductorKeyAcquired ? '[EMPTY] Cabin Desk' : '[E] Pick up Conductor Key'),
+          canUse: () => !this.conductorKeyAcquired,
+          onUse: () => {
+            this.conductorKeyAcquired = true;
+            this.audio.play('ui_click');
+            this.hud.update({ objective: 'Conductor Key acquired! Pull both track levers.' });
+          },
+        });
+
+        for (let lIdx = 1; lIdx <= 2; lIdx++) {
+          const lProp = this.layout.props.find((p) => p.kind === 'track_lever' && (p.params?.['index'] === lIdx || (p.params?.['id'] as string)?.includes(String(lIdx))));
+          const lPos = lProp?.position ?? { x: lIdx === 1 ? -45 : 45, y: 0.5, z: lIdx === 1 ? -19 : 7 };
+
+          this.interactions.register({
+            id: `metro_lever_${lIdx}`,
+            position: lPos,
+            radius: 2.2,
+            holdTime: 3.0,
+            label: () => (this.pulledLevers.has(`l_${lIdx}`) ? '[ALIGNED] Lever Pulled' : `[HOLD E] Switch Track Lever #${lIdx}`),
+            canUse: () => !this.pulledLevers.has(`l_${lIdx}`),
+            onUse: () => {
+              this.pulledLevers.add(`l_${lIdx}`);
+              this.audio.play('lever_clunk', { gain: 0.9 });
+              this.simWorld.broadcastNoise({
+                kind: 'lever',
+                position: lPos,
+                loudness: 0.5,
+                sourcePlayerId: 'player_local',
+              });
+              this.hud.update({
+                objective: `Lever #${lIdx} engaged (${this.pulledLevers.size}/2 switched).`,
+              });
+            },
+          });
+        }
+
+        const cabProp = this.layout.props.find((p) => p.kind === 'cab_throttle');
+        const cabPos = cabProp?.position ?? { x: 45, y: 1.3, z: -19 };
+        this.interactions.register({
+          id: 'cab_throttle',
+          position: cabPos,
+          radius: 2.5,
+          holdTime: 8.0,
+          label: () => {
+            if (this.engineStarted) return '[DEPARTING] All Aboard!';
+            if (!this.conductorKeyAcquired) return '[LOCKED] Requires Conductor Key';
+            if (this.pulledLevers.size < 2) return '[LOCKED] Pull Both Track Levers First';
+            return '[HOLD E] Engage Engine Throttle (8s)';
+          },
+          canUse: () => this.conductorKeyAcquired && this.pulledLevers.size >= 2 && !this.engineStarted,
+          onUse: () => {
+            this.engineStarted = true;
+            this.boardingTimer = 20.0;
+            this.audio.play('train_horn', { gain: 1.0 });
+            this.audio.play('train_rumble_loop', { gain: 0.85 });
+            this.simWorld.broadcastNoise({
+              kind: 'train',
+              position: cabPos,
+              loudness: 0.95,
+              sourcePlayerId: 'world',
+            });
+            this.hud.update({
+              objective: 'ENGINE ROARING! 20s boarding departure countdown started. BOARD CAR 5!',
+              boardingCountdown: 20.0,
+            });
+          },
+        });
         break;
       }
     }
@@ -1364,9 +1751,178 @@ export class GameSession {
         blastDoorsRemaining: this.allGeneratorsSimultaneousTime > 0 ? 5.0 - this.allGeneratorsSimultaneousTime : null,
       });
     }
+
+    // 7. Batch 5: Schoolhouse Systems
+    if (this.mapId === 'drowned_school') {
+      this.paCooldown = Math.max(0, this.paCooldown - dt);
+      const isPerched = this.simWorld.perchSystem.isPlayerPerched('player_local');
+      if (isPerched) {
+        this.perchedTimeTotal += dt;
+        if (pSnap.pos.y < 0.25) {
+          this.wobblyChairTimer += dt;
+          if (this.wobblyChairTimer > 3.0 && this.wobblyChairTimer <= 5.0) {
+            this.isWobblyChairTipping = true;
+          } else if (this.wobblyChairTimer > 5.0) {
+            this.isWobblyChairTipping = false;
+            this.wobblyChairTimer = 0;
+            this.wobblyEscapesCount++;
+            this.audio.play('creak', { gain: 0.9 });
+            this.simWorld.broadcastNoise({
+              kind: 'creak',
+              position: pSnap.pos,
+              loudness: 0.8,
+              sourcePlayerId: 'player_local',
+            });
+          }
+        } else {
+          this.wobblyChairTimer = 0;
+          this.isWobblyChairTipping = false;
+        }
+      } else {
+        this.wobblyChairTimer = 0;
+        this.isWobblyChairTipping = false;
+      }
+
+      const tideVal = Math.min(0.30, this.timeSurvived * (0.30 / 360.0));
+      this.hud.update({
+        isPerched,
+        tideLevel: tideVal,
+        wobblyChairWarning: this.isWobblyChairTipping ? { tipping: true, timeRemaining: Math.max(0, 5.0 - this.wobblyChairTimer) } : null,
+        paStatus: { charges: this.paCharges, maxCharges: 5, cooldownRemaining: this.paCooldown },
+      });
+    }
+
+    // 8. Batch 5: Sunken Jungle Systems
+    if (this.mapId === 'sunken_jungle') {
+      const flow = this.simWorld.flowField.flowAt(pSnap.pos.x, pSnap.pos.z);
+      let nearestDist = 999;
+      for (const m of this.simWorld.monsters) {
+        const mPos = m.getSnapshot().pos;
+        const d = Math.hypot(pSnap.pos.x - mPos.x, pSnap.pos.z - mPos.z);
+        if (d < nearestDist) nearestDist = d;
+      }
+      const faunaState: 'safe' | 'alert' | 'hushed' = nearestDist < 20 ? 'hushed' : nearestDist < 35 ? 'alert' : 'safe';
+
+      this.hud.update({
+        sluiceGatesRemaining: 3 - this.sluiceStep,
+        riverFlow: { angleRad: Math.atan2(flow.z, flow.x), speed: Math.hypot(flow.x, flow.z) },
+        faunaHushState: faunaState,
+      });
+    }
+
+    // 9. Batch 5: Neon Flood District Systems
+    if (this.mapId === 'neon_flood') {
+      const weather = this.simWorld.weather;
+      let droneLock = false;
+      for (const d of this.simWorld.drones) {
+        if (d.getDetection() >= 1.0) {
+          droneLock = true;
+          break;
+        }
+      }
+
+      this.hud.update({
+        uplinksRemaining: 3 - this.hackedUplinks.size,
+        stormWindow: {
+          active: weather.isDownpour(),
+          timeRemaining: weather.getDownpourRemaining(),
+          nextStormIn: weather.getTimeToNextDownpour(),
+        },
+        droneLockWarning: droneLock ? { locked: true, angleDeg: 0 } : null,
+        empCount: this.empCount,
+      });
+    }
+
+    // 10. Batch 5: Drowned Metro Systems
+    if (this.mapId === 'drowned_metro') {
+      const train = this.simWorld.ghostTrain;
+      const trainSnap = train.getSnapshot();
+
+      if (trainSnap.phase === 'PASS') {
+        if (pSnap.pos.z >= 3.4 && pSnap.pos.z <= 6.6 && !this.godMode) {
+          this.triggerDeath('KILLED BY THE GHOST TRAIN');
+          return;
+        }
+        if (Math.abs(pSnap.pos.z - 5.0) < 3.6 && Math.abs(pSnap.pos.z - 5.0) >= 1.6) {
+          this.nearMissExpressCount++;
+        }
+      }
+
+      if (this.engineStarted && this.boardingTimer > 0) {
+        this.boardingTimer -= dt;
+        if (this.boardingTimer <= 0) {
+          if (pSnap.pos.x >= 30 && pSnap.pos.x <= 60 && pSnap.pos.z >= -24 && pSnap.pos.z <= -14) {
+            this.exitUnlocked = true;
+            this.hasEscaped = true;
+            this.ghostTrainsSurvivedCount++;
+            this.callbacks.onWin({
+              mapId: this.mapId,
+              timeSurvived: this.timeSurvived,
+              noisesMade: this.noisesMade,
+              closestCall: this.closestCall,
+              alertsCount: this.alertsCount,
+              retries: 0,
+              ghostTrainsSurvived: this.ghostTrainsSurvivedCount,
+              nearMissCount: this.nearMissExpressCount,
+            });
+            return;
+          } else {
+            this.triggerDeath('LEFT BEHIND ON THE PLATFORM');
+            return;
+          }
+        }
+      }
+
+      this.hud.update({
+        ghostTrainSchedule: {
+          timeToTrain: trainSnap.timeToNextPass,
+          trainDurationRemaining: trainSnap.phaseTimer,
+          active: trainSnap.phase === 'PASS',
+          warning: trainSnap.phase === 'APPROACH',
+        },
+        boardingCountdown: this.engineStarted ? this.boardingTimer : null,
+        bottleCount: this.bottlesCount,
+      });
+    }
   }
 
   private launchEquippedThrowable(holdTime: number): void {
+    if (this.mapId === 'neon_flood') {
+      if (this.empCount <= 0) return;
+      this.empCount--;
+      const pSnap = this.simWorld.player.getState();
+      const vel = this.projectileSystem.calculateLaunchVelocity(pSnap.yaw, pSnap.pitch, holdTime);
+      this.activeProjectiles.push({
+        id: `emp_${Date.now()}`,
+        kind: 'emp',
+        pos: { x: pSnap.pos.x, y: pSnap.pos.y + 1.4, z: pSnap.pos.z },
+        vel,
+        active: true,
+        spawnTime: this.simWorld.simTime,
+      });
+      this.audio.play('stone_creak', { gain: 0.4 });
+      this.hud.update({ empCount: this.empCount });
+      return;
+    }
+
+    if (this.mapId === 'drowned_metro') {
+      if (this.bottlesCount <= 0) return;
+      this.bottlesCount--;
+      const pSnap = this.simWorld.player.getState();
+      const vel = this.projectileSystem.calculateLaunchVelocity(pSnap.yaw, pSnap.pitch, holdTime);
+      this.activeProjectiles.push({
+        id: `bottle_${Date.now()}`,
+        kind: 'bottle',
+        pos: { x: pSnap.pos.x, y: pSnap.pos.y + 1.4, z: pSnap.pos.z },
+        vel,
+        active: true,
+        spawnTime: this.simWorld.simTime,
+      });
+      this.audio.play('stone_creak', { gain: 0.4 });
+      this.hud.update({ bottleCount: this.bottlesCount });
+      return;
+    }
+
     const slot = this.inventory[this.selectedInventoryIndex];
     if (!slot || slot.count <= 0) return;
 
@@ -1389,6 +1945,34 @@ export class GameSession {
 
   private handleProjectileImpact(impact: { x: number; y: number; z: number; isWater: boolean; kind: string }): void {
     const pos = { x: impact.x, y: impact.y, z: impact.z };
+
+    if (impact.kind === 'emp') {
+      this.audio.play('emp_pulse', { position: pos, gain: 1.0 });
+      this.simWorld.broadcastNoise({
+        kind: 'beacon',
+        position: pos,
+        loudness: 0.3,
+        sourcePlayerId: 'player_local',
+      });
+      for (const d of this.simWorld.drones) {
+        if (Math.hypot(pos.x - d.getPosition().x, pos.z - d.getPosition().z) < 25) {
+          d.applyEmp(20.0);
+          this.dronesEmpdCount++;
+        }
+      }
+      return;
+    }
+
+    if (impact.kind === 'bottle') {
+      this.audio.play('bottle_shatter', { position: pos, gain: 0.95 });
+      this.simWorld.broadcastNoise({
+        kind: 'shatter',
+        position: pos,
+        loudness: 0.85,
+        sourcePlayerId: 'player_local',
+      });
+      return;
+    }
 
     if (impact.kind === 'noisemaker') {
       this.audio.play('generator_cord', { position: pos, gain: 0.9 });
@@ -1505,6 +2089,14 @@ export class GameSession {
         closestCall: this.closestCall,
         alertsCount: this.alertsCount,
         retries: 0,
+        perchedTime: this.perchedTimeTotal,
+        wobblyEscapes: this.wobblyEscapesCount,
+        rapidsCrossed: this.rapidsCrossedCount,
+        sluiceAccuracy: this.sluiceAccuracy,
+        dronesEmpd: this.dronesEmpdCount,
+        stormSprintDist: this.stormSprintDistTotal,
+        ghostTrainsSurvived: this.ghostTrainsSurvivedCount,
+        nearMissCount: this.nearMissExpressCount,
       });
     }
   }

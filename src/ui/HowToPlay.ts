@@ -95,6 +95,61 @@ export class HowToPlay {
               Locate giant spray-painted numbers on submerged pillars (#1, #2, #3). Collect the sequence to unlock the floodgate exit code.
             </div>
           </div>
+
+          <!-- Card 5: Perch Mechanics -->
+          <div class="htp-card" style="background: rgba(0,0,0,0.4); border: 1px solid #3d2f18; border-radius: 4px; padding: 16px;">
+            <div style="height: 48px; display: flex; align-items: center; color: var(--water); margin-bottom: 10px;">
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </div>
+            <div style="font-weight: bold; font-size: 13px; color: var(--fog); margin-bottom: 6px;">5. PERCH ELEVATION</div>
+            <div style="font-size: 11px; opacity: 0.8; line-height: 1.4;">
+              Desks, boulders, and tables grant immunity from wading monsters. But beware: <strong>wobbly chairs tip after 5s</strong> with a loud creak!
+            </div>
+          </div>
+
+          <!-- Card 6: Flow & Rapids -->
+          <div class="htp-card" style="background: rgba(0,0,0,0.4); border: 1px solid #3d2f18; border-radius: 4px; padding: 16px;">
+            <div style="height: 48px; display: flex; align-items: center; color: #d8b36a; margin-bottom: 10px;">
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 12h20M12 2v20"/></svg>
+            </div>
+            <div style="font-weight: bold; font-size: 13px; color: var(--fog); margin-bottom: 6px;">6. FLOW & ACOUSTIC MASKS</div>
+            <div style="font-size: 11px; opacity: 0.8; line-height: 1.4;">
+              Strong currents push downstream. Roaring waterfalls and foaming rapids create <strong>sound masks</strong> that drown out player splashes.
+            </div>
+          </div>
+
+          <!-- Card 7: Storm Windows -->
+          <div class="htp-card" style="background: rgba(0,0,0,0.4); border: 1px solid #3d2f18; border-radius: 4px; padding: 16px;">
+            <div style="height: 48px; display: flex; align-items: center; color: var(--water); margin-bottom: 10px;">
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M19 16.9A5 5 0 0 0 18 7h-1.26a8 8 0 1 0-11.62 9"/><path d="M13 11l-4 6h6l-4 6"/></svg>
+            </div>
+            <div style="font-weight: bold; font-size: 13px; color: var(--fog); margin-bottom: 6px;">7. STORM WINDOWS</div>
+            <div style="font-size: 11px; opacity: 0.8; line-height: 1.4;">
+              Rainstorms, thunder, and sirens produce ambient masks. Watch the storm countdown timer and sprint safely while noise is masked.
+            </div>
+          </div>
+
+          <!-- Card 8: Searchlight Drones -->
+          <div class="htp-card" style="background: rgba(0,0,0,0.4); border: 1px solid #3d2f18; border-radius: 4px; padding: 16px;">
+            <div style="height: 48px; display: flex; align-items: center; color: #d8b36a; margin-bottom: 10px;">
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg>
+            </div>
+            <div style="font-weight: bold; font-size: 13px; color: var(--fog); margin-bottom: 6px;">8. SEARCHLIGHT DRONES</div>
+            <div style="font-size: 11px; opacity: 0.8; line-height: 1.4;">
+              Patrol drones scan flooded streets with spot cones. Entering beams triggers blaring sirens. Throw EMP capacitors to fry their circuits.
+            </div>
+          </div>
+
+          <!-- Card 9: The Ghost Train -->
+          <div class="htp-card" style="background: rgba(0,0,0,0.4); border: 1px solid #3d2f18; border-radius: 4px; padding: 16px;">
+            <div style="height: 48px; display: flex; align-items: center; color: var(--water); margin-bottom: 10px;">
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="15" rx="2"/><path d="M4 11h16M8 15h.01M16 15h.01M6 21l3-3M18 21l-3-3"/></svg>
+            </div>
+            <div style="font-weight: bold; font-size: 13px; color: var(--fog); margin-bottom: 6px;">9. THE GHOST TRAIN</div>
+            <div style="font-size: 11px; opacity: 0.8; line-height: 1.4;">
+              Express Track T2 is a scheduled death zone. Stand clear when the rumble starts! The train obliterates players but stuns beasts for 45s.
+            </div>
+          </div>
         </div>
       </div>
     `;

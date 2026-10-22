@@ -25,6 +25,16 @@ export interface RunResults {
   retries: number;
   coopPlayers?: CoOpPlayerResult[] | undefined;
   isHost?: boolean | undefined;
+
+  // Batch 5 per-map metrics
+  perchedTime?: number | undefined;
+  wobblyEscapes?: number | undefined;
+  rapidsCrossed?: number | undefined;
+  sluiceAccuracy?: string | undefined;
+  dronesEmpd?: number | undefined;
+  stormSprintDist?: number | undefined;
+  ghostTrainsSurvived?: number | undefined;
+  nearMissCount?: number | undefined;
 }
 
 const STORAGE_KEY = 'backsilence.progress.v1';
@@ -139,6 +149,9 @@ export class ResultsScreen {
             <span style="opacity: 0.7;">Beast Alert Count:</span>
             <span id="results-alerts" style="font-weight: bold;">1</span>
           </div>
+          <!-- Map Specific Metrics -->
+          <div id="results-map-specific" style="display: none; flex-direction: column; gap: 8px; border-top: 1px dashed rgba(217,211,162,0.2); padding-top: 8px;">
+          </div>
         </div>
 
         <!-- Co-op Party Breakdown -->
@@ -210,6 +223,38 @@ export class ResultsScreen {
     if (noisesEl) noisesEl.textContent = String(results.noisesMade);
     if (closestEl) closestEl.textContent = `${results.closestCall.toFixed(1)} m`;
     if (alertsEl) alertsEl.textContent = String(results.alertsCount);
+
+    const mapSpecificEl = this.el.querySelector<HTMLElement>('#results-map-specific');
+    if (mapSpecificEl) {
+      mapSpecificEl.innerHTML = '';
+      const items: Array<{ label: string; value: string }> = [];
+
+      if (results.mapId === 'drowned_school') {
+        items.push({ label: 'Perched Time:', value: `${(results.perchedTime ?? 0).toFixed(1)} s` });
+        items.push({ label: 'Wobbly Escapes:', value: String(results.wobblyEscapes ?? 0) });
+      } else if (results.mapId === 'sunken_jungle') {
+        items.push({ label: 'Rapids Crossed:', value: String(results.rapidsCrossed ?? 0) });
+        items.push({ label: 'Sluice Accuracy:', value: results.sluiceAccuracy ?? '100%' });
+      } else if (results.mapId === 'neon_flood') {
+        items.push({ label: 'Drones EMP\'d:', value: String(results.dronesEmpd ?? 0) });
+        items.push({ label: 'Storm Sprint Distance:', value: `${(results.stormSprintDist ?? 0).toFixed(1)} m` });
+      } else if (results.mapId === 'drowned_metro') {
+        items.push({ label: 'Ghost Trains Survived:', value: String(results.ghostTrainsSurvived ?? 0) });
+        items.push({ label: 'Express Near-Misses (<2m):', value: String(results.nearMissCount ?? 0) });
+      }
+
+      if (items.length > 0) {
+        mapSpecificEl.style.display = 'flex';
+        for (const item of items) {
+          const row = document.createElement('div');
+          row.style.cssText = 'display: flex; justify-content: space-between; font-size: 13px;';
+          row.innerHTML = `<span style="opacity: 0.7;">${item.label}</span><strong style="color: var(--water, #86cfa0);">${item.value}</strong>`;
+          mapSpecificEl.appendChild(row);
+        }
+      } else {
+        mapSpecificEl.style.display = 'none';
+      }
+    }
 
     const coopContainer = this.el.querySelector<HTMLElement>('#results-coop-container');
     const coopList = this.el.querySelector('#results-coop-list');

@@ -90,7 +90,7 @@ async function boot(): Promise<void> {
     settings,
     session: {
       mode: route.room ? 'multi' : 'single',
-      mapId: 'poolrooms',
+      mapId: 'natatorium',
       seed: Date.now(),
       room: route.room,
     },

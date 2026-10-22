@@ -60,6 +60,25 @@ export interface HudData {
   steamWarning?: boolean;
   generatorStatus?: Array<{ id: string; running: boolean; remaining: number }>;
   blastDoorsRemaining?: number | null;
+
+  // Batch 5 Map Overlays
+  tideLevel?: number | null;
+  isPerched?: boolean | null;
+  wobblyChairWarning?: { tipping: boolean; timeRemaining: number } | null;
+  paStatus?: { charges: number; maxCharges: number; cooldownRemaining: number } | null;
+
+  sluiceGatesRemaining?: number | null;
+  riverFlow?: { angleRad: number; speed: number } | null;
+  faunaHushState?: 'safe' | 'alert' | 'hushed' | null;
+
+  uplinksRemaining?: number | null;
+  stormWindow?: { active: boolean; timeRemaining: number; nextStormIn: number } | null;
+  droneLockWarning?: { locked: boolean; angleDeg: number } | null;
+  empCount?: number | null;
+
+  ghostTrainSchedule?: { timeToTrain: number; trainDurationRemaining: number; active: boolean; warning: boolean } | null;
+  boardingCountdown?: number | null;
+  bottleCount?: number | null;
 }
 
 export class Hud {
@@ -89,6 +108,13 @@ export class Hud {
   private rosterEl: HTMLElement | null = null;
   private spectatorContainerEl: HTMLElement | null = null;
   private spectatorNameEl: HTMLElement | null = null;
+
+  // Batch 5 Elements
+  private perchChipEl: HTMLElement | null = null;
+  private schoolStatusEl: HTMLElement | null = null;
+  private jungleStatusEl: HTMLElement | null = null;
+  private neonStatusEl: HTMLElement | null = null;
+  private metroStatusEl: HTMLElement | null = null;
 
   private onCycleInventoryCallback?: (() => void) | undefined;
   private onSpectatorLeaveCallback?: (() => void) | undefined;
@@ -261,6 +287,107 @@ export class Hud {
         </div>
       </div>
 
+      <!-- Top-Right Schoolhouse Status -->
+      <div id="hud-school-status" style="
+        position: absolute;
+        top: 56px;
+        right: 24px;
+        display: none;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 4px;
+        background: #0d0b06;
+        border: 1px solid #3d2f18;
+        padding: 6px 12px;
+        border-radius: 4px;
+      ">
+        <div style="font-size: 10px; opacity: 0.6; letter-spacing: 0.1em;">FLOOD LEVEL</div>
+        <div id="hud-school-tide-text" style="font-size: 13px; font-weight: bold; color: var(--water, #86cfa0); letter-spacing: 0.1em;">
+          TIDE +0.00 m
+        </div>
+        <div id="hud-school-pa-text" style="font-size: 10px; color: #d8b36a;">
+          PA LURE: [■■□]
+        </div>
+      </div>
+
+      <!-- Top-Right Jungle Status -->
+      <div id="hud-jungle-status" style="
+        position: absolute;
+        top: 56px;
+        right: 24px;
+        display: none;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 4px;
+        background: #0d0b06;
+        border: 1px solid #3d2f18;
+        padding: 6px 12px;
+        border-radius: 4px;
+      ">
+        <div style="font-size: 10px; opacity: 0.6; letter-spacing: 0.1em;">SLUICE GATES</div>
+        <div id="hud-jungle-gates-text" style="font-size: 13px; font-weight: bold; color: var(--water, #86cfa0); letter-spacing: 0.1em;">
+          GATES 0/3 ALIGNED
+        </div>
+        <div id="hud-jungle-flow-text" style="font-size: 10px; color: var(--fog, #d9d3a2);">
+          FLOW: ➔ 1.2 m/s
+        </div>
+        <div id="hud-jungle-fauna-text" style="font-size: 10px; color: #86cfa0;">
+          FAUNA HUSH: ACTIVE
+        </div>
+      </div>
+
+      <!-- Top-Right Neon Flood District Status -->
+      <div id="hud-neon-status" style="
+        position: absolute;
+        top: 56px;
+        right: 24px;
+        display: none;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 4px;
+        background: #0d0b06;
+        border: 1px solid #3d2f18;
+        padding: 6px 12px;
+        border-radius: 4px;
+      ">
+        <div style="font-size: 10px; opacity: 0.6; letter-spacing: 0.1em;">GRID UPLINKS & STORM</div>
+        <div id="hud-neon-uplinks-text" style="font-size: 13px; font-weight: bold; color: #00e5ff; letter-spacing: 0.1em;">
+          UPLINKS 0/3
+        </div>
+        <div id="hud-neon-storm-text" style="font-size: 10px; color: #ffeb3b;">
+          STORM: 0:24
+        </div>
+        <div id="hud-neon-emp-text" style="font-size: 10px; color: #d8b36a;">
+          EMP: x2
+        </div>
+      </div>
+
+      <!-- Top-Right Metro Status -->
+      <div id="hud-metro-status" style="
+        position: absolute;
+        top: 56px;
+        right: 24px;
+        display: none;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 4px;
+        background: #0d0b06;
+        border: 1px solid #3d2f18;
+        padding: 6px 12px;
+        border-radius: 4px;
+      ">
+        <div style="font-size: 10px; opacity: 0.6; letter-spacing: 0.1em;">EXPRESS TRACK T2</div>
+        <div id="hud-metro-train-text" style="font-size: 13px; font-weight: bold; color: var(--water, #86cfa0); letter-spacing: 0.1em;">
+          GHOST TRAIN: 0:45
+        </div>
+        <div id="hud-metro-bottle-text" style="font-size: 10px; color: var(--fog, #d9d3a2);">
+          BOTTLES: x3
+        </div>
+        <div id="hud-metro-depart-text" style="font-size: 11px; color: #ffeb3b; display: none;">
+          DEPARTURE: 20.0s
+        </div>
+      </div>
+
       <!-- Top-Center Objective Line -->
       <div id="hud-objective" style="
         position: absolute;
@@ -396,10 +523,13 @@ export class Hud {
       ">
         <!-- Status & Stamina -->
         <div style="display: flex; align-items: center; gap: 12px; width: 220px; justify-content: space-between;">
-          <span id="hud-status" class="badge" style="border-color: var(--water); color: var(--water); font-size: 10px;">DRY</span>
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <span id="hud-status" class="badge" style="border-color: var(--water); color: var(--water); font-size: 10px;">DRY</span>
+            <span id="hud-perch-chip" class="badge" style="display: none; border-color: #86cfa0; color: #86cfa0; font-size: 10px;">PERCHED</span>
+          </div>
           
           <!-- Stamina bar -->
-          <div style="width: 130px; height: 3px; background: rgba(217,211,162,0.15); border-radius: 2px; overflow: hidden;">
+          <div style="width: 120px; height: 3px; background: rgba(217,211,162,0.15); border-radius: 2px; overflow: hidden;">
             <div id="hud-stamina-bar" style="width: 100%; height: 100%; background: var(--water); border-radius: 2px; transition: width 0.1s linear;"></div>
           </div>
         </div>
@@ -469,6 +599,12 @@ export class Hud {
     this.levelBorderEl = el.querySelector('#hud-level-border');
     this.hazardAlertEl = el.querySelector('#hud-hazard-alert');
     this.generatorStatusEl = el.querySelector('#hud-generator-status');
+
+    this.perchChipEl = el.querySelector('#hud-perch-chip');
+    this.schoolStatusEl = el.querySelector('#hud-school-status');
+    this.jungleStatusEl = el.querySelector('#hud-jungle-status');
+    this.neonStatusEl = el.querySelector('#hud-neon-status');
+    this.metroStatusEl = el.querySelector('#hud-metro-status');
 
     this.rosterEl = el.querySelector('#hud-roster');
     this.spectatorContainerEl = el.querySelector('#hud-spectator-container');
@@ -706,9 +842,27 @@ export class Hud {
       }
     }
 
-    // 12. Hazard Alert (Sinking Platform or Steam Burst)
+    // 12. Hazard Alert (Sinking Platform, Steam Burst, Chair Tipping, Drone Lock, Ghost Train)
     if (this.hazardAlertEl) {
-      if (data.sinkingWarning) {
+      if (data.wobblyChairWarning?.tipping) {
+        this.hazardAlertEl.style.display = 'block';
+        this.hazardAlertEl.style.background = 'rgba(216,179,106,0.9)';
+        this.hazardAlertEl.style.border = '1px solid #ffeb3b';
+        this.hazardAlertEl.style.color = '#000000';
+        this.hazardAlertEl.textContent = `⚠ CHAIR TIPPING (${data.wobblyChairWarning.timeRemaining.toFixed(1)}s) — JUMP!`;
+      } else if (data.droneLockWarning?.locked) {
+        this.hazardAlertEl.style.display = 'block';
+        this.hazardAlertEl.style.background = 'rgba(255,59,48,0.9)';
+        this.hazardAlertEl.style.border = '1px solid #ff3b30';
+        this.hazardAlertEl.style.color = '#ffffff';
+        this.hazardAlertEl.textContent = '⚠ DRONE SEARCHLIGHT LOCK — SIREN ACTIVE';
+      } else if (data.ghostTrainSchedule?.active) {
+        this.hazardAlertEl.style.display = 'block';
+        this.hazardAlertEl.style.background = 'rgba(179,38,30,0.95)';
+        this.hazardAlertEl.style.border = '1px solid #ff3b30';
+        this.hazardAlertEl.style.color = '#ffffff';
+        this.hazardAlertEl.textContent = '⚡ GHOST TRAIN KILL ZONE ACTIVE — STAY IN REFUGES! ⚡';
+      } else if (data.sinkingWarning) {
         this.hazardAlertEl.style.display = 'block';
         this.hazardAlertEl.style.background = 'rgba(179,38,30,0.85)';
         this.hazardAlertEl.style.border = '1px solid #ff3b30';
@@ -836,6 +990,130 @@ export class Hud {
         }
       } else {
         this.spectatorContainerEl.style.display = 'none';
+      }
+    }
+
+    // 16. Perch Status Chip
+    if (this.perchChipEl) {
+      this.perchChipEl.style.display = data.isPerched ? 'inline-block' : 'none';
+    }
+
+    // 17. Schoolhouse Flood Level & PA Status
+    if (this.schoolStatusEl) {
+      if (data.tideLevel !== undefined && data.tideLevel !== null) {
+        this.schoolStatusEl.style.display = 'flex';
+        const tideText = this.schoolStatusEl.querySelector('#hud-school-tide-text');
+        if (tideText) {
+          const sign = data.tideLevel >= 0 ? '+' : '';
+          tideText.textContent = `TIDE ${sign}${data.tideLevel.toFixed(2)} m`;
+        }
+        const paText = this.schoolStatusEl.querySelector('#hud-school-pa-text');
+        if (paText && data.paStatus) {
+          const blocks = '■'.repeat(data.paStatus.charges) + '□'.repeat(data.paStatus.maxCharges - data.paStatus.charges);
+          const cd = data.paStatus.cooldownRemaining > 0 ? ` (${Math.ceil(data.paStatus.cooldownRemaining)}s)` : ' READY';
+          paText.textContent = `PA LURE: [${blocks}]${cd}`;
+          paText.style.color = data.paStatus.charges > 0 ? 'var(--water, #86cfa0)' : '#d8b36a';
+        }
+      } else {
+        this.schoolStatusEl.style.display = 'none';
+      }
+    }
+
+    // 18. Jungle Sluice Gates & River Flow
+    if (this.jungleStatusEl) {
+      if (data.sluiceGatesRemaining !== undefined && data.sluiceGatesRemaining !== null) {
+        this.jungleStatusEl.style.display = 'flex';
+        const gatesText = this.jungleStatusEl.querySelector('#hud-jungle-gates-text');
+        if (gatesText) {
+          gatesText.textContent = `GATES ${3 - data.sluiceGatesRemaining}/3 ALIGNED`;
+          gatesText.style.color = data.sluiceGatesRemaining === 0 ? 'var(--water, #86cfa0)' : '#d8b36a';
+        }
+        const flowText = this.jungleStatusEl.querySelector('#hud-jungle-flow-text');
+        if (flowText && data.riverFlow) {
+          flowText.textContent = `FLOW: ➔ ${data.riverFlow.speed.toFixed(1)} m/s`;
+        }
+        const faunaText = this.jungleStatusEl.querySelector('#hud-jungle-fauna-text');
+        if (faunaText) {
+          if (data.faunaHushState === 'hushed') {
+            faunaText.textContent = 'FAUNA HUSH: SILENT (MONSTER NEAR)';
+            faunaText.style.color = 'var(--danger, #b3261e)';
+          } else if (data.faunaHushState === 'alert') {
+            faunaText.textContent = 'FAUNA HUSH: THINNED';
+            faunaText.style.color = '#ffeb3b';
+          } else {
+            faunaText.textContent = 'FAUNA HUSH: CHIRPING (SAFE)';
+            faunaText.style.color = 'var(--water, #86cfa0)';
+          }
+        }
+      } else {
+        this.jungleStatusEl.style.display = 'none';
+      }
+    }
+
+    // 19. Neon Flood District Grid & Storm Windows
+    if (this.neonStatusEl) {
+      if (data.uplinksRemaining !== undefined && data.uplinksRemaining !== null) {
+        this.neonStatusEl.style.display = 'flex';
+        const uplinksText = this.neonStatusEl.querySelector('#hud-neon-uplinks-text');
+        if (uplinksText) {
+          uplinksText.textContent = `UPLINKS ${3 - data.uplinksRemaining}/3 HACKED`;
+          uplinksText.style.color = data.uplinksRemaining === 0 ? '#00e5ff' : '#d8b36a';
+        }
+        const stormText = this.neonStatusEl.querySelector('#hud-neon-storm-text');
+        if (stormText && data.stormWindow) {
+          if (data.stormWindow.active) {
+            const rem = Math.ceil(data.stormWindow.timeRemaining);
+            stormText.textContent = `STORM MASK: 0:${String(rem).padStart(2, '0')}`;
+            stormText.style.color = '#00e5ff';
+          } else {
+            const next = Math.ceil(data.stormWindow.nextStormIn);
+            stormText.textContent = `NEXT STORM: 0:${String(next).padStart(2, '0')}`;
+            stormText.style.color = '#ffeb3b';
+          }
+        }
+        const empText = this.neonStatusEl.querySelector('#hud-neon-emp-text');
+        if (empText && data.empCount !== undefined && data.empCount !== null) {
+          empText.textContent = `EMP CHARGES: x${data.empCount}`;
+        }
+      } else {
+        this.neonStatusEl.style.display = 'none';
+      }
+    }
+
+    // 20. Metro Express Track T2 & Ghost Train Schedule
+    if (this.metroStatusEl) {
+      if (data.ghostTrainSchedule) {
+        this.metroStatusEl.style.display = 'flex';
+        const trainText = this.metroStatusEl.querySelector('#hud-metro-train-text');
+        if (trainText) {
+          if (data.ghostTrainSchedule.active) {
+            trainText.textContent = '⚡ TRAIN PASSING (KILL ZONE) ⚡';
+            trainText.style.color = '#ff3b30';
+          } else if (data.ghostTrainSchedule.warning) {
+            const s = Math.ceil(data.ghostTrainSchedule.timeToTrain);
+            trainText.textContent = `⚠ RUMBLE DETECTED: 0:${String(s).padStart(2, '0')} ⚠`;
+            trainText.style.color = '#ffeb3b';
+          } else {
+            const s = Math.ceil(data.ghostTrainSchedule.timeToTrain);
+            trainText.textContent = `GHOST TRAIN: 0:${String(s).padStart(2, '0')}`;
+            trainText.style.color = 'var(--water, #86cfa0)';
+          }
+        }
+        const bottleText = this.metroStatusEl.querySelector('#hud-metro-bottle-text');
+        if (bottleText && data.bottleCount !== undefined && data.bottleCount !== null) {
+          bottleText.textContent = `BOTTLES: x${data.bottleCount}`;
+        }
+        const departText = this.metroStatusEl.querySelector<HTMLElement>('#hud-metro-depart-text');
+        if (departText) {
+          if (data.boardingCountdown !== undefined && data.boardingCountdown !== null && data.boardingCountdown > 0) {
+            departText.style.display = 'block';
+            departText.textContent = `DEPARTURE: ${data.boardingCountdown.toFixed(1)}s`;
+          } else {
+            departText.style.display = 'none';
+          }
+        }
+      } else {
+        this.metroStatusEl.style.display = 'none';
       }
     }
   }
