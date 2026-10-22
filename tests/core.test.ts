@@ -25,6 +25,7 @@ import {
   clampSettings,
   migrateSettings,
   findBindingConflict,
+  loadSettings,
 } from '../src/app/Settings.js';
 import { createEventBus } from '../src/app/EventBus.js';
 import { AppStateMachine } from '../src/app/StateMachine.js';
@@ -323,6 +324,28 @@ describe('Settings Clamping & Key-binding Conflicts', () => {
     const migrated = migrateSettings({ version: 99 });
     expect(migrated.version).toBe(1);
     expect(migrated.graphics.quality).toBe('auto');
+  });
+
+  it('migrates legacy poolrooms.settings.v1 to backsilence.settings.v1', () => {
+    const memory = new Map<string, string>();
+    const mockStorage: Storage = {
+      length: 0,
+      clear: () => memory.clear(),
+      getItem: (key: string) => memory.get(key) ?? null,
+      key: (_index: number) => null,
+      removeItem: (key: string) => { memory.delete(key); },
+      setItem: (key: string, value: string) => { memory.set(key, value); },
+    };
+
+    const legacy = {
+      ...defaultSettings(),
+      graphics: { ...defaultSettings().graphics, fov: 88 },
+    };
+    mockStorage.setItem('poolrooms.settings.v1', JSON.stringify(legacy));
+    const loaded = loadSettings(mockStorage);
+    expect(loaded.graphics.fov).toBe(88);
+    expect(mockStorage.getItem('backsilence.settings.v1')).not.toBeNull();
+    expect(mockStorage.getItem('poolrooms.settings.v1')).toBeNull();
   });
 
   it('findBindingConflict detects duplicate keys across actions', () => {

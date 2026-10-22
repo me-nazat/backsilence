@@ -171,7 +171,8 @@ async function boot(): Promise<void> {
     ui?.setCalibrationProgress(progress);
   }).then(() => {
     const totalWarmupMs = Math.round(performance.now() - warmupStart);
-    (window as unknown as { __poolrooms_warmup_ms?: number }).__poolrooms_warmup_ms = totalWarmupMs;
+    (window as unknown as { __backsilence_warmup_ms?: number; __poolrooms_warmup_ms?: number }).__backsilence_warmup_ms = totalWarmupMs;
+    (window as unknown as { __backsilence_warmup_ms?: number; __poolrooms_warmup_ms?: number }).__poolrooms_warmup_ms = totalWarmupMs;
     console.log(`[BackSilence] Procedural textures warmed up in ${totalWarmupMs} ms`);
     ui?.setCalibrationProgress(1.0);
     ui?.showToast('Procedural assets ready', 'info');
@@ -221,8 +222,19 @@ async function boot(): Promise<void> {
 
   ui.setAudioLabPanel(labScene.audioLabPanel);
 
-  (window as unknown as { __poolrooms_lab?: LabScene; __poolrooms_ui?: typeof ui }).__poolrooms_lab = labScene;
-  (window as unknown as { __poolrooms_lab?: LabScene; __poolrooms_ui?: typeof ui }).__poolrooms_ui = ui;
+  type GlobalRefs = {
+    __backsilence_lab?: LabScene;
+    __poolrooms_lab?: LabScene;
+    __backsilence_ui?: typeof ui;
+    __poolrooms_ui?: typeof ui;
+    __backsilence_renderer_info?: unknown;
+    __poolrooms_renderer_info?: unknown;
+  };
+  const g = window as unknown as GlobalRefs;
+  g.__backsilence_lab = labScene;
+  g.__poolrooms_lab = labScene;
+  g.__backsilence_ui = ui;
+  g.__poolrooms_ui = ui;
 
   if (isLab) {
     ui.navigateTo('GAME');
@@ -248,12 +260,14 @@ async function boot(): Promise<void> {
     const renderer = labScene.renderer.renderer;
     const snap = perf.getSnapshot(renderer);
 
-    (window as unknown as { __poolrooms_renderer_info?: unknown }).__poolrooms_renderer_info = {
+    const info = {
       calls: snap.drawCalls,
       triangles: snap.triangles,
       geometries: snap.geometries,
       textures: snap.textures,
     };
+    g.__backsilence_renderer_info = info;
+    g.__poolrooms_renderer_info = info;
 
     if (route.debug || route.lab || settings.graphics.showFps) {
       debugModule.updateDebugOverlay({

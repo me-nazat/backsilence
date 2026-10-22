@@ -90,7 +90,7 @@ export class Hud {
           <span id="vhs-timestamp" style="margin-left: 8px; opacity: 0.85;">00:12:44</span>
         </div>
         <div style="position: absolute; top: 24px; right: 24px; font-size: 12px; opacity: 0.75; letter-spacing: 0.1em;">
-          SP 0:00:00 · POOLROOMS
+          SP 0:00:00 · BACKSILENCE
         </div>
         <div style="position: absolute; bottom: 24px; left: 24px; font-size: 12px; opacity: 0.75; letter-spacing: 0.1em;">
           PLAY ▶

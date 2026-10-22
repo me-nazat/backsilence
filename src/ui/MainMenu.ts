@@ -53,7 +53,7 @@ export class MainMenu {
           margin-bottom: 6px;
           letter-spacing: 0.05em;
           text-shadow: 0 0 25px rgba(134,207,160,0.35);
-        ">POOLROOMS</h1>
+        ">BACKSILENCE</h1>
         <div style="
           font-family: monospace;
           font-size: clamp(0.75rem, 2vw, 1.05rem);

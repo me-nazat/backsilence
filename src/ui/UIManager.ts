@@ -86,7 +86,7 @@ export class UIManager {
       onHowToPlay: () => this.navigateTo('HOW_TO_PLAY'),
       onSettings: () => this.navigateTo('SETTINGS'),
       onAbout: () => {
-        this.toastManager.show('BackSilence v0.25 (Batch 1) — Acoustic Horror in the Poolrooms.', 'info');
+        this.toastManager.show('BackSilence — It can\'t see you. It hears the water.', 'info');
       },
     });
 

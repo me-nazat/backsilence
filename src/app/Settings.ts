@@ -5,7 +5,8 @@
 
 import type { Settings, Action, QualityTier } from '../types/contracts.js';
 
-const STORAGE_KEY = 'poolrooms.settings.v1';
+const STORAGE_KEY = 'backsilence.settings.v1';
+const LEGACY_STORAGE_KEY = 'poolrooms.settings.v1';
 
 const QUALITY_TIERS: readonly QualityTier[] = ['auto', 'low', 'medium', 'high'];
 
@@ -143,11 +144,37 @@ export function migrateSettings(raw: Record<string, unknown>): Settings {
   return defaultSettings();
 }
 
-/** Load settings from localStorage, returning defaults on any failure. */
-export function loadSettings(): Settings {
+function getStorage(customStorage?: Storage | null): Storage | null {
+  if (customStorage !== undefined) return customStorage;
+  if (typeof localStorage !== 'undefined') return localStorage;
+  return null;
+}
+
+/** Load settings from localStorage or provided Storage, migrating legacy keys if present. */
+export function loadSettings(customStorage?: Storage | null): Settings {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return defaultSettings();
+    const storage = getStorage(customStorage);
+    if (!storage) return defaultSettings();
+
+    const raw = storage.getItem(STORAGE_KEY);
+    if (!raw) {
+      // Check for legacy Prompt 0 / Batch 1 storage key
+      const legacyRaw = storage.getItem(LEGACY_STORAGE_KEY);
+      if (legacyRaw) {
+        try {
+          const parsedLegacy: unknown = JSON.parse(legacyRaw);
+          if (typeof parsedLegacy === 'object' && parsedLegacy !== null) {
+            const migrated = migrateSettings(parsedLegacy as Record<string, unknown>);
+            saveSettings(migrated, storage);
+            storage.removeItem(LEGACY_STORAGE_KEY);
+            return migrated;
+          }
+        } catch {
+          storage.removeItem(LEGACY_STORAGE_KEY);
+        }
+      }
+      return defaultSettings();
+    }
     const parsed: unknown = JSON.parse(raw);
     if (typeof parsed !== 'object' || parsed === null) return defaultSettings();
     return migrateSettings(parsed as Record<string, unknown>);
@@ -156,10 +183,12 @@ export function loadSettings(): Settings {
   }
 }
 
-/** Save settings to localStorage. Silently ignores errors (private mode). */
-export function saveSettings(settings: Settings): void {
+/** Save settings to localStorage or provided Storage. Silently ignores errors (private mode). */
+export function saveSettings(settings: Settings, customStorage?: Storage | null): void {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+    const storage = getStorage(customStorage);
+    if (!storage) return;
+    storage.setItem(STORAGE_KEY, JSON.stringify(settings));
   } catch {
     // Private browsing mode may throw — silently ignore.
   }

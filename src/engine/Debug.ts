@@ -524,31 +524,44 @@ export function perfReport(): Record<string, unknown> {
 
   return {
     menuInteractiveMs: menuMark ? Math.round(menuMark.startTime * 10) / 10 : null,
-    totalWarmupMs: (window as unknown as { __poolrooms_warmup_ms?: number }).__poolrooms_warmup_ms ?? null,
+    totalWarmupMs: (window as unknown as { __backsilence_warmup_ms?: number; __poolrooms_warmup_ms?: number }).__backsilence_warmup_ms ?? (window as unknown as { __backsilence_warmup_ms?: number; __poolrooms_warmup_ms?: number }).__poolrooms_warmup_ms ?? null,
     proceduralTextureMemoryEstimateBytes: regStats.totalEstimatedBytes,
     proceduralTextureMemoryEstimateMB: regStats.memoryMB,
     cachedTexturesCount: regStats.count,
     jsHeapMB: memoryInfo ? Math.round((memoryInfo.usedJSHeapSize / (1024 * 1024)) * 100) / 100 : 'N/A',
-    rendererInfo: (window as unknown as { __poolrooms_renderer_info?: unknown }).__poolrooms_renderer_info ?? null,
+    rendererInfo: (window as unknown as { __backsilence_renderer_info?: unknown; __poolrooms_renderer_info?: unknown }).__backsilence_renderer_info ?? (window as unknown as { __backsilence_renderer_info?: unknown; __poolrooms_renderer_info?: unknown }).__poolrooms_renderer_info ?? null,
   };
 }
 
 /**
- * Install __poolrooms debug API on window.
+ * Install __backsilence debug API on window with deprecated __poolrooms alias.
  */
 export function installDebugApi(): void {
-  (window as unknown as {
-    __poolrooms: {
-      audioSelfTest: typeof audioSelfTest;
-      textureSelfTest: typeof textureSelfTest;
-      perfReport: typeof perfReport;
-    };
-  }).__poolrooms = {
+  const api = {
     audioSelfTest,
     textureSelfTest,
     perfReport,
   };
-  console.log('[BackSilence] Debug API installed: window.__poolrooms = { audioSelfTest, textureSelfTest, perfReport }');
+
+  (window as unknown as { __backsilence: typeof api }).__backsilence = api;
+
+  let warned = false;
+  Object.defineProperty(window, '__poolrooms', {
+    configurable: true,
+    enumerable: true,
+    get() {
+      if (!warned) {
+        const isDebug = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('debug') === '1';
+        if (isDebug) {
+          console.warn('[BackSilence] window.__poolrooms is deprecated. Use window.__backsilence instead.');
+        }
+        warned = true;
+      }
+      return api;
+    },
+  });
+
+  console.log('[BackSilence] Debug API installed: window.__backsilence = { audioSelfTest, textureSelfTest, perfReport }');
 }
 
 /**

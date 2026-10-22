@@ -90,3 +90,9 @@ All design decisions are recorded here with rationale.
 **Choice:** When loading with `?lab=1`, automatically dismiss menus and activate `'GAME'` view; when loading with `?room=CODE`, open the Room Link join flow with pre-populated input boxes.
 **Reason:** Provides frictionless direct access for automated testing, player invites, and developer lab sessions without requiring manual click-throughs.
 
+### D017: Project & Global Key Rebranding to BackSilence
+**Date:** 2024-10-22
+**Choice:** Rebrand project name, HTML title/splash/menu wordmarks, and global keys to `BackSilence` / `window.__backsilence`. Migrate `poolrooms.settings.v1` to `backsilence.settings.v1` in `loadSettings()`. Retain `window.__poolrooms` as a deprecated property with a debug-mode notice.
+**Reason:** Official project naming established for Batch 2 while guaranteeing seamless forward-compatibility and zero breakages for existing storage or test tooling.
+
+
