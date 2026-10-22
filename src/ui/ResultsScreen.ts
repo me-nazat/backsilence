@@ -8,6 +8,14 @@
 import type { MapId } from '../types/contracts.js';
 import { AudioEngine } from '../audio/AudioEngine.js';
 
+export interface CoOpPlayerResult {
+  id: string;
+  name: string;
+  escaped: boolean;
+  timeSurvived: number;
+  noisesMade: number;
+}
+
 export interface RunResults {
   mapId: MapId;
   timeSurvived: number; // in seconds
@@ -15,6 +23,8 @@ export interface RunResults {
   closestCall: number;  // in meters
   alertsCount: number;
   retries: number;
+  coopPlayers?: CoOpPlayerResult[] | undefined;
+  isHost?: boolean | undefined;
 }
 
 const STORAGE_KEY = 'backsilence.progress.v1';
@@ -131,6 +141,12 @@ export class ResultsScreen {
           </div>
         </div>
 
+        <!-- Co-op Party Breakdown -->
+        <div id="results-coop-container" style="display: none; width: 100%; flex-direction: column; gap: 6px; border-bottom: 1px solid rgba(217,211,162,0.2); padding-bottom: 12px;">
+          <div style="font-size: 11px; opacity: 0.7; letter-spacing: 0.1em; color: var(--water);">EXPEDITION MEMBERS:</div>
+          <div id="results-coop-list" style="display: flex; flex-direction: column; gap: 4px;"></div>
+        </div>
+
         <!-- Actions -->
         <div style="display: flex; gap: 12px; width: 100%;">
           <button id="btn-results-continue" class="analog-btn primary" style="flex: 1; padding: 12px;">
@@ -189,6 +205,29 @@ export class ResultsScreen {
     if (noisesEl) noisesEl.textContent = String(results.noisesMade);
     if (closestEl) closestEl.textContent = `${results.closestCall.toFixed(1)} m`;
     if (alertsEl) alertsEl.textContent = String(results.alertsCount);
+
+    const coopContainer = this.el.querySelector<HTMLElement>('#results-coop-container');
+    const coopList = this.el.querySelector('#results-coop-list');
+    if (coopContainer && coopList) {
+      if (results.coopPlayers && results.coopPlayers.length > 0) {
+        coopContainer.style.display = 'flex';
+        coopList.innerHTML = '';
+        for (const p of results.coopPlayers) {
+          const row = document.createElement('div');
+          row.style.cssText = 'display: flex; justify-content: space-between; font-size: 12px; align-items: center;';
+          const nameSpan = document.createElement('span');
+          nameSpan.textContent = p.name;
+          const statusSpan = document.createElement('span');
+          statusSpan.style.color = p.escaped ? 'var(--water, #86cfa0)' : 'var(--danger, #b3261e)';
+          statusSpan.textContent = `${p.escaped ? 'ESCAPED' : 'FALLEN'} (${p.noisesMade} noises)`;
+          row.appendChild(nameSpan);
+          row.appendChild(statusSpan);
+          coopList.appendChild(row);
+        }
+      } else {
+        coopContainer.style.display = 'none';
+      }
+    }
   }
 
   hide(): void {

@@ -23,9 +23,11 @@ export interface SimWorldConfig {
   difficulty?: ('whisper' | 'normal' | 'deafening') | undefined;
   ground?: GroundGrid | undefined;
   colliders?: ColliderSet | undefined;
+  mode?: ('solo' | 'host' | 'replica') | undefined;
 }
 
 export class SimWorld {
+  mode: 'solo' | 'host' | 'replica' = 'solo';
   readonly ground: GroundGrid;
   readonly colliders: ColliderSet;
   nav: NavGrid;
@@ -50,6 +52,10 @@ export class SimWorld {
     }
     if (config.discreteWaterLevels) {
       this.discreteWaterLevels = [...config.discreteWaterLevels].sort((a, b) => a - b);
+    }
+
+    if (config.mode !== undefined) {
+      this.mode = config.mode;
     }
 
     this.ground = config.ground ?? new GroundGrid(config.bounds, 0.25);
@@ -179,17 +185,19 @@ export class SimWorld {
       }
     });
 
-    // 3. Step all monsters with current nav grid
-    for (let m = 0; m < this.monsters.length; m++) {
-      this.monsters[m]!.step(
-        dt,
-        this.player.pos,
-        this.nav,
-        this.colliders,
-        this.events,
-        this.hearingCtx,
-        this.simTime,
-      );
+    // 3. Step all monsters with current nav grid (host & solo only)
+    if (this.mode !== 'replica') {
+      for (let m = 0; m < this.monsters.length; m++) {
+        this.monsters[m]!.step(
+          dt,
+          this.player.pos,
+          this.nav,
+          this.colliders,
+          this.events,
+          this.hearingCtx,
+          this.simTime,
+        );
+      }
     }
   }
 

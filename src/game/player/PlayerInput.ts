@@ -12,6 +12,10 @@ export interface PlayerInputCallbacks {
   onPauseRequested: () => void;
   onCycleItem?: () => void;
   onToggleFlashlight?: () => void;
+  onPing?: () => void;
+  onSpectateNext?: () => void;
+  onSpectatePrev?: () => void;
+  onSpectateFreeRoamToggle?: () => void;
 }
 
 export class PlayerInput {
@@ -34,6 +38,7 @@ export class PlayerInput {
   private touchControls: TouchControls;
   private callbacks: PlayerInputCallbacks;
   private freezeInput = false;
+  public isSpectating = false;
 
   constructor(settings: Settings, callbacks: PlayerInputCallbacks) {
     this.settings = settings;
@@ -61,17 +66,33 @@ export class PlayerInput {
       // Escape or Pause binding triggers pause
       if (e.code === 'Escape' || e.code === this.settings.controls.bindings.pause) {
         this.callbacks.onPauseRequested();
+      } else if (e.code === (this.settings.controls.bindings.ping ?? 'KeyV')) {
+        this.callbacks.onPing?.();
       } else if (e.code === 'KeyQ') {
-        if (this.callbacks.onCycleItem) this.callbacks.onCycleItem();
+        if (this.isSpectating) {
+          this.callbacks.onSpectatePrev?.();
+        } else if (this.callbacks.onCycleItem) {
+          this.callbacks.onCycleItem();
+        }
+      } else if (e.code === 'KeyE') {
+        if (this.isSpectating) {
+          this.callbacks.onSpectateNext?.();
+        }
       } else if (e.code === 'KeyF') {
-        if (this.callbacks.onToggleFlashlight) this.callbacks.onToggleFlashlight();
+        if (this.isSpectating) {
+          this.callbacks.onSpectateFreeRoamToggle?.();
+        } else if (this.callbacks.onToggleFlashlight) {
+          this.callbacks.onToggleFlashlight();
+        }
       } else if (e.code === 'KeyG') {
-        if (!this.isThrowing) {
+        if (!this.isThrowing && !this.isSpectating) {
           this.isThrowing = true;
           this.throwHoldTime = 0;
         }
       } else if (e.code === 'KeyC') {
-        this.isCranking = true;
+        if (!this.isSpectating) {
+          this.isCranking = true;
+        }
       }
     });
 

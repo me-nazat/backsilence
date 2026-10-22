@@ -16,6 +16,7 @@ import { loadSettings } from './app/Settings.js';
 import { injectPaletteVars } from './app/Palette.js';
 import type { UIManager } from './ui/UIManager.js';
 import type { LabScene } from './lab/LabScene.js';
+import type { NetSession } from './net/session/NetSession.js';
 
 // ── Boot progress bar ───────────────────────────────────────────────────
 function setBootProgress(pct: number): void {
@@ -270,6 +271,41 @@ async function boot(): Promise<void> {
       cfg.seed,
       cfg.mapId,
       ui.getKeypadModal(),
+    );
+    g.__backsilence_session = activeGameSession;
+    stateMachine.transition('PLAYING');
+  });
+
+  bus.on('game:start:net' as unknown as 'game:start', (rawCfg: unknown) => {
+    const netCfg = rawCfg as { session: NetSession; mapId: 'poolrooms'; difficulty: 'whisper' | 'normal' | 'deafening'; seed: number };
+    if (activeGameSession) {
+      activeGameSession.dispose();
+      activeGameSession = null;
+    }
+    labScene.renderer.canvas.style.display = 'none';
+
+    activeGameSession = new GameSession(
+      canvasContainer,
+      settings,
+      ui.getHud(),
+      {
+        onPause: () => ui.showPause(),
+        onDeath: (stats) => {
+          ui.showDeath('YOU MADE A SOUND');
+          ui.getDeathScreen().setStats(stats.timeSurvived, stats.noisesMade, stats.closestCall);
+        },
+        onWin: (results) => {
+          ui.showResults(results);
+        },
+        onExit: () => {
+          ui.navigateTo('MENU');
+        },
+      },
+      netCfg.difficulty,
+      netCfg.seed,
+      netCfg.mapId,
+      ui.getKeypadModal(),
+      netCfg.session,
     );
     g.__backsilence_session = activeGameSession;
     stateMachine.transition('PLAYING');

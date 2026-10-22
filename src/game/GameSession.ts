@@ -22,7 +22,7 @@ import {
 } from 'three';
 import { EngineRenderer } from '../engine/Renderer.js';
 import { AudioEngine } from '../audio/AudioEngine.js';
-import type { Settings, NoiseEvent, MapId, Vec3 } from '../types/contracts.js';
+import type { Settings, NoiseEvent, RippleEvent, MapId, Vec3, PlayerId, PuzzleOp } from '../types/contracts.js';
 import { WORLD } from '../app/Config.js';
 import { SimWorld } from '../sim/SimWorld.js';
 import { WaterSystem } from './water/WaterSystem.js';
@@ -33,8 +33,8 @@ import { PlayerInput } from './player/PlayerInput.js';
 import { PlayerFootsteps } from './player/Footsteps.js';
 import { InteractionSystem } from './interaction/InteractionSystem.js';
 import { AcousticSystem } from './AcousticSystem.js';
-import type { Hud, InventorySlot } from '../ui/Hud.js';
-import type { RunResults } from '../ui/ResultsScreen.js';
+import type { Hud, InventorySlot, RosterMember } from '../ui/Hud.js';
+import type { RunResults, CoOpPlayerResult } from '../ui/ResultsScreen.js';
 import type { KeypadModal } from '../ui/KeypadModal.js';
 import { getMapDefinition } from '../world/MapRegistry.js';
 import { generateValidLayout } from '../world/validate/LayoutValidator.js';
@@ -42,6 +42,11 @@ import type { LayoutData, MapDefinition } from '../world/MapTypes.js';
 import type { MapInstance } from '../world/maps/MapInstance.js';
 import { ProjectileSystem, type ProjectileState } from '../sim/Projectile.js';
 import { WaterLevelCycle } from '../sim/WaterLevelCycle.js';
+import type { NetSession, ReplicatedMonsterState } from '../net/session/NetSession.js';
+import { RemotePlayerAvatar } from './player/RemotePlayerAvatar.js';
+import { PingMarkerManager } from './player/PingMarkerManager.js';
+import { SpectatorController } from './player/SpectatorController.js';
+import { ToastManager } from '../ui/ToastManager.js';
 
 export interface GameSessionCallbacks {
   onPause: () => void;
@@ -98,6 +103,17 @@ export class GameSession {
   private inspectedPillars = new Map<number, number>(); // ordinal -> digit
   private exitUnlocked = false;
 
+  // Multiplayer & Replication
+  private netSession?: NetSession | undefined;
+  private readonly remoteAvatars = new Map<PlayerId, RemotePlayerAvatar>();
+  private readonly pingMarkers = new PingMarkerManager();
+  private spectatorController!: SpectatorController;
+  private isSpectating = false;
+  private isDead = false;
+  private hasEscaped = false;
+  private netSnapshotTimer = 0;
+  private netMonsterTimer = 0;
+
   // Map 2 Puzzle Data (Valves A/B/C)
   private valveOrder: string[] = ['A', 'B', 'C'];
   private currentValveStep = 0;
@@ -148,6 +164,7 @@ export class GameSession {
     seed = 42,
     mapId: MapId = 'poolrooms',
     keypadModal?: KeypadModal,
+    netSession?: NetSession,
   ) {
     this.settings = settings;
     this.hud = hud;
@@ -156,6 +173,7 @@ export class GameSession {
     this.seed = seed;
     this.mapId = mapId;
     this.keypadModal = keypadModal;
+    this.netSession = netSession;
 
     this.scene = new Scene();
     this.camera = new PerspectiveCamera(
@@ -175,10 +193,11 @@ export class GameSession {
   private async initAsync(): Promise<void> {
     try {
       this.mapDef = await getMapDefinition(this.mapId);
+      const playerCount = this.netSession ? this.netSession.getPlayerCount() : 1;
       this.layout = generateValidLayout(this.mapDef, {
         seed: this.seed,
         difficulty: this.difficulty,
-        playerCount: 1,
+        playerCount,
       });
 
       // 1. Atmosphere Setup
@@ -197,7 +216,9 @@ export class GameSession {
       this.scene.add(this.mapInstance.root);
 
       // 3. SimWorld instantiation
-      const playerSpawn = this.layout.spawns.player[0] ?? { x: 0, y: 1.0, z: 0 };
+      const playerSpawns = this.layout.spawns.player;
+      const spawnIdx = this.netSession ? this.netSession.getLocalPlayerIndex() % playerSpawns.length : 0;
+      const playerSpawn = playerSpawns[spawnIdx] ?? { x: 0, y: 1.0, z: 0 };
       let discreteWaterLevels: number[] | undefined;
       let levelProvider: WaterLevelCycle | undefined;
 
@@ -206,6 +227,8 @@ export class GameSession {
         levelProvider = this.waterCycle;
         discreteWaterLevels = [-0.2, 0.55];
       }
+
+      const simMode = this.netSession ? (this.netSession.role === 'client' ? 'replica' : 'host') : 'solo';
 
       this.simWorld = new SimWorld({
         bounds: this.layout.bounds,
@@ -216,6 +239,39 @@ export class GameSession {
         difficulty: this.difficulty,
         ground: this.mapInstance.ground,
         colliders: this.mapInstance.colliders,
+        mode: simMode,
+      });
+
+      // Spectator & Ping setup
+      this.spectatorController = new SpectatorController(this.camera);
+      this.spectatorController.setBounds({
+        minX: this.layout.bounds.minX,
+        maxX: this.layout.bounds.maxX,
+        minZ: this.layout.bounds.minZ,
+        maxZ: this.layout.bounds.maxZ,
+        minY: 0.5,
+        maxY: 15,
+      });
+      this.scene.add(this.pingMarkers.root);
+
+      this.hud.setSpectatorCallbacks({
+        onLeave: () => this.callbacks.onExit(),
+        onCyclePrev: () => {
+          if (this.netSession) {
+            this.spectatorController.cycleTarget(this.netSession.getRemotePeers(), -1);
+            this.updateSpectatorHud();
+          }
+        },
+        onCycleNext: () => {
+          if (this.netSession) {
+            this.spectatorController.cycleTarget(this.netSession.getRemotePeers(), 1);
+            this.updateSpectatorHud();
+          }
+        },
+        onToggleFreeRoam: () => {
+          this.spectatorController.toggleFreeRoam();
+          this.updateSpectatorHud();
+        },
       });
 
       // 4. Water System Setup
@@ -258,6 +314,23 @@ export class GameSession {
         onPauseRequested: () => this.togglePause(),
         onCycleItem: () => this.cycleInventory(),
         onToggleFlashlight: () => this.toggleFlashlight(),
+        onPing: () => this.handleLocalPing(),
+        onSpectateNext: () => {
+          if (this.netSession) {
+            this.spectatorController.cycleTarget(this.netSession.getRemotePeers(), 1);
+            this.updateSpectatorHud();
+          }
+        },
+        onSpectatePrev: () => {
+          if (this.netSession) {
+            this.spectatorController.cycleTarget(this.netSession.getRemotePeers(), -1);
+            this.updateSpectatorHud();
+          }
+        },
+        onSpectateFreeRoamToggle: () => {
+          this.spectatorController.toggleFreeRoam();
+          this.updateSpectatorHud();
+        },
       });
       this.playerInput.attach(this.renderer.canvas);
 
@@ -265,6 +338,8 @@ export class GameSession {
       this.footsteps = new PlayerFootsteps(this.audio);
       this.interactions = new InteractionSystem();
       this.acoustics = new AcousticSystem(this.audio, this.hud, this.settings);
+
+      this.setupNetSession();
 
       // 7. Flashlight Setup (Map 5)
       if (this.mapId === 'drainage_core') {
@@ -288,6 +363,20 @@ export class GameSession {
             this.timeScale = scale;
           },
           onDeath: (stats: JumpscareStats) => {
+            if (this.netSession) {
+              this.isDead = true;
+              this.netSession.publishDeath();
+              this.updateRosterHud();
+              const livingPeers = this.netSession.getRemotePeers().filter((p) => p.alive && !p.escaped);
+              if (livingPeers.length > 0) {
+                this.isSpectating = true;
+                this.playerInput.isSpectating = true;
+                this.spectatorController.cycleTarget(livingPeers, 1);
+                this.updateSpectatorHud();
+                this.playerInput.exitPointerLock();
+                return;
+              }
+            }
             this.callbacks.onDeath(stats);
           },
         },
@@ -804,6 +893,36 @@ export class GameSession {
       return;
     }
 
+    // Spectator mode takes over if active
+    if (this.isSpectating) {
+      const peers = this.netSession?.getRemotePeers() ?? [];
+      const isReducedMotion =
+        this.settings.accessibility.reducedMotion === 'on' ||
+        (this.settings.accessibility.reducedMotion === 'system' &&
+          typeof window !== 'undefined' &&
+          window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+
+      const intent = this.playerInput.pollIntent();
+      this.spectatorController.update(
+        dt,
+        peers,
+        { x: intent.moveX, y: -intent.moveZ, sprint: intent.sprint },
+        { dx: intent.lookDeltaYaw, dy: intent.lookDeltaPitch },
+        isReducedMotion,
+      );
+
+      const forwardVec = new Vector3(0, 0, -1).applyQuaternion(this.camera.quaternion);
+      const upVec = new Vector3(0, 1, 0).applyQuaternion(this.camera.quaternion);
+      this.audio.setListener(this.camera.position, forwardVec, upVec);
+      this.water.update(dt, this.simWorld.simTime, this.camera, this.scene.fog as FogExp2);
+      this.mapInstance.update(dt);
+      this.pingMarkers.update(this.camera, this.simWorld.simTime);
+      this.updateRemoteAvatars(dt);
+
+      this.renderer.render(this.scene, this.camera);
+      return;
+    }
+
     const scaledDt = dt * this.timeScale;
     this.accumulator += scaledDt;
 
@@ -834,8 +953,10 @@ export class GameSession {
           if (this.debugMode) {
             this.spawnHearingRing(ev.data);
           }
+          this.netSession?.publishLocalNoise(ev.data);
         } else if (ev.type === 'ripple') {
           this.water.onRipple(ev.data);
+          this.netSession?.publishLocalRipple(ev.data);
         }
       });
 
@@ -976,15 +1097,57 @@ export class GameSession {
       interactionPrompt: promptState.visible ? promptState.label : null,
     });
 
-    // 12. Trajectory preview update
+    // 12. Multiplayer Replication & Ping Markers
+    this.netSession?.update(dt);
+
+    this.netSnapshotTimer += dt;
+    if (this.netSnapshotTimer >= 1 / 15 && this.netSession) {
+      this.netSnapshotTimer = 0;
+      this.netSession.adapter.publishSnapshot({
+        id: this.netSession.localPlayerId,
+        name: this.netSession.localPlayerName,
+        pos: currSnap.pos,
+        yaw: currSnap.yaw,
+        pitch: currSnap.pitch,
+        crouch: currSnap.crouchT > 0.5,
+        inWater: currSnap.wet,
+        flashlightOn: this.flashlightActive,
+        alive: !this.isDead,
+        escaped: this.hasEscaped,
+        t: this.netSession.getSimTime(),
+      });
+    }
+
+    if (this.netSession?.role === 'host') {
+      this.netMonsterTimer += dt;
+      if (this.netMonsterTimer >= 0.1) {
+        this.netMonsterTimer = 0;
+        for (const m of this.simWorld.monsters) {
+          const mSnap = m.getSnapshot();
+          this.netSession.broadcastMonsterState({
+            id: m.id,
+            state: mSnap.state,
+            pos: mSnap.pos,
+            yaw: mSnap.yaw,
+            target: mSnap.targetPos ?? undefined,
+            t: this.netSession.getSimTime(),
+          });
+        }
+      }
+    }
+
+    this.pingMarkers.update(this.camera, this.simWorld.simTime);
+    this.updateRemoteAvatars(dt);
+
+    // 13. Trajectory preview update
     this.updateTrajectoryPreview(currSnap.pos);
 
-    // 13. Debug visualizations
+    // 14. Debug visualizations
     if (this.debugMode) {
       this.updateDebugVisuals(dt);
     }
 
-    // 14. Render Scene
+    // 15. Render Scene
     this.renderer.render(this.scene, this.camera);
   }
 
@@ -1289,6 +1452,26 @@ export class GameSession {
 
     if (dist <= 2.5 && this.exitUnlocked) {
       this.isWon = true;
+
+      if (this.netSession) {
+        this.hasEscaped = true;
+        this.netSession.publishEscape();
+        this.updateRosterHud();
+
+        const livingPeers = this.netSession.getRemotePeers().filter((p) => p.alive && !p.escaped);
+        if (livingPeers.length > 0) {
+          this.isSpectating = true;
+          this.playerInput.isSpectating = true;
+          this.spectatorController.cycleTarget(livingPeers, 1);
+          this.updateSpectatorHud();
+          this.playerInput.exitPointerLock();
+          return;
+        }
+
+        this.checkMultiplayerRoundEnd();
+        return;
+      }
+
       this.playerInput.exitPointerLock();
       this.callbacks.onWin({
         mapId: this.mapId,
@@ -1297,6 +1480,267 @@ export class GameSession {
         closestCall: this.closestCall,
         alertsCount: this.alertsCount,
         retries: 0,
+      });
+    }
+  }
+
+  private setupNetSession(): void {
+    if (!this.netSession) return;
+
+    this.netSession.setCallbacks({
+      onRemoteNoise: (noise: NoiseEvent) => {
+        if (this.debugMode) {
+          this.spawnHearingRing(noise);
+        }
+        if (noise.kind === 'wade') {
+          this.audio.play('wade_step', { gain: Math.min(1.0, noise.loudness * 1.5) });
+        } else if (noise.kind === 'jump_in') {
+          this.audio.play('splash_jump', { gain: Math.min(1.0, noise.loudness * 1.5) });
+        }
+        this.updateRosterHud(noise.sourcePlayerId);
+      },
+      onRemoteRipple: (ripple: RippleEvent) => {
+        this.water.onRipple(ripple);
+      },
+      onMonsterUpdate: (mState: ReplicatedMonsterState) => {
+        if (this.simWorld.mode === 'replica') {
+          const brain = this.simWorld.monsters.find((m) => m.id === mState.id);
+          if (brain) {
+            brain.applyNet({
+              id: mState.id,
+              state: mState.state,
+              pos: mState.pos,
+              yaw: mState.yaw,
+              target: mState.target,
+              t: mState.t,
+            });
+          }
+        }
+      },
+      onPuzzleSync: (op: PuzzleOp) => {
+        this.handleRemotePuzzleOp(op);
+      },
+      onPlayerDeath: (pid: PlayerId) => {
+        const avatar = this.remoteAvatars.get(pid);
+        if (avatar) {
+          avatar.root.visible = false;
+        }
+        this.updateRosterHud();
+        this.checkMultiplayerRoundEnd();
+      },
+      onPlayerEscape: (pid: PlayerId) => {
+        const avatar = this.remoteAvatars.get(pid);
+        if (avatar) {
+          avatar.root.visible = false;
+        }
+        this.updateRosterHud();
+        this.checkMultiplayerRoundEnd();
+      },
+      onPingMarker: (ping: { owner: PlayerId; position: Vec3; t: number }) => {
+        this.pingMarkers.addMarker(ping.owner, ping.position, this.simWorld.simTime);
+      },
+      onRosterChanged: (room) => {
+        this.syncRemoteAvatars(room.players);
+        this.updateRosterHud();
+      },
+      onHostChanged: (newHostId: PlayerId) => {
+        ToastManager.getInstance().show(`SIGNAL RECONNECTED — NEW HOST: ${newHostId}`, { type: 'info' });
+        if (newHostId === this.netSession?.localPlayerId) {
+          this.simWorld.mode = 'host';
+        }
+      },
+    });
+
+    this.updateRosterHud();
+  }
+
+  private syncRemoteAvatars(players: Array<{ id: PlayerId; name: string; colorIndex?: number | undefined }>): void {
+    const present = new Set<PlayerId>();
+    for (const p of players) {
+      if (p.id === this.netSession?.localPlayerId) continue;
+      present.add(p.id);
+      if (!this.remoteAvatars.has(p.id)) {
+        const avatar = new RemotePlayerAvatar(p.id, p.name, p.colorIndex ?? (this.remoteAvatars.size + 1));
+        this.remoteAvatars.set(p.id, avatar);
+        this.scene.add(avatar.root);
+      }
+    }
+
+    // Remove departed
+    for (const [id, avatar] of this.remoteAvatars.entries()) {
+      if (!present.has(id)) {
+        this.scene.remove(avatar.root);
+        avatar.dispose();
+        this.remoteAvatars.delete(id);
+      }
+    }
+  }
+
+  private updateRemoteAvatars(dt: number): void {
+    if (!this.netSession) return;
+
+    const avatarsWithDist: Array<{ avatar: RemotePlayerAvatar; dist: number }> = [];
+
+    for (const [id, avatar] of this.remoteAvatars.entries()) {
+      const peer = this.netSession.remotePlayers.get(id);
+      if (peer) {
+        avatar.update(
+          peer.pos,
+          peer.yaw,
+          peer.pitch,
+          peer.crouch,
+          peer.inWater,
+          peer.flashlightOn,
+          peer.alive,
+          this.camera,
+          dt,
+        );
+
+        const dist = Math.hypot(peer.pos.x - this.camera.position.x, peer.pos.z - this.camera.position.z);
+        avatarsWithDist.push({ avatar, dist });
+      }
+    }
+
+    // Max 2 real spotlights rule (Section 7.7)
+    avatarsWithDist.sort((a, b) => a.dist - b.dist);
+    for (let i = 0; i < avatarsWithDist.length; i++) {
+      avatarsWithDist[i]!.avatar.setRealSpotlight(i < 2);
+    }
+  }
+
+  private handleRemotePuzzleOp(op: PuzzleOp): void {
+    if (op.puzzleId === 'exit_keypad') {
+      this.exitUnlocked = true;
+      this.hud.update({ objective: 'Exit door unlocked by teammate! Head to the exit.' });
+    } else if (op.puzzleId.startsWith('valve_')) {
+      const valveId = op.puzzleId.replace('valve_', '');
+      const expected = this.valveOrder[this.currentValveStep];
+      if (valveId === expected) {
+        this.currentValveStep++;
+        this.hud.update({
+          objective: `Teammate turned Valve ${valveId}! Sequence: ${this.currentValveStep}/${this.valveOrder.length}`,
+        });
+        if (this.currentValveStep >= this.valveOrder.length) {
+          this.exitUnlocked = true;
+        }
+      }
+    } else if (op.puzzleId.startsWith('bell_')) {
+      const noteIdx = typeof op.value === 'number' ? op.value : 0;
+      this.audio.play('bell', { gain: 0.9, pitch: Math.pow(2, (noteIdx - 2) / 12) });
+    } else if (op.puzzleId.startsWith('gen_')) {
+      const g = this.generators.get(op.puzzleId);
+      if (g) {
+        g.state = 'running';
+        g.runtime = 5.0;
+      }
+    }
+  }
+
+  private handleLocalPing(): void {
+    const nowSec = this.simWorld.simTime;
+    if (!this.pingMarkers.canPing(nowSec)) return;
+
+    const pSnap = this.simWorld.player.getState();
+    const yaw = pSnap.yaw;
+    const pingPos: Vec3 = {
+      x: pSnap.pos.x - Math.sin(yaw) * 6.0,
+      y: pSnap.pos.y,
+      z: pSnap.pos.z - Math.cos(yaw) * 6.0,
+    };
+
+    this.pingMarkers.recordPing(nowSec);
+    this.pingMarkers.addMarker(this.netSession ? this.netSession.localPlayerId : 'local', pingPos, nowSec);
+    this.netSession?.publishPingMarker(pingPos);
+  }
+
+  private updateSpectatorHud(): void {
+    if (!this.isSpectating) {
+      this.hud.update({ spectator: undefined });
+      return;
+    }
+
+    const targetId = this.spectatorController.getTargetPlayerId();
+    let targetName = 'FREE ROAM';
+    if (targetId && this.netSession) {
+      const peer = this.netSession.remotePlayers.get(targetId);
+      if (peer) targetName = peer.name;
+    }
+
+    this.hud.update({
+      spectator: {
+        active: true,
+        mode: targetId ? 'follow' : 'freeroam',
+        targetName,
+        canCycle: (this.netSession?.getRemotePeers().filter((r) => r.alive && !r.escaped).length ?? 0) > 1,
+      },
+    });
+  }
+
+  private updateRosterHud(noiseSpikeId?: PlayerId): void {
+    if (!this.netSession) {
+      this.hud.update({ roster: undefined });
+      return;
+    }
+
+    const members: RosterMember[] = [];
+    members.push({
+      id: this.netSession.localPlayerId,
+      name: `${this.netSession.localPlayerName} (You)`,
+      status: this.hasEscaped ? 'escaped' : this.isDead ? 'dead' : 'alive',
+      pingMs: 0,
+      noiseSpike: noiseSpikeId === this.netSession.localPlayerId,
+      isLocal: true,
+      colorIndex: 0,
+    });
+
+    for (const peer of this.netSession.getRemotePeers()) {
+      members.push({
+        id: peer.id,
+        name: peer.name,
+        status: peer.escaped ? 'escaped' : !peer.alive ? 'dead' : 'alive',
+        pingMs: Math.round(this.netSession.stats().rttMs),
+        noiseSpike: noiseSpikeId === peer.id,
+        isLocal: false,
+        colorIndex: peer.colorIndex,
+      });
+    }
+
+    this.hud.update({ roster: members });
+  }
+
+  private checkMultiplayerRoundEnd(): void {
+    if (!this.netSession) return;
+
+    const peers = this.netSession.getRemotePeers();
+    const allRemotesFinished = peers.every((p) => !p.alive || p.escaped);
+    const localFinished = this.isDead || this.hasEscaped;
+
+    if (allRemotesFinished && localFinished) {
+      const coopResults: CoOpPlayerResult[] = [
+        {
+          id: this.netSession.localPlayerId,
+          name: this.netSession.localPlayerName,
+          escaped: this.hasEscaped,
+          timeSurvived: this.timeSurvived,
+          noisesMade: this.noisesMade,
+        },
+        ...peers.map((p) => ({
+          id: p.id,
+          name: p.name,
+          escaped: p.escaped,
+          timeSurvived: this.timeSurvived,
+          noisesMade: 0,
+        })),
+      ];
+
+      this.callbacks.onWin({
+        mapId: this.mapId,
+        timeSurvived: this.timeSurvived,
+        noisesMade: this.noisesMade,
+        closestCall: this.closestCall,
+        alertsCount: this.alertsCount,
+        retries: 0,
+        coopPlayers: coopResults,
       });
     }
   }
@@ -1460,6 +1904,14 @@ export class GameSession {
     this.water.dispose();
     this.monsters.dispose();
     this.mapInstance.dispose();
+    this.pingMarkers.dispose();
+
+    for (const avatar of this.remoteAvatars.values()) {
+      this.scene.remove(avatar.root);
+      avatar.dispose();
+    }
+    this.remoteAvatars.clear();
+    this.netSession?.dispose();
 
     this.renderer.dispose();
   }

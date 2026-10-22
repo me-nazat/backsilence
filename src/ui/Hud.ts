@@ -9,6 +9,23 @@ export interface InventorySlot {
   count: number;
 }
 
+export interface RosterMember {
+  id: string;
+  name: string;
+  status: 'alive' | 'escaped' | 'dead' | 'lagging';
+  pingMs?: number | undefined;
+  noiseSpike?: boolean | undefined;
+  isLocal?: boolean | undefined;
+  colorIndex?: number | undefined;
+}
+
+export interface SpectatorHudData {
+  active: boolean;
+  targetName: string;
+  mode: 'follow' | 'freeroam';
+  canCycle: boolean;
+}
+
 export interface HudData {
   noiseLoudness: number; // 0..1
   stamina: number;       // 0..1
@@ -21,6 +38,8 @@ export interface HudData {
   vhsTime?: string;
   showVhsOsd?: boolean;
   multiplayerRoster?: Array<{ name: string; alive: boolean }>;
+  roster?: RosterMember[] | undefined;
+  spectator?: SpectatorHudData | undefined;
 
   // Batch 3 Interactive HUD Additions
   inventory?: InventorySlot[];
@@ -63,10 +82,31 @@ export class Hud {
   private hazardAlertEl: HTMLElement | null = null;
   private generatorStatusEl: HTMLElement | null = null;
 
-  private onCycleInventoryCallback?: () => void;
+  // Batch 4 Elements
+  private rosterEl: HTMLElement | null = null;
+  private spectatorContainerEl: HTMLElement | null = null;
+  private spectatorNameEl: HTMLElement | null = null;
+
+  private onCycleInventoryCallback?: (() => void) | undefined;
+  private onSpectatorLeaveCallback?: (() => void) | undefined;
+  private onSpectatorCyclePrevCallback?: (() => void) | undefined;
+  private onSpectatorCycleNextCallback?: (() => void) | undefined;
+  private onSpectatorFreeRoamCallback?: (() => void) | undefined;
 
   setInventoryCycleCallback(cb: () => void): void {
     this.onCycleInventoryCallback = cb;
+  }
+
+  setSpectatorCallbacks(cbs: {
+    onLeave?: () => void;
+    onCyclePrev?: () => void;
+    onCycleNext?: () => void;
+    onToggleFreeRoam?: () => void;
+  }): void {
+    this.onSpectatorLeaveCallback = cbs.onLeave;
+    this.onSpectatorCyclePrevCallback = cbs.onCyclePrev;
+    this.onSpectatorCycleNextCallback = cbs.onCycleNext;
+    this.onSpectatorFreeRoamCallback = cbs.onToggleFreeRoam;
   }
 
   mount(container: HTMLElement): void {
@@ -248,6 +288,53 @@ export class Hud {
         letter-spacing: 0.1em;
       "></div>
 
+      <!-- Multiplayer Roster HUD (Top-Right) -->
+      <div id="hud-roster" style="
+        position: absolute;
+        top: 24px;
+        right: 24px;
+        display: none;
+        flex-direction: column;
+        gap: 6px;
+        background: rgba(13, 11, 6, 0.85);
+        border: 1px solid rgba(217, 211, 162, 0.25);
+        padding: 8px 12px;
+        border-radius: 4px;
+        min-width: 140px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+      ">
+        <div style="font-size: 10px; opacity: 0.6; letter-spacing: 0.1em; margin-bottom: 2px;">EXPEDITION ROSTER</div>
+        <div id="hud-roster-list" style="display: flex; flex-direction: column; gap: 4px;"></div>
+      </div>
+
+      <!-- Spectator Overlay Banner (Top-Center) -->
+      <div id="hud-spectator-container" style="
+        position: absolute;
+        top: 60px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        background: rgba(13, 11, 6, 0.9);
+        border: 1px solid rgba(134, 207, 160, 0.4);
+        padding: 8px 18px;
+        border-radius: 6px;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.6);
+        pointer-events: auto;
+      ">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <button id="btn-spectate-prev" class="analog-btn" style="width: auto; padding: 2px 8px; font-size: 12px; cursor: pointer;">◀ Q</button>
+          <div id="hud-spectator-name" style="font-size: 13px; font-weight: bold; color: var(--water, #86cfa0); letter-spacing: 0.1em;">SPECTATING: TEAMMATE</div>
+          <button id="btn-spectate-next" class="analog-btn" style="width: auto; padding: 2px 8px; font-size: 12px; cursor: pointer;">E ▶</button>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px; font-size: 10px; opacity: 0.8;">
+          <button id="btn-spectate-freeroam" class="analog-btn" style="width: auto; padding: 3px 8px; font-size: 10px; cursor: pointer;">[F] FREE ROAM</button>
+          <button id="btn-spectate-leave" class="analog-btn" style="width: auto; padding: 3px 8px; font-size: 10px; border-color: var(--danger, #b3261e); color: #f4c2c0; cursor: pointer;">LEAVE TO MENU</button>
+        </div>
+      </div>
+
       <!-- Left Bottom: Inventory Strip & Flashlight Battery -->
       <div style="
         position: absolute;
@@ -379,6 +466,23 @@ export class Hud {
     this.levelBorderEl = el.querySelector('#hud-level-border');
     this.hazardAlertEl = el.querySelector('#hud-hazard-alert');
     this.generatorStatusEl = el.querySelector('#hud-generator-status');
+
+    this.rosterEl = el.querySelector('#hud-roster');
+    this.spectatorContainerEl = el.querySelector('#hud-spectator-container');
+    this.spectatorNameEl = el.querySelector('#hud-spectator-name');
+
+    el.querySelector('#btn-spectate-prev')?.addEventListener('click', () => {
+      this.onSpectatorCyclePrevCallback?.();
+    });
+    el.querySelector('#btn-spectate-next')?.addEventListener('click', () => {
+      this.onSpectatorCycleNextCallback?.();
+    });
+    el.querySelector('#btn-spectate-freeroam')?.addEventListener('click', () => {
+      this.onSpectatorFreeRoamCallback?.();
+    });
+    el.querySelector('#btn-spectate-leave')?.addEventListener('click', () => {
+      this.onSpectatorLeaveCallback?.();
+    });
 
     this.inventoryEl?.addEventListener('click', () => {
       if (this.onCycleInventoryCallback) {
@@ -619,6 +723,91 @@ export class Hud {
         }
       } else {
         this.generatorStatusEl.style.display = 'none';
+      }
+    }
+
+    // 14. Multiplayer Roster HUD
+    if (this.rosterEl) {
+      if (data.roster && data.roster.length > 0) {
+        this.rosterEl.style.display = 'flex';
+        const listEl = this.rosterEl.querySelector('#hud-roster-list');
+        if (listEl) {
+          listEl.innerHTML = '';
+          for (const member of data.roster) {
+            const item = document.createElement('div');
+            item.style.cssText = `
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              font-size: 11px;
+              gap: 8px;
+              padding: 2px 4px;
+              border-radius: 2px;
+              transition: background 0.15s ease;
+            `;
+
+            if (member.noiseSpike) {
+              item.style.background = 'rgba(216, 179, 106, 0.3)';
+              item.style.boxShadow = '0 0 6px rgba(216, 179, 106, 0.4)';
+            }
+
+            const left = document.createElement('div');
+            left.style.display = 'flex';
+            left.style.alignItems = 'center';
+            left.style.gap = '6px';
+
+            const statusDot = document.createElement('span');
+            statusDot.style.fontSize = '9px';
+            if (member.status === 'alive') {
+              statusDot.textContent = '●';
+              statusDot.style.color = 'var(--water, #86cfa0)';
+            } else if (member.status === 'escaped') {
+              statusDot.textContent = '✓';
+              statusDot.style.color = '#86cfa0';
+            } else if (member.status === 'dead') {
+              statusDot.textContent = '✕';
+              statusDot.style.color = 'var(--danger, #b3261e)';
+            } else {
+              statusDot.textContent = '▲';
+              statusDot.style.color = '#d8b36a';
+            }
+
+            const nameSpan = document.createElement('span');
+            nameSpan.textContent = member.name + (member.isLocal ? ' (You)' : '');
+            nameSpan.style.opacity = member.status === 'dead' ? '0.5' : '1.0';
+
+            left.appendChild(statusDot);
+            left.appendChild(nameSpan);
+
+            const right = document.createElement('div');
+            right.style.fontSize = '9px';
+            right.style.opacity = '0.6';
+            if (member.pingMs !== undefined) {
+              right.textContent = `${Math.round(member.pingMs)}ms`;
+            }
+
+            item.appendChild(left);
+            item.appendChild(right);
+            listEl.appendChild(item);
+          }
+        }
+      } else {
+        this.rosterEl.style.display = 'none';
+      }
+    }
+
+    // 15. Spectator Banner & Controls
+    if (this.spectatorContainerEl) {
+      if (data.spectator?.active) {
+        this.spectatorContainerEl.style.display = 'flex';
+        if (this.spectatorNameEl) {
+          this.spectatorNameEl.textContent =
+            data.spectator.mode === 'freeroam'
+              ? 'SPECTATING: FREE ROAM'
+              : `SPECTATING: ${data.spectator.targetName}`;
+        }
+      } else {
+        this.spectatorContainerEl.style.display = 'none';
       }
     }
   }

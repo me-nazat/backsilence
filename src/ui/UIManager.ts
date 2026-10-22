@@ -118,9 +118,15 @@ export class UIManager {
     this.roomLinkPanel = new RoomLinkPanel(
       {
         onBack: () => this.goBack(),
-        onEnterLobby: (roomCode, isHost) => {
-          this.toastManager.show(`Connected to room: ${roomCode} (${isHost ? 'Host' : 'Peer'})`, 'info');
-          this.bus.emit('net:join', { room: roomCode, mode: isHost ? 'host' : 'peer' });
+        onLaunchGame: (session, mapId, difficulty, seed) => {
+          this.navigateTo('GAME');
+          this.hud.show();
+          this.bus.emit('game:start:net' as unknown as 'game:start', {
+            session,
+            mapId,
+            difficulty,
+            seed,
+          } as unknown as { mode: 'single'; mapId: 'poolrooms'; difficulty: number; seed: number });
         },
       },
       routeRoom ? 'join' : 'host',

@@ -52,6 +52,8 @@ export interface RemotePlayerState {
   lastSeenMs: number;
 }
 
+export type RemotePeer = RemotePlayerState;
+
 export interface ReplicatedMonsterState {
   id: string;
   state: MonsterState;
@@ -160,6 +162,34 @@ export class NetSession {
 
   serverNow(): number {
     return this.clockSync.serverNow();
+  }
+
+  getPlayerCount(): number {
+    return this.room ? this.room.players.length : 1;
+  }
+
+  getLocalPlayerIndex(): number {
+    if (!this.room) return 0;
+    const idx = this.room.players.findIndex((p) => p.id === this.localPlayerId);
+    return idx >= 0 ? idx : 0;
+  }
+
+  getRemotePeers(): RemotePlayerState[] {
+    return Array.from(this.remotePlayers.values());
+  }
+
+  setCallbacks(cbs: Partial<NetSessionCallbacks>): void {
+    Object.assign(this.callbacks, cbs);
+  }
+
+  startSynchronizedRound(startAtMs: number, layoutHash: string, playerCount: number): void {
+    this.setStartAtMs(startAtMs);
+    this.adapter.publishEvent({
+      type: 'start',
+      startAtMs,
+      layoutHash,
+      playerCount,
+    });
   }
 
   private syncRoster(room: RoomInfo): void {
@@ -354,6 +384,10 @@ export class NetSession {
 
   private coalesceEvent(e: NetEvent): void {
     this.coalescedEvents.push(e);
+  }
+
+  flush(): void {
+    this.flushCoalescedEvents();
   }
 
   private flushCoalescedEvents(): void {
