@@ -10,11 +10,11 @@ import type { CanvasTexture } from 'three';
 import type { VoiceName } from '../audio/AudioEngine.js';
 import { createNoiseBuffers } from '../audio/Noise.js';
 import { playSplash, playWadeStep, playWadeLoop, playPebblePlink } from '../audio/voices/Splashes.js';
-import { playStepDry, playStepSqueak, playMantle, playDrip } from '../audio/voices/Footsteps.js';
+import { playStepDry, playStepSqueak, playMantle, playDrip, playPlayerBreath } from '../audio/voices/Footsteps.js';
 import { playLapLoop, playHumLoop, playDroneLoop } from '../audio/voices/Loops.js';
-import { playMonsterRoar, playMonsterSnarl, playMonsterBreathLoop, playMonsterSniff, playMonsterWade } from '../audio/voices/Monster.js';
+import { playMonsterRoar, playMonsterSnarl, playMonsterBreathLoop, playMonsterSniff, playMonsterWade, playMonsterFootfall } from '../audio/voices/Monster.js';
 import { playJumpscare, playHeartbeat } from '../audio/voices/Jumpscare.js';
-import { playUiHover, playUiClick, playUiConfirm, playUiError, playKeypadBeep, playDoorClunk } from '../audio/voices/UiSounds.js';
+import { playUiHover, playUiClick, playUiConfirm, playUiError, playKeypadBeep, playDoorClunk, playRippleTick } from '../audio/voices/UiSounds.js';
 
 import { TextureRegistry } from '../procedural/textures/TextureRegistry.js';
 import { makeTileSet } from '../procedural/textures/TileTexture.js';
@@ -23,6 +23,7 @@ import { makeWaterNormalMap } from '../procedural/textures/WaterNormal.js';
 import { makeRippleStamp } from '../procedural/textures/RippleStamp.js';
 import { makeTaglineDecal, makeWarningDecal } from '../procedural/textures/GraffitiDecals.js';
 import { makeNumberDecal } from '../procedural/textures/NumberDecals.js';
+import { runScenario, listScenarios, runAllScenarios } from '../sim/SimScenarios.js';
 
 export interface AudioSelfTestResult {
   voice: VoiceName;
@@ -54,6 +55,7 @@ const ALL_VOICES: VoiceName[] = [
   'step_squeak',
   'mantle',
   'drip',
+  'player_breath',
   'lap_loop',
   'hum_loop',
   'drone_loop',
@@ -62,6 +64,7 @@ const ALL_VOICES: VoiceName[] = [
   'monster_breath_loop',
   'monster_sniff',
   'monster_wade',
+  'monster_footfall',
   'jumpscare',
   'heartbeat',
   'ui_hover',
@@ -70,6 +73,7 @@ const ALL_VOICES: VoiceName[] = [
   'ui_error',
   'keypad_beep',
   'door_clunk',
+  'ripple_tick',
 ];
 
 /**
@@ -77,7 +81,7 @@ const ALL_VOICES: VoiceName[] = [
  * Synthesizes every voice and checks peak amplitude > 0.01, no NaN/Infinity, peak < 1.25.
  */
 export async function audioSelfTest(): Promise<{ passed: boolean; results: AudioSelfTestResult[] }> {
-  console.log('[BackSilence] Running Web Audio Synth Self-Test across all 26 voices...');
+  console.log(`[BackSilence] Running Web Audio Synth Self-Test across all ${ALL_VOICES.length} voices...`);
   const results: AudioSelfTestResult[] = [];
   let allPass = true;
 
@@ -121,6 +125,7 @@ export async function audioSelfTest(): Promise<{ passed: boolean; results: Audio
         case 'step_squeak': playStepSqueak(voiceCtx); break;
         case 'mantle': playMantle(voiceCtx); break;
         case 'drip': playDrip(voiceCtx); break;
+        case 'player_breath': playPlayerBreath(voiceCtx); break;
         case 'lap_loop': playLapLoop(voiceCtx); break;
         case 'hum_loop': playHumLoop(voiceCtx); break;
         case 'drone_loop': playDroneLoop(voiceCtx); break;
@@ -129,6 +134,7 @@ export async function audioSelfTest(): Promise<{ passed: boolean; results: Audio
         case 'monster_breath_loop': playMonsterBreathLoop(voiceCtx); break;
         case 'monster_sniff': playMonsterSniff(voiceCtx); break;
         case 'monster_wade': playMonsterWade(voiceCtx); break;
+        case 'monster_footfall': playMonsterFootfall(voiceCtx); break;
         case 'jumpscare': playJumpscare(voiceCtx); break;
         case 'heartbeat': playHeartbeat(voiceCtx); break;
         case 'ui_hover': playUiHover(voiceCtx); break;
@@ -137,6 +143,7 @@ export async function audioSelfTest(): Promise<{ passed: boolean; results: Audio
         case 'ui_error': playUiError(voiceCtx); break;
         case 'keypad_beep': playKeypadBeep(voiceCtx); break;
         case 'door_clunk': playDoorClunk(voiceCtx); break;
+        case 'ripple_tick': playRippleTick(voiceCtx); break;
       }
 
       const renderedBuffer = await offlineCtx.startRendering();
@@ -541,6 +548,11 @@ export function installDebugApi(): void {
     audioSelfTest,
     textureSelfTest,
     perfReport,
+    sim: {
+      runScenario,
+      listScenarios,
+      runAllScenarios,
+    },
   };
 
   (window as unknown as { __backsilence: typeof api }).__backsilence = api;
@@ -561,7 +573,7 @@ export function installDebugApi(): void {
     },
   });
 
-  console.log('[BackSilence] Debug API installed: window.__backsilence = { audioSelfTest, textureSelfTest, perfReport }');
+  console.log('[BackSilence] Debug API installed: window.__backsilence = { audioSelfTest, textureSelfTest, perfReport, sim }');
 }
 
 /**

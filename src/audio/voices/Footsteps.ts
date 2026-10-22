@@ -2,7 +2,7 @@
  *  Dry footsteps, rubber squeaks, ledge mantling, and acoustic drips.
  * ──────────────────────────────────────────────────────────────────────── */
 
-import type { VoiceHandle } from '../AudioEngine.js';
+import type { RawVoiceHandle } from '../AudioEngine.js';
 import type { NoiseBuffers } from '../Noise.js';
 import { Rng } from '../../procedural/core/prng.js';
 
@@ -19,7 +19,7 @@ export interface FootstepVoiceContext {
  * Dry-tile footstep: 25 ms noise click through 1.8–3 kHz bandpass + 90 Hz thump (30 ms).
  * Strictly silent to the monster (0 loudness), ambience only.
  */
-export function playStepDry(cx: FootstepVoiceContext): VoiceHandle {
+export function playStepDry(cx: FootstepVoiceContext): RawVoiceHandle {
   const ctx = cx.ctx;
   const now = ctx.currentTime;
   const rng = new Rng(cx.seed ?? 333);
@@ -84,7 +84,7 @@ export function playStepDry(cx: FootstepVoiceContext): VoiceHandle {
 /**
  * Rubber squeak: resonant glide on rubber tile contact.
  */
-export function playStepSqueak(cx: FootstepVoiceContext): VoiceHandle {
+export function playStepSqueak(cx: FootstepVoiceContext): RawVoiceHandle {
   const ctx = cx.ctx;
   const now = ctx.currentTime;
 
@@ -138,7 +138,7 @@ export function playStepSqueak(cx: FootstepVoiceContext): VoiceHandle {
 /**
  * Mantle ledge pull: wet slap and scrape + mid thud + splash tail.
  */
-export function playMantle(cx: FootstepVoiceContext): VoiceHandle {
+export function playMantle(cx: FootstepVoiceContext): RawVoiceHandle {
   const ctx = cx.ctx;
   const now = ctx.currentTime;
 
@@ -203,7 +203,7 @@ export function playMantle(cx: FootstepVoiceContext): VoiceHandle {
 /**
  * Single droplet "plink" (sine ~900–1400 Hz, 30 ms, steep decay) with heavy reverb.
  */
-export function playDrip(cx: FootstepVoiceContext): VoiceHandle {
+export function playDrip(cx: FootstepVoiceContext): RawVoiceHandle {
   const ctx = cx.ctx;
   const now = ctx.currentTime;
   const rng = new Rng(cx.seed ?? 777);
@@ -252,6 +252,98 @@ export function playDrip(cx: FootstepVoiceContext): VoiceHandle {
       reverbGain.disconnect();
     },
     setParam(): void {},
+    ended,
+  };
+}
+
+/**
+ * Player breathing voice for exhaustion / stamina depletion.
+ * Band-passed pink noise with 0.8 Hz amplitude breath cycle and low resonant formant.
+ */
+export function playPlayerBreath(cx: FootstepVoiceContext): RawVoiceHandle {
+  const ctx = cx.ctx;
+  const now = ctx.currentTime;
+  const intensity = cx.intensity ?? 1.0;
+
+  const voiceGain = ctx.createGain();
+  voiceGain.gain.setValueAtTime(0.25 * intensity, now);
+  voiceGain.connect(cx.destination);
+
+  // Pink noise source
+  const src = ctx.createBufferSource();
+  src.buffer = cx.noise.pink;
+  src.loop = true;
+
+  const filter = ctx.createBiquadFilter();
+  filter.type = 'bandpass';
+  filter.frequency.value = 680;
+  filter.Q.value = 3.0;
+
+  // Breath cycle gain
+  const cycleGain = ctx.createGain();
+  cycleGain.gain.setValueAtTime(0.05, now);
+
+  const lfo = ctx.createOscillator();
+  lfo.type = 'sine';
+  lfo.frequency.value = 0.75 * (0.8 + 0.4 * intensity); // breathing rate
+
+  const lfoGain = ctx.createGain();
+  lfoGain.gain.value = 0.35;
+
+  lfo.connect(lfoGain);
+  lfoGain.connect(cycleGain.gain);
+
+  src.connect(filter);
+  filter.connect(cycleGain);
+  cycleGain.connect(voiceGain);
+
+  src.start(now);
+  lfo.start(now);
+
+  const duration = 2.0;
+  let isStopped = false;
+
+  let endedResolve: () => void;
+  const ended = new Promise<void>((r) => {
+    endedResolve = r;
+  });
+
+  const timer = setTimeout(() => {
+    if (!isStopped) {
+      stop(0.2);
+    }
+  }, duration * 1000);
+
+  function stop(fadeSec = 0.15): void {
+    if (isStopped) return;
+    isStopped = true;
+    clearTimeout(timer);
+    const stopTime = ctx.currentTime;
+    voiceGain.gain.setValueAtTime(voiceGain.gain.value, stopTime);
+    voiceGain.gain.linearRampToValueAtTime(0.0001, stopTime + fadeSec);
+    setTimeout(() => {
+      try {
+        src.stop();
+        lfo.stop();
+        src.disconnect();
+        lfo.disconnect();
+        filter.disconnect();
+        cycleGain.disconnect();
+        voiceGain.disconnect();
+      } catch {
+        /* ignore */
+      }
+      endedResolve();
+    }, fadeSec * 1000 + 30);
+  }
+
+  return {
+    stop,
+    setParam(name: string, v: number): void {
+      if (name === 'intensity') {
+        voiceGain.gain.setTargetAtTime(0.25 * v, ctx.currentTime, 0.05);
+      }
+    },
     ended,
   };
 }

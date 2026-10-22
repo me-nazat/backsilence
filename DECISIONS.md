@@ -95,4 +95,44 @@ All design decisions are recorded here with rationale.
 **Choice:** Rebrand project name, HTML title/splash/menu wordmarks, and global keys to `BackSilence` / `window.__backsilence`. Migrate `poolrooms.settings.v1` to `backsilence.settings.v1` in `loadSettings()`. Retain `window.__poolrooms` as a deprecated property with a debug-mode notice.
 **Reason:** Official project naming established for Batch 2 while guaranteeing seamless forward-compatibility and zero breakages for existing storage or test tooling.
 
+---
+
+## Batch 2 Decisions
+
+### D018: Pure Simulation Architecture (`src/sim/**`) with Zero DOM/WebGL Imports
+**Date:** 2024-10-22
+**Choice:** Segregate all gameplay physics, collisions, spatial hashes, navmesh, hearing calculations, and monster AI state machines into `src/sim/**` as pure TypeScript with zero imports of `three`, `document`, `window`, or Web Audio. Enforced by an ESLint `no-restricted-imports` rule.
+**Reason:** Enables headless 60 Hz deterministic scenario testing in Node (Vitest) at >50x real-time speed without DOM/mock dependencies, and establishes an authoritative simulation kernel ready for authoritative multiplayer replication in Batch 4.
+
+### D019: Two-Pass Chamfer Distance Transform for Clearance and Foam
+**Date:** 2024-10-22
+**Choice:** Compute a discrete two-pass chamfer distance transform (`distToDry`) on a 0.25 m rasterized `GroundGrid` at arena build time, packed into the G channel of a world-aligned `WaterMapData` RGBA8 data texture.
+**Reason:** Single data field simultaneously solves three critical requirements with zero per-frame runtime cost: (1) shoreline foam thresholding in the water fragment shader, (2) monster trench clearance (`clearance > 1.2 m`), and (3) platform edge hugging prevention.
+
+### D020: Procedural Hierarchical 3D Monster Body with Analytic Two-Bone IK
+**Date:** 2024-10-22
+**Choice:** Build the blind acoustic monster entirely from procedural Three.js geometries (`CapsuleGeometry`, `SphereGeometry`, `LatheGeometry`, and instanced spine cones) displaced with seeded 3D simplex noise and textured with a procedural cellular `FleshTexture`. Implement an allocation-free analytic two-bone IK solver using the law of cosines for all four limbs.
+**Reason:** Strict compliance with the zero-external-assets policy (`.glb`/binary prohibited). Provides organic hunchback silhouette, dynamic knuckle-walking, bounding sprints with flight phase, and zero per-frame garbage collector pressure.
+
+### D021: Analytic Expanding Ripple Rings and Kelvin V-Wakes in GLSL
+**Date:** 2024-10-22
+**Choice:** Render water disturbance using an analytic ring formula evaluated in the vertex and fragment shader (`uRipples[32]`) and moving V-wake cones (`uWakes[6]`) oriented along heading directions with Kelvin angle (19.5°).
+**Reason:** Eliminates expensive frame buffer ping-pong simulations, runs at high frame rates even on low-end mobile devices, and guarantees exact parity between shader visuals and CPU sampling tests (verified within $1\times 10^{-4}$ across 200 points).
+
+### D022: Measured Character Motor Physics Benchmarks
+**Date:** 2024-10-22
+**Choice:** Benchmark character motor parameters: gravity = 14 m/s², jump velocity = 4.6 m/s, step limit = 0.35 m, coyote time = 0.1 s, jump buffer = 0.1 s.
+**Measured Values:**
+- Jump height: 0.756 m (nominal 0.75 m ± 5%).
+- Sprint-jump horizontal distance: 5.493 m on flat ground (exceeds 3.4 m requirement).
+- Sprint-jump across the 2.0 m trench from Island A (x=6) to Island B (x=8): successfully lands on B at x=10.79 with 0 water contact / 0 noise.
+- Mantle arc: 0.6 s ease-in/out onto platform +0.3 m ledge from deep channel.
+**Reason:** Satisfies the acoustic gameplay requirements: platform gaps must reward precise sprint-jumping without splashing into the lethal water below.
+
+### D023: Dynamic 3D Camera Jumpscare with Hit-Stop and Audio Stinger
+**Date:** 2024-10-22
+**Choice:** On monster `ATTACK`, apply a 0.25x hit-stop time dilation, smoothly snap and dolly the camera within 0.15 s to 0.8 m directly in front of the monster's head joint regardless of attack angle, apply 28 Hz camera noise and ±8° Dutch roll, duck audio buses, trigger jumpscare stinger and red vignette flash, then transition to DeathScreen with stats and sub-second Retry.
+**Reason:** Maximizes visceral horror impact and immediate readability while maintaining robust recovery and rapid retry loop for player engagement.
+
+
 

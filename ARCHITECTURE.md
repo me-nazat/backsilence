@@ -105,3 +105,52 @@ BOOT ──→ MENU ──→ MODE_SELECT ──→ LOBBY ──→ LOADING ─�
                                               ↑                   │
                                               └───────────────────┘
 ```
+
+---
+
+## Batch 2 Additions: Sim / Presentation Split
+
+To ensure deterministic 60 Hz physics, zero-DOM headless simulation testing, and authoritative host replication for future multiplayer, the architecture is strictly split into two layers:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│               src/sim/ (Pure TypeScript Kernel)                 │
+│  • GroundGrid.ts      Rasterized heights + chamfer distToDry    │
+│  • Colliders.ts       AABB, cylinder colliders, 4m spatial hash │
+│  • PlayerMotor.ts     Deterministic character kinematics (60Hz) │
+│  • NavGrid.ts         0.5m clearance grid & connected components│
+│  • AStar.ts           Resumable binary-heap A* + string pulling │
+│  • Hearing.ts         Acoustic formula, occlusion & boundary    │
+│  • MonsterBrain.ts    Deterministic state machine & net sync    │
+│  • SimWorld.ts        60 Hz tick container & event ring buffers │
+│  • Events.ts          Allocation-free ring buffer for SimEvents │
+│  * ENFORCED: Zero imports of Three.js, DOM, or Web Audio APIs   │
+└────────────────────────────────┬────────────────────────────────┘
+                                 │
+                   SimState snapshots & SimEvents
+                                 ▼
+┌─────────────────────────────────────────────────────────────────┐
+│              src/game/ (Presentation & Three.js)                │
+│  • GameSession.ts     Interpolates SimState, render loop glue   │
+│  • water/             WaterSystem, WaterMaterial, RippleBuffer, │
+│                       WakeEmitters, Splashes                    │
+│  • monster/           MonsterManager, MonsterMesh, MonsterIK,   │
+│                       MonsterGait, MonsterBody, Jumpscare       │
+│  • player/            PlayerCamera, PlayerInput, TouchControls, │
+│                       Footsteps audio pacing                    │
+│  • interaction/       InteractionSystem raycasts & HUD prompts  │
+│  • AcousticSystem.ts  Tension curve, directional arcs, captions │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Water Simulation Architecture
+1. **Analytic Ripples**: Ring buffer (`uRipples[32]`) uploaded to GLSL. Vertex and fragment shaders evaluate expanding sinusoidal rings with gaussian envelope decay.
+2. **Kelvin Wakes**: Tracks up to 6 moving sources (`uWakes[6]`). Generates two trailing ridges at 19.5° angles behind waders.
+3. **Map Data Texture**: World-aligned RGBA8 `DataTexture` encoding ground height in R channel and `distToDry` in G channel.
+4. **Instanced Splashes**: 256-droplet pooled `InstancedMesh` with billboard alpha and dark ink tinting on monster impacts.
+
+### Monster Architecture
+1. **Perception**: Completely blind. Senses exclusively via `NoiseEvent`s exceeding threshold through `Hearing.ts` and physical touch collision (`TOUCH_RANGE = 0.9 m`).
+2. **Clearance Navigation**: Navigation cells require `depth >= 0.45 m` and `distToDry > 1.2 m`. Trenches $\le 2.4\text{m}$ wide are impassable, triggering `BLOCKED` state.
+3. **Procedural Body & IK**: Procedural organic flesh mesh with 14-vertebra instanced spine cones, elongated skull, moving jaw with teeth, animated ear-fins, and analytic two-bone law-of-cosines IK for knuckles and feet. Zero external `.glb` models.
+

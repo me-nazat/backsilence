@@ -21,6 +21,7 @@ import {
   playStepSqueak,
   playMantle,
   playDrip,
+  playPlayerBreath,
 } from './voices/Footsteps.js';
 import {
   playLapLoop,
@@ -33,6 +34,7 @@ import {
   playMonsterBreathLoop,
   playMonsterSniff,
   playMonsterWade,
+  playMonsterFootfall,
 } from './voices/Monster.js';
 import {
   playJumpscare,
@@ -45,6 +47,7 @@ import {
   playUiError,
   playKeypadBeep,
   playDoorClunk,
+  playRippleTick,
 } from './voices/UiSounds.js';
 
 export type VoiceName =
@@ -58,6 +61,7 @@ export type VoiceName =
   | 'step_squeak'
   | 'mantle'
   | 'drip'
+  | 'player_breath'
   | 'lap_loop'
   | 'hum_loop'
   | 'drone_loop'
@@ -66,6 +70,7 @@ export type VoiceName =
   | 'monster_breath_loop'
   | 'monster_sniff'
   | 'monster_wade'
+  | 'monster_footfall'
   | 'jumpscare'
   | 'heartbeat'
   | 'ui_hover'
@@ -73,19 +78,28 @@ export type VoiceName =
   | 'ui_confirm'
   | 'ui_error'
   | 'keypad_beep'
-  | 'door_clunk';
+  | 'door_clunk'
+  | 'ripple_tick';
 
 export interface PlayOptions {
   position?: Vec3;
   intensity?: number;
+  gain?: number;
   seed?: number;
   bus?: AudioBusName;
   pitch?: number;
 }
 
+export interface RawVoiceHandle {
+  stop(fadeSec?: number): void;
+  setParam(name: string, v: number): void;
+  readonly ended: Promise<void>;
+}
+
 export interface VoiceHandle {
   stop(fadeSec?: number): void;
   setParam(name: string, v: number): void;
+  setPosition(v: Vec3): void;
   readonly ended: Promise<void>;
 }
 
@@ -182,6 +196,7 @@ export class AudioEngine implements AudioEngineApi {
       return {
         stop(): void {},
         setParam(): void {},
+        setPosition(): void {},
         ended: Promise.resolve(),
       };
     }
@@ -227,13 +242,15 @@ export class AudioEngine implements AudioEngineApi {
       destination: destinationNode,
       reverbSend,
       noise: this.noiseBuffers,
-      ...(opts.intensity !== undefined ? { intensity: opts.intensity } : {}),
+      ...(opts.intensity !== undefined || opts.gain !== undefined
+        ? { intensity: opts.intensity ?? opts.gain }
+        : {}),
       ...(opts.pitch !== undefined ? { pitch: opts.pitch } : {}),
       ...(opts.seed !== undefined ? { seed: opts.seed } : {}),
       mixer: this.mixer,
     };
 
-    let handle: VoiceHandle;
+    let handle: RawVoiceHandle;
 
     switch (name) {
       case 'splash_small':
@@ -314,9 +331,35 @@ export class AudioEngine implements AudioEngineApi {
       case 'door_clunk':
         handle = playDoorClunk(voiceCtx);
         break;
+      case 'player_breath':
+        handle = playPlayerBreath(voiceCtx);
+        break;
+      case 'ripple_tick':
+        handle = playRippleTick(voiceCtx);
+        break;
+      case 'monster_footfall':
+        handle = playMonsterFootfall(voiceCtx);
+        break;
       default:
         handle = playUiClick(voiceCtx);
     }
+
+    const wrappedHandle: VoiceHandle = {
+      stop: (fadeSec) => handle.stop(fadeSec),
+      setParam: (pName, val) => handle.setParam(pName, val),
+      setPosition: (pos: Vec3) => {
+        if (!panner || !this.ctx) return;
+        const now = this.ctx.currentTime;
+        if (panner.positionX) {
+          panner.positionX.linearRampToValueAtTime(pos.x, now + 0.03);
+          panner.positionY.linearRampToValueAtTime(pos.y, now + 0.03);
+          panner.positionZ.linearRampToValueAtTime(pos.z, now + 0.03);
+        } else {
+          (panner as unknown as { setPosition?: (x: number, y: number, z: number) => void }).setPosition?.(pos.x, pos.y, pos.z);
+        }
+      },
+      ended: handle.ended,
+    };
 
     const voiceId = `voice_${++this.voiceSeq}`;
     const priority = BUS_PRIORITIES[busName] ?? 5;
@@ -327,10 +370,10 @@ export class AudioEngine implements AudioEngineApi {
       bus: busName,
       priority,
       startTime: this.ctx.currentTime,
-      stop: () => handle.stop(),
+      stop: () => wrappedHandle.stop(),
     });
 
-    void handle.ended.then(() => {
+    void wrappedHandle.ended.then(() => {
       this.mixer?.unregisterVoice(voiceId);
       if (panner) {
         try {
@@ -341,14 +384,14 @@ export class AudioEngine implements AudioEngineApi {
       }
     });
 
-    return handle;
+    return wrappedHandle;
   }
 
   private defaultBusForVoice(name: VoiceName): AudioBusName {
-    if (name.startsWith('ui_') || name === 'keypad_beep' || name === 'door_clunk') {
+    if (name === 'ripple_tick' || name.startsWith('ui_') || name === 'keypad_beep' || name === 'door_clunk') {
       return 'ui';
     }
-    if (name.startsWith('monster_') || name === 'jumpscare' || name === 'heartbeat') {
+    if (name === 'monster_footfall' || name.startsWith('monster_') || name === 'jumpscare' || name === 'heartbeat') {
       return 'monster';
     }
     if (name.endsWith('_loop') || name === 'drip') {

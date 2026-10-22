@@ -3,7 +3,7 @@
  *  and tension-responsive subterranean synth drone.
  * ──────────────────────────────────────────────────────────────────────── */
 
-import type { VoiceHandle } from '../AudioEngine.js';
+import type { RawVoiceHandle } from '../AudioEngine.js';
 import type { NoiseBuffers } from '../Noise.js';
 
 export interface LoopVoiceContext {
@@ -16,7 +16,7 @@ export interface LoopVoiceContext {
 /**
  * Water lapping loop: pink noise through two slow-LFO modulated bandpasses.
  */
-export function playLapLoop(cx: LoopVoiceContext): VoiceHandle {
+export function playLapLoop(cx: LoopVoiceContext): RawVoiceHandle {
   const ctx = cx.ctx;
   const now = ctx.currentTime;
 
@@ -106,7 +106,7 @@ export function playLapLoop(cx: LoopVoiceContext): VoiceHandle {
  * Pool-room electrical / pump hum loop:
  * 60 Hz + 120 Hz + 180 Hz sines with beat detuning, 2.4 kHz buzz, and filtered noise floor.
  */
-export function playHumLoop(cx: LoopVoiceContext): VoiceHandle {
+export function playHumLoop(cx: LoopVoiceContext): RawVoiceHandle {
   const ctx = cx.ctx;
   const now = ctx.currentTime;
 
@@ -213,7 +213,7 @@ export function playHumLoop(cx: LoopVoiceContext): VoiceHandle {
  * Pad of 3 detuned saws (A1 = 55 Hz, E2 = 82.5 Hz, A2 = 110 Hz) -> lowpass at ~400 Hz.
  * Gain rises with tension.
  */
-export function playDroneLoop(cx: LoopVoiceContext): VoiceHandle {
+export function playDroneLoop(cx: LoopVoiceContext): RawVoiceHandle {
   const ctx = cx.ctx;
   const now = ctx.currentTime;
 

@@ -17,11 +17,13 @@ export const DEFAULT_BINDINGS: Record<Action, string> = {
   left: 'KeyA',
   right: 'KeyD',
   sprint: 'ShiftLeft',
-  crouch: 'KeyC',
+  crouch: 'ControlLeft',
   jump: 'Space',
   interact: 'KeyE',
   flashlight: 'KeyF',
   throw: 'KeyG',
+  crank: 'KeyR',
+  cycleItem: 'KeyC',
   pause: 'Escape',
 };
 

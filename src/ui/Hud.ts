@@ -6,7 +6,7 @@
 export interface HudData {
   noiseLoudness: number; // 0..1
   stamina: number;       // 0..1
-  status: 'DRY' | 'WET' | 'CROUCHED';
+  status: 'DRY' | 'WET' | 'CROUCHED' | 'EXHAUSTED';
   objective: string;
   interactionPrompt?: string | null;
   notebookNumbers: string[]; // e.g. ['#1: 4', '#2: 2', '#3: ?']
@@ -53,19 +53,33 @@ export class Hud {
         transition: opacity 0.15s ease-out;
       "></div>
 
-      <!-- Center Crosshair Dot -->
-      <div style="
+      <!-- Center Crosshair and Directional Arc Ring -->
+      <div id="hud-crosshair-container" style="
         position: absolute;
         top: 50%;
         left: 50%;
-        width: 4px;
-        height: 4px;
-        border-radius: 50%;
-        background: var(--fog, #d9d3a2);
-        box-shadow: 0 0 4px rgba(0,0,0,0.8);
+        width: 48px;
+        height: 48px;
         transform: translate(-50%, -50%);
-        opacity: 0.7;
-      "></div>
+        pointer-events: none;
+      ">
+        <div style="
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          width: 4px;
+          height: 4px;
+          border-radius: 50%;
+          background: var(--fog, #d9d3a2);
+          box-shadow: 0 0 4px rgba(0,0,0,0.8);
+          transform: translate(-50%, -50%);
+          opacity: 0.7;
+        "></div>
+        <svg id="hud-sound-arc-svg" width="48" height="48" viewBox="0 0 48 48" style="position: absolute; inset: 0; opacity: 0; transition: opacity 0.2s ease-out;">
+          <circle cx="24" cy="24" r="20" stroke="rgba(217, 211, 162, 0.25)" stroke-width="1.5" fill="none"/>
+          <path id="hud-sound-arc-path" d="" stroke="#ff8a80" stroke-width="3" fill="none" stroke-linecap="round"/>
+        </svg>
+      </div>
 
       <!-- Interaction Prompt -->
       <div id="hud-prompt" style="
@@ -256,7 +270,10 @@ export class Hud {
     // 3. Status Chip
     if (this.statusChipEl) {
       this.statusChipEl.textContent = data.status;
-      if (data.status === 'WET') {
+      if (data.status === 'EXHAUSTED') {
+        this.statusChipEl.style.borderColor = 'var(--danger, #b3261e)';
+        this.statusChipEl.style.color = 'var(--danger, #b3261e)';
+      } else if (data.status === 'WET') {
         this.statusChipEl.style.borderColor = '#d8b36a';
         this.statusChipEl.style.color = '#d8b36a';
       } else if (data.status === 'CROUCHED') {
@@ -292,7 +309,7 @@ export class Hud {
       if (data.soundVisualizerCaption) {
         this.captionEl.textContent = data.soundVisualizerCaption;
         this.captionEl.style.display = 'block';
-      } else {
+      } else if (this.captionStack.length === 0) {
         this.captionEl.style.display = 'none';
       }
     }
@@ -309,6 +326,65 @@ export class Hud {
     if (data.vhsTime) {
       const timeSpan = this.el.querySelector('#vhs-timestamp');
       if (timeSpan) timeSpan.textContent = data.vhsTime;
+    }
+  }
+
+  private captionStack: { text: string; expires: number }[] = [];
+
+  addCaption(text: string): void {
+    const now = performance.now();
+    this.captionStack.push({ text, expires: now + 2000 });
+    if (this.captionStack.length > 3) {
+      this.captionStack.shift();
+    }
+    this.renderCaptionStack();
+  }
+
+  private renderCaptionStack(): void {
+    if (!this.captionEl) return;
+    const now = performance.now();
+    this.captionStack = this.captionStack.filter((c) => c.expires > now);
+
+    if (this.captionStack.length > 0) {
+      this.captionEl.innerHTML = this.captionStack
+        .map((c) => `<div style="margin-bottom: 2px;">${c.text}</div>`)
+        .join('');
+      this.captionEl.style.display = 'block';
+    } else {
+      this.captionEl.style.display = 'none';
+    }
+  }
+
+  flashDirectionArc(angleRad: number, _intensity = 1.0, reducedMotion = false): void {
+    if (!this.el) return;
+    const svgEl = this.el.querySelector<SVGElement>('#hud-sound-arc-svg');
+    const pathEl = this.el.querySelector<SVGPathElement>('#hud-sound-arc-path');
+    if (!svgEl || !pathEl) return;
+
+    // Draw an arc of 45 deg centered at angleRad
+    const r = 20;
+    const cx = 24;
+    const cy = 24;
+    const halfSpan = Math.PI / 8; // 22.5 deg either side
+    const a1 = angleRad - Math.PI / 2 - halfSpan;
+    const a2 = angleRad - Math.PI / 2 + halfSpan;
+
+    const x1 = cx + r * Math.cos(a1);
+    const y1 = cy + r * Math.sin(a1);
+    const x2 = cx + r * Math.cos(a2);
+    const y2 = cy + r * Math.sin(a2);
+
+    pathEl.setAttribute('d', `M ${x1.toFixed(1)} ${y1.toFixed(1)} A ${r} ${r} 0 0 1 ${x2.toFixed(1)} ${y2.toFixed(1)}`);
+    svgEl.style.opacity = '1.0';
+
+    if (reducedMotion) {
+      setTimeout(() => {
+        if (svgEl) svgEl.style.opacity = '0';
+      }, 500);
+    } else {
+      setTimeout(() => {
+        if (svgEl) svgEl.style.opacity = '0';
+      }, 250);
     }
   }
 

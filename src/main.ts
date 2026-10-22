@@ -225,6 +225,7 @@ async function boot(): Promise<void> {
   type GlobalRefs = {
     __backsilence_lab?: LabScene;
     __poolrooms_lab?: LabScene;
+    __backsilence_session?: unknown;
     __backsilence_ui?: typeof ui;
     __poolrooms_ui?: typeof ui;
     __backsilence_renderer_info?: unknown;
@@ -235,6 +236,62 @@ async function boot(): Promise<void> {
   g.__poolrooms_lab = labScene;
   g.__backsilence_ui = ui;
   g.__poolrooms_ui = ui;
+
+  // Active playable game session
+  const { GameSession } = await import('./game/GameSession.js');
+  let activeGameSession: InstanceType<typeof GameSession> | null = null;
+
+  bus.on('game:start', (cfg) => {
+    if (activeGameSession) {
+      activeGameSession.dispose();
+      activeGameSession = null;
+    }
+    labScene.renderer.canvas.style.display = 'none';
+
+    const diffStr = cfg.difficulty === 0 ? 'whisper' : cfg.difficulty === 2 ? 'deafening' : 'normal';
+    activeGameSession = new GameSession(
+      canvasContainer,
+      settings,
+      ui.getHud(),
+      {
+        onPause: () => ui.showPause(),
+        onDeath: (stats) => {
+          ui.showDeath('YOU MADE A SOUND');
+          ui.getDeathScreen().setStats(stats.timeSurvived, stats.noisesMade, stats.closestCall);
+        },
+        onExit: () => {
+          ui.navigateTo('MENU');
+        },
+      },
+      diffStr,
+      cfg.seed,
+    );
+    g.__backsilence_session = activeGameSession;
+    stateMachine.transition('PLAYING');
+  });
+
+  bus.on('game:retry' as unknown as 'game:start', () => {
+    if (activeGameSession) {
+      activeGameSession.restart(true);
+      stateMachine.transition('PLAYING');
+    }
+  });
+
+  bus.on('game:resume' as unknown as 'game:start', () => {
+    if (activeGameSession) {
+      activeGameSession.resume();
+      stateMachine.transition('PLAYING');
+    }
+  });
+
+  bus.on('game:leave', () => {
+    if (activeGameSession) {
+      activeGameSession.dispose();
+      activeGameSession = null;
+      g.__backsilence_session = undefined;
+    }
+    labScene.renderer.canvas.style.display = 'block';
+  });
 
   if (isLab) {
     ui.navigateTo('GAME');
@@ -254,11 +311,16 @@ async function boot(): Promise<void> {
     const dtMs = dt * 1000;
     lastTime = now;
 
-    labScene.update(dt);
+    let activeRenderer = labScene.renderer.renderer;
+    if (activeGameSession) {
+      activeGameSession.update(dt);
+      activeRenderer = activeGameSession.renderer.renderer;
+    } else {
+      labScene.update(dt);
+    }
     perf.update(dtMs);
 
-    const renderer = labScene.renderer.renderer;
-    const snap = perf.getSnapshot(renderer);
+    const snap = perf.getSnapshot(activeRenderer);
 
     const info = {
       calls: snap.drawCalls,

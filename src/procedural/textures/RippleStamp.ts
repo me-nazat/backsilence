@@ -10,22 +10,35 @@ export interface RippleStampOptions {
   size?: number;
 }
 
+export const RIPPLE_SPEED = 3.2;   // m/s
+export const RIPPLE_LIFE  = 3.5;   // s
+export const RIPPLE_K     = 11.0;  // rad/m (~0.57 m wavelength)
+
 /**
- * Analytic 1D radial ripple profile function.
- * Normalized radial distance r in [0, 1].
- * Produces a main sharp crest and 2 trailing decaying rings with soft edge falloff.
+ * Analytic ripple height at distance d (meters) from origin at time age (seconds) with given strength (0..1).
+ * Matches the canonical GLSL water shader implementation in Section 6.1 exactly.
+ */
+export function rippleHeightAt(d: number, age: number, strength = 1.0): number {
+  if (age < 0.0 || age > RIPPLE_LIFE) return 0.0;
+  const x = d - RIPPLE_SPEED * age;             // distance from ring front
+  const w = 0.28 + 0.22 * age;                  // ring thickens as it travels
+  const env = Math.exp(-(x * x) / (w * w));     // gaussian ring window
+  const life = 1.0 - age / RIPPLE_LIFE;
+  const amp = (strength * life * life) / (1.0 + 0.8 * d);
+  const ph = RIPPLE_K * x;
+  return amp * env * Math.cos(ph) * 0.07;
+}
+
+/**
+ * 1D radial profile for stamp generation, sampling the ripple wavepacket at age = 0.6s.
  */
 export function rippleProfile(r: number): number {
   if (r <= 0.0 || r >= 1.0) return 0.0;
-
-  // Damped sinusoidal wave packet
-  const wave = Math.sin(r * Math.PI * 6.0);
-  // Quadratic falloff toward outer edge and center
-  const envelope = (1.0 - r) * Math.sin(r * Math.PI);
-
-  // Normalized height perturbation [0, 1] with 0.5 as resting level
-  const height = wave * envelope * 0.9;
-  return Math.max(0.0, Math.min(1.0, height * 0.5 + 0.5));
+  // Map normalized 0..1 to radial physical distance [0, 3.0] m at age 0.6s
+  const d = r * 3.0;
+  const h = rippleHeightAt(d, 0.6, 1.0);
+  // Normalize to [0, 1] range for 8-bit texture encoding
+  return Math.max(0.0, Math.min(1.0, h * 10.0 + 0.5));
 }
 
 /**

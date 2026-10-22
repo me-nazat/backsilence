@@ -129,7 +129,10 @@ export class UIManager {
     this.hud = new Hud();
 
     this.pauseMenu = new PauseMenu({
-      onResume: () => this.resumeGame(),
+      onResume: () => {
+        this.bus.emit('game:resume' as unknown as 'game:start', undefined as unknown as { mode: 'single'; mapId: 'poolrooms'; difficulty: number; seed: number });
+        this.resumeGame();
+      },
       onSettings: () => this.navigateTo('SETTINGS'),
       onAudioLab: () => this.toggleAudioLab(),
       onQuit: () => this.quitToMenu(),
@@ -138,6 +141,7 @@ export class UIManager {
     this.deathScreen = new DeathScreen({
       onRetry: () => {
         this.deathScreen.hide();
+        this.bus.emit('game:retry' as unknown as 'game:start', undefined as unknown as { mode: 'single'; mapId: 'poolrooms'; difficulty: number; seed: number });
         this.resumeGame();
       },
       onMenu: () => this.quitToMenu(),
@@ -202,6 +206,11 @@ export class UIManager {
     if (this.currentView === view) return;
     this.viewStack.push(view);
     this.currentView = view;
+    if (view === 'MODE_SELECT' && this.stateMachine.canTransition('MODE_SELECT')) {
+      this.stateMachine.transition('MODE_SELECT');
+    } else if (view === 'MENU' && this.stateMachine.canTransition('MENU')) {
+      this.stateMachine.transition('MENU');
+    }
     this.updateViewVisibility();
   }
 
@@ -210,10 +219,16 @@ export class UIManager {
       this.viewStack.pop();
       const prev = this.viewStack[this.viewStack.length - 1];
       this.currentView = prev ?? 'MENU';
+      if (this.currentView === 'MENU' && this.stateMachine.canTransition('MENU')) {
+        this.stateMachine.transition('MENU');
+      }
       this.updateViewVisibility();
     } else if (this.currentView !== 'MENU') {
       this.currentView = 'MENU';
       this.viewStack = ['MENU'];
+      if (this.stateMachine.canTransition('MENU')) {
+        this.stateMachine.transition('MENU');
+      }
       this.updateViewVisibility();
     }
   }
@@ -265,7 +280,12 @@ export class UIManager {
     this.currentView = 'GAME';
     this.viewStack = ['GAME'];
     this.updateViewVisibility();
-    this.stateMachine.transition('LOADING');
+    if (this.stateMachine.canTransition('MODE_SELECT')) {
+      this.stateMachine.transition('MODE_SELECT');
+    }
+    if (this.stateMachine.canTransition('LOADING')) {
+      this.stateMachine.transition('LOADING');
+    }
 
     if (this.onStartGame) {
       this.onStartGame(config);
@@ -351,5 +371,13 @@ export class UIManager {
     AudioEngine.getInstance().applySettings(s.audio);
 
     this.bus.emit('settings:changed', s);
+  }
+
+  getHud(): Hud {
+    return this.hud;
+  }
+
+  getDeathScreen(): DeathScreen {
+    return this.deathScreen;
   }
 }

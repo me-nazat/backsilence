@@ -23,11 +23,13 @@ export class InputManager {
       left: 'KeyA',
       right: 'KeyD',
       sprint: 'ShiftLeft',
-      crouch: 'KeyC',
+      crouch: 'ControlLeft',
       jump: 'Space',
       interact: 'KeyE',
       flashlight: 'KeyF',
       throw: 'KeyG',
+      crank: 'KeyR',
+      cycleItem: 'KeyC',
       pause: 'Escape',
     };
 

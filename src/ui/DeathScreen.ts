@@ -76,6 +76,30 @@ export class DeathScreen {
           ">It heard the water.</div>
         </div>
 
+        <div id="death-stats-container" style="
+          width: 100%;
+          display: flex;
+          justify-content: space-around;
+          background: rgba(0, 0, 0, 0.4);
+          padding: 10px 8px;
+          border-radius: 4px;
+          border: 1px solid rgba(179,38,30,0.2);
+          font-size: 11px;
+        ">
+          <div>
+            <div style="opacity: 0.6; font-size: 9px; text-transform: uppercase;">Survived</div>
+            <div id="stat-time" style="font-size: 14px; font-weight: bold; color: var(--fog);">0.0s</div>
+          </div>
+          <div>
+            <div style="opacity: 0.6; font-size: 9px; text-transform: uppercase;">Noises</div>
+            <div id="stat-noises" style="font-size: 14px; font-weight: bold; color: var(--danger);">0</div>
+          </div>
+          <div>
+            <div style="opacity: 0.6; font-size: 9px; text-transform: uppercase;">Closest Call</div>
+            <div id="stat-closest" style="font-size: 14px; font-weight: bold; color: #ffb74d;">--</div>
+          </div>
+        </div>
+
         <div style="
           width: 100%;
           height: 1px;
@@ -123,6 +147,19 @@ export class DeathScreen {
   setReason(reason: string): void {
     const sub = this.el?.querySelector('.death-subtitle');
     if (sub) sub.textContent = reason;
+  }
+
+  setStats(timeSurvived: number, noisesMade: number, closestCall: number): void {
+    if (!this.el) return;
+    const timeEl = this.el.querySelector('#stat-time');
+    const noisesEl = this.el.querySelector('#stat-noises');
+    const closestEl = this.el.querySelector('#stat-closest');
+
+    if (timeEl) timeEl.textContent = `${timeSurvived.toFixed(1)}s`;
+    if (noisesEl) noisesEl.textContent = noisesMade.toString();
+    if (closestEl) {
+      closestEl.textContent = closestCall < 999 ? `${closestCall.toFixed(1)}m` : '--';
+    }
   }
 
   show(): void {

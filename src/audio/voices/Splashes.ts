@@ -3,7 +3,7 @@
  *  continuous wading loop, and pebble plink.
  * ──────────────────────────────────────────────────────────────────────── */
 
-import type { VoiceHandle } from '../AudioEngine.js';
+import type { RawVoiceHandle } from '../AudioEngine.js';
 import type { NoiseBuffers } from '../Noise.js';
 import { Rng } from '../../procedural/core/prng.js';
 
@@ -23,7 +23,7 @@ export interface SplashVoiceContext {
 export function playSplash(
   type: 'small' | 'big' | 'jump',
   cx: SplashVoiceContext,
-): VoiceHandle {
+): RawVoiceHandle {
   const ctx = cx.ctx;
   const now = ctx.currentTime;
   const intensity = Math.max(0.1, Math.min(2.0, cx.intensity ?? (type === 'small' ? 0.4 : type === 'big' ? 1.0 : 1.4)));
@@ -149,7 +149,7 @@ export function playSplash(
 /**
  * Wade step one-shot: soft noise swish plus a lapping slosh.
  */
-export function playWadeStep(cx: SplashVoiceContext): VoiceHandle {
+export function playWadeStep(cx: SplashVoiceContext): RawVoiceHandle {
   const ctx = cx.ctx;
   const now = ctx.currentTime;
   const intensity = cx.intensity ?? 0.6;
@@ -206,7 +206,7 @@ export function playWadeStep(cx: SplashVoiceContext): VoiceHandle {
 /**
  * Continuous wading loop whose 'speed' parameter scales gain and brightness.
  */
-export function playWadeLoop(cx: SplashVoiceContext): VoiceHandle {
+export function playWadeLoop(cx: SplashVoiceContext): RawVoiceHandle {
   const ctx = cx.ctx;
   const now = ctx.currentTime;
 
@@ -268,7 +268,7 @@ export function playWadeLoop(cx: SplashVoiceContext): VoiceHandle {
 /**
  * Pebble plink: high sine tink (2.4 kHz -> 1.8 kHz, 40 ms) plus tiny splash.
  */
-export function playPebblePlink(cx: SplashVoiceContext): VoiceHandle {
+export function playPebblePlink(cx: SplashVoiceContext): RawVoiceHandle {
   const ctx = cx.ctx;
   const now = ctx.currentTime;
 

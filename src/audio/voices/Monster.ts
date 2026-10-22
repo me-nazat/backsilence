@@ -3,7 +3,7 @@
  *  wet wheezing breathing loop, sniffing bursts, and heavy monster wading.
  * ──────────────────────────────────────────────────────────────────────── */
 
-import type { VoiceHandle } from '../AudioEngine.js';
+import type { RawVoiceHandle } from '../AudioEngine.js';
 import type { NoiseBuffers } from '../Noise.js';
 import { playSplash } from './Splashes.js';
 
@@ -39,7 +39,7 @@ function getDistortion(samples = 256): Float32Array {
 /**
  * Monster Roar (ALERT sound): Sawtooth glide + square sub + FM rattle + 3 vocal formants + WaveShaper.
  */
-export function playMonsterRoar(cx: MonsterVoiceContext): VoiceHandle {
+export function playMonsterRoar(cx: MonsterVoiceContext): RawVoiceHandle {
   const ctx = cx.ctx;
   const now = ctx.currentTime;
   const duration = 1.4;
@@ -160,7 +160,7 @@ export function playMonsterRoar(cx: MonsterVoiceContext): VoiceHandle {
 /**
  * Monster Snarl: shorter (0.5s), higher pitch (110 -> 90 Hz), aggressive noise rasp.
  */
-export function playMonsterSnarl(cx: MonsterVoiceContext): VoiceHandle {
+export function playMonsterSnarl(cx: MonsterVoiceContext): RawVoiceHandle {
   const ctx = cx.ctx;
   const now = ctx.currentTime;
   const duration = 0.52;
@@ -221,7 +221,7 @@ export function playMonsterSnarl(cx: MonsterVoiceContext): VoiceHandle {
  * Wet wheezing monster breath loop:
  * Noise through bandpass modulated by 0.35 Hz amplitude LFO + 140 Hz growl.
  */
-export function playMonsterBreathLoop(cx: MonsterVoiceContext): VoiceHandle {
+export function playMonsterBreathLoop(cx: MonsterVoiceContext): RawVoiceHandle {
   const ctx = cx.ctx;
   const now = ctx.currentTime;
 
@@ -307,7 +307,7 @@ export function playMonsterBreathLoop(cx: MonsterVoiceContext): VoiceHandle {
 /**
  * Monster Sniff: three quick filtered-noise inhale bursts.
  */
-export function playMonsterSniff(cx: MonsterVoiceContext): VoiceHandle {
+export function playMonsterSniff(cx: MonsterVoiceContext): RawVoiceHandle {
   const ctx = cx.ctx;
   const now = ctx.currentTime;
   const voiceGain = ctx.createGain();
@@ -361,10 +361,85 @@ export function playMonsterSniff(cx: MonsterVoiceContext): VoiceHandle {
 /**
  * Heavy monster wading: low pitch, heavy splash + slosh.
  */
-export function playMonsterWade(cx: MonsterVoiceContext): VoiceHandle {
+export function playMonsterWade(cx: MonsterVoiceContext): RawVoiceHandle {
   return playSplash('big', {
     ...cx,
     intensity: 1.25,
     pitch: 0.65,
   });
+}
+
+/**
+ * Monster footfall: heavy wet slap, pitch-shiftable.
+ * Thump + wet slap transient + splash tail + reverb send.
+ */
+export function playMonsterFootfall(cx: MonsterVoiceContext): RawVoiceHandle {
+  const ctx = cx.ctx;
+  const now = ctx.currentTime;
+  const pitch = cx.pitch ?? 1.0;
+  const intensity = cx.intensity ?? 1.0;
+
+  const voiceGain = ctx.createGain();
+  voiceGain.gain.setValueAtTime(0.7 * intensity, now);
+  voiceGain.connect(cx.destination);
+
+  const reverbGain = ctx.createGain();
+  reverbGain.gain.setValueAtTime(0.4, now);
+  voiceGain.connect(reverbGain);
+  reverbGain.connect(cx.reverbSend);
+
+  // 1. Low heavy thump
+  const osc = ctx.createOscillator();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(65 * pitch, now);
+  osc.frequency.exponentialRampToValueAtTime(32 * pitch, now + 0.08);
+
+  const oscGain = ctx.createGain();
+  oscGain.gain.setValueAtTime(0.85, now);
+  oscGain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
+
+  osc.connect(oscGain);
+  oscGain.connect(voiceGain);
+  osc.start(now);
+  osc.stop(now + 0.1);
+
+  // 2. Wet slap transient
+  const noise = ctx.createBufferSource();
+  noise.buffer = cx.noise.pink;
+
+  const filter = ctx.createBiquadFilter();
+  filter.type = 'bandpass';
+  filter.Q.value = 3.5;
+  filter.frequency.setValueAtTime(900 * pitch, now);
+  filter.frequency.exponentialRampToValueAtTime(350 * pitch, now + 0.06);
+
+  const noiseGain = ctx.createGain();
+  noiseGain.gain.setValueAtTime(0.75, now);
+  noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.07);
+
+  noise.connect(filter);
+  filter.connect(noiseGain);
+  noiseGain.connect(voiceGain);
+  noise.start(now);
+  noise.stop(now + 0.08);
+
+  let endedResolve: () => void;
+  const ended = new Promise<void>((r) => {
+    endedResolve = r;
+  });
+
+  setTimeout(() => {
+    voiceGain.disconnect();
+    reverbGain.disconnect();
+    endedResolve();
+  }, 250);
+
+  return {
+    stop(): void {
+      voiceGain.disconnect();
+      reverbGain.disconnect();
+    },
+    setParam(): void {},
+    ended,
+  };
 }

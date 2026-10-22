@@ -2,7 +2,7 @@
  *  Tactile UI audio cues: soft ticks, confirms, errors, keypad beeps, and door clunks.
  * ──────────────────────────────────────────────────────────────────────── */
 
-import type { VoiceHandle } from '../AudioEngine.js';
+import type { RawVoiceHandle } from '../AudioEngine.js';
 import type { NoiseBuffers } from '../Noise.js';
 
 export interface UiVoiceContext {
@@ -16,7 +16,7 @@ export interface UiVoiceContext {
 /**
  * ui_hover: very soft 1.2 kHz tick (8 ms).
  */
-export function playUiHover(cx: UiVoiceContext): VoiceHandle {
+export function playUiHover(cx: UiVoiceContext): RawVoiceHandle {
   const ctx = cx.ctx;
   const now = ctx.currentTime;
 
@@ -55,7 +55,7 @@ export function playUiHover(cx: UiVoiceContext): VoiceHandle {
 /**
  * ui_click: short low-passed click plus gentle tone (22 ms).
  */
-export function playUiClick(cx: UiVoiceContext): VoiceHandle {
+export function playUiClick(cx: UiVoiceContext): RawVoiceHandle {
   const ctx = cx.ctx;
   const now = ctx.currentTime;
 
@@ -96,7 +96,7 @@ export function playUiClick(cx: UiVoiceContext): VoiceHandle {
 /**
  * ui_confirm: two ascending soft sine tones, perfect fifth (C5 -> G5: 523.25 -> 783.99 Hz).
  */
-export function playUiConfirm(cx: UiVoiceContext): VoiceHandle {
+export function playUiConfirm(cx: UiVoiceContext): RawVoiceHandle {
   const ctx = cx.ctx;
   const now = ctx.currentTime;
 
@@ -150,7 +150,7 @@ export function playUiConfirm(cx: UiVoiceContext): VoiceHandle {
 /**
  * ui_error: dull descending tone (280 -> 160 Hz).
  */
-export function playUiError(cx: UiVoiceContext): VoiceHandle {
+export function playUiError(cx: UiVoiceContext): RawVoiceHandle {
   const ctx = cx.ctx;
   const now = ctx.currentTime;
 
@@ -197,7 +197,7 @@ export function playUiError(cx: UiVoiceContext): VoiceHandle {
 /**
  * keypad_beep: clean 1.1 kHz square beep (75 ms).
  */
-export function playKeypadBeep(cx: UiVoiceContext): VoiceHandle {
+export function playKeypadBeep(cx: UiVoiceContext): RawVoiceHandle {
   const ctx = cx.ctx;
   const now = ctx.currentTime;
 
@@ -238,7 +238,7 @@ export function playKeypadBeep(cx: UiVoiceContext): VoiceHandle {
 /**
  * door_clunk: metallic clunk: noise burst plus 2 inharmonic sine partials with fast decay.
  */
-export function playDoorClunk(cx: UiVoiceContext): VoiceHandle {
+export function playDoorClunk(cx: UiVoiceContext): RawVoiceHandle {
   const ctx = cx.ctx;
   const now = ctx.currentTime;
 
@@ -303,6 +303,48 @@ export function playDoorClunk(cx: UiVoiceContext): VoiceHandle {
   return {
     stop(): void {
       voiceGain.disconnect();
+    },
+    setParam(): void {},
+    ended,
+  };
+}
+
+/**
+ * Very soft tick used by the sound visualizer when ripples appear on-screen.
+ */
+export function playRippleTick(cx: UiVoiceContext): RawVoiceHandle {
+  const ctx = cx.ctx;
+  const now = ctx.currentTime;
+
+  const osc = ctx.createOscillator();
+  const g = ctx.createGain();
+
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(2600, now);
+  osc.frequency.exponentialRampToValueAtTime(1400, now + 0.02);
+
+  g.gain.setValueAtTime(0.06 * (cx.intensity ?? 1.0), now);
+  g.gain.exponentialRampToValueAtTime(0.0001, now + 0.025);
+
+  osc.connect(g);
+  g.connect(cx.destination);
+
+  osc.start(now);
+  osc.stop(now + 0.03);
+
+  let endedResolve: () => void;
+  const ended = new Promise<void>((r) => {
+    endedResolve = r;
+  });
+
+  setTimeout(() => {
+    g.disconnect();
+    endedResolve();
+  }, 50);
+
+  return {
+    stop(): void {
+      g.disconnect();
     },
     setParam(): void {},
     ended,

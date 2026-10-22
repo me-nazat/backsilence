@@ -3,7 +3,7 @@
  *  and tension-driven physiological heartbeat ("lub-dub").
  * ──────────────────────────────────────────────────────────────────────── */
 
-import type { VoiceHandle } from '../AudioEngine.js';
+import type { RawVoiceHandle } from '../AudioEngine.js';
 import type { NoiseBuffers } from '../Noise.js';
 import type { Mixer } from '../Mixer.js';
 
@@ -18,7 +18,7 @@ export interface JumpscareVoiceContext {
 /**
  * Jumpscare stinger: Shriek + semitone cluster + sub boom + noise burst + tinnitus aftermath.
  */
-export function playJumpscare(cx: JumpscareVoiceContext): VoiceHandle {
+export function playJumpscare(cx: JumpscareVoiceContext): RawVoiceHandle {
   const ctx = cx.ctx;
   const now = ctx.currentTime;
 
@@ -139,7 +139,7 @@ export function playJumpscare(cx: JumpscareVoiceContext): VoiceHandle {
  * Single heartbeat double-thump ("lub-dub"):
  * Two filtered 60 Hz sine/noise hits spaced 140 ms apart.
  */
-export function playHeartbeat(cx: JumpscareVoiceContext): VoiceHandle {
+export function playHeartbeat(cx: JumpscareVoiceContext): RawVoiceHandle {
   const ctx = cx.ctx;
   const now = ctx.currentTime;
 

@@ -35,6 +35,7 @@ export type AppState =
   | 'RESULTS';
 
 export type QualityTier = 'auto' | 'low' | 'medium' | 'high';
+export type GraphicsTier = 'low' | 'medium' | 'high';
 
 export type Action =
   | 'forward'
@@ -47,6 +48,8 @@ export type Action =
   | 'interact'
   | 'flashlight'
   | 'throw'
+  | 'crank'
+  | 'cycleItem'
   | 'pause';
 
 export interface Settings {
@@ -94,7 +97,13 @@ export type NoiseKind =
   | 'valve'
   | 'generator'
   | 'door'
-  | 'scream';
+  | 'scream'
+  | 'roar'
+  | 'clang'
+  | 'alarm'
+  | 'bell'
+  | 'beacon'
+  | 'clack';
 
 export interface NoiseEvent {
   id: string;
