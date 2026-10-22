@@ -322,11 +322,11 @@ describe('Settings Clamping & Key-binding Conflicts', () => {
 
   it('migrates settings properly from raw objects', () => {
     const migrated = migrateSettings({ version: 99 });
-    expect(migrated.version).toBe(1);
+    expect(migrated.version).toBe(2);
     expect(migrated.graphics.quality).toBe('auto');
   });
 
-  it('migrates legacy poolrooms.settings.v1 to backsilence.settings.v1', () => {
+  it('migrates legacy poolrooms.settings.v1 to backsilence.settings.v2', () => {
     const memory = new Map<string, string>();
     const mockStorage: Storage = {
       length: 0,
@@ -344,7 +344,7 @@ describe('Settings Clamping & Key-binding Conflicts', () => {
     mockStorage.setItem('poolrooms.settings.v1', JSON.stringify(legacy));
     const loaded = loadSettings(mockStorage);
     expect(loaded.graphics.fov).toBe(88);
-    expect(mockStorage.getItem('backsilence.settings.v1')).not.toBeNull();
+    expect(mockStorage.getItem('backsilence.settings.v2')).not.toBeNull();
     expect(mockStorage.getItem('poolrooms.settings.v1')).toBeNull();
   });
 

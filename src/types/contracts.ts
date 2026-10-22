@@ -34,6 +34,8 @@ export type AppState =
   | 'SPECTATING'
   | 'RESULTS';
 
+export const PROTOCOL_VERSION = 1;
+
 export type QualityTier = 'auto' | 'low' | 'medium' | 'high';
 export type GraphicsTier = 'low' | 'medium' | 'high';
 
@@ -50,10 +52,11 @@ export type Action =
   | 'throw'
   | 'crank'
   | 'cycleItem'
+  | 'ping'
   | 'pause';
 
 export interface Settings {
-  version: 1;
+  version: 2;
   graphics: {
     quality: QualityTier;
     resolutionScale: number;
@@ -63,6 +66,9 @@ export interface Settings {
     headBob: boolean;
     reducedMotion: boolean | 'system';
     showFps: boolean;
+    photosensitiveSafe: boolean;
+    vhsOsd: boolean;
+    vhsLines: number;
   };
   audio: {
     master: number;
@@ -85,6 +91,10 @@ export interface Settings {
   };
   player: {
     name: string;
+  };
+  net?: {
+    interpolationBias: number;
+    showNetStats: boolean;
   };
 }
 
@@ -133,6 +143,14 @@ export type MonsterState =
   | 'ATTACK'
   | 'BLOCKED';
 
+export interface PuzzleOp {
+  puzzleId: string;
+  op: 'set' | 'toggle' | 'progress' | 'reset';
+  value?: unknown;
+  actor: PlayerId;
+  t: number;
+}
+
 export interface NetPlayerSnapshot {
   id: PlayerId;
   name: string;
@@ -144,6 +162,10 @@ export interface NetPlayerSnapshot {
   inWater: boolean;
   flashlightOn: boolean;
   alive: boolean;
+  seq?: number | undefined;
+  carrying?: string | undefined;
+  escaped?: boolean | undefined;
+  colorIndex?: number | undefined;
 }
 
 export type NetEvent =
@@ -152,7 +174,7 @@ export type NetEvent =
   | {
       type: 'puzzle';
       puzzleId: string;
-      op: 'set' | 'toggle' | 'progress';
+      op: 'set' | 'toggle' | 'progress' | 'reset';
       value: unknown;
       t: number;
     }
@@ -163,15 +185,24 @@ export type NetEvent =
       state: MonsterState;
       pos: Vec3;
       yaw: number;
-      target?: Vec3;
+      target?: Vec3 | undefined;
       t: number;
-    };
+    }
+  | { type: 'start'; startAtMs: number; layoutHash: string; playerCount: number }
+  | { type: 'checkpoint'; simT: number; puzzles: unknown; monsters: unknown; extras: unknown; seq: number }
+  | { type: 'puzzle_req'; op: PuzzleOp }
+  | { type: 'escape'; playerId: PlayerId; t: number }
+  | { type: 'projectile'; id: string; item: string; origin: Vec3; vel: Vec3; t: number; owner: PlayerId }
+  | { type: 'ping_marker'; owner: PlayerId; position: Vec3; t: number }
+  | { type: 'host_change'; hostId: PlayerId }
+  | { type: 'round'; state: 'results' | 'lobby'; payload?: unknown };
 
 export interface LobbyPlayer {
   id: PlayerId;
   name: string;
   ready: boolean;
   isHost: boolean;
+  colorIndex?: number | undefined;
 }
 
 export interface RoomInfo {
@@ -180,15 +211,39 @@ export interface RoomInfo {
   mapId: MapId;
   seed: number;
   maxPlayers: number;
+  difficulty?: 'whisper' | 'normal' | 'deafening' | undefined;
   state: 'lobby' | 'playing' | 'ended';
+  protocol: number;
   createdAt: number;
+  expiresAt?: number | undefined;
   players: LobbyPlayer[];
 }
 
+export interface AdapterCapabilities {
+  realtime: 'push' | 'poll' | 'none';
+  reliableOrdered: boolean;
+  maxMsgBytes: number;
+  suggestedSnapshotHz: number;
+  suggestedInterpDelayMs: number;
+  supportsWebRtcSignaling: boolean;
+}
+
+export interface NetStats {
+  rttMs: number;
+  jitterMs: number;
+  lossPct: number;
+  inBps: number;
+  outBps: number;
+  interpDelayMs: number;
+  transport: string;
+}
+
 export interface AdapterConfig {
-  provider: 'null' | 'supabase' | 'firebase' | 'turso' | 'webrtc-db';
+  provider: 'null' | 'loopback' | 'memory' | 'local-tab' | 'supabase' | 'firebase' | 'turso' | 'webrtc-db';
   url?: string;
   key?: string;
+  signalProvider?: 'supabase' | 'firebase' | 'turso';
+  iceServers?: RTCIceServer[];
   extra?: Record<string, string>;
 }
 
@@ -199,6 +254,8 @@ export interface NetAdapterEvents {
   snapshot: NetPlayerSnapshot;
   event: NetEvent;
   disconnected: { reason: string };
+  'peer-state': { id: PlayerId; state: 'connecting' | 'online' | 'lagging' | 'gone' };
+  'host-changed': { hostId: PlayerId };
 }
 
 /**
@@ -207,6 +264,7 @@ export interface NetAdapterEvents {
  */
 export interface DatabaseNetworkAdapter {
   readonly kind: AdapterConfig['provider'];
+  readonly capabilities?: AdapterCapabilities;
   connect(config: AdapterConfig): Promise<void>;
   disconnect(): Promise<void>;
   createRoom(opts: {
@@ -214,6 +272,7 @@ export interface DatabaseNetworkAdapter {
     seed: number;
     maxPlayers: number;
     hostName: string;
+    difficulty?: 'whisper' | 'normal' | 'deafening';
   }): Promise<RoomInfo>;
   joinRoom(code: RoomCode, profile: { name: string }): Promise<RoomInfo>;
   leaveRoom(): Promise<void>;
@@ -230,4 +289,7 @@ export interface DatabaseNetworkAdapter {
   ): Unsubscribe;
   /** Synchronized clock, ms. */
   serverNow(): number;
+  stats?(): NetStats;
+  kick?(id: PlayerId): Promise<void>;
+  claimHost?(): Promise<boolean>;
 }

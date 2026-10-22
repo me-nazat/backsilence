@@ -5,7 +5,8 @@
 
 import type { Settings, Action, QualityTier } from '../types/contracts.js';
 
-const STORAGE_KEY = 'backsilence.settings.v1';
+const STORAGE_KEY = 'backsilence.settings.v2';
+const LEGACY_STORAGE_V1 = 'backsilence.settings.v1';
 const LEGACY_STORAGE_KEY = 'poolrooms.settings.v1';
 
 const QUALITY_TIERS: readonly QualityTier[] = ['auto', 'low', 'medium', 'high'];
@@ -24,13 +25,14 @@ export const DEFAULT_BINDINGS: Record<Action, string> = {
   throw: 'KeyG',
   crank: 'KeyR',
   cycleItem: 'KeyC',
+  ping: 'KeyV',
   pause: 'Escape',
 };
 
 /** Full default settings object. */
 export function defaultSettings(): Settings {
   return {
-    version: 1,
+    version: 2,
     graphics: {
       quality: 'auto',
       resolutionScale: 100, // Percentage 50-100%
@@ -40,6 +42,9 @@ export function defaultSettings(): Settings {
       headBob: true,
       reducedMotion: 'system',
       showFps: false,
+      photosensitiveSafe: false,
+      vhsOsd: true,
+      vhsLines: 240,
     },
     audio: {
       master: 0.8,
@@ -63,6 +68,10 @@ export function defaultSettings(): Settings {
     player: {
       name: '',
     },
+    net: {
+      interpolationBias: 0,
+      showNetStats: false,
+    },
   };
 }
 
@@ -73,18 +82,22 @@ function clamp(value: number, min: number, max: number): number {
 
 /** Validate and clamp settings values to sane ranges. */
 export function clampSettings(s: Settings): Settings {
+  const g = s.graphics;
   return {
-    version: 1,
+    version: 2,
     graphics: {
-      quality: QUALITY_TIERS.includes(s.graphics.quality) ? s.graphics.quality : 'auto',
-      resolutionScale: clamp(s.graphics.resolutionScale, 50, 100),
-      fov: clamp(s.graphics.fov, 60, 100),
-      brightness: clamp(s.graphics.brightness, 0.8, 1.4),
-      vhsIntensity: clamp(s.graphics.vhsIntensity, 0.0, 1.0),
-      headBob: Boolean(s.graphics.headBob),
+      quality: QUALITY_TIERS.includes(g.quality) ? g.quality : 'auto',
+      resolutionScale: clamp(g.resolutionScale, 50, 100),
+      fov: clamp(g.fov, 60, 100),
+      brightness: clamp(g.brightness, 0.8, 1.4),
+      vhsIntensity: clamp(g.vhsIntensity, 0.0, 1.0),
+      headBob: Boolean(g.headBob),
       reducedMotion:
-        s.graphics.reducedMotion === 'system' ? 'system' : Boolean(s.graphics.reducedMotion),
-      showFps: Boolean(s.graphics.showFps),
+        g.reducedMotion === 'system' ? 'system' : Boolean(g.reducedMotion),
+      showFps: Boolean(g.showFps),
+      photosensitiveSafe: Boolean(g.photosensitiveSafe),
+      vhsOsd: g.vhsOsd !== undefined ? Boolean(g.vhsOsd) : true,
+      vhsLines: g.vhsLines === 360 || g.vhsLines === 480 ? g.vhsLines : 240,
     },
     audio: {
       master: clamp(s.audio.master, 0.0, 1.0),
@@ -110,6 +123,10 @@ export function clampSettings(s: Settings): Settings {
     player: {
       name: typeof s.player.name === 'string' ? s.player.name.slice(0, 32) : '',
     },
+    net: {
+      interpolationBias: clamp(s.net?.interpolationBias ?? 0, -50, 100),
+      showNetStats: Boolean(s.net?.showNetStats),
+    },
   };
 }
 
@@ -131,19 +148,57 @@ export function findBindingConflict(
 }
 
 /**
- * Migrate settings from older versions. Currently only version 1 exists,
- * so this is a forward-compatible stub.
+ * Migrate settings from older versions (v1 -> v2).
  */
 export function migrateSettings(raw: Record<string, unknown>): Settings {
   const version = typeof raw['version'] === 'number' ? raw['version'] : 0;
+  const def = defaultSettings();
 
-  if (version === 1) {
-    // Current version — validate and return
+  if (version === 2) {
     return clampSettings(raw as unknown as Settings);
   }
 
-  // Unknown or missing version — return defaults
-  return defaultSettings();
+  // Version 1 or 0 migration: merge with defaults
+  const rawGraphics = (raw['graphics'] as Record<string, unknown> | undefined) ?? {};
+  const rawAudio = (raw['audio'] as Record<string, unknown> | undefined) ?? {};
+  const rawControls = (raw['controls'] as Record<string, unknown> | undefined) ?? {};
+  const rawAccess = (raw['accessibility'] as Record<string, unknown> | undefined) ?? {};
+  const rawPlayer = (raw['player'] as Record<string, unknown> | undefined) ?? {};
+
+  const merged: Settings = {
+    version: 2,
+    graphics: {
+      ...def.graphics,
+      ...(rawGraphics as unknown as Settings['graphics']),
+    },
+    audio: {
+      ...def.audio,
+      ...(rawAudio as unknown as Settings['audio']),
+    },
+    controls: {
+      ...def.controls,
+      bindings: {
+        ...DEFAULT_BINDINGS,
+        ...((rawControls['bindings'] as Record<Action, string> | undefined) ?? {}),
+      },
+      sensitivity: typeof rawControls['sensitivity'] === 'number' ? rawControls['sensitivity'] : def.controls.sensitivity,
+      invertY: typeof rawControls['invertY'] === 'boolean' ? rawControls['invertY'] : def.controls.invertY,
+      toggleCrouch: typeof rawControls['toggleCrouch'] === 'boolean' ? rawControls['toggleCrouch'] : def.controls.toggleCrouch,
+    },
+    accessibility: {
+      ...def.accessibility,
+      ...(rawAccess as unknown as Settings['accessibility']),
+    },
+    player: {
+      ...def.player,
+      ...(rawPlayer as unknown as Settings['player']),
+    },
+    net: {
+      ...def.net!,
+    },
+  };
+
+  return clampSettings(merged);
 }
 
 function getStorage(customStorage?: Storage | null): Storage | null {
@@ -160,6 +215,19 @@ export function loadSettings(customStorage?: Storage | null): Settings {
 
     const raw = storage.getItem(STORAGE_KEY);
     if (!raw) {
+      const v1Raw = storage.getItem(LEGACY_STORAGE_V1);
+      if (v1Raw) {
+        try {
+          const parsedV1: unknown = JSON.parse(v1Raw);
+          if (typeof parsedV1 === 'object' && parsedV1 !== null) {
+            const migrated = migrateSettings(parsedV1 as Record<string, unknown>);
+            saveSettings(migrated, storage);
+            return migrated;
+          }
+        } catch {
+          // ignore
+        }
+      }
       // Check for legacy Prompt 0 / Batch 1 storage key
       const legacyRaw = storage.getItem(LEGACY_STORAGE_KEY);
       if (legacyRaw) {

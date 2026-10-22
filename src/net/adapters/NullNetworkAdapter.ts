@@ -51,18 +51,20 @@ export class NullNetworkAdapter implements DatabaseNetworkAdapter {
       ready: true,
       isHost: true,
     };
-    this.room = {
+    const roomInfo: RoomInfo = {
       code,
       hostId: this.localPlayerId,
       mapId: opts.mapId,
       seed: opts.seed,
       maxPlayers: opts.maxPlayers,
       state: 'lobby',
+      protocol: 1,
       createdAt: Date.now(),
       players: [host],
     };
-    this.emit('room', this.room);
-    return this.room;
+    this.room = roomInfo;
+    this.emit('room', roomInfo);
+    return roomInfo;
   }
 
   async joinRoom(_code: RoomCode, profile: { name: string }): Promise<RoomInfo> {

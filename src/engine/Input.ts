@@ -30,6 +30,7 @@ export class InputManager {
       throw: 'KeyG',
       crank: 'KeyR',
       cycleItem: 'KeyC',
+      ping: 'KeyV',
       pause: 'Escape',
     };
 

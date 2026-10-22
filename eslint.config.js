@@ -26,10 +26,10 @@ export default tseslint.config(
     },
   },
   {
-    ignores: ['dist/**', 'node_modules/**', 'scripts/**', 'scratch/**'],
+    ignores: ['dist/**', 'node_modules/**', 'scripts/**', 'scratch/**', 'public/**'],
   },
   {
-    files: ['src/sim/**'],
+    files: ['src/sim/**', 'src/net/core/**'],
     rules: {
       'no-restricted-imports': [
         'error',

@@ -58,8 +58,9 @@ for (const filePath of files) {
   const ext = extname(filePath);
   const rel = filePath.replace(DIST + '/', '');
 
-  // Check for forbidden file types
-  if (!ALLOWED_EXTS.has(ext)) {
+  // Check for forbidden file types (allow sw.js, _headers, and valid extensions)
+  const isAllowedFile = rel === 'sw.js' || rel === '_headers' || ALLOWED_EXTS.has(ext);
+  if (!isAllowedFile) {
     errors.push(`Forbidden file type: ${rel} (${ext})`);
   }
 
