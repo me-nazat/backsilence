@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0d0b06">
+  <meta name="description" content="BackSilence — It can't see you. It hears the water. A browser-based 3D survival-horror game.">
+  <title>BackSilence</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='14' fill='%230d0b06'/><circle cx='16' cy='12' r='2' fill='%2386cfa0'/><path d='M14 18 Q16 22 18 18' stroke='%2386cfa0' fill='none' stroke-width='1.5'/><path d='M12 20 Q16 26 20 20' stroke='%2386cfa0' fill='none' stroke-width='1' opacity='0.6'/></svg>">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --ink:#0d0b06;--fog:#d9d3a2;--water:#86cfa0;--water-deep:#3f9c6b;
+      --tile-platform:#d8b36a;--tile-wall:#e9dca8;--grout:#5b4526;--danger:#b3261e;
+      font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    }
+    html,body{width:100%;height:100%;overflow:hidden;background:var(--ink);color:var(--fog)}
+    #splash{
+      position:fixed;inset:0;display:flex;flex-direction:column;
+      align-items:center;justify-content:center;z-index:9999;
+      background:var(--ink);transition:opacity 0.6s ease-out;
+    }
+    #splash.fade-out{opacity:0;pointer-events:none}
+    .splash-title{
+      font-family:'Segoe Script','Bradley Hand','Comic Sans MS',cursive;
+      font-size:clamp(1.6rem,5vw,3rem);letter-spacing:0.08em;
+      color:var(--fog);text-align:center;margin-bottom:0.5em;
+      text-shadow:0 0 20px rgba(134,207,160,0.3);
+    }
+    .splash-tagline{
+      font-family:'Segoe Script','Bradley Hand','Comic Sans MS',cursive;
+      font-size:clamp(0.8rem,2.5vw,1.2rem);color:var(--water);
+      text-align:center;opacity:0.8;margin-bottom:2em;
+    }
+    .boot-bar-wrap{
+      width:min(280px,70vw);height:3px;background:rgba(217,211,162,0.15);
+      border-radius:2px;overflow:hidden;position:relative;
+    }
+    #boot-bar{
+      width:0%;height:100%;background:var(--water);
+      border-radius:2px;transition:width 0.3s ease-out;
+    }
+    /* CSS-only water drop ripple animation */
+    .ripple-container{
+      position:relative;width:60px;height:60px;margin-bottom:1.5em;
+    }
+    .ripple-drop{
+      position:absolute;top:0;left:50%;width:4px;height:12px;
+      background:var(--water);border-radius:50%;
+      transform:translateX(-50%);
+      animation:drop-fall 2.4s ease-in infinite;
+    }
+    .ripple-ring{
+      position:absolute;bottom:8px;left:50%;
+      width:8px;height:4px;border:1.5px solid var(--water);
+      border-radius:50%;transform:translateX(-50%) scale(0);opacity:0;
+    }
+    .ripple-ring:nth-child(2){animation:ring-expand 2.4s ease-out 1.2s infinite}
+    .ripple-ring:nth-child(3){animation:ring-expand 2.4s ease-out 1.5s infinite}
+    .ripple-ring:nth-child(4){animation:ring-expand 2.4s ease-out 1.8s infinite}
+    @keyframes drop-fall{
+      0%{top:0;opacity:1}
+      45%{top:36px;opacity:1}
+      50%{top:40px;opacity:0;transform:translateX(-50%) scaleY(0.5) scaleX(1.5)}
+      100%{top:40px;opacity:0}
+    }
+    @keyframes ring-expand{
+      0%{transform:translateX(-50%) scale(0);opacity:0.8}
+      100%{transform:translateX(-50%) scale(6);opacity:0}
+    }
+    @media(prefers-reduced-motion:reduce){
+      .ripple-drop,.ripple-ring{animation:none!important}
+    }
+    /* Menu placeholder */
+    #app{
+      position:fixed;inset:0;display:none;flex-direction:column;
+      align-items:center;justify-content:center;
+    }
+    #app.visible{display:flex}
+    .menu-title{
+      font-family:'Segoe Script','Bradley Hand','Comic Sans MS',cursive;
+      font-size:clamp(2rem,6vw,4rem);color:var(--fog);
+      text-shadow:0 0 30px rgba(134,207,160,0.2);margin-bottom:0.3em;
+    }
+    .menu-sub{
+      font-size:clamp(0.7rem,2vw,1rem);color:var(--water);
+      opacity:0.7;text-align:center;max-width:90vw;
+    }
+    /* Accessibility: focus-visible */
+    :focus-visible{outline:2px solid var(--water);outline-offset:2px}
+    a,button{color:inherit;text-decoration:none}
+  </style>
+</head>
+<body>
+  <div id="splash" role="status" aria-label="Loading game">
+    <div class="ripple-container" aria-hidden="true">
+      <div class="ripple-drop"></div>
+      <div class="ripple-ring"></div>
+      <div class="ripple-ring"></div>
+      <div class="ripple-ring"></div>
+    </div>
+    <div class="splash-title">BackSilence</div>
+    <div class="splash-tagline">It can't see you. It hears the water.</div>
+    <div class="boot-bar-wrap" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+      <div id="boot-bar"></div>
+    </div>
+  </div>
+  <div id="app" role="main"></div>
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>
