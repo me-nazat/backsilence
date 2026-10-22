@@ -13,7 +13,7 @@ import { DrainageCoreMap } from '../src/world/maps/DrainageCoreMap.js';
 import { generateValidLayoutWithStats, validateLayout } from '../src/world/validate/LayoutValidator.js';
 import type { MapDefinition } from '../src/world/MapTypes.js';
 
-const MAPS: Record<MapId, MapDefinition> = {
+const MAPS: Partial<Record<MapId, MapDefinition>> = {
   poolrooms: PoolroomsMap,
   utility_tunnels: UtilityTunnelsMap,
   marble_atrium: MarbleAtriumMap,
@@ -39,7 +39,7 @@ describe('Maps: Determinism, Validity & Reachability (50 Seeds per Map)', () => 
 
   for (const mapId of mapIds) {
     it(`validates ${mapId} across 50 seeded layouts deterministically`, () => {
-      const def = MAPS[mapId];
+      const def = MAPS[mapId]!;
       let passCount = 0;
       let maxRetries = 0;
 

@@ -117,6 +117,11 @@ export function canHearNoise(
   ctx: HearingContext,
   colliders: ColliderSet,
 ): boolean {
+  // Ghost train noise is ignored by monsters as a lure
+  if (noise.kind === 'train') {
+    return false;
+  }
+
   const dx = noise.position.x - monsterPos.x;
   const dz = noise.position.z - monsterPos.z;
   const dist = Math.hypot(dx, dz);

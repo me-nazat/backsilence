@@ -8,6 +8,9 @@ import type { Vec3, PlayerId } from '../types/contracts.js';
 import type { GroundGrid } from './GroundGrid.js';
 import type { ColliderSet, Collider } from './Colliders.js';
 import type { EventRingBuffer } from './Events.js';
+import type { WorldProfile } from './WorldProfile.js';
+import type { PerchSystem } from './PerchSystem.js';
+import type { FlowField } from './FlowField.js';
 
 export interface PlayerIntent {
   moveX: number; // -1 (left) .. +1 (right)
@@ -167,6 +170,9 @@ export class PlayerMotor {
     events: EventRingBuffer,
     simTime: number,
     waterY = 0,
+    profile?: WorldProfile,
+    perchSystem?: PerchSystem,
+    flowField?: FlowField,
   ): void {
     this.copyToState(this.previousState);
 
@@ -233,8 +239,9 @@ export class PlayerMotor {
     if (isSprinting) targetSpeed = PlayerMotor.SPEED_SPRINT;
     else if (intent.crouch) targetSpeed = PlayerMotor.SPEED_CROUCH;
 
+    const effectiveWadeFactor = profile?.wadeFactor ?? PlayerMotor.WADE_FACTOR;
     if (this.wet) {
-      targetSpeed *= this.depth > 1.2 ? PlayerMotor.DEEP_WADE_FACTOR : PlayerMotor.WADE_FACTOR;
+      targetSpeed *= this.depth > 1.2 ? PlayerMotor.DEEP_WADE_FACTOR : effectiveWadeFactor;
     }
 
     // Normalize diagonal inputs
@@ -321,6 +328,13 @@ export class PlayerMotor {
       }
     }
 
+    // Flow drift while wading
+    if (this.wet && flowField) {
+      const drift = flowField.computeWadeDrift(this.pos, dt);
+      newX += drift.dx;
+      newZ += drift.dz;
+    }
+
     // Clamp inside map bounds
     newX = Math.max(ground.bounds.minX + PlayerMotor.RADIUS, Math.min(ground.bounds.maxX - PlayerMotor.RADIUS, newX));
     newZ = Math.max(ground.bounds.minZ + PlayerMotor.RADIUS, Math.min(ground.bounds.maxZ - PlayerMotor.RADIUS, newZ));
@@ -350,7 +364,23 @@ export class PlayerMotor {
     this.pos.y = newY;
 
     if (!this.wasOnGround && this.onGround) {
-      events.pushFootfall(this.playerId, this.pos.x, this.pos.y, this.pos.z, Math.min(1.0, Math.abs(this.vel.y) / 5.0), this.wet, simTime);
+      const perch = perchSystem ? perchSystem.findSurfaceAt(this.pos.x, this.pos.z, this.pos.y, 0.0) : null;
+      if (perch && perch.isPerch) {
+        const isHard = Math.abs(this.vel.y) >= 2.5;
+        const creakLoudness = isHard ? 0.30 : 0.15;
+        events.pushNoise(
+          `noise_creak_${simTime}`,
+          'creak',
+          this.pos.x,
+          this.pos.y,
+          this.pos.z,
+          creakLoudness,
+          this.playerId,
+          simTime,
+        );
+      } else {
+        events.pushFootfall(this.playerId, this.pos.x, this.pos.y, this.pos.z, Math.min(1.0, Math.abs(this.vel.y) / 5.0), this.wet, simTime);
+      }
     }
     this.wasOnGround = this.onGround;
 

@@ -35,6 +35,7 @@ export interface MonsterSnapshot {
   agitation: number;
   jawOpenT: number;
   rearingT: number;
+  swipeT: number;
   earAngle: number;
   isListening: boolean;
   targetPos: Vec3 | null;
@@ -73,6 +74,7 @@ export class MonsterBrain {
   readonly hearingMul: number;
   readonly speedMul: number;
   readonly scale: number;
+  readonly candidateSpawns: Vec3[] = [];
 
   // Pathfinding
   private readonly astar: AStarPathfinder;
@@ -89,6 +91,7 @@ export class MonsterBrain {
   private lastRetargetTime = 0;
   private investigatePhase: 'sniff' | 'search' = 'sniff';
   private searchTimer = 0;
+  private swipeCooldown = 0;
 
   // Running trajectory hash for determinism testing
   private trajectoryHash = 0x811c9dc5;
@@ -96,6 +99,7 @@ export class MonsterBrain {
   // Presentation helper metrics
   jawOpenT = 0; // 0..1
   rearingT = 0; // 0..1
+  swipeT = 0; // 0..1
   earAngle = 0;
 
   private readonly rng: Rng;
@@ -104,6 +108,7 @@ export class MonsterBrain {
     this.id = def.id;
     this.variant = def.variant;
     this.pos = { x: def.spawn.x, y: def.spawn.y, z: def.spawn.z };
+    this.candidateSpawns.push({ ...def.spawn });
     this.hearingMul = def.hearingMul ?? (def.variant === 'elder' ? 1.25 : def.variant === 'juvenile' ? 0.8 : 1.0);
     this.speedMul = def.speedMul ?? (def.variant === 'elder' ? 0.85 : def.variant === 'juvenile' ? 1.2 : 1.0);
     this.scale = def.scale ?? (def.variant === 'elder' ? 1.15 : def.variant === 'juvenile' ? 0.8 : 1.0);
@@ -113,6 +118,10 @@ export class MonsterBrain {
 
     // Initial grace period in DORMANT state
     this.stateTimer = def.spawnGrace ?? 8.0;
+  }
+
+  addCandidateSpawn(spawn: Vec3): void {
+    this.candidateSpawns.push({ ...spawn });
   }
 
   getSnapshot(): MonsterSnapshot {
@@ -125,6 +134,7 @@ export class MonsterBrain {
       agitation: this.agitation,
       jawOpenT: this.jawOpenT,
       rearingT: this.rearingT,
+      swipeT: this.swipeT,
       earAngle: this.earAngle,
       isListening: this.isListening,
       targetPos: this.currentTarget ? { ...this.currentTarget } : null,
@@ -189,6 +199,7 @@ export class MonsterBrain {
     events: EventRingBuffer,
     hearingCtx: HearingContext,
     simTime: number,
+    isPlayerPerched = false,
   ): void {
     // 0. Update trajectory hash (32-bit FNV-1a mixing of pos, yaw, state)
     const px = Math.round(this.pos.x * 100);
@@ -201,6 +212,11 @@ export class MonsterBrain {
     h = Math.imul(h ^ this.state.charCodeAt(0), 16777619);
     this.trajectoryHash = h;
 
+    if (this.state === 'STUNNED') {
+      this.stepStunned(dt, nav, playerPos);
+      return;
+    }
+
     // 1. Agitation decay
     this.agitation = Math.max(0.0, this.agitation - 0.04 * dt);
 
@@ -209,24 +225,39 @@ export class MonsterBrain {
     const vertDistToPlayer = Math.abs(playerPos.y - this.pos.y);
 
     if (this.state !== 'DORMANT' && this.state !== 'ATTACK') {
-      // Touch check: if player touches the monster (< 0.9m) in any active state
-      if (distToPlayer <= MonsterBrain.TOUCH_RANGE && vertDistToPlayer <= 2.2) {
-        this.triggerAttack(events, simTime);
-        return;
-      }
-      // Attack reach check: if alerted, hunting, investigating, or blocked (< 1.6m)
-      if (
-        (this.state === 'ALERTED' || this.state === 'HUNT' || this.state === 'INVESTIGATE' || this.state === 'BLOCKED') &&
-        distToPlayer <= MonsterBrain.ATTACK_RANGE &&
-        vertDistToPlayer <= 2.2
-      ) {
-        this.triggerAttack(events, simTime);
-        return;
+      if (isPlayerPerched) {
+        // Skip touch & attack against perched players!
+        if (
+          (this.state === 'ALERTED' || this.state === 'HUNT' || this.state === 'INVESTIGATE') &&
+          distToPlayer <= 3.0
+        ) {
+          this.enterLurk(playerPos, simTime);
+        }
+      } else {
+        // Player is not perched
+        if (this.state === 'LURK' && distToPlayer <= 2.5) {
+          this.triggerAttack(events, simTime);
+          return;
+        }
+        // Touch check: if player touches the monster (< 0.9m) in any active state
+        if (distToPlayer <= MonsterBrain.TOUCH_RANGE && vertDistToPlayer <= 2.2) {
+          this.triggerAttack(events, simTime);
+          return;
+        }
+        // Attack reach check: if alerted, hunting, investigating, or blocked (< 1.6m)
+        if (
+          (this.state === 'ALERTED' || this.state === 'HUNT' || this.state === 'INVESTIGATE' || this.state === 'BLOCKED') &&
+          distToPlayer <= MonsterBrain.ATTACK_RANGE &&
+          vertDistToPlayer <= 2.2
+        ) {
+          this.triggerAttack(events, simTime);
+          return;
+        }
       }
     }
 
     // 2.5. Check if current cell became unwalkable (stranded by water level drop)
-    if (this.state !== 'DORMANT' && this.state !== 'ATTACK' && distToPlayer > MonsterBrain.ATTACK_RANGE) {
+    if (this.state !== 'DORMANT' && this.state !== 'ATTACK' && this.state !== 'LURK' && distToPlayer > MonsterBrain.ATTACK_RANGE) {
       const g = nav.worldToGrid(this.pos.x, this.pos.z);
       if (!nav.isWalkable(g.gx, g.gz)) {
         const nearest = nav.findNearestWalkableCell(this.pos.x, this.pos.z, 15.0);
@@ -279,6 +310,9 @@ export class MonsterBrain {
       case 'ATTACK':
         this.stepAttack(dt);
         break;
+      case 'LURK':
+        this.stepLurk(dt, playerPos, nav, events, simTime);
+        break;
     }
   }
 
@@ -291,6 +325,7 @@ export class MonsterBrain {
     hearingCtx: HearingContext,
     simTime: number,
   ): boolean {
+    if (this.state === 'STUNNED') return false;
     // Ignore self-generated noises
     if (noise.sourcePlayerId === this.id) return false;
 
@@ -309,7 +344,13 @@ export class MonsterBrain {
 
     const score = calculateNoiseScore(noise, this.pos);
 
-    if (this.state === 'DORMANT' || this.state === 'WANDER' || this.state === 'INVESTIGATE' || this.state === 'BLOCKED') {
+    if (
+      this.state === 'DORMANT' ||
+      this.state === 'WANDER' ||
+      this.state === 'INVESTIGATE' ||
+      this.state === 'BLOCKED' ||
+      this.state === 'LURK'
+    ) {
       this.enterAlerted(noise.position, score, simTime);
       return true;
     }
@@ -624,5 +665,124 @@ export class MonsterBrain {
         }
       }
     }
+  }
+
+  stun(duration: number): void {
+    this.state = 'STUNNED';
+    this.stateTimer = duration;
+    this.vel.x = 0;
+    this.vel.z = 0;
+    this.agitation = 0;
+    this.rearingT = 0;
+    this.jawOpenT = 0;
+    this.swipeT = 0;
+  }
+
+  private enterLurk(playerPos: Vec3, simTime: number): void {
+    this.state = 'LURK';
+    // Up to 15s (shorter at low agitation)
+    this.stateTimer = 5.0 + this.agitation * 10.0;
+    this.currentTarget = { ...playerPos };
+    this.swipeCooldown = 1.0;
+    this.lastRetargetTime = simTime;
+  }
+
+  private stepLurk(
+    dt: number,
+    playerPos: Vec3,
+    nav: NavGrid,
+    events: EventRingBuffer,
+    simTime: number,
+  ): void {
+    this.stateTimer -= dt;
+    this.swipeCooldown -= dt;
+
+    // Face player
+    const dx = playerPos.x - this.pos.x;
+    const dz = playerPos.z - this.pos.z;
+    const dist = Math.hypot(dx, dz);
+    const targetYaw = Math.atan2(dx, -dz);
+    this.yaw = this.steerTowards(this.yaw, targetYaw, MonsterBrain.TURN_RATE_WANDER * dt);
+
+    // Circle perch at 2.2 - 3.0 m (nominal 2.6m)
+    const orbitRadius = 2.6;
+    const tangX = -dz / (dist || 1);
+    const tangZ = dx / (dist || 1);
+    const radFactor = (dist - orbitRadius) * 0.5;
+    const wishDirX = tangX + (dx / (dist || 1)) * radFactor;
+    const wishDirZ = tangZ + (dz / (dist || 1)) * radFactor;
+    const wishLen = Math.hypot(wishDirX, wishDirZ);
+
+    const speed = MonsterBrain.SPEED_WANDER * this.speedMul * 0.8;
+    const stepX = this.pos.x + (wishDirX / (wishLen || 1)) * speed * dt;
+    const stepZ = this.pos.z + (wishDirZ / (wishLen || 1)) * speed * dt;
+
+    if (nav.isWalkableWorld(stepX, stepZ)) {
+      this.pos.x = stepX;
+      this.pos.z = stepZ;
+      this.vel.x = (wishDirX / (wishLen || 1)) * speed;
+      this.vel.z = (wishDirZ / (wishLen || 1)) * speed;
+    } else {
+      this.vel.x = 0;
+      this.vel.z = 0;
+    }
+
+    // Periodic swipe that visibly stops short
+    if (this.swipeCooldown <= 0) {
+      this.swipeCooldown = 3.0;
+      this.swipeT = 1.0;
+      events.pushRipple(this.pos.x, this.pos.y, this.pos.z, 0.5, this.id, simTime);
+      events.pushNoise(
+        `lurk_growl_${this.id}_${simTime}`,
+        'roar',
+        this.pos.x,
+        this.pos.y,
+        this.pos.z,
+        0.25,
+        this.id,
+        simTime,
+      );
+    } else {
+      this.swipeT = Math.max(0, this.swipeT - dt * 2.5);
+    }
+
+    if (this.stateTimer <= 0) {
+      this.enterInvestigate();
+    }
+  }
+
+  private stepStunned(dt: number, nav: NavGrid, playerPos: Vec3): void {
+    this.vel.x = 0;
+    this.vel.z = 0;
+    this.rearingT = 0;
+    this.jawOpenT = 0;
+    this.swipeT = 0;
+    this.stateTimer -= dt;
+
+    if (this.stateTimer <= 0) {
+      this.respawnFarthest(nav, playerPos);
+    }
+  }
+
+  private respawnFarthest(_nav: NavGrid, playerPos: Vec3): void {
+    let bestSpawn = this.candidateSpawns[0] ?? this.pos;
+    let maxDist = -1;
+
+    for (let i = 0; i < this.candidateSpawns.length; i++) {
+      const sp = this.candidateSpawns[i]!;
+      const d = Math.hypot(sp.x - playerPos.x, sp.z - playerPos.z);
+      if (d > maxDist) {
+        maxDist = d;
+        bestSpawn = sp;
+      }
+    }
+
+    this.pos.x = bestSpawn.x;
+    this.pos.y = bestSpawn.y;
+    this.pos.z = bestSpawn.z;
+    this.vel.x = 0;
+    this.vel.z = 0;
+    this.state = 'DORMANT';
+    this.stateTimer = 5.0;
   }
 }

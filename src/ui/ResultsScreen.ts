@@ -188,6 +188,11 @@ export class ResultsScreen {
         marble_atrium: 'The Echoing Marble Atrium',
         hydro_maze: 'The Hydro-Filtration Maze',
         drainage_core: 'The Abyssal Drainage Core',
+        natatorium: 'The Grand Natatorium',
+        drowned_school: 'The Drowned Schoolhouse',
+        sunken_jungle: 'The Sunken Jungle',
+        neon_flood: 'Neon Flood District',
+        drowned_metro: 'Platform Zero, The Drowned Metro',
       };
       mapNameEl.textContent = names[results.mapId] ?? results.mapId;
     }

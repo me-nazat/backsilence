@@ -13,6 +13,12 @@ import { MonsterBrain, type MonsterDef, type MonsterSnapshot } from './MonsterBr
 import { EventRingBuffer, type SimEvent } from './Events.js';
 import type { HearingContext } from './Hearing.js';
 import type { WaterLevelProvider } from './WaterLevelCycle.js';
+import { DEFAULT_WORLD_PROFILE, type WorldProfile } from './WorldProfile.js';
+import { PerchSystem } from './PerchSystem.js';
+import type { FlowField } from './FlowField.js';
+import type { WeatherSystem } from './Weather.js';
+import type { GhostTrain } from './GhostTrain.js';
+import type { Drone } from './Drone.js';
 
 export interface SimWorldConfig {
   bounds: GridBounds;
@@ -24,6 +30,12 @@ export interface SimWorldConfig {
   ground?: GroundGrid | undefined;
   colliders?: ColliderSet | undefined;
   mode?: ('solo' | 'host' | 'replica') | undefined;
+  worldProfile?: WorldProfile | undefined;
+  perchSystem?: PerchSystem | undefined;
+  flowField?: FlowField | undefined;
+  weather?: WeatherSystem | undefined;
+  ghostTrain?: GhostTrain | undefined;
+  drones?: Drone[] | undefined;
 }
 
 export class SimWorld {
@@ -41,12 +53,27 @@ export class SimWorld {
   readonly discreteWaterLevels: number[] = [];
   readonly navGridsByLevel = new Map<number, NavGrid>();
 
+  readonly worldProfile: WorldProfile;
+  readonly perchSystem: PerchSystem;
+  flowField?: FlowField | undefined;
+  weather?: WeatherSystem | undefined;
+  ghostTrain?: GhostTrain | undefined;
+  readonly drones: Drone[] = [];
+
   hearingCtx: HearingContext;
   simTime = 0;
 
   constructor(config: SimWorldConfig) {
     this.baseWaterY = config.waterY;
     this.currentWaterY = config.waterY;
+    this.worldProfile = config.worldProfile ?? DEFAULT_WORLD_PROFILE;
+    this.perchSystem = config.perchSystem ?? new PerchSystem();
+
+    if (config.flowField !== undefined) this.flowField = config.flowField;
+    if (config.weather !== undefined) this.weather = config.weather;
+    if (config.ghostTrain !== undefined) this.ghostTrain = config.ghostTrain;
+    if (config.drones !== undefined) this.drones.push(...config.drones);
+
     if (config.waterLevelProvider !== undefined) {
       this.waterLevelProvider = config.waterLevelProvider;
     }
@@ -59,18 +86,34 @@ export class SimWorld {
     }
 
     this.ground = config.ground ?? new GroundGrid(config.bounds, 0.25);
+    this.ground.registerDynamicTop(this.perchSystem);
     this.colliders = config.colliders ?? new ColliderSet(4.0);
     this.events = new EventRingBuffer(256);
 
     const diff = config.difficulty ?? 'normal';
     const diffHearing = diff === 'whisper' ? 0.75 : diff === 'deafening' ? 1.3 : 1.0;
-    this.hearingCtx = { difficultyHearing: diffHearing };
+    this.hearingCtx = {
+      difficultyHearing: diffHearing,
+      maskFactor: (pos: Vec3) => {
+        let mask = 1.0;
+        if (this.flowField) {
+          mask = Math.min(mask, this.flowField.maskAt(pos.x, pos.z));
+        }
+        if (this.weather) {
+          mask = Math.min(mask, this.weather.maskFactorAt(this.simTime));
+        }
+        if (this.ghostTrain) {
+          mask = Math.min(mask, this.ghostTrain.getPhaseAtTime(this.simTime).maskFactor);
+        }
+        return mask;
+      },
+    };
 
     // Player motor
     this.player = new PlayerMotor('player_local', config.playerSpawn);
 
     // Initial dummy nav grid, rebuilt after terrain is populated
-    this.nav = new NavGrid(this.ground, this.currentWaterY, 0.5);
+    this.nav = new NavGrid(this.ground, this.currentWaterY, 0.5, this.worldProfile);
   }
 
   get waterY(): number {
@@ -114,12 +157,12 @@ export class SimWorld {
 
     if (this.discreteWaterLevels.length > 0) {
       for (const level of this.discreteWaterLevels) {
-        const grid = new NavGrid(this.ground, level, 0.5);
+        const grid = new NavGrid(this.ground, level, 0.5, this.worldProfile);
         this.navGridsByLevel.set(level, grid);
       }
       this.updateActiveNavGrid();
     } else {
-      this.nav = new NavGrid(this.ground, this.baseWaterY, 0.5);
+      this.nav = new NavGrid(this.ground, this.baseWaterY, 0.5, this.worldProfile);
     }
   }
 
@@ -160,6 +203,52 @@ export class SimWorld {
       this.updateActiveNavGrid();
     }
 
+    // 0.1 Update Perch System
+    this.perchSystem.step(
+      dt,
+      this.player.pos,
+      this.player.onGround,
+      this.currentWaterY,
+      this.events,
+      this.simTime,
+    );
+
+    // 0.2 Check if player is perched
+    const isPerched =
+      this.worldProfile.perchImmunity &&
+      this.perchSystem.isPlayerPerched(
+        this.player.pos,
+        this.player.onGround,
+        this.currentWaterY,
+      );
+
+    // 0.3 Update Ghost Train
+    if (this.ghostTrain) {
+      const trainResult = this.ghostTrain.step(
+        dt,
+        this.simTime,
+        this.player.pos,
+        this.monsters,
+        this.events,
+      );
+      if (trainResult.playerKilled) {
+        this.events.pushDamage('player', 'ghost_train', 100, this.simTime);
+      }
+    }
+
+    // 0.4 Step Drones
+    for (let d = 0; d < this.drones.length; d++) {
+      this.drones[d]!.step(
+        dt,
+        this.player.pos,
+        intent.crouch,
+        this.colliders,
+        [],
+        this.events,
+        this.simTime,
+      );
+    }
+
     // 1. Step Player Motor
     this.player.step(
       dt,
@@ -169,6 +258,9 @@ export class SimWorld {
       this.events,
       this.simTime,
       this.currentWaterY,
+      this.worldProfile,
+      this.perchSystem,
+      this.flowField,
     );
 
     // 2. Broadcast pending noise events emitted in this step to all monsters
@@ -196,6 +288,7 @@ export class SimWorld {
           this.events,
           this.hearingCtx,
           this.simTime,
+          isPerched,
         );
       }
     }

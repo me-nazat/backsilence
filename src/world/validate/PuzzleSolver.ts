@@ -283,5 +283,13 @@ export function solveLayoutPuzzleHeadless(mapId: MapId, layout: LayoutData): Sol
         finalState: genGrid.serialize(),
       };
     }
+    default: {
+      return {
+        mapId,
+        solved: false,
+        steps: [`Pending solver implementation for ${mapId}`],
+        finalState: {},
+      };
+    }
   }
 }

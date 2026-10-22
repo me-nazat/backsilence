@@ -5,6 +5,7 @@
  * ──────────────────────────────────────────────────────────────────────── */
 
 import type { GroundGrid } from './GroundGrid.js';
+import { DEFAULT_WORLD_PROFILE, type WorldProfile } from './WorldProfile.js';
 
 export class NavGrid {
   readonly cellSize: number;
@@ -14,12 +15,14 @@ export class NavGrid {
   readonly minZ: number;
   readonly walkable: Uint8Array; // 1 = walkable, 0 = blocked
   readonly components: Int32Array; // Component ID per cell (-1 = unassigned/blocked)
+  readonly profile: WorldProfile;
   componentCounts: Map<number, number> = new Map();
 
   static readonly TRENCH_BLOCK_CLEARANCE = 1.2; // 2.4m trench / 2
   static readonly MIN_WATER_DEPTH = 0.45;
 
-  constructor(ground: GroundGrid, waterY = 0, cellSize = 0.5) {
+  constructor(ground: GroundGrid, waterY = 0, cellSize = 0.5, profile?: WorldProfile) {
+    this.profile = profile ?? DEFAULT_WORLD_PROFILE;
     this.cellSize = cellSize;
     this.minX = ground.bounds.minX;
     this.minZ = ground.bounds.minZ;
@@ -36,6 +39,9 @@ export class NavGrid {
   }
 
   private build(ground: GroundGrid, waterY: number): void {
+    const minDepth = this.profile.monsterMinDepth;
+    const clear = this.profile.clearance;
+
     for (let gz = 0; gz < this.depth; gz++) {
       const z = this.minZ + (gz + 0.5) * this.cellSize;
       const row = gz * this.width;
@@ -44,10 +50,23 @@ export class NavGrid {
         const x = this.minX + (gx + 0.5) * this.cellSize;
 
         const depth = ground.depthAt(x, z, waterY);
-        const clearance = ground.distToDry(x, z);
+        if (depth < minDepth) {
+          this.walkable[row + gx] = 0;
+          continue;
+        }
 
-        // Walkable iff depth >= 0.45m AND clearance > 1.2m
-        if (depth >= NavGrid.MIN_WATER_DEPTH && clearance > NavGrid.TRENCH_BLOCK_CLEARANCE) {
+        const dPlat = ground.distToClass(x, z, 'platform');
+        const dFurn = ground.distToClass(x, z, 'furniture');
+        const dWall = ground.distToClass(x, z, 'wall');
+        const dRock = ground.distToClass(x, z, 'rock');
+
+        // Walkable iff depth >= monsterMinDepth AND every class distance exceeds clearance threshold
+        if (
+          dPlat > clear.platform &&
+          dFurn > clear.furniture &&
+          dWall > clear.wall &&
+          dRock > clear.rock
+        ) {
           this.walkable[row + gx] = 1;
         } else {
           this.walkable[row + gx] = 0;

@@ -17,7 +17,7 @@ export const ALL_MAP_IDS: MapId[] = [
 
 type MapLoader = () => Promise<MapDefinition>;
 
-const MAP_LOADERS: Record<MapId, MapLoader> = {
+const MAP_LOADERS: Partial<Record<MapId, MapLoader>> = {
   poolrooms: () => import('./maps/PoolroomsMap.js').then((m) => m.PoolroomsMap),
   utility_tunnels: () => import('./maps/UtilityTunnelsMap.js').then((m) => m.UtilityTunnelsMap),
   marble_atrium: () => import('./maps/MarbleAtriumMap.js').then((m) => m.MarbleAtriumMap),

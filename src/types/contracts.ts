@@ -20,7 +20,12 @@ export type MapId =
   | 'utility_tunnels'
   | 'marble_atrium'
   | 'hydro_maze'
-  | 'drainage_core';
+  | 'drainage_core'
+  | 'natatorium'
+  | 'drowned_school'
+  | 'sunken_jungle'
+  | 'neon_flood'
+  | 'drowned_metro';
 
 export type AppState =
   | 'BOOT'
@@ -113,7 +118,15 @@ export type NoiseKind =
   | 'alarm'
   | 'bell'
   | 'beacon'
-  | 'clack';
+  | 'clack'
+  | 'creak'
+  | 'locker'
+  | 'chain'
+  | 'siren'
+  | 'terminal'
+  | 'shatter'
+  | 'lever'
+  | 'train';
 
 export interface NoiseEvent {
   id: string;
@@ -141,7 +154,9 @@ export type MonsterState =
   | 'HUNT'
   | 'INVESTIGATE'
   | 'ATTACK'
-  | 'BLOCKED';
+  | 'BLOCKED'
+  | 'LURK'
+  | 'STUNNED';
 
 export interface PuzzleOp {
   puzzleId: string;

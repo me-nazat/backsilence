@@ -23,6 +23,17 @@
 | Noisemaker beacon | world | 0.7 (`beacon`, sustained 8s) | Within ~28 m |
 | Alarm (wrong code / valve surge) | world | 0.8–0.9 (`alarm`) | Within ~32–36 m |
 | Heavy shutter / blast door | world | 0.7 (`door`) | Within ~28 m |
+| Landing on wooden/plastic perch (`creak`) | perch | 0.15 (hard landing 0.30) | Within ~6 m (~12 m hard); standing/walking on perch is silent |
+| Locker open: fast / careful (`locker`) | school | 0.35 / 0.10 | Within ~14 m / ~4 m |
+| Chain cutting (`chain`) | school | 0.5 sustained | Within ~20 m |
+| PA zone blast (`alarm`) | school | 1.0 at speaker | Within 40 m |
+| Drone lock siren (`siren`) | city | 0.9 at player | Within ~36 m |
+| Terminal hack success / fail (`terminal`/`alarm`) | city | 0.25 / 0.6 | Within ~10 m / ~24 m |
+| Bottle landing: water (`pebble`) / dry (`shatter`) | metro | 0.6 / 0.5 | Within ~24 m / ~20 m |
+| Lever pull (`lever`) | metro | 0.7 once | Within ~28 m |
+| Throttle hold (`generator`) | metro | 0.8 sustained | Within ~32 m |
+| EMP use (`clack`) | city | 0.3 | Within ~12 m |
+| Ghost train (`train`) | metro | 0 (ignored by monsters as lure) | Applies mask zones (0.6 / 0.2 / 0.5) |
 
 
 ## Hearing Radius Formula
