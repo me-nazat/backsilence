@@ -7,7 +7,15 @@
 import type { MapId } from '../types/contracts.js';
 import type { MapDefinition, LayoutData, LayoutCtx } from './MapTypes.js';
 
-export const ALL_MAP_IDS: MapId[] = [
+export const FEATURED_MAP_IDS: MapId[] = [
+  'natatorium',
+  'drowned_school',
+  'sunken_jungle',
+  'neon_flood',
+  'drowned_metro',
+];
+
+export const ARCHIVE_MAP_IDS: MapId[] = [
   'poolrooms',
   'utility_tunnels',
   'marble_atrium',
@@ -15,9 +23,21 @@ export const ALL_MAP_IDS: MapId[] = [
   'drainage_core',
 ];
 
+export const ALL_MAP_IDS: MapId[] = [
+  ...FEATURED_MAP_IDS,
+  ...ARCHIVE_MAP_IDS,
+];
+
 type MapLoader = () => Promise<MapDefinition>;
 
-const MAP_LOADERS: Partial<Record<MapId, MapLoader>> = {
+const MAP_LOADERS: Record<MapId, MapLoader> = {
+  // Featured (Batch 5)
+  natatorium: () => import('./maps/NatatoriumMap.js').then((m) => m.NatatoriumMap),
+  drowned_school: () => import('./maps/DrownedSchoolMap.js').then((m) => m.DrownedSchoolMap),
+  sunken_jungle: () => import('./maps/SunkenJungleMap.js').then((m) => m.SunkenJungleMap),
+  neon_flood: () => import('./maps/NeonFloodMap.js').then((m) => m.NeonFloodMap),
+  drowned_metro: () => import('./maps/DrownedMetroMap.js').then((m) => m.DrownedMetroMap),
+  // Archive (Batch 3)
   poolrooms: () => import('./maps/PoolroomsMap.js').then((m) => m.PoolroomsMap),
   utility_tunnels: () => import('./maps/UtilityTunnelsMap.js').then((m) => m.UtilityTunnelsMap),
   marble_atrium: () => import('./maps/MarbleAtriumMap.js').then((m) => m.MarbleAtriumMap),

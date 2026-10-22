@@ -80,6 +80,21 @@ export function validateLayout(mapId: MapId, layout: LayoutData): ValidationResu
     case 'drainage_core':
       validateDrainageCore(layout, errors);
       break;
+    case 'natatorium':
+      validateNatatorium(layout, errors);
+      break;
+    case 'drowned_school':
+      validateSchool(layout, errors);
+      break;
+    case 'sunken_jungle':
+      validateJungle(layout, errors);
+      break;
+    case 'neon_flood':
+      validateCity(layout, errors);
+      break;
+    case 'drowned_metro':
+      validateMetro(layout, errors);
+      break;
   }
 
   return {
@@ -368,6 +383,189 @@ function getReachablePlatforms(
   }
 
   return reachable;
+}
+
+/**
+ * The Grand Natatorium validator
+ */
+function validateNatatorium(layout: LayoutData, errors: string[]): void {
+  const pSpawn = layout.spawns.player[0]!;
+  const mSpawn = layout.spawns.monsters[0]?.spawn;
+
+  // Monster spawn distance >= 45m
+  if (mSpawn) {
+    const dist = dist2D(pSpawn.x, pSpawn.z, mSpawn.x, mSpawn.z);
+    if (dist < 45.0) {
+      errors.push(`Monster spawn too close to player: ${dist.toFixed(1)}m < 45.0m`);
+    }
+  }
+
+  // 4 ordinal code pillars
+  const ordinalPillars = layout.pillars.filter((p) => p.ordinal !== undefined);
+  if (ordinalPillars.length !== 4) {
+    errors.push(`Expected 4 ordinal code pillars, got ${ordinalPillars.length}`);
+  }
+
+  // Ordinal pillars must be >= 20m apart
+  for (let i = 0; i < ordinalPillars.length; i++) {
+    for (let j = i + 1; j < ordinalPillars.length; j++) {
+      const p1 = ordinalPillars[i]!;
+      const p2 = ordinalPillars[j]!;
+      const dist = dist2D(p1.x, p1.z, p2.x, p2.z);
+      if (dist < 20.0) {
+        errors.push(`Ordinal pillars ${p1.id} and ${p2.id} too close: ${dist.toFixed(1)}m < 20.0m`);
+      }
+    }
+  }
+
+  // 6 decoy pillars
+  const decoyPillars = layout.pillars.filter((p) => p.ordinal === undefined);
+  if (decoyPillars.length < 6) {
+    errors.push(`Expected >= 6 decoy pillars, got ${decoyPillars.length}`);
+  }
+
+  // Silent route connectivity from spawn platform (gaps <= 3.4m)
+  const spawnPlat = layout.platforms.find((p) => p.id === 'plat_foyer');
+  if (spawnPlat) {
+    const reachable = getReachablePlatforms(layout.platforms, spawnPlat, 3.4);
+    const plantRoomPlat = layout.platforms.find((p) => p.id === 'plat_plant_room');
+    if (plantRoomPlat && !reachable.has(plantRoomPlat.id)) {
+      errors.push('Silent route cannot reach Plant Room with gaps <= 3.4m');
+    }
+  }
+}
+
+/**
+ * The Drowned Schoolhouse validator
+ */
+function validateSchool(layout: LayoutData, errors: string[]): void {
+  const pSpawn = layout.spawns.player[0]!;
+  const mSpawn = layout.spawns.monsters[0]?.spawn;
+
+  // Monster spawn distance >= 40m
+  if (mSpawn) {
+    const dist = dist2D(pSpawn.x, pSpawn.z, mSpawn.x, mSpawn.z);
+    if (dist < 40.0) {
+      errors.push(`Monster spawn too close to player: ${dist.toFixed(1)}m < 40.0m`);
+    }
+  }
+
+  // Permanent dry platforms must not be submerged by max tide (+0.30m)
+  const stage = layout.platforms.find((p) => p.id === 'plat_stage_safe');
+  if (!stage || stage.topY < 0.6) {
+    errors.push('Stage safe zone missing or too low for tide');
+  }
+
+  const dais = layout.platforms.find((p) => p.id === 'plat_lobby_dais');
+  if (!dais || dais.topY < 0.5) {
+    errors.push('Lobby dais missing or too low for tide');
+  }
+
+  // PA Console and Bolt Cutters props must exist
+  const paConsole = layout.props.find((p) => p.kind === 'pa_console');
+  if (!paConsole) errors.push('PA Console prop missing');
+
+  const boltCutters = layout.props.find((p) => p.kind === 'bolt_cutters');
+  if (!boltCutters) errors.push('Bolt Cutters prop missing');
+}
+
+/**
+ * The Sunken Jungle validator
+ */
+function validateJungle(layout: LayoutData, errors: string[]): void {
+  const pSpawn = layout.spawns.player[0]!;
+  const mSpawn = layout.spawns.monsters[0]?.spawn;
+
+  // Monster spawn distance >= 45m
+  if (mSpawn) {
+    const dist = dist2D(pSpawn.x, pSpawn.z, mSpawn.x, mSpawn.z);
+    if (dist < 45.0) {
+      errors.push(`Monster spawn too close to player: ${dist.toFixed(1)}m < 45.0m`);
+    }
+  }
+
+  // 3 sluice wheels present
+  const sluices = layout.props.filter((p) => p.kind === 'sluice_wheel');
+  if (sluices.length !== 3) {
+    errors.push(`Expected 3 sluice wheels, found ${sluices.length}`);
+  }
+
+  // Submerged causeway present (topY = -0.25m)
+  const causeway = layout.platforms.find((p) => p.id === 'submerged_causeway');
+  if (!causeway || causeway.topY !== -0.25) {
+    errors.push('Submerged causeway missing or invalid topY');
+  }
+}
+
+/**
+ * Neon Flood District validator
+ */
+function validateCity(layout: LayoutData, errors: string[]): void {
+  const pSpawn = layout.spawns.player[0]!;
+  const mSpawn = layout.spawns.monsters[0]?.spawn;
+
+  if (mSpawn) {
+    const dist = dist2D(pSpawn.x, pSpawn.z, mSpawn.x, mSpawn.z);
+    if (dist < 45.0) {
+      errors.push(`Monster spawn too close to player: ${dist.toFixed(1)}m < 45.0m`);
+    }
+  }
+
+  // 3 uplink terminals present
+  const uplinks = layout.props.filter((p) => p.kind === 'uplink_terminal');
+  if (uplinks.length !== 3) {
+    errors.push(`Expected 3 uplink terminals, found ${uplinks.length}`);
+  }
+
+  // Car roof jump chains present
+  const cars = layout.platforms.filter((p) => p.id.startsWith('car_roof_'));
+  if (cars.length < 6) {
+    errors.push(`Expected >= 6 hover-cars for jump chains, found ${cars.length}`);
+  }
+}
+
+/**
+ * Platform Zero, the Drowned Metro validator
+ */
+function validateMetro(layout: LayoutData, errors: string[]): void {
+  const pSpawn = layout.spawns.player[0]!;
+  const mSpawn = layout.spawns.monsters[0]?.spawn;
+
+  if (mSpawn) {
+    const dist = dist2D(pSpawn.x, pSpawn.z, mSpawn.x, mSpawn.z);
+    if (dist < 40.0) {
+      errors.push(`Monster spawn too close to player: ${dist.toFixed(1)}m < 40.0m`);
+    }
+  }
+
+  // Platforms P1, P2, P3 must exist
+  const p1 = layout.platforms.find((p) => p.id === 'plat_p1_south');
+  const p2 = layout.platforms.find((p) => p.id === 'plat_p2_island');
+  const p3 = layout.platforms.find((p) => p.id === 'plat_p3_north');
+  if (!p1 || !p2 || !p3) {
+    errors.push('One or more metro platforms (P1, P2, P3) missing');
+  }
+
+  // Footbridges connecting platforms
+  const bridges = layout.platforms.filter((p) => p.id.startsWith('footbridge_'));
+  if (bridges.length < 2) {
+    errors.push(`Expected >= 2 cross-over footbridges, found ${bridges.length}`);
+  }
+
+  // 2 Levers and Conductor Key
+  const levers = layout.props.filter((p) => p.kind === 'track_lever');
+  if (levers.length !== 2) {
+    errors.push(`Expected 2 track levers, found ${levers.length}`);
+  }
+
+  const key = layout.props.find((p) => p.kind === 'conductor_key');
+  if (!key) errors.push('Conductor key missing');
+
+  // Stalled train cars
+  const cars = layout.platforms.filter((p) => p.id.startsWith('stalled_train_car_'));
+  if (cars.length < 4) {
+    errors.push(`Expected >= 4 stalled train cars, found ${cars.length}`);
+  }
 }
 
 /**

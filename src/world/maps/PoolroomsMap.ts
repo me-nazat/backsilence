@@ -14,7 +14,7 @@ import { buildStandardMapInstance } from './CommonMapBuilder.js';
 
 export const PoolroomsMap: MapDefinition = {
   id: 'poolrooms',
-  name: 'The Flooded Poolrooms',
+  name: 'Classic Archipelago',
   tagline: 'Endless tiled arches above silent milky-green water.',
   stars: 2,
   reverb: 'poolroom',

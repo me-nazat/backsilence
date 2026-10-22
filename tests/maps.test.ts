@@ -10,15 +10,25 @@ import { UtilityTunnelsMap } from '../src/world/maps/UtilityTunnelsMap.js';
 import { MarbleAtriumMap } from '../src/world/maps/MarbleAtriumMap.js';
 import { HydroMazeMap } from '../src/world/maps/HydroMazeMap.js';
 import { DrainageCoreMap } from '../src/world/maps/DrainageCoreMap.js';
+import { NatatoriumMap } from '../src/world/maps/NatatoriumMap.js';
+import { DrownedSchoolMap } from '../src/world/maps/DrownedSchoolMap.js';
+import { SunkenJungleMap } from '../src/world/maps/SunkenJungleMap.js';
+import { NeonFloodMap } from '../src/world/maps/NeonFloodMap.js';
+import { DrownedMetroMap } from '../src/world/maps/DrownedMetroMap.js';
 import { generateValidLayoutWithStats, validateLayout } from '../src/world/validate/LayoutValidator.js';
 import type { MapDefinition } from '../src/world/MapTypes.js';
 
-const MAPS: Partial<Record<MapId, MapDefinition>> = {
+const MAPS: Record<MapId, MapDefinition> = {
   poolrooms: PoolroomsMap,
   utility_tunnels: UtilityTunnelsMap,
   marble_atrium: MarbleAtriumMap,
   hydro_maze: HydroMazeMap,
   drainage_core: DrainageCoreMap,
+  natatorium: NatatoriumMap,
+  drowned_school: DrownedSchoolMap,
+  sunken_jungle: SunkenJungleMap,
+  neon_flood: NeonFloodMap,
+  drowned_metro: DrownedMetroMap,
 };
 
 describe('Maps: Determinism, Validity & Reachability (50 Seeds per Map)', () => {
@@ -28,6 +38,11 @@ describe('Maps: Determinism, Validity & Reachability (50 Seeds per Map)', () => 
     'marble_atrium',
     'hydro_maze',
     'drainage_core',
+    'natatorium',
+    'drowned_school',
+    'sunken_jungle',
+    'neon_flood',
+    'drowned_metro',
   ];
 
   const validityTable: Array<{
