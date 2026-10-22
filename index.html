@@ -12,9 +12,32 @@
     :root{
       --ink:#0d0b06;--fog:#d9d3a2;--water:#86cfa0;--water-deep:#3f9c6b;
       --tile-platform:#d8b36a;--tile-wall:#e9dca8;--grout:#5b4526;--danger:#b3261e;
+      --ui-scale:1;
       font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
     }
-    html,body{width:100%;height:100%;overflow:hidden;background:var(--ink);color:var(--fog)}
+    html,body{
+      width:100%;height:100%;overflow:hidden;background:var(--ink);color:var(--fog);
+      font-size:calc(16px * var(--ui-scale));
+    }
+
+    /* 3D Canvas Mount Point */
+    #canvas-container{
+      position:fixed;inset:0;z-index:1;overflow:hidden;background:var(--ink);
+    }
+    #canvas-container canvas{
+      display:block;width:100%!important;height:100%!important;
+    }
+
+    /* CRT Scanlines Overlay */
+    #crt-overlay{
+      position:fixed;inset:0;z-index:900;pointer-events:none;
+      background:linear-gradient(rgba(18,16,16,0) 50%, rgba(0,0,0,0.25) 50%),
+                 linear-gradient(90deg, rgba(255,0,0,0.03), rgba(0,255,0,0.01), rgba(0,0,255,0.03));
+      background-size:100% 3px, 6px 100%;
+      opacity:0.75;
+    }
+
+    /* Splash Screen */
     #splash{
       position:fixed;inset:0;display:flex;flex-direction:column;
       align-items:center;justify-content:center;z-index:9999;
@@ -40,6 +63,7 @@
       width:0%;height:100%;background:var(--water);
       border-radius:2px;transition:width 0.3s ease-out;
     }
+
     /* CSS-only water drop ripple animation */
     .ripple-container{
       position:relative;width:60px;height:60px;margin-bottom:1.5em;
@@ -71,27 +95,118 @@
     @media(prefers-reduced-motion:reduce){
       .ripple-drop,.ripple-ring{animation:none!important}
     }
-    /* Menu placeholder */
+
+    /* UI Layer Root */
     #app{
-      position:fixed;inset:0;display:none;flex-direction:column;
-      align-items:center;justify-content:center;
+      position:fixed;inset:0;z-index:50;display:none;pointer-events:none;
     }
-    #app.visible{display:flex}
-    .menu-title{
-      font-family:'Segoe Script','Bradley Hand','Comic Sans MS',cursive;
-      font-size:clamp(2rem,6vw,4rem);color:var(--fog);
-      text-shadow:0 0 30px rgba(134,207,160,0.2);margin-bottom:0.3em;
+    #app.visible{display:block}
+
+    /* Analog Horror Title Flicker */
+    .flicker-title{
+      animation:title-flicker 5s infinite;
     }
-    .menu-sub{
-      font-size:clamp(0.7rem,2vw,1rem);color:var(--water);
-      opacity:0.7;text-align:center;max-width:90vw;
+    @keyframes title-flicker{
+      0%, 19.99%, 22%, 62.99%, 64%, 64.99%, 70%, 100%{
+        opacity:1;
+        text-shadow:0 0 25px rgba(134,207,160,0.35);
+      }
+      20%, 21.99%{
+        opacity:0.75;
+        text-shadow:0 0 10px rgba(134,207,160,0.15);
+      }
+      63%, 63.99%{
+        opacity:0.5;
+        text-shadow:none;
+      }
+      65%, 69.99%{
+        opacity:0.9;
+        text-shadow:0 0 30px rgba(134,207,160,0.5);
+      }
     }
+
+    /* Analog Buttons */
+    .analog-btn{
+      background:rgba(13, 11, 6, 0.85);
+      border:1px solid rgba(134, 207, 160, 0.4);
+      color:var(--fog);
+      font-family:monospace;
+      font-size:0.9rem;
+      padding:11px 18px;
+      min-height:44px;
+      cursor:pointer;
+      letter-spacing:0.12em;
+      text-transform:uppercase;
+      border-radius:2px;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      transition:all 0.15s ease-out;
+      box-shadow:0 2px 8px rgba(0,0,0,0.5);
+    }
+    .analog-btn:hover,.analog-btn:focus-visible{
+      background:rgba(134, 207, 160, 0.18);
+      border-color:var(--water);
+      color:var(--water);
+      text-shadow:0 0 8px rgba(134,207,160,0.5);
+      box-shadow:0 0 14px rgba(134,207,160,0.25);
+      outline:none;
+    }
+    .analog-btn.primary{
+      border-color:var(--water);
+      color:var(--water);
+      font-weight:600;
+    }
+    .analog-btn.primary:hover{
+      background:rgba(134, 207, 160, 0.28);
+    }
+    .analog-btn.danger{
+      border-color:rgba(179,38,30,0.7);
+      color:#ff8a80;
+    }
+    .analog-btn.danger:hover{
+      background:rgba(179,38,30,0.25);
+      border-color:var(--danger);
+      color:#ffffff;
+      box-shadow:0 0 14px rgba(179,38,30,0.4);
+    }
+    .analog-btn:disabled{
+      opacity:0.4;
+      cursor:not-allowed;
+      border-color:rgba(217,211,162,0.2);
+    }
+
+    /* Debug Overlay */
+    #debug-overlay{
+      position:fixed;top:10px;right:10px;z-index:800;
+      background:rgba(13,11,6,0.85);border:1px solid rgba(134,207,160,0.3);
+      padding:8px 12px;font-family:monospace;font-size:11px;
+      color:var(--fog);pointer-events:none;line-height:1.4;
+      display:none;
+    }
+
+    /* High-contrast Mode */
+    html.high-contrast{
+      --ink:#000000!important;
+      --fog:#ffffff!important;
+      --water:#00ff88!important;
+      --danger:#ff0000!important;
+    }
+    html.high-contrast .analog-btn{
+      border-width:2px;
+    }
+
     /* Accessibility: focus-visible */
     :focus-visible{outline:2px solid var(--water);outline-offset:2px}
     a,button{color:inherit;text-decoration:none}
   </style>
 </head>
 <body>
+  <div id="canvas-container"></div>
+  <div id="crt-overlay"></div>
+  <div id="debug-overlay"></div>
+
   <div id="splash" role="status" aria-label="Loading game">
     <div class="ripple-container" aria-hidden="true">
       <div class="ripple-drop"></div>
@@ -105,6 +220,7 @@
       <div id="boot-bar"></div>
     </div>
   </div>
+
   <div id="app" role="main"></div>
   <script type="module" src="/src/main.ts"></script>
 </body>

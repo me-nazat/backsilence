@@ -3,14 +3,17 @@
  *  rather than importing each other's internals.
  * ──────────────────────────────────────────────────────────────────────── */
 
-import type { Unsubscribe } from '../types/contracts.js';
+import type { Unsubscribe, MapId, Settings } from '../types/contracts.js';
 
 /** Map of event name → payload type. Extend via declaration merging. */
 export interface EventMap {
   'app:state': { from: string; to: string };
   'app:ready': undefined;
   'app:error': { message: string; fatal: boolean };
-  'settings:changed': { key: string };
+  'settings:changed': Settings;
+  'net:join': { room: string; mode: 'host' | 'peer' };
+  'game:start': { mode: 'single' | 'multi'; mapId: MapId; difficulty: number; seed: number; room?: string };
+  'game:leave': undefined;
 }
 
 type Handler<T> = (payload: T) => void;

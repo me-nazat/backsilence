@@ -30,7 +30,7 @@ export function defaultSettings(): Settings {
     version: 1,
     graphics: {
       quality: 'auto',
-      resolutionScale: 1.0,
+      resolutionScale: 100, // Percentage 50-100%
       fov: 75,
       brightness: 1.0,
       vhsIntensity: 0.5,
@@ -47,10 +47,15 @@ export function defaultSettings(): Settings {
       soundVisualizer: false,
     },
     controls: {
-      sensitivity: 0.5,
+      sensitivity: 1.0,
       invertY: false,
       toggleCrouch: false,
       bindings: { ...DEFAULT_BINDINGS },
+    },
+    accessibility: {
+      reducedMotion: 'system',
+      uiScale: 1.0,
+      highContrast: false,
     },
     player: {
       name: '',
@@ -69,9 +74,9 @@ export function clampSettings(s: Settings): Settings {
     version: 1,
     graphics: {
       quality: QUALITY_TIERS.includes(s.graphics.quality) ? s.graphics.quality : 'auto',
-      resolutionScale: clamp(s.graphics.resolutionScale, 0.25, 2.0),
-      fov: clamp(s.graphics.fov, 50, 120),
-      brightness: clamp(s.graphics.brightness, 0.2, 2.0),
+      resolutionScale: clamp(s.graphics.resolutionScale, 50, 100),
+      fov: clamp(s.graphics.fov, 60, 100),
+      brightness: clamp(s.graphics.brightness, 0.8, 1.4),
       vhsIntensity: clamp(s.graphics.vhsIntensity, 0.0, 1.0),
       headBob: Boolean(s.graphics.headBob),
       reducedMotion:
@@ -87,15 +92,39 @@ export function clampSettings(s: Settings): Settings {
       soundVisualizer: Boolean(s.audio.soundVisualizer),
     },
     controls: {
-      sensitivity: clamp(s.controls.sensitivity, 0.05, 2.0),
+      sensitivity: clamp(s.controls.sensitivity, 0.1, 3.0),
       invertY: Boolean(s.controls.invertY),
       toggleCrouch: Boolean(s.controls.toggleCrouch),
       bindings: { ...DEFAULT_BINDINGS, ...s.controls.bindings },
+    },
+    accessibility: {
+      reducedMotion: ['system', 'on', 'off'].includes(s.accessibility?.reducedMotion)
+        ? s.accessibility.reducedMotion
+        : 'system',
+      uiScale: clamp(s.accessibility?.uiScale ?? 1.0, 0.75, 1.5),
+      highContrast: Boolean(s.accessibility?.highContrast),
     },
     player: {
       name: typeof s.player.name === 'string' ? s.player.name.slice(0, 32) : '',
     },
   };
+}
+
+/**
+ * Check for duplicate key binding conflicts.
+ * Returns the conflicting Action if found, or null if clean.
+ */
+export function findBindingConflict(
+  bindings: Record<Action, string>,
+  targetAction: Action,
+  key: string,
+): Action | null {
+  for (const [actionKey, boundKey] of Object.entries(bindings)) {
+    if (actionKey !== targetAction && boundKey === key) {
+      return actionKey as Action;
+    }
+  }
+  return null;
 }
 
 /**

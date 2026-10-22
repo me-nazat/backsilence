@@ -75,6 +75,11 @@ export interface Settings {
     toggleCrouch: boolean;
     bindings: Record<Action, string>;
   };
+  accessibility: {
+    reducedMotion: 'system' | 'on' | 'off';
+    uiScale: number;
+    highContrast: boolean;
+  };
   player: {
     name: string;
   };
