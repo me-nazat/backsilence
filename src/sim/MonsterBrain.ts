@@ -77,11 +77,12 @@ export class MonsterBrain {
   readonly candidateSpawns: Vec3[] = [];
 
   // Pathfinding
-  private readonly astar: AStarPathfinder;
+  private astar: AStarPathfinder;
   private currentPath: PathPoint[] = [];
   private currentPathIndex = 0;
   private currentTarget: Vec3 | null = null;
   private currentTargetScore = 0;
+  private patrolBias: { center: Vec3; radius: number; strength: number } | null = null;
 
   // State timers
   private stateTimer = 0;
@@ -122,6 +123,40 @@ export class MonsterBrain {
 
   addCandidateSpawn(spawn: Vec3): void {
     this.candidateSpawns.push({ ...spawn });
+  }
+
+  setNav(nav: NavGrid): void {
+    if (this.astar.nav !== nav) {
+      this.astar = new AStarPathfinder(nav);
+    }
+  }
+
+  setPatrolBias(center: Vec3, radius: number, strength: number): void {
+    this.patrolBias = { center: { ...center }, radius, strength };
+  }
+
+  scheduleSweep(path: PathPoint[]): void {
+    if (path.length > 0) {
+      this.currentPath = [...path];
+      this.currentPathIndex = 0;
+      if (this.state === 'DORMANT' || this.state === 'WANDER') {
+        this.state = 'WANDER';
+        this.isListening = false;
+        this.stateTimer = 0;
+      }
+    }
+  }
+
+  scheduleListen(position: Vec3, seconds: number): void {
+    this.state = 'WANDER';
+    this.isListening = true;
+    this.listenTimer = seconds;
+    this.pos.x = position.x;
+    this.pos.z = position.z;
+    this.vel.x = 0;
+    this.vel.z = 0;
+    this.rearingT = 0.5;
+    this.jawOpenT = 0.2;
   }
 
   getSnapshot(): MonsterSnapshot {
@@ -201,6 +236,10 @@ export class MonsterBrain {
     simTime: number,
     isPlayerPerched = false,
   ): void {
+    if (this.astar.nav !== nav) {
+      this.setNav(nav);
+    }
+
     // 0. Update trajectory hash (32-bit FNV-1a mixing of pos, yaw, state)
     const px = Math.round(this.pos.x * 100);
     const pz = Math.round(this.pos.z * 100);
@@ -656,8 +695,14 @@ export class MonsterBrain {
       let rx: number;
       let rz: number;
 
-      // 50% of the time, bias patrol waypoint toward player's general sector
-      if (playerPos && (attempts % 2 === 0)) {
+      // 1. Director patrol bias takes priority
+      if (this.patrolBias && this.rng.next() < this.patrolBias.strength) {
+        const offsetDist = this.rng.range(2.0, this.patrolBias.radius);
+        const angle = this.rng.range(-Math.PI, Math.PI);
+        rx = this.patrolBias.center.x + Math.sin(angle) * offsetDist;
+        rz = this.patrolBias.center.z - Math.cos(angle) * offsetDist;
+      } else if (playerPos && (attempts % 2 === 0)) {
+        // 50% of the time, bias patrol waypoint toward player's general sector
         const offsetDist = this.rng.range(12.0, 30.0);
         const angle = this.rng.range(-Math.PI, Math.PI);
         rx = playerPos.x + Math.sin(angle) * offsetDist;
@@ -669,12 +714,23 @@ export class MonsterBrain {
 
       if (nav.isWalkableWorld(rx, rz) && nav.getComponentWorld(rx, rz) === myComponent) {
         const d = Math.hypot(rx - this.pos.x, rz - this.pos.z);
-        if (d >= 8.0) {
-          this.currentPath = this.astar.findPath(this.pos.x, this.pos.z, rx, rz);
-          this.currentPathIndex = 0;
-          return;
+        if (d >= 6.0) {
+          const path = this.astar.findPath(this.pos.x, this.pos.z, rx, rz);
+          if (path.length > 0) {
+            this.currentPath = path;
+            this.currentPathIndex = 0;
+            return;
+          }
         }
       }
+    }
+
+    // Fallback: pick nearest cell in component so monster is never stranded
+    const fallback = nav.findNearestCellInComponent(this.pos.x, this.pos.z, myComponent);
+    if (fallback) {
+      const path = this.astar.findPath(this.pos.x, this.pos.z, fallback.x, fallback.z);
+      this.currentPath = path.length > 0 ? path : [{ x: fallback.x, z: fallback.z }];
+      this.currentPathIndex = 0;
     }
   }
 

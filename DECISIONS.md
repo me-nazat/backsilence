@@ -153,4 +153,24 @@ All design decisions are recorded here with rationale.
 **Choice:** Use Node's built-in WebSocket with the Chrome DevTools Protocol, Vite preview, and a locally installed Chrome/Chromium. Store screenshots in an OS temporary directory or an explicitly external artifact directory.
 **Reason:** This gives repeatable release evidence without Playwright/Puppeteer downloads or repository binary assets, while enforcing console, network, responsive routing, local-tab lobby, and offline-service-worker checks.
 
+### D027: Calibrated Traversal and Pacing Parameters
+**Date:** 2026-10-23
+**Choice:** Retune `PlayerMotor` physics (`GRAVITY = 14.0`, `JUMP_V = 4.65`, `SPEED_WALK = 3.8`, `SPEED_SPRINT = 5.45`, `ACCEL_AIR = 3.6`) so that:
+- Standing jump ≈ 2.018 m (target ~2.0 m).
+- Walk-jump ≈ 2.533 m (target ~2.6 m).
+- Sprint-jump ≈ 3.633 m (target 3.6 ± 0.2 m, replaces the uncalibrated 5.49 m jump).
+- Sprint-jump costs 12 stamina.
+- Gap classes: Trench 1.2–2.2 m (monster-blocked, easy), Jump gap 2.4–3.2 m (needs run-up), Expert gap 3.2–3.5 m (needs full stamina and clean edge launch).
+**Reason:** The previous 5.49 m sprint-jump trivialized environmental traversal and destroyed tension around water trenches. The retuned values align with the 3.6 m design target and restore risk to platform hops.
+
+### D028: Encounter Director & Dynamic Nav Synchronization
+**Date:** 2026-10-23
+**Choice:** Implement `EncounterDirector` (`src/sim/Director.ts`) driven by `balance.json` (Whisper, Normal, Deafening, Nightmare tiers). Features:
+- Guaranteed First Contact: within 30–45 s on Normal, schedules a monster sweep across player FOV (25–45 m) with wake, silhouette, and distant audio cue.
+- Stillness Tax: lingering within 4 m for > 40 s triggers a close sweep (6–10 m); lingering > 75 s triggers a 10 s listening stop (12–20 m).
+- Dynamic Nav Synchronization: `SimWorld.finalizeTerrain()` and `step()` propagate active `NavGrid` to all `MonsterBrain`s via `setNav(nav)`, resolving the bug where monsters queried a stale uninitialized grid and became dormant.
+- Presentation Dread Beats: Director emits presentation cues (wakes, distant growls, flock signals) without polluting player acoustic noise buffers.
+**Reason:** Solves the primary player issue where "no monster ever comes at the player" while maintaining acoustic fairness for stealthy players.
+
+
 

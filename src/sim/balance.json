@@ -1,0 +1,74 @@
+{
+  "difficulty": {
+    "whisper": {
+      "firstContactMin": 40.0,
+      "firstContactMax": 55.0,
+      "prowlBias": 0.20,
+      "closingBias": 0.40,
+      "huntBias": 0.60,
+      "stillnessSweepDelay": 60.0,
+      "stillnessListenDelay": 100.0,
+      "listenDuration": 8.0,
+      "deadAirMax": 120.0,
+      "breatherMin": 35.0,
+      "breatherMax": 50.0,
+      "firstContactDistMin": 30.0,
+      "firstContactDistMax": 50.0
+    },
+    "normal": {
+      "firstContactMin": 30.0,
+      "firstContactMax": 45.0,
+      "prowlBias": 0.35,
+      "closingBias": 0.60,
+      "huntBias": 0.80,
+      "stillnessSweepDelay": 40.0,
+      "stillnessListenDelay": 75.0,
+      "listenDuration": 10.0,
+      "deadAirMax": 90.0,
+      "breatherMin": 25.0,
+      "breatherMax": 40.0,
+      "firstContactDistMin": 25.0,
+      "firstContactDistMax": 45.0
+    },
+    "deafening": {
+      "firstContactMin": 20.0,
+      "firstContactMax": 35.0,
+      "prowlBias": 0.50,
+      "closingBias": 0.75,
+      "huntBias": 0.90,
+      "stillnessSweepDelay": 25.0,
+      "stillnessListenDelay": 50.0,
+      "listenDuration": 12.0,
+      "deadAirMax": 60.0,
+      "breatherMin": 15.0,
+      "breatherMax": 25.0,
+      "firstContactDistMin": 20.0,
+      "firstContactDistMax": 40.0
+    },
+    "nightmare": {
+      "firstContactMin": 15.0,
+      "firstContactMax": 25.0,
+      "prowlBias": 0.70,
+      "closingBias": 0.85,
+      "huntBias": 0.95,
+      "stillnessSweepDelay": 15.0,
+      "stillnessListenDelay": 35.0,
+      "listenDuration": 14.0,
+      "deadAirMax": 45.0,
+      "breatherMin": 10.0,
+      "breatherMax": 18.0,
+      "firstContactDistMin": 15.0,
+      "firstContactDistMax": 35.0
+    }
+  },
+  "ranges": {
+    "touch": 0.9,
+    "attack": 1.6,
+    "closingSweepMin": 6.0,
+    "closingSweepMax": 10.0,
+    "listenDistMin": 12.0,
+    "listenDistMax": 20.0,
+    "mercyRespawnDist": 60.0,
+    "mercyGraceSeconds": 10.0
+  }
+}

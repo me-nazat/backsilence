@@ -55,12 +55,12 @@ export class PlayerMotor {
   static readonly EYE_CROUCH = 0.95;
   static readonly STEP_LIMIT = 0.35;
   static readonly GRAVITY = 14.0;
-  static readonly JUMP_V = 4.6;
-  static readonly SPEED_WALK = 3.2;
-  static readonly SPEED_SPRINT = 5.6;
+  static readonly JUMP_V = 4.65;
+  static readonly SPEED_WALK = 3.8;
+  static readonly SPEED_SPRINT = 5.45;
   static readonly SPEED_CROUCH = 1.6;
   static readonly ACCEL_GROUND = 28.0;
-  static readonly ACCEL_AIR = 6.0;
+  static readonly ACCEL_AIR = 3.6;
   static readonly FRICTION = 10.0;
   static readonly WADE_FACTOR = 0.6;
   static readonly DEEP_WADE_FACTOR = 0.45;
@@ -286,6 +286,12 @@ export class PlayerMotor {
     }
 
     if (this.jumpBufferTimer > 0 && this.coyoteTimer > 0) {
+      if (isSprinting) {
+        this.stamina = Math.max(0, this.stamina - 12.0);
+        if (this.stamina <= 0.0) {
+          this.exhausted = true;
+        }
+      }
       this.vel.y = PlayerMotor.JUMP_V - PlayerMotor.GRAVITY * dt * 0.5;
       this.onGround = false;
       this.coyoteTimer = 0;

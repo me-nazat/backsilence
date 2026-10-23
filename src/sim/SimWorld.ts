@@ -20,6 +20,7 @@ import type { WeatherSystem } from './Weather.js';
 import type { GhostTrain } from './GhostTrain.js';
 import type { Drone } from './Drone.js';
 import { Rng } from './rng.js';
+import { EncounterDirector, type DirectorDifficulty } from './Director.js';
 
 export interface SimWorldConfig {
   /** Seed shared by every authoritative simulation participant. */
@@ -29,7 +30,8 @@ export interface SimWorldConfig {
   waterY: number;
   waterLevelProvider?: WaterLevelProvider | undefined;
   discreteWaterLevels?: number[] | undefined;
-  difficulty?: ('whisper' | 'normal' | 'deafening') | undefined;
+  difficulty?: DirectorDifficulty | undefined;
+  director?: EncounterDirector | undefined;
   ground?: GroundGrid | undefined;
   colliders?: ColliderSet | undefined;
   mode?: ('solo' | 'host' | 'replica') | undefined;
@@ -65,6 +67,9 @@ export class SimWorld {
   ghostTrain?: GhostTrain | undefined;
   readonly drones: Drone[] = [];
 
+  readonly director: EncounterDirector;
+  objectivesDone = 0;
+
   hearingCtx: HearingContext;
   simTime = 0;
   private noiseSequence = 0;
@@ -72,6 +77,7 @@ export class SimWorld {
   constructor(config: SimWorldConfig) {
     this.seed = config.seed;
     this.rng = new Rng(config.seed);
+    this.director = config.director ?? new EncounterDirector(config.seed, config.difficulty ?? 'normal');
     this.baseWaterY = config.waterY;
     this.currentWaterY = config.waterY;
     this.worldProfile = config.worldProfile ?? DEFAULT_WORLD_PROFILE;
@@ -94,6 +100,9 @@ export class SimWorld {
     }
 
     this.ground = config.ground ?? new GroundGrid(config.bounds, 0.25);
+    if (!config.ground) {
+      this.ground.fill(this.baseWaterY - 1.5);
+    }
     this.ground.registerDynamicTop(this.perchSystem);
     this.colliders = config.colliders ?? new ColliderSet(4.0);
     this.events = new EventRingBuffer(256);
@@ -151,6 +160,14 @@ export class SimWorld {
       noise.sourcePlayerId ?? 'world',
       t,
     );
+    this.director.recordNoise({
+      id,
+      kind: noise.kind,
+      position: { ...noise.position },
+      loudness: noise.loudness,
+      sourcePlayerId: noise.sourcePlayerId ?? 'world',
+      t,
+    });
   }
 
   getTime(): number {
@@ -171,6 +188,9 @@ export class SimWorld {
       this.updateActiveNavGrid();
     } else {
       this.nav = new NavGrid(this.ground, this.baseWaterY, 0.5, this.worldProfile);
+      for (const m of this.monsters) {
+        m.setNav(this.nav);
+      }
     }
   }
 
@@ -193,6 +213,9 @@ export class SimWorld {
     const grid = this.navGridsByLevel.get(bestLevel);
     if (grid && grid !== this.nav) {
       this.nav = grid;
+      for (const m of this.monsters) {
+        m.setNav(this.nav);
+      }
     }
   }
 
@@ -284,6 +307,19 @@ export class SimWorld {
         }
       }
     });
+
+    // 2.5. Step Encounter Director (host & solo only)
+    if (this.mode !== 'replica') {
+      this.director.updatePlayer(
+        this.player.playerId,
+        this.player.pos,
+        this.player.onGround,
+        isPerched,
+      );
+      this.director.step(dt, this.monsters, this.nav, this.objectivesDone);
+      // Note: dreadBeats are presentation cues for GameSession (audio, VHS, flock),
+      // and do not inject player noise events into the simulation.
+    }
 
     // 3. Step all monsters with current nav grid (host & solo only)
     if (this.mode !== 'replica') {

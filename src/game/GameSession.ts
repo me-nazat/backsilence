@@ -26,6 +26,7 @@ import { AudioEngine } from '../audio/AudioEngine.js';
 import type { Settings, NoiseEvent, RippleEvent, MapId, Vec3, PlayerId, PuzzleOp } from '../types/contracts.js';
 import { WORLD } from '../app/Config.js';
 import { SimWorld } from '../sim/SimWorld.js';
+import type { EncounterDirector } from '../sim/Director.js';
 import { WaterSystem } from './water/WaterSystem.js';
 import { MonsterManager } from './monster/MonsterManager.js';
 import { JumpscareSequence, type JumpscareStats } from './monster/Jumpscare.js';
@@ -326,7 +327,10 @@ export class GameSession {
         },
       });
 
-      // 4. Water System Setup
+      // 4. Compute terrain distance transform and all level NavGrids FIRST
+      this.simWorld.finalizeTerrain();
+
+      // 5. Water System Setup (now has computed distance-to-dry)
       this.water = new WaterSystem(this.scene, {
         scene: this.scene,
         ground: this.simWorld.ground,
@@ -336,7 +340,7 @@ export class GameSession {
         profile: this.mapDef.waterProfile,
       });
 
-      // 5. Monster Presentation & AI Setup
+      // 6. Monster Presentation & AI Setup (now uses fully built NavGrid)
       this.monsters = new MonsterManager(this.water, this.audio);
       this.scene.add(this.monsters.root);
 
@@ -357,9 +361,6 @@ export class GameSession {
           this.seed,
         );
       }
-
-      // Compute terrain distance transform and all level NavGrids
-      this.simWorld.finalizeTerrain();
 
       // 6. Player presentation & Input Controls
       this.playerInput = new PlayerInput(this.settings, {
@@ -2577,5 +2578,29 @@ export class GameSession {
     }
     this.postFX.dispose();
     this.renderer.dispose();
+  }
+
+  get sim(): SimWorld {
+    return this.simWorld;
+  }
+
+  get waterSystem(): WaterSystem {
+    return this.water;
+  }
+
+  get monsterManager(): MonsterManager {
+    return this.monsters;
+  }
+
+  get sceneRef(): Scene {
+    return this.scene;
+  }
+
+  get cameraRef(): PerspectiveCamera {
+    return this.camera;
+  }
+
+  get activeDirector(): EncounterDirector {
+    return this.simWorld.director;
   }
 }
