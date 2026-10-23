@@ -1,7 +1,10 @@
 node_modules/
 dist/
 *.local
-.env
+.env*
+!.env.example
 .DS_Store
 *.tsbuildinfo
 scratch/
+reports/
+reference/out*

@@ -17,6 +17,7 @@ const ALLOWED_EXTS = new Set(['.html', '.js', '.css', '.map']);
 const BOOT_BUDGET_BYTES = 35 * 1024;   // 35 KB gzipped
 const TOTAL_BUDGET_BYTES = 450 * 1024;  // 450 KB gzipped
 const MAP_CHUNK_BUDGET_BYTES = 35 * 1024; // 35 KB gzipped per map lazy chunk
+const MODELS_BUDGET_BYTES = 2.5 * 1024 * 1024; // 2.5 MB raw for public/models/*.glb and *.json
 
 /** Recursively list all files under a directory. */
 function walkDir(dir) {
@@ -48,6 +49,7 @@ const files = walkDir(DIST);
 const errors = [];
 let totalGzip = 0;
 let bootGzip = 0;
+let modelsRawBytes = 0;
 
 console.log('\n┌────────────────────────────────────────────────────────────┐');
 console.log('│  BackSilence Bundle Audit                                 │');
@@ -59,13 +61,24 @@ for (const filePath of files) {
   const ext = extname(filePath);
   const rel = filePath.replace(DIST + '/', '');
 
-  // Check for forbidden file types (allow sw.js, _headers, and valid extensions)
-  const isAllowedFile = rel === 'sw.js' || rel === '_headers' || ALLOWED_EXTS.has(ext);
+  // Check for forbidden file types (allow sw.js, _headers, models/*.glb and models/*.json, and valid JS/CSS/HTML extensions)
+  const isModelAsset = rel.startsWith('models/') && (ext === '.glb' || ext === '.json');
+  const isAllowedFile = rel === 'sw.js' || rel === '_headers' || isModelAsset || ALLOWED_EXTS.has(ext);
   if (!isAllowedFile) {
     errors.push(`Forbidden file type: ${rel} (${ext})`);
   }
 
   const raw = readFileSync(filePath);
+
+  if (isModelAsset) {
+    modelsRawBytes += raw.length;
+    const name = rel.length > 32 ? '…' + rel.slice(-31) : rel.padEnd(32);
+    console.log(
+      `│ ${name} │ ${formatBytes(raw.length).padStart(7)} │    [binary] │`,
+    );
+    continue;
+  }
+
   const gzipped = gzipSync(raw);
   const gzipSize = gzipped.length;
   totalGzip += gzipSize;
@@ -101,6 +114,9 @@ console.log('└─────────────────────�
 
 console.log(`\nBoot chunk budget:  ${formatBytes(bootGzip)} / ${formatBytes(BOOT_BUDGET_BYTES)}`);
 console.log(`Total bundle budget: ${formatBytes(totalGzip)} / ${formatBytes(TOTAL_BUDGET_BYTES)}`);
+if (modelsRawBytes > 0) {
+  console.log(`Models binary budget: ${formatBytes(modelsRawBytes)} / ${formatBytes(MODELS_BUDGET_BYTES)}`);
+}
 
 // Check budgets
 if (bootGzip > BOOT_BUDGET_BYTES) {
@@ -111,6 +127,11 @@ if (bootGzip > BOOT_BUDGET_BYTES) {
 if (totalGzip > TOTAL_BUDGET_BYTES) {
   errors.push(
     `Total bundle exceeds budget: ${formatBytes(totalGzip)} > ${formatBytes(TOTAL_BUDGET_BYTES)}`,
+  );
+}
+if (modelsRawBytes > MODELS_BUDGET_BYTES) {
+  errors.push(
+    `Models binary assets exceed budget: ${formatBytes(modelsRawBytes)} > ${formatBytes(MODELS_BUDGET_BYTES)}`,
   );
 }
 

@@ -11,7 +11,9 @@
     "lint": "eslint .",
     "test": "vitest run",
     "audit": "node scripts/audit-bundle.mjs",
-    "verify": "npm run typecheck && npm run lint && npm run test && npm run build && npm run audit",
+    "secret:scan": "node scripts/secret-scan.mjs",
+    "verify": "npm run typecheck && npm run lint && npm run test && npm run build && npm run audit && npm run secret:scan",
+    "shots": "node scripts/shots.mjs",
     "browser:acceptance": "node scripts/browser-acceptance.mjs"
   },
   "dependencies": {
