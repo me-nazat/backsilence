@@ -29,6 +29,7 @@ import { buildBellGeometry } from '../../procedural/geometry/Bell.js';
 import { buildFountainGeometry } from '../../procedural/geometry/Fountain.js';
 import { buildFluorescentFixtureGeometry } from '../../procedural/geometry/LightFixture.js';
 import { makePipeDiagramTexture } from '../../procedural/textures/PaintedLabel.js';
+import { applyWetDarkening } from '../../game/rendering/WetDarkening.js';
 
 export interface CustomBuilderHook {
   onPlatformMesh?: (mesh: Mesh, def: LayoutData['platforms'][0]) => void;
@@ -56,6 +57,12 @@ export function buildStandardMapInstance(
     customMaterials.wallMat,
     customMaterials.floorMat,
   ];
+
+  // Apply wet darkening and tidemark gloss below waterline
+  applyWetDarkening(customMaterials.platformMat, { waterY: 0.0 });
+  applyWetDarkening(customMaterials.wallMat, { waterY: 0.0 });
+  applyWetDarkening(customMaterials.floorMat, { waterY: 0.0 });
+
   const geometriesToDispose: { dispose: () => void }[] = [];
   const sinkingNodes: SinkingPlatformNode[] = [];
 

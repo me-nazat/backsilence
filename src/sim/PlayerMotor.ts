@@ -177,8 +177,8 @@ export class PlayerMotor {
     this.copyToState(this.previousState);
 
     // 1. Look orientation
-    this.yaw += intent.lookDeltaYaw;
-    this.pitch = Math.max(-1.48, Math.min(1.48, this.pitch + intent.lookDeltaPitch));
+    this.yaw += intent.lookDeltaYaw || 0;
+    this.pitch = Math.max(-1.48, Math.min(1.48, this.pitch + (intent.lookDeltaPitch || 0)));
 
     // 2. Crouch interpolation
     const targetCrouch = intent.crouch ? 1.0 : 0.0;

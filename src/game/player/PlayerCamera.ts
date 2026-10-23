@@ -117,22 +117,24 @@ export class PlayerCamera {
       _interpPos.z,
     );
 
-    // 7. Orientation (Yaw & Pitch clamped to +-85 deg = +-1.4835 rad)
+    // 7. Orientation (Yaw & Pitch clamped to +-85 deg = +-1.4835 rad, plus subtle wading roll)
     const pitch = MathUtils.clamp(
       MathUtils.lerp(prevSnapshot.pitch, currSnapshot.pitch, renderAlpha),
       -1.4835,
       1.4835,
     );
     const yaw = MathUtils.lerp(prevSnapshot.yaw, currSnapshot.yaw, renderAlpha);
+    const roll = enableBob && currSnapshot.wet ? Math.sin(this.bobPhase) * 0.018 : 0;
 
-    _euler.set(pitch, yaw, 0, 'YXZ');
+    _euler.set(pitch, yaw, roll, 'YXZ');
     this.camera.quaternion.setFromEuler(_euler);
 
-    // 8. Sprint FOV Kick (+6 deg)
+    // 8. Sprint FOV Kick (+6 deg) & Agitation Breathing FOV
+    const agitationBreath = currSnapshot.exhausted ? Math.sin(this.idlePhase * 3.0) * 1.5 : 0;
     const targetFov =
-      horizSpeed > WORLD.PLAYER.WALK + 0.5 && !currSnapshot.exhausted
+      (horizSpeed > WORLD.PLAYER.WALK + 0.5 && !currSnapshot.exhausted
         ? this.baseFov + 6.0
-        : this.baseFov;
+        : this.baseFov) + agitationBreath;
 
     this.currentFov += (targetFov - this.currentFov) * Math.min(1.0, dt * 8.0);
     if (Math.abs(this.camera.fov - this.currentFov) > 0.01) {

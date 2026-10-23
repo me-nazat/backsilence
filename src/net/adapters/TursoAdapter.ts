@@ -73,7 +73,7 @@ export class TursoAdapter implements DatabaseNetworkAdapter {
     if (!config.url || !config.key) {
       throw new Error('[TursoAdapter] Missing VITE_NET_URL or VITE_NET_KEY');
     }
-    this.url = config.url.replace(/\/$/, '');
+    this.url = config.url.replace(/^libsql:\/\//, 'https://').replace(/\/$/, '');
     this.token = config.key;
   }
 

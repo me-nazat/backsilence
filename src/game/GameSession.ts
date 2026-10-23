@@ -2565,20 +2565,26 @@ export class GameSession {
       }
     });
 
-    // Expose simulation API to window.__backsilence.sim
+    // Expose simulation API to window.__backsilence.sim and this.sim
+    const simApi = {
+      getWorld: () => this.simWorld,
+      getPlayer: () => this.simWorld.player,
+      getMonsters: () => this.simWorld.monsters,
+      setGodMode: (val: boolean) => {
+        this.godMode = val;
+      },
+      setTimeScale: (scale: number) => {
+        this.timeScale = scale;
+      },
+    };
+
     const g = window as unknown as { __backsilence?: { sim?: unknown } };
     if (g.__backsilence) {
-      g.__backsilence.sim = {
-        getWorld: () => this.simWorld,
-        getPlayer: () => this.simWorld.player,
-        getMonsters: () => this.simWorld.monsters,
-        setGodMode: (val: boolean) => {
-          this.godMode = val;
-        },
-        setTimeScale: (scale: number) => {
-          this.timeScale = scale;
-        },
-      };
+      try {
+        g.__backsilence.sim = simApi;
+      } catch {
+        /* ignore if restricted */
+      }
     }
   }
 

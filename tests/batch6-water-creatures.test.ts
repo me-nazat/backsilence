@@ -3,7 +3,6 @@ import { GpuWaveSimulation } from '../src/game/water/GpuWaveSimulation.js';
 import { FlockDirector } from '../src/game/creatures/FlockDirector.js';
 import { ProceduralSkin } from '../src/game/creatures/MonsterSkin.js';
 import { Vector3 } from 'three';
-import { GroundGrid } from '../src/sim/GroundGrid.js';
 
 describe('Batch 6: Water v2 & Creatures Test Suite', () => {
   it('GpuWaveSimulation selfTest passes (energy decay, obstacle reflection, no NaNs)', () => {

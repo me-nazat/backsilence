@@ -254,7 +254,8 @@ export class GpuWaveSimulation {
 
     // Update GPU uniforms if active
     if (this.simMaterial) {
-      this.simMaterial.uniforms['uImpulse']!.value.set(u, v, radUV, amplitude);
+      const impulse = this.simMaterial.uniforms['uImpulse']?.value as Vector4 | undefined;
+      impulse?.set(u, v, radUV, amplitude);
     }
 
     // Always update CPU buffer

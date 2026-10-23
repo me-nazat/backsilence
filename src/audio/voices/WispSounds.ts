@@ -60,7 +60,9 @@ export function playWispWail(cx: WispVoiceContext): RawVoiceHandle {
       try {
         osc1.stop();
         osc2.stop();
-      } catch {}
+      } catch {
+        /* ignore already stopped */
+      }
     },
     setParam: () => {},
     ended: new Promise((resolve) => {
@@ -107,7 +109,9 @@ export function playWispWingbeat(cx: WispVoiceContext): RawVoiceHandle {
     stop: () => {
       try {
         noise.stop();
-      } catch {}
+      } catch {
+        /* ignore already stopped */
+      }
     },
     setParam: () => {},
     ended: new Promise((resolve) => {

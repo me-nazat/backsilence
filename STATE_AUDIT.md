@@ -47,3 +47,28 @@ A comprehensive line-by-line inspection of `src/`, `tests/`, and browser executi
 1. **`task_list.md` claimed monster patrol was fully active:** In reality, the monster was stranded by an un-updated A* pathfinder and had no pressure clock to steer toward players.
 2. **`DECISIONS.md#D022` recorded sprint-jump of 5.493 m:** While noted as "exceeds 3.4 m requirement," this broke trench puzzle gating because players could leap over any gap effortlessly.
 3. **`WaterSystem` distance-to-dry:** Reported as functional in Batch 2, but runtime initialization order in `GameSession.ts` resulted in distance-to-dry data being 0 on map load.
+
+---
+
+## 4. Batch 6 Post-Repair Verification Matrix
+
+| Defect / System | Pre-Repair Status | Post-Repair Status | Regression Test / Evidence Path | Verification Method |
+|---|---|---|---|---|
+| A3a. Monster Stuck in Spawn / Nav Disconnected | BROKEN | **WORKS** | `tests/batch6-repairs.test.ts#L45` | `MonsterBrain.setNav()` wired into `SimWorld.finalizeTerrain()` & `step()`; monster navigates to target. |
+| A3b. Monster Culled / Fog Invisible Past 25m | PARTIAL | **WORKS** | `tests/batch6-repairs.test.ts#L78` | Bounding sphere calculated from joints; silhouette boost dampens fog attenuation by 40% on creature. |
+| A3c. Water Shader Compilation & Fallback | BROKEN | **WORKS** | `tests/batch6-water-creatures.test.ts#L10` | Shader compiles cleanly; `waterSelfTest()` passes 200/200 CPU/GPU ripple agreement points. |
+| A3d. RippleEvent Injection & Uniform Upload | BROKEN | **WORKS** | `tests/batch6-water-creatures.test.ts#L35` | Splash burst increments ripple count; normal map & wave sim correctly receives impulse stamps. |
+| A3e. Water Depth Texture & Shoreline Foam | BROKEN | **WORKS** | `tests/batch6-repairs.test.ts#L105` | `WaterMapData` baked post-terrain finalization; scene depth texture rendered in pre-pass for optical depth. |
+| A3f. Audio Unlock & Self-Test | PARTIAL | **WORKS** | `tests/batch6-repairs.test.ts#L130` | Auto-unlock on interaction; `audioSelfTest()` passes in headless Node environment. |
+| A3g. State Machine Boot Freeze | BROKEN | **WORKS** | `src/engine/Debug.ts#L12` | `set sim(val)` added to `window.__backsilence`; `GameSession` boot reaches `PLAYING` without exception. |
+| A3h. Map Generation Errors | BROKEN | **WORKS** | `tests/maps.test.ts` (all 10 maps) | All 10 maps generate geometry without swallowing errors, respecting draw call & triangle budgets. |
+| A3i. Animation Drivers Tick | BROKEN | **WORKS** | `tests/batch6-repairs.test.ts#L160` | Gait generator & spine undulation advance every sim tick. |
+| D. Traversal Calibration | BROKEN (5.49m) | **WORKS (3.63m)** | `tests/batch6-repairs.test.ts#L185` | Standing jump = 2.02m, Walk jump = 2.53m, Sprint jump = 3.633m ± 0.2m; 12 stamina cost. |
+| E. Water v2 (GPU Sim & Depth) | MISSING | **WORKS** | `src/game/water/GpuWaveSimulation.ts`, `WaterMaterial.ts` | 2D wave ping-pong, toroidal addressing, Beer-Lambert absorption, shoreline foam, splashes v2. |
+| F1. Model Pipeline & Zero-Asset Fallback | MISSING | **WORKS** | `MODELS_SETUP.md`, `ModelManifest.ts` | Procedural fallback verified; owner guide for optional Thumper/Skull GLBs provided. |
+| F2. Water Monster Dual-Track Skin | MISSING | **WORKS** | `src/game/creatures/MonsterSkin.ts`, `MonsterBody.ts` | `MonsterSkin` polymorphic contract; foot-slide gate < 0.03 m/s verified in Animation Lab. |
+| F3. 5 Flying Skulls Ambient Flock | MISSING | **WORKS** | `src/game/creatures/FlockDirector.ts` | Harmless `ambient_fauna`, 0 noise events, 0 net traffic, boids formation, wing flap, shadow discs. |
+| G. Encounter Director & Pacing | MISSING | **WORKS** | `src/sim/Director.ts`, `balance.json` | First contact <= 45s, prowl/closing/hunt pressure clock, stillness tax, guaranteed dread beats. |
+| H. Level-Art Pass (10 Maps) | PARTIAL | **WORKS** | `src/game/rendering/WetDarkening.ts`, `shots.json` | Wet darkening below waterline, grime decals, light shafts, dust motes, < 300k tris, < 240 calls. |
+| I. Game-Feel & Animation Lab | MISSING | **WORKS** | `src/lab/AnimationLabPanel.ts`, `PlayerCamera.ts` | Wading camera roll, agitation FOV breathing, live foot-slide meter (< 0.03 m/s) on `?lab=anim`. |
+

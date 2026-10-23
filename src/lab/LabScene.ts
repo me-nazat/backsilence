@@ -34,6 +34,7 @@ import { InputManager } from '../engine/Input.js';
 import { TextureRegistry } from '../procedural/textures/TextureRegistry.js';
 import { AudioEngine } from '../audio/AudioEngine.js';
 import { AudioLabPanel } from './AudioLabPanel.js';
+import { AnimationLabPanel } from './AnimationLabPanel.js';
 import { causticsChunk } from '../procedural/shaders/caustics.glsl.js';
 
 export interface LabSceneOptions {
@@ -54,6 +55,7 @@ export class LabScene {
   readonly renderer: EngineRenderer;
   readonly input: InputManager;
   readonly audioLabPanel: AudioLabPanel;
+  readonly animLabPanel: AnimationLabPanel;
 
   private isMenuMode: boolean;
   private settings: Settings;
@@ -117,6 +119,12 @@ export class LabScene {
 
     this.audioLabPanel = new AudioLabPanel(AudioEngine.getInstance());
     this.audioLabPanel.mount(container);
+
+    this.animLabPanel = new AnimationLabPanel(this.scene);
+    this.animLabPanel.mount(container);
+    if (typeof window !== 'undefined' && window.location.search.includes('lab=anim')) {
+      this.animLabPanel.show();
+    }
 
     this.setupAtmosphere();
     this.setupSet();
@@ -429,6 +437,9 @@ export class LabScene {
       case 'KeyB':
         this.audioLabPanel.toggle();
         break;
+      case 'KeyN':
+        this.animLabPanel.toggle();
+        break;
       case 'Digit1':
         this.jumpCamera(0, 1.6, 4.5, 0, -0.15); // Overview
         break;
@@ -562,6 +573,7 @@ export class LabScene {
       );
     }
 
+    this.animLabPanel.update(dt, this.time);
     this.renderer.render(this.scene, this.camera);
     this.input.flushFrame();
   }
@@ -569,6 +581,7 @@ export class LabScene {
   dispose(): void {
     this.isDisposed = true;
     this.audioLabPanel.dispose();
+    this.animLabPanel.dispose();
     this.renderer.dispose();
     this.input.dispose();
   }

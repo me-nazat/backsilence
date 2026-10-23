@@ -17,6 +17,7 @@ import {
 } from 'three';
 import { MonsterMeshHierarchy } from '../monster/MonsterMesh.js';
 import { WORLD } from '../../app/Config.js';
+import { isModelAvailable } from './ModelManifest.js';
 
 export interface LocomotionState {
   speed: number;
@@ -148,7 +149,7 @@ export class GlbSkin implements MonsterSkin {
     this.fallbackSkin = new ProceduralSkin(scale, tintHex, seed);
     this.root.add(this.fallbackSkin.root);
 
-    this.loadGlb();
+    void this.loadGlb();
   }
 
   private async loadGlb(): Promise<void> {
@@ -306,3 +307,16 @@ export class GlbSkin implements MonsterSkin {
     }
   }
 }
+
+export function createMonsterSkin(
+  skin: 'auto' | 'model' | 'procedural' = 'auto',
+  scale = 1.0,
+  tintHex = '#7a4a38',
+  seed = 54321,
+): MonsterSkin {
+  if (skin === 'model' || (skin === 'auto' && isModelAvailable('thumper'))) {
+    return new GlbSkin(scale, tintHex, seed);
+  }
+  return new ProceduralSkin(scale, tintHex, seed);
+}
+

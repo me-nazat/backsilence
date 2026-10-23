@@ -172,5 +172,23 @@ All design decisions are recorded here with rationale.
 - Presentation Dread Beats: Director emits presentation cues (wakes, distant growls, flock signals) without polluting player acoustic noise buffers.
 **Reason:** Solves the primary player issue where "no monster ever comes at the player" while maintaining acoustic fairness for stealthy players.
 
+### D029: Water v2 Multi-Tier Architecture & Depth Reconstruction
+**Date:** 2026-10-23
+**Choice:** Implement Water v2 with a tiered simulation and rendering pipeline:
+- Depth Reconstruction: Render opaque scene passes to depth and color render targets (`DepthTexture`), giving the water pass direct optical depth access for Beer-Lambert absorption, soft shoreline edge foam, and clamped refraction.
+- GPU Wave Simulation: Damped 2D wave equation on ping-pong half-float render targets with toroidal scrolling, edge fade, CFL stability, and obstacle reflection mask derived from `GroundGrid`. Analytic ripple buffer serves as Low fallback and CPU reference.
+- Splash v2 & Interactions: Animated crown splash geometry, motion-stretched spray droplets, persistent foam decals, and lens droplet / meniscus post-effects when transitioning water plane.
+**Reason:** Replaces flat Batches 1–5 placeholder water with the signature milky-green poolrooms aesthetic while guaranteeing performance budgets (<= 1.0ms Low, <= 2.0ms Medium, <= 3.5ms High).
+
+### D030: Dual-Track Creature Skin Architecture & Ambient Flock Decoupling
+**Date:** 2026-10-23
+**Choice:** Establish `MonsterSkin` polymorphic contract with `ProceduralSkin` (zero-asset default) and `GlbSkin` (lazy-loaded Thumper GLB model):
+- Auto-discovery BoneMap & Procedural Fallback: If GLB skeleton has clips, drive via speed-scaled `AnimationMixer`; if unrigged/clipless, drive bone transforms procedurally with gait generator and 2-bone IK. If model loading fails, seamlessly fall back to `ProceduralSkin`.
+- Zero-IP & Legal Safeguard: Setting `creatures.waterMonsterSkin: 'auto' | 'model' | 'procedural'` allows disabling third-party fan recreation models. Models setup documented in `MODELS_SETUP.md` and CC BY 4.0 attributions recorded in `CREDITS.md`.
+- Flying Skulls Ambient Flock: 5 flying skulls governed by `FlockDirector` as pure ambient fauna (`cosmetic: true`, category `ambient_fauna`). Deterministic boids flight path derived from `(seed, simTime, index)` requires 0 bytes of network replication and 0 acoustic alerts to monsters.
+- Animation Lab (`?lab=anim`): Interactive panel measuring live foot-slide metric (< 0.03 m/s) with locomotion sliders and animation preview.
+**Reason:** Meets high visual standards for creature presentation without violating zero-asset default guarantees or introducing multiplayer network sync overhead.
+
+
 
 

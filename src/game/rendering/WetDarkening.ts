@@ -25,6 +25,11 @@ export function applyWetDarkening(
   const darkeningFactor = options.darkeningFactor ?? 0.60;
   const glossBoost = options.glossBoost ?? 0.5;
 
+  if ((material as unknown as { __wetDarkeningApplied?: boolean }).__wetDarkeningApplied) {
+    return;
+  }
+  (material as unknown as { __wetDarkeningApplied?: boolean }).__wetDarkeningApplied = true;
+
   // eslint-disable-next-line @typescript-eslint/unbound-method
   const previousOnBeforeCompile = material.onBeforeCompile;
 
@@ -56,36 +61,38 @@ export function applyWetDarkening(
     shader.uniforms['uDarkenFactor'] = { value: darkeningFactor };
     shader.uniforms['uGlossBoost'] = { value: glossBoost };
 
-    shader.fragmentShader = shader.fragmentShader.replace(
-      '#include <common>',
-      /* glsl */ `
-      #include <common>
-      varying vec3 vWorldPositionForWet;
-      uniform float uWaterY_Wet;
-      uniform float uWetLimit;
-      uniform float uDarkenFactor;
-      uniform float uGlossBoost;
-      `,
-    );
+    if (!shader.fragmentShader.includes('vWorldPositionForWet')) {
+      shader.fragmentShader = shader.fragmentShader.replace(
+        '#include <common>',
+        /* glsl */ `
+        #include <common>
+        varying vec3 vWorldPositionForWet;
+        uniform float uWaterY_Wet;
+        uniform float uWetLimit;
+        uniform float uDarkenFactor;
+        uniform float uGlossBoost;
+        `,
+      );
 
-    // 3. Modulate outgoing fragment color and roughness
-    shader.fragmentShader = shader.fragmentShader.replace(
-      '#include <dithering_fragment>',
-      /* glsl */ `
-      #include <dithering_fragment>
+      // 3. Modulate outgoing fragment color and roughness
+      shader.fragmentShader = shader.fragmentShader.replace(
+        '#include <dithering_fragment>',
+        /* glsl */ `
+        #include <dithering_fragment>
 
-      // Noisy tidemark sine ripple
-      float tidemarkNoise = sin(vWorldPositionForWet.x * 14.0) * cos(vWorldPositionForWet.z * 14.0) * 0.035;
-      float wetThreshold = uWetLimit + tidemarkNoise;
+        // Noisy tidemark sine ripple
+        float tidemarkNoise = sin(vWorldPositionForWet.x * 14.0) * cos(vWorldPositionForWet.z * 14.0) * 0.035;
+        float wetThreshold = uWetLimit + tidemarkNoise;
 
-      if (vWorldPositionForWet.y < wetThreshold) {
-        float depthBelowLimit = wetThreshold - vWorldPositionForWet.y;
-        float wetGradient = clamp(depthBelowLimit / 0.45, 0.0, 1.0);
-        // Darken diffuse color by up to (1.0 - uDarkenFactor)
-        gl_FragColor.rgb *= mix(1.0, uDarkenFactor, wetGradient);
-      }
-      `,
-    );
+        if (vWorldPositionForWet.y < wetThreshold) {
+          float depthBelowLimit = wetThreshold - vWorldPositionForWet.y;
+          float wetGradient = clamp(depthBelowLimit / 0.45, 0.0, 1.0);
+          // Darken diffuse color by up to (1.0 - uDarkenFactor)
+          gl_FragColor.rgb *= mix(1.0, uDarkenFactor, wetGradient);
+        }
+        `,
+      );
+    }
   };
 
   material.needsUpdate = true;

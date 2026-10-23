@@ -755,6 +755,7 @@ export function perfReport(): Record<string, unknown> {
  * Install __backsilence debug API on window with deprecated __poolrooms alias.
  */
 export function installDebugApi(options: DebugApiOptions = {}): void {
+  let simOverride: unknown = null;
   const api = {
     audioSelfTest,
     textureSelfTest,
@@ -776,6 +777,7 @@ export function installDebugApi(options: DebugApiOptions = {}): void {
       return runWaterTest();
     },
     get sim() {
+      if (simOverride) return simOverride;
       const g = window as unknown as { __backsilence_session?: { sim?: unknown; simWorld?: unknown } };
       if (g.__backsilence_session?.sim) {
         return g.__backsilence_session.sim;
@@ -788,6 +790,9 @@ export function installDebugApi(options: DebugApiOptions = {}): void {
         listScenarios,
         runAllScenarios,
       };
+    },
+    set sim(val: unknown) {
+      simOverride = val;
     },
   };
 
