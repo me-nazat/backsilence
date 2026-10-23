@@ -220,7 +220,15 @@ export class GameSession {
     );
 
     this.renderer = new EngineRenderer(container, settings);
-    this.postFX = new PostFX(this.renderer.renderer, container, settings);
+    this.postFX = new PostFX(this.renderer.renderer, container, settings, {
+      onDegraded: (status) => {
+        if (status.reason === 'composer-failed') {
+          ToastManager.getInstance().show('Visual effects reduced because post-processing is unavailable.', { type: 'warning' });
+        } else if (status.reason === 'low-quality') {
+          ToastManager.getInstance().show('Visual effects are using the low-quality CSS fallback.', { type: 'info' });
+        }
+      },
+    });
     if (typeof window !== 'undefined') {
       (window as unknown as { __backsilence_session?: unknown }).__backsilence_session = this;
     }
@@ -274,6 +282,7 @@ export class GameSession {
       const simMode = this.netSession ? (this.netSession.role === 'client' ? 'replica' : 'host') : 'solo';
 
       this.simWorld = new SimWorld({
+        seed: this.seed,
         bounds: this.layout.bounds,
         playerSpawn,
         waterY: this.mapInstance.waterY,

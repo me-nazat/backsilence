@@ -31,6 +31,14 @@ export default tseslint.config(
   {
     files: ['src/sim/**', 'src/net/core/**'],
     rules: {
+      'no-restricted-properties': [
+        'error',
+        {
+          object: 'Math',
+          property: 'random',
+          message: 'Authoritative simulation must use the seeded Rng stream.',
+        },
+      ],
       'no-restricted-imports': [
         'error',
         {
@@ -54,6 +62,19 @@ export default tseslint.config(
         { name: 'document', message: 'src/sim must not access document.' },
         { name: 'AudioContext', message: 'src/sim must not access Web Audio.' },
         { name: 'webkitAudioContext', message: 'src/sim must not access Web Audio.' },
+      ],
+    },
+  },
+  {
+    files: ['src/procedural/**'],
+    rules: {
+      'no-restricted-properties': [
+        'error',
+        {
+          object: 'Math',
+          property: 'random',
+          message: 'Procedural generation must use a seeded Rng stream.',
+        },
       ],
     },
   },

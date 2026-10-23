@@ -4,10 +4,19 @@
  * ──────────────────────────────────────────────────────────────────────── */
 
 import type { Vec3, PlayerId, NoiseKind } from '../../types/contracts.js';
+import { Rng } from '../rng.js';
 import type { PuzzleNode, PuzzleOp, PuzzleCtx } from './PuzzleTypes.js';
 
 export class PuzzleSystem {
   private readonly nodes = new Map<string, PuzzleNode>();
+  private readonly rng: Rng;
+  private readonly nextRandom: () => number;
+
+  /** Creates an isolated deterministic random stream for puzzle nodes. */
+  constructor(seed = 0) {
+    this.rng = new Rng(seed);
+    this.nextRandom = this.rng.next.bind(this.rng);
+  }
 
   registerNode(node: PuzzleNode): void {
     this.nodes.set(node.id, node);
@@ -102,7 +111,7 @@ export class PuzzleSystem {
     return {
       now: simTime,
       playerCount,
-      rng: Math.random,
+      rng: this.nextRandom,
       emitNoise: emitNoiseCb ?? (() => {}),
       emitWorldEvent: emitEventCb ?? (() => {}),
     };

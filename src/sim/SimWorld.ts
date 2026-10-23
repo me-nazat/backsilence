@@ -19,8 +19,11 @@ import type { FlowField } from './FlowField.js';
 import type { WeatherSystem } from './Weather.js';
 import type { GhostTrain } from './GhostTrain.js';
 import type { Drone } from './Drone.js';
+import { Rng } from './rng.js';
 
 export interface SimWorldConfig {
+  /** Seed shared by every authoritative simulation participant. */
+  seed: number;
   bounds: GridBounds;
   playerSpawn: Vec3;
   waterY: number;
@@ -39,6 +42,8 @@ export interface SimWorldConfig {
 }
 
 export class SimWorld {
+  readonly seed: number;
+  readonly rng: Rng;
   mode: 'solo' | 'host' | 'replica' = 'solo';
   readonly ground: GroundGrid;
   readonly colliders: ColliderSet;
@@ -62,8 +67,11 @@ export class SimWorld {
 
   hearingCtx: HearingContext;
   simTime = 0;
+  private noiseSequence = 0;
 
   constructor(config: SimWorldConfig) {
+    this.seed = config.seed;
+    this.rng = new Rng(config.seed);
     this.baseWaterY = config.waterY;
     this.currentWaterY = config.waterY;
     this.worldProfile = config.worldProfile ?? DEFAULT_WORLD_PROFILE;
@@ -132,7 +140,7 @@ export class SimWorld {
     sourcePlayerId?: PlayerId | 'world';
   }): void {
     const t = noise.t ?? this.simTime;
-    const id = `world_noise_${t}_${Math.random()}`;
+    const id = `world_noise_${this.seed}_${this.noiseSequence++}_${Math.round(t * 60)}`;
     this.events.pushNoise(
       id,
       noise.kind,

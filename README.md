@@ -29,6 +29,28 @@ open http://localhost:5173/
 | `npm run test` | Run Vitest tests |
 | `npm run audit` | Audit the production bundle (sizes, forbidden assets) |
 | `npm run verify` | Run all checks: typecheck → lint → test → build → audit |
+| `npm run browser:acceptance` | Build, preview, and run the zero-dependency Chrome/CDP release checks |
+
+## Release checks and offline play
+
+Run the release gate from a clean working tree:
+
+```bash
+npm run verify
+npm run browser:acceptance
+```
+
+The browser check needs a locally installed Chrome or Chromium. Set
+`BACKSILENCE_CHROME_BIN` if it is not discoverable automatically. Screenshots
+are written to an operating-system temporary directory; set
+`BACKSILENCE_ARTIFACT_DIR` to an **external** directory to retain them.
+
+Production builds register the service worker after the first paint, then warm
+the solo-game and map modules while idle. After that first online visit, an
+offline reload and solo start are supported. Debug solo sessions expose
+`window.__backsilence.networkGuardStats()` for checking that gameplay did not
+attempt application networking. Local-tab rooms (`?net=local`) cover automated
+co-op checks; configured cloud adapters still require a deployed manual check.
 
 ## URL Parameters
 
@@ -69,3 +91,4 @@ src/
 - [CODING_STANDARDS.md](CODING_STANDARDS.md) — TypeScript rules, performance guidelines
 - [ACOUSTIC_RULEBOOK.md](ACOUSTIC_RULEBOOK.md) — Monster hearing mechanics
 - [DECISIONS.md](DECISIONS.md) — Design decision log with rationale
+- [WALKTHROUGH.md](WALKTHROUGH.md) — Text-only release walkthrough and browser evidence checklist

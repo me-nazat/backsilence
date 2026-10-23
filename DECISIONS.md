@@ -134,5 +134,23 @@ All design decisions are recorded here with rationale.
 **Choice:** On monster `ATTACK`, apply a 0.25x hit-stop time dilation, smoothly snap and dolly the camera within 0.15 s to 0.8 m directly in front of the monster's head joint regardless of attack angle, apply 28 Hz camera noise and ±8° Dutch roll, duck audio buses, trigger jumpscare stinger and red vignette flash, then transition to DeathScreen with stats and sub-second Retry.
 **Reason:** Maximizes visceral horror impact and immediate readability while maintaining robust recovery and rapid retry loop for player engagement.
 
+---
+
+## Release-Critical Hardening Decisions
+
+### D024: Authoritative simulation derives all identity and puzzle variance from a seed
+**Date:** 2026-10-23
+**Choice:** Make `SimWorldConfig.seed` mandatory, use stable seed/sequence/tick noise IDs, and give each `PuzzleSystem` its own seeded RNG. Procedural stroke text derives a stable hash seed whenever callers do not supply an RNG.
+**Reason:** Identical simulations must produce identical events and generated layouts across tabs, test runners, and hosts. Non-authoritative UI and cryptographic room-code generation remain outside this rule.
+
+### D025: Offline readiness is earned after first paint
+**Date:** 2026-10-23
+**Choice:** Register the existing service worker only in production and only after the interactive UI has painted. Once ready, import the solo session and every map definition to place their hashed chunks in the runtime cache.
+**Reason:** The first menu stays responsive while a completed online visit makes a later offline reload and solo launch practical without adding a new dependency or asset pipeline.
+
+### D026: Browser acceptance remains dependency-free and keeps artifacts external
+**Date:** 2026-10-23
+**Choice:** Use Node's built-in WebSocket with the Chrome DevTools Protocol, Vite preview, and a locally installed Chrome/Chromium. Store screenshots in an OS temporary directory or an explicitly external artifact directory.
+**Reason:** This gives repeatable release evidence without Playwright/Puppeteer downloads or repository binary assets, while enforcing console, network, responsive routing, local-tab lobby, and offline-service-worker checks.
 
 

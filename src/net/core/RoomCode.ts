@@ -40,11 +40,7 @@ export function generateRoomCode(customRandom?: () => number): RoomCode {
     return result;
   }
 
-  for (let i = 0; i < ROOM_CODE_LENGTH; i++) {
-    const idx = Math.floor(Math.random() * SAFE_ALPHABET.length);
-    result += SAFE_ALPHABET[idx];
-  }
-  return result;
+  throw new Error('Secure random room-code generation is unavailable in this environment.');
 }
 
 /**

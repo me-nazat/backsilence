@@ -29,7 +29,6 @@ export const AdapterRegistry = {
     const factory = factories.get(provider);
 
     if (!factory) {
-      console.warn(`[AdapterRegistry] Provider "${provider}" not registered. Falling back to loopback.`);
       return new LoopbackAdapter();
     }
 
@@ -37,7 +36,7 @@ export const AdapterRegistry = {
   },
 
   resolveConfigFromEnv(): AdapterConfig {
-    const env = typeof import.meta !== 'undefined' && import.meta.env ? (import.meta.env as Record<string, string | undefined>) : {};
+    const env = typeof import.meta !== 'undefined' && import.meta.env ? (import.meta.env as unknown as Record<string, string | undefined>) : {};
 
     const rawProvider = env['VITE_NET_PROVIDER'] ?? 'loopback';
     let provider = rawProvider.toLowerCase() as AdapterConfig['provider'];

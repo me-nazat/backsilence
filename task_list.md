@@ -44,6 +44,7 @@
 - [x] **Phase 7: UI, Verification & Walkthrough**
   - [x] Dynamic Map Picker with thumbnail previews drawn from `LayoutData`
   - [x] Keypad modal overlay, Results screen with `localStorage` persistence (`backsilence.progress.v1`)
-  - [x] Run `npm run verify` (`typecheck`, `lint`, `test`, `build`, `audit` — all PASS, bundle 248.16 KB)
-  - [x] Headless Chrome CDP automation: captured screenshots across all 5 maps, verified FPS (60), draw calls ($\le 90$), triangles ($\le 85\text{k}$), memory switch hygiene
-  - [x] Completed milestone git commit and published `walkthrough.md`
+  - [x] Release hardening: seeded simulation IDs/puzzle streams/procedural text, plus lint enforcement against `Math.random()` in simulation and generation code
+  - [x] `npm run verify`: TypeScript, lint, 196 Vitest assertions, production build, zero-asset and gzip-budget audit
+  - [x] `npm run browser:acceptance`: desktop and mobile routing, lab/debug, local-tab lobby, keyboard focus, console/network policy, and service-worker offline reload evidence
+  - [x] Published text-only [WALKTHROUGH.md](WALKTHROUGH.md); generated screenshots remain external release artifacts

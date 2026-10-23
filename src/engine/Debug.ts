@@ -104,6 +104,10 @@ import { makeTaglineDecal, makeWarningDecal } from '../procedural/textures/Graff
 import { makeNumberDecal } from '../procedural/textures/NumberDecals.js';
 import { runScenario, listScenarios, runAllScenarios } from '../sim/SimScenarios.js';
 
+export interface DebugApiOptions {
+  networkGuardStats?: () => unknown;
+}
+
 export interface AudioSelfTestResult {
   voice: VoiceName;
   peakAmplitude: number;
@@ -750,11 +754,12 @@ export function perfReport(): Record<string, unknown> {
 /**
  * Install __backsilence debug API on window with deprecated __poolrooms alias.
  */
-export function installDebugApi(): void {
+export function installDebugApi(options: DebugApiOptions = {}): void {
   const api = {
     audioSelfTest,
     textureSelfTest,
     perfReport,
+    networkGuardStats: () => options.networkGuardStats?.() ?? null,
     postSelfTest: async () => {
       const g = window as unknown as { __backsilence_session?: { postFX?: { postSelfTest: () => Promise<unknown> } } };
       if (g.__backsilence_session?.postFX) {

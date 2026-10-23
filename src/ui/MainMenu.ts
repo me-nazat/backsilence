@@ -113,7 +113,7 @@ export class MainMenu {
           <span style="width: 7px; height: 7px; border-radius: 50%; background: var(--water, #86cfa0); display: inline-block;"></span>
           <span id="calibration-label">Calibrating procedural assets...</span>
         </div>
-        <div>BackSilence v0.25 (Batch 1) · Press ESC to return</div>
+        <div>BackSilence release build · Press ESC to return</div>
       </div>
     `;
 

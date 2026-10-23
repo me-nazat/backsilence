@@ -3,6 +3,8 @@
  *  Defines glyphs A–Z, 0–9, and punctuation as normalized 0..1 polylines.
  * ──────────────────────────────────────────────────────────────────────── */
 
+import { Rng, hashString } from '../core/prng.js';
+
 export type Point2D = [number, number];
 export type Polyline = Point2D[];
 
@@ -11,6 +13,8 @@ export interface LayoutOptions {
   tracking?: number;
   rng?: () => number;
   wobble?: number;
+  /** Stable seed used when no RNG callback is supplied. */
+  seed?: number;
 }
 
 export interface PositionedPolyline {
@@ -200,8 +204,10 @@ export const GLYPHS: Record<string, Polyline[]> = {
 export function layoutText(text: string, options: LayoutOptions = {}): TextLayoutResult {
   const size = options.size ?? 48;
   const tracking = options.tracking ?? 0.15;
-  const rng = options.rng ?? Math.random;
   const wobble = options.wobble ?? 0.05;
+  const defaultSeed = options.seed ?? hashString(`${text}|${size}|${tracking}|${wobble}`);
+  const seededRng = new Rng(defaultSeed);
+  const rng = options.rng ?? seededRng.next.bind(seededRng);
 
   const polylines: Polyline[] = [];
   let curX = 0;

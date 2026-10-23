@@ -36,7 +36,7 @@ function createDummyCtx(now = 0, playerCount = 1): PuzzleCtx {
  */
 export function solveLayoutPuzzleHeadless(mapId: MapId, layout: LayoutData): SolveResult {
   const steps: string[] = [];
-  const system = new PuzzleSystem();
+  const system = new PuzzleSystem(layout.seed);
 
   switch (mapId) {
     case 'poolrooms': {

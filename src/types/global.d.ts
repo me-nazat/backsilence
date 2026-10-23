@@ -2,6 +2,7 @@
 
 /** Vite import.meta.env typing. */
 interface ImportMetaEnv {
+  readonly PROD: boolean;
   readonly VITE_NET_PROVIDER?: string;
   readonly VITE_NET_URL?: string;
   readonly VITE_NET_KEY?: string;

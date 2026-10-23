@@ -38,6 +38,17 @@ export interface PostFXOsdState {
   timestamp: string;
 }
 
+export type PostFXMode = 'composer' | 'css-fallback' | 'headless';
+
+export interface PostFXStatus {
+  mode: PostFXMode;
+  reason?: 'low-quality' | 'headless' | 'composer-failed';
+}
+
+export interface PostFXOptions {
+  onDegraded?: (status: PostFXStatus) => void;
+}
+
 interface VHSUniforms {
   uIntensity: { value: number };
   uTime: { value: number };
@@ -89,15 +100,19 @@ export class PostFX {
   // Quality management
   private lowFpsTimer = 0;
   private currentTier: 'high' | 'medium' | 'low' = 'high';
+  private status: PostFXStatus = { mode: 'css-fallback', reason: 'low-quality' };
 
   constructor(
     private readonly renderer: WebGLRenderer,
     private readonly container: HTMLElement,
     settings: Settings,
+    private readonly options: PostFXOptions = {},
   ) {
     this.settings = settings;
-    this.width = container.clientWidth || window.innerWidth || 1920;
-    this.height = container.clientHeight || window.innerHeight || 1080;
+    const viewportWidth = typeof window === 'undefined' ? 1920 : window.innerWidth;
+    const viewportHeight = typeof window === 'undefined' ? 1080 : window.innerHeight;
+    this.width = container.clientWidth || viewportWidth || 1920;
+    this.height = container.clientHeight || viewportHeight || 1080;
 
     this.resolveQualityTier();
     this.initComposer();
@@ -119,6 +134,14 @@ export class PostFX {
   private initComposer(): void {
     if (this.currentTier === 'low') {
       this.disposeComposer();
+      this.status = { mode: 'css-fallback', reason: 'low-quality' };
+      this.options.onDegraded?.(this.status);
+      return;
+    }
+
+    if (typeof window === 'undefined' || typeof document === 'undefined') {
+      this.disposeComposer();
+      this.status = { mode: 'headless', reason: 'headless' };
       return;
     }
 
@@ -148,11 +171,17 @@ export class PostFX {
       // 5. OutputPass (Tone mapping and sRGB color space conversion)
       this.outputPass = new OutputPass();
       this.composer.addPass(this.outputPass);
-    } catch (err) {
-      console.warn('[PostFX] Failed to initialize EffectComposer, falling back to CSS overlay:', err);
+      this.status = { mode: 'composer' };
+    } catch {
       this.currentTier = 'low';
       this.disposeComposer();
+      this.status = { mode: 'css-fallback', reason: 'composer-failed' };
+      this.options.onDegraded?.(this.status);
     }
+  }
+
+  getStatus(): PostFXStatus {
+    return this.status;
   }
 
   private createCssOverlay(): void {

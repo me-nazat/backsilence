@@ -39,6 +39,7 @@ describe('Multiplayer Integration Scenarios (Host + 2 Clients)', () => {
     const ground = new GroundGrid({ minX: -20, maxX: 20, minZ: -20, maxZ: 20 }, 1.0);
     ground.rasterizePlatform(-18, -18, 18, 18, -0.9);
     const hostWorld = new SimWorld({
+      seed: 1337,
       bounds: { minX: -20, maxX: 20, minZ: -20, maxZ: 20 },
       playerSpawn: { x: 0, y: 0.5, z: 0 },
       waterY: 0,

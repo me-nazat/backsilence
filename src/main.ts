@@ -73,6 +73,47 @@ function showWebGlError(reason: string): void {
   `;
 }
 
+/** Register the offline shell without delaying the interactive menu. */
+function registerOfflineSupport(onFailure: (message: string) => void): void {
+  if (!import.meta.env.PROD || !('serviceWorker' in navigator)) return;
+
+  const registerAfterFirstPaint = () => {
+    window.requestAnimationFrame(() => {
+      void (async () => {
+        try {
+          await navigator.serviceWorker.register('/sw.js', { scope: '/' });
+          await navigator.serviceWorker.ready;
+
+          const prefetch = () => {
+            void (async () => {
+              const { ALL_MAP_IDS, getMapDefinition } = await import('./world/MapRegistry.js');
+              await Promise.all([
+                import('./game/GameSession.js'),
+                ...ALL_MAP_IDS.map((mapId) => getMapDefinition(mapId)),
+              ]);
+            })().catch(() => onFailure('Offline cache could not be prepared. Online play is still available.'));
+          };
+          if (typeof window.requestIdleCallback === 'function') {
+            window.requestIdleCallback(prefetch, { timeout: 3000 });
+          } else {
+            globalThis.setTimeout(prefetch, 0);
+          }
+        } catch {
+          onFailure('Offline cache could not be prepared. Online play is still available.');
+        }
+      })();
+    });
+  };
+
+  // Dynamic module loading can finish after window.load. In that case a
+  // load-only listener would never run and first-visit offline setup is lost.
+  if (document.readyState === 'complete') {
+    registerAfterFirstPaint();
+  } else {
+    window.addEventListener('load', registerAfterFirstPaint, { once: true });
+  }
+}
+
 // ── Master Boot Function ────────────────────────────────────────────────
 async function boot(): Promise<void> {
   const bootStart = performance.now();
@@ -134,9 +175,18 @@ async function boot(): Promise<void> {
   hideSplash();
   stateMachine.transition('MENU');
 
-  // Install Debug Tools and window.__poolrooms immediately
+  // Install debug tools. The solo network guard is intentionally debug-only
+  // so ordinary production traffic is never monkey-patched.
   const debugModule = await import('./engine/Debug.js');
-  debugModule.installDebugApi();
+  if (route.debug) {
+    const networkGuard = await import('./net/NetworkGuard.js');
+    networkGuard.installNetworkGuard(() =>
+      store.get('session').mode === 'single' && stateMachine.current === 'PLAYING',
+    );
+    debugModule.installDebugApi({ networkGuardStats: networkGuard.getNetworkGuardStats });
+  } else {
+    debugModule.installDebugApi();
+  }
 
   // 4. Background Parallel Chunk Loading
   const [
@@ -222,6 +272,7 @@ async function boot(): Promise<void> {
   });
 
   ui.setAudioLabPanel(labScene.audioLabPanel);
+  registerOfflineSupport((message) => ui?.showToast(message, 'warn'));
 
   type GlobalRefs = {
     __backsilence_lab?: LabScene;
@@ -243,6 +294,12 @@ async function boot(): Promise<void> {
   let activeGameSession: InstanceType<typeof GameSession> | null = null;
 
   bus.on('game:start', (cfg) => {
+    store.set('session', {
+      mode: 'single',
+      mapId: cfg.mapId,
+      seed: cfg.seed,
+      room: null,
+    });
     if (activeGameSession) {
       activeGameSession.dispose();
       activeGameSession = null;
@@ -282,6 +339,12 @@ async function boot(): Promise<void> {
       activeGameSession.dispose();
       activeGameSession = null;
     }
+    store.set('session', {
+      mode: 'multi',
+      mapId: netCfg.mapId,
+      seed: netCfg.seed,
+      room: store.get('session').room,
+    });
     labScene.renderer.canvas.style.display = 'none';
 
     activeGameSession = new GameSession(

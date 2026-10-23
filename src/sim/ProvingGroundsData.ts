@@ -66,6 +66,7 @@ export const ARENA_MONSTER_SPAWN: Vec3 = { x: -30, y: WATER_FLOOR_Y, z: -28 };
  */
 export function createProvingGroundsSim(difficulty: 'whisper' | 'normal' | 'deafening' = 'normal'): SimWorld {
   const world = new SimWorld({
+    seed: 1337,
     bounds: ARENA_BOUNDS,
     playerSpawn: ARENA_PLAYER_SPAWN,
     waterY: WATER_SURFACE_Y,
