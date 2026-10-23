@@ -15,7 +15,7 @@ import { MemoryHub, MemoryHubAdapter } from '../src/net/adapters/MemoryHubAdapte
 import { LocalTabAdapter } from '../src/net/adapters/LocalTabAdapter.js';
 import { SupabaseAdapter } from '../src/net/adapters/SupabaseAdapter.js';
 import { FirebaseAdapter } from '../src/net/adapters/FirebaseAdapter.js';
-import { TursoAdapter } from '../src/net/adapters/TursoAdapter.js';
+import { TursoProxyAdapter } from '../src/net/adapters/TursoProxyAdapter.js';
 import { WebRtcDbAdapter } from '../src/net/adapters/WebRtcDbAdapter.js';
 import { AdapterRegistry } from '../src/net/adapters/AdapterRegistry.js';
 import type { NetDeps } from '../src/net/NetDeps.js';
@@ -223,27 +223,32 @@ describe('FirebaseAdapter Protocol Fakes', () => {
   });
 });
 
-describe('TursoAdapter Protocol Fakes', () => {
-  it('executes SQL pipeline requests and handles constraints', async () => {
-    const fakeFetch = vi.fn().mockImplementation((_url: string, _init?: RequestInit) => {
-      return Promise.resolve(
-        new Response(
-          JSON.stringify({
-            results: [
-              {
-                type: 'ok',
-                response: {
-                  result: {
-                    cols: [{ name: 'code' }],
-                    rows: [],
-                  },
-                },
+describe('TursoProxyAdapter Protocol Fakes', () => {
+  it('communicates with serverless proxy endpoints for room creation', async () => {
+    const fakeFetch = vi.fn().mockImplementation((url: string, _init?: RequestInit) => {
+      if (url.includes('/room/create')) {
+        return Promise.resolve(
+          new Response(
+            JSON.stringify({
+              room: {
+                code: 'ABCD',
+                hostId: 'turso-host',
+                mapId: 'drainage_core',
+                seed: 777,
+                difficulty: 'normal',
+                maxPlayers: 3,
+                state: 'lobby',
+                protocol: 1,
+                createdAt: Date.now(),
+                expiresAt: Date.now() + 60000,
+                players: [{ id: 'turso-host', name: 'TursoHost', ready: true, isHost: true, colorIndex: 0 }],
               },
-            ],
-          }),
-          { status: 200 },
-        ),
-      );
+            }),
+            { status: 200, headers: { 'Content-Type': 'application/json' } },
+          ),
+        );
+      }
+      return Promise.resolve(new Response(JSON.stringify({ ok: true }), { status: 200 }));
     });
 
     const fakeDeps: NetDeps = {
@@ -252,11 +257,10 @@ describe('TursoAdapter Protocol Fakes', () => {
       random: () => 0.5,
     };
 
-    const adapter = new TursoAdapter(fakeDeps, 'turso-host');
+    const adapter = new TursoProxyAdapter(fakeDeps, 'turso-host');
     await adapter.connect({
-      provider: 'turso',
-      url: 'https://test-db.turso.io',
-      key: 'test-token',
+      provider: 'turso-proxy',
+      url: '/api',
     });
 
     const room = await adapter.createRoom({
@@ -266,12 +270,13 @@ describe('TursoAdapter Protocol Fakes', () => {
       hostName: 'TursoHost',
     });
 
-    expect(room.code).toHaveLength(4);
-    expect(fakeFetch).toHaveBeenCalledTimes(2); // INSERT room + INSERT player
+    expect(room.code).toBe('ABCD');
+    expect(fakeFetch).toHaveBeenCalledTimes(1);
 
     await adapter.disconnect();
   });
 });
+
 
 describe('WebRtcDbAdapter Fallback', () => {
   it('automatically falls back to DB relay mode if peer connection times out', async () => {

@@ -255,13 +255,14 @@ export interface NetStats {
 }
 
 export interface AdapterConfig {
-  provider: 'null' | 'loopback' | 'memory' | 'local-tab' | 'supabase' | 'firebase' | 'turso' | 'webrtc-db';
+  provider: 'null' | 'loopback' | 'memory' | 'local-tab' | 'supabase' | 'firebase' | 'turso' | 'turso-proxy' | 'webrtc-db';
   url?: string | undefined;
   key?: string | undefined;
-  signalProvider?: 'supabase' | 'firebase' | 'turso' | undefined;
+  signalProvider?: 'supabase' | 'firebase' | 'turso' | 'turso-proxy' | undefined;
   iceServers?: RTCIceServer[] | undefined;
   extra?: Record<string, string> | undefined;
 }
+
 
 export type Unsubscribe = () => void;
 

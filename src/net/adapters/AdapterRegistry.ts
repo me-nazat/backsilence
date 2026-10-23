@@ -11,7 +11,7 @@ import { MemoryHub, MemoryHubAdapter } from './MemoryHubAdapter.js';
 import { LocalTabAdapter } from './LocalTabAdapter.js';
 import { SupabaseAdapter } from './SupabaseAdapter.js';
 import { FirebaseAdapter } from './FirebaseAdapter.js';
-import { TursoAdapter } from './TursoAdapter.js';
+import { TursoProxyAdapter } from './TursoProxyAdapter.js';
 import { WebRtcDbAdapter } from './WebRtcDbAdapter.js';
 
 export type AdapterFactory = (config: AdapterConfig, deps?: NetDeps) => DatabaseNetworkAdapter;
@@ -40,20 +40,19 @@ export const AdapterRegistry = {
 
     const rawProvider = env['VITE_NET_PROVIDER'] ?? 'loopback';
     let provider = rawProvider.toLowerCase() as AdapterConfig['provider'];
-    if (!['null', 'loopback', 'memory', 'local-tab', 'supabase', 'firebase', 'turso', 'webrtc-db'].includes(provider)) {
+    if (!['null', 'loopback', 'memory', 'local-tab', 'supabase', 'firebase', 'turso', 'turso-proxy', 'webrtc-db'].includes(provider)) {
       provider = 'loopback';
     }
 
     const url =
       (typeof env['VITE_NET_URL'] === 'string' && env['VITE_NET_URL']) ||
-      (typeof env['VITE_TURSO_URL'] === 'string' && env['VITE_TURSO_URL']) ||
+      (typeof env['VITE_API_BASE'] === 'string' && env['VITE_API_BASE']) ||
       undefined;
     const key =
       (typeof env['VITE_NET_KEY'] === 'string' && env['VITE_NET_KEY']) ||
-      (typeof env['VITE_TURSO_AUTH_TOKEN'] === 'string' && env['VITE_TURSO_AUTH_TOKEN']) ||
       undefined;
     const rawSignal = typeof env['VITE_NET_SIGNAL'] === 'string' ? env['VITE_NET_SIGNAL'] : 'supabase';
-    const signalProvider = rawSignal === 'firebase' || rawSignal === 'turso' ? rawSignal : 'supabase';
+    const signalProvider = rawSignal === 'firebase' || rawSignal === 'turso' || rawSignal === 'turso-proxy' ? rawSignal : 'supabase';
 
     let iceServers: RTCIceServer[] | undefined;
     if (typeof env['VITE_NET_ICE'] === 'string') {
@@ -91,16 +90,18 @@ AdapterRegistry.register('memory', (_config, _deps) => {
 });
 AdapterRegistry.register('supabase', (_config, deps) => new SupabaseAdapter(deps));
 AdapterRegistry.register('firebase', (_config, deps) => new FirebaseAdapter(deps));
-AdapterRegistry.register('turso', (_config, deps) => new TursoAdapter(deps));
+AdapterRegistry.register('turso', (_config, deps) => new TursoProxyAdapter(deps));
+AdapterRegistry.register('turso-proxy', (_config, deps) => new TursoProxyAdapter(deps));
 AdapterRegistry.register('webrtc-db', (config, deps) => {
   const signal = config.signalProvider ?? 'supabase';
   let primary: DatabaseNetworkAdapter;
   if (signal === 'firebase') {
     primary = new FirebaseAdapter(deps);
-  } else if (signal === 'turso') {
-    primary = new TursoAdapter(deps);
+  } else if (signal === 'turso' || signal === 'turso-proxy') {
+    primary = new TursoProxyAdapter(deps);
   } else {
     primary = new SupabaseAdapter(deps);
   }
   return new WebRtcDbAdapter(primary, deps);
 });
+

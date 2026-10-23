@@ -188,13 +188,22 @@ create index if not exists idx_signals_room on backsilence_signals (room_code, i
 > [!NOTE]
 > Turso/libSQL HTTP requests carry higher latency than WebSockets (~50–120ms roundtrip). Turso is recommended for room creation, matchmaking, and WebRTC signaling exchange, with peer-to-peer data channels carrying gameplay snapshots.
 
-### 4.2 Turso Environment Variables
+### 4.2 Turso Environment & API Proxy Configuration
 
-In `.env`:
+> [!CAUTION]
+> **Zero-Secret Client Rule:** Never place Turso database tokens in client-side `.env` files or `VITE_*` variables. The browser communicates exclusively via the `/api/*` proxy. See `SECURITY.md` for full credential rotation and hygiene details.
+
+**Client Configuration (`.env.local`):**
 ```ini
-VITE_NET_PROVIDER=turso
-VITE_TURSO_URL=https://your-database-slug.turso.io
-VITE_TURSO_AUTH_TOKEN=your_jwt_token_here
+VITE_NET_PROVIDER=turso-proxy
+VITE_API_BASE=/api
+```
+
+**Server-Side Proxy Configuration (`.env.server` / Hosting Provider Secrets):**
+```ini
+TURSO_DATABASE_URL=https://your-database-slug.turso.io
+TURSO_AUTH_TOKEN=your_server_only_token_here
+ALLOWED_ORIGINS=https://yourdomain.com
 ```
 
 ---

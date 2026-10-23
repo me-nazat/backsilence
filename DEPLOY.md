@@ -37,92 +37,44 @@ All major static hosting providers (Vercel, Netlify, Cloudflare Pages, GitHub Pa
 
 ## 3. Platform Setup Guides
 
-### 3.1 Cloudflare Pages (Recommended)
+### 3.1 Cloudflare Pages + Cloudflare Workers (Recommended)
 1. Link your Git repository in Cloudflare Dashboard.
 2. Build command: `npm run build`
 3. Output directory: `dist`
-4. Node version: `18` or `20`
-5. Environment variables: Add your database credentials (e.g. `VITE_NET_PROVIDER=supabase`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`).
+4. Node version: `20`
+5. Client variables: `VITE_API_BASE=/api` (or worker custom domain)
+6. Server-side secrets for the `/api/*` worker:
+   - `TURSO_DATABASE_URL` (e.g. `https://your-db-slug.turso.io`)
+   - `TURSO_AUTH_TOKEN` (server-only secret via `wrangler secret put`)
+   - `ALLOWED_ORIGINS` (e.g. `https://yourdomain.com`)
+   - `ADMIN_JOB_TOKEN` (secret for cron verifier)
 
-### 3.2 Vercel
-Create `vercel.json` in root:
-```json
-{
-  "buildCommand": "npm run build",
-  "outputDirectory": "dist",
-  "headers": [
-    {
-      "source": "/assets/(.*)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=31536000, immutable"
-        }
-      ]
-    },
-    {
-      "source": "/sw.js",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "no-cache, no-store, must-revalidate"
-        }
-      ]
-    }
-  ]
-}
-```
+### 3.2 Vercel (Edge Functions)
+Deploy client to Vercel and API routes via `api/vercel/[...route].ts`:
+1. Build command: `npm run build`
+2. Output directory: `dist`
+3. Server environment variables (Server-only, never VITE_*):
+   - `TURSO_DATABASE_URL`
+   - `TURSO_AUTH_TOKEN`
+   - `ALLOWED_ORIGINS`
+   - `ADMIN_JOB_TOKEN`
 
-### 3.3 Netlify
-Create `public/_headers` (copied to `dist/_headers` on build):
-```text
-/*
-  X-Content-Type-Options: nosniff
-  X-Frame-Options: DENY
-  Referrer-Policy: strict-origin-when-cross-origin
-
-/assets/*
-  Cache-Control: public, max-age=31536000, immutable
-
-/sw.js
-  Cache-Control: no-cache, no-store, must-revalidate
-```
-
-### 3.4 GitHub Pages
-Use GitHub Actions workflow `.github/workflows/deploy.yml`:
-```yaml
-name: Deploy to GitHub Pages
-on:
-  push:
-    branches: [main]
-jobs:
-  build-and-deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-      - run: npm ci
-      - run: npm run build
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: dist
-      - uses: actions/deploy-pages@v4
-```
+### 3.3 Netlify (Netlify Functions)
+Deploy functions via `netlify/functions/api.ts` mapping to `api/core`:
+- Set `TURSO_DATABASE_URL` and `TURSO_AUTH_TOKEN` in Site Configuration → Environment Variables (Scope: Functions).
 
 ---
 
 ## 4. Content Security Policy (CSP)
 
-BackSilence operates safely with strict CSP headers:
+With the `/api/*` proxy architecture, client browser network access is locked strictly to same-origin and optional WebRTC STUN servers:
 
 ```http
-Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.firebaseio.com wss://*.firebaseio.com https://*.turso.io; img-src 'self' data: blob:; worker-src 'self';
+Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://<your-api-domain>; img-src 'self' data: blob:; worker-src 'self';
 ```
 
 > [!NOTE]
-> `'unsafe-eval'` is permitted for WebGL shader compilation and procedural noise buffer generation. No remote script execution or external CDN downloads occur.
+> Client code **never** connects directly to `turso.io` or databases. All communication flows through the authenticated `/api/*` proxy.
 
 ---
 

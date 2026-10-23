@@ -61,14 +61,26 @@ for (const filePath of files) {
   const ext = extname(filePath);
   const rel = filePath.replace(DIST + '/', '');
 
-  // Check for forbidden file types (allow sw.js, _headers, models/*.glb and models/*.json, and valid JS/CSS/HTML extensions)
+  // Check for forbidden file types (allow sw.js, _headers, manifest.webmanifest, icon.svg, models/*.glb and models/*.json, and valid JS/CSS/HTML extensions)
   const isModelAsset = rel.startsWith('models/') && (ext === '.glb' || ext === '.json');
-  const isAllowedFile = rel === 'sw.js' || rel === '_headers' || isModelAsset || ALLOWED_EXTS.has(ext);
+  const isAllowedSpecial = rel === 'sw.js' || rel === '_headers' || rel === 'manifest.webmanifest' || rel === 'icon.svg';
+  const isAllowedFile = isAllowedSpecial || isModelAsset || ALLOWED_EXTS.has(ext);
   if (!isAllowedFile) {
     errors.push(`Forbidden file type: ${rel} (${ext})`);
   }
 
   const raw = readFileSync(filePath);
+
+  // Security check: ensure built bundle contains no libsql:// host or eyJ JWT pattern
+  if (ext === '.js' || ext === '.html' || ext === '.css' || ext === '.map') {
+    const text = raw.toString('utf8');
+    if (/libsql:\/\//.test(text)) {
+      errors.push(`Security violation: ${rel} contains forbidden 'libsql://' database URI pattern!`);
+    }
+    if (/\beyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}\b/.test(text)) {
+      errors.push(`Security violation: ${rel} contains forbidden 'eyJ' JWT token pattern!`);
+    }
+  }
 
   if (isModelAsset) {
     modelsRawBytes += raw.length;
