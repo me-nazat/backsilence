@@ -45,8 +45,14 @@ export const AdapterRegistry = {
       provider = 'loopback';
     }
 
-    const url = typeof env['VITE_NET_URL'] === 'string' ? env['VITE_NET_URL'] : undefined;
-    const key = typeof env['VITE_NET_KEY'] === 'string' ? env['VITE_NET_KEY'] : undefined;
+    const url =
+      (typeof env['VITE_NET_URL'] === 'string' && env['VITE_NET_URL']) ||
+      (typeof env['VITE_TURSO_URL'] === 'string' && env['VITE_TURSO_URL']) ||
+      undefined;
+    const key =
+      (typeof env['VITE_NET_KEY'] === 'string' && env['VITE_NET_KEY']) ||
+      (typeof env['VITE_TURSO_AUTH_TOKEN'] === 'string' && env['VITE_TURSO_AUTH_TOKEN']) ||
+      undefined;
     const rawSignal = typeof env['VITE_NET_SIGNAL'] === 'string' ? env['VITE_NET_SIGNAL'] : 'supabase';
     const signalProvider = rawSignal === 'firebase' || rawSignal === 'turso' ? rawSignal : 'supabase';
 
