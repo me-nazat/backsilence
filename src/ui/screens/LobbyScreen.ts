@@ -136,8 +136,18 @@ export class LobbyScreen {
 
   private bindEvents(inviteUrl: string): void {
     this.element.querySelector('#btn-copy-invite')?.addEventListener('click', () => {
-      void navigator.clipboard.writeText(inviteUrl);
-      Toast.show('Room link copied to clipboard!', 'success');
+      void (async () => {
+        try {
+          if (navigator.clipboard?.writeText) {
+            await navigator.clipboard.writeText(inviteUrl);
+            Toast.show('Room link copied to clipboard!', 'success');
+          } else {
+            Toast.show('Clipboard not supported in this browser.', 'warning');
+          }
+        } catch {
+          Toast.show('Could not copy room link.', 'warning');
+        }
+      })();
     });
 
     this.element.querySelector('#btn-leave-room')?.addEventListener('click', () => {

@@ -16,16 +16,19 @@ export interface MapEntryInfo {
 }
 
 export const MAPS_CATALOG: MapEntryInfo[] = [
+  // Featured (Batch 5)
   { id: 'natatorium', name: 'The Natatorium', difficulty: 2, tags: ['OLYMPIC BASIN', 'ECHOES', 'WIDE STEPS'], isFeatured: true, bestTimeMs: 42300 },
-  { id: 'poolrooms', name: 'Poolrooms Core', difficulty: 1, tags: ['CLASSIC TILES', 'SHALLOW TRENCH', 'SAFE LEDGES'], isFeatured: true, bestTimeMs: 34100 },
-  { id: 'marble_atrium', name: 'Marble Atrium', difficulty: 2, tags: ['ROMAN ARCHES', 'HIGH VAULT', 'PERCHES'], isFeatured: true, bestTimeMs: 48900 },
+  { id: 'drowned_school', name: 'Drowned School', difficulty: 3, tags: ['SUBMERGED DESKS', 'HALLWAYS', 'LOCKERS'], isFeatured: true, bestTimeMs: 51200 },
+  { id: 'sunken_jungle', name: 'Sunken Jungle', difficulty: 4, tags: ['ALGAE OVERGROWTH', 'MURKY WATER', 'FOLIAGE'], isFeatured: true, bestTimeMs: 83400 },
+  { id: 'neon_flood', name: 'Neon Flood', difficulty: 5, tags: ['ELECTRICAL SHORT', 'NEON REFLECTION', 'FAST CURRENT'], isFeatured: true, bestTimeMs: 91000 },
+  { id: 'drowned_metro', name: 'Drowned Metro', difficulty: 5, tags: ['TRAIN CARS', 'SUBMERGED TRACKS', 'DARK TUNNELS'], isFeatured: true, bestTimeMs: 104200 },
+  // Archive & Training (Batch 3 & 7)
+  { id: 'orientation', name: 'Orientation Facility', difficulty: 1, tags: ['TUTORIAL', 'GUIDED ACOUSTICS', 'CALM SHALLOWS'], isFeatured: false, bestTimeMs: 25000 },
+  { id: 'poolrooms', name: 'Poolrooms Core', difficulty: 1, tags: ['CLASSIC TILES', 'SHALLOW TRENCH', 'SAFE LEDGES'], isFeatured: false, bestTimeMs: 34100 },
+  { id: 'marble_atrium', name: 'Marble Atrium', difficulty: 2, tags: ['ROMAN ARCHES', 'HIGH VAULT', 'PERCHES'], isFeatured: false, bestTimeMs: 48900 },
   { id: 'utility_tunnels', name: 'Utility Tunnels', difficulty: 3, tags: ['NARROW PIPES', 'STEAM VENTS', 'LOW CEILING'], isFeatured: false, bestTimeMs: 58200 },
   { id: 'hydro_maze', name: 'Hydro Maze', difficulty: 3, tags: ['T-JUNCTIONS', 'DEAD ENDS', 'HIGH REVERB'], isFeatured: false, bestTimeMs: 65400 },
   { id: 'drainage_core', name: 'Drainage Core', difficulty: 4, tags: ['PUMP TURBINES', 'RAPID DRAINS', 'STRONG TIDE'], isFeatured: false, bestTimeMs: 72100 },
-  { id: 'drowned_school', name: 'Drowned School', difficulty: 3, tags: ['SUBMERGED DESKS', 'HALLWAYS', 'LOCKERS'], isFeatured: false, bestTimeMs: 51200 },
-  { id: 'sunken_jungle', name: 'Sunken Jungle', difficulty: 4, tags: ['ALGAE OVERGROWTH', 'MURKY WATER', 'FOLIAGE'], isFeatured: false, bestTimeMs: 83400 },
-  { id: 'neon_flood', name: 'Neon Flood', difficulty: 5, tags: ['ELECTRICAL SHORT', 'NEON REFLECTION', 'FAST CURRENT'], isFeatured: false, bestTimeMs: 91000 },
-  { id: 'drowned_metro', name: 'Drowned Metro', difficulty: 5, tags: ['TRAIN CARS', 'SUBMERGED TRACKS', 'DARK TUNNELS'], isFeatured: false, bestTimeMs: 104200 },
 ];
 
 export interface MapsScreenCallbacks {
@@ -51,7 +54,7 @@ export class MapsScreen {
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: clamp(24px, 4vw, 48px) 24px;
+      padding: clamp(16px, 4vw, 48px) clamp(16px, 3vw, 24px);
       box-sizing: border-box;
     `;
 
@@ -65,7 +68,7 @@ export class MapsScreen {
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--bs-border); padding-bottom: 16px; flex-wrap: wrap; gap: 12px;">
           <div>
             <h1 style="font-family: var(--bs-font-mono); font-size: var(--bs-text-2xl); color: var(--bs-cream); margin: 0; letter-spacing: 0.08em;">
-              FACILITY MAP ARCHIVE // 10 SECTORS
+              FACILITY MAP ARCHIVE // 11 SECTORS
             </h1>
             <div style="font-family: var(--bs-font-mono); font-size: var(--bs-text-xs); color: var(--bs-tan); margin-top: 4px;">
               SURVEYED HYDROGRAPHIC LAYOUTS
@@ -78,7 +81,7 @@ export class MapsScreen {
         <div id="tabs-wrap"></div>
 
         <!-- Maps Grid -->
-        <div id="maps-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px;"></div>
+        <div id="maps-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr)); gap: 20px;"></div>
       </div>
     `;
 
@@ -89,10 +92,12 @@ export class MapsScreen {
     });
     this.element.querySelector('#btn-back-wrap')?.appendChild(backBtn.element);
 
+    const featuredCount = MAPS_CATALOG.filter((m) => m.isFeatured).length;
+    const allCount = MAPS_CATALOG.length;
     const tabs = new Tabs({
       items: [
-        { id: 'all', label: 'FULL ARCHIVE', count: 10 },
-        { id: 'featured', label: 'FEATURED SECTORS', count: 3 },
+        { id: 'all', label: 'FULL ARCHIVE', count: allCount },
+        { id: 'featured', label: 'FEATURED SECTORS', count: featuredCount },
       ],
       activeId: 'all',
       onChange: (id) => {

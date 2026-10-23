@@ -78,10 +78,16 @@ export class LeaderboardsScreen {
           <div style="font-family: var(--bs-font-mono); font-size: var(--bs-text-xs); color: var(--bs-tan);">FILTERS:</div>
           <select id="select-map" class="bs-select" style="min-height: 32px; padding: 4px 8px;">
             <option value="natatorium">The Natatorium</option>
+            <option value="drowned_school">Drowned School</option>
+            <option value="sunken_jungle">Sunken Jungle</option>
+            <option value="neon_flood">Neon Flood</option>
+            <option value="drowned_metro">Drowned Metro</option>
+            <option value="orientation">Orientation Facility</option>
             <option value="poolrooms">Poolrooms Core</option>
             <option value="marble_atrium">Marble Atrium</option>
             <option value="utility_tunnels">Utility Tunnels</option>
             <option value="hydro_maze">Hydro Maze</option>
+            <option value="drainage_core">Drainage Core</option>
           </select>
           <select id="select-mode" class="bs-select" style="min-height: 32px; padding: 4px 8px;">
             <option value="campaign">Campaign Run</option>
@@ -91,19 +97,24 @@ export class LeaderboardsScreen {
           </select>
         </div>
 
-        <!-- Table Header -->
-        <div style="display: grid; grid-template-columns: 40px 48px 1fr 100px 90px 90px 40px; gap: 12px; padding: 0 12px; font-family: var(--bs-font-mono); font-size: 11px; color: var(--bs-tan); text-transform: uppercase;">
-          <div>#</div>
-          <div>TIER</div>
-          <div>OPERATOR</div>
-          <div style="text-align: right;">SCORE</div>
-          <div style="text-align: right;">TIME</div>
-          <div style="text-align: right;">NOISE</div>
-          <div style="text-align: center;">GHOST</div>
-        </div>
+        <!-- Table Scroll Container for Mobile -->
+        <div style="overflow-x: auto; width: 100%; -webkit-overflow-scrolling: touch; padding-bottom: 8px;">
+          <div style="min-width: 520px; display: flex; flex-direction: column; gap: 6px;">
+            <!-- Table Header -->
+            <div style="display: grid; grid-template-columns: 40px 48px 1fr 100px 90px 90px 40px; gap: 12px; padding: 0 12px; font-family: var(--bs-font-mono); font-size: 11px; color: var(--bs-tan); text-transform: uppercase;">
+              <div>#</div>
+              <div>TIER</div>
+              <div>OPERATOR</div>
+              <div style="text-align: right;">SCORE</div>
+              <div style="text-align: right;">TIME</div>
+              <div style="text-align: right;">NOISE</div>
+              <div style="text-align: center;">GHOST</div>
+            </div>
 
-        <!-- Leaderboard Rows Container -->
-        <div id="lb-rows" style="display: flex; flex-direction: column; gap: 6px;"></div>
+            <!-- Leaderboard Rows Container -->
+            <div id="lb-rows" style="display: flex; flex-direction: column; gap: 6px;"></div>
+          </div>
+        </div>
       </div>
     `;
 

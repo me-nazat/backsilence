@@ -115,6 +115,7 @@ export class UIManager {
 
   private audioLabPanel: AudioLabPanel | null = null;
   private isAudioUnlocked = false;
+  private lastResults: RunResults | null = null;
 
   constructor(opts: UIManagerOptions) {
     this.container = opts.container;
@@ -144,7 +145,21 @@ export class UIManager {
     this.playHubScreen = new PlayHubScreen({
       onSelectMode: (modeId) => {
         if (modeId === 'campaign') {
-          this.navigateTo('METAHUB');
+          this.navigateTo('MAPS');
+        } else if (modeId === 'training') {
+          this.startGame({
+            mode: 'single',
+            mapId: 'orientation',
+            difficulty: 1,
+            seed: Date.now(),
+          });
+        } else if (modeId === 'endless') {
+          this.startGame({
+            mode: 'single',
+            mapId: 'drainage_core',
+            difficulty: 3,
+            seed: Date.now(),
+          });
         } else if (modeId === 'daily' || modeId === 'ghost') {
           this.navigateTo('LEADERBOARDS');
         } else if (modeId === 'coop' || modeId === 'race' || modeId === 'last_dry') {
@@ -518,6 +533,7 @@ export class UIManager {
     this.deathScreen.hide();
     this.resultsScreen.hide();
     this.metaHubPanel.hide();
+    this.bestiaryScreen.pause();
   }
 
   private updateViewVisibility(): void {
@@ -538,6 +554,7 @@ export class UIManager {
         break;
       case 'BESTIARY':
         this.bestiaryScreen.element.style.display = 'flex';
+        this.bestiaryScreen.resume();
         this.hud.hide();
         break;
       case 'LEADERBOARDS':
@@ -603,14 +620,18 @@ export class UIManager {
         this.hud.show();
         break;
       case 'RESULTS':
-        this.resultsScreen.show({
-          mapId: 'poolrooms',
-          timeSurvived: 0,
-          noisesMade: 0,
-          closestCall: 0,
-          alertsCount: 0,
-          retries: 0,
-        });
+        if (this.lastResults) {
+          this.resultsScreen.show(this.lastResults);
+        } else {
+          this.resultsScreen.show({
+            mapId: 'poolrooms',
+            timeSurvived: 0,
+            noisesMade: 0,
+            closestCall: 0,
+            alertsCount: 0,
+            retries: 0,
+          });
+        }
         this.hud.hide();
         break;
     }
@@ -640,10 +661,10 @@ export class UIManager {
   }
 
   showResults(results: RunResults): void {
+    this.lastResults = results;
     this.currentView = 'RESULTS';
     this.viewStack.push('RESULTS');
     this.updateViewVisibility();
-    this.resultsScreen.show(results);
     this.stateMachine.goTo('RESULTS');
   }
 

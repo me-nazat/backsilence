@@ -56,7 +56,12 @@ export class PlayerInput {
 
   attach(canvas: HTMLCanvasElement): void {
     this.canvas = canvas;
-    if (this.touchControls.isActive()) {
+    const isTouch =
+      typeof window !== 'undefined' &&
+      (('ontouchstart' in window) ||
+       (typeof navigator !== 'undefined' && navigator.maxTouchPoints > 0) ||
+       (window.matchMedia && window.matchMedia('(pointer: coarse)').matches));
+    if (isTouch || this.touchControls.isActive()) {
       this.touchControls.mount(canvas.parentElement || document.body);
     }
 
@@ -227,6 +232,9 @@ export class PlayerInput {
       this.keysDown.clear();
       this.isThrowing = false;
       this.isCranking = false;
+      this.touchControls.hide();
+    } else {
+      this.touchControls.show();
     }
   }
 

@@ -45,16 +45,28 @@ export class TouchControls {
   }
 
   private checkAutoEnable(): void {
-    if (typeof window !== 'undefined' && window.matchMedia) {
-      const isCoarse = window.matchMedia('(pointer: coarse)').matches;
-      if (isCoarse) {
+    if (typeof window === 'undefined') return;
+    const isTouch =
+      ('ontouchstart' in window) ||
+      (typeof navigator !== 'undefined' && navigator.maxTouchPoints > 0) ||
+      (window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
+    if (isTouch) {
+      this.active = true;
+      if (typeof document !== 'undefined' && document.body) {
         this.mount(document.body);
       }
     }
   }
 
   mount(parent: HTMLElement): void {
-    if (this.container) return;
+    if (this.container) {
+      if (this.container.parentElement !== parent && parent) {
+        parent.appendChild(this.container);
+      }
+      this.active = true;
+      this.show();
+      return;
+    }
 
     const el = document.createElement('div');
     el.id = 'touch-controls-layer';

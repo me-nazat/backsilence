@@ -780,3 +780,36 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ── Mobile Phone Viewport Enhancements (<= 640px) ───────────────────────── */
+@media (max-width: 640px) {
+  .bs-root {
+    padding-left: max(12px, env(safe-area-inset-left));
+    padding-right: max(12px, env(safe-area-inset-right));
+  }
+
+  .bs-btn {
+    min-height: 44px;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  .bs-modal-card {
+    width: 95vw !important;
+    max-width: 95vw !important;
+    padding: 16px !important;
+  }
+
+  .bs-drawer {
+    width: 100vw !important;
+    max-width: 100vw !important;
+  }
+
+  .bs-lb-row {
+    grid-template-columns: 32px 36px 1fr 75px 60px 40px;
+    gap: 8px;
+    padding: 8px;
+    font-size: 11px;
+  }
+}
+

@@ -198,10 +198,25 @@ export class ProfileScreen {
                 Copy this wrapped identity code. You will need both this code and your passphrase to restore your account on another device.
               </p>
               <textarea readonly style="width: 100%; height: 90px; background: #080705; border: 1px solid var(--bs-border); color: var(--bs-water); font-family: monospace; font-size: 11px; padding: 8px; border-radius: 2px;">${code}</textarea>
-              <button class="bs-btn bs-btn-primary" style="margin-top: 12px;" onclick="navigator.clipboard.writeText(this.previousElementSibling.value); this.textContent='COPIED TO CLIPBOARD';">COPY CODE</button>
+              <button id="btn-copy-code" class="bs-btn bs-btn-primary" style="margin-top: 12px;">COPY CODE</button>
             `,
           });
           modal.open();
+          const copyBtn = modal.panel.querySelector<HTMLButtonElement>('#btn-copy-code');
+          copyBtn?.addEventListener('click', () => {
+            void (async () => {
+              try {
+                if (navigator.clipboard?.writeText) {
+                  await navigator.clipboard.writeText(code);
+                  copyBtn.textContent = 'COPIED TO CLIPBOARD';
+                } else {
+                  Toast.show('Clipboard not supported in this browser.', 'warning');
+                }
+              } catch {
+                Toast.show('Could not copy code', 'warning');
+              }
+            })();
+          });
         } catch {
           Toast.show('Failed to export recovery code', 'danger');
         }
