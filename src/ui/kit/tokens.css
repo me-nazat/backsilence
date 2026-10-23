@@ -1,0 +1,137 @@
+/* ── src/ui/kit/tokens.css ────────────────────────────────────────────────
+ *  Design System Tokens for BackSilence: "The Archive".
+ *  Analog horror found-footage VHS / CRT municipal archives aesthetic.
+ *  8px layout grid, fluid type, dark theme + WCAG AA/AAA high-contrast mode.
+ * ──────────────────────────────────────────────────────────────────────── */
+
+:root {
+  /* ── Core Archive Palette ────────────────────────────────────────────── */
+  --bs-ink: #0d0b06;
+  --bs-cream: #e9dca8;
+  --bs-tan: #d8b36a;
+  --bs-grout: #5b4526;
+  --bs-water: #86cfa0;
+  --bs-water-deep: #3f9c6b;
+  --bs-danger: #b3261e;
+
+  /* ── Functional Surfaces ─────────────────────────────────────────────── */
+  --bs-surface-1: rgba(13, 11, 6, 0.94);
+  --bs-surface-2: rgba(26, 21, 14, 0.90);
+  --bs-surface-3: rgba(45, 36, 24, 0.85);
+  --bs-surface-hover: rgba(58, 47, 31, 0.90);
+  --bs-surface-active: rgba(85, 68, 43, 0.95);
+
+  /* ── Borders & Outlines ──────────────────────────────────────────────── */
+  --bs-border: rgba(91, 69, 38, 0.45);
+  --bs-border-subtle: rgba(91, 69, 38, 0.25);
+  --bs-border-strong: rgba(216, 179, 106, 0.55);
+  --bs-border-focus: #86cfa0;
+
+  /* ── Status Tokens ───────────────────────────────────────────────────── */
+  --bs-focus: #86cfa0;
+  --bs-success: #86cfa0;
+  --bs-warning: #d8b36a;
+  --bs-error: #b3261e;
+
+  /* ── Typography & Scales (1.2 ratio) ─────────────────────────────────── */
+  --bs-font-body: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --bs-font-mono: 'SF Mono', Monaco, Inconsolata, 'Fira Code', monospace;
+  --bs-font-osd: 'Courier New', Courier, monospace;
+
+  --bs-text-xs: 0.75rem;     /* 12px */
+  --bs-text-sm: 0.875rem;    /* 14px */
+  --bs-text-base: 1.00rem;   /* 16px */
+  --bs-text-md: 1.20rem;     /* 19.2px */
+  --bs-text-lg: 1.44rem;     /* 23.0px */
+  --bs-text-xl: 1.728rem;    /* 27.6px */
+  --bs-text-2xl: 2.074rem;   /* 33.2px */
+  --bs-text-3xl: 2.488rem;   /* 39.8px */
+
+  --bs-leading-tight: 1.2;
+  --bs-leading-normal: 1.5;
+  --bs-leading-relaxed: 1.75;
+  --bs-tracking-osd: 0.12em;
+
+  /* ── 8px Layout Grid ─────────────────────────────────────────────────── */
+  --bs-space-1: 8px;
+  --bs-space-2: 16px;
+  --bs-space-3: 24px;
+  --bs-space-4: 32px;
+  --bs-space-5: 40px;
+  --bs-space-6: 48px;
+  --bs-space-8: 64px;
+  --bs-space-10: 80px;
+
+  /* ── Radii ───────────────────────────────────────────────────────────── */
+  --bs-radius-sm: 2px;
+  --bs-radius-md: 4px;
+  --bs-radius-lg: 8px;
+  --bs-radius-full: 9999px;
+
+  /* ── Motion Tokens ───────────────────────────────────────────────────── */
+  --bs-duration-fast: 120ms;
+  --bs-duration-normal: 240ms;
+  --bs-duration-slow: 480ms;
+  --bs-duration-crawl: 900ms;
+
+  --ease-out: cubic-bezier(.2, .8, .2, 1);
+  --ease-inout: cubic-bezier(.6, 0, .2, 1);
+  --ease-wet: cubic-bezier(.16, 1, .3, 1);
+
+  /* ── Accessibility & Touch Targets ───────────────────────────────────── */
+  --bs-touch-min: 44px;
+}
+
+/* ── High Contrast Mode (WCAG AAA for body text) ─────────────────────────── */
+[data-contrast="high"] {
+  --bs-ink: #000000;
+  --bs-cream: #ffffff;
+  --bs-tan: #ffd700;
+  --bs-grout: #8b6508;
+  --bs-water: #00ff88;
+  --bs-water-deep: #00cc66;
+  --bs-danger: #ff3333;
+
+  --bs-surface-1: #000000;
+  --bs-surface-2: #111111;
+  --bs-surface-3: #222222;
+
+  --bs-border: #ffffff;
+  --bs-border-subtle: #aaaaaa;
+  --bs-border-strong: #ffd700;
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --bs-ink: #000000;
+    --bs-cream: #ffffff;
+    --bs-tan: #ffd700;
+    --bs-grout: #8b6508;
+    --bs-water: #00ff88;
+    --bs-water-deep: #00cc66;
+    --bs-danger: #ff3333;
+
+    --bs-surface-1: #000000;
+    --bs-surface-2: #111111;
+    --bs-surface-3: #222222;
+
+    --bs-border: #ffffff;
+    --bs-border-subtle: #aaaaaa;
+    --bs-border-strong: #ffd700;
+  }
+}
+
+/* ── Global Utility Reset & Base ────────────────────────────────────────── */
+.bs-tape-label {
+  font-family: var(--bs-font-mono);
+  letter-spacing: var(--bs-tracking-osd);
+  text-transform: uppercase;
+  font-size: var(--bs-text-xs);
+  color: var(--bs-tan);
+}
+
+.bs-osd-readout {
+  font-family: var(--bs-font-mono);
+  color: var(--bs-water);
+  text-shadow: 0 0 8px rgba(134, 207, 160, 0.4);
+}

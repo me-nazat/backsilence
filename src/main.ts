@@ -8,6 +8,7 @@
  *  6. LabScene 3D background / interactive lab router
  * ──────────────────────────────────────────────────────────────────────── */
 
+import './ui/kit/kit.css';
 import { createEventBus } from './app/EventBus.js';
 import { createStore } from './app/Store.js';
 import { AppStateMachine } from './app/StateMachine.js';

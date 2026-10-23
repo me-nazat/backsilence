@@ -9,14 +9,18 @@ import type { RoomCode } from '../types/contracts.js';
 export interface ParsedRoute {
   /** Room code from ?room=XXXX, or null if absent/invalid. */
   room: RoomCode | null;
-  /** Whether ?lab=1 was set. */
+  /** Whether ?lab=1 or ?lab=ui was set. */
   lab: boolean;
+  /** Specific lab identifier if ?lab=<name> */
+  labMode?: string | null | undefined;
   /** Whether ?debug=1 was set. */
   debug: boolean;
+  /** Current archive view from ?v=<view> */
+  view?: string | null | undefined;
   /** Map from ?map=<id> */
-  map?: MapId | null;
+  map?: MapId | null | undefined;
   /** Seed from ?seed=<n> */
-  seed?: number | null;
+  seed?: number | null | undefined;
 }
 
 /**
@@ -52,11 +56,31 @@ export function parseRoute(search?: string): ParsedRoute {
   const roomRaw = params.get('room')?.toUpperCase() ?? null;
   const room = roomRaw !== null && isValidRoomCode(roomRaw) ? roomRaw : null;
 
-  const lab = params.get('lab') === '1';
+  const labParam = params.get('lab');
+  const lab = labParam !== null && labParam !== '0';
+  const labMode = labParam;
+
   const debug = params.get('debug') === '1';
+  const view = params.get('v');
   const mapRaw = params.get('map') as MapId | null;
   const seedRaw = params.get('seed');
   const seed = seedRaw !== null ? parseInt(seedRaw, 10) : null;
 
-  return { room, lab, debug, map: mapRaw, seed };
+  return { room, lab, labMode, debug, view, map: mapRaw, seed };
+}
+
+/**
+ * Update URL view using history.pushState while preserving ?room= and ?map=
+ */
+export function navigateToView(view: string, extraParams?: Record<string, string>): void {
+  if (typeof window === 'undefined' || !window.history) return;
+  const current = new URLSearchParams(window.location.search);
+  current.set('v', view);
+  if (extraParams) {
+    for (const [k, v] of Object.entries(extraParams)) {
+      current.set(k, v);
+    }
+  }
+  const newUrl = `${window.location.pathname}?${current.toString()}`;
+  window.history.pushState({ view }, '', newUrl);
 }
