@@ -120,6 +120,7 @@ async function boot(): Promise<void> {
   const bootStart = performance.now();
 
   // 1. Parse route & Load settings
+  console.log('[boot] 1. route/settings');
   const route = parseRoute();
   setBootProgress(15);
 
@@ -127,6 +128,7 @@ async function boot(): Promise<void> {
   setBootProgress(30);
 
   // 2. Initialize Core Systems
+  console.log('[boot] 2. store/bus');
   const bus = createEventBus();
   const store = createStore({
     settings,
@@ -145,10 +147,19 @@ async function boot(): Promise<void> {
 
   const stateMachine = new AppStateMachine(bus, 'BOOT');
   injectPaletteVars();
-  setBootProgress(50);
+  // 2.5 Early Identity & Online Platform Initialization
+  const { IdentityManager } = await import('./meta/Identity.js');
+  const { TursoProxyAdapter } = await import('./net/adapters/TursoProxyAdapter.js');
+  const { OfflineQueue } = await import('./meta/OfflineQueue.js');
+  const winAny = window as unknown as Record<string, unknown>;
+  winAny.__backsilence_identity = IdentityManager;
+  winAny.__backsilence_proxy = new TursoProxyAdapter();
+  winAny.__backsilence_offline_queue = OfflineQueue;
 
   // 3. Dynamic-import UI Module (< 1s budget)
+  console.log('[boot] 3. importing UIManager');
   const { UIManager } = await import('./ui/UIManager.js');
+  console.log('[boot] 4. constructing UIManager');
   const appContainer = document.getElementById('app');
   if (!appContainer) throw new Error('Missing #app container');
 
@@ -163,6 +174,7 @@ async function boot(): Promise<void> {
       bus.emit('game:start', cfg);
     },
   });
+  console.log('[boot] 5. UIManager constructed');
 
   setBootProgress(100);
 
@@ -283,6 +295,9 @@ async function boot(): Promise<void> {
     __poolrooms_ui?: typeof ui;
     __backsilence_renderer_info?: unknown;
     __poolrooms_renderer_info?: unknown;
+    __backsilence_identity?: unknown;
+    __backsilence_proxy?: unknown;
+    __backsilence_offline_queue?: unknown;
   };
   const g = window as unknown as GlobalRefs;
   g.__backsilence_lab = labScene;
@@ -470,6 +485,7 @@ async function boot(): Promise<void> {
 }
 
 boot().catch((err: unknown) => {
+  (window as unknown as { __boot_err: string }).__boot_err = String(err);
   console.error('[BackSilence] Boot critical failure:', err);
   const bar = document.getElementById('boot-bar');
   if (bar) bar.style.background = '#b3261e';

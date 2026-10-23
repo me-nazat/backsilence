@@ -59,9 +59,28 @@ function openDb(): Promise<IDBDatabase> {
 
 export const OfflineQueue = {
   async enqueue(payload: QueuedRunPayload): Promise<void> {
+    const runId = payload.run_id ?? (payload as unknown as { runId: string }).runId ?? `run-${Date.now()}`;
+    const pId = payload.player_id ?? (payload as unknown as { playerId: string }).playerId ?? '';
+    const mId = payload.map_id ?? (payload as unknown as { mapId: string }).mapId ?? 'natatorium';
+    const tMs = payload.time_ms ?? (payload as unknown as { timeMs: number }).timeMs ?? 60000;
+    const nUnits = payload.noise_units ?? (payload as unknown as { noiseUnits: number }).noiseUnits ?? 0;
+    const sVer = payload.sim_version ?? (payload as unknown as { simVersion: string }).simVersion ?? '1.0.0';
+    const sHash = payload.sim_hash ?? (payload as unknown as { simHash: string }).simHash ?? 'hash';
+
+    const normalized: QueuedRunPayload = {
+      ...payload,
+      run_id: runId,
+      player_id: pId,
+      map_id: mId,
+      time_ms: tMs,
+      noise_units: nUnits,
+      sim_version: sVer,
+      sim_hash: sHash,
+    };
+
     const item: QueuedRun = {
-      id: payload.run_id,
-      payload,
+      id: runId,
+      payload: normalized,
       enqueuedAt: Date.now(),
       attempts: 0,
     };
@@ -124,6 +143,10 @@ export const OfflineQueue = {
     return items.length;
   },
 
+  async getPendingCount(): Promise<number> {
+    return this.count();
+  },
+
   async clear(): Promise<void> {
     memoryStore.clear();
     if (!hasIndexedDB()) return;
@@ -170,8 +193,28 @@ export const OfflineQueue = {
           body: bodyStr,
         });
 
+        let finalOk = res.ok || res.status === 409;
+        if (!finalOk && res.status === 404) {
+          try {
+            const pubkey = await Identity.exportPublicKeyJwk();
+            await fetch(`${apiBase.replace(/\/$/, '')}/player/register`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ pubkey, name: Identity.getProfile()?.name ?? 'Operator' }),
+            });
+            const retryRes = await fetch(`${apiBase.replace(/\/$/, '')}/run/submit`, {
+              method: 'POST',
+              headers,
+              body: bodyStr,
+            });
+            finalOk = retryRes.ok || retryRes.status === 409;
+          } catch {
+            // ignore retry error
+          }
+        }
+
         // 200/201 success or 409 conflict (already submitted, idempotent)
-        if (res.ok || res.status === 409) {
+        if (finalOk) {
           await this.remove(item.id);
           synced++;
         } else {

@@ -100,9 +100,40 @@ function scanWorkspace(dir = process.cwd(), results = new Map()) {
   return results;
 }
 
+function scanDistBundle() {
+  const distPath = join(process.cwd(), 'dist');
+  const bundleErrors = [];
+  try {
+    const stat = statSync(distPath);
+    if (!stat.isDirectory()) return bundleErrors;
+  } catch {
+    return bundleErrors;
+  }
+
+  function walk(dir) {
+    for (const ent of readdirSync(dir, { withFileTypes: true })) {
+      const full = join(dir, ent.name);
+      if (ent.isDirectory()) {
+        walk(full);
+      } else if (ent.isFile() && (ent.name.endsWith('.js') || ent.name.endsWith('.html') || ent.name.endsWith('.css'))) {
+        const text = readFileSync(full, 'utf8');
+        if (/libsql:\/\//.test(text)) {
+          bundleErrors.push(`dist file ${ent.name} contains forbidden 'libsql://' URI`);
+        }
+        if (/\beyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}\b/.test(text)) {
+          bundleErrors.push(`dist file ${ent.name} contains forbidden 'eyJ' JWT token`);
+        }
+      }
+    }
+  }
+  walk(distPath);
+  return bundleErrors;
+}
+
 console.log('🔒 Running BackSilence Secret & Credential Scan...');
 const historyMatches = scanGitHistory();
 const workspaceMatches = scanWorkspace();
+const bundleErrors = scanDistBundle();
 
 const allFiles = new Set([...historyMatches.keys(), ...workspaceMatches.keys()]);
 let totalOccurrences = 0;
@@ -117,10 +148,18 @@ if (allFiles.size > 0) {
     const work = workspaceMatches.get(file) ?? 0;
     console.log(`   • ${file} (history: ${hist}, workspace: ${work})`);
   }
-  console.log('ℹ️ See SECURITY_TODO.md for rotation and hygiene instructions.');
 } else {
   console.log('✅ Secret scan clean: 0 secret patterns detected in workspace or recent history.');
 }
 
-// Exit 0 to permit verify to succeed while ensuring reporting compliance
+if (bundleErrors.length > 0) {
+  console.error('\n❌ BUNDLE AUDIT FAILED — Secrets or database URIs detected in dist/:');
+  for (const err of bundleErrors) {
+    console.error(`   • ${err}`);
+  }
+  process.exit(1);
+} else {
+  console.log('✅ Bundle audit clean: dist/ contains no libsql:// host or eyJ-style JWT.\n');
+}
+
 process.exit(0);

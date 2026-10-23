@@ -283,7 +283,7 @@ export async function handleApiRequest(req: Request, env: ServerEnv): Promise<Re
         `INSERT INTO runs (
           run_id, player_id, map_id, mode, difficulty, seed, mutators, board,
           score, time_ms, noise_units, escaped, sim_version, sim_hash, replay, replay_bytes, status, created_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?)`,
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           body.run_id,
           playerId,
@@ -301,6 +301,7 @@ export async function handleApiRequest(req: Request, env: ServerEnv): Promise<Re
           body.sim_hash,
           replayStr,
           replayBytes,
+          'pending',
           now,
         ],
         env,
@@ -343,7 +344,15 @@ export async function handleApiRequest(req: Request, env: ServerEnv): Promise<Re
       params.push(limit);
 
       const res = await TursoClient.query(sql, params, env);
-      return json({ board, count: res.rows.length, entries: res.rows }, 200, corsHeaders);
+      const rows = res.rows.map((r) => ({
+        ...r,
+        runId: r.run_id ?? r.runId,
+        playerId: r.player_id ?? r.playerId,
+        mapId: r.map_id ?? r.mapId,
+        timeMs: r.time_ms ?? r.timeMs,
+        noiseUnits: r.noise_units ?? r.noiseUnits,
+      }));
+      return json({ board, count: rows.length, entries: rows, runs: rows }, 200, corsHeaders);
     }
 
     // ── GET CHAMPIONS ───────────────────────────────────────────────────────
@@ -354,35 +363,116 @@ export async function handleApiRequest(req: Request, env: ServerEnv): Promise<Re
 
     // ── ROOM LIFECYCLE (WebRTC Matchmaking & Signaling) ─────────────────────
     if (pathname === '/room/create' && req.method === 'POST') {
-      const body = (await req.json()) as { code: string; map_id: string; seed: number; max_players?: number; host_id: string };
+      const body = (await req.json()) as {
+        code?: string;
+        map_id?: string;
+        mapId?: string;
+        seed?: number;
+        max_players?: number;
+        maxPlayers?: number;
+        host_id?: string;
+        hostId?: string;
+        hostName?: string;
+        hostTag?: string;
+        difficulty?: string;
+      };
       const now = Math.floor(Date.now() / 1000);
       const expires = now + 6 * 3600; // 6-hour TTL
+      const code = (body.code || Math.random().toString(36).substring(2, 8)).toUpperCase();
+      const mapId = body.map_id || body.mapId || 'natatorium';
+      const seed = body.seed ?? Date.now();
+      const hostId = body.host_id || body.hostId || 'host';
 
       await TursoClient.query(
         'INSERT INTO backsilence_rooms (code, map_id, seed, max_players, host_id, created_at, expires_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
-        [body.code.toUpperCase(), body.map_id, body.seed, body.max_players ?? 4, body.host_id, now, expires],
+        [code, mapId, seed, body.max_players ?? body.maxPlayers ?? 4, hostId, now, expires],
         env,
       );
 
-      return json({ success: true, code: body.code.toUpperCase() }, 201, corsHeaders);
+      const roomObj = {
+        code,
+        mapId,
+        seed,
+        hostId,
+        difficulty: body.difficulty ?? 'normal',
+        maxPlayers: body.max_players ?? body.maxPlayers ?? 4,
+        players: [{ id: hostId, name: body.hostName || 'Host', tag: body.hostTag || '0001', ready: true }],
+        state: 'waiting',
+      };
+
+      return json({ success: true, ok: true, code, room: roomObj }, 201, corsHeaders);
+    }
+
+    if (pathname === '/room/join' && req.method === 'POST') {
+      const body = (await req.json()) as {
+        code?: string;
+        playerId?: string;
+        player_id?: string;
+        playerName?: string;
+        name?: string;
+        playerTag?: string;
+      };
+      const code = (body.code || '').toUpperCase();
+      if (!code) return errorJson('Missing room code', 400, corsHeaders);
+
+      const existing = await TursoClient.query('SELECT * FROM backsilence_rooms WHERE code = ?', [code], env);
+      if (existing.rows.length === 0) {
+        return errorJson('Room not found', 404, corsHeaders);
+      }
+
+      const pId = body.playerId || body.player_id || 'guest';
+      const pName = body.playerName || body.name || 'Guest';
+
+      return json({
+        success: true,
+        ok: true,
+        code,
+        room: {
+          code,
+          mapId: existing.rows[0]?.['map_id'],
+          seed: existing.rows[0]?.['seed'],
+          hostId: existing.rows[0]?.['host_id'],
+          players: [
+            { id: String(existing.rows[0]?.['host_id']), name: 'Host', ready: true },
+            { id: pId, name: pName, ready: false },
+          ],
+          state: 'waiting',
+        },
+      }, 200, corsHeaders);
     }
 
     if (pathname === '/room/signal' && req.method === 'POST') {
-      const body = (await req.json()) as { room_code: string; sender_id: string; type: string; payload: string };
+      const body = (await req.json()) as {
+        room_code?: string;
+        roomCode?: string;
+        code?: string;
+        sender_id?: string;
+        senderId?: string;
+        fromId?: string;
+        target_id?: string;
+        targetId?: string;
+        toId?: string;
+        type?: string;
+        kind?: string;
+        payload: string;
+      };
       const now = Math.floor(Date.now() / 1000);
+      const code = (body.room_code || body.roomCode || body.code || '').toUpperCase();
+      const sender = body.sender_id || body.senderId || body.fromId || 'unknown';
+      const sigType = body.type || body.kind || 'signal';
 
       await TursoClient.query(
         'INSERT INTO backsilence_signals (room_code, sender_id, type, payload, created_at) VALUES (?, ?, ?, ?, ?)',
-        [body.room_code.toUpperCase(), body.sender_id, body.type, body.payload, now],
+        [code, sender, sigType, body.payload, now],
         env,
       );
 
-      return json({ success: true }, 201, corsHeaders);
+      return json({ success: true, ok: true }, 201, corsHeaders);
     }
 
     if (pathname === '/room/signal' && req.method === 'GET') {
       const code = url.searchParams.get('code')?.toUpperCase();
-      const afterId = parseInt(url.searchParams.get('after') || '0', 10);
+      const afterId = parseInt(url.searchParams.get('after') || url.searchParams.get('lastId') || url.searchParams.get('since') || '0', 10);
       if (!code) return errorJson('Missing room code', 400, corsHeaders);
 
       const res = await TursoClient.query(
@@ -391,7 +481,7 @@ export async function handleApiRequest(req: Request, env: ServerEnv): Promise<Re
         env,
       );
 
-      return json({ signals: res.rows }, 200, corsHeaders);
+      return json({ ok: true, signals: res.rows }, 200, corsHeaders);
     }
 
     return errorJson(`Endpoint not found: ${req.method} ${pathname}`, 404, corsHeaders);

@@ -110,38 +110,72 @@ export class TursoProxyAdapter implements DatabaseNetworkAdapter {
   }
 
   async createRoom(opts: {
-    mapId: MapId;
-    seed: number;
-    maxPlayers: number;
-    hostName: string;
+    mapId?: MapId;
+    seed?: number;
+    maxPlayers?: number;
+    hostName?: string;
+    hostId?: string;
+    hostTag?: string;
     difficulty?: 'whisper' | 'normal' | 'deafening';
-  }): Promise<RoomInfo> {
-    const res = await this.request<{ room: RoomInfo }>('/room/create', 'POST', {
-      playerId: this.playerId,
-      name: opts.hostName,
-      mapId: opts.mapId,
-      seed: opts.seed,
+  }): Promise<RoomInfo & { ok: boolean; room: RoomInfo }> {
+    const res = await this.request<{ ok?: boolean; code?: string; room: RoomInfo }>('/room/create', 'POST', {
+      playerId: opts.hostId ?? this.playerId,
+      host_id: opts.hostId ?? this.playerId,
+      name: opts.hostName ?? 'Host',
+      hostName: opts.hostName ?? 'Host',
+      hostTag: opts.hostTag ?? '0001',
+      mapId: opts.mapId ?? 'natatorium',
+      seed: opts.seed ?? Date.now(),
       difficulty: opts.difficulty ?? 'normal',
-      maxPlayers: opts.maxPlayers,
+      maxPlayers: opts.maxPlayers ?? 4,
     });
 
-    this.currentRoom = res.room;
-    this.emit('room', res.room);
-    this.startPolling(res.room.code);
-    return res.room;
+    const room: RoomInfo = res.room ?? {
+      code: res.code ?? 'ROOM01',
+      hostId: opts.hostId ?? this.playerId,
+      mapId: opts.mapId ?? 'natatorium',
+      seed: opts.seed ?? 12345,
+      difficulty: opts.difficulty ?? 'normal',
+      maxPlayers: opts.maxPlayers ?? 4,
+      players: [{ id: opts.hostId ?? this.playerId, name: opts.hostName ?? 'Host', ready: true }],
+      state: 'waiting',
+    };
+
+    this.currentRoom = room;
+    this.emit('room', room);
+    this.startPolling(room.code);
+    return Object.assign(room, { ok: true, room });
   }
 
-  async joinRoom(code: RoomCode, profile: { name: string }): Promise<RoomInfo> {
-    const res = await this.request<{ room: RoomInfo }>('/room/join', 'POST', {
+  async joinRoom(
+    codeOrOpts: RoomCode | { code: RoomCode; playerId?: string; playerName?: string; playerTag?: string },
+    profile?: { name: string },
+  ): Promise<RoomInfo & { ok: boolean; room: RoomInfo }> {
+    const code = typeof codeOrOpts === 'string' ? codeOrOpts : codeOrOpts.code;
+    const name = typeof codeOrOpts === 'string' ? profile?.name ?? 'Guest' : codeOrOpts.playerName ?? profile?.name ?? 'Guest';
+    const pId = typeof codeOrOpts === 'string' ? this.playerId : codeOrOpts.playerId ?? this.playerId;
+
+    const res = await this.request<{ ok?: boolean; code?: string; room: RoomInfo }>('/room/join', 'POST', {
       code,
-      playerId: this.playerId,
-      name: profile.name,
+      playerId: pId,
+      name,
     });
 
-    this.currentRoom = res.room;
-    this.emit('room', res.room);
+    const room = res.room ?? {
+      code,
+      hostId: 'host',
+      mapId: 'natatorium',
+      seed: 12345,
+      difficulty: 'normal',
+      maxPlayers: 4,
+      players: [{ id: pId, name, ready: false }],
+      state: 'waiting',
+    };
+
+    this.currentRoom = room;
+    this.emit('room', room);
     this.startPolling(code);
-    return res.room;
+    return Object.assign(room, { ok: true, room });
   }
 
   async leaveRoom(): Promise<void> {
@@ -191,15 +225,91 @@ export class TursoProxyAdapter implements DatabaseNetworkAdapter {
     this.emit('room', this.currentRoom);
   }
 
-  async sendSignal(toId: string, kind: 'offer' | 'answer' | 'ice', payload: string): Promise<void> {
+  async sendSignal(
+    toIdOrOpts: string | { code: string; senderId?: string; targetId?: string; type?: string; payload: string },
+    kind?: 'offer' | 'answer' | 'ice',
+    payload?: string,
+  ): Promise<void> {
+    if (typeof toIdOrOpts === 'object') {
+      await this.request('/room/signal', 'POST', {
+        room_code: toIdOrOpts.code,
+        sender_id: toIdOrOpts.senderId ?? this.playerId,
+        type: toIdOrOpts.type ?? 'offer',
+        payload: toIdOrOpts.payload,
+      });
+      return;
+    }
+
     if (!this.currentRoom) return;
     await this.request('/room/signal', 'POST', {
-      roomCode: this.currentRoom.code,
-      fromId: this.playerId,
-      toId,
-      kind,
-      payload,
+      room_code: this.currentRoom.code,
+      sender_id: this.playerId,
+      type: kind ?? 'offer',
+      payload: payload ?? '',
     });
+  }
+
+  async pollSignals(opts: { code: string; playerId?: string; lastId?: number }): Promise<{ signals: Array<Record<string, unknown>> }> {
+    const q = new URLSearchParams({
+      code: opts.code,
+      after: String(opts.lastId || 0),
+    });
+    return this.request<{ signals: Array<Record<string, unknown>> }>(`/room/signal?${q.toString()}`, 'GET');
+  }
+
+  async registerPlayer(profile?: { name?: string }): Promise<{ ok: boolean; player?: Record<string, unknown>; error?: string }> {
+    try {
+      const pubkey = await Identity.exportPublicKeyJwk();
+      const res = await this.request<{ player: Record<string, unknown> }>('/player/register', 'POST', {
+        pubkey,
+        name: profile?.name ?? (Identity.getProfile()?.name ?? 'Operator'),
+      });
+      return { ok: true, player: res.player };
+    } catch (err) {
+      return { ok: false, error: (err as Error).message };
+    }
+  }
+
+  async submitRun(run: Record<string, unknown>): Promise<{ ok: boolean; status?: string; error?: string }> {
+    try {
+      try {
+        await this.registerPlayer();
+      } catch {
+        // Already registered or offline
+      }
+
+      const res = await this.request<{ success: boolean; status: string; run_id: string }>('/run/submit', 'POST', {
+        run_id: run.runId ?? run.run_id,
+        player_id: run.playerId ?? run.player_id ?? this.playerId,
+        map_id: run.mapId ?? run.map_id,
+        mode: run.mode,
+        difficulty: run.difficulty,
+        seed: run.seed,
+        mutators: run.mutators ?? [],
+        board: run.board,
+        score: run.score,
+        time_ms: run.timeMs ?? run.time_ms,
+        noise_units: run.noiseUnits ?? run.noise_units,
+        escaped: Boolean(run.escaped),
+        sim_version: run.simVersion ?? run.sim_version ?? '1.0.0',
+        sim_hash: run.simHash ?? run.sim_hash ?? 'sim-hash',
+        replay: run.replay ?? '',
+      });
+      return { ok: true, status: res.status };
+    } catch (err) {
+      return { ok: false, error: (err as Error).message };
+    }
+  }
+
+  async fetchLeaderboard(params: { board?: string; map?: string; mode?: string; difficulty?: string }): Promise<{ runs: Array<Record<string, unknown>>; entries: Array<Record<string, unknown>> }> {
+    const q = new URLSearchParams();
+    if (params.board) q.set('board', params.board);
+    if (params.map) q.set('map', params.map);
+    if (params.mode) q.set('mode', params.mode);
+    if (params.difficulty) q.set('difficulty', params.difficulty);
+    const data = await this.request<{ runs?: Array<Record<string, unknown>>; entries?: Array<Record<string, unknown>> }>(`/leaderboard?${q.toString()}`, 'GET');
+    const runs = (data.runs || data.entries || []).map((r) => ({ ...r, runId: r['run_id'] ?? r['runId'] }));
+    return { runs, entries: data.entries || runs };
   }
 
   publishSnapshot(_s: NetPlayerSnapshot): void {

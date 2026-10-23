@@ -1,4 +1,4 @@
-# Known Issues & Operational Considerations — BackSilence Batch 6
+# Known Issues & Operational Considerations — BackSilence Release Candidate (Batch 8)
 
 ## [P2] Binary Model Assets (GLB) Unverified in Git (Zero-Asset Rule Safeguard)
 - **Status:** UNVERIFIED (Awaiting owner asset drop)
@@ -15,3 +15,13 @@
 - **Status:** MITIGATED / EXPECTED
 - **Detail:** When running `scripts/smoke/run-smoke.mjs` or `scripts/shots.mjs` in environments without hardware WebGL acceleration, `--use-angle=swiftshader` uses CPU rasterization. Canvas renders and WebGL passes take 150–350 ms per frame under software rasterization.
 - **Mitigation:** Timeouts in the smoke bot harness are scaled gracefully to accommodate software rasterization while verifying functional correctness and shader compilation.
+
+## [P5] Turso Database Credentials Quarantine & Rotation
+- **Status:** SECURED / MITIGATED
+- **Detail:** Real database tokens were previously exposed in chat. In accordance with [SECURITY.md](SECURITY.md), no tokens are stored in the client or repository. The client architecture connects strictly through `/api/*` serverless proxies (`api/core/`).
+- **Mitigation:** Development environments run `npm run dev:api` using the in-memory `FakeLibsql` emulator. For live deployment, the repository owner must rotate the Turso database token and inject `TURSO_AUTH_TOKEN` exclusively as a serverless platform secret (Cloudflare / Vercel / Netlify).
+
+## [P6] WebRTC STUN/TURN Traversal on Strict Corporate NATs
+- **Status:** MITIGATED
+- **Detail:** Multi-player Silent Race uses WebRTC data channels with public STUN servers for peer discovery. Strict symmetric corporate firewalls may fail direct peer connectivity without a TURN relay.
+- **Mitigation:** Local tab (`?net=local`) and loopback adapters provide 100% offline and automated test coverage. Turn server configuration can be injected into `TursoProxyAdapter` / `WebRtcDbAdapter` via environment options.

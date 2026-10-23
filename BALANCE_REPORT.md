@@ -1,6 +1,6 @@
 # BackSilence: Balance Bot Swarm Calibration Report
 
-**Execution Timestamp:** 2026-10-23T10:02:46.433Z  
+**Execution Timestamp:** 2026-10-23T12:21:36.655Z  
 **Scope:** 11 maps x 6 bot strategies x 200 seeds = 13,200 simulated runs  
 **Environment:** Headless SimWorld + EncounterDirector on Node  
 

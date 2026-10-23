@@ -5,7 +5,7 @@
  * ──────────────────────────────────────────────────────────────────────── */
 
 import http from 'node:http';
-import { handleApiRequest } from '../api/core/Endpoints.js';
+import { handleApiRequest } from '../api/core/Endpoints.ts';
 
 const PORT = Number(process.env['PORT']) || 8787;
 
