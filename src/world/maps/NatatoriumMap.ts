@@ -474,14 +474,15 @@ export const NatatoriumMap: MapDefinition = {
 
     // 15. Player and Monster Spawns
     const playerSpawn = { x: 0, y: 0.3, z: 50 }; // in foyer
-    // Monster spawn in Grand Pool Hall, >= 45m from player spawn
-    const monsterSpawn = { x: 0, y: -0.9, z: -15 }; // distance = sqrt(0 + 65^2) = 65m >= 45m
+    // Monster spawn in Grand Pool Hall at center Ear mosaic, >= 45m from player spawn (distance = 48m)
+    const monsterSpawn = { x: 0, y: -0.9, z: 2 };
 
-    const monsters: Array<{ id: string; variant: 'standard' | 'elder' | 'juvenile'; spawn: Vec3 }> = [
+    const monsters: Array<{ id: string; variant: 'standard' | 'elder' | 'juvenile'; spawn: Vec3; spawnGrace?: number }> = [
       {
         id: 'monster_1',
         variant: 'standard',
         spawn: monsterSpawn,
+        spawnGrace: 2.0,
       },
     ];
 

@@ -62,7 +62,7 @@ export class MonsterBrain {
   agitation = 0; // 0..1
 
   // Speeds
-  static readonly SPEED_WANDER = 1.6;
+  static readonly SPEED_WANDER = 2.2;
   static readonly SPEED_HUNT = 7.2;
   static readonly TURN_RATE_WANDER = 6.0; // rad/s
   static readonly TURN_RATE_HUNT = 10.0; // rad/s
@@ -116,8 +116,8 @@ export class MonsterBrain {
     this.astar = new AStarPathfinder(nav);
     this.rng = new Rng(seed);
 
-    // Initial grace period in DORMANT state
-    this.stateTimer = def.spawnGrace ?? 8.0;
+    // Initial grace period in DORMANT state (2.5s default for active pacing)
+    this.stateTimer = def.spawnGrace ?? 2.5;
   }
 
   addCandidateSpawn(spawn: Vec3): void {
@@ -290,10 +290,10 @@ export class MonsterBrain {
     // 4. State Machine Execution
     switch (this.state) {
       case 'DORMANT':
-        this.stepDormant(dt, nav);
+        this.stepDormant(dt, nav, playerPos);
         break;
       case 'WANDER':
-        this.stepWander(dt, nav, events, simTime);
+        this.stepWander(dt, nav, events, simTime, playerPos);
         break;
       case 'ALERTED':
         this.stepAlerted(dt, nav, events, simTime);
@@ -393,35 +393,35 @@ export class MonsterBrain {
     events.pushDamage('player', this.id, 100, simTime);
   }
 
-  private stepDormant(dt: number, nav: NavGrid): void {
+  private stepDormant(dt: number, nav: NavGrid, playerPos?: Vec3): void {
     this.vel.x = 0;
     this.vel.z = 0;
     this.stateTimer -= dt;
     if (this.stateTimer <= 0) {
-      this.enterWander(nav);
+      this.enterWander(nav, playerPos);
     }
   }
 
-  private enterWander(nav: NavGrid): void {
+  private enterWander(nav: NavGrid, playerPos?: Vec3): void {
     this.state = 'WANDER';
     this.isListening = false;
-    this.listenTimer = this.rng.range(5.0, 12.0);
-    this.pickNextWanderWaypoint(nav);
+    this.listenTimer = this.rng.range(6.0, 14.0);
+    this.pickNextWanderWaypoint(nav, playerPos);
   }
 
-  private stepWander(dt: number, nav: NavGrid, events: EventRingBuffer, simTime: number): void {
+  private stepWander(dt: number, nav: NavGrid, events: EventRingBuffer, simTime: number, playerPos?: Vec3): void {
     this.jawOpenT = Math.max(0, this.jawOpenT - dt * 3.0);
     this.rearingT = Math.max(0, this.rearingT - dt * 2.0);
 
-    // Periodic listening pause (every 5–12s for 2–4s)
+    // Periodic listening pause (every 6–14s for 1.5–3s)
     this.listenTimer -= dt;
     if (this.listenTimer <= 0) {
       if (!this.isListening) {
         this.isListening = true;
-        this.listenTimer = this.rng.range(2.0, 4.0);
+        this.listenTimer = this.rng.range(1.5, 3.0);
       } else {
         this.isListening = false;
-        this.listenTimer = this.rng.range(5.0, 12.0);
+        this.listenTimer = this.rng.range(6.0, 14.0);
       }
     }
 
@@ -436,7 +436,7 @@ export class MonsterBrain {
 
     // If path finished, choose next waypoint
     if (this.currentPathIndex >= this.currentPath.length) {
-      this.pickNextWanderWaypoint(nav);
+      this.pickNextWanderWaypoint(nav, playerPos);
     }
   }
 
@@ -650,15 +650,26 @@ export class MonsterBrain {
     return current + step;
   }
 
-  private pickNextWanderWaypoint(nav: NavGrid): void {
+  private pickNextWanderWaypoint(nav: NavGrid, playerPos?: Vec3): void {
     const myComponent = nav.getComponentWorld(this.pos.x, this.pos.z);
-    for (let attempts = 0; attempts < 16; attempts++) {
-      const rx = this.rng.range(nav.minX + 4, nav.minX + nav.width * nav.cellSize - 4);
-      const rz = this.rng.range(nav.minZ + 4, nav.minZ + nav.depth * nav.cellSize - 4);
+    for (let attempts = 0; attempts < 20; attempts++) {
+      let rx: number;
+      let rz: number;
+
+      // 50% of the time, bias patrol waypoint toward player's general sector
+      if (playerPos && (attempts % 2 === 0)) {
+        const offsetDist = this.rng.range(12.0, 30.0);
+        const angle = this.rng.range(-Math.PI, Math.PI);
+        rx = playerPos.x + Math.sin(angle) * offsetDist;
+        rz = playerPos.z - Math.cos(angle) * offsetDist;
+      } else {
+        rx = this.rng.range(nav.minX + 4, nav.minX + nav.width * nav.cellSize - 4);
+        rz = this.rng.range(nav.minZ + 4, nav.minZ + nav.depth * nav.cellSize - 4);
+      }
 
       if (nav.isWalkableWorld(rx, rz) && nav.getComponentWorld(rx, rz) === myComponent) {
         const d = Math.hypot(rx - this.pos.x, rz - this.pos.z);
-        if (d >= 12.0) {
+        if (d >= 8.0) {
           this.currentPath = this.astar.findPath(this.pos.x, this.pos.z, rx, rz);
           this.currentPathIndex = 0;
           return;

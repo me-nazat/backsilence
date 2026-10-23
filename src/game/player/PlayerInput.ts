@@ -22,6 +22,9 @@ export class PlayerInput {
   private settings: Settings;
   private canvas: HTMLCanvasElement | null = null;
   private isLocked = false;
+  private isMouseDown = false;
+  private lastClientX: number | null = null;
+  private lastClientY: number | null = null;
   private keysDown = new Set<string>();
 
   private mouseDeltaX = 0;
@@ -56,6 +59,16 @@ export class PlayerInput {
     if (this.touchControls.isActive()) {
       this.touchControls.mount(canvas.parentElement || document.body);
     }
+
+    // Synchronous user click / pointerdown on game canvas immediately requests pointer lock
+    const onCanvasActivate = (e: MouseEvent | PointerEvent) => {
+      if (this.freezeInput) return;
+      if (e.button === 0 && !this.isLocked) {
+        this.requestPointerLock();
+      }
+    };
+    canvas.addEventListener('pointerdown', onCanvasActivate);
+    canvas.addEventListener('click', onCanvasActivate);
   }
 
   private bindEvents(): void {
@@ -109,18 +122,28 @@ export class PlayerInput {
       }
     });
 
-    // Mouse button events for throw and interact
+    // Mouse button events for throw, interact, and pointer lock
     window.addEventListener('mousedown', (e) => {
       if (this.freezeInput) return;
+      this.isMouseDown = true;
+      this.lastClientX = e.clientX;
+      this.lastClientY = e.clientY;
+
       if (e.button === 2) {
         // Right click: start aiming throw
         e.preventDefault();
         this.isThrowing = true;
         this.throwHoldTime = 0;
+      } else if (e.button === 0 && !this.isLocked && this.canvas) {
+        // Left click anywhere in active window locks mouse
+        this.requestPointerLock();
       }
     });
 
     window.addEventListener('mouseup', (e) => {
+      this.isMouseDown = false;
+      this.lastClientX = null;
+      this.lastClientY = null;
       if (e.button === 2) {
         // Right click release: launch projectile
         e.preventDefault();
@@ -139,20 +162,29 @@ export class PlayerInput {
     });
 
     window.addEventListener('mousemove', (e) => {
-      if (this.isLocked && !this.freezeInput) {
-        this.mouseDeltaX += e.movementX;
-        this.mouseDeltaY += e.movementY;
+      if (this.freezeInput) return;
+
+      let dx = e.movementX;
+      let dy = e.movementY;
+
+      // Fallback calculation if movementX/Y is zero or unavailable
+      if ((dx === undefined || (dx === 0 && dy === 0)) && this.lastClientX !== null && this.lastClientY !== null) {
+        dx = e.clientX - this.lastClientX;
+        dy = e.clientY - this.lastClientY;
+      }
+      this.lastClientX = e.clientX;
+      this.lastClientY = e.clientY;
+
+      // Accumulate look delta if pointer is locked, or if mouse button is held, or if canvas is active
+      const canLook = this.isLocked || this.isMouseDown || (this.canvas && document.activeElement === this.canvas);
+      if (canLook && dx !== undefined && !Number.isNaN(dx) && dy !== undefined && !Number.isNaN(dy)) {
+        this.mouseDeltaX += dx;
+        this.mouseDeltaY += dy;
       }
     });
 
     document.addEventListener('pointerlockchange', () => {
-      const wasLocked = this.isLocked;
       this.isLocked = document.pointerLockElement === this.canvas;
-
-      // Losing pointer lock while playing triggers pause menu
-      if (wasLocked && !this.isLocked && !this.freezeInput) {
-        this.callbacks.onPauseRequested();
-      }
     });
 
     // Auto-pause and clear keys on window blur or visibility loss
@@ -260,8 +292,10 @@ export class PlayerInput {
     const sens = this.settings.controls.sensitivity * 0.0022;
     const invertY = this.settings.controls.invertY;
 
-    let lookDeltaYaw = this.mouseDeltaX * sens;
-    let lookDeltaPitch = (invertY ? -this.mouseDeltaY : this.mouseDeltaY) * sens;
+    // Moving mouse right decreases yaw (rotates view right around +Y in Three.js Euler YXZ)
+    let lookDeltaYaw = -this.mouseDeltaX * sens;
+    // Moving mouse up decreases Y -> positive pitch tilts camera up
+    let lookDeltaPitch = (invertY ? this.mouseDeltaY : -this.mouseDeltaY) * sens;
 
     this.mouseDeltaX = 0;
     this.mouseDeltaY = 0;

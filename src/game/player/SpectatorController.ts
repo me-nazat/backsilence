@@ -138,9 +138,8 @@ export class SpectatorController {
     }
 
     // Free-roam mode
-    const lookSpeed = 0.0022;
-    this.freeYaw -= lookDelta.dx * lookSpeed;
-    this.freePitch = MathUtils.clamp(this.freePitch - lookDelta.dy * lookSpeed, -1.45, 1.45);
+    this.freeYaw += lookDelta.dx;
+    this.freePitch = MathUtils.clamp(this.freePitch + lookDelta.dy, -1.45, 1.45);
 
     const speedCap = reducedMotion ? 3.5 : (moveInput.sprint ? 9.0 : 5.5);
     const forwardX = -Math.sin(this.freeYaw);

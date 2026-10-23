@@ -329,13 +329,13 @@ export class TouchControls {
   }
 
   consumeIntent(sensitivity = 1.0, invertY = false): TouchIntent {
-    let yawDelta = this.lookDelta.x * sensitivity;
-    let pitchDelta = (invertY ? -this.lookDelta.y : this.lookDelta.y) * sensitivity;
+    let yawDelta = -this.lookDelta.x * sensitivity;
+    let pitchDelta = (invertY ? this.lookDelta.y : -this.lookDelta.y) * sensitivity;
 
     // Apply look inertia decay
     if (this.lookTouchId === null) {
-      yawDelta += this.lookInertia.x * sensitivity;
-      pitchDelta += (invertY ? -this.lookInertia.y : this.lookInertia.y) * sensitivity;
+      yawDelta += -this.lookInertia.x * sensitivity;
+      pitchDelta += (invertY ? this.lookInertia.y : -this.lookInertia.y) * sensitivity;
       this.lookInertia.x *= 0.85;
       this.lookInertia.y *= 0.85;
     }

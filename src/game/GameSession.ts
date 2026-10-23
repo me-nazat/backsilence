@@ -1505,6 +1505,7 @@ export class GameSession {
       status: statusText,
       interactionPrompt: promptState.visible ? promptState.label : null,
       vhsOsdState: this.postFX.getOsdState(),
+      pointerLockHint: !this.playerInput.isPointerLocked(),
     });
 
     // 12. Multiplayer Replication & Ping Markers

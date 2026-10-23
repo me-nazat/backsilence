@@ -81,10 +81,11 @@ void main() {
   vec4 worldPosition = modelMatrix * vec4(position, 1.0);
   vec2 p = worldPosition.xz;
 
-  // 1. Gentle traveling sines (amplitude <= 0.03m)
-  float sines = sin(p.x * 0.4 + uTime * 1.2) * 0.015 +
-                cos(p.y * 0.5 - uTime * 0.9) * 0.010 +
-                sin((p.x + p.y) * 0.3 + uTime * 0.7) * 0.005;
+  // 1. Fluid multi-octave traveling wave displacement
+  float sines = sin(p.x * 0.45 + p.y * 0.25 + uTime * 1.3) * 0.024 +
+                cos(-p.x * 0.35 + p.y * 0.55 - uTime * 1.1) * 0.018 +
+                sin(p.x * 1.2 - p.y * 0.8 + uTime * 2.2) * 0.009 +
+                cos((p.x + p.y) * 2.5 + uTime * 2.8) * 0.004;
 
   // 2. Analytic ripples
   float totalRippleH = 0.0;
@@ -194,12 +195,16 @@ void main() {
 
   float depth = max(0.0, uWaterY - groundHeight);
 
-  // 2. Normal Perturbation from two scrolling normal map samples
-  vec2 normalUv1 = p * 0.12 + vec2(uTime * uScrollSpeed * 0.5, uTime * uScrollSpeed * 0.35);
-  vec2 normalUv2 = p * 0.06 - vec2(uTime * uScrollSpeed * 0.4, -uTime * uScrollSpeed * 0.6);
+  // 2. Normal Perturbation from 3 multi-scale scrolling normal map octaves
+  float animSpeed = max(0.04, uScrollSpeed) * 2.2;
+  vec2 normalUv1 = p * 0.12 + vec2(uTime * animSpeed * 0.5, uTime * animSpeed * 0.35);
+  vec2 normalUv2 = p * 0.06 - vec2(uTime * animSpeed * 0.4, -uTime * animSpeed * 0.6);
+  vec2 normalUv3 = p * 0.26 + vec2(-uTime * animSpeed * 0.7, uTime * animSpeed * 0.5);
+
   vec3 norm1 = texture2D(uNormalMap, normalUv1).rgb * 2.0 - 1.0;
   vec3 norm2 = texture2D(uNormalMap, normalUv2).rgb * 2.0 - 1.0;
-  vec3 combinedNormal = normalize(norm1 + norm2) * uNormalScale;
+  vec3 norm3 = texture2D(uNormalMap, normalUv3).rgb * 2.0 - 1.0;
+  vec3 combinedNormal = normalize(norm1 * 0.5 + norm2 * 0.35 + norm3 * 0.25) * uNormalScale;
 
   // 3. Add analytic ripple gradient
   vec2 rippleGrad = vec2(0.0);
@@ -235,16 +240,16 @@ void main() {
       float ridgeEnv = exp(-(dRidge * dRidge) / (wakeWidth * wakeWidth));
       float fade = (1.0 - along / length) * strength;
 
-      wakeFoam += ridgeEnv * fade * 0.8;
-      wakeGrad += perp(wakeDir) * sign(across) * ridgeEnv * fade * 0.3;
+      wakeFoam += ridgeEnv * fade * 0.85;
+      wakeGrad += perp(wakeDir) * sign(across) * ridgeEnv * fade * 0.35;
     }
   }
 
-  // Perturb surface normal
+  // Perturb surface normal with strong facets to catch specular reflections
   vec3 normal = normalize(vec3(
-    combinedNormal.x * 0.4 - rippleGrad.x * 2.5 - wakeGrad.x,
+    combinedNormal.x * 0.85 - rippleGrad.x * 3.5 - wakeGrad.x * 1.6,
     1.0,
-    combinedNormal.y * 0.4 - rippleGrad.y * 2.5 - wakeGrad.y
+    combinedNormal.y * 0.85 - rippleGrad.y * 3.5 - wakeGrad.y * 1.6
   ));
 
   if (uUnderwater > 0.5) {
@@ -252,21 +257,34 @@ void main() {
   }
 
   // 5. Water Color by depth absorption
-  vec3 waterColor = mix(uColorShallow, uColorDeep, 1.0 - exp(-depth * 1.1));
-  float alpha = mix(uOpacityMin, uOpacityMax, 1.0 - exp(-depth * 1.6));
+  vec3 waterColor = mix(uColorShallow, uColorDeep, 1.0 - exp(-depth * 1.35));
+  float alpha = mix(uOpacityMin, uOpacityMax, 1.0 - exp(-depth * 1.8));
   alpha = clamp(alpha + uMurk, 0.0, 1.0);
 
   // 6. Fresnel reflection of creamy haze / sky
   vec3 viewDir = normalize(vViewPos);
   float NdotV = max(0.0, dot(normal, viewDir));
-  float fresnel = pow(1.0 - NdotV, 3.5);
-  vec3 skyHazeColor = vec3(0.92, 0.88, 0.78);
-  waterColor = mix(waterColor, skyHazeColor, fresnel * 0.65);
+  float fresnel = 0.04 + 0.96 * pow(1.0 - NdotV, 4.2);
+  vec3 skyHazeColor = vec3(0.94, 0.91, 0.82);
+  waterColor = mix(waterColor, skyHazeColor, fresnel * 0.68);
 
-  // 7. Sun Specular Streak
+  // 6b. Subsurface animated caustics in clear shallow waters (depth < 2.5m)
+  if (depth < 2.5) {
+    vec2 cUv1 = p * 0.85 + vec2(uTime * 0.08, uTime * 0.06) + combinedNormal.xy * 0.08;
+    vec2 cUv2 = p * 1.15 + vec2(-uTime * 0.07, uTime * 0.09) + combinedNormal.yx * 0.08;
+    float c1 = sin(cUv1.x * 7.0 + sin(cUv1.y * 5.0 + uTime * 0.6)) * 0.5 + 0.5;
+    float c2 = cos(cUv2.x * 6.5 + cos(cUv2.y * 7.5 - uTime * 0.5)) * 0.5 + 0.5;
+    float caustic = pow(min(c1, c2), 1.6) * 2.4;
+    float causticFade = smoothstep(2.5, 0.15, depth) * (1.0 - fresnel * 0.75);
+    vec3 causticCol = mix(vec3(0.9, 1.0, 0.95), vec3(1.0, 0.98, 0.9), 0.5);
+    waterColor += causticCol * caustic * causticFade * 0.42;
+  }
+
+  // 7. Sun Specular: sharp solar glint + wide atmospheric sheen
   vec3 halfVec = normalize(uSunDir + viewDir);
-  float spec = pow(max(0.0, dot(normal, halfVec)), 64.0);
-  waterColor += vec3(1.0, 0.96, 0.85) * spec * 0.5;
+  float specSharp = pow(max(0.0, dot(normal, halfVec)), 128.0);
+  float specWide = pow(max(0.0, dot(normal, halfVec)), 22.0);
+  waterColor += vec3(1.0, 0.98, 0.92) * (specSharp * 0.95 + specWide * 0.22);
 
   // 7b. Elongated specular LightStreaks (up to 16 area/line light proxies)
   for (int i = 0; i < 16; i++) {
@@ -293,19 +311,19 @@ void main() {
     waterColor += sCol * (sSpec * atten * sInt);
   }
 
-  // 8. Foam (Shoreline foam where distToDry < 0.35m + ripple crests + wakes)
+  // 8. Foam (Shoreline foam where distToDry < 0.42m + ripple crests + wakes)
   float shoreFoam = 0.0;
-  if (distToDry < 0.35) {
-    float foamNoise = sin(p.x * 12.0 + uTime * 2.0) * cos(p.y * 12.0 - uTime * 1.5) * 0.5 + 0.5;
-    shoreFoam = smoothstep(0.35, 0.05, distToDry) * (0.6 + 0.4 * foamNoise);
+  if (distToDry < 0.42) {
+    float foamNoise = sin(p.x * 14.0 + uTime * 2.2) * cos(p.y * 14.0 - uTime * 1.8) * 0.5 + 0.5;
+    shoreFoam = smoothstep(0.42, 0.04, distToDry) * (0.6 + 0.4 * foamNoise);
   }
 
-  float rippleFoam = smoothstep(0.035, 0.065, abs(vRippleHeight));
+  float rippleFoam = smoothstep(0.007, 0.026, abs(vRippleHeight)) * 0.8;
   float totalFoam = clamp(shoreFoam + wakeFoam + rippleFoam, 0.0, 1.0);
 
-  vec3 foamColor = vec3(0.96, 0.95, 0.91);
-  waterColor = mix(waterColor, foamColor, totalFoam * 0.85);
-  alpha = max(alpha, totalFoam * 0.9);
+  vec3 foamColor = vec3(0.98, 0.97, 0.94);
+  waterColor = mix(waterColor, foamColor, totalFoam * 0.88);
+  alpha = max(alpha, totalFoam * 0.92);
 
   // 9. Bioluminescence (Map 5: glows where disturbed)
   if (uBiolumRipple > 0.0) {

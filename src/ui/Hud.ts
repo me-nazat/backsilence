@@ -79,6 +79,7 @@ export interface HudData {
   ghostTrainSchedule?: { timeToTrain: number; trainDurationRemaining: number; active: boolean; warning: boolean } | null;
   boardingCountdown?: number | null;
   bottleCount?: number | null;
+  pointerLockHint?: boolean | undefined;
 }
 
 export class Hud {
@@ -93,6 +94,7 @@ export class Hud {
   private captionEl: HTMLElement | null = null;
   private vignetteEl: HTMLElement | null = null;
   private vhsOsdEl: HTMLElement | null = null;
+  private pointerLockHintEl: HTMLElement | null = null;
 
   // Batch 3 Elements
   private inventoryEl: HTMLElement | null = null;
@@ -575,11 +577,32 @@ export class Hud {
         border-radius: 3px;
         display: none;
       "></div>
+
+      <!-- Pointer Lock Hint -->
+      <div id="hud-pointer-lock-hint" style="
+        position: absolute;
+        bottom: 28px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(14, 18, 16, 0.78);
+        border: 1px solid rgba(217, 211, 162, 0.45);
+        border-radius: 4px;
+        padding: 6px 14px;
+        font-size: 11px;
+        letter-spacing: 0.08em;
+        color: #eedec2;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.25s ease;
+        text-transform: uppercase;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
+      ">[ Click screen to lock mouse look ]</div>
     `;
 
     container.appendChild(el);
     this.el = el;
 
+    this.pointerLockHintEl = el.querySelector('#hud-pointer-lock-hint');
     this.noiseBarEl = el.querySelector('#hud-noise-bar');
     this.noiseIconEl = el.querySelector('#hud-noise-icon');
     this.staminaBarEl = el.querySelector('#hud-stamina-bar');
@@ -706,6 +729,11 @@ export class Hud {
       } else {
         this.promptEl.style.display = 'none';
       }
+    }
+
+    // 4b. Pointer Lock Hint
+    if (this.pointerLockHintEl) {
+      this.pointerLockHintEl.style.opacity = data.pointerLockHint ? '0.85' : '0';
     }
 
     // 5. Notebook sequence strip
