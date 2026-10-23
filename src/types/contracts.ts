@@ -16,6 +16,7 @@ export type RoomCode = string; // 4 chars from SAFE_ALPHABET
 export const SAFE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 
 export type MapId =
+  | 'orientation'
   | 'poolrooms'
   | 'utility_tunnels'
   | 'marble_atrium'

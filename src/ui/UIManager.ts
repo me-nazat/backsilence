@@ -24,6 +24,7 @@ import { DeathScreen } from './DeathScreen.js';
 import { LoadingScreen } from './LoadingScreen.js';
 import { ResultsScreen, type RunResults } from './ResultsScreen.js';
 import { KeypadModal } from './KeypadModal.js';
+import { MetaHubPanel } from './MetaHubPanel.js';
 import type { MapDefinition, LayoutData } from '../world/MapTypes.js';
 import type { AudioLabPanel } from '../lab/AudioLabPanel.js';
 
@@ -36,7 +37,8 @@ export type UIView =
   | 'GAME'
   | 'PAUSE'
   | 'DEATH'
-  | 'RESULTS';
+  | 'RESULTS'
+  | 'METAHUB';
 
 export interface UIManagerOptions {
   container: HTMLElement;
@@ -70,6 +72,7 @@ export class UIManager {
   private loadingScreen: LoadingScreen;
   private resultsScreen: ResultsScreen;
   private keypadModal: KeypadModal;
+  private metaHubPanel: MetaHubPanel;
 
   private audioLabPanel: AudioLabPanel | null = null;
   private isAudioUnlocked = false;
@@ -92,12 +95,15 @@ export class UIManager {
       onPlayOnline: () => {
         this.navigateTo('ROOM_LINK');
       },
+      onTapeArchive: () => this.navigateTo('METAHUB'),
       onHowToPlay: () => this.navigateTo('HOW_TO_PLAY'),
       onSettings: () => this.navigateTo('SETTINGS'),
       onAbout: () => {
         this.toastManager.show('BackSilence — It can\'t see you. It hears the water.', 'info');
       },
     });
+
+    this.metaHubPanel = new MetaHubPanel(() => this.goBack());
 
     this.modeSelect = new ModeSelect({
       onBack: () => this.goBack(),
@@ -192,6 +198,7 @@ export class UIManager {
     this.loadingScreen.mount(this.container);
     this.resultsScreen.mount(this.container);
     this.keypadModal.mount(this.container);
+    this.metaHubPanel.mount(this.container);
 
     this.updateViewVisibility();
   }
@@ -271,10 +278,15 @@ export class UIManager {
     this.pauseMenu.hide();
     this.deathScreen.hide();
     this.resultsScreen.hide();
+    this.metaHubPanel.hide();
 
     switch (this.currentView) {
       case 'MENU':
         this.mainMenu.show();
+        this.hud.hide();
+        break;
+      case 'METAHUB':
+        this.metaHubPanel.show('tapes');
         this.hud.hide();
         break;
       case 'MODE_SELECT':

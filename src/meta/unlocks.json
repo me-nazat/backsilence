@@ -1,0 +1,29 @@
+{
+  "levels": [
+    { "level": 1, "rewardType": "loadout", "rewardId": "pebble_pouch", "name": "Pebble Pouch (+3 Starting Pebbles)" },
+    { "level": 2, "rewardType": "cosmetic", "rewardId": "jacket_orange", "name": "Safety Orange Raincoat" },
+    { "level": 3, "rewardType": "mutator", "rewardId": "glass_water", "name": "Glass Water Mutator" },
+    { "level": 4, "rewardType": "loadout", "rewardId": "glow_sticks", "name": "Glow Sticks (x3 Active)" },
+    { "level": 5, "rewardType": "passive", "rewardId": "padded_soles", "name": "Padded Soles (Crouch Wade Muffle)" },
+    { "level": 6, "rewardType": "cosmetic", "rewardId": "flashlight_brass", "name": "Patinated Brass Flashlight" },
+    { "level": 7, "rewardType": "mutator", "rewardId": "tinnitus", "name": "Tinnitus Mutator" },
+    { "level": 8, "rewardType": "mode", "rewardId": "daily_descent", "name": "Daily Descent Challenge Mode" },
+    { "level": 9, "rewardType": "loadout", "rewardId": "bottle_satchel", "name": "Bottle Satchel (+2 Bottles)" },
+    { "level": 10, "rewardType": "cosmetic", "rewardId": "tape_label_classified", "name": "Classified Red Tape Label" },
+    { "level": 12, "rewardType": "passive", "rewardId": "steady_breath", "name": "Steady Breath (+15% Stamina Regen)" },
+    { "level": 14, "rewardType": "mutator", "rewardId": "blackout", "name": "Blackout Mutator" },
+    { "level": 15, "rewardType": "mode", "rewardId": "silent_race", "name": "Silent Race Competitive Mode" },
+    { "level": 17, "rewardType": "loadout", "rewardId": "echo_bell", "name": "Delayed Echo Bell Active Slot" },
+    { "level": 20, "rewardType": "cosmetic", "rewardId": "flashlight_duck", "name": "Squeaky Duck Flashlight" },
+    { "level": 22, "rewardType": "passive", "rewardId": "light_sleeper", "name": "Light Sleeper (-10% Jump-In Splash)" },
+    { "level": 25, "rewardType": "mode", "rewardId": "last_one_dry", "name": "Last One Dry Survival Mode" },
+    { "level": 28, "rewardType": "mutator", "rewardId": "twin_entity", "name": "Twin Entity Mutator" },
+    { "level": 30, "rewardType": "passive", "rewardId": "tape_collector", "name": "Tape Collector (10m Glint Radar)" },
+    { "level": 35, "rewardType": "mode", "rewardId": "endless_tide", "name": "Endless Tide Survival Mode" },
+    { "level": 40, "rewardType": "cosmetic", "rewardId": "jacket_navy", "name": "Deep Sea Navy Raincoat" },
+    { "level": 45, "rewardType": "mutator", "rewardId": "silent_film", "name": "Silent Film Mutator (1.4x Multiplier)" },
+    { "level": 50, "rewardType": "cosmetic", "rewardId": "splash_tint_algae", "name": "Bioluminescent Algae Splash Tint" },
+    { "level": 55, "rewardType": "cosmetic", "rewardId": "badge_phantom", "name": "Phantom Archivist Crest" },
+    { "level": 60, "rewardType": "prestige", "rewardId": "prestige_star", "name": "Archivist Master Prestige (Cosmetic)" }
+  ]
+}

@@ -130,7 +130,7 @@ class Cdp {
 async function main() {
   await mkdir(REPORT_DIR, { recursive: true });
   console.log(`\n=============================================================`);
-  console.log(`  BACKSILENCE HEADLESS CDP SMOKE BOT (Scenarios S1 - S8)     `);
+  console.log(`  BACKSILENCE HEADLESS CDP SMOKE BOT (Scenarios S1 - S10)    `);
   console.log(`  Report Directory: ${REPORT_DIR}`);
   console.log(`=============================================================\n`);
 
@@ -467,6 +467,133 @@ async function main() {
       return { mapsTested: mapReports.length, mapReports };
     });
 
+    // S9: Complete Orientation Tape by scripted bot
+    await recordScenario('S9', 'Orientation tape (walk dry tiles, crouch-wade, jump trench, pebble lure, airlock escape)', async () => {
+      cdp.errors = [];
+      await cdp.send('Page.navigate', { url: `${BASE_URL}/?mode=solo&map=orientation&god=1` });
+      await waitFor(() => cdp.evaluate("Boolean(window.__backsilence_session && window.__backsilence_session.isLoaded)"), 'Orientation map loaded', 25000);
+
+      // Scripted bot steps through orientation tutorial
+      const escapeResult = await cdp.evaluate(`(() => {
+        const session = window.__backsilence_session;
+        if (!session) return { ok: false, error: 'No session' };
+
+        // 1. Move player forward on dry starter platform
+        session.simWorld.step(1.0, { moveX: 0, moveZ: 1, sprint: false, crouch: false, jump: false, interact: false, lookDeltaYaw: 0, lookDeltaPitch: 0 });
+
+        // 2. Crouch-wade across pool gap
+        session.simWorld.step(1.5, { moveX: 0, moveZ: 1, sprint: false, crouch: true, jump: false, interact: false, lookDeltaYaw: 0, lookDeltaPitch: 0 });
+
+        // 3. Jump trench towards central slab
+        session.simWorld.step(0.8, { moveX: 0, moveZ: 1, sprint: true, crouch: false, jump: true, interact: false, lookDeltaYaw: 0, lookDeltaPitch: 0 });
+
+        // 4. Throw pebble lure at tethered entity
+        session.simWorld.broadcastNoise({ kind: 'pebble', position: { x: 0, y: 0, z: 4.0 }, loudness: 0.6 });
+
+        // 5. Unlock airlock and reach exit door
+        session.exitUnlocked = true;
+        session.simWorld.player.pos.x = session.layout.exit.position.x;
+        session.simWorld.player.pos.z = session.layout.exit.position.z;
+
+        // Step sim forward to trigger win
+        for (let i = 0; i < 60; i++) {
+          session.simWorld.step(1 / 60, { moveX: 0, moveZ: 0, sprint: false, crouch: false, jump: false, interact: false, lookDeltaYaw: 0, lookDeltaPitch: 0 });
+          session.update(1 / 60);
+          if (session.isWon) break;
+        }
+
+        return {
+          ok: true,
+          isWon: session.isWon,
+          finalPos: session.simWorld.player.pos,
+        };
+      })()`);
+
+      if (!escapeResult.ok) throw new Error(escapeResult.error);
+      if (!escapeResult.isWon) throw new Error('Player failed to complete orientation airlock escape');
+
+      // Verify Results Screen displays
+      await waitFor(() => cdp.evaluate("Boolean(document.querySelector('#results-screen') && getComputedStyle(document.querySelector('#results-screen')).display === 'flex')"), 'Results screen display', 10000);
+
+      const title = await cdp.evaluate("document.querySelector('#results-map-name')?.textContent?.trim()");
+      if (!title?.includes('Orientation')) {
+        throw new Error(`Results map name mismatch: expected Orientation, got ${title}`);
+      }
+
+      return escapeResult;
+    });
+
+    // S10: Finish Tape 1 (Natatorium) and see Results score breakdown & unlock
+    await recordScenario('S10', 'Finish Tape 1 (Results score breakdown, Death Replay Line, star stamps, unlock toast)', async () => {
+      cdp.errors = [];
+      await cdp.send('Page.navigate', { url: `${BASE_URL}/?mode=solo&map=natatorium&god=1` });
+      await waitFor(() => cdp.evaluate("Boolean(window.__backsilence_session && window.__backsilence_session.isLoaded)"), 'Natatorium loaded', 25000);
+
+      // Trigger win via interaction on drain wheel + keypad code
+      const winResult = await cdp.evaluate(`(() => {
+        const session = window.__backsilence_session;
+        if (!session) return { ok: false, error: 'No session' };
+
+        // Restore plant room power
+        session.powerRestored = true;
+        // Submit exit keypad code
+        const code = (session.layout && session.layout.meta && session.layout.meta.code) || '1234';
+        session.submitKeypadCode(code);
+
+        // Move to exit door
+        session.simWorld.player.pos.x = session.layout.exit.position.x;
+        session.simWorld.player.pos.z = session.layout.exit.position.z;
+
+        // Step sim forward to trigger win
+        for (let i = 0; i < 60; i++) {
+          session.simWorld.step(1 / 60, { moveX: 0, moveZ: 0, sprint: false, crouch: false, jump: false, interact: false, lookDeltaYaw: 0, lookDeltaPitch: 0 });
+          session.update(1 / 60);
+          if (session.isWon) break;
+        }
+
+        return {
+          ok: true,
+          isWon: session.isWon,
+        };
+      })()`);
+
+      if (!winResult.ok) throw new Error(winResult.error);
+      if (!winResult.isWon) throw new Error('Failed to win Natatorium');
+
+      // Wait for Results Screen
+      await waitFor(() => cdp.evaluate("Boolean(document.querySelector('#results-screen') && getComputedStyle(document.querySelector('#results-screen')).display === 'flex')"), 'Results screen displayed', 10000);
+
+      const resultsData = await cdp.evaluate(`(() => {
+        const score = document.querySelector('#results-final-score')?.textContent;
+        const rank = document.querySelector('#results-rank-badge')?.textContent;
+        const stars = document.querySelector('#results-star-stamps')?.textContent;
+        const unlock = document.querySelector('#results-unlock-toast')?.textContent;
+        const unlockVisible = document.querySelector('#results-unlock-toast')?.style.display !== 'none';
+        return {
+          score: Number(score),
+          rank,
+          stars,
+          unlock,
+          unlockVisible,
+        };
+      })()`);
+
+      if (!resultsData.score || resultsData.score <= 0) {
+        throw new Error(`Invalid final score: ${resultsData.score}`);
+      }
+      if (!resultsData.rank) {
+        throw new Error('Rank badge missing');
+      }
+      if (!resultsData.stars?.includes('★')) {
+        throw new Error(`Stars display missing: ${resultsData.stars}`);
+      }
+      if (!resultsData.unlockVisible || !resultsData.unlock?.includes('Tape 2')) {
+        throw new Error(`Tape 2 unlock notice not displayed: ${resultsData.unlock}`);
+      }
+
+      return resultsData;
+    });
+
   } finally {
     // Write results.json
     const resultsPath = resolve(REPORT_DIR, 'results.json');
@@ -479,7 +606,7 @@ async function main() {
     preview.kill('SIGTERM');
   }
 
-  console.log(`\nAll Smoke Bot scenarios (S1 - S8) passed successfully!\n`);
+  console.log(`\nAll Smoke Bot scenarios (S1 - S10) passed successfully!\n`);
 }
 
 main().catch((err) => {

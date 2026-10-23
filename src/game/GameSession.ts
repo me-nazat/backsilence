@@ -534,6 +534,35 @@ export class GameSession {
 
   private initMapPuzzles(): void {
     switch (this.mapId) {
+      case 'orientation': {
+        this.inventory = [{ kind: 'pebble', count: 6 }];
+        this.hud.update({
+          objective: 'Orientation: Step on dry tiles, crouch-wade, jump trench, and open airlock.',
+          inventory: this.inventory,
+          selectedItemIndex: 0,
+        });
+
+        this.interactions.register({
+          id: 'orientation_exit',
+          position: this.layout.exit.position,
+          radius: 2.5,
+          label: () => (this.exitUnlocked ? '[E] Airlock Open' : '[E] Open Airlock & Complete Orientation'),
+          canUse: () => !this.exitUnlocked,
+          onUse: () => {
+            this.exitUnlocked = true;
+            this.audio.play('door_clunk', { gain: 1.0 });
+            this.simWorld.broadcastNoise({
+              kind: 'door',
+              position: this.layout.exit.position,
+              loudness: 0.6,
+              sourcePlayerId: 'player_local',
+            });
+            this.hud.update({ objective: 'Airlock unlocked! Proceed through to escape.' });
+          },
+        });
+        break;
+      }
+
       case 'poolrooms': {
         this.hud.update({
           objective: 'Inspect numbered pillars to discover the 4-digit code. Avoid making splashes.',

@@ -30,6 +30,8 @@
 | Drone lock siren (`siren`) | city | 0.9 at player | Within ~36 m |
 | Terminal hack success / fail (`terminal`/`alarm`) | city | 0.25 / 0.6 | Within ~10 m / ~24 m |
 | Bottle landing: water (`pebble`) / dry (`shatter`) | metro | 0.6 / 0.5 | Within ~24 m / ~20 m |
+| Echo Bell ring (delayed lure) | world | 0.8 (`bell`, rings at placed spot after 3s delay) | Within ~32 m |
+| Haunt spirit manifestation (Last One Dry / Silent Race) | water (>=12m from players) | 0.5 (`splash`, eliminated player echo) | Within ~20 m |
 | Lever pull (`lever`) | metro | 0.7 once | Within ~28 m |
 | Throttle hold (`generator`) | metro | 0.8 sustained | Within ~32 m |
 | EMP use (`clack`) | city | 0.3 | Within ~12 m |

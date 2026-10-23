@@ -16,6 +16,7 @@ export const FEATURED_MAP_IDS: MapId[] = [
 ];
 
 export const ARCHIVE_MAP_IDS: MapId[] = [
+  'orientation',
   'poolrooms',
   'utility_tunnels',
   'marble_atrium',
@@ -37,7 +38,8 @@ const MAP_LOADERS: Record<MapId, MapLoader> = {
   sunken_jungle: () => import('./maps/SunkenJungleMap.js').then((m) => m.SunkenJungleMap),
   neon_flood: () => import('./maps/NeonFloodMap.js').then((m) => m.NeonFloodMap),
   drowned_metro: () => import('./maps/DrownedMetroMap.js').then((m) => m.DrownedMetroMap),
-  // Archive (Batch 3)
+  // Archive & Training (Batch 3 & 7)
+  orientation: () => import('./maps/OrientationMap.js').then((m) => m.OrientationMap),
   poolrooms: () => import('./maps/PoolroomsMap.js').then((m) => m.PoolroomsMap),
   utility_tunnels: () => import('./maps/UtilityTunnelsMap.js').then((m) => m.UtilityTunnelsMap),
   marble_atrium: () => import('./maps/MarbleAtriumMap.js').then((m) => m.MarbleAtriumMap),

@@ -15,6 +15,7 @@ import { DrownedSchoolMap } from '../src/world/maps/DrownedSchoolMap.js';
 import { SunkenJungleMap } from '../src/world/maps/SunkenJungleMap.js';
 import { NeonFloodMap } from '../src/world/maps/NeonFloodMap.js';
 import { DrownedMetroMap } from '../src/world/maps/DrownedMetroMap.js';
+import { OrientationMap } from '../src/world/maps/OrientationMap.js';
 import { generateValidLayoutWithStats, validateLayout } from '../src/world/validate/LayoutValidator.js';
 import type { MapDefinition } from '../src/world/MapTypes.js';
 
@@ -29,6 +30,7 @@ const MAPS: Record<MapId, MapDefinition> = {
   sunken_jungle: SunkenJungleMap,
   neon_flood: NeonFloodMap,
   drowned_metro: DrownedMetroMap,
+  orientation: OrientationMap,
 };
 
 describe('Maps: Determinism, Validity & Reachability (50 Seeds per Map)', () => {
@@ -43,6 +45,7 @@ describe('Maps: Determinism, Validity & Reachability (50 Seeds per Map)', () => 
     'sunken_jungle',
     'neon_flood',
     'drowned_metro',
+    'orientation',
   ];
 
   const validityTable: Array<{

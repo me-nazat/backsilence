@@ -7,6 +7,8 @@
 
 import type { MapId } from '../types/contracts.js';
 import { AudioEngine } from '../audio/AudioEngine.js';
+import { computeScore, type ScoreBreakdown, type DeathReplayLine } from '../meta/Scoring.js';
+import { ProfileStore } from '../meta/ProfilePersistence.js';
 
 export interface CoOpPlayerResult {
   id: string;
@@ -25,6 +27,12 @@ export interface RunResults {
   retries: number;
   coopPlayers?: CoOpPlayerResult[] | undefined;
   isHost?: boolean | undefined;
+
+  // Batch 7 scoring & progression
+  scoreBreakdown?: ScoreBreakdown | undefined;
+  deathReplayLine?: DeathReplayLine | undefined;
+  starsEarned?: number | undefined;
+  unlockNotification?: string | undefined;
 
   // Batch 5 per-map metrics
   perchedTime?: number | undefined;
@@ -155,6 +163,36 @@ export class ResultsScreen {
           </div>
         </div>
 
+        <!-- Batch 7: Score Breakdown & Rank Badge -->
+        <div id="results-score-container" style="width: 100%; background: rgba(0,0,0,0.5); border: 1px solid rgba(134,207,160,0.2); padding: 12px; display: flex; flex-direction: column; gap: 8px;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 11px; letter-spacing: 0.15em; color: var(--water, #86cfa0); font-weight: bold;">TOTAL SILENCE SCORE</span>
+            <div id="results-rank-badge" style="background: #2a3d34; border: 1px solid #86cfa0; padding: 2px 8px; font-weight: bold; font-size: 14px; color: #fff;">A</div>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: baseline;">
+            <span id="results-final-score" style="font-size: 24px; font-weight: bold; color: #ffffff;">0</span>
+            <div id="results-star-stamps" style="font-size: 18px; color: #ffeb3b; letter-spacing: 4px;">★★★</div>
+          </div>
+          <div id="results-breakdown-details" style="font-size: 11px; opacity: 0.8; display: grid; grid-template-columns: 1fr 1fr; gap: 4px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 6px;">
+            <div>Time: <span id="results-score-time" style="color: #86cfa0;">+0</span></div>
+            <div>Noise: <span id="results-score-noise" style="color: #86cfa0;">+0</span></div>
+            <div>Objectives: <span id="results-score-obj" style="color: #86cfa0;">+0</span></div>
+            <div>Style: <span id="results-score-style" style="color: #86cfa0;">+0</span></div>
+          </div>
+        </div>
+
+        <!-- Batch 7: Death Replay Line / Incident Log -->
+        <div id="results-death-replay-box" style="display: none; width: 100%; border-left: 3px solid #ff4444; background: rgba(40,10,10,0.4); padding: 8px 12px; font-size: 12px; flex-direction: column; gap: 4px;">
+          <div style="color: #ff6666; font-weight: bold; font-size: 11px; letter-spacing: 0.1em;">INCIDENT REPLAY LINE:</div>
+          <div id="results-death-explanation" style="opacity: 0.9;"></div>
+          <div id="results-death-timeline" style="opacity: 0.7; font-size: 10px; display: flex; flex-direction: column; gap: 2px;"></div>
+        </div>
+
+        <!-- Batch 7: Unlock Notice -->
+        <div id="results-unlock-toast" style="display: none; width: 100%; background: rgba(40,60,40,0.6); border: 1px solid #86cfa0; padding: 8px 12px; text-align: center; color: #a3ffc7; font-weight: bold; font-size: 12px;">
+          ★ TAPE UNLOCKED: Tape 2 (Dry Season)
+        </div>
+
         <!-- Co-op Party Breakdown -->
         <div id="results-coop-container" style="display: none; width: 100%; flex-direction: column; gap: 6px; border-bottom: 1px solid rgba(217,211,162,0.2); padding-bottom: 12px;">
           <div style="font-size: 11px; opacity: 0.7; letter-spacing: 0.1em; color: var(--water);">EXPEDITION MEMBERS:</div>
@@ -207,6 +245,7 @@ export class ResultsScreen {
         sunken_jungle: 'The Sunken Jungle',
         neon_flood: 'Neon Flood District',
         drowned_metro: 'Platform Zero, The Drowned Metro',
+        orientation: 'Training Pool (Orientation)',
       };
       mapNameEl.textContent = names[results.mapId] ?? results.mapId;
     }
@@ -277,6 +316,87 @@ export class ResultsScreen {
         }
       } else {
         coopContainer.style.display = 'none';
+      }
+    }
+
+    // ── Batch 7: Score Breakdown, Stars & Progression ──
+    const breakdown = results.scoreBreakdown ?? computeScore({
+      mapId: results.mapId,
+      difficulty: 'normal',
+      elapsedSeconds: results.timeSurvived,
+      noiseUnits: results.noisesMade * 0.4,
+      secondariesDone: 1,
+      hiddenDone: results.mapId === 'natatorium' ? 1 : 0,
+      cleanJumps: results.wobblyEscapes ?? 2,
+      lurksSurvivedGte8s: (results.perchedTime ?? 0) >= 8 ? 1 : 0,
+      lureSuccesses: 1,
+      nearMissesUnder2m: results.nearMissCount ?? 0,
+      deaths: 0,
+    });
+
+    const finalScoreEl = this.el.querySelector('#results-final-score');
+    const rankBadgeEl = this.el.querySelector<HTMLElement>('#results-rank-badge');
+    const starStampsEl = this.el.querySelector('#results-star-stamps');
+    const scoreTimeEl = this.el.querySelector('#results-score-time');
+    const scoreNoiseEl = this.el.querySelector('#results-score-noise');
+    const scoreObjEl = this.el.querySelector('#results-score-obj');
+    const scoreStyleEl = this.el.querySelector('#results-score-style');
+
+    if (finalScoreEl) finalScoreEl.textContent = String(breakdown.finalScore);
+    if (rankBadgeEl) {
+      rankBadgeEl.textContent = breakdown.rank;
+      const colors: Record<string, string> = { S: '#ffd700', A: '#86cfa0', B: '#64b5f6', C: '#ba68c8', D: '#9e9e9e' };
+      rankBadgeEl.style.borderColor = colors[breakdown.rank] ?? '#86cfa0';
+    }
+
+    const stars = results.starsEarned ?? (breakdown.finalScore >= 1400 ? 3 : breakdown.finalScore >= 800 ? 2 : 1);
+    if (starStampsEl) {
+      starStampsEl.textContent = '★'.repeat(stars) + '☆'.repeat(3 - stars);
+    }
+
+    if (scoreTimeEl) scoreTimeEl.textContent = `+${breakdown.timeScore}`;
+    if (scoreNoiseEl) scoreNoiseEl.textContent = `+${breakdown.noiseScore}`;
+    if (scoreObjEl) scoreObjEl.textContent = `+${breakdown.objectivesScore}`;
+    if (scoreStyleEl) scoreStyleEl.textContent = `+${breakdown.styleScore}`;
+
+    // Death Replay Line
+    const replayBox = this.el.querySelector<HTMLElement>('#results-death-replay-box');
+    const replayExpEl = this.el.querySelector('#results-death-explanation');
+    const replayTimeEl = this.el.querySelector('#results-death-timeline');
+
+    if (results.deathReplayLine && replayBox && replayExpEl && replayTimeEl) {
+      replayBox.style.display = 'flex';
+      replayExpEl.textContent = results.deathReplayLine.explanation;
+      replayTimeEl.innerHTML = '';
+      for (const item of results.deathReplayLine.timeline) {
+        const row = document.createElement('div');
+        row.textContent = `[${item.t.toFixed(1)}s] ${item.description}`;
+        if (item.isFatal) row.style.color = '#ff6666';
+        replayTimeEl.appendChild(row);
+      }
+    } else if (replayBox) {
+      replayBox.style.display = 'none';
+    }
+
+    // Unlocks: Update ProfileStore and show unlock toast if applicable
+    const unlockToast = this.el.querySelector<HTMLElement>('#results-unlock-toast');
+    if (unlockToast) {
+      try {
+        const profile = ProfileStore.load();
+        if (results.mapId === 'natatorium' && !profile.unlockedTapes.includes(2)) {
+          profile.unlockedTapes.push(2);
+          profile.campaignStars[1] = Math.max(profile.campaignStars[1] ?? 0, stars);
+          ProfileStore.save(profile);
+          unlockToast.style.display = 'block';
+          unlockToast.textContent = '★ NEXT TAPE UNLOCKED: Tape 2 (Dry Season)';
+        } else if (results.unlockNotification) {
+          unlockToast.style.display = 'block';
+          unlockToast.textContent = results.unlockNotification;
+        } else {
+          unlockToast.style.display = 'none';
+        }
+      } catch {
+        unlockToast.style.display = 'none';
       }
     }
   }

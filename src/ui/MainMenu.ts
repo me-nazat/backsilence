@@ -8,6 +8,7 @@ import { AudioEngine } from '../audio/AudioEngine.js';
 export interface MainMenuCallbacks {
   onPlaySolo: () => void;
   onPlayOnline: () => void;
+  onTapeArchive?: () => void;
   onHowToPlay: () => void;
   onSettings: () => void;
   onAbout: () => void;
@@ -76,6 +77,9 @@ export class MainMenu {
         </button>
         <button id="btn-play-online" class="analog-btn">
           PLAY ONLINE <span style="font-size: 11px; opacity: 0.7;">(MULTIPLAYER)</span>
+        </button>
+        <button id="btn-tape-archive" class="analog-btn">
+          TAPE ARCHIVE & CAREER <span style="font-size: 11px; opacity: 0.7;">(BATCH 7)</span>
         </button>
         <button id="btn-how-to-play" class="analog-btn">
           HOW TO PLAY
@@ -154,6 +158,11 @@ export class MainMenu {
     this.el.querySelector('#btn-play-online')?.addEventListener('click', () => {
       engine.play('ui_confirm');
       this.callbacks.onPlayOnline();
+    });
+
+    this.el.querySelector('#btn-tape-archive')?.addEventListener('click', () => {
+      engine.play('ui_confirm');
+      this.callbacks.onTapeArchive?.();
     });
 
     this.el.querySelector('#btn-how-to-play')?.addEventListener('click', () => {

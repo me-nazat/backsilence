@@ -70,5 +70,33 @@
     "listenDistMax": 20.0,
     "mercyRespawnDist": 60.0,
     "mercyGraceSeconds": 10.0
+  },
+  "maps": {
+    "orientation": { "parSeconds": 120, "noiseBudget": 4.0 },
+    "natatorium": { "parSeconds": 240, "noiseBudget": 8.0 },
+    "poolrooms": { "parSeconds": 280, "noiseBudget": 9.0 },
+    "drowned_school": { "parSeconds": 320, "noiseBudget": 10.0 },
+    "utility_tunnels": { "parSeconds": 300, "noiseBudget": 8.5 },
+    "sunken_jungle": { "parSeconds": 360, "noiseBudget": 12.0 },
+    "marble_atrium": { "parSeconds": 290, "noiseBudget": 8.0 },
+    "neon_flood": { "parSeconds": 340, "noiseBudget": 11.0 },
+    "hydro_maze": { "parSeconds": 380, "noiseBudget": 12.0 },
+    "drowned_metro": { "parSeconds": 360, "noiseBudget": 10.0 },
+    "drainage_core": { "parSeconds": 420, "noiseBudget": 14.0 }
+  },
+  "scoring": {
+    "ranks": {
+      "S": 1400,
+      "A": 1100,
+      "B": 800,
+      "C": 500
+    },
+    "difficultyMultipliers": {
+      "whisper": 0.8,
+      "normal": 1.0,
+      "deafening": 1.25,
+      "nightmare": 1.5
+    },
+    "assistMultiplier": 0.8
   }
 }

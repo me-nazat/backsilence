@@ -189,6 +189,51 @@ All design decisions are recorded here with rationale.
 - Animation Lab (`?lab=anim`): Interactive panel measuring live foot-slide metric (< 0.03 m/s) with locomotion sliders and animation preview.
 **Reason:** Meets high visual standards for creature presentation without violating zero-asset default guarantees or introducing multiplayer network sync overhead.
 
+---
+
+## Batch 7 Decisions
+
+### D031: Pure Deterministic Meta-Architecture (`src/meta/`)
+**Date:** 2026-10-23
+**Choice:** Implement all Batch 7 systems in `src/meta/` with zero DOM and zero Three.js imports:
+- All campaign graphs, field contract engines, scoring calculators, mutators, loadouts, achievements, and replays are pure, deterministic, and serializable.
+- Date keys formatted as UTC `YYYY-MM-DD` and `YYYY-WW` paired with 32-bit FNV-1a hashing ensure contracts are identical on all clients offline and online.
+**Reason:** Strict obedience to Batch 7 architectural purity and net-readiness: meta logic can be simulated headlessly in Node.js, on authoritative multiplayer hosts, and inside Web Workers without browser dependencies.
+
+### D032: Found-Footage Tape Archive & Star Gate Progression
+**Date:** 2026-10-23
+**Choice:** Model campaign progression as 11 found-footage tapes recovered by the Archivist:
+- Tape 0 (Orientation) through Tape 10 (The Listener finale).
+- Each tape features 3 objectives (Primary escape, Secondary acoustic restraint, Hidden map secret/reel) awarding up to 3 stars.
+- Star gates require 2 stars on the preceding tape, or 1 star plus 300 Static credits to bypass.
+- At 3 stars, preset remix mutator pairs unlock for replayability.
+**Reason:** Fulfills the "dread with rhythm" pillar and provides clear session pacing (6–14 min tapes) with measurable player mastery.
+
+### D033: Run-Length Encoded Replay Architecture & Headless SimHash Verification
+**Date:** 2026-10-23
+**Choice:** Implement `RunRecorder` and `Replay` using run-length encoded (RLE) tick intents:
+- Captures `(mapId, seed, difficulty, mutators, loadout, version)` alongside compressed intent chunks, remaining well under the 48 KB budget for 12-minute runs.
+- `Replay.run(recording)` executes the exact same deterministic simulation headlessly in Node/browser, producing a bitwise identical `simHash` and final stats.
+- Replays from incompatible sim versions are rejected cleanly with a version stamp error.
+**Reason:** Forms the mathematical foundation for competitive ghost playback, cheat-proof leaderboard verification in Batch 8, and automated regression testing.
+
+### D034: Headless Balance Swarm & Multi-Strategy Validation Gates
+**Date:** 2026-10-23
+**Choice:** Implement `scripts/balance/run-balance.mjs` simulating 13,200 headless runs (200 seeds × 11 maps × 6 bot strategies) in < 1 second:
+- Validates gate bands: `silent_skill` 55–75%, `crouch_wader` 25–45%, `sprint_wader` 8–25%, `reckless` < 10%, and `camper` <= 5% (with >= 1.5 threat beats).
+- Ensures median run time is within 0.8–1.3× par and 95% first contact is <= 45s across all maps.
+**Reason:** Guarantees that every map has viable silent-skill routes, punishes camping, rewards stealth over sprinting, and prevents impossible or trivial map layouts.
+
+### D035: Anti-Griefing Spectral Haunting in Last One Dry & Silent Race
+**Date:** 2026-10-23
+**Choice:** Provide eliminated players with spectral Haunting abilities constrained by strict anti-griefing rules:
+- Eliminated players accumulate Echo currency (+4/s up to 100).
+- Spending 50 Echo creates a real acoustic `NoiseEvent` (loudness 0.5) at a chosen water tile.
+- Spatial anti-grief guard: the event must be >= 12 m away from any living player and <= 30 m from the spectator, with a 20 s cooldown and max 4 haunts per match.
+- Living players receive an ominous presentation cue ("a spirit stirs...").
+**Reason:** Keeps eliminated players engaged during multiplayer survival rounds without allowing target griefing or unfair eliminations.
+
+
 
 
 

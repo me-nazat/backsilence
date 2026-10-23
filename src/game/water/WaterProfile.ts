@@ -140,4 +140,15 @@ export const WATER_PROFILES: Record<MapId, WaterProfile> = {
     specular: '#8fd4c6',
     murk: 0.15,
   },
+  orientation: {
+    shallow: '#7ddfc3',
+    deep: '#1b635b',
+    opacityMin: 0.52,
+    opacityMax: 0.94,
+    foam: 0.35,
+    normalStrength: 1.25,
+    scroll: 0.08,
+    specular: '#ffffff',
+    murk: 0.0,
+  },
 };
