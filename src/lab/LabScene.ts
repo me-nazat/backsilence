@@ -92,6 +92,7 @@ export class LabScene {
   private prevMouseY = 0;
 
   private time = 0;
+  private lastWakeTime = 0;
   private isDisposed = false;
 
   constructor(
@@ -346,6 +347,20 @@ export class LabScene {
         this.camYaw -= dx * sensitivity;
         this.camPitch -= dy * sensitivity * (this.settings.controls.invertY ? -1 : 1);
         this.camPitch = Math.max(-1.45, Math.min(1.45, this.camPitch));
+      } else if (this.isMenuMode && this.waterMesh) {
+        const now = performance.now();
+        if (now - this.lastWakeTime > 140) {
+          const rect = this.renderer.canvas.getBoundingClientRect();
+          this.mouseVec.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+          this.mouseVec.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+          this.raycaster.setFromCamera(this.mouseVec, this.camera);
+          const intersects = this.raycaster.intersectObject(this.waterMesh);
+          if (intersects.length > 0 && intersects[0]) {
+            const hit = intersects[0].point;
+            this.spawnRipple(hit.x, hit.z, 0.45, 1.6, 1.4);
+            this.lastWakeTime = now;
+          }
+        }
       }
     });
 
@@ -364,12 +379,12 @@ export class LabScene {
 
     if (intersects.length > 0 && intersects[0]) {
       const hit = intersects[0].point;
-      this.spawnRipple(hit.x, hit.z);
+      this.spawnRipple(hit.x, hit.z, 0.95, 2.5, 3.2);
 
       // Play procedural splash audio linked to visual ripple
       AudioEngine.getInstance().play('splash_small', {
         position: { x: hit.x, y: hit.y, z: hit.z },
-        intensity: 0.75,
+        intensity: 0.85,
       });
     }
   }
@@ -379,14 +394,14 @@ export class LabScene {
     this.updatePillarNumber();
   }
 
-  spawnRipple(x: number, z: number): void {
+  spawnRipple(x: number, z: number, opacity = 0.9, duration = 2.5, maxScale = 2.8): void {
     const reg = TextureRegistry.getInstance();
     const rippleTex = reg.getRippleStamp(256);
 
     const mat = new MeshBasicMaterial({
       map: rippleTex,
       transparent: true,
-      opacity: 0.9,
+      opacity,
       depthWrite: false,
     });
     const geo = new PlaneGeometry(1, 1);
@@ -398,8 +413,8 @@ export class LabScene {
     this.activeRipples.push({
       mesh,
       startTime: this.time,
-      duration: 2.5,
-      maxScale: 2.8,
+      duration,
+      maxScale,
     });
   }
 
