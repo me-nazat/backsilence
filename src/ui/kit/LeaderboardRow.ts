@@ -7,16 +7,16 @@ import { renderIcon, renderRankEmblem, type RankEmblemName } from './Icons.js';
 
 export interface LeaderboardRowOptions {
   rank: number;
-  rankEmblem?: RankEmblemName;
+  rankEmblem?: RankEmblemName | undefined;
   name: string;
   tag: string;
   score: number;
   timeMs: number;
   noiseUnits: number;
   status: 'pending' | 'verified' | 'rejected';
-  isPinned?: boolean;
-  hasReplay?: boolean;
-  onPlayGhost?: () => void;
+  isPinned?: boolean | undefined;
+  hasReplay?: boolean | undefined;
+  onPlayGhost?: (() => void) | undefined;
 }
 
 export class LeaderboardRow {

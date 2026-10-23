@@ -175,6 +175,25 @@ export class KeypadModal {
     window.addEventListener('keydown', this.onKeyDownBound);
   }
 
+  setCallbacks(callbacks: Partial<KeypadModalCallbacks>): void {
+    this.callbacks = { ...this.callbacks, ...callbacks };
+  }
+
+  show(correctCode?: string, onSolved?: () => void, onLockout?: () => void): void {
+    if (correctCode !== undefined) {
+      this.callbacks = {
+        onSubmit: (code: string) => {
+          const ok = code === correctCode;
+          if (ok && onSolved) onSolved();
+          return ok;
+        },
+        onCancel: () => {},
+        onLockout: onLockout || (() => {}),
+      };
+    }
+    this.open();
+  }
+
   open(): void {
     if (!this.el) return;
     this.currentCode = '';

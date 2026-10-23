@@ -355,12 +355,44 @@ const IdentityManager = {
     return this.cachedProfile;
   },
 
+  async getIdentity(): Promise<IdentityProfile> {
+    return this.getOrGenerateIdentity();
+  },
+
+  async rename(newName: string): Promise<void> {
+    const profile = await this.getOrGenerateIdentity();
+    profile.name = newName;
+    if (this.cachedKeyPair) {
+      try {
+        const db = await openIdb();
+        await new Promise<void>((resolve, reject) => {
+          const tx = db.transaction(STORE_NAME, 'readwrite');
+          const store = tx.objectStore(STORE_NAME);
+          const req = store.put({ keyPair: this.cachedKeyPair, name: profile.name, tag: profile.tag }, KEY_PAIR_ID);
+          req.onsuccess = () => resolve();
+          req.onerror = () => reject(req.error ?? new Error('IDB put error'));
+        });
+      } catch {
+        // In-memory fallback
+      }
+    }
+  },
+
+  async exportRecoveryCode(passphrase: string): Promise<string> {
+    return this.exportEncryptedRecoveryCode(passphrase);
+  },
+
+  async importRecoveryCode(code: string, passphrase: string): Promise<IdentityProfile> {
+    return this.importEncryptedRecoveryCode(code, passphrase);
+  },
+
   async exportPublicKeyJwk(): Promise<string> {
     const p = await this.getOrGenerateIdentity();
     return p.publicKeyJwk;
   },
 };
 
+export { IdentityManager };
 
 export const Identity = {
   isInitialized(): boolean {

@@ -10,9 +10,9 @@ export interface MapCardOptions {
   name: string;
   difficulty: number; // 1..5
   tags: string[];
-  bestTimeMs?: number;
-  seed?: number;
-  onClick?: (id: string) => void;
+  bestTimeMs?: number | undefined;
+  seed?: number | undefined;
+  onClick?: ((id: string) => void) | undefined;
 }
 
 export class MapCard {

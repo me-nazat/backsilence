@@ -9,6 +9,8 @@ import type { MapId } from '../types/contracts.js';
 import { AudioEngine } from '../audio/AudioEngine.js';
 import { computeScore, type ScoreBreakdown, type DeathReplayLine } from '../meta/Scoring.js';
 import { ProfileStore } from '../meta/ProfilePersistence.js';
+import { MotionEngine } from './motion/Motion.js';
+import { ShareCard } from './screens/ShareCard.js';
 
 export interface CoOpPlayerResult {
   id: string;
@@ -200,7 +202,10 @@ export class ResultsScreen {
         </div>
 
         <!-- Actions -->
-        <div style="display: flex; gap: 12px; width: 100%;">
+        <div style="display: flex; gap: 12px; width: 100%; flex-wrap: wrap;">
+          <button id="btn-results-share" class="analog-btn" style="flex: 1; padding: 12px; border-color: var(--water, #86cfa0);">
+            DOWNLOAD SHARE CARD (PNG)
+          </button>
           <button id="btn-results-continue" class="analog-btn primary" style="flex: 1; padding: 12px;">
             PROCEED TO SECTOR SELECT
           </button>
@@ -342,11 +347,31 @@ export class ResultsScreen {
     const scoreObjEl = this.el.querySelector('#results-score-obj');
     const scoreStyleEl = this.el.querySelector('#results-score-style');
 
-    if (finalScoreEl) finalScoreEl.textContent = String(breakdown.finalScore);
+    if (finalScoreEl) {
+      MotionEngine.getInstance().animateScoreCountUp(finalScoreEl as HTMLElement, breakdown.finalScore, 800);
+    }
     if (rankBadgeEl) {
       rankBadgeEl.textContent = breakdown.rank;
       const colors: Record<string, string> = { S: '#ffd700', A: '#86cfa0', B: '#64b5f6', C: '#ba68c8', D: '#9e9e9e' };
       rankBadgeEl.style.borderColor = colors[breakdown.rank] ?? '#86cfa0';
+      MotionEngine.getInstance().rankStampThump(rankBadgeEl);
+    }
+
+    const shareBtn = this.el.querySelector('#btn-results-share');
+    if (shareBtn) {
+      shareBtn.addEventListener('click', () => {
+        void ShareCard.downloadShareCardPng({
+          tapeTitle: results.mapId,
+          tapeNumber: 1,
+          playerName: 'Operator',
+          playerTag: '0042',
+          rankTitle: breakdown.rank,
+          score: breakdown.finalScore,
+          timeMs: results.timeSurvived * 1000,
+          noiseDb: results.noisesMade * 0.4,
+          seed: 1337,
+        });
+      }, { once: true });
     }
 
     const stars = results.starsEarned ?? (breakdown.finalScore >= 1400 ? 3 : breakdown.finalScore >= 800 ? 2 : 1);

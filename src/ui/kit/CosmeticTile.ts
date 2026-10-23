@@ -8,10 +8,10 @@ import { renderIcon } from './Icons.js';
 export interface CosmeticTileOptions {
   id: string;
   name: string;
-  category: 'skin' | 'flashlight' | 'lure';
-  rarity: 'common' | 'rare' | 'anomalous';
-  isEquipped?: boolean;
-  onSelect?: (id: string) => void;
+  category?: string | undefined;
+  rarity?: string | undefined;
+  isEquipped?: boolean | undefined;
+  onSelect?: ((id: string) => void) | undefined;
 }
 
 export class CosmeticTile {
