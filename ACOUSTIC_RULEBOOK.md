@@ -73,3 +73,13 @@ WORLD.MONSTER.TRENCH_BLOCK_WIDTH = 2.4   // meters
 > Stay still, stay on dry tiled platforms, move quietly, and solve the exit puzzle without making a splash.
 
 The dread comes from **silence and fog**, not gore. Every sound the player makes is a calculated risk.
+
+---
+
+## Ambient Fauna Contract (`ambient_fauna`)
+
+- **Category:** `ambient_fauna` (e.g. the 5 overhead flying skulls, drifting moths, surface water bugs).
+- **Acoustic Rule:** Ambient fauna **never** create `NoiseEvent`s, never alert monsters, never collide with or damage players, never trigger jumpscares, and never register on the sound visualizer / HUD feed.
+- **Visuals:** Surface skim-ripples created by ambient fauna are flagged `cosmetic: true` and strictly ignored by all simulation hearing and monster perception systems.
+- **Audio:** Voices associated with ambient fauna (`wisp_wail`, `wisp_wingbeat`) are routed exclusively to the non-diegetic atmospheric audio sub-bus and are inaudible to monsters.
+

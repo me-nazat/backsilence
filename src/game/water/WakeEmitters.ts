@@ -78,6 +78,20 @@ export class WakeEmitters {
     if (src) src.active = false;
   }
 
+  addWake(
+    posX: number,
+    posZ: number,
+    dirX: number,
+    dirZ: number,
+    speed: number,
+    strength = 1.0,
+    width = 0.8,
+    length = 6.0,
+  ): void {
+    const id = `transient_${Math.floor(Math.random() * 100000)}`;
+    this.updateSource(id, posX, posZ, dirX, dirZ, speed, strength, width, length);
+  }
+
   upload(): void {
     let slot = 0;
     for (const src of this.sources.values()) {

@@ -19,6 +19,9 @@ import {
   BufferGeometry,
   LineBasicMaterial,
   Float32BufferAttribute,
+  WebGLRenderTarget,
+  DepthTexture,
+  UnsignedIntType,
 } from 'three';
 import { EngineRenderer } from '../engine/Renderer.js';
 import { PostFX } from '../engine/PostFX.js';
@@ -29,6 +32,8 @@ import { SimWorld } from '../sim/SimWorld.js';
 import type { EncounterDirector } from '../sim/Director.js';
 import { WaterSystem } from './water/WaterSystem.js';
 import { MonsterManager } from './monster/MonsterManager.js';
+import { FlockDirector } from './creatures/FlockDirector.js';
+import { LensOverlay } from './water/LensOverlay.js';
 import { JumpscareSequence, type JumpscareStats } from './monster/Jumpscare.js';
 import { PlayerCamera } from './player/PlayerCamera.js';
 import { PlayerInput } from './player/PlayerInput.js';
@@ -81,6 +86,10 @@ export class GameSession {
   private water!: WaterSystem;
   private monsters!: MonsterManager;
   private jumpscare!: JumpscareSequence;
+  private flock!: FlockDirector;
+  private lensOverlay!: LensOverlay;
+  private opaqueDepthTarget: WebGLRenderTarget | null = null;
+  private wadeSplashTimer = 0;
 
   private playerInput!: PlayerInput;
   private playerCamera!: PlayerCamera;
@@ -191,6 +200,7 @@ export class GameSession {
   private debugMode = false;
   private pathLine: Line | null = null;
   private hearingRings: { line: Line; age: number; maxAge: number }[] = [];
+  private readonly container: HTMLElement;
 
   constructor(
     container: HTMLElement,
@@ -203,6 +213,7 @@ export class GameSession {
     keypadModal?: KeypadModal,
     netSession?: NetSession,
   ) {
+    this.container = container;
     this.settings = settings;
     this.hud = hud;
     this.callbacks = callbacks;
@@ -339,6 +350,27 @@ export class GameSession {
         audio: this.audio,
         profile: this.mapDef.waterProfile,
       });
+
+      // 5b. Lens overlay & Ambient Flock setup
+      this.lensOverlay = new LensOverlay(this.container);
+      this.flock = new FlockDirector({
+        seed: this.seed,
+        anchor: new Vector3(0, 0, 0),
+        waterY: this.mapInstance.waterY,
+        audio: this.audio,
+      });
+      this.scene.add(this.flock.root);
+
+      if (tier !== 'low' && typeof window !== 'undefined' && this.renderer.renderer.capabilities?.isWebGL2) {
+        const w = this.container.clientWidth || 1280;
+        const h = this.container.clientHeight || 720;
+        const depthTexture = new DepthTexture(w, h);
+        depthTexture.type = UnsignedIntType;
+        this.opaqueDepthTarget = new WebGLRenderTarget(w, h, {
+          depthTexture,
+          depthBuffer: true,
+        });
+      }
 
       // 6. Monster Presentation & AI Setup (now uses fully built NavGrid)
       this.monsters = new MonsterManager(this.water, this.audio);
@@ -1485,8 +1517,40 @@ export class GameSession {
     // 7. Interaction System
     const promptState = this.interactions.update(dt, this.camera, intent.interact);
 
-    // 8. Water System update
+    // 8. Water System & Ambient Flock update
     this.water.update(dt, this.simWorld.simTime, this.camera, this.scene.fog as FogExp2);
+    this.flock.update(dt, this.simWorld.simTime, this.camera);
+    this.lensOverlay.setSubmerged(this.camera.position.y < this.water.currentWaterY);
+    this.lensOverlay.update(dt);
+
+    // 8b. Wading leg wake displacement & knee splashes
+    if (currSnap.wet) {
+      const hSpeed = Math.hypot(currSnap.vel.x, currSnap.vel.z);
+      if (hSpeed > 0.4) {
+        this.water.wakes.updateSource('player', currSnap.pos.x, currSnap.pos.z, currSnap.vel.x, currSnap.vel.z, hSpeed, 1.0, 0.8, 4.0);
+        this.wadeSplashTimer += dt;
+        if (this.wadeSplashTimer > 0.35) {
+          this.wadeSplashTimer = 0;
+          this.water.splashes.burst({ x: currSnap.pos.x, y: this.water.currentWaterY, z: currSnap.pos.z }, hSpeed * 0.45);
+        }
+      }
+    }
+
+    // 8c. Consume Encounter Director Dread Beats
+    const beats = this.simWorld.director.dreadBeats;
+    for (let b = 0; b < beats.length; b++) {
+      const beat = beats[b]!;
+      if (beat.kind === 'first_contact' || beat.kind === 'ambient_far') {
+        this.audio.play('monster_ambient_far', { position: beat.position, gain: 0.7 });
+        this.postFX.triggerGlitch(0.18);
+      } else if (beat.kind === 'listening') {
+        this.postFX.triggerTracking(0.8);
+        this.postFX.setTension(0.9);
+      } else if (beat.kind === 'sweep') {
+        this.water.wakes.addWake(beat.position.x, beat.position.z, 1.0, 0.0, 2.0, 0.5);
+      }
+    }
+    beats.length = 0;
 
     // 9. MapInstance update (e.g. sinking platforms)
     this.mapInstance.update(dt);
@@ -1568,7 +1632,31 @@ export class GameSession {
       this.updateDebugVisuals(dt);
     }
 
-    // 15. Render Scene
+    // 15. Render Scene with Scene Depth Pre-Pass
+    this.renderScene(dt);
+  }
+
+  private renderScene(dt: number): void {
+    if (
+      this.opaqueDepthTarget &&
+      this.renderer.renderer.capabilities?.isWebGL2 &&
+      this.settings.graphics.quality !== 'low'
+    ) {
+      this.water.mesh.visible = false;
+      this.renderer.renderer.setRenderTarget(this.opaqueDepthTarget);
+      this.renderer.render(this.scene, this.camera);
+      this.renderer.renderer.setRenderTarget(null);
+      this.water.mesh.visible = true;
+
+      this.water.setDepthTextures(
+        this.opaqueDepthTarget.depthTexture,
+        this.opaqueDepthTarget.texture,
+        this.camera.near,
+        this.camera.far,
+        this.container.clientWidth || 1280,
+        this.container.clientHeight || 720,
+      );
+    }
     this.postFX.render(this.scene, this.camera, dt);
   }
 
@@ -2560,6 +2648,9 @@ export class GameSession {
     this.interactions.dispose();
     this.water.dispose();
     this.monsters.dispose();
+    this.flock.dispose();
+    this.lensOverlay.dispose();
+    this.opaqueDepthTarget?.dispose();
     this.mapInstance.dispose();
     this.pingMarkers.dispose();
 

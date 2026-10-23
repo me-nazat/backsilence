@@ -1,7 +1,8 @@
 /* ── WaterSystem.ts ────────────────────────────────────────────────────────
  *  Master presentation water manager integrating camera-following displaced mesh,
- *  analytic ripples, Kelvin wakes, map data texture, foam, underwater detection,
- *  dynamic water levels, and Map 5 bioluminescent floating motes.
+ *  GpuWaveSimulation (2D wave equation with obstacle reflections),
+ *  analytic ripples, Kelvin wakes, map data texture, scene depth texture pass,
+ *  foam, underwater detection, dynamic water levels, and Map 5 bioluminescence.
  * ──────────────────────────────────────────────────────────────────────── */
 
 import {
@@ -19,6 +20,7 @@ import {
   DynamicDrawUsage,
   MeshBasicMaterial,
   CircleGeometry,
+  type Texture,
 } from 'three';
 import type { GroundGrid } from '../../sim/GroundGrid.js';
 import type { GraphicsTier, RippleEvent } from '../../types/contracts.js';
@@ -28,6 +30,7 @@ import { WakeEmitters } from './WakeEmitters.js';
 import { buildWaterMapData, type WaterMapResult } from './WaterMapData.js';
 import { createWaterMaterial } from './WaterMaterial.js';
 import { SplashSystem } from './Splashes.js';
+import { GpuWaveSimulation } from './GpuWaveSimulation.js';
 import { makeWaterNormalMap } from '../../procedural/textures/WaterNormal.js';
 import type { AudioEngine } from '../../audio/AudioEngine.js';
 
@@ -47,6 +50,7 @@ export class WaterSystem {
   readonly ripples: RippleBuffer;
   readonly wakes: WakeEmitters;
   readonly splashes: SplashSystem;
+  readonly waveSim: GpuWaveSimulation;
   readonly mapData: WaterMapResult;
 
   currentWaterY: number;
@@ -80,6 +84,11 @@ export class WaterSystem {
     this.wakes = new WakeEmitters();
     this.splashes = new SplashSystem(parent);
     this.mapData = buildWaterMapData(options.ground, tier);
+    this.waveSim = new GpuWaveSimulation({
+      tier,
+      ground: options.ground,
+      waterY: this.currentWaterY,
+    });
 
     const normalTex = makeWaterNormalMap();
 
@@ -148,6 +157,28 @@ export class WaterSystem {
     }
   }
 
+  /** Upload scene depth & color textures from opaque pre-pass */
+  setDepthTextures(
+    depthTexture: Texture | null,
+    colorTexture: Texture | null,
+    near: number,
+    far: number,
+    width: number,
+    height: number,
+  ): void {
+    const u = this.material.uniforms;
+    if (depthTexture && colorTexture) {
+      if (u['uSceneDepth']) u['uSceneDepth'].value = depthTexture;
+      if (u['uSceneColor']) u['uSceneColor'].value = colorTexture;
+      if (u['uHasSceneDepth']) u['uHasSceneDepth'].value = 1.0;
+    } else {
+      if (u['uHasSceneDepth']) u['uHasSceneDepth'].value = 0.0;
+    }
+    if (u['uCameraNear']) u['uCameraNear'].value = near;
+    if (u['uCameraFar']) u['uCameraFar'].value = far;
+    if (u['uResolution']) (u['uResolution'].value as import('three').Vector2).set(width, height);
+  }
+
   setLightStreaks(streaks: import('./WaterMaterial.js').LightStreak[]): void {
     const u = this.material.uniforms;
     const count = Math.min(16, streaks.length);
@@ -164,6 +195,7 @@ export class WaterSystem {
 
   onRipple(ev: RippleEvent): void {
     this.ripples.addRipple(ev.position.x, ev.position.z, ev.strength, ev.t);
+    this.waveSim.injectImpulse(ev.position.x, ev.position.z, 0.6, ev.strength * 0.08);
   }
 
   onSplash(pos: { x: number; y: number; z: number }, strength = 1.0, isMonster = false): void {
@@ -176,18 +208,21 @@ export class WaterSystem {
     const snapZ = Math.floor(camera.position.z / this.segStep) * this.segStep;
     this.mesh.position.set(snapX, 0, snapZ);
 
-    // 2. Update shader uniforms
+    // 2. Step 2D Wave Equation
+    this.waveSim.step(dt, camera.position.x, camera.position.z);
+
+    // 3. Update shader uniforms
     const u = this.material.uniforms;
     if (u['uTime']) u['uTime'].value = time;
     if (u['uRippleCount']) u['uRippleCount'].value = this.ripples.count;
 
-    // 3. Upload wake uniforms
+    // 4. Upload wake uniforms
     this.wakes.upload();
 
-    // 4. Update splash particles
+    // 5. Update splash particles & foam rings
     this.splashes.update(dt, camera.position);
 
-    // 5. Update bioluminescent motes
+    // 6. Update bioluminescent motes
     if (this.motesMesh && this.motesData.length > 0) {
       const dummy = new Matrix4();
       for (let i = 0; i < this.motesData.length; i++) {
@@ -201,7 +236,7 @@ export class WaterSystem {
       this.motesMesh.instanceMatrix.needsUpdate = true;
     }
 
-    // 6. Underwater camera check
+    // 7. Underwater camera check
     const isCameraBelow = camera.position.y < this.currentWaterY;
     if (isCameraBelow !== this.isUnderwater) {
       this.isUnderwater = isCameraBelow;
@@ -212,7 +247,7 @@ export class WaterSystem {
       }
     }
 
-    // 7. Smooth underwater fog transition if scene has fog
+    // 8. Smooth underwater fog transition if scene has fog
     if (sceneFog) {
       const targetT = this.isUnderwater ? 1.0 : 0.0;
       this.underwaterT += (targetT - this.underwaterT) * Math.min(1.0, dt * 5.0);
@@ -227,11 +262,24 @@ export class WaterSystem {
     }
   }
 
+  /** Run Water v2 self-test suite */
+  selfTest(): {
+    passed: boolean;
+    hasNaN: boolean;
+    energyDecayed: boolean;
+    obstacleReflected: boolean;
+    maxAgreementError: number;
+    details: string;
+  } {
+    return this.waveSim.selfTest();
+  }
+
   dispose(): void {
     this.mesh.geometry.dispose();
     this.material.dispose();
     this.mapData.texture.dispose();
     this.splashes.dispose();
+    this.waveSim.dispose();
     this.mesh.removeFromParent();
 
     if (this.motesMesh) {
@@ -240,4 +288,19 @@ export class WaterSystem {
       this.motesMesh.removeFromParent();
     }
   }
+}
+
+/** Standalone waterSelfTest function for Debug/window harness */
+export function waterSelfTest(): {
+  passed: boolean;
+  hasNaN: boolean;
+  energyDecayed: boolean;
+  obstacleReflected: boolean;
+  maxAgreementError: number;
+  details: string;
+} {
+  const sim = new GpuWaveSimulation({ tier: 'high' });
+  const result = sim.selfTest();
+  sim.dispose();
+  return result;
 }

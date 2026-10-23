@@ -123,9 +123,14 @@ export function generateFleshTextures(options: FleshTextureOptions = {}): FleshT
     }
   }
 
+  const makeImg = (d: Uint8ClampedArray): ImageData =>
+    typeof ImageData !== 'undefined'
+      ? new ImageData(d, size, size)
+      : ({ data: d, width: size, height: size } as unknown as ImageData);
+
   // Create Three.js CanvasTextures
   const albedoCanvas = acquireCanvas(size, size);
-  albedoCanvas.ctx.putImageData(new ImageData(albedoData, size, size), 0, 0);
+  albedoCanvas.ctx.putImageData(makeImg(albedoData), 0, 0);
   const albedoTex = new CanvasTexture(albedoCanvas.canvas as HTMLCanvasElement);
   albedoTex.wrapS = RepeatWrapping;
   albedoTex.wrapT = RepeatWrapping;
@@ -133,7 +138,7 @@ export function generateFleshTextures(options: FleshTextureOptions = {}): FleshT
   albedoTex.needsUpdate = true;
 
   const bumpCanvas = acquireCanvas(size, size);
-  bumpCanvas.ctx.putImageData(new ImageData(bumpData, size, size), 0, 0);
+  bumpCanvas.ctx.putImageData(makeImg(bumpData), 0, 0);
   const bumpTex = new CanvasTexture(bumpCanvas.canvas as HTMLCanvasElement);
   bumpTex.wrapS = RepeatWrapping;
   bumpTex.wrapT = RepeatWrapping;
@@ -141,7 +146,7 @@ export function generateFleshTextures(options: FleshTextureOptions = {}): FleshT
   bumpTex.needsUpdate = true;
 
   const roughCanvas = acquireCanvas(size, size);
-  roughCanvas.ctx.putImageData(new ImageData(roughData, size, size), 0, 0);
+  roughCanvas.ctx.putImageData(makeImg(roughData), 0, 0);
   const roughTex = new CanvasTexture(roughCanvas.canvas as HTMLCanvasElement);
   roughTex.wrapS = RepeatWrapping;
   roughTex.wrapT = RepeatWrapping;

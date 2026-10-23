@@ -768,11 +768,12 @@ export function installDebugApi(options: DebugApiOptions = {}): void {
       return { parityMAE: 0.001, parityPass: true, glitchDecayPass: true, safeModeClampPass: true, allPassed: true };
     },
     waterSelfTest: async () => {
-      const g = window as unknown as { __backsilence_session?: { waterSystem?: { waterSelfTest?: () => Promise<unknown> } } };
-      if (g.__backsilence_session?.waterSystem?.waterSelfTest) {
-        return g.__backsilence_session.waterSystem.waterSelfTest();
+      const g = window as unknown as { __backsilence_session?: { waterSystem?: { selfTest?: () => unknown; waterSelfTest?: () => unknown } } };
+      if (g.__backsilence_session?.waterSystem?.selfTest) {
+        return g.__backsilence_session.waterSystem.selfTest();
       }
-      return { stabilityPass: true, parityPass: true, obstacleReflectionPass: true, allPassed: true };
+      const { waterSelfTest: runWaterTest } = await import('../game/water/WaterSystem.js');
+      return runWaterTest();
     },
     get sim() {
       const g = window as unknown as { __backsilence_session?: { sim?: unknown; simWorld?: unknown } };

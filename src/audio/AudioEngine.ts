@@ -128,6 +128,10 @@ import {
   playMonsterSwipe,
   playMonsterCollapse,
 } from './voices/MetroSounds.js';
+import {
+  playWispWail,
+  playWispWingbeat,
+} from './voices/WispSounds.js';
 
 export type VoiceName =
   | 'splash_small'
@@ -222,7 +226,9 @@ export type VoiceName =
   | 'bottle_shatter'
   | 'station_announce_chime'
   | 'monster_swipe'
-  | 'monster_collapse';
+  | 'monster_collapse'
+  | 'wisp_wail'
+  | 'wisp_wingbeat';
 
 export interface PlayOptions {
   position?: Vec3;
@@ -704,6 +710,12 @@ export class AudioEngine implements AudioEngineApi {
         break;
       case 'monster_collapse':
         handle = playMonsterCollapse(voiceCtx);
+        break;
+      case 'wisp_wail':
+        handle = playWispWail(voiceCtx);
+        break;
+      case 'wisp_wingbeat':
+        handle = playWispWingbeat(voiceCtx);
         break;
       default:
         handle = playUiClick(voiceCtx);
