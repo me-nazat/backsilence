@@ -46,30 +46,37 @@ export class AudioUnlock {
     `;
 
     const unlock = async (): Promise<void> => {
-      // Initialize Web Audio API
-      const engine = AudioEngine.getInstance();
-      await engine.init();
-      engine.startAmbience();
-      engine.play('ui_confirm');
-
+      // Dismiss visually right away so the UI is never blocked, even if audio fails.
       el.style.opacity = '0';
       el.style.pointerEvents = 'none';
-
       setTimeout(() => {
+        el.style.display = 'none';
         if (el.parentElement) {
           el.parentElement.removeChild(el);
         }
-        if (this.onUnlocked) this.onUnlocked();
-      }, 800);
+      }, 400);
+
+      // Initialize Web Audio API
+      try {
+        const engine = AudioEngine.getInstance();
+        await engine.init();
+        engine.startAmbience();
+        engine.play('ui_confirm');
+      } catch (err) {
+        console.warn('[AudioUnlock] Audio init failed; continuing without audio:', err);
+      }
+      if (this.onUnlocked) this.onUnlocked();
     };
 
     const onUserGesture = (): void => {
       window.removeEventListener('keydown', onUserGesture);
+      window.removeEventListener('pointerdown', onUserGesture);
       el.removeEventListener('click', onUserGesture);
       void unlock();
     };
 
     window.addEventListener('keydown', onUserGesture, { once: true });
+    window.addEventListener('pointerdown', onUserGesture, { once: true });
     el.addEventListener('click', onUserGesture, { once: true });
 
     container.appendChild(el);

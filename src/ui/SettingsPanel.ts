@@ -46,6 +46,7 @@ export class SettingsPanel {
       padding: clamp(20px, 4vw, 40px) 20px;
       overflow-y: auto;
       z-index: 300;
+      pointer-events: auto;
       box-sizing: border-box;
       color: var(--fog, #d9d3a2);
       font-family: monospace;
@@ -283,7 +284,15 @@ export class SettingsPanel {
               <div class="setting-label">HIGH CONTRAST UI</div>
               <div class="setting-sub">Enhance border definition and text readability</div>
             </div>
-            <input id="set-highcontrast" type="checkbox" class="setting-toggle">
+            <input id="set-highcontrast" type="checkbox" ${this.settings.accessibility?.highContrast ? 'checked' : ''} class="setting-toggle">
+          </div>
+
+          <div class="setting-row">
+            <div>
+              <div class="setting-label">UI SCALE: <span id="lbl-uiscale">${Math.round((this.settings.accessibility?.uiScale ?? 1.0) * 100)}%</span></div>
+              <div class="setting-sub">Scale on-screen interface text and elements</div>
+            </div>
+            <input id="set-uiscale" type="range" min="0.8" max="1.4" step="0.05" value="${this.settings.accessibility?.uiScale ?? 1.0}" class="setting-slider">
           </div>
         `;
     }
@@ -461,6 +470,30 @@ export class SettingsPanel {
       rm?.addEventListener('change', () => {
         this.settings.graphics.reducedMotion =
           rm.value === 'system' ? 'system' : rm.value === 'true';
+        if (this.settings.accessibility) {
+          this.settings.accessibility.reducedMotion =
+            rm.value === 'system' ? 'system' : rm.value === 'true' ? 'on' : 'off';
+        }
+        this.liveApply();
+      });
+
+      const hc = this.el.querySelector('#set-highcontrast') as HTMLInputElement;
+      hc?.addEventListener('change', () => {
+        if (!this.settings.accessibility) {
+          this.settings.accessibility = { reducedMotion: 'system', uiScale: 1.0, highContrast: false };
+        }
+        this.settings.accessibility.highContrast = hc.checked;
+        this.liveApply();
+      });
+
+      const uiscale = this.el.querySelector('#set-uiscale') as HTMLInputElement;
+      uiscale?.addEventListener('input', () => {
+        if (!this.settings.accessibility) {
+          this.settings.accessibility = { reducedMotion: 'system', uiScale: 1.0, highContrast: false };
+        }
+        this.settings.accessibility.uiScale = parseFloat(uiscale.value);
+        const lbl = this.el?.querySelector('#lbl-uiscale');
+        if (lbl) lbl.textContent = `${Math.round(this.settings.accessibility.uiScale * 100)}%`;
         this.liveApply();
       });
     }

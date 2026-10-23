@@ -40,6 +40,7 @@ export class KeypadModal {
       align-items: center;
       justify-content: center;
       z-index: 220;
+      pointer-events: auto;
       user-select: none;
       font-family: monospace;
       color: var(--fog, #d9d3a2);

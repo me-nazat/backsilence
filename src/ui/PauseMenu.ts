@@ -33,6 +33,7 @@ export class PauseMenu {
       justify-content: center;
       align-items: center;
       z-index: 500;
+      pointer-events: auto;
       font-family: monospace;
       color: var(--fog, #d9d3a2);
     `;

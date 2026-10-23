@@ -99,6 +99,7 @@ export class RoomLinkPanel {
       padding: clamp(20px, 4vw, 40px) 20px;
       overflow-y: auto;
       z-index: 250;
+      pointer-events: auto;
       box-sizing: border-box;
       color: var(--fog, #d9d3a2);
       font-family: monospace;

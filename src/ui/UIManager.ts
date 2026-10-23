@@ -237,10 +237,10 @@ export class UIManager {
     if (this.currentView === view) return;
     this.viewStack.push(view);
     this.currentView = view;
-    if (view === 'MODE_SELECT' && this.stateMachine.canTransition('MODE_SELECT')) {
-      this.stateMachine.transition('MODE_SELECT');
-    } else if (view === 'MENU' && this.stateMachine.canTransition('MENU')) {
-      this.stateMachine.transition('MENU');
+    if (view === 'MODE_SELECT') {
+      this.stateMachine.goTo('MODE_SELECT');
+    } else if (view === 'MENU') {
+      this.stateMachine.goTo('MENU');
     }
     this.updateViewVisibility();
   }
@@ -250,16 +250,14 @@ export class UIManager {
       this.viewStack.pop();
       const prev = this.viewStack[this.viewStack.length - 1];
       this.currentView = prev ?? 'MENU';
-      if (this.currentView === 'MENU' && this.stateMachine.canTransition('MENU')) {
-        this.stateMachine.transition('MENU');
+      if (this.currentView === 'MENU') {
+        this.stateMachine.goTo('MENU');
       }
       this.updateViewVisibility();
     } else if (this.currentView !== 'MENU') {
       this.currentView = 'MENU';
       this.viewStack = ['MENU'];
-      if (this.stateMachine.canTransition('MENU')) {
-        this.stateMachine.transition('MENU');
-      }
+      this.stateMachine.goTo('MENU');
       this.updateViewVisibility();
     }
   }
@@ -323,12 +321,7 @@ export class UIManager {
     this.currentView = 'GAME';
     this.viewStack = ['GAME'];
     this.updateViewVisibility();
-    if (this.stateMachine.canTransition('MODE_SELECT')) {
-      this.stateMachine.transition('MODE_SELECT');
-    }
-    if (this.stateMachine.canTransition('LOADING')) {
-      this.stateMachine.transition('LOADING');
-    }
+    this.stateMachine.goTo('LOADING');
 
     if (this.onStartGame) {
       this.onStartGame(config);
@@ -351,9 +344,7 @@ export class UIManager {
     this.currentView = 'RESULTS';
     this.updateViewVisibility();
     this.resultsScreen.show(results);
-    if (this.stateMachine.canTransition('MENU')) {
-      this.stateMachine.transition('MENU');
-    }
+    this.stateMachine.goTo('RESULTS');
   }
 
   getKeypadModal(): KeypadModal {
@@ -365,7 +356,7 @@ export class UIManager {
       this.currentView = 'GAME';
       this.viewStack = ['GAME'];
       this.updateViewVisibility();
-      this.stateMachine.transition('PLAYING');
+      this.stateMachine.goTo('PLAYING');
     }
   }
 
@@ -373,23 +364,21 @@ export class UIManager {
     this.currentView = 'MENU';
     this.viewStack = ['MENU'];
     this.updateViewVisibility();
-    this.stateMachine.transition('MENU');
+    this.stateMachine.goTo('MENU');
     this.bus.emit('game:leave', undefined);
   }
 
   showPause(): void {
     this.navigateTo('PAUSE');
     if (this.stateMachine.current === 'PLAYING') {
-      this.stateMachine.transition('PAUSED');
+      this.stateMachine.goTo('PAUSED');
     }
   }
 
   showDeath(reason?: string): void {
     if (reason) this.deathScreen.setReason(reason);
     this.navigateTo('DEATH');
-    if (this.stateMachine.current === 'PLAYING') {
-      this.stateMachine.transition('DEAD');
-    }
+    this.stateMachine.goTo('DEAD');
   }
 
   private bindGlobalKeyboard(): void {

@@ -101,6 +101,19 @@
       position:fixed;inset:0;z-index:50;display:none;pointer-events:none;
     }
     #app.visible{display:block}
+    /* #app is click-through (so the 3D layer can get input), therefore every
+       interactive screen must opt back in — otherwise it inherits `none`
+       and all of its buttons/inputs silently stop working. */
+    #audio-unlock-overlay,
+    #mode-select-view,
+    #room-link-view,
+    #settings-panel-view,
+    #how-to-play-view,
+    #pause-menu-view,
+    #death-screen-view,
+    #results-screen,
+    #keypad-modal-overlay,
+    #audio-lab-panel{pointer-events:auto}
 
     /* Analog Horror Title Flicker */
     .flicker-title{

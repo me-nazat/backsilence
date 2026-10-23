@@ -137,6 +137,7 @@ export class ModeSelect {
       padding: clamp(16px, 3vw, 36px) 20px;
       overflow-y: auto;
       z-index: 200;
+      pointer-events: auto;
       box-sizing: border-box;
       color: var(--fog, #d9d3a2);
       font-family: monospace;

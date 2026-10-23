@@ -12,15 +12,15 @@ import type { EventBus } from './EventBus.js';
  */
 const TRANSITIONS: Record<AppState, readonly AppState[]> = {
   BOOT: ['MENU'],
-  MENU: ['MODE_SELECT'],
-  MODE_SELECT: ['LOBBY', 'LOADING', 'MENU'],
-  LOBBY: ['LOADING', 'MENU'],
+  MENU: ['MODE_SELECT', 'LOBBY', 'LOADING', 'PLAYING'],
+  MODE_SELECT: ['LOBBY', 'LOADING', 'PLAYING', 'MENU'],
+  LOBBY: ['LOADING', 'PLAYING', 'MENU'],
   LOADING: ['PLAYING', 'MENU'],
-  PLAYING: ['PAUSED', 'DEAD'],
-  PAUSED: ['PLAYING', 'MENU'],
-  DEAD: ['SPECTATING', 'RESULTS', 'MENU'],
-  SPECTATING: ['RESULTS', 'MENU'],
-  RESULTS: ['MENU'],
+  PLAYING: ['PAUSED', 'DEAD', 'RESULTS', 'MENU', 'LOADING'],
+  PAUSED: ['PLAYING', 'MENU', 'LOADING'],
+  DEAD: ['SPECTATING', 'RESULTS', 'MENU', 'LOADING', 'PLAYING'],
+  SPECTATING: ['RESULTS', 'MENU', 'LOADING'],
+  RESULTS: ['MENU', 'MODE_SELECT', 'LOADING', 'PLAYING'],
 };
 
 export interface StateMachine {
@@ -56,6 +56,23 @@ export class AppStateMachine implements StateMachine {
         `Illegal state transition: ${this._current} → ${to}. ` +
         `Allowed: [${TRANSITIONS[this._current].join(', ')}]`,
       );
+    }
+    const from = this._current;
+    this._current = to;
+    this.bus.emit('app:state', { from, to });
+  }
+
+  /**
+   * Tolerant transition used by UI/game flow code. Never throws:
+   * - no-op if already in `to`
+   * - uses the legal edge when available
+   * - otherwise forces the state (with a console warning) so that a
+   *   bookkeeping mismatch can never break buttons or crash the app.
+   */
+  goTo(to: AppState): void {
+    if (this._current === to) return;
+    if (!this.canTransition(to)) {
+      console.warn(`[StateMachine] Forcing non-standard transition ${this._current} → ${to}`);
     }
     const from = this._current;
     this._current = to;

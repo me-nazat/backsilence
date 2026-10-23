@@ -96,6 +96,7 @@ export class ResultsScreen {
       align-items: center;
       justify-content: center;
       z-index: 250;
+      pointer-events: auto;
       padding: 24px;
       box-sizing: border-box;
       font-family: monospace;

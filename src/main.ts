@@ -273,7 +273,7 @@ async function boot(): Promise<void> {
       ui.getKeypadModal(),
     );
     g.__backsilence_session = activeGameSession;
-    stateMachine.transition('PLAYING');
+    stateMachine.goTo('PLAYING');
   });
 
   bus.on('game:start:net' as unknown as 'game:start', (rawCfg: unknown) => {
@@ -308,20 +308,20 @@ async function boot(): Promise<void> {
       netCfg.session,
     );
     g.__backsilence_session = activeGameSession;
-    stateMachine.transition('PLAYING');
+    stateMachine.goTo('PLAYING');
   });
 
   bus.on('game:retry' as unknown as 'game:start', () => {
     if (activeGameSession) {
       activeGameSession.restart(true);
-      stateMachine.transition('PLAYING');
+      stateMachine.goTo('PLAYING');
     }
   });
 
   bus.on('game:resume' as unknown as 'game:start', () => {
     if (activeGameSession) {
       activeGameSession.resume();
-      stateMachine.transition('PLAYING');
+      stateMachine.goTo('PLAYING');
     }
   });
 
