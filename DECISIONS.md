@@ -339,3 +339,14 @@ Establish `functions/api/[[route]].ts` as the canonical Cloudflare Pages Functio
 3. Require SSIM >= 0.97 against approved golden captures to pass visual regression gates in CI.
 4. Enhance `scripts/shots.mjs` with clipped-highlight percentage metrics and individual 1-sentence justifications across all 7 rubric pillars (composition, depth layering, material richness, lighting & atmosphere, water believability, creature readability, absence of artifacts).
 **Reason:** Fulfills Prompt 2 Phase A requirements for dependency-free visual regression testing, ensuring rendering and shading enhancements maintain measurable fidelity against reference standards.
+
+### D048: Water v3 Pass Order, GPU Wave Simulation & Optical Depth Discard
+**Date:** 2026-10-24
+**Choice:**
+1. Decoupled Framebuffer Pass Order: Render opaque scene geometry to `sceneRT` (`opaqueDepthTarget`), bind color and linear depth as read textures, and composite water into `finalRT` (PostFX buffer), eliminating texture-attachment feedback loop warnings.
+2. View-Space Depth Discard: Convert hardware depth to linear distance; discard fragments where opaque geometry is closer than the water surface by $>0.05\text{m}$ (`diffZ < -0.05`).
+3. Refraction Foreground Leak Protection: Offset sample coordinates by `normal.xz * 0.04 * (1.0 - exp(-waterDepth))`; fall back to unrefracted sample when the refracted ray hits an object closer than the water surface.
+4. GPU Wave Equation & Obstacle Reflection: Ping-pong half-float simulation satisfying CFL condition ($n = \lceil c \cdot \Delta t / (0.7 \cdot \Delta x) \rceil$). Enforce zero-flux mirror boundary condition on solid obstacle neighbors ($h_{\text{neighbor}} = h_{\text{center}}$) for wave reflection off platform walls and pillars.
+5. Automated Stability Suite: Integrated `waterSelfTest()` asserting zero NaNs after 10,000 steps, strict energy decay, obstacle wall reflection, and CPU/GPU agreement within $10^{-3}$ across 200 spatial points.
+**Reason:** Fulfills Prompt 2 Phase B mandates for commercial-grade water believability, optical physical accuracy (Beer-Lambert, Schlick Fresnel F0=0.02, caustics, wake foam), and driver feedback loop elimination.
+

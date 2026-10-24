@@ -115,7 +115,20 @@ export class GpuWaveSimulation {
   /** Initialize GPU FBOs and materials when a WebGL renderer is provided. */
   initGpu(renderer: WebGLRenderer): boolean {
     try {
+      const gl = renderer.getContext() as WebGLRenderingContext | WebGL2RenderingContext;
       const isWebGL2 = renderer.capabilities?.isWebGL2 ?? false;
+
+      // Detect EXT_color_buffer_float or EXT_color_buffer_half_float
+      const hasFloatExt = isWebGL2 || !!(
+        gl.getExtension('EXT_color_buffer_float') ||
+        gl.getExtension('EXT_color_buffer_half_float') ||
+        gl.getExtension('WEBGL_color_buffer_float')
+      );
+      if (!hasFloatExt) {
+        this.isGpuReady = false;
+        return false;
+      }
+
       const type = isWebGL2 ? HalfFloatType : FloatType;
 
       const rtOptions = {
@@ -183,15 +196,20 @@ export class GpuWaveSimulation {
               return;
             }
 
-            // 5-point discrete Laplacian
-            float left   = texture2D(uPrevState, vUv - vec2(texel.x, 0.0)).r;
-            float right  = texture2D(uPrevState, vUv + vec2(texel.x, 0.0)).r;
-            float down   = texture2D(uPrevState, vUv - vec2(0.0, texel.y)).r;
-            float up     = texture2D(uPrevState, vUv + vec2(0.0, texel.y)).r;
+            // 5-point discrete Laplacian with obstacle reflection (mirror condition)
+            float obsL = texture2D(uObstacles, vUv - vec2(texel.x, 0.0)).r;
+            float obsR = texture2D(uObstacles, vUv + vec2(texel.x, 0.0)).r;
+            float obsD = texture2D(uObstacles, vUv - vec2(0.0, texel.y)).r;
+            float obsU = texture2D(uObstacles, vUv + vec2(0.0, texel.y)).r;
+
+            float left   = obsL > 0.5 ? h : texture2D(uPrevState, vUv - vec2(texel.x, 0.0)).r;
+            float right  = obsR > 0.5 ? h : texture2D(uPrevState, vUv + vec2(texel.x, 0.0)).r;
+            float down   = obsD > 0.5 ? h : texture2D(uPrevState, vUv - vec2(0.0, texel.y)).r;
+            float up     = obsU > 0.5 ? h : texture2D(uPrevState, vUv + vec2(0.0, texel.y)).r;
 
             float laplacian = (left + right + down + up - 4.0 * h) / (dx * dx);
 
-            // Integrate velocity and height
+            // Integrate velocity and height: v += (c*c*laplacian - damping*v)*dt; h += v*dt
             v = (v + (c * c * laplacian) * dt) * damping;
             h = h + v * dt;
 
@@ -284,13 +302,13 @@ export class GpuWaveSimulation {
 
   /**
    * Step the simulation forward in time.
-   * Performs 2 substeps to guarantee the CFL condition (c * dt / dx <= 0.707).
+   * Computes substeps dynamically from the 2D stability limit: n = ceil(c * dt / (0.7 * dx)).
+   * At 512x512 over 32m (dx=0.0625m, c=3.2m/s, dt=1/60s) -> 2 substeps; 256x256 -> 1.
    */
   step(dt: number, cameraX = this.windowCenter.x, cameraZ = this.windowCenter.y): void {
     this.windowCenter.set(cameraX, cameraZ);
 
-    // 2 substeps per frame
-    const substeps = 2;
+    const substeps = Math.max(1, Math.ceil((this.waveSpeed * dt) / (0.7 * this.dx)));
     const subDt = dt / substeps;
 
     for (let s = 0; s < substeps; s++) {
@@ -455,6 +473,40 @@ export class GpuWaveSimulation {
     }
     const finalEnergy = this.computeTotalEnergy();
     const energyDecayed = finalEnergy < initialEnergy * 0.5;
+
+    // 10,000-step numerical stability assertion (assert no NaN after 10,000 steps)
+    const testRes = 64;
+    const tH = new Float32Array(testRes * testRes);
+    const tV = new Float32Array(testRes * testRes);
+    const tNext = new Float32Array(testRes * testRes);
+    tH[(testRes >> 1) * testRes + (testRes >> 1)] = 1.0;
+    const cSq = this.waveSpeed * this.waveSpeed;
+    const testDx = 32 / testRes;
+    const invDxSq = 1.0 / (testDx * testDx);
+    const subDt = 0.008;
+    const damp = this.damping;
+
+    for (let k = 0; k < 10000; k++) {
+      for (let y = 1; y < testRes - 1; y++) {
+        const row = y * testRes;
+        for (let x = 1; x < testRes - 1; x++) {
+          const idx = row + x;
+          const hc = tH[idx]!;
+          const lap = (tH[idx - 1]! + tH[idx + 1]! + tH[idx - testRes]! + tH[idx + testRes]! - 4.0 * hc) * invDxSq;
+          const vel = (tV[idx]! + cSq * lap * subDt) * damp;
+          tNext[idx] = hc + vel * subDt;
+          tV[idx] = vel;
+        }
+      }
+      tH.set(tNext);
+      if (k % 2500 === 0 && Number.isNaN(tH[(testRes >> 1) * testRes + (testRes >> 1)]!)) {
+        hasNaN = true;
+        break;
+      }
+    }
+    if (Number.isNaN(tH[(testRes >> 1) * testRes + (testRes >> 1)]!)) {
+      hasNaN = true;
+    }
 
     // Check CPU/GPU ripple agreement test at 200 points against analytic ripple formula
     let maxAgreementError = 0;

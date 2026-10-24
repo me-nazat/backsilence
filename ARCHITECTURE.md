@@ -143,11 +143,26 @@ To ensure deterministic 60 Hz physics, zero-DOM headless simulation testing, and
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-### Water Simulation Architecture
-1. **Analytic Ripples**: Ring buffer (`uRipples[32]`) uploaded to GLSL. Vertex and fragment shaders evaluate expanding sinusoidal rings with gaussian envelope decay.
-2. **Kelvin Wakes**: Tracks up to 6 moving sources (`uWakes[6]`). Generates two trailing ridges at 19.5° angles behind waders.
-3. **Map Data Texture**: World-aligned RGBA8 `DataTexture` encoding ground height in R channel and `distToDry` in G channel.
-4. **Instanced Splashes**: 256-droplet pooled `InstancedMesh` with billboard alpha and dark ink tinting on monster impacts.
+### Water Simulation Architecture (Water v3)
+1. **Pass Order & Framebuffer Decoupling**:
+   - **Step 1 (Opaque Pass)**: All opaque scene geometry (platforms, walls, columns, props) is rendered into `sceneRT` (`opaqueDepthTarget`, containing RGBA color plus a hardware `DepthTexture`). The water mesh is hidden (`water.mesh.visible = false`).
+   - **Step 2 (Texture Binding)**: `sceneRT.texture` (color) and `sceneRT.depthTexture` (linear view-space depth) are bound as input uniforms (`uSceneColor`, `uSceneDepth`) to the water material.
+   - **Step 3 (Water Compositing)**: Water mesh is unhidden (`water.mesh.visible = true`) and rendered into `finalRT` (the PostFX / EffectComposer buffer). Crucially, a texture is **never** sampled from the active framebuffer currently being written to, eliminating WebGL feedback loops.
+   - **Step 4 (Depth Reconstruction & Discard)**: Fragment shader transforms hardware non-linear depth to linear view distance. If opaque scene depth is closer than the water surface by $>0.05\text{m}$ (`diffZ < -0.05`), the fragment is immediately discarded (`discard`).
+2. **GPU Wave Simulation (Medium & High Tiers)**:
+   - Ping-pong half-float render targets simulating the 2D damped wave equation:
+     $$\frac{\partial^2 h}{\partial t^2} = c^2 \nabla^2 h - \gamma v$$
+   - CFL stability condition enforced with dynamic substeps: $n = \lceil c \cdot \Delta t / (0.7 \cdot \Delta x) \rceil$ (2 substeps at 512x512 over 32m; 1 substep at 256x256).
+   - Toroidal window centered on camera coordinates with zero-seam edge fade.
+   - Obstacle reflections baked from `GroundGrid`: solid neighbor cells are mirrored ($h_{\text{neighbor}} = h_{\text{center}}$) for perfect wave reflection off platform walls and pillars.
+3. **Analytic Fallback (Low Tier & CPU Reference)**:
+   - Evaluates analytic expanding ring formulas and Kelvin wakes for ultra-low power devices without floating-point texture support.
+4. **Physical Shading**:
+   - 4-wave Gerstner swell combined with scrolling normal maps.
+   - Beer-Lambert spectral absorption: $T = \exp(-\sigma \cdot d)$, $C = C_{\text{refract}} T + C_{\text{scatter}} (1 - T)$.
+   - Clamped screen-space refraction with foreground leak rejection (`refractLinearZ >= vViewPos.z`).
+   - Schlick Fresnel reflection with $F_0 = 0.02$.
+   - Procedural caustics, wake foam, crest foam, shoreline contact foam, and underwater immersion grading.
 
 ### Monster Architecture
 1. **Perception**: Completely blind. Senses exclusively via `NoiseEvent`s exceeding threshold through `Hearing.ts` and physical touch collision (`TOUCH_RANGE = 0.9 m`).

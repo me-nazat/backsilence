@@ -292,6 +292,9 @@ void main() {
     float sceneLinearZ = -perspectiveDepthToLinearZ(rawSceneDepth, uCameraNear, uCameraFar);
     float waterLinearZ = vViewPos.z;
     float diffZ = sceneLinearZ - waterLinearZ;
+    if (diffZ < -0.05) {
+      discard;
+    }
     if (diffZ >= 0.0) {
       waterDepth = diffZ;
     }
@@ -358,36 +361,34 @@ void main() {
     normal = -normal;
   }
 
-  // 5. Beer-Lambert Absorption Color
-  // Shallow edges: pale milky green / turquoise; Deep water: dark emerald / murky abyss
-  vec3 extinction = -log(max(vec3(0.001), uColorDeep / max(vec3(0.001), uColorShallow))) * 0.85;
-  vec3 transmittance = exp(-extinction * waterDepth);
-  vec3 baseWaterColor = mix(uColorDeep, uColorShallow, transmittance);
-
-  // 6. Refraction with clamped foreground leak protection
+  // 5. Refraction: offset scene sample by normal.xz * k * (1 - exp(-depth))
   vec3 sceneSample = uColorShallow;
   if (hasTrueDepth) {
-    vec2 refractOffset = normal.xz * 0.035 * clamp(waterDepth, 0.0, 1.0);
+    vec2 refractOffset = normal.xz * 0.04 * (1.0 - exp(-waterDepth));
     vec2 refractedUv = clamp(screenUv + refractOffset, 0.001, 0.999);
     float rawRefractDepth = texture2D(uSceneDepth, refractedUv).r;
     float refractLinearZ = -perspectiveDepthToLinearZ(rawRefractDepth, uCameraNear, uCameraFar);
-    // If refracted ray hits foreground object above water, fall back to unrefracted
-    if (refractLinearZ >= vViewPos.z) {
+    // Reject offset sample if depth nearer than water surface so foreground objects do not leak
+    if (refractLinearZ >= vViewPos.z - 0.02) {
       sceneSample = texture2D(uSceneColor, refractedUv).rgb;
     } else {
       sceneSample = texture2D(uSceneColor, screenUv).rgb;
     }
   }
 
-  // Combine refracted scene background with Beer-Lambert absorption
-  vec3 waterColor = mix(baseWaterColor, sceneSample * transmittance, 0.65);
+  // 6. Beer-Lambert Absorption: T = exp(-sigma * depth), color = refracted * T + scatter * (1 - T)
+  vec3 sigma = -log(max(vec3(0.001), uColorDeep / max(vec3(0.001), uColorShallow))) * 0.85;
+  vec3 T = exp(-sigma * waterDepth);
+  vec3 scatter = uColorDeep * 0.35;
+  vec3 baseWaterColor = sceneSample * T + scatter * (1.0 - T);
+  vec3 waterColor = mix(mix(uColorShallow, baseWaterColor, 0.75), sceneSample * T, 0.45);
   float alpha = mix(uOpacityMin, uOpacityMax, 1.0 - exp(-waterDepth * 1.8));
   alpha = clamp(alpha + uMurk, 0.0, 1.0);
 
-  // 7. Fresnel reflection of sky / hazy skylight
+  // 7. Schlick Fresnel reflection with F0 = 0.02
   vec3 viewDir = normalize(vViewPos);
   float NdotV = max(0.0, dot(normal, viewDir));
-  float fresnel = 0.04 + 0.96 * pow(1.0 - NdotV, 4.2);
+  float fresnel = 0.02 + 0.98 * pow(1.0 - NdotV, 5.0);
   vec3 skyHazeColor = vec3(0.95, 0.92, 0.84);
   waterColor = mix(waterColor, skyHazeColor, fresnel * 0.68);
 
