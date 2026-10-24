@@ -18,7 +18,8 @@
     "smoke": "node scripts/smoke/run-smoke.mjs",
     "test:cross-engine": "vite-node scripts/test-cross-engine.mjs",
     "balance": "node scripts/balance/run-balance.mjs",
-    "browser:acceptance": "node scripts/browser-acceptance.mjs"
+    "browser:acceptance": "node scripts/browser-acceptance.mjs",
+    "perf": "node scripts/perf/run-perf.mjs"
   },
   "dependencies": {
     "three": "0.170.0"

@@ -206,6 +206,15 @@ export class EventRingBuffer {
     return this.count;
   }
 
+  /**
+   * Direct zero-allocation index accessor (0 = oldest, length - 1 = newest).
+   */
+  getAt(index: number): SimEvent | undefined {
+    if (index < 0 || index >= this.count) return undefined;
+    const idx = (this.tail + index) % this.capacity;
+    return this.buffer[idx];
+  }
+
   clear(): void {
     this.head = 0;
     this.tail = 0;

@@ -61,6 +61,7 @@ export class WaterSystem {
   // Bioluminescent floating motes (Map 5)
   private motesMesh: InstancedMesh | null = null;
   private motesData: Array<{ x: number; y: number; z: number; phase: number; speed: number }> = [];
+  private readonly motesDummy = new Matrix4();
 
   // Underwater state tracking
   private isUnderwater = false;
@@ -224,14 +225,13 @@ export class WaterSystem {
 
     // 6. Update bioluminescent motes
     if (this.motesMesh && this.motesData.length > 0) {
-      const dummy = new Matrix4();
       for (let i = 0; i < this.motesData.length; i++) {
         const m = this.motesData[i]!;
         const driftY = m.y + Math.sin(time * m.speed + m.phase) * 0.15;
         const driftX = m.x + Math.cos(time * 0.4 + m.phase) * 0.2;
         const driftZ = m.z + Math.sin(time * 0.3 + m.phase) * 0.2;
-        dummy.setPosition(driftX, driftY, driftZ);
-        this.motesMesh.setMatrixAt(i, dummy);
+        this.motesDummy.setPosition(driftX, driftY, driftZ);
+        this.motesMesh.setMatrixAt(i, this.motesDummy);
       }
       this.motesMesh.instanceMatrix.needsUpdate = true;
     }

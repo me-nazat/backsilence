@@ -10,7 +10,7 @@ import { ColliderSet } from './Colliders.js';
 import { NavGrid } from './NavGrid.js';
 import { PlayerMotor, type PlayerIntent, type PlayerMotorState } from './PlayerMotor.js';
 import { MonsterBrain, type MonsterDef, type MonsterSnapshot } from './MonsterBrain.js';
-import { EventRingBuffer, type SimEvent } from './Events.js';
+import { EventRingBuffer } from './Events.js';
 import type { HearingContext } from './Hearing.js';
 import type { WaterLevelProvider } from './WaterLevelCycle.js';
 import { DEFAULT_WORLD_PROFILE, type WorldProfile } from './WorldProfile.js';
@@ -295,8 +295,10 @@ export class SimWorld {
     );
 
     // 2. Broadcast pending noise events emitted in this step to all monsters
-    this.events.peek((ev: SimEvent) => {
-      if (ev.type === 'noise' && ev.data.t >= this.simTime - dt * 1.1) {
+    const evCount = this.events.length;
+    for (let i = 0; i < evCount; i++) {
+      const ev = this.events.getAt(i);
+      if (ev && ev.type === 'noise' && ev.data.t >= this.simTime - dt * 1.1) {
         for (let m = 0; m < this.monsters.length; m++) {
           this.monsters[m]!.onNoiseEvent(
             ev.data,
@@ -306,7 +308,7 @@ export class SimWorld {
           );
         }
       }
-    });
+    }
 
     // 2.5. Step Encounter Director (host & solo only)
     if (this.mode !== 'replica') {

@@ -22,9 +22,12 @@ import {
   WebGLRenderTarget,
   DepthTexture,
   UnsignedIntType,
+  Mesh,
+  Texture,
 } from 'three';
 import { EngineRenderer } from '../engine/Renderer.js';
 import { PostFX } from '../engine/PostFX.js';
+import { resolveQualityTier } from '../engine/Quality.js';
 import { AudioEngine } from '../audio/AudioEngine.js';
 import type { Settings, NoiseEvent, RippleEvent, MapId, Vec3, PlayerId, PuzzleOp } from '../types/contracts.js';
 import { WORLD } from '../app/Config.js';
@@ -198,9 +201,58 @@ export class GameSession {
 
   // Debug visualizers
   private debugMode = false;
+  private debugKeydownHandler: ((e: KeyboardEvent) => void) | null = null;
+  private readonly activeTimeouts: ReturnType<typeof setTimeout>[] = [];
   private pathLine: Line | null = null;
   private hearingRings: { line: Line; age: number; maxAge: number }[] = [];
   private readonly container: HTMLElement;
+
+  private scheduleTimeout(fn: () => void, ms: number): ReturnType<typeof setTimeout> {
+    const id = setTimeout(() => {
+      const idx = this.activeTimeouts.indexOf(id);
+      if (idx !== -1) this.activeTimeouts.splice(idx, 1);
+      fn();
+    }, ms);
+    this.activeTimeouts.push(id);
+    return id;
+  }
+
+  private async warmupGpuPipeline(): Promise<void> {
+    const glRenderer = this.renderer.renderer;
+    // 1. Upload textures to GPU ahead of first render
+    const seenTextures = new Set<Texture>();
+    this.scene.traverse((obj) => {
+      const mesh = obj as Mesh;
+      if (mesh && (mesh as unknown as { isMesh?: boolean }).isMesh && mesh.material) {
+        const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+        for (const mat of mats) {
+          const m = mat as unknown as Record<string, unknown>;
+          for (const key of Object.keys(m)) {
+            const val = m[key] as { isTexture?: boolean } | undefined;
+            if (val && val.isTexture && !seenTextures.has(val as unknown as Texture)) {
+              seenTextures.add(val as unknown as Texture);
+              try {
+                glRenderer.initTexture(val as unknown as Texture);
+              } catch {
+                // Ignore if texture not ready or not supported
+              }
+            }
+          }
+        }
+      }
+    });
+
+    // 2. Compile shaders asynchronously during loading
+    try {
+      if (typeof glRenderer.compileAsync === 'function') {
+        await glRenderer.compileAsync(this.scene, this.camera);
+      } else if (typeof glRenderer.compile === 'function') {
+        glRenderer.compile(this.scene, this.camera);
+      }
+    } catch (e) {
+      console.warn('[GameSession] compileAsync warning:', e);
+    }
+  }
 
   constructor(
     container: HTMLElement,
@@ -268,7 +320,7 @@ export class GameSession {
 
       // 2. Build 3D Map Presentation & Physical Terrain
       const quality = this.settings.graphics.quality;
-      const tier = quality === 'auto' ? 'high' : quality;
+      const tier = resolveQualityTier(quality);
 
       this.mapInstance = await this.mapDef.build(this.layout, {
         parent: this.scene,
@@ -480,6 +532,9 @@ export class GameSession {
 
       // Inventory HUD click binding
       this.hud.setInventoryCycleCallback(() => this.cycleInventory());
+
+      // Warmup GPU textures and compile shaders before play begins
+      await this.warmupGpuPipeline();
 
       this.isLoaded = true;
     } catch (err: unknown) {
@@ -943,7 +998,7 @@ export class GameSession {
             this.paCharges--;
             this.paCooldown = 15.0;
             this.audio.play('pa_chime', { gain: 0.9 });
-            setTimeout(() => this.audio.play('pa_blast', { gain: 0.95 }), 400);
+            this.scheduleTimeout(() => this.audio.play('pa_blast', { gain: 0.95 }), 400);
             const lurePos = { x: 30, y: 0.3, z: 15 };
             this.simWorld.broadcastNoise({
               kind: 'siren',
@@ -1234,7 +1289,7 @@ export class GameSession {
 
   private playMelodyAudio(): void {
     this.melodyNotes.forEach((note, idx) => {
-      setTimeout(() => {
+      this.scheduleTimeout(() => {
         this.audio.play('bell', { gain: 0.35, pitch: 1.0 + note * 0.1 });
       }, idx * 600);
     });
@@ -2548,7 +2603,7 @@ export class GameSession {
     const isDebug = new URLSearchParams(window.location.search).get('debug') === '1';
     this.debugMode = isDebug;
 
-    window.addEventListener('keydown', (e) => {
+    this.debugKeydownHandler = (e: KeyboardEvent) => {
       if (!this.debugMode) return;
 
       switch (e.code) {
@@ -2592,7 +2647,8 @@ export class GameSession {
           break;
         }
       }
-    });
+    };
+    window.addEventListener('keydown', this.debugKeydownHandler);
 
     // Expose simulation API to window.__backsilence.sim and this.sim
     const simApi = {
@@ -2702,6 +2758,15 @@ export class GameSession {
         delete g.__backsilence_session;
       }
     }
+    if (this.debugKeydownHandler && typeof window !== 'undefined') {
+      window.removeEventListener('keydown', this.debugKeydownHandler);
+      this.debugKeydownHandler = null;
+    }
+    for (const timeoutId of this.activeTimeouts) {
+      clearTimeout(timeoutId);
+    }
+    this.activeTimeouts.length = 0;
+
     this.postFX.dispose();
     this.renderer.dispose();
   }

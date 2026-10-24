@@ -50,6 +50,35 @@ export class MonsterBody {
     this.audio = audio;
   }
 
+  private readonly rippleEvent = {
+    position: { x: 0, y: 0, z: 0 },
+    strength: 0,
+    t: 0,
+    sourcePlayerId: 'world' as const,
+  };
+  private readonly footfallAudioOpts = {
+    position: new Vector3(),
+    gain: 0,
+  };
+
+  private readonly onGaitPlant = (plantPos: Vector3, force: number): void => {
+    // Plant callback: spawn ripple, splash, and audio footfall
+    if (this.water) {
+      this.rippleEvent.position.x = plantPos.x;
+      this.rippleEvent.position.y = 0;
+      this.rippleEvent.position.z = plantPos.z;
+      this.rippleEvent.strength = force * 0.8;
+      this.rippleEvent.t = performance.now() * 0.001;
+      this.water.onRipple(this.rippleEvent);
+      this.water.onSplash(plantPos, force, true);
+    }
+    if (this.audio) {
+      this.footfallAudioOpts.position.copy(plantPos);
+      this.footfallAudioOpts.gain = force * 0.9;
+      this.audio.play('monster_footfall', this.footfallAudioOpts);
+    }
+  };
+
   update(
     dt: number,
     snapshot: MonsterSnapshot,
@@ -67,24 +96,7 @@ export class MonsterBody {
     _worldRoot.set(snapshot.pos.x, snapshot.pos.y, snapshot.pos.z);
 
     // 2. Gait update & Limb target placement
-    this.gait.update(dt, speed, _worldRoot, this.currentYaw, ground, (plantPos, force) => {
-      // Plant callback: spawn ripple, splash, and audio footfall
-      if (this.water) {
-        this.water.onRipple({
-          position: { x: plantPos.x, y: 0, z: plantPos.z },
-          strength: force * 0.8,
-          t: performance.now() * 0.001,
-          sourcePlayerId: 'world',
-        });
-        this.water.onSplash(plantPos, force, true);
-      }
-      if (this.audio) {
-        this.audio.play('monster_footfall', {
-          position: plantPos,
-          gain: force * 0.9,
-        });
-      }
-    });
+    this.gait.update(dt, speed, _worldRoot, this.currentYaw, ground, this.onGaitPlant);
 
     // 3. Solve IK for Arms (shoulder -> elbow -> hand)
     // Arm length: 0.55m (upper) + 0.60m (forearm) = 1.15m

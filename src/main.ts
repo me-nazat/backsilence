@@ -23,6 +23,7 @@ import { injectPaletteVars } from './app/Palette.js';
 import type { UIManager } from './ui/UIManager.js';
 import type { LabScene } from './lab/LabScene.js';
 import type { NetSession } from './net/session/NetSession.js';
+import type { Settings } from './types/contracts.js';
 
 // ── Boot progress bar ───────────────────────────────────────────────────
 function setBootProgress(pct: number): void {
@@ -297,6 +298,7 @@ async function boot(): Promise<void> {
   registerOfflineSupport((message) => ui?.showToast(message, 'warn'));
 
   type GlobalRefs = {
+    __backsilence_bus?: typeof bus;
     __backsilence_lab?: LabScene;
     __poolrooms_lab?: LabScene;
     __backsilence_session?: unknown;
@@ -309,6 +311,7 @@ async function boot(): Promise<void> {
     __backsilence_offline_queue?: unknown;
   };
   const g = window as unknown as GlobalRefs;
+  g.__backsilence_bus = bus;
   g.__backsilence_lab = labScene;
   g.__poolrooms_lab = labScene;
   g.__backsilence_ui = ui;
@@ -447,6 +450,21 @@ async function boot(): Promise<void> {
   // 8. Main Render and Performance Loop
   const perf = new PerfTracker();
   let lastTime = performance.now();
+  const cachedRendererInfo = {
+    calls: 0,
+    triangles: 0,
+    geometries: 0,
+    textures: 0,
+  };
+  const cachedDebugOverlayStats = {
+    fps: 0,
+    frameTimeMs: 0,
+    drawCalls: 0,
+    triangles: 0,
+    geometries: 0,
+    textures: 0,
+    activeVoices: 0,
+  };
 
   function animate(now: number): void {
     requestAnimationFrame(animate);
@@ -466,25 +484,22 @@ async function boot(): Promise<void> {
 
     const snap = perf.getSnapshot(activeRenderer);
 
-    const info = {
-      calls: snap.drawCalls,
-      triangles: snap.triangles,
-      geometries: snap.geometries,
-      textures: snap.textures,
-    };
-    g.__backsilence_renderer_info = info;
-    g.__poolrooms_renderer_info = info;
+    cachedRendererInfo.calls = snap.drawCalls;
+    cachedRendererInfo.triangles = snap.triangles;
+    cachedRendererInfo.geometries = snap.geometries;
+    cachedRendererInfo.textures = snap.textures;
+    g.__backsilence_renderer_info = cachedRendererInfo;
+    g.__poolrooms_renderer_info = cachedRendererInfo;
 
     if (route.debug || route.lab || settings.graphics.showFps) {
-      debugModule.updateDebugOverlay({
-        fps: snap.fps,
-        frameTimeMs: snap.frameTimeMs,
-        drawCalls: snap.drawCalls,
-        triangles: snap.triangles,
-        geometries: snap.geometries,
-        textures: snap.textures,
-        activeVoices: AudioEngine.getInstance().stats().activeVoices,
-      });
+      cachedDebugOverlayStats.fps = snap.fps;
+      cachedDebugOverlayStats.frameTimeMs = snap.frameTimeMs;
+      cachedDebugOverlayStats.drawCalls = snap.drawCalls;
+      cachedDebugOverlayStats.triangles = snap.triangles;
+      cachedDebugOverlayStats.geometries = snap.geometries;
+      cachedDebugOverlayStats.textures = snap.textures;
+      cachedDebugOverlayStats.activeVoices = AudioEngine.getInstance().stats().activeVoices;
+      debugModule.updateDebugOverlay(cachedDebugOverlayStats);
     }
   }
 

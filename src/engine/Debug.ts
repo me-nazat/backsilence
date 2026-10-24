@@ -828,6 +828,8 @@ export function updateDebugOverlay(stats: {
   geometries: number;
   textures: number;
   activeVoices: number;
+  timers?: number | undefined;
+  listeners?: number | undefined;
 }): void {
   const overlay = document.getElementById('debug-overlay');
   if (!overlay) return;
@@ -843,7 +845,7 @@ export function updateDebugOverlay(stats: {
     <div>Draw Calls: ${stats.drawCalls} / Tri: ${stats.triangles}</div>
     <div>Geom: ${stats.geometries} / Tex: ${stats.textures}</div>
     <div>Proc VRAM: ~${regStats.memoryMB} (${regStats.count} cached)</div>
-    <div>Audio Voices: ${stats.activeVoices}</div>
+    <div>Audio Voices: ${stats.activeVoices}${stats.timers !== undefined ? ` | Timers: ${stats.timers}` : ''}${stats.listeners !== undefined ? ` | Listeners: ${stats.listeners}` : ''}</div>
     <div>Menu Ready: ${menuTime}</div>
   `;
 }
