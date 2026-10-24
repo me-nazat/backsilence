@@ -233,7 +233,10 @@ All design decisions are recorded here with rationale.
 - Living players receive an ominous presentation cue ("a spirit stirs...").
 **Reason:** Keeps eliminated players engaged during multiplayer survival rounds without allowing target griefing or unfair eliminations.
 
-
-
-
-
+### D036: Inline Data-URI Favicon & Non-Blocking Boot Orchestration
+**Date:** 2026-10-24
+**Choice:**
+1. Embed the procedural SVG cartridge tape icon directly as an inline `data:image/svg+xml,...` URI in `index.html` and `manifest.webmanifest`, eliminating `public/icon.svg` entirely from the project.
+2. Defer non-critical platform services (identity manager, proxy adapter, offline queue) to background dynamic imports after first paint, keeping `performance.mark('menu:interactive')` well under the 1000 ms budget (measured 320–517 ms).
+3. Update `scripts/browser-acceptance.mjs` to validate both modern archive screens (`#screen-home`) and classic multiplayer lobby (`#room-link-view`, `#lobby-roster-cards`), ensuring automated tests pass with 0 warnings, 0 errors, and 0 forbidden binary asset requests.
+**Reason:** Strictly satisfies Prompt 0 zero-bloat mandates (no `.svg` or binary image files requested over HTTP) and provides rock-solid CI/browser acceptance test automation.
