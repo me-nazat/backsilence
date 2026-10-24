@@ -15,6 +15,8 @@
     "secret:scan": "node scripts/secret-scan.mjs",
     "verify": "npm run typecheck && npm run lint && npm run test && npm run build && npm run audit && npm run secret:scan",
     "shots": "node scripts/shots.mjs",
+    "shots:check": "node scripts/visual/compare.mjs --check",
+    "shots:approve": "node scripts/visual/compare.mjs --approve",
     "smoke": "node scripts/smoke/run-smoke.mjs",
     "test:cross-engine": "vite-node scripts/test-cross-engine.mjs",
     "balance": "node scripts/balance/run-balance.mjs",
