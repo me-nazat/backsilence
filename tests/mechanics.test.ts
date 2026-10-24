@@ -252,15 +252,16 @@ describe('Mechanics & Pure Simulation Systems', () => {
 
       // Wall collision over submerged floor
       const wallColliders = new ColliderSet();
-      wallColliders.addBox('wall_water', 4, 0, 0.5, 2.0, 3.0);
+      wallColliders.addBox('wall_water', { x: 3, y: -2, z: -2 }, { x: 5, y: 4, z: 2 }, true);
       const impactWallWater = proj.simulateImpact({ x: 0, y: 1.6, z: 0 }, { x: 8.0, y: 0.1, z: 0 }, ground, wallColliders, 0.0, 'pebble', 0);
       expect(impactWallWater).not.toBeNull();
       expect(impactWallWater!.isWater).toBe(true);
 
-      // Wall collision over dry platform
+      // Wall collision over dry platform above water
+      ground.rasterizePlatform(-10, -5, 10, 15, 0.3);
       const dryWallColliders = new ColliderSet();
-      dryWallColliders.addBox('wall_dry', 0, 8, 3.0, 2.0, 0.5);
-      const impactWallDry = proj.simulateImpact({ x: 0, y: 1.6, z: 0 }, { x: 0, y: 0.1, z: 8.0 }, ground, dryWallColliders, 0.0, 'pebble', 0);
+      dryWallColliders.addBox('wall_dry', { x: -2, y: -2, z: 2.5 }, { x: 2, y: 4, z: 3.5 }, true);
+      const impactWallDry = proj.simulateImpact({ x: 0, y: 1.6, z: 0 }, { x: 0, y: 1.0, z: 12.0 }, ground, dryWallColliders, 0.0, 'pebble', 0);
       expect(impactWallDry).not.toBeNull();
       expect(impactWallDry!.isWater).toBe(false);
     });
