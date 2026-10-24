@@ -131,7 +131,8 @@ export type NoiseKind =
   | 'terminal'
   | 'shatter'
   | 'lever'
-  | 'train';
+  | 'train'
+  | 'haunt';
 
 export interface NoiseEvent {
   id: string;

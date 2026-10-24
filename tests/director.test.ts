@@ -120,6 +120,8 @@ describe('Prompt 3 Section 4: Encounter Director & Dread Rhythm', () => {
       crouch: false,
       jump: false,
       interact: false,
+      lookDeltaYaw: 0,
+      lookDeltaPitch: 0,
     };
 
     for (let seed = 101; seed <= 105; seed++) {
@@ -206,7 +208,7 @@ describe('Prompt 3 Section 4: Encounter Director & Dread Rhythm', () => {
     // p2 makes loud noise
     director.recordNoise({
       id: 'n1',
-      kind: 'splash_run',
+      kind: 'splash',
       position: { x: -20, y: 0, z: -20 },
       loudness: 1.0,
       sourcePlayerId: 'p2',

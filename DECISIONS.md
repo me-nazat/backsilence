@@ -490,6 +490,25 @@ Establish `functions/api/[[route]].ts` as the canonical Cloudflare Pages Functio
    - Defined difficulty multipliers and timers across Whisper, Normal, Deafening, and Nightmare tiers.
 **Reason:** Fulfills Prompt 3 Section 4 mandates ensuring players experience structured horror pacing and rhythm without feeling cheated or unfairly ambushed while playing silently.
 
+### D058: Tape Archive Campaign, 11-Tape Objective Chains, 0–3 Stars & Working Tasks
+**Date:** 2026-10-24
+**Choice:**
+1. Tape Archive Catalog (`src/meta/Campaign.ts`):
+   - Defined 11 tapes: Tape 0 (Orientation, Threat 1) and Tapes 1–10 across all 10 maps with threat ratings 1 to 5 skulls.
+   - Each tape features 1 primary objective chain, 2 secondary objectives, and 1 hidden objective with pure evaluators and failure predicates over `RunEvents`.
+2. Star Award Criteria & Gating:
+   - 1 star: Escape (primary chain completed).
+   - 2 stars: Escape and complete both secondary objectives.
+   - 3 stars: Two stars, the hidden objective, and a score rank of B or better (S, A, or B).
+   - Tape unlock rule: Tape $N$ unlocks with $\ge 2$ stars on Tape $N-1$, or 1 star plus 300 Static bypass. Tapes 0 and 1 are unlocked by default.
+   - 3-star Remix mode: Unlocked upon achieving 3 stars with two preset mutators.
+3. Adaptive Hints & Working Tasks:
+   - Hidden objective hint is automatically offered after 3 failed attempts on that tape (`failedAttempts >= 3`).
+   - Pure working tasks system with translatable string table `TASK_STRING_TABLE`, step index, estimated time, and risk labels (`quiet`, `loud`, `timed`).
+   - Round-trip lossless serialization and hydration.
+**Reason:** Fulfills Prompt 3 Section 5 mandates establishing a long-term replayable found-footage campaign with clear goal progression, transparent rules, and accessible hints.
+
+
 
 
 

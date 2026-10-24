@@ -76,6 +76,22 @@ export interface EscapeEvent {
   finalScore?: number;
 }
 
+export interface HauntEvent {
+  type: 'haunt';
+  haunterId: string;
+  position: Vec3;
+  loudness: number;
+  t: number;
+}
+
+export interface RescueEvent {
+  type: 'rescue';
+  rescuerId: string;
+  rescuedId: string;
+  terminalPosition: Vec3;
+  t: number;
+}
+
 export type RunEvent =
   | NoiseMadeEvent
   | JumpCleanEvent
@@ -85,7 +101,9 @@ export type RunEvent =
   | ObjectiveDoneEvent
   | ItemUsedEvent
   | DeathEvent
-  | EscapeEvent;
+  | EscapeEvent
+  | HauntEvent
+  | RescueEvent;
 
 export type RunEventType = RunEvent['type'];
 

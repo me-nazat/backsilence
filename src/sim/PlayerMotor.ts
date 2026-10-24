@@ -145,6 +145,10 @@ export class PlayerMotor {
     };
   }
 
+  get isWading(): boolean {
+    return this.depth > 0;
+  }
+
   getSnapshot(): PlayerMotorState {
     return this.getState();
   }

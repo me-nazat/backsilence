@@ -366,7 +366,7 @@ export class EncounterDirector {
     }
   }
 
-  private updateDreadPacing(dt: number): void {
+  private updateDreadPacing(_dt: number): void {
     const progress = Math.min(1.0, this.phaseTime / Math.max(1.0, this.phaseDuration));
 
     switch (this.currentDreadPhase) {
@@ -432,7 +432,7 @@ export class EncounterDirector {
     }
   }
 
-  private executeFarCall(monster: MonsterBrain, playerPos: Vec3): void {
+  private executeFarCall(_monster: MonsterBrain, playerPos: Vec3): void {
     const angle = this.rng.range(-D_PI, D_PI);
     const callPos = {
       x: playerPos.x + dSin(angle) * 35.0,
