@@ -523,6 +523,28 @@ Establish `functions/api/[[route]].ts` as the canonical Cloudflare Pages Functio
    - Grants unlimited practice runs and 3 scored attempt tokens per week (`attemptTokensRemaining`).
 **Reason:** Fulfills Prompt 3 Section 6 mandates providing endless fresh replayability with deterministic offline/online consistency, fair progression, and competitive weekly challenges.
 
+### D060: Multiplayer Modes, Haunting Mechanics, Rewind Terminal Rescue & Cup Bracket
+**Date:** 2026-10-24
+**Choice:**
+1. Ten Game Modes Framework (`src/meta/ModeRules.ts`):
+   - Fully codified all 10 modes: Campaign, Daily Descent, Endless Tide, Ghost Run, Training Pool, Co-op Escape, Silent Race, Last One Dry, Series, and Silent Cup.
+   - Authoritative host simulation with shared monster entity hearing all players.
+2. Competitive Mechanics & Catch-up Rules:
+   - Silent Race: At halfway mark (180s), the last-place player receives +2 pebbles once. Placement points: 100, 65, 40, 20. Ties broken by lower noise units, then earlier finish tick, then lower player ID.
+   - Last One Dry: Rising tide from 0 to +0.5m over 360s (6 mins), fixed platform submerge order, and final survival platform spawning at minute 5 (300s).
+3. Spectator Haunting System:
+   - Active only in Last One Dry and Silent Race; disabled in Co-op and Ranked modes.
+   - Eliminated players accumulate Echo at +4/sec up to 100.
+   - 50 Echo deploys a 0.5 loudness `haunt` noise event at a water tile at least 12m from all living players and within 30m of the haunter. Cooldown 20s, maximum 4 per player per match, triggering "a spirit stirs" cue.
+4. Co-op Rewind Terminal Rescue:
+   - Single terminal per map. A living teammate holds interaction key for 20s (emitting sustained 0.6 acoustic noise at terminal) to revive one fallen teammate once per run on dry ground.
+5. Silent Cup Tournament Bracket (`src/meta/CupBracket.ts`) & Matchmaker Port (`src/meta/MatchmakerPort.ts`):
+   - 8-player seeded bracket with automatic bye handling for incomplete lobbies.
+   - Two 4-player heats scored with Silent Race points, top 4 advance to Grand Final.
+   - `MatchmakerPort` interface with `LocalMatchmaker` finding oldest open rooms and enforcing +/- 250 SR tolerance in ranked.
+**Reason:** Fulfills Prompt 3 Section 7 mandates creating engaging multiplayer dynamics, spectator agency via haunting, clutch co-op rescues, and structured tournament competition.
+
+
 
 
 
