@@ -11,6 +11,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import type { StairDef } from '../../world/MapTypes.js';
 import type { GroundGrid } from '../../sim/GroundGrid.js';
 import { WORLD } from '../../app/Config.js';
+import { bakeVertexAO } from './VertexAO.js';
 
 export function buildStairGeometry(def: StairDef): BufferGeometry {
   const stepGeoms: BufferGeometry[] = [];
@@ -61,6 +62,7 @@ export function buildStairGeometry(def: StairDef): BufferGeometry {
   }
 
   merged.computeVertexNormals();
+  bakeVertexAO(merged);
   return merged;
 }
 

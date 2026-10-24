@@ -309,14 +309,55 @@ export class PostFX {
     }
   }
 
+  // Photosensitive & flash safety tracking
+  private lastFlashTime = -100;
+  private currentLuminance = 1.0;
+
+  /**
+   * Process a requested luminance / flash change under photosensitive safety rules:
+   * 1. Clamps frame-to-frame luminance change to at most 0.25
+   * 2. Clamps flash frequency to at most 3 Hz (min 0.333s interval between flashes)
+   */
+  filterFlashLuminance(targetLuminance: number): number {
+    if (!this.isSafeMode()) {
+      this.currentLuminance = targetLuminance;
+      return targetLuminance;
+    }
+
+    const now = this.totalTime;
+    const isFlash = Math.abs(targetLuminance - this.currentLuminance) > 0.15;
+
+    // 1. Flash frequency throttle: at most 3 Hz (>= 0.333s interval)
+    if (isFlash) {
+      if (now - this.lastFlashTime < 0.333) {
+        // Suppress rapid flash, keep current safe luminance
+        return this.currentLuminance;
+      }
+      this.lastFlashTime = now;
+    }
+
+    // 2. Clamp luminance change between frames to at most 0.25
+    const delta = targetLuminance - this.currentLuminance;
+    const clampedDelta = Math.max(-0.25, Math.min(0.25, delta));
+    this.currentLuminance += clampedDelta;
+    return this.currentLuminance;
+  }
+
   triggerGlitch(intensity = 1.0): void {
     const isSafe = this.isSafeMode();
-    this.glitch = isSafe ? Math.min(intensity, 0.3) : Math.min(1.0, intensity);
+    this.glitch = isSafe ? Math.min(intensity, 0.25) : Math.min(1.0, intensity);
   }
 
   triggerJumpscare(): void {
     const isSafe = this.isSafeMode();
-    this.glitch = isSafe ? 0.35 : 1.0;
+    if (isSafe) {
+      const now = this.totalTime;
+      if (now - this.lastFlashTime < 0.333) return; // 3 Hz limit
+      this.lastFlashTime = now;
+      this.glitch = 0.25; // Clamped to 0.25
+    } else {
+      this.glitch = 1.0;
+    }
     this.resetSmear();
   }
 

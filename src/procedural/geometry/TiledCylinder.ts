@@ -5,6 +5,7 @@
 
 import { CylinderGeometry, Float32BufferAttribute, Mesh, type Material } from 'three';
 import { WORLD } from '../../app/Config.js';
+import { bakeVertexAO } from './VertexAO.js';
 
 export interface TiledCylinderOptions {
   r: number;
@@ -55,6 +56,7 @@ export function createTiledCylinderGeometry(options: TiledCylinderOptions): Cyli
   }
 
   uvAttr.needsUpdate = true;
+  bakeVertexAO(geom);
   return geom;
 }
 

@@ -770,11 +770,6 @@ export class UIManager {
       document.documentElement.removeAttribute('data-photosensitive');
     }
 
-    const crt = document.getElementById('crt-overlay');
-    if (crt) {
-      crt.style.display = s.graphics.vhsIntensity > 0 ? 'block' : 'none';
-    }
-
     this.bus.emit('settings:applied' as unknown as 'game:start', s as unknown as { mode: 'single'; mapId: 'poolrooms'; difficulty: number; seed: number });
   }
 

@@ -12,6 +12,7 @@ import {
   Quaternion,
 } from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { bakeVertexAO } from './VertexAO.js';
 
 export interface PipeRunOptions {
   points: Vector3[];
@@ -55,5 +56,6 @@ export function buildPipeRunGeometry(opts: PipeRunOptions): BufferGeometry {
   for (const g of geoms) g.dispose();
 
   merged.computeVertexNormals();
+  bakeVertexAO(merged);
   return merged;
 }

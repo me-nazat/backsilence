@@ -198,6 +198,9 @@ export class GameSession {
   private closestCall = 999.0;
   private alertsCount = 0;
   private godMode = false;
+  private sunLight: DirectionalLight | null = null;
+  private autoExposureFrameCount = 0;
+  private currentExposure = 1.1;
 
   // Debug visualizers
   private debugMode = false;
@@ -546,6 +549,11 @@ export class GameSession {
     const fogColor = parseInt(def.atmosphere.fog.color.replace('#', '0x'), 16);
     this.scene.fog = new FogExp2(fogColor, def.atmosphere.fog.density);
 
+    // Set camera.far from fog density so distant geometry fades to fog color, never hard clips
+    const fogFar = Math.max(75.0, Math.ceil(2.8 / Math.max(0.015, def.atmosphere.fog.density)));
+    this.camera.far = fogFar;
+    this.camera.updateProjectionMatrix();
+
     const skyColor = parseInt(def.atmosphere.hemisphere.sky.replace('#', '0x'), 16);
     const groundColor = parseInt(def.atmosphere.hemisphere.ground.replace('#', '0x'), 16);
     const hemi = new HemisphereLight(skyColor, groundColor, 0.75);
@@ -556,12 +564,23 @@ export class GameSession {
       const sun = new DirectionalLight(sunColor, def.atmosphere.sun.intensity);
       const dir = def.atmosphere.sun.direction;
       sun.position.set(dir.x * 30, dir.y * 30, dir.z * 30);
-      if (def.atmosphere.sun.castShadow) {
+      const isLow = this.settings.graphics.quality === 'low';
+      if (def.atmosphere.sun.castShadow && !isLow) {
         sun.castShadow = true;
-        sun.shadow.mapSize.width = 1024;
-        sun.shadow.mapSize.height = 1024;
+        const shadowRes = this.settings.graphics.quality === 'high' ? 2048 : 1024;
+        sun.shadow.mapSize.width = shadowRes;
+        sun.shadow.mapSize.height = shadowRes;
+        sun.shadow.camera.near = 0.5;
+        sun.shadow.camera.far = 80.0;
+        sun.shadow.camera.left = -25;
+        sun.shadow.camera.right = 25;
+        sun.shadow.camera.top = 25;
+        sun.shadow.camera.bottom = -25;
+        sun.shadow.bias = -0.0005;
+        sun.shadow.normalBias = 0.02;
       }
       this.scene.add(sun);
+      this.sunLight = sun;
     }
   }
 
@@ -1741,6 +1760,27 @@ export class GameSession {
         this.container.clientHeight || 720,
       );
     }
+
+    // Auto exposure adaptation (1.2s time constant) & stable directional shadow texel snapping
+    if (++this.autoExposureFrameCount % 4 === 0) {
+      const pSnap = this.simWorld.player.getState();
+      const inWater = pSnap.pos.y < (this.water?.currentWaterY ?? 0) + 0.1;
+      const targetExposure = inWater ? 1.25 : 1.05;
+      const blend = 1.0 - Math.exp(-(dt * 4) / 1.2);
+      this.currentExposure += (targetExposure - this.currentExposure) * blend;
+      this.renderer.renderer.toneMappingExposure = Math.max(0.7, Math.min(1.5, this.currentExposure));
+
+      if (this.sunLight && this.sunLight.castShadow) {
+        const shadowWorldSize = 50.0;
+        const shadowRes = this.sunLight.shadow.mapSize.width || 1024;
+        const texelSize = shadowWorldSize / shadowRes;
+        const snappedX = Math.floor(pSnap.pos.x / texelSize) * texelSize;
+        const snappedZ = Math.floor(pSnap.pos.z / texelSize) * texelSize;
+        this.sunLight.target.position.set(snappedX, 0, snappedZ);
+        this.sunLight.target.updateMatrixWorld();
+      }
+    }
+
     this.postFX.render(this.scene, this.camera, dt);
   }
 

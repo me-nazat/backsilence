@@ -9,6 +9,7 @@ import {
   CylinderGeometry,
 } from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { bakeVertexAO } from './VertexAO.js';
 
 export interface CatwalkOptions {
   length: number;      // Length along Z (m)
@@ -94,5 +95,6 @@ export function buildCatwalkGeometry(opts: CatwalkOptions): BufferGeometry {
   for (const g of geoms) g.dispose();
 
   merged.computeVertexNormals();
+  bakeVertexAO(merged);
   return merged;
 }

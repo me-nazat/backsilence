@@ -350,3 +350,16 @@ Establish `functions/api/[[route]].ts` as the canonical Cloudflare Pages Functio
 5. Automated Stability Suite: Integrated `waterSelfTest()` asserting zero NaNs after 10,000 steps, strict energy decay, obstacle wall reflection, and CPU/GPU agreement within $10^{-3}$ across 200 spatial points.
 **Reason:** Fulfills Prompt 2 Phase B mandates for commercial-grade water believability, optical physical accuracy (Beer-Lambert, Schlick Fresnel F0=0.02, caustics, wake foam), and driver feedback loop elimination.
 
+### D049: Physical Lighting Model, Baked Vertex AO, Shader CRT Pass & Photosensitive Throttle
+**Date:** 2026-10-24
+**Choice:**
+1. Physical Light & Shadow Architecture: Single shadow-casting directional key light with texel snapping to eliminate sub-pixel shimmer, normalBias (0.02) to eliminate peter-panning, and tiered shadow map resolution (2048 High, 1024 Medium, blob contact decal Low).
+2. Procedural Baked Vertex Ambient Occlusion: Automatically compute ground contact decay and crevice corner darkening across all procedural boxes, cylinders, arches, stairs, catwalks, colonnades, and pipe geometries, stored in the vertex `color` attribute.
+3. Fog & Camera Horizon Coupling: Set `camera.far` dynamically from exponential fog density ($far = \lceil 2.8 / \text{density} \rceil$), ensuring distant architecture fades 100% to the map's fog palette without clipping planes.
+4. Volumetric Light Shafts: Additive tapered cones with forward scattering phase ($(\max(0, -\vec{v} \cdot \vec{l}))^{2.5}$) glowing brighter toward skylights and oculus openings.
+5. Retinal Auto-Exposure: Sample 4-frame luminance adaptation eased with 1.2s time constant between bright halls and dark corridors.
+6. Unified Shader CRT Pass: Replaced static HTML/CSS scanline overlay with WebGL post-processing pass respecting user intensity, curvature, and safe mode.
+7. Photosensitive Throttle: Clamped frame-to-frame luminance transitions to $\le 0.25$ and capped flash frequency to $\le 3\text{ Hz}$.
+**Reason:** Fulfills Prompt 2 Phase C requirements for unified physical lighting, atmospheric depth, vertex AO detail, and accessibility safety.
+
+

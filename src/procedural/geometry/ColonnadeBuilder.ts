@@ -10,6 +10,7 @@ import {
 } from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { WORLD } from '../../app/Config.js';
+import { bakeVertexAO } from './VertexAO.js';
 
 export interface ColumnOptions {
   radius?: number;     // Column shaft radius (m), default 0.4
@@ -57,5 +58,6 @@ export function buildColumnGeometry(opts?: ColumnOptions): BufferGeometry {
   }
 
   merged.computeVertexNormals();
+  bakeVertexAO(merged);
   return merged;
 }

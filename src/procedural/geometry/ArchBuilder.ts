@@ -9,6 +9,7 @@ import {
   ExtrudeGeometry,
 } from 'three';
 import { WORLD } from '../../app/Config.js';
+import { bakeVertexAO } from './VertexAO.js';
 
 export interface ArchOptions {
   width: number;      // Opening width (m)
@@ -103,5 +104,6 @@ export function buildArchGeometry(opts: ArchOptions): BufferGeometry {
   }
 
   geom.computeVertexNormals();
+  bakeVertexAO(geom);
   return geom;
 }

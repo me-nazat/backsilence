@@ -10,6 +10,7 @@ import {
   AdditiveBlending,
   DoubleSide,
   Color,
+  Vector3,
   Points,
   BufferGeometry,
   Float32BufferAttribute,
@@ -42,6 +43,7 @@ export function createLightShaftMesh(options: LightShaftOptions = {}): Mesh {
       uColor: { value: color },
       uIntensity: { value: intensity },
       uHeight: { value: height },
+      uLightDir: { value: new Vector3(0, -1, 0) },
     },
     vertexShader: /* glsl */ `
       varying float vY;
@@ -60,6 +62,7 @@ export function createLightShaftMesh(options: LightShaftOptions = {}): Mesh {
       uniform vec3 uColor;
       uniform float uIntensity;
       uniform float uHeight;
+      uniform vec3 uLightDir;
 
       varying float vY;
       varying vec3 vNormalWorld;
@@ -72,7 +75,10 @@ export function createLightShaftMesh(options: LightShaftOptions = {}): Mesh {
 
         // Soft rim / edge falloff so cylinder seams are invisible
         float rim = 1.0 - abs(dot(vNormalWorld, vViewDir));
-        float alpha = verticalFalloff * uIntensity * (0.4 + 0.6 * rim);
+
+        // Forward scattering: brighter when looking towards the light source
+        float forwardScatter = pow(max(0.0, dot(-vViewDir, uLightDir)), 2.5);
+        float alpha = verticalFalloff * uIntensity * (0.3 + 0.4 * rim + 0.5 * forwardScatter);
 
         gl_FragColor = vec4(uColor, alpha);
       }

@@ -5,6 +5,7 @@
 
 import { BoxGeometry, Float32BufferAttribute, Mesh, type Material } from 'three';
 import { WORLD } from '../../app/Config.js';
+import { bakeVertexAO } from './VertexAO.js';
 
 export interface TiledBoxOptions {
   w: number;
@@ -69,6 +70,7 @@ export function createTiledBoxGeometry(options: TiledBoxOptions): BoxGeometry {
   }
 
   uvAttr.needsUpdate = true;
+  bakeVertexAO(geom);
   return geom;
 }
 
