@@ -141,7 +141,7 @@ export function playTrainHorn(cx: MetroVoiceContext): RawVoiceHandle {
   const now = ctx.currentTime;
 
   const voiceGain = ctx.createGain();
-  voiceGain.gain.setValueAtTime(0.85, now);
+  voiceGain.gain.setValueAtTime(0.35, now);
   voiceGain.connect(cx.destination);
   voiceGain.connect(cx.reverbSend);
 

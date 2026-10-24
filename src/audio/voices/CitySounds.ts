@@ -283,7 +283,7 @@ export function playEmpPulse(cx: CityVoiceContext): RawVoiceHandle {
   const now = ctx.currentTime;
 
   const voiceGain = ctx.createGain();
-  voiceGain.gain.setValueAtTime(0.8, now);
+  voiceGain.gain.setValueAtTime(0.4, now);
   voiceGain.connect(cx.destination);
   voiceGain.connect(cx.reverbSend);
 

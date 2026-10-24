@@ -103,7 +103,7 @@ export function playLockerOpenFast(cx: SchoolVoiceContext): RawVoiceHandle {
   const rng = new Rng(cx.seed ?? 202);
 
   const voiceGain = ctx.createGain();
-  voiceGain.gain.setValueAtTime(0.65, now);
+  voiceGain.gain.setValueAtTime(0.38, now);
   voiceGain.connect(cx.destination);
   voiceGain.connect(cx.reverbSend);
 
@@ -471,7 +471,7 @@ export function playPianoClunk(cx: SchoolVoiceContext): RawVoiceHandle {
   const rng = new Rng(cx.seed ?? 505);
 
   const voiceGain = ctx.createGain();
-  voiceGain.gain.setValueAtTime(0.5, now);
+  voiceGain.gain.setValueAtTime(0.35, now);
   voiceGain.connect(cx.destination);
   voiceGain.connect(cx.reverbSend);
 
