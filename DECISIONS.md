@@ -584,6 +584,18 @@ Establish `functions/api/[[route]].ts` as the canonical Cloudflare Pages Functio
    - Pure `GhostTrajectory` providing binary-search spatial interpolation and live ahead/behind time-delta calculation.
 **Reason:** Completes Prompt 3 competitive ladder and replay verification mandates, providing robust anti-cheat validation, ghost racing, and fair seasonal rankings.
 
+### D063: Site Preconditions, Headless Chrome CDP Verification & Cloudflare Pages Functions Wrapper
+**Date:** 2026-10-24
+**Choice:**
+1. Verified all four Prompt 4 preconditions:
+   - Headless Chrome desktop menu and interactive elements verified via `scripts/browser-acceptance.mjs`: menu interactive in 423.8 ms, keyboard focus active, `.bs-screen` pointer events reliable.
+   - Dedicated Cloudflare Pages Functions wrapper implemented at `functions/api/[[route]].ts`, routing standard `Request` -> `Response` into `api/core/Endpoints.ts`.
+   - Local offline development verified with `npm run dev:api` and `api/core/FakeLibsql.ts`.
+   - Full reuse of established `src/meta/` modules without duplication.
+2. Results documented in `reports/site/preconditions.md`.
+**Reason:** Strictly validates preconditions for Prompt 4, enabling clean transition to design system unification and platform release.
+
+
 
 
 
