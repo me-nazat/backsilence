@@ -56,6 +56,10 @@ export class MotionEngine {
     }
   }
 
+  getPhotosensitiveSafe(): boolean {
+    return this.isPhotosensitiveSafe;
+  }
+
   getReducedMotion(): boolean {
     return this.isReducedMotion;
   }

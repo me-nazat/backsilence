@@ -6,7 +6,7 @@
  *  Pure, serializable, deterministic. Zero DOM or Three.js dependencies.
  * ──────────────────────────────────────────────────────────────────────── */
 
-import type { RunEvent, LurkSurvivedEvent, NearMissEvent } from './RunEvents.js';
+import type { RunEvent } from './RunEvents.js';
 import type { MapId } from '../types/contracts.js';
 import missionDataRaw from './data/missions.json';
 
@@ -84,7 +84,7 @@ const EVALUATOR_MAP: Record<string, ContractTemplate['evaluator']> = {
   low_noise_escape: (ev, curr) => (ev.type === 'escape' ? curr + 1 : curr),
   clean_jumps: (ev, curr) => (ev.type === 'jump_clean' && ev.dryToDry ? curr + 1 : curr),
   survive_lurks: (ev, curr) =>
-    ev.type === 'lurk_survived' && (ev as LurkSurvivedEvent).duration >= 8.0 ? curr + 1 : curr,
+    ev.type === 'lurk_survived' && ev.duration >= 8.0 ? curr + 1 : curr,
   pebble_lures: (ev, curr) =>
     ev.type === 'lure_success' && ev.item === 'pebble' ? curr + 1 : curr,
   bottle_lures: (ev, curr) =>
@@ -109,7 +109,7 @@ const EVALUATOR_MAP: Record<string, ContractTemplate['evaluator']> = {
   flock_arrival_witness: (ev, curr, _t, ctx) =>
     ev.type === 'objective_done' && (ctx?.sawFlockDuration ?? 0) >= 3.0 ? curr + 1 : curr,
   near_misses: (ev, curr) =>
-    ev.type === 'near_miss' && (ev as NearMissEvent).distance <= 2.0 ? curr + 1 : curr,
+    ev.type === 'near_miss' && ev.distance <= 2.0 ? curr + 1 : curr,
   echo_bell_lures: (ev, curr) =>
     ev.type === 'lure_success' && ev.item === 'echo_bell' ? curr + 1 : curr,
   noisemaker_deploy: (ev, curr) =>

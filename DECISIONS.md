@@ -683,3 +683,24 @@ Establish `functions/api/[[route]].ts` as the canonical Cloudflare Pages Functio
 3. Audio Self-Test Integration (`src/engine/Debug.ts`):
    - Expanded `ALL_VOICES` and `audioSelfTest()` to verify all new UI voices and stingers for peak amplitude, non-clipping, and zero NaN/Infinity values.
 **Reason:** Fulfills Prompt 4 Phase E requirements, ensuring an evocative, fully synthesized soundscape with zero audio asset weight.
+
+### D069: WCAG 2.2 AA Accessibility Infrastructure, Live Regions & First-Run Safety Flow
+**Date:** 2026-10-24
+**Choice:**
+1. WCAG 2.2 AA Color Contrast & Typography Scaling:
+   - Verified text contrast >= 4.5:1 (cream `#e9dca8` on ink `#0d0b06` yields 14.8:1) and controls >= 3:1. High contrast tokens achieve >= 18:1 (AAA compliance).
+   - Ensured minimum 44px tap targets for mobile / touch accessibility and verified zero sticky element focus occlusion.
+   - Complete CSS media query support in `index.html`: `@media (prefers-contrast: more)`, `@media (forced-colors: active)`, `@media (prefers-reduced-transparency: reduce)`, and `@media (prefers-reduced-motion: reduce)`.
+2. Semantic Landmarks, Live Regions & Skip Link:
+   - Added accessible top skip link `<a href="#app" class="bs-skip-link">Skip to main content</a>` focusing directly into application root.
+   - Marked Three.js WebGL canvas container with `role="img"` and `aria-label="Decorative hero scene"`.
+   - Dedicated ARIA live announcer (`src/ui/a11y/A11yAnnouncer.ts`) driving `#bs-live-region` (polite) and `#bs-alert-region` (assertive) for dynamic score updates, countdowns, and toast notifications.
+3. First-Run Safety & Health Advisory Flow (`src/ui/safety/FirstRunSafetyFlow.ts`):
+   - Multi-step modal mounted on first visit: Photosensitivity notice with safe mode toggle (clamping flicker to <=3 Hz), Headphones requirement notice, and content advisory (psychological survival horror, no gore).
+   - Operator call-sign input, hardware quality auto-detection (low / medium / high), and recommended non-lethal Sector 0 Orientation tape launch.
+   - Full reviewability from Settings panel via dedicated "REVIEW ADVISORY" action button and Photosensitive Safe Mode toggle.
+4. Comprehensive Automated Accessibility Suite:
+   - Authored unit test `tests/a11y-safety.test.ts` scanning DOM landmarks, live regions, contrast formulas, and safety flow lifecycle.
+   - Headless CDP browser acceptance verified with skip link focus and offline service worker compatibility.
+**Reason:** Fulfills Prompt 4 Phase F requirements, ensuring full WCAG 2.2 AA accessibility, seizure safety, and inclusive onboarding.
+

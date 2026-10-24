@@ -106,14 +106,17 @@ describe('Prompt 4 Phase D: Input, Gamepad, Glyphs & Spatial Navigation', () => 
     expect(success).toBe(false);
 
     // Mock with vibrationActuator
-    let rumbleCalledWith: any = null;
+    let rumbleCalledWith: { duration?: number; weakMagnitude?: number; strongMagnitude?: number } | null = null;
     const padWithActuator = {
       connected: true,
       id: 'Mock Controller With Rumble',
       buttons: [],
       axes: [],
       vibrationActuator: {
-        playEffect: async (_type: string, opts: any) => {
+        playEffect: async (
+          _type: string,
+          opts: { duration?: number; weakMagnitude?: number; strongMagnitude?: number },
+        ) => {
           rumbleCalledWith = opts;
           return 'complete';
         },
@@ -124,7 +127,8 @@ describe('Prompt 4 Phase D: Input, Gamepad, Glyphs & Spatial Navigation', () => 
     const rSuccess = await gamepadMgr.playRumble('near-miss');
     expect(rSuccess).toBe(true);
     expect(rumbleCalledWith).not.toBeNull();
-    expect(rumbleCalledWith.duration).toBe(250);
+    const recordedOpts = rumbleCalledWith as { duration?: number } | null;
+    expect(recordedOpts?.duration).toBe(250);
   });
 
   it('switches input prompt glyphs between keyboard, gamepad, and touch', () => {

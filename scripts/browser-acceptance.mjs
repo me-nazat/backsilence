@@ -251,7 +251,7 @@ async function main() {
     await cdp.send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Tab', code: 'Tab', windowsVirtualKeyCode: 9 });
     await cdp.send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'Tab', code: 'Tab', windowsVirtualKeyCode: 9 });
     assert(
-      await evaluate(cdp, "document.activeElement?.matches('#btn-play-solo, #btn-play-online, #btn-how-to-play, #btn-settings, #btn-about, #nav-btn-play, #btn-daily-action, .bs-btn, #btn-descend-wrap button, #btn-dive-online-wrap button') ?? false"),
+      await evaluate(cdp, "document.activeElement?.matches('#btn-play-solo, #btn-play-online, #btn-how-to-play, #btn-settings, #btn-about, #nav-btn-play, #btn-daily-action, .bs-btn, #btn-descend-wrap button, #btn-dive-online-wrap button, .bs-skip-link') ?? false"),
       'keyboard Tab did not focus a visible menu action',
     );
     await screenshot(cdp, directory, 'desktop-menu');

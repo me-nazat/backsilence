@@ -203,14 +203,47 @@
       border-width:2px;
     }
 
+    /* Skip link */
+    .bs-skip-link{
+      position:absolute;top:-100px;left:16px;z-index:10000;
+      padding:10px 16px;background:var(--ink);color:var(--water);
+      border:2px solid var(--water);font-family:monospace;font-weight:700;
+      border-radius:2px;transition:top 0.15s ease-out;
+    }
+    .bs-skip-link:focus-visible{
+      top:16px;outline:2px solid var(--water);
+    }
+
+    /* Screen reader utility */
+    .sr-only{
+      position:absolute;width:1px;height:1px;padding:0;margin:-1px;
+      overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;
+    }
+
+    /* Prefers-contrast & forced-colors */
+    @media (prefers-contrast: more){
+      :root{--ink:#000000!important;--fog:#ffffff!important;--water:#00ff88!important;--danger:#ff0000!important}
+    }
+    @media (forced-colors: active){
+      :root{--ink:Canvas!important;--fog:CanvasText!important;--water:Highlight!important;--danger:Highlight!important}
+      .analog-btn,.bs-btn{border:2px solid ButtonBorder!important}
+    }
+    @media (prefers-reduced-transparency: reduce){
+      #app,.bs-card,.bs-modal,.analog-btn{background-color:var(--ink)!important;backdrop-filter:none!important}
+    }
+
     /* Accessibility: focus-visible */
     :focus-visible{outline:2px solid var(--water);outline-offset:2px}
     a,button{color:inherit;text-decoration:none}
   </style>
 </head>
 <body>
-  <div id="canvas-container"></div>
+  <a href="#app" class="bs-skip-link">Skip to main content</a>
+  <div id="canvas-container" role="img" aria-label="Decorative hero scene"></div>
   <div id="debug-overlay"></div>
+
+  <div id="bs-live-region" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
+  <div id="bs-alert-region" class="sr-only" role="alert" aria-live="assertive" aria-atomic="true"></div>
 
   <div id="splash" role="status" aria-label="Loading game">
     <div class="ripple-container" aria-hidden="true">

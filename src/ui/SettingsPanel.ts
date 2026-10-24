@@ -12,6 +12,8 @@ import {
 } from '../app/Settings.js';
 import { AudioEngine } from '../audio/AudioEngine.js';
 import { ToastManager } from './ToastManager.js';
+import { FirstRunSafetyFlow } from './safety/FirstRunSafetyFlow.js';
+import { MotionEngine } from './motion/Motion.js';
 
 export interface SettingsPanelCallbacks {
   onBack: () => void;
@@ -295,6 +297,22 @@ export class SettingsPanel {
             </div>
             <input id="set-uiscale" type="range" min="0.8" max="1.4" step="0.05" value="${this.settings.accessibility?.uiScale ?? 1.0}" class="setting-slider">
           </div>
+
+          <div class="setting-row">
+            <div>
+              <div class="setting-label">PHOTOSENSITIVE SAFE MODE</div>
+              <div class="setting-sub">Clamp rapid flicker to &le; 3 Hz and limit luminance delta per frame</div>
+            </div>
+            <input id="set-safemode" type="checkbox" ${MotionEngine.getInstance().getPhotosensitiveSafe() ? 'checked' : ''} class="setting-toggle">
+          </div>
+
+          <div class="setting-row">
+            <div>
+              <div class="setting-label">SAFETY & ACOUSTIC ADVISORY</div>
+              <div class="setting-sub">Re-read health, photosensitivity, and audio recommendations</div>
+            </div>
+            <button id="btn-review-safety" class="analog-btn" style="width: auto; padding: 4px 12px; font-size: 11px;">REVIEW ADVISORY</button>
+          </div>
         `;
     }
   }
@@ -496,6 +514,17 @@ export class SettingsPanel {
         const lbl = this.el?.querySelector('#lbl-uiscale');
         if (lbl) lbl.textContent = `${Math.round(this.settings.accessibility.uiScale * 100)}%`;
         this.liveApply();
+      });
+
+      const safemode = this.el.querySelector('#set-safemode') as HTMLInputElement;
+      safemode?.addEventListener('change', () => {
+        MotionEngine.getInstance().setPhotosensitiveSafe(safemode.checked);
+        this.liveApply();
+      });
+
+      this.el.querySelector('#btn-review-safety')?.addEventListener('click', () => {
+        engine.play('ui_click');
+        FirstRunSafetyFlow.showNoticeModal(this.el ?? document.body);
       });
     }
   }

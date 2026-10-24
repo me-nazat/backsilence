@@ -55,6 +55,7 @@ import {
   playUiReady,
   playUiRankUp,
   playResultsStinger,
+  type UiVoiceContext,
 } from './voices/UiSounds.js';
 import {
   playSteamHiss,
@@ -561,7 +562,7 @@ export class AudioEngine implements AudioEngineApi {
         handle = playUiRankUp(voiceCtx);
         break;
       case 'results_stinger':
-        handle = playResultsStinger(voiceCtx as any);
+        handle = playResultsStinger(voiceCtx as UiVoiceContext & { rank?: string });
         break;
       case 'monster_footfall':
         handle = playMonsterFootfall(voiceCtx);

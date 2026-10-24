@@ -27,7 +27,6 @@ describe('Prompt 3 Section 4: Encounter Director & Dread Rhythm', () => {
       });
 
       let firstContactTime = -1;
-      let beatsFound = 0;
       // Step up to 50 seconds (3000 ticks)
       for (let tick = 0; tick < 3000; tick++) {
         const dt = 1 / 60;
@@ -37,7 +36,6 @@ describe('Prompt 3 Section 4: Encounter Director & Dread Rhythm', () => {
         for (const beat of director.dreadBeats) {
           if (beat.kind === 'glimpse' || beat.kind === 'far_call' || beat.kind === 'first_contact') {
             firstContactTime = tick / 60;
-            beatsFound++;
             break;
           }
         }

@@ -229,6 +229,29 @@ async function boot(): Promise<void> {
     ui?.showToast('Audio spatialization active — Headphones recommended', 'info');
   });
 
+  // First-run safety flow (photosensitivity, headphones, content advisory, orientation)
+  const isNetMode = typeof location !== 'undefined' && location.search.includes('net=');
+  if (!route.debug && !route.lab && !route.room && !isNetMode) {
+    const { FirstRunSafetyFlow } = await import('./ui/safety/FirstRunSafetyFlow.js');
+    if (FirstRunSafetyFlow.isNeeded()) {
+      FirstRunSafetyFlow.start(document.body, (result) => {
+        if (result.photosensitiveSafe) {
+          void import('./ui/motion/Motion.js').then(({ MotionEngine }) => {
+            MotionEngine.getInstance().setPhotosensitiveSafe(true);
+          }).catch(() => {});
+        }
+        if (result.runOrientation) {
+          bus.emit('game:start', {
+            mode: 'single',
+            mapId: 'poolrooms',
+            difficulty: 0.5,
+            seed: 101,
+          });
+        }
+      });
+    }
+  }
+
   // 5. Check WebGL2 Availability
   const testCanvas = document.createElement('canvas');
   const gl2 = testCanvas.getContext('webgl2');

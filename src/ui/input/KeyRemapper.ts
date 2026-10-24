@@ -45,19 +45,19 @@ export interface BindingConflict {
   key: string;
 }
 
-export class KeyRemapper {
-  static getDefaults(): Record<Action, string> {
+export const KeyRemapper = {
+  getDefaults(): Record<Action, string> {
     return { ...DEFAULT_KEYBOARD_BINDINGS };
-  }
+  },
 
-  static getGamepadDefaults(): Record<Action, number> {
+  getGamepadDefaults(): Record<Action, number> {
     return { ...DEFAULT_GAMEPAD_BINDINGS };
-  }
+  },
 
   /**
    * Rebinds an action to a new key code, returning updated bindings and any detected conflicts.
    */
-  static rebind(
+  rebind(
     bindings: Record<Action, string>,
     targetAction: Action,
     newKey: string,
@@ -75,12 +75,12 @@ export class KeyRemapper {
 
     next[targetAction] = newKey;
     return { bindings: next, conflict };
-  }
+  },
 
   /**
    * Detects all collisions in a bindings table.
    */
-  static validate(bindings: Record<Action, string>): {
+  validate(bindings: Record<Action, string>): {
     isValid: boolean;
     conflicts: BindingConflict[];
   } {
@@ -104,5 +104,5 @@ export class KeyRemapper {
       isValid: conflicts.length === 0,
       conflicts,
     };
-  }
-}
+  },
+};

@@ -202,7 +202,7 @@ export class GamepadManager {
     const pad = this.getPrimaryGamepad();
     if (!pad) return false;
 
-    const actuator = (pad as any).vibrationActuator;
+    const actuator = pad.vibrationActuator;
     if (!actuator || typeof actuator.playEffect !== 'function') {
       return false;
     }
