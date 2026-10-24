@@ -10,6 +10,7 @@
   --bs-cream: #e9dca8;
   --bs-tan: #d8b36a;
   --bs-grout: #5b4526;
+  --bs-fog: #d9d3a2;
   --bs-water: #86cfa0;
   --bs-water-deep: #3f9c6b;
   --bs-danger: #b3261e;
@@ -135,3 +136,27 @@
   color: var(--bs-water);
   text-shadow: 0 0 8px rgba(134, 207, 160, 0.4);
 }
+
+/* ── Per-script typography overrides ────────────────────────────────────── */
+[lang^="bn"] { --bs-font-body: 'Noto Sans Bengali', 'Nirmala UI', sans-serif; }
+[lang^="hi"] { --bs-font-body: 'Noto Sans Devanagari', 'Nirmala UI', sans-serif; }
+[lang^="ar"] { --bs-font-body: 'Noto Sans Arabic', 'Segoe UI Arabic', Tahoma, sans-serif; }
+[lang^="ja"] { --bs-font-body: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', Meiryo, sans-serif; }
+[lang^="ko"] { --bs-font-body: 'Noto Sans KR', 'Malgun Gothic', sans-serif; }
+[lang^="zh"] { --bs-font-body: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif; }
+
+/* ── Forced Colors Mode Support ─────────────────────────────────────────── */
+@media (forced-colors: active) {
+  :root {
+    --bs-ink: Canvas;
+    --bs-cream: CanvasText;
+    --bs-border: ButtonBorder;
+    --bs-border-strong: Highlight;
+    --bs-water: Highlight;
+    --bs-danger: LinkText;
+    --bs-surface-1: Canvas;
+    --bs-surface-2: Canvas;
+    --bs-surface-3: Canvas;
+  }
+}
+

@@ -595,6 +595,24 @@ Establish `functions/api/[[route]].ts` as the canonical Cloudflare Pages Functio
 2. Results documented in `reports/site/preconditions.md`.
 **Reason:** Strictly validates preconditions for Prompt 4, enabling clean transition to design system unification and platform release.
 
+### D064: Art Direction, Design Tokens, Multi-Script Typography & Hushed Voice Table
+**Date:** 2026-10-24
+**Choice:**
+1. Design System Tokens Single Source of Truth (`src/app/Palette.ts`, `src/ui/kit/tokens.css`):
+   - Defined core archive palette: ink `#0d0b06`, cream `#e9dca8`, tan `#d8b36a`, grout `#5b4526`, fog `#d9d3a2`, water `#86cfa0`, deep water `#3f9c6b`, danger `#b3261e`.
+   - Functional surfaces (`surface1..3`, `surfaceHover`, `surfaceActive`), borders, focus rings, and WCAG AAA high-contrast and `forced-colors` mode tokens.
+   - Synchronized CSS custom properties with TypeScript constants verified by automated script `scripts/sync-tokens.mjs`.
+2. Multi-Script System Typography Stacks:
+   - System stacks for Latin, Mono, OSD, and language-specific scripts: Bengali (`'Noto Sans Bengali','Nirmala UI',sans-serif`), Devanagari, Arabic, Japanese, Korean, and Simplified Chinese.
+   - Strict 8px layout grid with responsive breakpoints at 360, 768, 1280, and 1920 px, plus CSS logical properties (`margin-inline`, `padding-inline`) for bidirectional RTL support.
+3. Procedural SVG Icons & Rank Emblems (`src/ui/kit/Icons.ts`):
+   - 43 inline SVG icons built from path data on a 24px grid with 2px stroke and `currentColor`.
+   - 5 procedural rank emblems with distinct silhouettes: Whisper (single ring), Hush (ring with slash), Mute (crossed speaker), Silent (closed ear), and Phantom (hooded figure).
+4. Hushed Municipal Voice & Microcopy (`COPY.md`):
+   - Codified 40 rotating loading/tracking lines, action button states, results lines by score rank (S, A, B, C, D) and tier, full 30 achievement descriptions, and step-by-step native localization review protocol.
+**Reason:** Fulfills Prompt 4 Phase A mandates establishing an evocative, cohesive analog horror visual and narrative identity.
+
+
 
 
 

@@ -1,5 +1,5 @@
 /* ── Icons.ts ──────────────────────────────────────────────────────────────
- *  Coded inline-SVG icon set (~36 icons) drawn in consistent 2px stroke style,
+ *  Coded inline-SVG icon set (~40 icons) drawn in consistent 2px stroke style,
  *  plus 5 procedural Rank Emblems (Whisper → Phantom) with distinct silhouettes.
  *  Zero external fonts or raster icon files.
  * ──────────────────────────────────────────────────────────────────────── */
@@ -26,6 +26,13 @@ export type IconName =
   | 'bottle'
   | 'pebble'
   | 'key'
+  | 'globe'
+  | 'gamepad'
+  | 'keyboard'
+  | 'touch'
+  | 'volume'
+  | 'mute'
+  | 'warning'
   | 'speaker'
   | 'speaker-off'
   | 'refresh'
@@ -42,7 +49,7 @@ export type IconName =
   | 'download'
   | 'info';
 
-export type RankEmblemName = 'whisper' | 'echo' | 'current' | 'depth' | 'phantom';
+export type RankEmblemName = 'whisper' | 'hush' | 'mute' | 'silent' | 'phantom' | 'echo' | 'current' | 'depth';
 
 export const ICONS: Record<IconName, string> = {
   play: `<polygon points="6 3 20 12 6 21 6 3"></polygon>`,
@@ -57,7 +64,7 @@ export const ICONS: Record<IconName, string> = {
   skull: `<circle cx="9" cy="11" r="1.5"></circle><circle cx="15" cy="11" r="1.5"></circle><path d="M8 17v2h8v-2M12 3a8 8 0 0 0-8 8c0 3 1.5 5 2.5 6.5.5.8 1.5 1.5 2.5 1.5h6c1 0 2-.7 2.5-1.5 1-1.5 2.5-3.5 2.5-6.5a8 8 0 0 0-8-8z"></path>`,
   wave: `<path d="M2 12c2.5-3 5-3 7.5 0s5 3 7.5 0 5-3 5 0"></path><path d="M2 16c2.5-3 5-3 7.5 0s5 3 7.5 0 5-3 5 0"></path>`,
   user: `<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle>`,
-  gear: `<circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>`,
+  gear: `<circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>`,
   share: `<circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>`,
   copy: `<rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>`,
   ping: `<path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"></path>`,
@@ -66,6 +73,13 @@ export const ICONS: Record<IconName, string> = {
   bottle: `<path d="M10 2h4v3h-4zM8 8a3 3 0 0 1 3-3h2a3 3 0 0 1 3 3v12a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2V8z"></path><line x1="8" y1="13" x2="16" y2="13"></line>`,
   pebble: `<path d="M12 3c4.5 0 9 2.5 9 7.5s-3 10.5-9 10.5-9-5.5-9-10.5S7.5 3 12 3z"></path>`,
   key: `<path d="M21 2l-2 2m-1.5 1.5L14 9l-2-2-4 4 2 2-3 3 2 2-3 3"></path><circle cx="7.5" cy="16.5" r="4.5"></circle>`,
+  globe: `<circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>`,
+  gamepad: `<line x1="6" y1="12" x2="10" y2="12"></line><line x1="8" y1="10" x2="8" y2="14"></line><line x1="15" y1="13" x2="15.01" y2="13"></line><line x1="18" y1="11" x2="18.01" y2="11"></line><rect x="2" y="6" width="20" height="12" rx="6"></rect>`,
+  keyboard: `<rect x="2" y="4" width="20" height="16" rx="2"></rect><line x1="6" y1="8" x2="6" y2="8"></line><line x1="10" y1="8" x2="10" y2="8"></line><line x1="14" y1="8" x2="14" y2="8"></line><line x1="18" y1="8" x2="18" y2="8"></line><line x1="6" y1="12" x2="6" y2="12"></line><line x1="10" y1="12" x2="10" y2="12"></line><line x1="14" y1="12" x2="14" y2="12"></line><line x1="18" y1="12" x2="18" y2="12"></line><line x1="7" y1="16" x2="17" y2="16"></line>`,
+  touch: `<path d="M14 4.5V14a2 2 0 0 1-2 2h-1a2 2 0 0 1-1.4-.6L6.5 12.3a1 1 0 0 1 0-1.4l.7-.7a1 1 0 0 1 1.4 0L10 11.6V4.5a1.5 1.5 0 0 1 3 0z"></path><path d="M14 9a1.5 1.5 0 0 1 3 0v5a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5"></path>`,
+  volume: `<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>`,
+  mute: `<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line>`,
+  warning: `<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line>`,
   speaker: `<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>`,
   'speaker-off': `<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line>`,
   refresh: `<path d="M23 4v6h-6"></path><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>`,
@@ -84,38 +98,50 @@ export const ICONS: Record<IconName, string> = {
 };
 
 export const RANK_EMBLEMS: Record<RankEmblemName, string> = {
+  // Canonical 5 Tiers
   whisper: `
-    <circle cx="24" cy="24" r="18" stroke="currentColor" stroke-width="2" stroke-dasharray="2 4" opacity="0.6"/>
-    <circle cx="24" cy="24" r="12" stroke="currentColor" stroke-width="2"/>
-    <path d="M24 16 A8 8 0 0 1 24 32" stroke="currentColor" stroke-width="2.5"/>
+    <!-- Whisper: Single Ring -->
+    <circle cx="24" cy="24" r="16" stroke="currentColor" stroke-width="2"/>
     <circle cx="24" cy="24" r="3" fill="currentColor"/>
   `,
-  echo: `
-    <circle cx="24" cy="24" r="8" stroke="currentColor" stroke-width="2"/>
-    <path d="M12 24 A12 12 0 0 1 36 24" stroke="currentColor" stroke-width="2"/>
-    <path d="M6 24 A18 18 0 0 1 42 24" stroke="currentColor" stroke-width="2" stroke-dasharray="3 3"/>
-    <path d="M12 24 A12 12 0 0 0 36 24" stroke="currentColor" stroke-width="2" opacity="0.7"/>
-    <circle cx="24" cy="24" r="4" fill="currentColor"/>
+  hush: `
+    <!-- Hush: Ring with a Slash -->
+    <circle cx="24" cy="24" r="16" stroke="currentColor" stroke-width="2"/>
+    <line x1="12" y1="36" x2="36" y2="12" stroke="currentColor" stroke-width="2.5"/>
   `,
-  current: `
-    <path d="M10 18 C16 10, 32 10, 38 18 C32 26, 16 26, 10 18 Z" stroke="currentColor" stroke-width="2"/>
-    <path d="M10 30 C16 22, 32 22, 38 30 C32 38, 16 38, 10 30 Z" stroke="currentColor" stroke-width="2" opacity="0.8"/>
-    <circle cx="24" cy="24" r="5" stroke="currentColor" stroke-width="2"/>
-    <circle cx="24" cy="24" r="2" fill="currentColor"/>
+  mute: `
+    <!-- Mute: Crossed Speaker -->
+    <polygon points="18 12 11 18 6 18 6 30 11 30 18 36 18 12" stroke="currentColor" stroke-width="2"/>
+    <line x1="38" y1="14" x2="26" y2="34" stroke="currentColor" stroke-width="2.5"/>
   `,
-  depth: `
-    <polygon points="24 4 40 14 40 34 24 44 8 34 8 14" stroke="currentColor" stroke-width="2"/>
-    <circle cx="24" cy="24" r="10" stroke="currentColor" stroke-width="2"/>
-    <circle cx="24" cy="24" r="5" stroke="currentColor" stroke-width="1.5" stroke-dasharray="2 2"/>
-    <line x1="24" y1="14" x2="24" y2="34" stroke="currentColor" stroke-width="2"/>
-    <line x1="14" y1="24" x2="34" y2="24" stroke="currentColor" stroke-width="2"/>
+  silent: `
+    <!-- Silent: Closed Ear -->
+    <path d="M16 20a10 10 0 0 1 20 0c0 6-4 9-6 12a4 4 0 0 1-7-3c0-3 3-4 3-9a3 3 0 0 0-6 0v2" stroke="currentColor" stroke-width="2"/>
+    <path d="M22 25a3 3 0 0 0 3 3" stroke="currentColor" stroke-width="2"/>
+    <line x1="14" y1="34" x2="34" y2="14" stroke="currentColor" stroke-width="2"/>
   `,
   phantom: `
-    <path d="M24 4 L28 14 L39 15 L30 22 L33 33 L24 27 L15 33 L18 22 L9 15 L20 14 Z" stroke="currentColor" stroke-width="2"/>
-    <circle cx="24" cy="24" r="14" stroke="currentColor" stroke-width="1.5" stroke-dasharray="4 2" opacity="0.8"/>
-    <circle cx="24" cy="24" r="7" stroke="currentColor" stroke-width="2"/>
-    <circle cx="24" cy="24" r="3" fill="currentColor"/>
-    <path d="M18 38 Q24 44 30 38" stroke="currentColor" stroke-width="2"/>
+    <!-- Phantom: Hooded Figure -->
+    <path d="M12 38 C12 20, 16 8, 24 8 C32 8, 36 20, 36 38 Z" stroke="currentColor" stroke-width="2"/>
+    <ellipse cx="24" cy="23" rx="5" ry="7" stroke="currentColor" stroke-width="1.5"/>
+    <circle cx="22" cy="22" r="1.5" fill="currentColor"/>
+    <circle cx="26" cy="22" r="1.5" fill="currentColor"/>
+    <path d="M8 40 Q24 35 40 40" stroke="currentColor" stroke-width="2"/>
+  `,
+
+  // Legacy tier aliases
+  echo: `
+    <circle cx="24" cy="24" r="16" stroke="currentColor" stroke-width="2"/>
+    <line x1="12" y1="36" x2="36" y2="12" stroke="currentColor" stroke-width="2.5"/>
+  `,
+  current: `
+    <polygon points="18 12 11 18 6 18 6 30 11 30 18 36 18 12" stroke="currentColor" stroke-width="2"/>
+    <line x1="38" y1="14" x2="26" y2="34" stroke="currentColor" stroke-width="2.5"/>
+  `,
+  depth: `
+    <path d="M16 20a10 10 0 0 1 20 0c0 6-4 9-6 12a4 4 0 0 1-7-3c0-3 3-4 3-9a3 3 0 0 0-6 0v2" stroke="currentColor" stroke-width="2"/>
+    <path d="M22 25a3 3 0 0 0 3 3" stroke="currentColor" stroke-width="2"/>
+    <line x1="14" y1="34" x2="34" y2="14" stroke="currentColor" stroke-width="2"/>
   `,
 };
 
@@ -125,6 +151,7 @@ export function renderIcon(name: IconName, size = 20, className = ''): string {
 }
 
 export function renderRankEmblem(rank: RankEmblemName, size = 48, className = ''): string {
-  const content = RANK_EMBLEMS[rank] || RANK_EMBLEMS.whisper;
-  return `<svg viewBox="0 0 48 48" width="${size}" height="${size}" fill="none" class="bs-rank-emblem bs-rank-${rank} ${className}" role="img" aria-label="Rank ${rank}">${content}</svg>`;
+  const normalized = (rank.toLowerCase() in RANK_EMBLEMS) ? (rank.toLowerCase() as RankEmblemName) : 'whisper';
+  const content = RANK_EMBLEMS[normalized] || RANK_EMBLEMS.whisper;
+  return `<svg viewBox="0 0 48 48" width="${size}" height="${size}" fill="none" class="bs-rank-emblem bs-rank-${normalized} ${className}" role="img" aria-label="Rank ${rank}">${content}</svg>`;
 }
