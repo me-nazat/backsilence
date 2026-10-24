@@ -17,6 +17,8 @@ const ALLOWED_EXTS = new Set(['.html', '.js', '.css', '.map']);
 const BOOT_BUDGET_BYTES = 35 * 1024;   // 35 KB gzipped
 const TOTAL_BUDGET_BYTES = 450 * 1024;  // 450 KB gzipped
 const MAP_CHUNK_BUDGET_BYTES = 35 * 1024; // 35 KB gzipped per map lazy chunk
+const LOCALE_CHUNK_BUDGET_BYTES = 8 * 1024; // 8 KB gzipped per locale lazy chunk (Prompt 4 Section 10)
+const PNG_BUDGET_BYTES = 150 * 1024; // 150 KB raw per generated PNG asset (Prompt 4 Rule 6)
 const MODELS_BUDGET_BYTES = 2.5 * 1024 * 1024; // 2.5 MB raw for public/models/*.glb and *.json
 
 /** Recursively list all files under a directory. */
@@ -50,6 +52,7 @@ const errors = [];
 let totalGzip = 0;
 let coreGzip = 0;
 let mapChunksGzip = 0;
+let localeChunksGzip = 0;
 let bootGzip = 0;
 let modelsRawBytes = 0;
 
@@ -63,15 +66,30 @@ for (const filePath of files) {
   const ext = extname(filePath);
   const rel = filePath.replace(DIST + '/', '');
 
-  // Check for forbidden file types (allow sw.js, _headers, manifest.webmanifest, icon.svg, models/*.glb and models/*.json, and valid JS/CSS/HTML extensions)
+  // Check for forbidden file types (allow sw.js, _headers, manifest.webmanifest, icon.svg, generated PNGs, models/*.glb and models/*.json, and valid JS/CSS/HTML extensions)
   const isModelAsset = rel.startsWith('models/') && (ext === '.glb' || ext === '.json');
-  const isAllowedSpecial = rel === 'sw.js' || rel === '_headers' || rel === 'manifest.webmanifest' || rel === 'icon.svg';
+  const isAllowedSpecial =
+    rel === 'sw.js' ||
+    rel === '_headers' ||
+    rel === 'manifest.webmanifest' ||
+    rel === 'icon.svg' ||
+    rel === 'icon-192.png' ||
+    rel === 'icon-512.png' ||
+    rel === 'icon-maskable.png' ||
+    rel === 'og.png';
   const isAllowedFile = isAllowedSpecial || isModelAsset || ALLOWED_EXTS.has(ext);
   if (!isAllowedFile) {
     errors.push(`Forbidden file type: ${rel} (${ext})`);
   }
 
   const raw = readFileSync(filePath);
+
+  // Validate PNG assets budget (<= 150 KB raw)
+  if (ext === '.png' && raw.length > PNG_BUDGET_BYTES) {
+    errors.push(
+      `Generated PNG asset ${rel} exceeds budget: ${formatBytes(raw.length)} > ${formatBytes(PNG_BUDGET_BYTES)}`,
+    );
+  }
 
   // Security check: ensure built bundle contains no libsql:// host or eyJ JWT pattern
   if (ext === '.js' || ext === '.html' || ext === '.css' || ext === '.map') {
@@ -98,8 +116,12 @@ for (const filePath of files) {
   totalGzip += gzipSize;
 
   const isMapChunk = rel.includes('Map-') && ext === '.js';
+  const isLocaleChunk = /^(assets\/)?(ar|ar-test|bn|de|es|fr|hi|ja|ko|pt-BR|qps-ploc|ru|tr|zh-CN)-[A-Za-z0-9_-]+\.js$/.test(rel);
+
   if (isMapChunk) {
     mapChunksGzip += gzipSize;
+  } else if (isLocaleChunk) {
+    localeChunksGzip += gzipSize;
   } else {
     coreGzip += gzipSize;
   }
@@ -124,6 +146,15 @@ for (const filePath of files) {
         );
       }
     }
+
+    // Validate locale lazy chunk budget (<= 8 KB gzipped)
+    if (isLocaleChunk) {
+      if (gzipSize > LOCALE_CHUNK_BUDGET_BYTES) {
+        errors.push(
+          `Locale lazy chunk ${rel} exceeds budget: ${formatBytes(gzipSize)} > ${formatBytes(LOCALE_CHUNK_BUDGET_BYTES)}`,
+        );
+      }
+    }
   }
 }
 
@@ -134,8 +165,9 @@ console.log(
 console.log('└──────────────────────────────────┴─────────┴──────────────┘');
 
 console.log(`\nBoot chunk budget:  ${formatBytes(bootGzip)} / ${formatBytes(BOOT_BUDGET_BYTES)}`);
-console.log(`Core bundle budget (excl. maps/models): ${formatBytes(coreGzip)} / ${formatBytes(TOTAL_BUDGET_BYTES)}`);
+console.log(`Core bundle budget (excl. maps/models/locales): ${formatBytes(coreGzip)} / ${formatBytes(TOTAL_BUDGET_BYTES)}`);
 console.log(`Map chunks (lazy-loaded): ${formatBytes(mapChunksGzip)}`);
+console.log(`Locale chunks (lazy-loaded): ${formatBytes(localeChunksGzip)} (all <= 8.00 KB)`);
 if (modelsRawBytes > 0) {
   console.log(`Models binary budget: ${formatBytes(modelsRawBytes)} / ${formatBytes(MODELS_BUDGET_BYTES)}`);
 }

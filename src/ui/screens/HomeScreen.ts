@@ -9,6 +9,7 @@
 import { Button, renderIcon } from '../kit/index.js';
 import { MotionEngine } from '../motion/Motion.js';
 import { getUtcDateKey } from '../../meta/MissionEngine.js';
+import { I18nEngine, SUPPORTED_LOCALES, type SupportedLocale } from '../../i18n/I18n.js';
 
 export interface HomeScreenCallbacks {
   onDescend: () => void;
@@ -169,7 +170,13 @@ export class HomeScreen {
         <!-- Footer -->
         <footer style="border-top: 1px solid var(--bs-border); padding-top: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; font-family: var(--bs-font-mono); font-size: var(--bs-text-xs); color: var(--bs-tan);">
           <div>BACKSILENCE v1.0.0-RC // MUNICIPAL ARCHIVE</div>
-          <div style="display: flex; gap: 16px;">
+          <div style="display: flex; gap: 16px; align-items: center; flex-wrap: wrap;">
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <select id="footer-language-select" aria-label="Language selector" style="background: rgba(13,11,6,0.9); color: var(--bs-tan); border: 1px solid var(--bs-border); padding: 2px 6px; font-size: 11px; border-radius: 2px; font-family: var(--bs-font-mono);">
+                ${SUPPORTED_LOCALES.map((l) => `<option value="${l.id}" ${I18nEngine.getInstance().getLocale() === l.id ? 'selected' : ''}>${l.name}</option>`).join('')}
+              </select>
+              <span id="footer-lang-beta" style="display: ${I18nEngine.getInstance().isBeta() ? 'inline-block' : 'none'}; font-size: 9px; padding: 1px 4px; background: rgba(216,179,106,0.2); border: 1px solid var(--bs-water); color: var(--bs-water); border-radius: 2px;">BETA</span>
+            </div>
             <a href="#" id="link-credits" style="color: inherit; text-decoration: underline;">CREDITS & CC-BY</a>
             <a href="#" id="link-privacy" style="color: inherit; text-decoration: underline;">PRIVACY & STORAGE</a>
           </div>
@@ -233,6 +240,17 @@ export class HomeScreen {
     this.element.querySelector('#link-privacy')?.addEventListener('click', (e) => {
       e.preventDefault();
       this.callbacks.onOpenAbout();
+    });
+
+    const footerLang = this.element.querySelector('#footer-language-select') as HTMLSelectElement;
+    footerLang?.addEventListener('change', () => {
+      const chosen = footerLang.value as SupportedLocale;
+      void I18nEngine.getInstance().setLocale(chosen).then(() => {
+        const beta = this.element.querySelector('#footer-lang-beta') as HTMLElement;
+        if (beta) {
+          beta.style.display = I18nEngine.getInstance().isBeta(chosen) ? 'inline-block' : 'none';
+        }
+      });
     });
   }
 

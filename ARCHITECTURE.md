@@ -169,3 +169,10 @@ To ensure deterministic 60 Hz physics, zero-DOM headless simulation testing, and
 2. **Clearance Navigation**: Navigation cells require `depth >= 0.45 m` and `distToDry > 1.2 m`. Trenches $\le 2.4\text{m}$ wide are impassable, triggering `BLOCKED` state.
 3. **Procedural Body & IK**: Procedural organic flesh mesh with 14-vertebra instanced spine cones, elongated skull, moving jaw with teeth, animated ear-fins, and analytic two-bone law-of-cosines IK for knuckles and feet. Zero external `.glb` models.
 
+---
+
+### Internationalization & In-World Lettering Architecture
+1. **Engine Architecture**: UI text, menus, navigation screens, toasts, announcements, and subtitles are fully localized across 15 launch locales (including Arabic RTL and pseudo-locales) using `src/i18n/I18n.ts` and native ECMAScript `Intl` APIs (`PluralRules`, `NumberFormat`, `DateTimeFormat`, `RelativeTimeFormat`, `ListFormat`).
+2. **In-World Lettering**: In-world lettering (stenciled wall signage, sector codes, tape cartridge serials, and vector CRT terminal stroke fonts) remains strictly Latin and numeric. This is an intentional architectural and art direction decision: the procedural vector stroke font generator is mathematically calibrated for high-speed hardware line drawing of ASCII alphanumerics, preserving the dry 1994 municipal archive aesthetic across all active locales without bloating the zero-dependency runtime.
+
+

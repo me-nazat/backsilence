@@ -94,6 +94,7 @@ export interface Settings {
     reducedMotion: 'system' | 'on' | 'off';
     uiScale: number;
     highContrast: boolean;
+    language?: string;
   };
   player: {
     name: string;

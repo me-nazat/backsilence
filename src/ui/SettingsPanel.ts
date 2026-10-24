@@ -14,6 +14,7 @@ import { AudioEngine } from '../audio/AudioEngine.js';
 import { ToastManager } from './ToastManager.js';
 import { FirstRunSafetyFlow } from './safety/FirstRunSafetyFlow.js';
 import { MotionEngine } from './motion/Motion.js';
+import { I18nEngine, SUPPORTED_LOCALES, type SupportedLocale } from '../i18n/I18n.js';
 
 export interface SettingsPanelCallbacks {
   onBack: () => void;
@@ -308,6 +309,19 @@ export class SettingsPanel {
 
           <div class="setting-row">
             <div>
+              <div class="setting-label">LANGUAGE / 语言 / لغة</div>
+              <div class="setting-sub">
+                Interface locale and text direction
+                <span id="lang-beta-badge" style="display: ${I18nEngine.getInstance().isBeta() ? 'inline-block' : 'none'}; margin-left: 6px; font-size: 9px; padding: 1px 4px; background: rgba(216,179,106,0.2); border: 1px solid var(--water, #86cfa0); color: var(--water, #86cfa0); border-radius: 2px;">BETA TRANSLATION</span>
+              </div>
+            </div>
+            <select id="set-language" class="setting-select">
+              ${SUPPORTED_LOCALES.map((l) => `<option value="${l.id}" ${I18nEngine.getInstance().getLocale() === l.id ? 'selected' : ''}>${l.name}</option>`).join('')}
+            </select>
+          </div>
+
+          <div class="setting-row">
+            <div>
               <div class="setting-label">SAFETY & ACOUSTIC ADVISORY</div>
               <div class="setting-sub">Re-read health, photosensitivity, and audio recommendations</div>
             </div>
@@ -520,6 +534,22 @@ export class SettingsPanel {
       safemode?.addEventListener('change', () => {
         MotionEngine.getInstance().setPhotosensitiveSafe(safemode.checked);
         this.liveApply();
+      });
+
+      const langSel = this.el.querySelector('#set-language') as HTMLSelectElement;
+      langSel?.addEventListener('change', () => {
+        const chosen = langSel.value as SupportedLocale;
+        if (!this.settings.accessibility) {
+          this.settings.accessibility = { reducedMotion: 'system', uiScale: 1.0, highContrast: false };
+        }
+        this.settings.accessibility.language = chosen;
+        void I18nEngine.getInstance().setLocale(chosen).then(() => {
+          const badge = this.el?.querySelector('#lang-beta-badge') as HTMLElement;
+          if (badge) {
+            badge.style.display = I18nEngine.getInstance().isBeta(chosen) ? 'inline-block' : 'none';
+          }
+          ToastManager.getInstance().show(`Language: ${chosen}`, { type: 'info' });
+        });
       });
 
       this.el.querySelector('#btn-review-safety')?.addEventListener('click', () => {

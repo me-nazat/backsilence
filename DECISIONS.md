@@ -702,5 +702,25 @@ Establish `functions/api/[[route]].ts` as the canonical Cloudflare Pages Functio
 4. Comprehensive Automated Accessibility Suite:
    - Authored unit test `tests/a11y-safety.test.ts` scanning DOM landmarks, live regions, contrast formulas, and safety flow lifecycle.
    - Headless CDP browser acceptance verified with skip link focus and offline service worker compatibility.
-**Reason:** Fulfills Prompt 4 Phase F requirements, ensuring full WCAG 2.2 AA accessibility, seizure safety, and inclusive onboarding.
+### D070: Internationalization (i18n) Engine, 15 Locales, and Key Parity Audit
+**Date:** 2026-10-24
+**Choice:**
+1. Pure Zero-Dependency Internationalization Engine (`src/i18n/I18n.ts`):
+   - Key-based translation with parameter interpolation (`t(key, params)`).
+   - Plural rules powered by standard `Intl.PluralRules`.
+   - Native localization formatting using `Intl.NumberFormat`, `Intl.DateTimeFormat`, `Intl.RelativeTimeFormat`, and `Intl.ListFormat`.
+   - Automatic locale detection from `navigator.languages` with prefix fallback; persistence in `localStorage('bs_locale')`.
+   - Dynamic updating of `document.documentElement.lang` and `dir` (`rtl` for Arabic and Arabic-test, `ltr` for all others).
+   - Next daily descent countdown formatted in local time with full UTC timestamp tooltip.
+2. 15 Launch Locales (all lazy chunks $\le 8$ KB gzipped):
+   - English (`en`), Spanish (`es`), Portuguese Brazil (`pt-BR`), French (`fr`), German (`de`), Russian (`ru`), Turkish (`tr`), Hindi (`hi`), Bengali (`bn`), Arabic (`ar`, RTL), Japanese (`ja`), Korean (`ko`), Simplified Chinese (`zh-CN`).
+   - Pseudo-locale (`qps-ploc`) with bracket wrapping, accented letters, and +30% text expansion to detect UI layout clipping.
+   - Arabic test locale (`ar-test`) to thoroughly validate RTL bidirectional text and numerals.
+   - Non-English launch locales tagged `needsReview: true`, surfacing a subtle "BETA TRANSLATION" badge in Settings and footer.
+3. String Parity & Externalization Enforcement (`scripts/i18n/check.mjs`):
+   - Automated CI validator integrated into `npm run verify` that checks 100% key parity across all 15 locales, placeholder consistency, and scans UI source files for unlocalized literal text assignments.
+4. In-World Lettering Boundary:
+   - In-world signage, terminal vector stroke fonts, and tape IDs strictly remain Latin and numeric, documented in `ARCHITECTURE.md`.
+**Reason:** Fulfills Prompt 4 Phase G requirements, providing high-performance, native zero-dependency internationalization across 15 global locales.
+
 
