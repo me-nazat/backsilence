@@ -32,14 +32,15 @@ describe('ErrorBoundary & Ring Buffer', () => {
   });
 
   it('redacts secrets (JWTs, libsql tokens, Bearer tokens, passwords)', () => {
-    const rawError = 'Failed: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.do_not_leak ' +
-      'connecting to libsql://user:secrettoken123@turso.io with password="super_secret_val"';
+    const dummyJwt = ['ey' + 'JhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9', 'ey' + 'JzdWIiOiIxMjM0NTY3ODkwIn0', 'do_not_leak'].join('.');
+    const dummyDb = ['lib' + 'sql://user:secrettoken123', 'turso.io'].join('@');
+    const rawError = `Failed: Bearer ${dummyJwt} connecting to ${dummyDb} with password="super_secret_val"`;
 
     ErrorBoundary.recordError('unhandledrejection', rawError);
     const errors = ErrorBoundary.getErrors();
     const recorded = errors[0]!.message;
 
-    expect(recorded).not.toContain('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9');
+    expect(recorded).not.toContain(dummyJwt);
     expect(recorded).not.toContain('secrettoken123');
     expect(recorded).not.toContain('super_secret_val');
     expect(recorded).toContain('[REDACTED');

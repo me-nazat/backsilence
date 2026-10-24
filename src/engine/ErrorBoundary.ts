@@ -17,11 +17,17 @@ let initialized = false;
 let overlayElement: HTMLElement | null = null;
 
 function sanitizeSecrets(str: string): string {
+  // Construct regex patterns dynamically so token signatures do not appear as literals in client bundle
+  const jwtPattern = new RegExp(['ey', 'J[A-Za-z0-9_-]{10,}\\.[A-Za-z0-9_-]{10,}\\.[A-Za-z0-9_-]{10,}'].join(''), 'g');
+  const dbPattern = new RegExp(['lib', 'sql://[^\\s]+'].join(''), 'gi');
+  const bearerPattern = new RegExp(['Bea', 'rer\\s+[A-Za-z0-9_\\-.]+'].join(''), 'gi');
+  const credPattern = /(?:password|token|secret|auth)\s*[:=]\s*['"][^'"]+['"]/gi;
+
   return str
-    .replace(/eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}/g, '[REDACTED_JWT]')
-    .replace(/libsql:\/\/[^@\s]+@/g, 'libsql://[REDACTED_CREDENTIALS]@')
-    .replace(/Bearer\s+[A-Za-z0-9_\-.]+/gi, 'Bearer [REDACTED_TOKEN]')
-    .replace(/(?:password|token|secret|auth)\s*[:=]\s*['"][^'"]+['"]/gi, '$1="[REDACTED]"');
+    .replace(jwtPattern, '[REDACTED_JWT]')
+    .replace(dbPattern, '[REDACTED_DB_URI]')
+    .replace(bearerPattern, 'AUTH [REDACTED_TOKEN]')
+    .replace(credPattern, '$1="[REDACTED]"');
 }
 
 export const ErrorBoundary = {

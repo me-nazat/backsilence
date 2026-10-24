@@ -21,7 +21,7 @@ import { CampaignArchive } from '../src/meta/Campaign.js';
 import { Inventory } from '../src/meta/Inventory.js';
 import { STANDARD_COMPETITIVE_LOADOUT } from '../src/meta/Loadout.js';
 import { ACHIEVEMENTS } from '../src/meta/Achievements.js';
-import { RatingSystem } from '../src/meta/RatingElo.js';
+import { RatingSystem, calculateExpectedScore } from '../src/meta/RatingElo.js';
 import { ModeRulesEngine } from '../src/meta/ModeRules.js';
 import { RunRecorder } from '../src/meta/RunRecorder.js';
 import { Replay } from '../src/meta/Replay.js';
@@ -222,6 +222,15 @@ describe('Batch 7 Meta: Achievements Predicates', () => {
 });
 
 describe('Batch 7 Meta: Rating & Elo Updates', () => {
+  it('calculates expected score correctly using logistic curve', () => {
+    // Equal ratings -> 0.5 expected score
+    expect(calculateExpectedScore(1200, 1200)).toBeCloseTo(0.5, 4);
+    // 200 rating advantage -> ~0.7597 expected score
+    expect(calculateExpectedScore(1400, 1200)).toBeCloseTo(0.7597, 3);
+    // 200 rating disadvantage -> ~0.2403 expected score
+    expect(calculateExpectedScore(1200, 1400)).toBeCloseTo(0.2403, 3);
+  });
+
   it('calculates pairwise multi-player Elo updates with K=24', () => {
     const initialRatings = [
       { id: 'p1', rating: 1200 },
@@ -231,8 +240,9 @@ describe('Batch 7 Meta: Rating & Elo Updates', () => {
     // Placements: p1 1st, p2 2nd, p3 3rd
     const deltas = RatingSystem.computePlacementsElo(initialRatings);
 
-    expect(deltas.get('p1')!).toBeGreaterThan(0);
-    expect(deltas.get('p3')!).toBeLessThan(0);
+    expect(deltas.get('p1')!).toBe(12);
+    expect(deltas.get('p2')!).toBe(0);
+    expect(deltas.get('p3')!).toBe(-12);
     expect(RatingSystem.getTier(1200)).toBe('Hush');
     expect(RatingSystem.getTier(1950)).toBe('Phantom');
   });

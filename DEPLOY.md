@@ -15,7 +15,7 @@ npm run verify
 This executes:
 1. `typecheck` (`tsc --noEmit`)
 2. `lint` (`eslint .`)
-3. `test` (`vitest run` — all 130 unit/integration tests)
+3. `test` (`vitest run` — all 254 unit/integration tests across 25 suites)
 4. `build` (`vite build`)
 5. `audit` (Bundle budget checks: boot chunk $\le 35\text{ KB}$ gz, non-map core $\le 450\text{ KB}$ gz)
 

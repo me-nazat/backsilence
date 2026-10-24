@@ -1,0 +1,61 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  verify-and-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 100
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Google Chrome & SwiftShader support
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb libgbm1 libasound2 libnss3
+          wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | sudo gpg --dearmor -o /usr/share/keyrings/google-chrome.gpg
+          echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome.gpg] http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/google-chrome.list
+          sudo apt-get update
+          sudo apt-get install -y google-chrome-stable
+
+      - name: Verification Pipeline (typecheck, lint, tests, build, audit, secret scan)
+        run: npm run verify
+
+      - name: Mutation Spot Check
+        run: node scripts/mutation-check.mjs
+
+      - name: Real-Browser Acceptance & Smoke Suite (SwiftShader)
+        run: xvfb-run --auto-servernum npm run smoke
+        env:
+          BACKSILENCE_CHROME_BIN: /usr/bin/google-chrome
+
+      - name: Performance & Allocation Regression Harness (SwiftShader)
+        run: xvfb-run --auto-servernum node scripts/perf/run-perf.mjs --quick
+        env:
+          BACKSILENCE_CHROME_BIN: /usr/bin/google-chrome
+
+      - name: Upload Test & Smoke Reports Artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backsilence-reports
+          path: reports/
+          if-no-files-found: ignore
+          retention-days: 14
