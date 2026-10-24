@@ -89,6 +89,14 @@ export function applyWetDarkening(
           float wetGradient = clamp(depthBelowLimit / 0.45, 0.0, 1.0);
           // Darken diffuse color by up to (1.0 - uDarkenFactor)
           gl_FragColor.rgb *= mix(1.0, uDarkenFactor, wetGradient);
+        } else {
+          // Damp streaks that fade upward above tidemark (up to 0.6m)
+          float aboveDist = vWorldPositionForWet.y - wetThreshold;
+          if (aboveDist < 0.6) {
+            float streakNoise = sin(vWorldPositionForWet.x * 24.0 + sin(vWorldPositionForWet.z * 18.0)) * 0.5 + 0.5;
+            float streakFade = (1.0 - aboveDist / 0.6) * pow(streakNoise, 3.0) * 0.35;
+            gl_FragColor.rgb *= (1.0 - streakFade);
+          }
         }
         `,
       );

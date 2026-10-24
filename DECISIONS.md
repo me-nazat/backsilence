@@ -362,4 +362,15 @@ Establish `functions/api/[[route]].ts` as the canonical Cloudflare Pages Functio
 7. Photosensitive Throttle: Clamped frame-to-frame luminance transitions to $\le 0.25$ and capped flash frequency to $\le 3\text{ Hz}$.
 **Reason:** Fulfills Prompt 2 Phase C requirements for unified physical lighting, atmospheric depth, vertex AO detail, and accessibility safety.
 
+### D050: 13 Procedural PBR Material Sets, Shared Wet Surface Logic & Instanced Decals
+**Date:** 2026-10-24
+**Choice:**
+1. Procedural PBR Material Sets (`PbrMaterialKit.ts`): Built procedural generators (albedo, normal, roughness, ambient occlusion) for all 13 canonical materials: tile, concrete, marble, metal, wood, parquet, linoleum, moss, mud, bark, asphalt, subway_tile, and stained_glass. Cached by `(kind, seed, size)` in `TextureRegistry`.
+2. Shared Wet Surface Logic (`WetDarkening.ts`): Unified GLSL chunk modulating standard materials below $waterY + 0.35\text{m}$ with a noisy tidemark, darkening diffuse albedo and increasing specular gloss; above the tidemark, upward-fading damp streaks ($< 0.6\text{m}$) are added.
+3. Instanced Decal System (`DecalSystem.ts`): Preallocated 400-quad `InstancedMesh` with `polygonOffset` (factor -1, units -1) to prevent z-fighting across walls and floors, rendering single-stroke vector graffiti, numerals, cracks, stains, drips, and signage.
+4. Triplanar Terrain Shader (`triplanar.glsl.ts`): Seamless projection along world XY, YZ, XZ axes with slope-based moss blending on upward-facing rock and terrain surfaces ($\vec{n}_y > 0.65$).
+5. Anisotropy & Mip Bias Tuning: Configured texture anisotropy to 16 on High and 4 on Medium with `LinearMipmapLinearFilter`, eliminating moire artifacts on grazing-angle tile platforms at 20m.
+**Reason:** Fulfills Prompt 2 Phase D requirements for commercial-grade surface diversity, tactile wet transitions, instanced decal detailing, and moire-free texture filtering.
+
+
 

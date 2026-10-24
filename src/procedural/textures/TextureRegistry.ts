@@ -17,6 +17,7 @@ import { makeBronzeSet, type BronzeSetResult } from './BronzeTexture.js';
 import { makeAlgaeGlowTexture } from './AlgaeGlowMask.js';
 import { makePaintedLabel, makePipeDiagramTexture, type LabelOptions } from './PaintedLabel.js';
 import { runJobQueue, type CooperativeJob } from '../core/scheduler.js';
+import { makePbrMaterialSet, type PbrMaterialKind, type PbrSetResult } from './PbrMaterialKit.js';
 
 export interface TextureStats {
   count: number;
@@ -237,6 +238,15 @@ export class TextureRegistry {
       this.labelMap.set(key, tex);
     }
     return tex;
+  }
+
+  getPbrSet(kind: PbrMaterialKind, seed = 42, size = 256, anisotropy = 4): PbrSetResult {
+    const res = makePbrMaterialSet({ kind, seed, size, anisotropy });
+    this.trackTexture(res.albedo, size, size);
+    this.trackTexture(res.normal, size, size);
+    this.trackTexture(res.roughness, size, size);
+    this.trackTexture(res.ao, size, size);
+    return res;
   }
 
   /**
