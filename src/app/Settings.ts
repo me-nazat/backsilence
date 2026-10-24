@@ -81,51 +81,59 @@ function clamp(value: number, min: number, max: number): number {
 }
 
 /** Validate and clamp settings values to sane ranges. */
+/** Validate and clamp settings values to sane ranges. Guaranteed never to throw. */
 export function clampSettings(s: Settings): Settings {
-  const g = s.graphics;
+  const def = defaultSettings();
+  const g = s?.graphics ?? def.graphics;
+  const a = s?.audio ?? def.audio;
+  const c = s?.controls ?? def.controls;
+  const acc = s?.accessibility ?? def.accessibility;
+  const p = s?.player ?? def.player;
+  const n = s?.net ?? def.net;
+
   return {
     version: 2,
     graphics: {
-      quality: QUALITY_TIERS.includes(g.quality) ? g.quality : 'auto',
-      resolutionScale: clamp(g.resolutionScale, 50, 100),
-      fov: clamp(g.fov, 60, 100),
-      brightness: clamp(g.brightness, 0.8, 1.4),
-      vhsIntensity: clamp(g.vhsIntensity, 0.0, 1.0),
-      headBob: Boolean(g.headBob),
+      quality: QUALITY_TIERS.includes(g?.quality) ? g.quality : 'auto',
+      resolutionScale: clamp(typeof g?.resolutionScale === 'number' ? g.resolutionScale : 100, 50, 100),
+      fov: clamp(typeof g?.fov === 'number' ? g.fov : 75, 60, 100),
+      brightness: clamp(typeof g?.brightness === 'number' ? g.brightness : 1.0, 0.8, 1.4),
+      vhsIntensity: clamp(typeof g?.vhsIntensity === 'number' ? g.vhsIntensity : 0.5, 0.0, 1.0),
+      headBob: Boolean(g?.headBob ?? true),
       reducedMotion:
-        g.reducedMotion === 'system' ? 'system' : Boolean(g.reducedMotion),
-      showFps: Boolean(g.showFps),
-      photosensitiveSafe: Boolean(g.photosensitiveSafe),
-      vhsOsd: g.vhsOsd !== undefined ? Boolean(g.vhsOsd) : true,
-      vhsLines: g.vhsLines === 360 || g.vhsLines === 480 ? g.vhsLines : 240,
+        g?.reducedMotion === 'system' ? 'system' : Boolean(g?.reducedMotion),
+      showFps: Boolean(g?.showFps),
+      photosensitiveSafe: Boolean(g?.photosensitiveSafe),
+      vhsOsd: g?.vhsOsd !== undefined ? Boolean(g.vhsOsd) : true,
+      vhsLines: g?.vhsLines === 360 || g?.vhsLines === 480 ? g.vhsLines : 240,
     },
     audio: {
-      master: clamp(s.audio.master, 0.0, 1.0),
-      sfx: clamp(s.audio.sfx, 0.0, 1.0),
-      ambient: clamp(s.audio.ambient, 0.0, 1.0),
-      monster: clamp(s.audio.monster, 0.0, 1.0),
-      muteOnBlur: Boolean(s.audio.muteOnBlur),
-      soundVisualizer: Boolean(s.audio.soundVisualizer),
+      master: clamp(typeof a?.master === 'number' ? a.master : 0.8, 0.0, 1.0),
+      sfx: clamp(typeof a?.sfx === 'number' ? a.sfx : 1.0, 0.0, 1.0),
+      ambient: clamp(typeof a?.ambient === 'number' ? a.ambient : 0.7, 0.0, 1.0),
+      monster: clamp(typeof a?.monster === 'number' ? a.monster : 1.0, 0.0, 1.0),
+      muteOnBlur: Boolean(a?.muteOnBlur ?? true),
+      soundVisualizer: Boolean(a?.soundVisualizer),
     },
     controls: {
-      sensitivity: clamp(s.controls.sensitivity, 0.1, 3.0),
-      invertY: Boolean(s.controls.invertY),
-      toggleCrouch: Boolean(s.controls.toggleCrouch),
-      bindings: { ...DEFAULT_BINDINGS, ...s.controls.bindings },
+      sensitivity: clamp(typeof c?.sensitivity === 'number' ? c.sensitivity : 1.0, 0.1, 3.0),
+      invertY: Boolean(c?.invertY),
+      toggleCrouch: Boolean(c?.toggleCrouch),
+      bindings: { ...DEFAULT_BINDINGS, ...(c?.bindings ?? {}) },
     },
     accessibility: {
-      reducedMotion: ['system', 'on', 'off'].includes(s.accessibility?.reducedMotion)
-        ? s.accessibility.reducedMotion
+      reducedMotion: ['system', 'on', 'off'].includes(acc?.reducedMotion)
+        ? acc.reducedMotion
         : 'system',
-      uiScale: clamp(s.accessibility?.uiScale ?? 1.0, 0.75, 1.5),
-      highContrast: Boolean(s.accessibility?.highContrast),
+      uiScale: clamp(typeof acc?.uiScale === 'number' ? acc.uiScale : 1.0, 0.75, 1.5),
+      highContrast: Boolean(acc?.highContrast),
     },
     player: {
-      name: typeof s.player.name === 'string' ? s.player.name.slice(0, 32) : '',
+      name: typeof p?.name === 'string' ? p.name.slice(0, 32) : '',
     },
     net: {
-      interpolationBias: clamp(s.net?.interpolationBias ?? 0, -50, 100),
-      showNetStats: Boolean(s.net?.showNetStats),
+      interpolationBias: clamp(typeof n?.interpolationBias === 'number' ? n.interpolationBias : 0, -50, 100),
+      showNetStats: Boolean(n?.showNetStats),
     },
   };
 }
@@ -148,9 +156,12 @@ export function findBindingConflict(
 }
 
 /**
- * Migrate settings from older versions (v1 -> v2).
+ * Migrate settings from older versions (v1 -> v2) or handle corrupt/future shapes safely.
  */
 export function migrateSettings(raw: Record<string, unknown>): Settings {
+  if (!raw || typeof raw !== 'object') {
+    return defaultSettings();
+  }
   const version = typeof raw['version'] === 'number' ? raw['version'] : 0;
   const def = defaultSettings();
 
@@ -158,12 +169,12 @@ export function migrateSettings(raw: Record<string, unknown>): Settings {
     return clampSettings(raw as unknown as Settings);
   }
 
-  // Version 1 or 0 migration: merge with defaults
-  const rawGraphics = (raw['graphics'] as Record<string, unknown> | undefined) ?? {};
-  const rawAudio = (raw['audio'] as Record<string, unknown> | undefined) ?? {};
-  const rawControls = (raw['controls'] as Record<string, unknown> | undefined) ?? {};
-  const rawAccess = (raw['accessibility'] as Record<string, unknown> | undefined) ?? {};
-  const rawPlayer = (raw['player'] as Record<string, unknown> | undefined) ?? {};
+  // Version 1, 0, or future version: merge safely with defaults
+  const rawGraphics = (typeof raw['graphics'] === 'object' && raw['graphics'] !== null ? raw['graphics'] : {}) as Record<string, unknown>;
+  const rawAudio = (typeof raw['audio'] === 'object' && raw['audio'] !== null ? raw['audio'] : {}) as Record<string, unknown>;
+  const rawControls = (typeof raw['controls'] === 'object' && raw['controls'] !== null ? raw['controls'] : {}) as Record<string, unknown>;
+  const rawAccess = (typeof raw['accessibility'] === 'object' && raw['accessibility'] !== null ? raw['accessibility'] : {}) as Record<string, unknown>;
+  const rawPlayer = (typeof raw['player'] === 'object' && raw['player'] !== null ? raw['player'] : {}) as Record<string, unknown>;
 
   const merged: Settings = {
     version: 2,
@@ -179,7 +190,7 @@ export function migrateSettings(raw: Record<string, unknown>): Settings {
       ...def.controls,
       bindings: {
         ...DEFAULT_BINDINGS,
-        ...((rawControls['bindings'] as Record<Action, string> | undefined) ?? {}),
+        ...((typeof rawControls['bindings'] === 'object' && rawControls['bindings'] !== null ? rawControls['bindings'] : {}) as Record<Action, string>),
       },
       sensitivity: typeof rawControls['sensitivity'] === 'number' ? rawControls['sensitivity'] : def.controls.sensitivity,
       invertY: typeof rawControls['invertY'] === 'boolean' ? rawControls['invertY'] : def.controls.invertY,
