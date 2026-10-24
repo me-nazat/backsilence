@@ -35,7 +35,7 @@ export class ProfileScreen {
   constructor(private callbacks: ProfileCallbacks) {
     this.element = document.createElement('div');
     this.element.id = 'screen-profile';
-    this.element.className = 'bs-root';
+    this.element.className = 'bs-root bs-screen';
     this.element.style.cssText = `
       position: absolute;
       inset: 0;

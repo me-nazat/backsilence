@@ -37,7 +37,7 @@ export class LeaderboardsScreen {
   constructor(private callbacks: LeaderboardsCallbacks) {
     this.element = document.createElement('div');
     this.element.id = 'screen-leaderboards';
-    this.element.className = 'bs-root';
+    this.element.className = 'bs-root bs-screen';
     this.element.style.cssText = `
       position: absolute;
       inset: 0;

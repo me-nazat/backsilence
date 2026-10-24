@@ -88,6 +88,7 @@ export class RoomLinkPanel {
   mount(container: HTMLElement): void {
     const el = document.createElement('div');
     el.id = 'room-link-view';
+    el.className = 'bs-screen';
     el.style.cssText = `
       position: absolute;
       inset: 0;

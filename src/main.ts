@@ -9,6 +9,11 @@
  * ──────────────────────────────────────────────────────────────────────── */
 
 import './ui/kit/kit.css';
+import { ErrorBoundary } from './engine/ErrorBoundary.js';
+
+// Initialize global analog-horror error boundary and 50-event ring buffer immediately
+ErrorBoundary.init();
+
 import { createEventBus } from './app/EventBus.js';
 import { createStore } from './app/Store.js';
 import { AppStateMachine } from './app/StateMachine.js';

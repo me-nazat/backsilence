@@ -45,7 +45,7 @@ export class BestiaryScreen {
   constructor(private callbacks: BestiaryCallbacks) {
     this.element = document.createElement('div');
     this.element.id = 'screen-bestiary';
-    this.element.className = 'bs-root';
+    this.element.className = 'bs-root bs-screen';
     this.element.style.cssText = `
       position: absolute;
       inset: 0;

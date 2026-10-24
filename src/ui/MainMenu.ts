@@ -30,6 +30,7 @@ export class MainMenu {
   mount(container: HTMLElement): void {
     const el = document.createElement('div');
     el.id = 'main-menu-view';
+    el.className = 'bs-screen';
     el.style.cssText = `
       position: absolute;
       inset: 0;
@@ -39,7 +40,7 @@ export class MainMenu {
       align-items: center;
       padding: clamp(20px, 5vw, 60px) 24px;
       z-index: 100;
-      pointer-events: none;
+      pointer-events: auto;
       box-sizing: border-box;
       user-select: none;
     `;

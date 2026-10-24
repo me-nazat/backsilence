@@ -16,6 +16,7 @@ export class HowToPlay {
   mount(container: HTMLElement): void {
     const el = document.createElement('div');
     el.id = 'how-to-play-view';
+    el.className = 'bs-screen';
     el.style.cssText = `
       position: absolute;
       inset: 0;

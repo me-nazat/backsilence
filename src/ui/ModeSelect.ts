@@ -126,6 +126,7 @@ export class ModeSelect {
   mount(container: HTMLElement): void {
     const el = document.createElement('div');
     el.id = 'mode-select-view';
+    el.className = 'bs-screen';
     el.style.cssText = `
       position: absolute;
       inset: 0;

@@ -35,6 +35,7 @@ export class SettingsPanel {
   mount(container: HTMLElement): void {
     const el = document.createElement('div');
     el.id = 'settings-panel-view';
+    el.className = 'bs-screen';
     el.style.cssText = `
       position: absolute;
       inset: 0;

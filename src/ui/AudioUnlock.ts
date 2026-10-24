@@ -18,6 +18,7 @@ export class AudioUnlock {
   mount(container: HTMLElement): void {
     const el = document.createElement('div');
     el.id = 'audio-unlock-overlay';
+    el.className = 'bs-screen';
     el.style.cssText = `
       position: fixed;
       inset: 0;

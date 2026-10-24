@@ -42,6 +42,7 @@ import { CreditsScreen } from './screens/CreditsScreen.js';
 import { AboutPrivacyScreen } from './screens/AboutPrivacyScreen.js';
 import { ChangelogScreen } from './screens/ChangelogScreen.js';
 import { UiLabPage } from './kit/UiLabPage.js';
+import { UiLayerManager } from './UiLayerManager.js';
 
 export type UIView =
   | 'MENU'
@@ -634,6 +635,38 @@ export class UIManager {
         }
         this.hud.hide();
         break;
+    }
+
+    const activeEl = this.getActiveScreenElement();
+    if (activeEl) {
+      const isModal = ['PAUSE', 'SETTINGS'].includes(this.currentView);
+      UiLayerManager.getInstance().pushLayer(activeEl, isModal);
+    }
+  }
+
+  private getActiveScreenElement(): HTMLElement | null {
+    switch (this.currentView) {
+      case 'MENU': return this.homeScreen.element;
+      case 'PLAY_HUB': return this.playHubScreen.element;
+      case 'MAPS': return this.mapsScreen.element;
+      case 'BESTIARY': return this.bestiaryScreen.element;
+      case 'LEADERBOARDS': return this.leaderboardsScreen.element;
+      case 'CHAMPIONS': return this.championsScreen.element;
+      case 'PROFILE': return this.profileScreen.element;
+      case 'LOBBY': return this.lobbyScreen.element;
+      case 'CREDITS': return this.creditsScreen.element;
+      case 'ABOUT': return this.aboutPrivacyScreen.element;
+      case 'CHANGELOG': return this.changelogScreen.element;
+      case 'UI_LAB': return this.uiLabPage.element;
+      case 'METAHUB': return document.getElementById('metahub-panel');
+      case 'MODE_SELECT': return document.getElementById('mode-select-view');
+      case 'ROOM_LINK': return document.getElementById('room-link-view');
+      case 'SETTINGS': return document.getElementById('settings-panel-view');
+      case 'HOW_TO_PLAY': return document.getElementById('how-to-play-view');
+      case 'PAUSE': return document.getElementById('pause-menu-view');
+      case 'DEATH': return document.getElementById('death-screen-view');
+      case 'RESULTS': return document.getElementById('results-screen');
+      default: return null;
     }
   }
 

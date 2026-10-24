@@ -15,7 +15,7 @@ export class CreditsScreen {
   constructor(private callbacks: CreditsCallbacks) {
     this.element = document.createElement('div');
     this.element.id = 'screen-credits';
-    this.element.className = 'bs-root';
+    this.element.className = 'bs-root bs-screen';
     this.element.style.cssText = `
       position: absolute;
       inset: 0;

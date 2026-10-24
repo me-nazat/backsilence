@@ -31,6 +31,7 @@ export class KeypadModal {
   mount(container: HTMLElement): void {
     const el = document.createElement('div');
     el.id = 'keypad-modal-overlay';
+    el.className = 'bs-screen bs-modal-layer';
     el.style.cssText = `
       position: absolute;
       inset: 0;

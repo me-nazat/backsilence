@@ -32,7 +32,7 @@ export class UiLabPage {
 
   constructor() {
     this.element = document.createElement('div');
-    this.element.className = 'bs-root';
+    this.element.className = 'bs-root bs-screen';
     this.element.style.padding = '32px 24px';
     this.element.style.maxWidth = '1200px';
     this.element.style.margin = '0 auto';

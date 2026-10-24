@@ -8,15 +8,25 @@
 @import '../motion/motion.css';
 
 /* ── Base Container & Typography ───────────────────────────────────────── */
-.bs-root {
+.bs-root, .bs-screen {
   font-family: var(--bs-font-body);
   color: var(--bs-cream);
   background-color: var(--bs-ink);
   line-height: var(--bs-leading-normal);
   box-sizing: border-box;
+  pointer-events: auto;
 }
 
-.bs-root *, .bs-root *::before, .bs-root *::after {
+.bs-interactive {
+  pointer-events: auto;
+}
+
+.bs-hud, #hud {
+  pointer-events: none;
+}
+
+.bs-root *, .bs-root *::before, .bs-root *::after,
+.bs-screen *, .bs-screen *::before, .bs-screen *::after {
   box-sizing: inherit;
 }
 

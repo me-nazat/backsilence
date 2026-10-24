@@ -21,16 +21,18 @@
       font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
     }
     html,body{
-      width:100%;height:100%;overflow:hidden;background:var(--ink);color:var(--fog);
+      width:100%;min-height:100dvh;margin:0;padding:0;
+      background:var(--ink);color:var(--fog);
+      overscroll-behavior:contain;
       font-size:calc(16px * var(--ui-scale));
     }
 
     /* 3D Canvas Mount Point */
     #canvas-container{
-      position:fixed;inset:0;z-index:1;overflow:hidden;background:var(--ink);
+      position:fixed;inset:0;z-index:1;overflow:hidden;background:var(--ink);pointer-events:none;
     }
     #canvas-container canvas{
-      display:block;width:100%!important;height:100%!important;
+      display:block;width:100%!important;height:100%!important;pointer-events:auto;
     }
 
     /* CRT Scanlines Overlay */
@@ -47,16 +49,17 @@
       position:fixed;inset:0;display:flex;flex-direction:column;
       align-items:center;justify-content:center;z-index:9999;
       background:var(--ink);transition:opacity 0.6s ease-out;
+      padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom);
     }
     #splash.fade-out{opacity:0;pointer-events:none}
     .splash-title{
-      font-family:'Segoe Script','Bradley Hand','Comic Sans MS',cursive;
+      font-family:'Segoe Script','Bradley Hand',ui-serif,Georgia,serif;
       font-size:clamp(1.6rem,5vw,3rem);letter-spacing:0.08em;
       color:var(--fog);text-align:center;margin-bottom:0.5em;
       text-shadow:0 0 20px rgba(134,207,160,0.3);
     }
     .splash-tagline{
-      font-family:'Segoe Script','Bradley Hand','Comic Sans MS',cursive;
+      font-family:'Segoe Script','Bradley Hand',ui-serif,Georgia,serif;
       font-size:clamp(0.8rem,2.5vw,1.2rem);color:var(--water);
       text-align:center;opacity:0.8;margin-bottom:2em;
     }
@@ -99,26 +102,20 @@
     }
     @media(prefers-reduced-motion:reduce){
       .ripple-drop,.ripple-ring{animation:none!important}
+      .flicker-title{animation:none!important;opacity:1!important;text-shadow:0 0 25px rgba(134,207,160,0.35)!important}
     }
 
     /* UI Layer Root */
     #app{
       position:fixed;inset:0;z-index:50;display:none;pointer-events:none;
+      max-height:100dvh;overflow-y:auto;
+      padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom);
     }
     #app.visible{display:block}
-    /* #app is click-through (so the 3D layer can get input), therefore every
-       interactive screen must opt back in — otherwise it inherits `none`
-       and all of its buttons/inputs silently stop working. */
-    #audio-unlock-overlay,
-    #mode-select-view,
-    #room-link-view,
-    #settings-panel-view,
-    #how-to-play-view,
-    #pause-menu-view,
-    #death-screen-view,
-    #results-screen,
-    #keypad-modal-overlay,
-    #audio-lab-panel{pointer-events:auto}
+    /* Uniform Screen Pointer Events Architecture (Phase D) */
+    .bs-screen{pointer-events:auto}
+    .bs-interactive{pointer-events:auto}
+    #hud,.bs-hud{pointer-events:none}
 
     /* Analog Horror Title Flicker */
     .flicker-title{

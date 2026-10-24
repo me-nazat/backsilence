@@ -97,6 +97,7 @@ export class ResultsScreen {
   mount(container: HTMLElement): void {
     const el = document.createElement('div');
     el.id = 'results-screen';
+    el.className = 'bs-screen';
     el.style.cssText = `
       position: absolute;
       inset: 0;

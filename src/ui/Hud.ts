@@ -143,6 +143,7 @@ export class Hud {
   mount(container: HTMLElement): void {
     const el = document.createElement('div');
     el.id = 'hud-overlay';
+    el.className = 'bs-hud';
     el.style.cssText = `
       position: absolute;
       inset: 0;

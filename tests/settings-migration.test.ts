@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { loadSettings, saveSettings, migrateSettings, clampSettings, defaultSettings } from '../src/app/Settings.js';
-import type { Settings } from '../src/types/contracts.js';
+import { loadSettings, migrateSettings, defaultSettings } from '../src/app/Settings.js';
 
 class MockStorage implements Storage {
   private store = new Map<string, string>();

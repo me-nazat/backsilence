@@ -32,6 +32,7 @@ export class LoadingScreen {
   mount(container: HTMLElement): void {
     const el = document.createElement('div');
     el.id = 'loading-screen';
+    el.className = 'bs-screen';
     el.style.cssText = `
       position: absolute;
       inset: 0;
