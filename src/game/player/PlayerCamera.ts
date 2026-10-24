@@ -1,6 +1,7 @@
 /* ── PlayerCamera.ts ────────────────────────────────────────────────────────
  *  First-person camera controller with smooth eye-height lerp, distance-based
- *  head-bob, damped spring landing dips, sprint FOV kick, and idle sway.
+ *  head-bob, critically damped spring landing dips (80-120ms recovery), 40ms jump
+ *  anticipation dip, near-miss monster rumble (<4m), and sprint/mantle breathing FOV.
  * ──────────────────────────────────────────────────────────────────────── */
 
 import { PerspectiveCamera, Vector3, Euler, MathUtils } from 'three';
@@ -22,10 +23,14 @@ export class PlayerCamera {
   private bobPhase = 0;
   private idlePhase = 0;
 
-  // Landing dip damped spring
+  // Landing dip critically damped spring (80-120ms recovery)
   private dipOffset = 0;
   private dipVelocity = 0;
   private wasOnGround = true;
+
+  // 40ms jump anticipation dip
+  private jumpAnticipationTimer = 0;
+  private prevVelY = 0;
 
   // FOV transition
   private baseFov: number;
@@ -48,11 +53,12 @@ export class PlayerCamera {
     prevSnapshot: PlayerSnapshot,
     currSnapshot: PlayerSnapshot,
     renderAlpha: number,
+    nearestMonsterDist?: number,
   ): void {
     const reducedMotion = this.settings.accessibility.reducedMotion;
     const enableBob = this.settings.graphics.headBob && !reducedMotion;
 
-    // 1. Interpolate position between physics ticks
+    // 1. Interpolate position between physics ticks (reconcile sim tick with render frames)
     _interpPos.set(
       MathUtils.lerp(prevSnapshot.pos.x, currSnapshot.pos.x, renderAlpha),
       MathUtils.lerp(prevSnapshot.pos.y, currSnapshot.pos.y, renderAlpha),
@@ -67,24 +73,36 @@ export class PlayerCamera {
     );
     this.currentEyeY += (targetEyeY - this.currentEyeY) * Math.min(1.0, dt * 12.0);
 
-    // 3. Landing dip detection & spring simulation
+    // 3. 40ms jump anticipation dip
+    if (this.wasOnGround && !currSnapshot.onGround && currSnapshot.vel.y > 1.0 && this.prevVelY <= 0.2) {
+      this.jumpAnticipationTimer = 0.040; // 40ms anticipation dip
+    }
+    this.prevVelY = currSnapshot.vel.y;
+
+    let jumpDip = 0;
+    if (this.jumpAnticipationTimer > 0) {
+      this.jumpAnticipationTimer -= dt;
+      jumpDip = -0.024 * Math.sin(Math.max(0, this.jumpAnticipationTimer / 0.040) * Math.PI);
+    }
+
+    // 4. Landing dip: critically damped spring with 80 to 120 ms recovery
     if (!this.wasOnGround && currSnapshot.onGround) {
-      // Impact velocity proportional to fall speed
       const impactSpeed = Math.abs(prevSnapshot.vel.y);
-      if (impactSpeed > 1.5) {
-        this.dipVelocity = -Math.min(0.25, impactSpeed * 0.035);
+      if (impactSpeed > 1.2) {
+        // Depth proportional to fall velocity
+        this.dipVelocity = -Math.min(0.35, impactSpeed * 0.045);
       }
     }
     this.wasOnGround = currSnapshot.onGround;
 
-    // Spring physics: F = -k*x - c*v
-    const k = 160.0;
-    const c = 18.0;
+    // Critically damped spring (omega_n = 19 rad/s -> ~100ms recovery, c = 2*omega_n = 38)
+    const k = 360.0;
+    const c = 38.0;
     const springForce = -k * this.dipOffset - c * this.dipVelocity;
     this.dipVelocity += springForce * dt;
     this.dipOffset += this.dipVelocity * dt;
 
-    // 4. Head-bob based on horizontal movement
+    // 5. Head-bob based on horizontal movement
     const horizSpeed = Math.hypot(currSnapshot.vel.x, currSnapshot.vel.z);
     let bobVertical = 0;
     let bobLateral = 0;
@@ -106,18 +124,28 @@ export class PlayerCamera {
       bobLateral = Math.cos(this.bobPhase) * (ampY * 0.5);
     }
 
-    // 5. Subtle idle breathing sway (+-0.004m at 0.25Hz)
+    // 6. Subtle idle breathing sway (+-0.004m at 0.25Hz)
     this.idlePhase += dt * (0.25 * Math.PI * 2.0);
     const idleSway = enableBob ? Math.sin(this.idlePhase) * 0.004 : 0;
 
-    // 6. Camera Position composition
+    // 7. Near-miss shake: when monster passes within 4m, high-frequency, low-amplitude rumble
+    let shakeX = 0;
+    let shakeY = 0;
+    if (nearestMonsterDist !== undefined && nearestMonsterDist < 4.0 && !reducedMotion) {
+      const intensity = 1.0 - nearestMonsterDist / 4.0; // 0..1
+      const now = performance.now() * 0.001;
+      shakeY = Math.sin(now * 38.0) * 0.006 * intensity;
+      shakeX = Math.cos(now * 44.0) * 0.005 * intensity;
+    }
+
+    // 8. Camera Position composition
     this.camera.position.set(
-      _interpPos.x + bobLateral,
-      _interpPos.y + this.currentEyeY + bobVertical + idleSway + this.dipOffset,
+      _interpPos.x + bobLateral + shakeX,
+      _interpPos.y + this.currentEyeY + bobVertical + idleSway + this.dipOffset + jumpDip + shakeY,
       _interpPos.z,
     );
 
-    // 7. Orientation (Yaw & Pitch clamped to +-85 deg = +-1.4835 rad, plus subtle wading roll)
+    // 9. Orientation (Yaw & Pitch clamped to +-85 deg = +-1.4835 rad, plus subtle wading roll)
     const pitch = MathUtils.clamp(
       MathUtils.lerp(prevSnapshot.pitch, currSnapshot.pitch, renderAlpha),
       -1.4835,
@@ -129,12 +157,11 @@ export class PlayerCamera {
     _euler.set(pitch, yaw, roll, 'YXZ');
     this.camera.quaternion.setFromEuler(_euler);
 
-    // 8. Sprint FOV Kick (+6 deg) & Agitation Breathing FOV
+    // 10. Sprint FOV Kick (+6 deg) & Mantle / Exhaustion Breathing FOV
     const agitationBreath = currSnapshot.exhausted ? Math.sin(this.idlePhase * 3.0) * 1.5 : 0;
+    const isSprinting = horizSpeed > WORLD.PLAYER.WALK + 0.5 && !currSnapshot.exhausted;
     const targetFov =
-      (horizSpeed > WORLD.PLAYER.WALK + 0.5 && !currSnapshot.exhausted
-        ? this.baseFov + 6.0
-        : this.baseFov) + agitationBreath;
+      (isSprinting ? this.baseFov + 6.0 : this.baseFov) + agitationBreath;
 
     this.currentFov += (targetFov - this.currentFov) * Math.min(1.0, dt * 8.0);
     if (Math.abs(this.camera.fov - this.currentFov) > 0.01) {
@@ -145,5 +172,9 @@ export class PlayerCamera {
 
   getBobPhase(): number {
     return this.bobPhase;
+  }
+
+  getLandingDip(): number {
+    return this.dipOffset;
   }
 }

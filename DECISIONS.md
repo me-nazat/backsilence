@@ -395,6 +395,16 @@ Establish `functions/api/[[route]].ts` as the canonical Cloudflare Pages Functio
 7. Dual-Track Model Pipeline: Lazy-loaded GLTFLoader fallback with zero-asset guarantee, accurate model status reporting (`reports/models/thumper.json`), setup instructions in `MODELS_SETUP.md`, CC BY 4.0 attributions in `CREDITS.md` and `CreditsScreen.ts`, and settings toggle `creatures.waterMonsterSkin` (`auto`, `model`, `procedural`).
 **Reason:** Fulfills Prompt 2 Phase F mandates to fix the monster appearance, eliminate popped joints and animation flaws, ensure strict foot-slide limits, and integrate atmospheric overhead fauna.
 
+### D053: First-Person ViewModel, Camera Secondary Motion & Physical World Interactables
+**Date:** 2026-10-24
+**Choice:**
+1. Procedural Rain Jacket ViewModel (`ViewModel.ts`): Built first-person forearms clothed in dark coated rubberized fabric with yellow safety trim, wetness specular highlights, and a tactical metal flashlight in the left hand. Driven by second-order dynamic springs ($f=3.8\text{ Hz}$, $z=0.85$, $r=0.4$) supporting 9 distinct states: idle sway, walk/sprint swing, crouch lowering, jump reaction, landing dip, wading drag on hands, flashlight toggle, interact reach/retract, and two-handed crank.
+2. Camera Secondary Motion (`PlayerCamera.ts`): Calibrated landing dip critically damped spring ($k=360$, $c=38$) for 80–120ms recovery proportional to fall speed; added 40ms jump anticipation dip; wading roll linked to stride; sprint and mantle breathing FOV; and near-miss rumble shake ($< 4\text{m}$, 38–44 Hz) proportional to monster proximity. Maintained tick-to-frame interpolation to eliminate visual judder.
+3. World Interactables Secondary Motion (`InteractableAnimations.ts`): Implemented cubic smoothstep easing for sliding doors, angular momentum with damped bounce on hard stops for valve wheels, visible 1.5cm button depression under interact traces for keypads, decaying harmonic oscillation for swinging bells, and standing-edge tilt (up to $2.5^\circ$) for sinking platforms.
+4. Audio-Visual Synchronization: Frame-locked presentation offset between audio footfall/splash cues, particle births, and water ripple events (0.00ms offset).
+5. Animation Lab Enhancements (`AnimationLabPanel.ts`): Added turn-rate slider (-3 to +3 rad/s), viewmodel state previewer, and pause & scrub timeline controls allowing users to freeze frame and inspect joints at any pose.
+**Reason:** Fulfills Prompt 2 Phase G mandates for commercial game feel, weight, physical secondary motion, and interactive animation debugging.
+
 
 
 
