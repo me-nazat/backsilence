@@ -8,6 +8,7 @@ import type { Vec3, PlayerId, NoiseEvent } from '../types/contracts.js';
 import type { MonsterBrain } from './MonsterBrain.js';
 import type { NavGrid } from './NavGrid.js';
 import { Rng } from './rng.js';
+import { dHypot, dSin, dCos, D_PI, D_HALF_PI } from './dmath.js';
 import balanceData from './balance.json';
 
 export type DirectorDifficulty = 'whisper' | 'normal' | 'deafening' | 'nightmare';
@@ -124,7 +125,7 @@ export class EncounterDirector {
     track.onGround = onGround;
     track.isPerched = isPerched;
 
-    const distFromAnchor = Math.hypot(pos.x - track.anchorPos.x, pos.z - track.anchorPos.z);
+    const distFromAnchor = dHypot(pos.x - track.anchorPos.x, pos.z - track.anchorPos.z);
     if (distFromAnchor > 4.0) {
       track.anchorPos.x = pos.x;
       track.anchorPos.y = pos.y;
@@ -158,10 +159,10 @@ export class EncounterDirector {
     const myComp = nav.getComponentWorld(monster.pos.x, monster.pos.z);
 
     for (let attempts = 0; attempts < 30; attempts++) {
-      const angle = this.rng.range(-Math.PI, Math.PI);
+      const angle = this.rng.range(-D_PI, D_PI);
       const dist = this.rng.range(balanceData.ranges.mercyRespawnDist, balanceData.ranges.mercyRespawnDist + 25.0);
-      const rx = pPos.x + Math.sin(angle) * dist;
-      const rz = pPos.z - Math.cos(angle) * dist;
+      const rx = pPos.x + dSin(angle) * dist;
+      const rz = pPos.z - dCos(angle) * dist;
 
       if (nav.isWalkableWorld(rx, rz) && nav.getComponentWorld(rx, rz) === myComp) {
         monster.pos.x = rx;
@@ -204,7 +205,7 @@ export class EncounterDirector {
     if (!primaryTarget) return;
 
     const pPos = primaryTarget.pos;
-    const distToPlayer = Math.hypot(monster.pos.x - pPos.x, monster.pos.z - pPos.z);
+    const distToPlayer = dHypot(monster.pos.x - pPos.x, monster.pos.z - pPos.z);
 
     // 3. First Contact Guarantee
     if (!this.firstContactDone && this.simTime >= this.firstContactScheduledTime) {
@@ -280,14 +281,14 @@ export class EncounterDirector {
   ): void {
     const myComp = nav.getComponentWorld(monster.pos.x, monster.pos.z);
     // Find two path points forming an arc across the player's front/side field of view (25-45m)
-    const baseAngle = this.rng.range(-Math.PI * 0.5, Math.PI * 0.5);
+    const baseAngle = this.rng.range(-D_HALF_PI, D_HALF_PI);
     const dist = this.rng.range(diffCfg.firstContactDistMin, diffCfg.firstContactDistMax);
 
-    const midX = playerPos.x + Math.sin(baseAngle) * dist;
-    const midZ = playerPos.z - Math.cos(baseAngle) * dist;
+    const midX = playerPos.x + dSin(baseAngle) * dist;
+    const midZ = playerPos.z - dCos(baseAngle) * dist;
 
-    const endX = playerPos.x + Math.sin(baseAngle + 0.6) * dist;
-    const endZ = playerPos.z - Math.cos(baseAngle + 0.6) * dist;
+    const endX = playerPos.x + dSin(baseAngle + 0.6) * dist;
+    const endZ = playerPos.z - dCos(baseAngle + 0.6) * dist;
 
     if (nav.isWalkableWorld(midX, midZ) && nav.getComponentWorld(midX, midZ) === myComp) {
       monster.scheduleSweep([
@@ -310,15 +311,15 @@ export class EncounterDirector {
     maxDist: number,
   ): void {
     const myComp = nav.getComponentWorld(monster.pos.x, monster.pos.z);
-    const angle = this.rng.range(-Math.PI, Math.PI);
+    const angle = this.rng.range(-D_PI, D_PI);
     const sweepDist = this.rng.range(minDist, maxDist);
 
-    const sx = playerPos.x + Math.sin(angle) * sweepDist;
-    const sz = playerPos.z - Math.cos(angle) * sweepDist;
+    const sx = playerPos.x + dSin(angle) * sweepDist;
+    const sz = playerPos.z - dCos(angle) * sweepDist;
 
-    const exitAngle = angle + Math.PI * 0.65;
-    const ex = playerPos.x + Math.sin(exitAngle) * (sweepDist + 10.0);
-    const ez = playerPos.z - Math.cos(exitAngle) * (sweepDist + 10.0);
+    const exitAngle = angle + D_PI * 0.65;
+    const ex = playerPos.x + dSin(exitAngle) * (sweepDist + 10.0);
+    const ez = playerPos.z - dCos(exitAngle) * (sweepDist + 10.0);
 
     if (nav.isWalkableWorld(sx, sz) && nav.getComponentWorld(sx, sz) === myComp) {
       monster.scheduleSweep([
@@ -338,11 +339,11 @@ export class EncounterDirector {
     duration: number,
   ): void {
     const myComp = nav.getComponentWorld(monster.pos.x, monster.pos.z);
-    const angle = this.rng.range(-Math.PI, Math.PI);
+    const angle = this.rng.range(-D_PI, D_PI);
     const dist = this.rng.range(balanceData.ranges.listenDistMin, balanceData.ranges.listenDistMax);
 
-    const lx = playerPos.x + Math.sin(angle) * dist;
-    const lz = playerPos.z - Math.cos(angle) * dist;
+    const lx = playerPos.x + dSin(angle) * dist;
+    const lz = playerPos.z - dCos(angle) * dist;
 
     if (nav.isWalkableWorld(lx, lz) && nav.getComponentWorld(lx, lz) === myComp) {
       this.listeningActive = true;
@@ -372,9 +373,11 @@ export class EncounterDirector {
     let bestTrack: PlayerTrack | null = null;
     let maxPriority = -Infinity;
 
-    for (const track of this.playerTracks.values()) {
+    const sortedIds = Array.from(this.playerTracks.keys()).sort();
+    for (let i = 0; i < sortedIds.length; i++) {
+      const track = this.playerTracks.get(sortedIds[i]!)!;
       // Prioritize louder noises or nearer distances
-      const priority = track.noiseAcc * 10.0 - Math.hypot(track.pos.x, track.pos.z) * 0.1;
+      const priority = track.noiseAcc * 10.0 - dHypot(track.pos.x, track.pos.z) * 0.1;
       if (priority > maxPriority) {
         maxPriority = priority;
         bestTrack = track;

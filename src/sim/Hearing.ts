@@ -6,6 +6,7 @@
 
 import type { Vec3, NoiseEvent } from '../types/contracts.js';
 import type { ColliderSet } from './Colliders.js';
+import { dHypot, dPow } from './dmath.js';
 
 export interface MaskZone {
   center: Vec3;
@@ -35,7 +36,7 @@ export class MaskZoneManager {
 
       const dx = pos.x - z.center.x;
       const dz = pos.z - z.center.z;
-      const dist = Math.hypot(dx, dz);
+      const dist = dHypot(dx, dz);
       if (dist <= z.radius) {
         factor = Math.min(factor, z.factor);
       }
@@ -98,7 +99,7 @@ export function calculateEffectiveRadius(
   if (colliders && colliders.segmentHits) {
     walls = colliders.segmentHits(noisePos.x, noisePos.z, monsterPos.x, monsterPos.z, 1.0);
   }
-  const occlusion = Math.pow(ACOUSTIC_CONSTANTS.OCCLUSION_PER_WALL, Math.min(ACOUSTIC_CONSTANTS.MAX_WALLS, walls));
+  const occlusion = dPow(ACOUSTIC_CONSTANTS.OCCLUSION_PER_WALL, Math.min(ACOUSTIC_CONSTANTS.MAX_WALLS, walls));
 
   return (
     loudness *
@@ -124,7 +125,7 @@ export function canHearNoise(
 
   const dx = noise.position.x - monsterPos.x;
   const dz = noise.position.z - monsterPos.z;
-  const dist = Math.hypot(dx, dz);
+  const dist = dHypot(dx, dz);
 
   const radius = calculateEffectiveRadius(
     noise.loudness,
@@ -142,6 +143,6 @@ export function canHearNoise(
  * Score noise for monster retargeting priority: loudness / (1 + dist / 20).
  */
 export function calculateNoiseScore(noise: NoiseEvent, monsterPos: Vec3): number {
-  const dist = Math.hypot(noise.position.x - monsterPos.x, noise.position.z - monsterPos.z);
+  const dist = dHypot(noise.position.x - monsterPos.x, noise.position.z - monsterPos.z);
   return noise.loudness / (1.0 + dist / 20.0);
 }

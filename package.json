@@ -16,6 +16,7 @@
     "verify": "npm run typecheck && npm run lint && npm run test && npm run build && npm run audit && npm run secret:scan",
     "shots": "node scripts/shots.mjs",
     "smoke": "node scripts/smoke/run-smoke.mjs",
+    "test:cross-engine": "vite-node scripts/test-cross-engine.mjs",
     "balance": "node scripts/balance/run-balance.mjs",
     "browser:acceptance": "node scripts/browser-acceptance.mjs"
   },
@@ -26,6 +27,7 @@
     "@types/three": "0.170.0",
     "typescript": "5.6.3",
     "vite": "6.0.7",
+    "vite-node": "2.1.8",
     "vitest": "2.1.8",
     "eslint": "9.17.0",
     "typescript-eslint": "8.18.2",

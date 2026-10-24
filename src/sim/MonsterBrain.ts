@@ -12,6 +12,7 @@ import type { ColliderSet } from './Colliders.js';
 import type { EventRingBuffer } from './Events.js';
 import { canHearNoise, calculateNoiseScore, type HearingContext } from './Hearing.js';
 import { Rng } from './rng.js';
+import { dHypot, dSin, dCos, dAtan2, D_PI, D_TWO_PI } from './dmath.js';
 
 export type MonsterBrainState = MonsterState;
 
@@ -260,7 +261,7 @@ export class MonsterBrain {
     this.agitation = Math.max(0.0, this.agitation - 0.04 * dt);
 
     // 2. Physical Touch & Attack Check
-    const distToPlayer = Math.hypot(playerPos.x - this.pos.x, playerPos.z - this.pos.z);
+    const distToPlayer = dHypot(playerPos.x - this.pos.x, playerPos.z - this.pos.z);
     const vertDistToPlayer = Math.abs(playerPos.y - this.pos.y);
 
     if (this.state !== 'DORMANT' && this.state !== 'ATTACK') {
@@ -304,15 +305,15 @@ export class MonsterBrain {
           // Retreat at hunt speed to nearest walkable water cell
           const dx = nearest.x - this.pos.x;
           const dz = nearest.z - this.pos.z;
-          const dist = Math.hypot(dx, dz);
+          const dist = dHypot(dx, dz);
           if (dist > 0.2) {
-            const targetYaw = Math.atan2(dx, -dz);
+            const targetYaw = dAtan2(dx, -dz);
             this.yaw = this.steerTowards(this.yaw, targetYaw, MonsterBrain.TURN_RATE_HUNT * dt);
             const moveSpeed = MonsterBrain.SPEED_HUNT * this.speedMul;
-            this.pos.x += Math.sin(this.yaw) * moveSpeed * dt;
-            this.pos.z -= Math.cos(this.yaw) * moveSpeed * dt;
-            this.vel.x = Math.sin(this.yaw) * moveSpeed;
-            this.vel.z = -Math.cos(this.yaw) * moveSpeed;
+            this.pos.x += dSin(this.yaw) * moveSpeed * dt;
+            this.pos.z -= dCos(this.yaw) * moveSpeed * dt;
+            this.vel.x = dSin(this.yaw) * moveSpeed;
+            this.vel.z = -dCos(this.yaw) * moveSpeed;
             return;
           }
         } else {
@@ -379,7 +380,7 @@ export class MonsterBrain {
     // Aim ear-fins toward noise direction
     const dx = noise.position.x - this.pos.x;
     const dz = noise.position.z - this.pos.z;
-    this.earAngle = Math.atan2(dx, -dz);
+    this.earAngle = dAtan2(dx, -dz);
 
     const score = calculateNoiseScore(noise, this.pos);
 
@@ -396,7 +397,7 @@ export class MonsterBrain {
 
     if (this.state === 'HUNT') {
       // Ignore noises coming from the current target location
-      if (this.currentTarget && Math.hypot(noise.position.x - this.currentTarget.x, noise.position.z - this.currentTarget.z) < 2.0) {
+      if (this.currentTarget && dHypot(noise.position.x - this.currentTarget.x, noise.position.z - this.currentTarget.z) < 2.0) {
         return false;
       }
       // Retarget only if noise is louder than current target * 1.15 and reaction delay passed
@@ -487,7 +488,7 @@ export class MonsterBrain {
     if (this.currentTarget) {
       const dx = this.currentTarget.x - this.pos.x;
       const dz = this.currentTarget.z - this.pos.z;
-      const targetYaw = Math.atan2(dx, -dz);
+      const targetYaw = dAtan2(dx, -dz);
       this.yaw = this.steerTowards(this.yaw, targetYaw, MonsterBrain.TURN_RATE_HUNT * dt);
     }
 
@@ -641,7 +642,7 @@ export class MonsterBrain {
     let waypoint = this.currentPath[this.currentPathIndex]!;
     let dx = waypoint.x - this.pos.x;
     let dz = waypoint.z - this.pos.z;
-    const dist = Math.hypot(dx, dz);
+    const dist = dHypot(dx, dz);
 
     if (dist < 0.6) {
       this.currentPathIndex++;
@@ -655,11 +656,11 @@ export class MonsterBrain {
       dz = waypoint.z - this.pos.z;
     }
 
-    const targetYaw = Math.atan2(dx, -dz);
+    const targetYaw = dAtan2(dx, -dz);
     this.yaw = this.steerTowards(this.yaw, targetYaw, turnRate * dt);
 
-    const fwdX = Math.sin(this.yaw);
-    const fwdZ = -Math.cos(this.yaw);
+    const fwdX = dSin(this.yaw);
+    const fwdZ = -dCos(this.yaw);
 
     const nextX = this.pos.x + fwdX * targetSpeed * dt;
     const nextZ = this.pos.z + fwdZ * targetSpeed * dt;
@@ -681,9 +682,9 @@ export class MonsterBrain {
   }
 
   private steerTowards(current: number, target: number, maxStep: number): number {
-    let diff = (target - current) % (Math.PI * 2);
-    if (diff < -Math.PI) diff += Math.PI * 2;
-    if (diff > Math.PI) diff -= Math.PI * 2;
+    let diff = (target - current) % D_TWO_PI;
+    if (diff < -D_PI) diff += D_TWO_PI;
+    if (diff > D_PI) diff -= D_TWO_PI;
 
     const step = Math.max(-maxStep, Math.min(maxStep, diff));
     return current + step;
@@ -698,22 +699,22 @@ export class MonsterBrain {
       // 1. Director patrol bias takes priority
       if (this.patrolBias && this.rng.next() < this.patrolBias.strength) {
         const offsetDist = this.rng.range(2.0, this.patrolBias.radius);
-        const angle = this.rng.range(-Math.PI, Math.PI);
-        rx = this.patrolBias.center.x + Math.sin(angle) * offsetDist;
-        rz = this.patrolBias.center.z - Math.cos(angle) * offsetDist;
+        const angle = this.rng.range(-D_PI, D_PI);
+        rx = this.patrolBias.center.x + dSin(angle) * offsetDist;
+        rz = this.patrolBias.center.z - dCos(angle) * offsetDist;
       } else if (playerPos && (attempts % 2 === 0)) {
         // 50% of the time, bias patrol waypoint toward player's general sector
         const offsetDist = this.rng.range(12.0, 30.0);
-        const angle = this.rng.range(-Math.PI, Math.PI);
-        rx = playerPos.x + Math.sin(angle) * offsetDist;
-        rz = playerPos.z - Math.cos(angle) * offsetDist;
+        const angle = this.rng.range(-D_PI, D_PI);
+        rx = playerPos.x + dSin(angle) * offsetDist;
+        rz = playerPos.z - dCos(angle) * offsetDist;
       } else {
         rx = this.rng.range(nav.minX + 4, nav.minX + nav.width * nav.cellSize - 4);
         rz = this.rng.range(nav.minZ + 4, nav.minZ + nav.depth * nav.cellSize - 4);
       }
 
       if (nav.isWalkableWorld(rx, rz) && nav.getComponentWorld(rx, rz) === myComponent) {
-        const d = Math.hypot(rx - this.pos.x, rz - this.pos.z);
+        const d = dHypot(rx - this.pos.x, rz - this.pos.z);
         if (d >= 6.0) {
           const path = this.astar.findPath(this.pos.x, this.pos.z, rx, rz);
           if (path.length > 0) {
@@ -767,8 +768,8 @@ export class MonsterBrain {
     // Face player
     const dx = playerPos.x - this.pos.x;
     const dz = playerPos.z - this.pos.z;
-    const dist = Math.hypot(dx, dz);
-    const targetYaw = Math.atan2(dx, -dz);
+    const dist = dHypot(dx, dz);
+    const targetYaw = dAtan2(dx, -dz);
     this.yaw = this.steerTowards(this.yaw, targetYaw, MonsterBrain.TURN_RATE_WANDER * dt);
 
     // Circle perch at 2.2 - 3.0 m (nominal 2.6m)
@@ -778,7 +779,7 @@ export class MonsterBrain {
     const radFactor = (dist - orbitRadius) * 0.5;
     const wishDirX = tangX + (dx / (dist || 1)) * radFactor;
     const wishDirZ = tangZ + (dz / (dist || 1)) * radFactor;
-    const wishLen = Math.hypot(wishDirX, wishDirZ);
+    const wishLen = dHypot(wishDirX, wishDirZ);
 
     const speed = MonsterBrain.SPEED_WANDER * this.speedMul * 0.8;
     const stepX = this.pos.x + (wishDirX / (wishLen || 1)) * speed * dt;
@@ -837,7 +838,7 @@ export class MonsterBrain {
 
     for (let i = 0; i < this.candidateSpawns.length; i++) {
       const sp = this.candidateSpawns[i]!;
-      const d = Math.hypot(sp.x - playerPos.x, sp.z - playerPos.z);
+      const d = dHypot(sp.x - playerPos.x, sp.z - playerPos.z);
       if (d > maxDist) {
         maxDist = d;
         bestSpawn = sp;

@@ -4,6 +4,8 @@
  *  Pure simulation layer: zero Three.js, DOM, or Audio imports.
  * ──────────────────────────────────────────────────────────────────────── */
 
+import { dSin, dExp } from './dmath.js';
+
 export interface WeatherState {
   rain: number; // 0..1 intensity
   isDownpour: boolean;
@@ -41,9 +43,9 @@ export class WeatherSystem {
   rainAt(simTime: number): number {
     const t = simTime + this.seed * 0.01;
     // Base 0.5 + harmonics
-    const s1 = Math.sin(t * 0.05) * 0.25;
-    const s2 = Math.sin(t * 0.13 + 1.2) * 0.15;
-    const s3 = Math.sin(t * 0.31 + 2.7) * 0.1;
+    const s1 = dSin(t * 0.05) * 0.25;
+    const s2 = dSin(t * 0.13 + 1.2) * 0.15;
+    const s3 = dSin(t * 0.31 + 2.7) * 0.1;
     const base = 0.5 + s1 + s2 + s3;
     return Math.max(0.0, Math.min(1.0, base));
   }
@@ -110,7 +112,7 @@ export class WeatherSystem {
       const dt = simTime - flashTime;
       if (dt >= 0 && dt <= 0.35) {
         // Sharp attack, exponential decay, capped at 0.7 for safety
-        const pulse = Math.exp(-dt * 12.0) * 0.7;
+        const pulse = dExp(-dt * 12.0) * 0.7;
         return pulse;
       }
       if (th > simTime + 1.0) break;

@@ -5,6 +5,7 @@
  * ──────────────────────────────────────────────────────────────────────── */
 
 import type { DynamicTop } from './GroundGrid.js';
+import { dSin, D_PI } from './dmath.js';
 
 export type SinkingPlatformState =
   | 'UP'
@@ -126,7 +127,7 @@ export class SinkingPlatformNode implements DynamicTop {
             });
           }
           // Tilt oscillation ±3 degrees at 3 Hz
-          this.tiltAngle = Math.sin(simTime * Math.PI * 6.0) * 3.0;
+          this.tiltAngle = dSin(simTime * D_PI * 6.0) * 3.0;
         } else {
           this.state = 'UP';
           this.tiltAngle = 0;

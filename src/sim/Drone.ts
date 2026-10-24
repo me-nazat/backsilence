@@ -7,6 +7,7 @@
 import type { Vec3 } from '../types/contracts.js';
 import type { ColliderSet } from './Colliders.js';
 import type { EventRingBuffer } from './Events.js';
+import { dHypot, dHypot3, dSin, dCos, dAtan2, D_PI } from './dmath.js';
 
 export type DroneState = 'PATROL' | 'LOCK' | 'COOLDOWN' | 'EMP_DISABLED';
 
@@ -52,14 +53,14 @@ export class Drone {
     this.path = path.map((p) => ({ ...p }));
     this.speed = speed;
     this.pitch = pitch;
-    this.halfAngleCos = Math.cos((18.0 * Math.PI) / 180.0); // ~0.9510565
+    this.halfAngleCos = dCos((18.0 * D_PI) / 180.0); // ~0.9510565
 
     // Precompute path perimeter length
     let len = 0;
     for (let i = 0; i < this.path.length; i++) {
       const p0 = this.path[i]!;
       const p1 = this.path[(i + 1) % this.path.length]!;
-      len += Math.hypot(p1.x - p0.x, p1.z - p0.z);
+      len += dHypot(p1.x - p0.x, p1.z - p0.z);
     }
     this.totalLength = Math.max(1.0, len);
 
@@ -85,14 +86,14 @@ export class Drone {
     for (let i = 0; i < this.path.length; i++) {
       const p0 = this.path[i]!;
       const p1 = this.path[(i + 1) % this.path.length]!;
-      const segLen = Math.hypot(p1.x - p0.x, p1.z - p0.z);
+      const segLen = dHypot(p1.x - p0.x, p1.z - p0.z);
 
       if (accumulated + segLen >= dist || i === this.path.length - 1) {
         const segT = segLen > 1e-5 ? (dist - accumulated) / segLen : 0;
         const x = p0.x + (p1.x - p0.x) * segT;
         const y = p0.y + (p1.y - p0.y) * segT;
         const z = p0.z + (p1.z - p0.z) * segT;
-        const yaw = Math.atan2(p1.x - p0.x, -(p1.z - p0.z));
+        const yaw = dAtan2(p1.x - p0.x, -(p1.z - p0.z));
         return { pos: { x, y, z }, yaw };
       }
       accumulated += segLen;
@@ -155,7 +156,7 @@ export class Drone {
     const inSight = this.checkSight(playerPos, isCrouching, colliders, awnings);
 
     if (inSight) {
-      const dist = Math.hypot(
+      const dist = dHypot3(
         playerPos.x - this.pos.x,
         playerPos.y - this.pos.y,
         playerPos.z - this.pos.z,
@@ -215,11 +216,11 @@ export class Drone {
     const toPlayerZ = dz / dist;
 
     // Cone spotlight direction: oriented by yaw, angled down ~45 deg
-    const cosPitch = Math.cos(this.pitch);
-    const sinPitch = Math.sin(this.pitch);
-    const coneDirX = Math.sin(this.yaw) * cosPitch;
+    const cosPitch = dCos(this.pitch);
+    const sinPitch = dSin(this.pitch);
+    const coneDirX = dSin(this.yaw) * cosPitch;
     const coneDirY = sinPitch; // negative (pointing down)
-    const coneDirZ = -Math.cos(this.yaw) * cosPitch;
+    const coneDirZ = -dCos(this.yaw) * cosPitch;
 
     // Dot product with spotlight cone axis
     const dot = toPlayerX * coneDirX + toPlayerY * coneDirY + toPlayerZ * coneDirZ;
@@ -255,7 +256,7 @@ export class Drone {
    * Apply EMP pulse. If drone is within radius, disables for duration seconds.
    */
   applyEmp(origin: Vec3, radius = 10.0, duration = 20.0): boolean {
-    const dist = Math.hypot(
+    const dist = dHypot3(
       origin.x - this.pos.x,
       origin.y - this.pos.y,
       origin.z - this.pos.z,

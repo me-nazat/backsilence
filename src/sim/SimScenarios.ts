@@ -8,6 +8,7 @@ import { SimBot } from './SimBot.js';
 import type { SimEvent } from './Events.js';
 import type { PlayerIntent } from './PlayerMotor.js';
 import { Rng } from './rng.js';
+import { dHypot } from './dmath.js';
 
 export interface ScenarioResult {
   name: string;
@@ -163,7 +164,7 @@ export function runScenario(name: string): ScenarioResult {
 
         if (alertedTime === null && monster.state === 'ALERTED') alertedTime = t;
         if (huntTime === null && monster.state === 'HUNT') huntTime = t;
-        const distToSplash = Math.hypot(monster.pos.x - 0, monster.pos.z - 21);
+        const distToSplash = dHypot(monster.pos.x - 0, monster.pos.z - 21);
         if (arrivalTime === null && distToSplash < 1.8) {
           arrivalTime = t;
           break;

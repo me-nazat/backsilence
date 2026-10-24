@@ -11,36 +11,46 @@ export interface ErrorReportEntry {
   stack?: string | undefined;
 }
 
-export class ErrorBoundary {
-  private static ringBuffer: ErrorReportEntry[] = [];
-  private static readonly MAX_ENTRIES = 50;
-  private static initialized = false;
-  private static overlayElement: HTMLElement | null = null;
+const ringBuffer: ErrorReportEntry[] = [];
+const MAX_ENTRIES = 50;
+let initialized = false;
+let overlayElement: HTMLElement | null = null;
 
-  public static init(): void {
-    if (this.initialized || typeof window === 'undefined') return;
-    this.initialized = true;
+function sanitizeSecrets(str: string): string {
+  return str
+    .replace(/eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}/g, '[REDACTED_JWT]')
+    .replace(/libsql:\/\/[^@\s]+@/g, 'libsql://[REDACTED_CREDENTIALS]@')
+    .replace(/Bearer\s+[A-Za-z0-9_\-.]+/gi, 'Bearer [REDACTED_TOKEN]')
+    .replace(/(?:password|token|secret|auth)\s*[:=]\s*['"][^'"]+['"]/gi, '$1="[REDACTED]"');
+}
+
+export const ErrorBoundary = {
+  init(): void {
+    if (initialized || typeof window === 'undefined') return;
+    initialized = true;
 
     // Attach to window for diagnostics inspections
-    (window as unknown as { __backsilence_errors: ErrorReportEntry[] }).__backsilence_errors = this.ringBuffer;
+    (window as unknown as { __backsilence_errors: ErrorReportEntry[] }).__backsilence_errors = ringBuffer;
 
     window.addEventListener('error', (event) => {
-      this.recordError('error', event.message || 'Unknown runtime error', event.error?.stack);
-      this.showTrackingLostScreen(event.message || 'System Anomaly');
+      const err = event.error as { stack?: string } | null | undefined;
+      const stack = typeof err?.stack === 'string' ? err.stack : undefined;
+      ErrorBoundary.recordError('error', event.message || 'Unknown runtime error', stack);
+      ErrorBoundary.showTrackingLostScreen(event.message || 'System Anomaly');
     });
 
     window.addEventListener('unhandledrejection', (event) => {
-      const reason = event.reason;
+      const reason: unknown = event.reason;
       const message = reason instanceof Error ? reason.message : String(reason);
       const stack = reason instanceof Error ? reason.stack : undefined;
-      this.recordError('unhandledrejection', message, stack);
-      this.showTrackingLostScreen(message);
+      ErrorBoundary.recordError('unhandledrejection', message, stack);
+      ErrorBoundary.showTrackingLostScreen(message);
     });
-  }
+  },
 
-  public static recordError(type: 'error' | 'unhandledrejection', message: string, stack?: string): void {
-    const sanitizedMsg = this.sanitizeSecrets(message);
-    const sanitizedStack = stack ? this.sanitizeSecrets(stack) : undefined;
+  recordError(type: 'error' | 'unhandledrejection', message: string, stack?: string): void {
+    const sanitizedMsg = sanitizeSecrets(message);
+    const sanitizedStack = stack ? sanitizeSecrets(stack) : undefined;
 
     const entry: ErrorReportEntry = {
       timestamp: new Date().toISOString(),
@@ -49,42 +59,34 @@ export class ErrorBoundary {
       stack: sanitizedStack,
     };
 
-    this.ringBuffer.push(entry);
-    if (this.ringBuffer.length > this.MAX_ENTRIES) {
-      this.ringBuffer.shift();
+    ringBuffer.push(entry);
+    if (ringBuffer.length > MAX_ENTRIES) {
+      ringBuffer.shift();
     }
-  }
+  },
 
-  public static getErrors(): readonly ErrorReportEntry[] {
-    return this.ringBuffer;
-  }
+  getErrors(): readonly ErrorReportEntry[] {
+    return ringBuffer;
+  },
 
-  public static clear(): void {
-    this.ringBuffer.length = 0;
-  }
+  clear(): void {
+    ringBuffer.length = 0;
+  },
 
-  private static sanitizeSecrets(str: string): string {
-    return str
-      .replace(/eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}/g, '[REDACTED_JWT]')
-      .replace(/libsql:\/\/[^@\s]+@/g, 'libsql://[REDACTED_CREDENTIALS]@')
-      .replace(/Bearer\s+[A-Za-z0-9_\-.]+/gi, 'Bearer [REDACTED_TOKEN]')
-      .replace(/(?:password|token|secret|auth)\s*[:=]\s*['"][^'"]+['"]/gi, '$1="[REDACTED]"');
-  }
-
-  public static generateDiagnostics(): string {
+  generateDiagnostics(): string {
     const data = {
       timestamp: new Date().toISOString(),
       url: typeof window !== 'undefined' ? window.location.href : 'n/a',
       userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'n/a',
       screen: typeof window !== 'undefined' ? `${window.innerWidth}x${window.innerHeight} (dpr: ${window.devicePixelRatio})` : 'n/a',
-      errors: this.ringBuffer,
+      errors: ringBuffer,
     };
     return JSON.stringify(data, null, 2);
-  }
+  },
 
-  public static showTrackingLostScreen(cause: string): void {
+  showTrackingLostScreen(cause: string): void {
     if (typeof document === 'undefined') return;
-    if (this.overlayElement) return; // Already showing
+    if (overlayElement) return; // Already showing
 
     const overlay = document.createElement('div');
     overlay.id = 'tracking-lost-boundary';
@@ -123,7 +125,7 @@ export class ErrorBoundary {
         An unhandled anomaly disrupted the acoustic feed pipeline. The telemetry state has been preserved in the ring buffer.
       </p>
       <div style="background: rgba(0,0,0,0.5); border: 1px solid rgba(179,38,30,0.3); padding: 12px; margin-bottom: 24px; text-align: left; font-size: 0.78rem; max-height: 120px; overflow-y: auto; color: #e9dca8; word-break: break-all;">
-        ${this.sanitizeSecrets(cause)}
+        ${sanitizeSecrets(cause)}
       </div>
       <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
         <button id="btn-reload-tracking" class="analog-btn primary" style="background: #b3261e; border-color: #d9d3a2; color: #fff; cursor: pointer; padding: 10px 20px; font-family: monospace; letter-spacing: 0.1em; min-height: 44px;">
@@ -138,31 +140,29 @@ export class ErrorBoundary {
 
     overlay.appendChild(box);
     document.body.appendChild(overlay);
-    this.overlayElement = overlay;
+    overlayElement = overlay;
 
     document.getElementById('btn-reload-tracking')?.addEventListener('click', () => {
       window.location.reload();
     });
 
-    document.getElementById('btn-copy-diagnostics')?.addEventListener('click', async () => {
-      const diag = this.generateDiagnostics();
-      const statusEl = document.getElementById('diagnostics-status');
-      try {
-        if (navigator.clipboard?.writeText) {
-          await navigator.clipboard.writeText(diag);
-        } else {
-          const ta = document.createElement('textarea');
-          ta.value = diag;
-          document.body.appendChild(ta);
-          ta.select();
-          document.execCommand('copy');
-          ta.remove();
+    document.getElementById('btn-copy-diagnostics')?.addEventListener('click', () => {
+      void (async () => {
+        const diag = ErrorBoundary.generateDiagnostics();
+        const statusEl = document.getElementById('diagnostics-status');
+        try {
+          if (navigator.clipboard?.writeText) {
+            await navigator.clipboard.writeText(diag);
+            if (statusEl) statusEl.textContent = '✓ Diagnostics copied to clipboard (sanitized)';
+          } else {
+            if (statusEl) statusEl.textContent = 'Manual copy: check browser console';
+            console.log('[Diagnostics Payload]', diag);
+          }
+        } catch {
+          if (statusEl) statusEl.textContent = 'Manual copy: check browser console';
+          console.log('[Diagnostics Payload]', diag);
         }
-        if (statusEl) statusEl.textContent = '✓ Diagnostics copied to clipboard (sanitized)';
-      } catch {
-        if (statusEl) statusEl.textContent = 'Manual copy: check browser console';
-        console.log('[Diagnostics Payload]', diag);
-      }
+      })();
     });
-  }
-}
+  },
+};

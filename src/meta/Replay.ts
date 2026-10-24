@@ -11,6 +11,7 @@ import { SimWorld } from '../sim/SimWorld.js';
 import type { PlayerIntent } from '../sim/PlayerMotor.js';
 import type { LayoutData } from '../world/MapTypes.js';
 import type { Vec3 } from '../types/contracts.js';
+import { dHypot } from '../sim/dmath.js';
 
 export interface ReplayVerificationResult {
   valid: boolean;
@@ -102,7 +103,7 @@ export const Replay = {
         const playerPos = world.player.pos;
 
         // Check exit proximity
-        const distToExit = Math.hypot(playerPos.x - exitPos.x, playerPos.z - exitPos.z);
+        const distToExit = dHypot(playerPos.x - exitPos.x, playerPos.z - exitPos.z);
         if (distToExit < 2.0) {
           escaped = true;
           break;
@@ -110,7 +111,7 @@ export const Replay = {
 
         // Check monster contact
         for (const monster of world.monsters) {
-          const distToMonster = Math.hypot(playerPos.x - monster.pos.x, playerPos.z - monster.pos.z);
+          const distToMonster = dHypot(playerPos.x - monster.pos.x, playerPos.z - monster.pos.z);
           if (distToMonster < 1.2 && Math.abs(playerPos.y - monster.pos.y) < 1.8) {
             died = true;
             break;

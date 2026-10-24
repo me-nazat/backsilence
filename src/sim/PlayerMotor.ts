@@ -11,6 +11,7 @@ import type { EventRingBuffer } from './Events.js';
 import type { WorldProfile } from './WorldProfile.js';
 import type { PerchSystem } from './PerchSystem.js';
 import type { FlowField } from './FlowField.js';
+import { dHypot, dSin, dCos, dPow, D_PI } from './dmath.js';
 
 export interface PlayerIntent {
   moveX: number; // -1 (left) .. +1 (right)
@@ -247,15 +248,15 @@ export class PlayerMotor {
     // Normalize diagonal inputs
     let mx = intent.moveX;
     let mz = intent.moveZ;
-    const inputLen = Math.hypot(mx, mz);
+    const inputLen = dHypot(mx, mz);
     if (inputLen > 1.0) {
       mx /= inputLen;
       mz /= inputLen;
     }
 
     // Transform input to world velocity based on yaw
-    const sinY = Math.sin(this.yaw);
-    const cosY = Math.cos(this.yaw);
+    const sinY = dSin(this.yaw);
+    const cosY = dCos(this.yaw);
     const worldWishX = mx * cosY + mz * sinY;
     const worldWishZ = -mx * sinY + mz * cosY;
 
@@ -484,8 +485,8 @@ export class PlayerMotor {
     simTime: number,
     events: EventRingBuffer,
   ): boolean {
-    const fwdX = Math.sin(this.yaw);
-    const fwdZ = -Math.cos(this.yaw);
+    const fwdX = dSin(this.yaw);
+    const fwdZ = -dCos(this.yaw);
 
     // Sample 0.6m ahead
     const checkX = this.pos.x + fwdX * 0.6;
@@ -530,13 +531,13 @@ export class PlayerMotor {
     const progress = Math.min(1.0, this.mantle.timer / this.mantle.duration);
 
     // Ease-in-out quadratic curve
-    const t = progress < 0.5 ? 2 * progress * progress : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+    const t = progress < 0.5 ? 2 * progress * progress : 1 - dPow(-2 * progress + 2, 2) / 2;
 
     this.pos.x = this.mantle.from.x + (this.mantle.to.x - this.mantle.from.x) * t;
     this.pos.z = this.mantle.from.z + (this.mantle.to.z - this.mantle.from.z) * t;
 
     // Arc upward then settle
-    const arcLift = Math.sin(progress * Math.PI) * 0.25;
+    const arcLift = dSin(progress * D_PI) * 0.25;
     this.pos.y = this.mantle.from.y + (this.mantle.to.y - this.mantle.from.y) * t + arcLift;
 
     if (progress >= 1.0) {

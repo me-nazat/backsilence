@@ -5,6 +5,7 @@
  * ──────────────────────────────────────────────────────────────────────── */
 
 import type { Vec3 } from '../types/contracts.js';
+import { dHypot, dCos, D_HALF_PI } from './dmath.js';
 
 export interface MaskZone {
   id: string;
@@ -70,13 +71,13 @@ export class FlowField {
       const projZ = a.z + t * segDz;
 
       // Lateral distance from river centerline
-      const distToCenter = Math.hypot(x - projX, z - projZ);
+      const distToCenter = dHypot(x - projX, z - projZ);
       const halfWidth = (a.width + (b.width - a.width) * t) * 0.5;
 
       if (distToCenter < halfWidth) {
         // Smooth lateral falloff (cosine / smoothstep bell curve)
         const u = distToCenter / halfWidth;
-        const lateralFactor = Math.cos(u * Math.PI * 0.5);
+        const lateralFactor = dCos(u * D_HALF_PI);
 
         // Interpolated speed along segment
         const speed = (a.speed + (b.speed - a.speed) * t) * lateralFactor;
@@ -106,7 +107,7 @@ export class FlowField {
     let factor = 1.0;
     for (let i = 0; i < this.maskZones.length; i++) {
       const zone = this.maskZones[i]!;
-      const dist = Math.hypot(x - zone.cx, z - zone.cz);
+      const dist = dHypot(x - zone.cx, z - zone.cz);
       if (dist < zone.radius) {
         // Smooth falloff from center (zone.factor) to boundary (1.0)
         const u = dist / zone.radius;

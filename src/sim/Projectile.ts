@@ -7,6 +7,7 @@
 import type { Vec3 } from '../types/contracts.js';
 import type { GroundGrid } from './GroundGrid.js';
 import type { ColliderSet } from './Colliders.js';
+import { dSin, dCos } from './dmath.js';
 
 export type ProjectileKind = 'pebble' | 'noisemaker' | 'emp' | 'bottle';
 
@@ -51,10 +52,10 @@ export class ProjectileSystem {
     const speed = this.MIN_SPEED + t * (this.MAX_SPEED - this.MIN_SPEED);
 
     // Direction vector from yaw & pitch
-    const cosPitch = Math.cos(pitch);
-    const sinPitch = Math.sin(pitch);
-    const sinYaw = Math.sin(yaw);
-    const cosYaw = Math.cos(yaw);
+    const cosPitch = dCos(pitch);
+    const sinPitch = dSin(pitch);
+    const sinYaw = dSin(yaw);
+    const cosYaw = dCos(yaw);
 
     const dirX = -sinYaw * cosPitch;
     const dirY = sinPitch;

@@ -5,6 +5,7 @@
  * ──────────────────────────────────────────────────────────────────────── */
 
 import type { NavGrid } from './NavGrid.js';
+import { dHypot } from './dmath.js';
 
 export interface PathPoint {
   x: number;
@@ -49,8 +50,8 @@ export class AStarPathfinder {
     maxExpansions = 2000,
   ): PathPoint[] {
     // 1. Check if cached path can be reused (target moved < 2m and start moved < 1.5m)
-    const targetMoveDist = Math.hypot(targetX - this.lastTargetX, targetZ - this.lastTargetZ);
-    const startMoveDist = Math.hypot(startX - this.lastStartX, startZ - this.lastStartZ);
+    const targetMoveDist = dHypot(targetX - this.lastTargetX, targetZ - this.lastTargetZ);
+    const startMoveDist = dHypot(startX - this.lastStartX, startZ - this.lastStartZ);
     if (this.cachedPath.length > 0 && targetMoveDist < 2.0 && startMoveDist < 1.5) {
       return this.cachedPath;
     }
