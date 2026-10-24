@@ -37,3 +37,10 @@ jobs:
           TURSO_DATABASE_URL: ${{ secrets.TURSO_DATABASE_URL }}
           TURSO_AUTH_TOKEN: ${{ secrets.TURSO_AUTH_TOKEN }}
           ADMIN_JOB_TOKEN: ${{ secrets.ADMIN_JOB_TOKEN }}
+
+      - name: Database Cleanup (Stale Rooms, Signals, Nonces)
+        run: node scripts/cleanup.mjs
+        env:
+          TURSO_DATABASE_URL: ${{ secrets.TURSO_DATABASE_URL }}
+          TURSO_AUTH_TOKEN: ${{ secrets.TURSO_AUTH_TOKEN }}
+          ADMIN_JOB_TOKEN: ${{ secrets.ADMIN_JOB_TOKEN }}

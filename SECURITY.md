@@ -29,9 +29,19 @@ The database `backsilence-mewho` was previously exposed in a communication chann
 3. **Configuring the New Token:**
    - **DO NOT** place the new token in `.env`, `.env.local`, or any `VITE_*` variable.
    - Set the token **only** in server-side environment variables on your serverless hosting platform:
+     - Cloudflare Pages: `wrangler pages secret put TURSO_AUTH_TOKEN` (and `wrangler pages secret put TURSO_DATABASE_URL`)
      - Cloudflare Workers: `wrangler secret put TURSO_AUTH_TOKEN`
      - Vercel: Project Settings → Environment Variables → `TURSO_AUTH_TOKEN` (Production & Preview, Server only)
      - Netlify: Site Configuration → Environment Variables → `TURSO_AUTH_TOKEN`
+
+4. **Scanning Git History for Leaked Credentials:**
+   ```bash
+   # Scan git history for any previous token occurrences
+   git log -S "libsql:" --all
+   git log -S "eyJ" --all
+   # Or using git filter-repo / BFG if scrubbing a repository:
+   # bfg --replace-text compromised-credentials.txt
+   ```
 
 ---
 
@@ -49,7 +59,7 @@ The database `backsilence-mewho` was previously exposed in a communication chann
                  ▼
 ┌─────────────────────────────────┐
 │    Serverless Edge API Proxy    │
-│  (Cloudflare / Vercel / Netlify)│
+│  (Cloudflare Pages Functions)   │
 │  - Holds TURSO_DATABASE_URL     │
 │  - Holds TURSO_AUTH_TOKEN       │
 │  - Strict parameterized queries │
@@ -62,13 +72,14 @@ The database `backsilence-mewho` was previously exposed in a communication chann
 │       Turso (libSQL Cloud)      │
 │  - players, runs, champions     │
 │  - rooms, room_players, signals │
+│  - nonces, reports, rate_limits │
 └─────────────────────────────────┘
 ```
 
 ### Key Architectural Safeguards:
 1. **Parameterized Statements Only:**
    - The proxy communicates with Turso exclusively using the HTTP pipeline API (`/v2/pipeline`).
-   - Every SQL statement is strict, parameterized, and hardcoded in server handlers. Zero dynamic string concatenation is allowed.
+   - Every SQL statement is strict, parameterized, and hardcoded in server handlers. Zero dynamic string concatenation is allowed. No libSQL SDK is imported.
 2. **CORS Restrictions:**
    - All `/api/*` endpoints strictly validate `Origin` against `ALLOWED_ORIGINS`.
 3. **Sliding Window Rate Limiting:**
@@ -79,21 +90,26 @@ The database `backsilence-mewho` was previously exposed in a communication chann
 
 ---
 
-## 3. Cryptographic Identity (Accounts-Lite)
+## 3. Cryptographic Identity & Key Extractability Trade-off
 
 BackSilence uses passwordless, email-free cryptographic identity:
-- **Client Keypair:** On first boot, the browser generates an ECDSA P-256 keypair via `window.crypto.subtle` stored in IndexedDB as non-extractable.
+- **Client Keypair:** On first boot, the browser generates an ECDSA P-256 keypair via `window.crypto.subtle` stored in IndexedDB.
+- **Key Extractability Trade-off:**
+  - In earlier drafts, the key was described as both "non-extractable" and "exportable for a recovery code", which are mutually exclusive in the WebCrypto API.
+  - To support encrypted cross-device identity recovery codes, the private key is generated with `extractable: true`.
+  - **Mitigation & Protection:** The attack surface is protected by a strict Content Security Policy (`script-src 'self'`), zero third-party scripts, zero runtime npm dependencies (other than Three.js), and complete prohibition of `'unsafe-eval'`. XSS vectors that could extract raw keys are prevented by design.
 - **Player ID:** Derived as `base64url(SHA-256(JWK(publicKey))).substring(0, 16)`.
 - **Request Signing:** Every state-mutating request includes:
   - `X-BS-Player`: The sender's `player_id`.
   - `X-BS-Ts`: Current Unix timestamp in seconds.
   - `X-BS-Nonce`: Cryptographic random string.
   - `X-BS-Sig`: ECDSA P-256 signature over `${METHOD}\n${PATH}\n${sha256(body)}\n${ts}\n${nonce}`.
-- **Replay Protection:** The proxy strictly rejects any request where `|server_ts - X-BS-Ts| > 120s` or where a nonce is reused within the window.
+- **Replay Protection:** The proxy strictly rejects any request where `|server_ts - X-BS-Ts| > 120s` or where a nonce has been used previously (recorded in `nonces` table with 5-minute TTL).
 
 ### Identity Recovery Protocol:
 - Players can export an encrypted **Recovery Code** from their Operator Profile.
-- The exported JWK is encrypted with a user-chosen passphrase using **PBKDF2 (100,000 iterations of SHA-256) + AES-GCM (256-bit)**.
+- The exported JWK is encrypted with a user-chosen passphrase using **PBKDF2 (600,000 iterations of SHA-256) + AES-GCM (256-bit)**.
+- Legacy recovery codes exported under 100,000 iterations are gracefully decrypted via automatic fallback.
 - If both the local device and recovery passphrase are lost, the identity cannot be restored (honest casual-trust posture).
 
 ---
@@ -102,8 +118,9 @@ BackSilence uses passwordless, email-free cryptographic identity:
 
 1. **What the System Guarantees:**
    - **Impersonation Proof:** No player can submit a run or claim a name belonging to another player's public key.
-   - **Replay Determinism:** The top 25 runs on all active boards are evaluated headlessly by `scripts/verify-replays.ts` using `src/sim` and `src/meta/Replay`. Any run whose headless `simHash` or score does not match bit-for-bit is marked `rejected`.
+   - **Replay Determinism:** The top 25 runs on all active boards are evaluated headlessly by `scripts/verify-replays.mjs` using pure simulation. Any run whose headless `simHash` or score does not match bit-for-bit is marked `rejected`.
    - **Physical Feasibility Clamping:** Scores exceeding the mathematical maximum for a map's objectives or times below the physical motor sprint minimum are rejected at submission.
+   - **Automated Moderation:** Names are checked against an offensive substitutions filter. If a player receives 5 distinct player reports, their name is hidden from public boards pending administrative review.
 2. **Honest Limitations:**
    - This is a casual-trust competitive system. It prevents tampering with network packets, but cannot prevent an adversary who builds an external automated bot that executes legitimate motor inputs in the browser.
    - For this reason, runs are displayed with a verification status (`pending`, `verified`, or `rejected`), and community boards allow filtering by verified runs only.
@@ -112,5 +129,6 @@ BackSilence uses passwordless, email-free cryptographic identity:
 
 ## 5. Secret Scanning & Audit
 
-- The automated bundle audit (`scripts/audit-bundle.mjs`) scans all files in `dist/` on every build and **fails the pipeline** if any file contains `libsql://` or `eyJ`-style JWT tokens.
+- The automated bundle audit (`scripts/audit-bundle.mjs`) scans all files in `dist/` on every build and **fails the pipeline** if any file contains `libsql`, `Bearer`, or `eyJ`-style JWT tokens.
 - The workspace secret scanner (`scripts/secret-scan.mjs`) executes as part of `npm run verify` to ensure zero credentials exist across git commits and workspace files.
+

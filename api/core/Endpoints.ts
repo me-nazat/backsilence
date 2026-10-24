@@ -206,6 +206,73 @@ export async function handleApiRequest(req: Request, env: ServerEnv): Promise<Re
       return json(res.rows[0], 200, corsHeaders);
     }
 
+    // ── PLAYER DATA EXPORT (GDPR / Privacy) ─────────────────────────────────
+    if (pathname === '/player/export' && req.method === 'POST') {
+      const bodyText = await req.text();
+      const body = JSON.parse(bodyText || '{}') as { player_id?: string };
+      const playerId = req.headers.get('X-BS-Player') || body.player_id;
+
+      if (!playerId) {
+        return errorJson('Missing player_id', 400, corsHeaders);
+      }
+
+      const pRes = await TursoClient.query('SELECT * FROM players WHERE player_id = ?', [playerId], env);
+      if (pRes.rows.length === 0) {
+        return errorJson('Player not found', 404, corsHeaders);
+      }
+
+      // Cryptographic signature verification
+      const pubkey = String(pRes.rows[0]?.['pubkey']);
+      const sigVerify = await verifyRequestSignature(req.method, pathname, bodyText, req.headers, pubkey);
+      if (!sigVerify.valid) {
+        return errorJson(`Signature verification rejected: ${sigVerify.reason}`, 401, corsHeaders);
+      }
+
+      const runsRes = await TursoClient.query('SELECT * FROM runs WHERE player_id = ?', [playerId], env);
+      const reportsRes = await TursoClient.query('SELECT * FROM reports WHERE reporter_id = ?', [playerId], env);
+
+      return json({
+        player: pRes.rows[0],
+        runs: runsRes.rows,
+        reports: reportsRes.rows,
+        exported_at: Math.floor(Date.now() / 1000),
+      }, 200, corsHeaders);
+    }
+
+    // ── PLAYER DATA DELETE (Right to be Forgotten) ──────────────────────────
+    if (pathname === '/player/delete' && req.method === 'POST') {
+      const bodyText = await req.text();
+      const body = JSON.parse(bodyText || '{}') as { player_id?: string };
+      const playerId = req.headers.get('X-BS-Player') || body.player_id;
+
+      if (!playerId) {
+        return errorJson('Missing player_id', 400, corsHeaders);
+      }
+
+      const pRes = await TursoClient.query('SELECT * FROM players WHERE player_id = ?', [playerId], env);
+      if (pRes.rows.length === 0) {
+        return errorJson('Player not found', 404, corsHeaders);
+      }
+
+      // Cryptographic signature verification
+      const pubkey = String(pRes.rows[0]?.['pubkey']);
+      const sigVerify = await verifyRequestSignature(req.method, pathname, bodyText, req.headers, pubkey);
+      if (!sigVerify.valid) {
+        return errorJson(`Signature verification rejected: ${sigVerify.reason}`, 401, corsHeaders);
+      }
+
+      // Erase player row and anonymize runs
+      await TursoClient.query('DELETE FROM players WHERE player_id = ?', [playerId], env);
+      await TursoClient.query("UPDATE runs SET player_id = 'ANONYMOUS' WHERE player_id = ?", [playerId], env);
+
+      return json({
+        success: true,
+        deleted: true,
+        player_id: playerId,
+        message: 'Player identity and identifying records erased.',
+      }, 200, corsHeaders);
+    }
+
     // ── SUBMIT RUN ──────────────────────────────────────────────────────────
     if (pathname === '/run/submit' && req.method === 'POST') {
       const bodyText = await req.text();
@@ -342,6 +409,31 @@ export async function handleApiRequest(req: Request, env: ServerEnv): Promise<Re
 
       sql += ' ORDER BY score DESC, time_ms ASC LIMIT ?';
       params.push(limit);
+
+      const around = url.searchParams.get('around');
+      if (around) {
+        // Query window centered around player
+        const aroundSql = sql.replace('LIMIT ?', 'LIMIT 200');
+        const aroundParams = params.slice(0, -1);
+        aroundParams.push(200);
+        const res = await TursoClient.query(aroundSql, aroundParams, env);
+        const allRows = res.rows.map((r, idx) => ({
+          ...r,
+          rank: idx + 1,
+          runId: r.run_id ?? r.runId,
+          playerId: r.player_id ?? r.playerId,
+          mapId: r.map_id ?? r.mapId,
+          timeMs: r.time_ms ?? r.timeMs,
+          noiseUnits: r.noise_units ?? r.noiseUnits,
+        }));
+        const targetIdx = allRows.findIndex((r) => r.playerId === around);
+        if (targetIdx >= 0) {
+          const half = Math.floor(limit / 2);
+          const start = Math.max(0, targetIdx - half);
+          const slice = allRows.slice(start, start + limit);
+          return json({ board, around, playerRank: targetIdx + 1, count: slice.length, entries: slice, runs: slice }, 200, corsHeaders);
+        }
+      }
 
       const res = await TursoClient.query(sql, params, env);
       const rows = res.rows.map((r) => ({
@@ -482,6 +574,225 @@ export async function handleApiRequest(req: Request, env: ServerEnv): Promise<Re
       );
 
       return json({ ok: true, signals: res.rows }, 200, corsHeaders);
+    }
+
+    // ── ROOM LEAVE ──────────────────────────────────────────────────────────
+    if (pathname === '/room/leave' && req.method === 'POST') {
+      const body = (await req.json()) as { code?: string; playerId?: string; player_id?: string };
+      const code = (body.code || '').toUpperCase();
+      const playerId = body.playerId || body.player_id || '';
+      if (!code || !playerId) return errorJson('Missing room code or playerId', 400, corsHeaders);
+
+      await TursoClient.query('DELETE FROM room_players WHERE room_code = ? AND player_id = ?', [code, playerId], env);
+      const roomRes = await TursoClient.query('SELECT host_id FROM backsilence_rooms WHERE code = ?', [code], env);
+      if (roomRes.rows.length > 0 && String(roomRes.rows[0]?.['host_id']) === playerId) {
+        await TursoClient.query('DELETE FROM backsilence_rooms WHERE code = ?', [code], env);
+      }
+      return json({ success: true, ok: true }, 200, corsHeaders);
+    }
+
+    // ── ROOM READY ──────────────────────────────────────────────────────────
+    if (pathname === '/room/ready' && req.method === 'POST') {
+      const body = (await req.json()) as { code?: string; playerId?: string; player_id?: string; ready?: boolean };
+      const code = (body.code || '').toUpperCase();
+      const playerId = body.playerId || body.player_id || '';
+      const ready = body.ready ?? true;
+      if (!code || !playerId) return errorJson('Missing room code or playerId', 400, corsHeaders);
+
+      await TursoClient.query('UPDATE room_players SET ready = ? WHERE room_code = ? AND player_id = ?', [ready ? 1 : 0, code, playerId], env);
+      return json({ success: true, ok: true, ready }, 200, corsHeaders);
+    }
+
+    // ── ROOM START ──────────────────────────────────────────────────────────
+    if (pathname === '/room/start' && req.method === 'POST') {
+      const body = (await req.json()) as { code?: string; hostId?: string; host_id?: string };
+      const code = (body.code || '').toUpperCase();
+      const hostId = body.hostId || body.host_id || '';
+      if (!code || !hostId) return errorJson('Missing room code or hostId', 400, corsHeaders);
+
+      const rm = await TursoClient.query('SELECT host_id FROM backsilence_rooms WHERE code = ?', [code], env);
+      if (rm.rows.length === 0) return errorJson('Room not found', 404, corsHeaders);
+      if (String(rm.rows[0]?.['host_id']) !== hostId) return errorJson('Only host can start room', 403, corsHeaders);
+
+      await TursoClient.query("UPDATE backsilence_rooms SET state = 'playing' WHERE code = ?", [code], env);
+      return json({ success: true, ok: true, state: 'playing' }, 200, corsHeaders);
+    }
+
+    // ── ROOM KICK ───────────────────────────────────────────────────────────
+    if (pathname === '/room/kick' && req.method === 'POST') {
+      const body = (await req.json()) as { code?: string; hostId?: string; host_id?: string; targetId?: string; target_id?: string };
+      const code = (body.code || '').toUpperCase();
+      const hostId = body.hostId || body.host_id || '';
+      const targetId = body.targetId || body.target_id || '';
+      if (!code || !hostId || !targetId) return errorJson('Missing parameters', 400, corsHeaders);
+
+      const rm = await TursoClient.query('SELECT host_id FROM backsilence_rooms WHERE code = ?', [code], env);
+      if (rm.rows.length === 0) return errorJson('Room not found', 404, corsHeaders);
+      if (String(rm.rows[0]?.['host_id']) !== hostId) return errorJson('Only host can kick players', 403, corsHeaders);
+
+      await TursoClient.query('DELETE FROM room_players WHERE room_code = ? AND player_id = ?', [code, targetId], env);
+      return json({ success: true, ok: true, kicked: targetId }, 200, corsHeaders);
+    }
+
+    // ── ROOM QUICK PLAY (Matchmaking) ───────────────────────────────────────
+    if (pathname === '/room/quick' && req.method === 'POST') {
+      const body = (await req.json()) as {
+        mode?: string;
+        map_id?: string;
+        mapId?: string;
+        playerId?: string;
+        player_id?: string;
+        playerName?: string;
+        name?: string;
+        playerTag?: string;
+      };
+      const mode = body.mode || 'coop';
+      const now = Math.floor(Date.now() / 1000);
+
+      // Search for available open public rooms
+      const openRooms = await TursoClient.query('SELECT * FROM backsilence_rooms WHERE public = 1 AND expires_at > ?', [now], env);
+      const match = openRooms.rows.find((r) => {
+        const roomMode = typeof r['mode'] === 'string' ? r['mode'] : 'coop';
+        const roomState = typeof r['state'] === 'string' ? r['state'] : 'waiting';
+        return roomMode === mode && roomState === 'waiting';
+      });
+
+      if (match) {
+        const code = typeof match['code'] === 'string' ? match['code'] : '';
+        const mapId = typeof match['map_id'] === 'string' ? match['map_id'] : '';
+        const seed = typeof match['seed'] === 'number' ? match['seed'] : 0;
+        const hostId = typeof match['host_id'] === 'string' ? match['host_id'] : '';
+        return json({
+          success: true,
+          ok: true,
+          code,
+          created: false,
+          room: {
+            code,
+            mapId,
+            seed,
+            hostId,
+            mode,
+            state: 'waiting',
+          },
+        }, 200, corsHeaders);
+      }
+
+      // No open room found, automatically create one
+      const code = Math.random().toString(36).substring(2, 8).toUpperCase();
+      const mapId = body.map_id || body.mapId || 'natatorium';
+      const seed = Date.now();
+      const hostId = body.playerId || body.player_id || 'host';
+      const expires = now + 6 * 3600;
+
+      await TursoClient.query(
+        'INSERT INTO backsilence_rooms (code, map_id, seed, max_players, host_id, public, mode, created_at, expires_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [code, mapId, seed, 4, hostId, 1, mode, now, expires],
+        env,
+      );
+
+      return json({
+        success: true,
+        ok: true,
+        code,
+        created: true,
+        room: {
+          code,
+          mapId,
+          seed,
+          hostId,
+          mode,
+          state: 'waiting',
+        },
+      }, 201, corsHeaders);
+    }
+
+    // ── ICE SERVERS CONFIGURATION ───────────────────────────────────────────
+    if (pathname === '/ice' && req.method === 'GET') {
+      if (env.TURN_URL && env.TURN_USERNAME && env.TURN_CREDENTIAL) {
+        return json({
+          iceServers: [
+            { urls: 'stun:stun.l.google.com:19302' },
+            { urls: env.TURN_URL, username: env.TURN_USERNAME, credential: env.TURN_CREDENTIAL },
+          ],
+          relayAvailable: true,
+        }, 200, corsHeaders);
+      }
+      return json({
+        iceServers: [
+          { urls: 'stun:stun.l.google.com:19302' },
+          { urls: 'stun:stun1.l.google.com:19302' },
+        ],
+        relayAvailable: false,
+        notice: 'STUN-only fallback: direct connection requires non-symmetric NAT. Set TURN credentials on server for full relay support.',
+      }, 200, corsHeaders);
+    }
+
+    // ── MODERATION: REPORT PLAYER ───────────────────────────────────────────
+    if (pathname === '/report' && req.method === 'POST') {
+      const bodyText = await req.text();
+      const body = JSON.parse(bodyText || '{}') as {
+        reporter_id?: string;
+        target_id?: string;
+        kind?: string;
+        note?: string;
+      };
+      const reporterId = req.headers.get('X-BS-Player') || body.reporter_id;
+      const targetId = body.target_id;
+      const kind = body.kind;
+
+      if (!reporterId || !targetId || !kind) {
+        return errorJson('Missing reporter_id, target_id, or kind', 400, corsHeaders);
+      }
+
+      if (reporterId === targetId) {
+        return errorJson('Cannot report self', 400, corsHeaders);
+      }
+
+      const repRes = await TursoClient.query('SELECT pubkey, banned FROM players WHERE player_id = ?', [reporterId], env);
+      if (repRes.rows.length === 0) {
+        return errorJson('Reporter player not registered', 404, corsHeaders);
+      }
+      if (Number(repRes.rows[0]?.['banned']) === 1) {
+        return errorJson('Reporter account is suspended', 403, corsHeaders);
+      }
+
+      if (req.headers.has('X-BS-Sig') || req.headers.has('x-bs-sig')) {
+        const pubkey = String(repRes.rows[0]?.['pubkey']);
+        const sigVerify = await verifyRequestSignature(req.method, pathname, bodyText, req.headers, pubkey);
+        if (!sigVerify.valid) {
+          return errorJson(`Signature verification rejected: ${sigVerify.reason}`, 401, corsHeaders);
+        }
+      }
+
+      const reportId = 'rep_' + Math.random().toString(36).substring(2, 10);
+      const now = Math.floor(Date.now() / 1000);
+
+      await TursoClient.query(
+        'INSERT INTO reports (report_id, reporter_id, target_id, kind, note, created_at) VALUES (?, ?, ?, ?, ?, ?)',
+        [reportId, reporterId, targetId, kind, body.note || '', now],
+        env,
+      );
+
+      // Check distinct reporter count: after 5 distinct reports, name is hidden until reviewed
+      const countRes = await TursoClient.query(
+        'SELECT COUNT(DISTINCT reporter_id) as count FROM reports WHERE target_id = ?',
+        [targetId],
+        env,
+      );
+      const count = Number(countRes.rows[0]?.['count'] ?? 1);
+      let nameHidden = false;
+      if (count >= 5) {
+        await TursoClient.query("UPDATE players SET name = '[FLAGGED_FOR_REVIEW]' WHERE player_id = ?", [targetId], env);
+        nameHidden = true;
+      }
+
+      return json({
+        success: true,
+        report_id: reportId,
+        distinct_reports: count,
+        nameHidden,
+      }, 201, corsHeaders);
     }
 
     return errorJson(`Endpoint not found: ${req.method} ${pathname}`, 404, corsHeaders);

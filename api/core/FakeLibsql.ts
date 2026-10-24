@@ -5,7 +5,7 @@
  *  2. Local dev proxy (npm run dev:api) when running without live Turso secrets
  * ──────────────────────────────────────────────────────────────────────── */
 
-import type { PlayerRecord, RunRecord, ChampionRecord, RoomRecord, SignalRecord } from './Types.js';
+import type { PlayerRecord, RunRecord, ChampionRecord, RoomRecord, SignalRecord, ReportRecord } from './Types.js';
 
 export class FakeLibsql {
   private static defaultInstance: FakeLibsql | null = null;
@@ -26,12 +26,13 @@ export class FakeLibsql {
   readonly champions = new Map<string, ChampionRecord>();
   readonly rateLimits = new Map<string, { count: number; window: number }>();
   readonly rooms = new Map<string, RoomRecord>();
-  readonly roomPlayers = new Map<string, Array<{ id: string; name: string; joined_at: number }>>();
+  readonly roomPlayers = new Map<string, Array<{ id: string; name: string; tag?: string; ready: boolean; joined_at: number }>>();
   readonly signals: SignalRecord[] = [];
+  readonly reports = new Map<string, ReportRecord>();
+  readonly nonces = new Map<string, number>();
   private nextSignalId = 1;
 
   reset(): void {
-
     this.players.clear();
     this.runs.clear();
     this.champions.clear();
@@ -39,6 +40,8 @@ export class FakeLibsql {
     this.rooms.clear();
     this.roomPlayers.clear();
     this.signals.length = 0;
+    this.reports.clear();
+    this.nonces.clear();
     this.nextSignalId = 1;
   }
 
@@ -134,13 +137,55 @@ export class FakeLibsql {
         return { rows: entry ? [{ count: entry.count }] : [], rowsAffected: 0 };
       }
 
-      if (upper.includes('FROM BACKSILENCE_ROOMS') && upper.includes('WHERE CODE = ?')) {
-        const code = String(params[0]);
-        const room = this.rooms.get(code);
-        return { rows: room ? [{ ...room }] : [], rowsAffected: 0 };
+      if (upper.includes('FROM NONCES') && upper.includes('WHERE NONCE = ?')) {
+        const n = String(params[0]);
+        const exp = this.nonces.get(n);
+        return { rows: exp && exp > Math.floor(Date.now() / 1000) ? [{ nonce: n, expires_at: exp }] : [], rowsAffected: 0 };
       }
 
-      if (upper.includes('FROM BACKSILENCE_SIGNALS')) {
+      if (upper.includes('FROM REPORTS')) {
+        if (upper.includes('COUNT(DISTINCT REPORTER_ID)')) {
+          const targetId = String(params[0]);
+          const distinct = new Set(
+            Array.from(this.reports.values())
+              .filter((r) => r.target_id === targetId)
+              .map((r) => r.reporter_id),
+          );
+          return { rows: [{ count: distinct.size }], rowsAffected: 0 };
+        }
+        if (upper.includes('WHERE REPORTER_ID = ?')) {
+          const repId = String(params[0]);
+          const list = Array.from(this.reports.values()).filter((r) => r.reporter_id === repId);
+          return { rows: list.map((r) => ({ ...r })), rowsAffected: 0 };
+        }
+        if (upper.includes('WHERE TARGET_ID = ?')) {
+          const tgtId = String(params[0]);
+          const list = Array.from(this.reports.values()).filter((r) => r.target_id === tgtId);
+          return { rows: list.map((r) => ({ ...r })), rowsAffected: 0 };
+        }
+        return { rows: Array.from(this.reports.values()).map((r) => ({ ...r })), rowsAffected: 0 };
+      }
+
+      if (upper.includes('FROM RUNS') && upper.includes('WHERE PLAYER_ID = ?')) {
+        const pid = String(params[0]);
+        const list = Array.from(this.runs.values()).filter((r) => r.player_id === pid);
+        return { rows: list.map((r) => ({ ...r })), rowsAffected: 0 };
+      }
+
+      if (upper.includes('FROM BACKSILENCE_ROOMS') || upper.includes('FROM ROOMS')) {
+        if (upper.includes('PUBLIC = 1')) {
+          const now = Math.floor(Date.now() / 1000);
+          const list = Array.from(this.rooms.values()).filter((r) => (r.public === 1) && (r.state ?? 'waiting') === 'waiting' && r.expires_at > now);
+          return { rows: list.map((r) => ({ ...r })), rowsAffected: 0 };
+        }
+        if (upper.includes('WHERE CODE = ?')) {
+          const code = String(params[0]);
+          const room = this.rooms.get(code);
+          return { rows: room ? [{ ...room }] : [], rowsAffected: 0 };
+        }
+      }
+
+      if (upper.includes('FROM BACKSILENCE_SIGNALS') || upper.includes('FROM SIGNALS')) {
         const roomCode = String(params[0]);
         const afterId = Number(params[1]) || 0;
         const matching = this.signals
@@ -149,11 +194,35 @@ export class FakeLibsql {
         return { rows: matching, rowsAffected: 0 };
       }
 
+      if (upper.includes('FROM ROOM_PLAYERS') || upper.includes('FROM BACKSILENCE_ROOM_PLAYERS')) {
+        const code = String(params[0]);
+        const list = this.roomPlayers.get(code) || [];
+        return { rows: list.map((p) => ({ ...p, room_code: code, player_id: p.id })), rowsAffected: 0 };
+      }
+
       return { rows: [], rowsAffected: 0 };
     }
 
     // ── INSERT / UPSERT ─────────────────────────────────────────────────────
     if (upper.startsWith('INSERT') || upper.startsWith('REPLACE')) {
+      if (upper.includes('INTO NONCES')) {
+        this.nonces.set(String(params[0]), Number(params[1]));
+        return { rows: [], rowsAffected: 1 };
+      }
+
+      if (upper.includes('INTO REPORTS')) {
+        const rep: ReportRecord = {
+          report_id: String(params[0]),
+          reporter_id: String(params[1]),
+          target_id: String(params[2]),
+          kind: String(params[3]),
+          note: String(params[4] ?? ''),
+          created_at: Number(params[5]),
+        };
+        this.reports.set(rep.report_id, rep);
+        return { rows: [], rowsAffected: 1 };
+      }
+
       if (upper.includes('INTO PLAYERS')) {
         const p: PlayerRecord = {
           player_id: String(params[0]),
@@ -217,21 +286,24 @@ export class FakeLibsql {
         return { rows: [], rowsAffected: 1 };
       }
 
-      if (upper.includes('INTO BACKSILENCE_ROOMS')) {
+      if (upper.includes('INTO BACKSILENCE_ROOMS') || upper.includes('INTO ROOMS')) {
         const rm: RoomRecord = {
           code: String(params[0]),
           map_id: String(params[1]),
           seed: Number(params[2]),
           max_players: Number(params[3]),
           host_id: String(params[4]),
-          created_at: Number(params[5]),
-          expires_at: Number(params[6]),
+          public: Number(params[5] ?? 0),
+          mode: String(params[6] ?? 'coop'),
+          state: 'waiting',
+          created_at: Number(params[7] ?? Math.floor(Date.now() / 1000)),
+          expires_at: Number(params[8] ?? Math.floor(Date.now() / 1000) + 21600),
         };
         this.rooms.set(rm.code, rm);
         return { rows: [], rowsAffected: 1 };
       }
 
-      if (upper.includes('INTO BACKSILENCE_SIGNALS')) {
+      if (upper.includes('INTO BACKSILENCE_SIGNALS') || upper.includes('INTO SIGNALS')) {
         const sig: SignalRecord = {
           id: this.nextSignalId++,
           room_code: String(params[0]),
@@ -241,6 +313,27 @@ export class FakeLibsql {
           created_at: Number(params[4]),
         };
         this.signals.push(sig);
+        return { rows: [], rowsAffected: 1 };
+      }
+
+      if (upper.includes('INTO ROOM_PLAYERS') || upper.includes('INTO BACKSILENCE_ROOM_PLAYERS')) {
+        const code = String(params[0]);
+        const pid = String(params[1]);
+        const name = String(params[2]);
+        const tag = String(params[3] ?? '0001');
+        const ready = Number(params[4] ?? 0) === 1;
+        const now = Number(params[5] ?? Math.floor(Date.now() / 1000));
+        let list = this.roomPlayers.get(code);
+        if (!list) {
+          list = [];
+          this.roomPlayers.set(code, list);
+        }
+        const idx = list.findIndex((p) => p.id === pid);
+        if (idx >= 0) {
+          list[idx] = { id: pid, name, tag, ready, joined_at: now };
+        } else {
+          list.push({ id: pid, name, tag, ready, joined_at: now });
+        }
         return { rows: [], rowsAffected: 1 };
       }
     }
@@ -258,6 +351,17 @@ export class FakeLibsql {
         return { rows: [], rowsAffected: 0 };
       }
 
+      if (upper.includes('PLAYERS SET BANNED = ?') && upper.includes('WHERE PLAYER_ID = ?')) {
+        const banned = Number(params[0]);
+        const id = String(params[1]);
+        const p = this.players.get(id);
+        if (p) {
+          p.banned = banned;
+          return { rows: [], rowsAffected: 1 };
+        }
+        return { rows: [], rowsAffected: 0 };
+      }
+
       if (upper.includes('RUNS SET STATUS = ?') && upper.includes('WHERE RUN_ID = ?')) {
         const status = params[0] as 'pending' | 'verified' | 'rejected';
         const id = String(params[1]);
@@ -268,16 +372,89 @@ export class FakeLibsql {
         }
         return { rows: [], rowsAffected: 0 };
       }
+
+      if (upper.includes('RUNS SET PLAYER_ID') && upper.includes('WHERE PLAYER_ID = ?')) {
+        const newPid = String(params[0] ?? 'ANONYMOUS');
+        const oldPid = String(params[1] ?? params[0]);
+        let affected = 0;
+        for (const r of this.runs.values()) {
+          if (r.player_id === oldPid) {
+            r.player_id = newPid;
+            affected++;
+          }
+        }
+        return { rows: [], rowsAffected: affected };
+      }
+
+      if (upper.includes('ROOMS SET STATE = ?') && upper.includes('WHERE CODE = ?')) {
+        const state = String(params[0]) as RoomRecord['state'];
+        const code = String(params[1]);
+        const rm = this.rooms.get(code);
+        if (rm) {
+          rm.state = state;
+          return { rows: [], rowsAffected: 1 };
+        }
+        return { rows: [], rowsAffected: 0 };
+      }
+
+      if (upper.includes('ROOM_PLAYERS SET READY = ?') && upper.includes('WHERE ROOM_CODE = ? AND PLAYER_ID = ?')) {
+        const ready = Number(params[0]) === 1;
+        const code = String(params[1]);
+        const pid = String(params[2]);
+        const list = this.roomPlayers.get(code);
+        if (list) {
+          const p = list.find((x) => x.id === pid);
+          if (p) {
+            p.ready = ready;
+            return { rows: [], rowsAffected: 1 };
+          }
+        }
+        return { rows: [], rowsAffected: 0 };
+      }
     }
 
     // ── DELETE ──────────────────────────────────────────────────────────────
     if (upper.startsWith('DELETE')) {
-      if (upper.includes('FROM BACKSILENCE_ROOMS WHERE CODE = ?')) {
-        const code = String(params[0]);
-        const deleted = this.rooms.delete(code);
+      if (upper.includes('FROM PLAYERS WHERE PLAYER_ID = ?')) {
+        const id = String(params[0]);
+        const deleted = this.players.delete(id);
         return { rows: [], rowsAffected: deleted ? 1 : 0 };
       }
-      if (upper.includes('FROM BACKSILENCE_SIGNALS WHERE CREATED_AT < ?')) {
+
+      if (upper.includes('FROM NONCES WHERE EXPIRES_AT < ?')) {
+        const cutoff = Number(params[0]);
+        let count = 0;
+        for (const [n, exp] of this.nonces.entries()) {
+          if (exp < cutoff) {
+            this.nonces.delete(n);
+            count++;
+          }
+        }
+        return { rows: [], rowsAffected: count };
+      }
+
+      if (upper.includes('FROM BACKSILENCE_ROOMS WHERE CODE = ?') || upper.includes('FROM ROOMS WHERE CODE = ?')) {
+        const code = String(params[0]);
+        const deleted = this.rooms.delete(code);
+        this.roomPlayers.delete(code);
+        return { rows: [], rowsAffected: deleted ? 1 : 0 };
+      }
+
+      if (upper.includes('FROM ROOM_PLAYERS WHERE ROOM_CODE = ? AND PLAYER_ID = ?')) {
+        const code = String(params[0]);
+        const pid = String(params[1]);
+        const list = this.roomPlayers.get(code);
+        if (list) {
+          const idx = list.findIndex((p) => p.id === pid);
+          if (idx >= 0) {
+            list.splice(idx, 1);
+            return { rows: [], rowsAffected: 1 };
+          }
+        }
+        return { rows: [], rowsAffected: 0 };
+      }
+
+      if (upper.includes('FROM BACKSILENCE_SIGNALS WHERE CREATED_AT < ?') || upper.includes('FROM SIGNALS WHERE CREATED_AT < ?')) {
         const cutoff = Number(params[0]);
         const initialLen = this.signals.length;
         const kept = this.signals.filter((s) => s.created_at >= cutoff);

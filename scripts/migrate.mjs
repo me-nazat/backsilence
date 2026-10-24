@@ -61,6 +61,20 @@ const DDL_STATEMENTS = [
     PRIMARY KEY (player_id, bucket, window)
   );`,
 
+  `CREATE TABLE IF NOT EXISTS nonces (
+    nonce TEXT PRIMARY KEY,
+    expires_at INTEGER NOT NULL
+  );`,
+
+  `CREATE TABLE IF NOT EXISTS reports (
+    report_id TEXT PRIMARY KEY,
+    reporter_id TEXT NOT NULL,
+    target_id TEXT NOT NULL,
+    kind TEXT NOT NULL,
+    note TEXT,
+    created_at INTEGER NOT NULL
+  );`,
+
   `CREATE TABLE IF NOT EXISTS rooms (
     code TEXT PRIMARY KEY,
     host_id TEXT NOT NULL,
@@ -70,6 +84,8 @@ const DDL_STATEMENTS = [
     max_players INTEGER NOT NULL,
     state TEXT NOT NULL DEFAULT 'lobby',
     protocol INTEGER NOT NULL DEFAULT 1,
+    public INTEGER NOT NULL DEFAULT 0,
+    mode TEXT NOT NULL DEFAULT 'coop',
     created_at INTEGER NOT NULL,
     expires_at INTEGER NOT NULL
   );`,

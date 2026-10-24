@@ -8,6 +8,9 @@ export interface ServerEnv {
   ALLOWED_ORIGINS?: string | undefined;
   SESSION_SECRET?: string | undefined;
   ADMIN_JOB_TOKEN?: string | undefined;
+  TURN_URL?: string | undefined;
+  TURN_USERNAME?: string | undefined;
+  TURN_CREDENTIAL?: string | undefined;
   /** In-memory fake database instance (for testing and offline dev proxy) */
   fakeDb?: unknown | undefined;
 }
@@ -65,6 +68,10 @@ export interface RoomRecord {
   seed: number;
   max_players: number;
   host_id: string;
+  public?: number | undefined;
+  mode?: string | undefined;
+  difficulty?: string | undefined;
+  state?: 'lobby' | 'waiting' | 'playing' | 'closed' | undefined;
   created_at: number;
   expires_at: number;
 }
@@ -76,4 +83,18 @@ export interface SignalRecord {
   type: string;
   payload: string;
   created_at: number;
+}
+
+export interface ReportRecord {
+  report_id: string;
+  reporter_id: string;
+  target_id: string;
+  kind: string;
+  note?: string | undefined;
+  created_at: number;
+}
+
+export interface NonceRecord {
+  nonce: string;
+  expires_at: number;
 }

@@ -37,6 +37,13 @@ async function run() {
   );
   console.log('[cleanup] Cleaned up stale rate limit windows.');
 
+  // 4. Delete expired nonces (expires_at < now)
+  await client.execute(
+    `DELETE FROM nonces WHERE expires_at < ?`,
+    [now],
+  );
+  console.log('[cleanup] Cleaned up expired nonces.');
+
   console.log('[cleanup] Database cleanup cycle complete.');
 }
 

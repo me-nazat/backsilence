@@ -227,7 +227,7 @@ const IdentityManager = {
       {
         name: 'PBKDF2',
         salt,
-        iterations: 100000,
+        iterations: 600000,
         hash: 'SHA-256',
       },
       passKey,
@@ -272,24 +272,45 @@ const IdentityManager = {
       ['deriveKey'],
     );
 
-    const aesKey = await crypto.subtle.deriveKey(
-      {
-        name: 'PBKDF2',
-        salt,
-        iterations: 100000,
-        hash: 'SHA-256',
-      },
-      passKey,
-      { name: 'AES-GCM', length: 256 },
-      false,
-      ['decrypt'],
-    );
-
-    const decryptedBytes = await crypto.subtle.decrypt(
-      { name: 'AES-GCM', iv },
-      aesKey,
-      data,
-    );
+    let decryptedBytes: ArrayBuffer;
+    try {
+      const aesKey = await crypto.subtle.deriveKey(
+        {
+          name: 'PBKDF2',
+          salt,
+          iterations: 600000,
+          hash: 'SHA-256',
+        },
+        passKey,
+        { name: 'AES-GCM', length: 256 },
+        false,
+        ['decrypt'],
+      );
+      decryptedBytes = await crypto.subtle.decrypt(
+        { name: 'AES-GCM', iv },
+        aesKey,
+        data,
+      );
+    } catch {
+      // Fallback for legacy 100,000 iterations
+      const aesKeyFallback = await crypto.subtle.deriveKey(
+        {
+          name: 'PBKDF2',
+          salt,
+          iterations: 100000,
+          hash: 'SHA-256',
+        },
+        passKey,
+        { name: 'AES-GCM', length: 256 },
+        false,
+        ['decrypt'],
+      );
+      decryptedBytes = await crypto.subtle.decrypt(
+        { name: 'AES-GCM', iv },
+        aesKeyFallback,
+        data,
+      );
+    }
 
     const payload = JSON.parse(new TextDecoder().decode(decryptedBytes)) as {
       name: string;
@@ -390,6 +411,23 @@ const IdentityManager = {
     const p = await this.getOrGenerateIdentity();
     return p.publicKeyJwk;
   },
+
+  async clearIdentity(): Promise<void> {
+    this.cachedKeyPair = null;
+    this.cachedProfile = null;
+    try {
+      const db = await openIdb();
+      await new Promise<void>((resolve, reject) => {
+        const tx = db.transaction(STORE_NAME, 'readwrite');
+        const store = tx.objectStore(STORE_NAME);
+        const req = store.delete(KEY_PAIR_ID);
+        req.onsuccess = () => resolve();
+        req.onerror = () => reject(req.error ? new Error(req.error.message) : new Error('IDB delete error'));
+      });
+    } catch {
+      // Ignore if in-memory test
+    }
+  },
 };
 
 export { IdentityManager };
@@ -418,6 +456,9 @@ export const Identity = {
   },
   async importEncryptedRecoveryCode(code: string, passphrase: string): Promise<IdentityProfile> {
     return IdentityManager.importEncryptedRecoveryCode(code, passphrase);
+  },
+  async clearIdentity(): Promise<void> {
+    return IdentityManager.clearIdentity();
   },
 };
 

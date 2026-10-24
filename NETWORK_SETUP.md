@@ -214,9 +214,16 @@ For ultra-low latency snapshot replication (<20ms local/metro), `WebRtcDbAdapter
 - **Unreliable / Unordered**: Used for 15 Hz player positions (`maxRetransmits: 0`).
 - **Reliable / Ordered**: Used for gameplay events, puzzles, and checkpoints.
 - **Signaling**: Exchanged through any configured database (Supabase, Firebase, or Turso) or local memory.
-- **NAT Traversal**: Uses public Google STUN servers (`stun:stun.l.google.com:19302`) by default. For corporate or symmetric NAT environments, configure a TURN server.
+- **NAT Traversal**:
+  - By default, uses public STUN servers (`stun:stun.l.google.com:19302`, `stun:stun1.l.google.com:19302`).
+  - **Honest WebRTC Reality**: With STUN only, a significant portion of players behind symmetric NATs, cellular carrier-grade NATs (CGNAT), or strict corporate firewalls **cannot connect peer-to-peer**.
+  - **The `/api/ice` Endpoint**: Serves ICE server configuration. When server environment variables `TURN_URL`, `TURN_USERNAME`, and `TURN_CREDENTIAL` (e.g. from Twilio Network Traversal or Cloudflare Calls) are configured, `/api/ice` returns secure TURN relay credentials. Without them, it falls back to public STUN servers.
+  - **10-Second Connection Timeout & Relay Warning**: When connecting to a peer, if `RTCPeerConnection` iceConnectionState does not transition to `'connected'` or `'completed'` within 10 seconds, the client displays a clear in-game warning: *"Direct peer connection could not be established through local NAT"* along with an in-game **"relay unavailable"** badge.
+  - **WebSocket Relay Fallback (Optional Cloudflare Durable Object)**: For full relay support when TURN is cost-prohibitive, BackSilence includes an architectural option for a WebSocket relay room on Cloudflare Durable Objects, gated behind feature flag `?ff=relay-do` (cost note: Durable Objects incur active duration charges).
+  - **Verification Status**: Live Turso database connectivity, production TURN relays, and physical cross-NAT mobile handshakes are marked **UNVERIFIED** without live paid credentials and physical multi-network test devices.
 
 ---
+
 
 ## 6. Implementing a Custom Adapter (5-Step Guide)
 
