@@ -1,0 +1,218 @@
+[
+  {
+    "key": "escape_maps",
+    "title": "Archive Evacuation",
+    "description": "Successfully escape from {target} archival runs",
+    "modeEligibility": "any",
+    "targetCounts": { "easy": 1, "medium": 2, "hard": 4 },
+    "rewardStatic": { "easy": 60, "medium": 120, "hard": 250 },
+    "rewardXP": { "easy": 100, "medium": 200, "hard": 450 }
+  },
+  {
+    "key": "low_noise_escape",
+    "title": "Silent Shadow",
+    "description": "Escape with at most {target} acoustic noise events",
+    "modeEligibility": "solo",
+    "targetCounts": { "easy": 4, "medium": 2, "hard": 1 },
+    "rewardStatic": { "easy": 70, "medium": 140, "hard": 300 },
+    "rewardXP": { "easy": 120, "medium": 240, "hard": 500 }
+  },
+  {
+    "key": "clean_jumps",
+    "title": "Trench Acrobat",
+    "description": "Cross {target} trench gaps by jumping cleanly",
+    "modeEligibility": "any",
+    "targetCounts": { "easy": 3, "medium": 6, "hard": 12 },
+    "rewardStatic": { "easy": 50, "medium": 100, "hard": 200 },
+    "rewardXP": { "easy": 80, "medium": 180, "hard": 350 }
+  },
+  {
+    "key": "survive_lurks",
+    "title": "Nerves of Steel",
+    "description": "Perch and survive {target} entity LURK listening phases (>= 8s)",
+    "modeEligibility": "any",
+    "targetCounts": { "easy": 1, "medium": 2, "hard": 4 },
+    "rewardStatic": { "easy": 80, "medium": 160, "hard": 320 },
+    "rewardXP": { "easy": 140, "medium": 280, "hard": 550 }
+  },
+  {
+    "key": "pebble_lures",
+    "title": "Misdirection Protocol",
+    "description": "Lure the entity with pebbles {target} times",
+    "modeEligibility": "any",
+    "targetCounts": { "easy": 2, "medium": 4, "hard": 8 },
+    "rewardStatic": { "easy": 50, "medium": 100, "hard": 220 },
+    "rewardXP": { "easy": 90, "medium": 190, "hard": 380 }
+  },
+  {
+    "key": "bottle_lures",
+    "title": "Resonant Decoy",
+    "description": "Lure the entity with shattered bottles {target} times",
+    "modeEligibility": "any",
+    "targetCounts": { "easy": 1, "medium": 3, "hard": 6 },
+    "rewardStatic": { "easy": 60, "medium": 120, "hard": 240 },
+    "rewardXP": { "easy": 100, "medium": 200, "hard": 400 }
+  },
+  {
+    "key": "no_wade_run",
+    "title": "Dry Pavement",
+    "description": "Finish {target} tape without wading",
+    "modeEligibility": "solo",
+    "targetCounts": { "easy": 1, "medium": 1, "hard": 2 },
+    "rewardStatic": { "easy": 80, "medium": 150, "hard": 350 },
+    "rewardXP": { "easy": 130, "medium": 250, "hard": 550 }
+  },
+  {
+    "key": "under_par",
+    "title": "Pacing Veteran",
+    "description": "Finish a map under par ({target} runs)",
+    "modeEligibility": "any",
+    "targetCounts": { "easy": 1, "medium": 2, "hard": 4 },
+    "rewardStatic": { "easy": 70, "medium": 140, "hard": 300 },
+    "rewardXP": { "easy": 110, "medium": 220, "hard": 470 }
+  },
+  {
+    "key": "silent_race",
+    "title": "Silent Velocity",
+    "description": "Complete {target} Silent Race matches",
+    "modeEligibility": "coop",
+    "targetCounts": { "easy": 1, "medium": 2, "hard": 4 },
+    "rewardStatic": { "easy": 75, "medium": 150, "hard": 300 },
+    "rewardXP": { "easy": 120, "medium": 240, "hard": 480 }
+  },
+  {
+    "key": "last_one_dry",
+    "title": "Above the Influx",
+    "description": "Win or podium in {target} Last One Dry matches",
+    "modeEligibility": "coop",
+    "targetCounts": { "easy": 1, "medium": 2, "hard": 3 },
+    "rewardStatic": { "easy": 80, "medium": 160, "hard": 350 },
+    "rewardXP": { "easy": 130, "medium": 260, "hard": 520 }
+  },
+  {
+    "key": "teammate_ping_proximity",
+    "title": "Extraction Vanguard",
+    "description": "Be nearest to a teammate's ping when they escape ({target} times)",
+    "modeEligibility": "coop",
+    "targetCounts": { "easy": 1, "medium": 2, "hard": 3 },
+    "rewardStatic": { "easy": 85, "medium": 170, "hard": 340 },
+    "rewardXP": { "easy": 140, "medium": 270, "hard": 520 }
+  },
+  {
+    "key": "haunt_rival",
+    "title": "Ghost in the Deep",
+    "description": "Haunt a rival successfully in spectate ({target} times)",
+    "modeEligibility": "coop",
+    "targetCounts": { "easy": 1, "medium": 2, "hard": 4 },
+    "rewardStatic": { "easy": 60, "medium": 120, "hard": 250 },
+    "rewardXP": { "easy": 100, "medium": 200, "hard": 420 }
+  },
+  {
+    "key": "daily_board_leader",
+    "title": "Apex Archivist",
+    "description": "Place top rank on a daily challenge board ({target} time)",
+    "modeEligibility": "solo",
+    "targetCounts": { "easy": 1, "medium": 1, "hard": 2 },
+    "rewardStatic": { "easy": 150, "medium": 250, "hard": 500 },
+    "rewardXP": { "easy": 250, "medium": 450, "hard": 900 }
+  },
+  {
+    "key": "tape_reels",
+    "title": "The Collector",
+    "description": "Collect {target} hidden Tape Reels across any maps",
+    "modeEligibility": "any",
+    "targetCounts": { "easy": 1, "medium": 2, "hard": 3 },
+    "rewardStatic": { "easy": 100, "medium": 200, "hard": 450 },
+    "rewardXP": { "easy": 150, "medium": 300, "hard": 650 }
+  },
+  {
+    "key": "silent_film_run",
+    "title": "Blind Auditory",
+    "description": "Escape with the noise meter hidden ({target} runs)",
+    "modeEligibility": "solo",
+    "targetCounts": { "easy": 1, "medium": 1, "hard": 2 },
+    "rewardStatic": { "easy": 100, "medium": 200, "hard": 450 },
+    "rewardXP": { "easy": 160, "medium": 320, "hard": 700 }
+  },
+  {
+    "key": "flock_arrival_witness",
+    "title": "Omen Watcher",
+    "description": "See every flock arrival overhead for 3 seconds ({target} times)",
+    "modeEligibility": "any",
+    "targetCounts": { "easy": 1, "medium": 2, "hard": 3 },
+    "rewardStatic": { "easy": 50, "medium": 100, "hard": 220 },
+    "rewardXP": { "easy": 80, "medium": 160, "hard": 350 }
+  },
+  {
+    "key": "near_misses",
+    "title": "Whisper Distance",
+    "description": "Survive {target} narrow passes within 2.0m of the entity",
+    "modeEligibility": "any",
+    "targetCounts": { "easy": 2, "medium": 4, "hard": 7 },
+    "rewardStatic": { "easy": 70, "medium": 140, "hard": 280 },
+    "rewardXP": { "easy": 110, "medium": 220, "hard": 450 }
+  },
+  {
+    "key": "echo_bell_lures",
+    "title": "Chime & Dash",
+    "description": "Successfully execute {target} delayed Echo Bell lures",
+    "modeEligibility": "any",
+    "targetCounts": { "easy": 1, "medium": 2, "hard": 3 },
+    "rewardStatic": { "easy": 70, "medium": 140, "hard": 290 },
+    "rewardXP": { "easy": 110, "medium": 220, "hard": 460 }
+  },
+  {
+    "key": "noisemaker_deploy",
+    "title": "Sustained Alarm",
+    "description": "Deploy {target} noisemaker beacons to hold entity attention",
+    "modeEligibility": "any",
+    "targetCounts": { "easy": 1, "medium": 2, "hard": 4 },
+    "rewardStatic": { "easy": 50, "medium": 100, "hard": 210 },
+    "rewardXP": { "easy": 80, "medium": 160, "hard": 340 }
+  },
+  {
+    "key": "glow_stick_drop",
+    "title": "Chemical Beacon",
+    "description": "Deploy {target} silent glow sticks in dark sectors",
+    "modeEligibility": "any",
+    "targetCounts": { "easy": 2, "medium": 4, "hard": 8 },
+    "rewardStatic": { "easy": 40, "medium": 80, "hard": 180 },
+    "rewardXP": { "easy": 70, "medium": 140, "hard": 300 }
+  },
+  {
+    "key": "coop_rescue",
+    "title": "Second Chance",
+    "description": "Revive an eliminated teammate at a Rewind Terminal ({target} times)",
+    "modeEligibility": "coop",
+    "targetCounts": { "easy": 1, "medium": 2, "hard": 3 },
+    "rewardStatic": { "easy": 90, "medium": 180, "hard": 360 },
+    "rewardXP": { "easy": 150, "medium": 300, "hard": 600 }
+  },
+  {
+    "key": "rank_s_finish",
+    "title": "Master of Silence",
+    "description": "Attain Rank S on any archival tape ({target} times)",
+    "modeEligibility": "any",
+    "targetCounts": { "easy": 1, "medium": 1, "hard": 2 },
+    "rewardStatic": { "easy": 120, "medium": 220, "hard": 480 },
+    "rewardXP": { "easy": 200, "medium": 350, "hard": 750 }
+  },
+  {
+    "key": "secondaries",
+    "title": "Thorough Archivist",
+    "description": "Complete {target} secondary tape objectives",
+    "modeEligibility": "any",
+    "targetCounts": { "easy": 2, "medium": 4, "hard": 8 },
+    "rewardStatic": { "easy": 60, "medium": 120, "hard": 260 },
+    "rewardXP": { "easy": 90, "medium": 180, "hard": 400 }
+  },
+  {
+    "key": "stamina_discipline",
+    "title": "Measured Breath",
+    "description": "Complete {target} runs without triggering stamina exhaustion",
+    "modeEligibility": "any",
+    "targetCounts": { "easy": 1, "medium": 2, "hard": 3 },
+    "rewardStatic": { "easy": 65, "medium": 130, "hard": 270 },
+    "rewardXP": { "easy": 105, "medium": 210, "hard": 440 }
+  }
+]

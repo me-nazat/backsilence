@@ -508,6 +508,22 @@ Establish `functions/api/[[route]].ts` as the canonical Cloudflare Pages Functio
    - Round-trip lossless serialization and hydration.
 **Reason:** Fulfills Prompt 3 Section 5 mandates establishing a long-term replayable found-footage campaign with clear goal progression, transparent rules, and accessible hints.
 
+### D059: Deterministic Missions Engine, 24 Template Catalog & Weekly Trial System
+**Date:** 2026-10-24
+**Choice:**
+1. Deterministic Contract Scheduling (`src/meta/MissionEngine.ts`):
+   - Generates 3 daily contracts (easy, medium, hard) and 3 weekly contracts deterministically via 32-bit FNV-1a hashing of `hash('bs-missions-' + dateKey)` and `hash('bs-missions-weekly-' + weekKey)`.
+   - Uses UTC date keys (`YYYY-MM-DD` and `YYYY-Www`) guaranteeing 100% agreement between offline clients and server hosts without network calls.
+   - Enforces strict 1 reroll per day limit using deterministic seed hashing without `Date.now()`. Missed days never penalize players.
+2. 24 Mission Template Data Catalog (`src/meta/data/missions.json`):
+   - Externalized 24 diverse mission templates covering escapes, noise thresholds, clean trench jumps, lurk survival, pebble/bottle/echo bell lures, no-wade runs, par times, silent races, last one dry survival, ping proximity escapes, haunting rival diversions, daily board placements, tape reel discovery, blind auditory (noise meter hidden), and flock witnessing.
+   - Categorized mode eligibility explicitly into `'solo'`, `'coop'`, or `'any'` to prevent mode mismatches.
+3. Weekly Trial System:
+   - Evaluates a fixed seed, map, and mutator pair per week with its own leaderboard.
+   - Grants unlimited practice runs and 3 scored attempt tokens per week (`attemptTokensRemaining`).
+**Reason:** Fulfills Prompt 3 Section 6 mandates providing endless fresh replayability with deterministic offline/online consistency, fair progression, and competitive weekly challenges.
+
+
 
 
 

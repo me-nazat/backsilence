@@ -1,13 +1,18 @@
 /* ── MissionEngine.ts ──────────────────────────────────────────────────────
- *  Daily and Weekly contracts generated deterministically from date keys.
- *  Catalog of 22+ mission templates tracking progress from RunEvents.
+ *  Daily and Weekly contracts generated deterministically from UTC date keys.
+ *  Catalog of 24 mission templates tracking progress from RunEvents.
+ *  Section 6: hash('bs-missions-' + dateKey), 1 reroll/day, solo/co-op/any eligibility,
+ *  Weekly Trial with fixed seed, map, mutators, and 3 attempt tokens per week.
  *  Pure, serializable, deterministic. Zero DOM or Three.js dependencies.
  * ──────────────────────────────────────────────────────────────────────── */
 
-import type { RunEvent } from './RunEvents.js';
+import type { RunEvent, LurkSurvivedEvent, NearMissEvent } from './RunEvents.js';
+import type { MapId } from '../types/contracts.js';
+import missionDataRaw from './data/missions.json';
 
 export type MissionFrequency = 'daily' | 'weekly';
 export type MissionDifficulty = 'easy' | 'medium' | 'hard';
+export type MissionModeEligibility = 'solo' | 'coop' | 'any';
 
 export interface MissionContract {
   id: string;
@@ -15,6 +20,7 @@ export interface MissionContract {
   description: string;
   frequency: MissionFrequency;
   difficulty: MissionDifficulty;
+  modeEligibility: MissionModeEligibility;
   targetCount: number;
   currentCount: number;
   completed: boolean;
@@ -24,14 +30,35 @@ export interface MissionContract {
   templateKey: string;
 }
 
+export interface WeeklyTrialDef {
+  weekKey: string;
+  seed: number;
+  mapId: MapId;
+  mutators: [string, string];
+  attemptTokensMax: number;
+  attemptTokensRemaining: number;
+}
+
 export interface MissionSnapshot {
   dailyDateKey: string;
   weeklyDateKey: string;
   dailyRerollsRemaining: number;
+  trialTokensRemaining?: number;
   contracts: MissionContract[];
 }
 
-// Simple deterministic string hash (32-bit FNV-1a)
+export interface RunMetadataContext {
+  mode?: 'solo' | 'coop' | 'race' | 'last_one_dry';
+  noiseMeterHidden?: boolean;
+  parTime?: number;
+  timeSeconds?: number;
+  isDailyBoardLeader?: boolean;
+  sawFlockDuration?: number;
+  staminaExhausted?: boolean;
+  finalScore?: number;
+}
+
+// Deterministic string hash (32-bit FNV-1a)
 export function hashString(str: string): number {
   let hash = 2166136261;
   for (let i = 0; i < str.length; i++) {
@@ -41,216 +68,82 @@ export function hashString(str: string): number {
   return hash >>> 0;
 }
 
-interface ContractTemplate {
+export interface ContractTemplate {
   key: string;
   title: string;
   description: (target: number) => string;
+  modeEligibility: MissionModeEligibility;
   targetCounts: Record<MissionDifficulty, number>;
   rewardStatic: Record<MissionDifficulty, number>;
   rewardXP: Record<MissionDifficulty, number>;
-  evaluator: (event: RunEvent, current: number, target: number) => number;
+  evaluator: (event: RunEvent, current: number, target: number, context?: RunMetadataContext) => number;
 }
 
-export const MISSION_TEMPLATES: readonly ContractTemplate[] = [
-  {
-    key: 'escape_maps',
-    title: 'Archive Evacuation',
-    description: (t) => `Successfully escape from ${t} archival runs`,
-    targetCounts: { easy: 1, medium: 2, hard: 4 },
-    rewardStatic: { easy: 60, medium: 120, hard: 250 },
-    rewardXP: { easy: 100, medium: 200, hard: 450 },
-    evaluator: (ev, curr) => (ev.type === 'escape' ? curr + 1 : curr),
-  },
-  {
-    key: 'low_noise_escape',
-    title: 'Silent Shadow',
-    description: (_t) => `Escape with 4 or fewer total acoustic noise events`,
-    targetCounts: { easy: 1, medium: 2, hard: 3 },
-    rewardStatic: { easy: 70, medium: 140, hard: 300 },
-    rewardXP: { easy: 120, medium: 240, hard: 500 },
-    evaluator: (ev, curr) => (ev.type === 'escape' ? curr + 1 : curr),
-  },
-  {
-    key: 'clean_jumps',
-    title: 'Trench Acrobat',
-    description: (t) => `Clear ${t} trench gaps with clean platform jumps`,
-    targetCounts: { easy: 3, medium: 6, hard: 12 },
-    rewardStatic: { easy: 50, medium: 100, hard: 200 },
-    rewardXP: { easy: 80, medium: 180, hard: 350 },
-    evaluator: (ev, curr) => (ev.type === 'jump_clean' ? curr + 1 : curr),
-  },
-  {
-    key: 'survive_lurks',
-    title: 'Nerves of Steel',
-    description: (t) => `Perch and survive ${t} entity LURK listening phases (>= 8s)`,
-    targetCounts: { easy: 1, medium: 2, hard: 4 },
-    rewardStatic: { easy: 80, medium: 160, hard: 320 },
-    rewardXP: { easy: 140, medium: 280, hard: 550 },
-    evaluator: (ev, curr) => (ev.type === 'lurk_survived' && ev.duration >= 8.0 ? curr + 1 : curr),
-  },
-  {
-    key: 'pebble_lures',
-    title: 'Misdirection Protocol',
-    description: (t) => `Successfully distract the entity with pebbles ${t} times`,
-    targetCounts: { easy: 2, medium: 4, hard: 8 },
-    rewardStatic: { easy: 50, medium: 100, hard: 220 },
-    rewardXP: { easy: 90, medium: 190, hard: 380 },
-    evaluator: (ev, curr) => (ev.type === 'lure_success' && ev.item === 'pebble' ? curr + 1 : curr),
-  },
-  {
-    key: 'bottle_lures',
-    title: 'Resonant Decoy',
-    description: (t) => `Lure the entity using shattered glass bottles ${t} times`,
-    targetCounts: { easy: 1, medium: 3, hard: 6 },
-    rewardStatic: { easy: 60, medium: 120, hard: 240 },
-    rewardXP: { easy: 100, medium: 200, hard: 400 },
-    evaluator: (ev, curr) => (ev.type === 'lure_success' && ev.item === 'bottle' ? curr + 1 : curr),
-  },
-  {
-    key: 'tape_reels',
-    title: 'The Collector',
-    description: (t) => `Recover ${t} hidden Tape Reels across any maps`,
-    targetCounts: { easy: 1, medium: 2, hard: 4 },
-    rewardStatic: { easy: 100, medium: 200, hard: 450 },
-    rewardXP: { easy: 150, medium: 300, hard: 650 },
-    evaluator: (ev, curr) => (ev.type === 'objective_done' && ev.kind === 'hidden' ? curr + 1 : curr),
-  },
-  {
-    key: 'near_misses',
-    title: 'Whisper Distance',
-    description: (t) => `Survive ${t} narrow passes within 2.0m of the entity`,
-    targetCounts: { easy: 2, medium: 4, hard: 7 },
-    rewardStatic: { easy: 70, medium: 140, hard: 280 },
-    rewardXP: { easy: 110, medium: 220, hard: 450 },
-    evaluator: (ev, curr) => (ev.type === 'near_miss' && ev.distance <= 2.0 ? curr + 1 : curr),
-  },
-  {
-    key: 'no_wade_run',
-    title: 'Dry Pavement',
-    description: (t) => `Complete ${t} run without ever stepping into water`,
-    targetCounts: { easy: 1, medium: 1, hard: 2 },
-    rewardStatic: { easy: 80, medium: 150, hard: 350 },
-    rewardXP: { easy: 130, medium: 250, hard: 550 },
-    evaluator: (ev, curr) => (ev.type === 'escape' ? curr + 1 : curr),
-  },
-  {
-    key: 'secondaries',
-    title: 'Thorough Archivist',
-    description: (t) => `Complete ${t} secondary tape objectives`,
-    targetCounts: { easy: 2, medium: 4, hard: 8 },
-    rewardStatic: { easy: 60, medium: 120, hard: 260 },
-    rewardXP: { easy: 90, medium: 180, hard: 400 },
-    evaluator: (ev, curr) => (ev.type === 'objective_done' && ev.kind === 'secondary' ? curr + 1 : curr),
-  },
-  {
-    key: 'silent_race',
-    title: 'Silent Velocity',
-    description: (t) => `Complete ${t} Silent Race matches`,
-    targetCounts: { easy: 1, medium: 2, hard: 4 },
-    rewardStatic: { easy: 75, medium: 150, hard: 300 },
-    rewardXP: { easy: 120, medium: 240, hard: 480 },
-    evaluator: (ev, curr) => (ev.type === 'escape' ? curr + 1 : curr),
-  },
-  {
-    key: 'last_one_dry',
-    title: 'Above the Influx',
-    description: (t) => `Survive or place on podium in ${t} Last One Dry matches`,
-    targetCounts: { easy: 1, medium: 2, hard: 3 },
-    rewardStatic: { easy: 80, medium: 160, hard: 350 },
-    rewardXP: { easy: 130, medium: 260, hard: 520 },
-    evaluator: (ev, curr) => (ev.type === 'escape' ? curr + 1 : curr),
-  },
-  {
-    key: 'haunt_rival',
-    title: 'Ghost in the Deep',
-    description: (t) => `Use spectral Haunt in spectate to divert the entity ${t} times`,
-    targetCounts: { easy: 1, medium: 2, hard: 4 },
-    rewardStatic: { easy: 60, medium: 120, hard: 250 },
-    rewardXP: { easy: 100, medium: 200, hard: 420 },
-    evaluator: (ev, curr) => (ev.type === 'lure_success' && ev.item === 'echo_bell' ? curr + 1 : curr),
-  },
-  {
-    key: 'echo_bell_lures',
-    title: 'Chime & Dash',
-    description: (t) => `Successfully execute ${t} delayed Echo Bell lures`,
-    targetCounts: { easy: 1, medium: 2, hard: 3 },
-    rewardStatic: { easy: 70, medium: 140, hard: 290 },
-    rewardXP: { easy: 110, medium: 220, hard: 460 },
-    evaluator: (ev, curr) => (ev.type === 'lure_success' && ev.item === 'echo_bell' ? curr + 1 : curr),
-  },
-  {
-    key: 'coop_assist',
-    title: 'Buddy System',
-    description: (t) => `Complete ${t} co-op escape runs with teammates`,
-    targetCounts: { easy: 1, medium: 2, hard: 4 },
-    rewardStatic: { easy: 75, medium: 150, hard: 320 },
-    rewardXP: { easy: 120, medium: 240, hard: 500 },
-    evaluator: (ev, curr) => (ev.type === 'escape' ? curr + 1 : curr),
-  },
-  {
-    key: 'rank_s_finish',
-    title: 'Master of Silence',
-    description: (t) => `Attain Rank S on any map (${t} time)`,
-    targetCounts: { easy: 1, medium: 1, hard: 2 },
-    rewardStatic: { easy: 120, medium: 220, hard: 480 },
-    rewardXP: { easy: 200, medium: 350, hard: 750 },
-    evaluator: (ev, curr) => (ev.type === 'escape' && (ev.finalScore ?? 0) >= 1400 ? curr + 1 : curr),
-  },
-  {
-    key: 'under_par',
-    title: 'Pacing Veteran',
-    description: (t) => `Escape ${t} maps with completion time under par`,
-    targetCounts: { easy: 1, medium: 2, hard: 4 },
-    rewardStatic: { easy: 70, medium: 140, hard: 300 },
-    rewardXP: { easy: 110, medium: 220, hard: 470 },
-    evaluator: (ev, curr) => (ev.type === 'escape' ? curr + 1 : curr),
-  },
-  {
-    key: 'noisemaker_deploy',
-    title: 'Sustained Alarm',
-    description: (t) => `Deploy ${t} noisemaker beacons to hold entity attention`,
-    targetCounts: { easy: 1, medium: 2, hard: 4 },
-    rewardStatic: { easy: 50, medium: 100, hard: 210 },
-    rewardXP: { easy: 80, medium: 160, hard: 340 },
-    evaluator: (ev, curr) => (ev.type === 'item_used' && ev.item === 'noisemaker' ? curr + 1 : curr),
-  },
-  {
-    key: 'glow_stick_drop',
-    title: 'Chemical Beacon',
-    description: (t) => `Deploy ${t} silent glow sticks in dark sectors`,
-    targetCounts: { easy: 2, medium: 4, hard: 8 },
-    rewardStatic: { easy: 40, medium: 80, hard: 180 },
-    rewardXP: { easy: 70, medium: 140, hard: 300 },
-    evaluator: (ev, curr) => (ev.type === 'item_used' && ev.item === 'glow_stick' ? curr + 1 : curr),
-  },
-  {
-    key: 'first_contact_witness',
-    title: 'First Sighting',
-    description: (t) => `Witness first contact sweep within 45s and escape (${t} runs)`,
-    targetCounts: { easy: 1, medium: 2, hard: 3 },
-    rewardStatic: { easy: 60, medium: 120, hard: 260 },
-    rewardXP: { easy: 100, medium: 200, hard: 420 },
-    evaluator: (ev, curr) => (ev.type === 'escape' ? curr + 1 : curr),
-  },
-  {
-    key: 'silent_film_run',
-    title: 'Auditory Trust',
-    description: (t) => `Escape ${t} map with Silent Film mutator active`,
-    targetCounts: { easy: 1, medium: 1, hard: 2 },
-    rewardStatic: { easy: 100, medium: 200, hard: 450 },
-    rewardXP: { easy: 160, medium: 320, hard: 700 },
-    evaluator: (ev, curr) => (ev.type === 'escape' ? curr + 1 : curr),
-  },
-  {
-    key: 'stamina_discipline',
-    title: 'Measured Breath',
-    description: (t) => `Complete ${t} runs without ever triggering stamina exhaustion`,
-    targetCounts: { easy: 1, medium: 2, hard: 3 },
-    rewardStatic: { easy: 65, medium: 130, hard: 270 },
-    rewardXP: { easy: 105, medium: 210, hard: 440 },
-    evaluator: (ev, curr) => (ev.type === 'escape' ? curr + 1 : curr),
-  },
-];
+const EVALUATOR_MAP: Record<string, ContractTemplate['evaluator']> = {
+  escape_maps: (ev, curr) => (ev.type === 'escape' ? curr + 1 : curr),
+  low_noise_escape: (ev, curr) => (ev.type === 'escape' ? curr + 1 : curr),
+  clean_jumps: (ev, curr) => (ev.type === 'jump_clean' && ev.dryToDry ? curr + 1 : curr),
+  survive_lurks: (ev, curr) =>
+    ev.type === 'lurk_survived' && (ev as LurkSurvivedEvent).duration >= 8.0 ? curr + 1 : curr,
+  pebble_lures: (ev, curr) =>
+    ev.type === 'lure_success' && ev.item === 'pebble' ? curr + 1 : curr,
+  bottle_lures: (ev, curr) =>
+    ev.type === 'lure_success' && ev.item === 'bottle' ? curr + 1 : curr,
+  no_wade_run: (ev, curr) => (ev.type === 'escape' ? curr + 1 : curr),
+  under_par: (ev, curr, _t, ctx) =>
+    ev.type === 'escape' && (ctx?.timeSeconds ?? 999) <= (ctx?.parTime ?? 200) ? curr + 1 : curr,
+  silent_race: (ev, curr, _t, ctx) =>
+    ev.type === 'escape' && ctx?.mode === 'race' ? curr + 1 : curr,
+  last_one_dry: (ev, curr, _t, ctx) =>
+    ev.type === 'escape' && ctx?.mode === 'last_one_dry' ? curr + 1 : curr,
+  teammate_ping_proximity: (ev, curr) =>
+    ev.type === 'objective_done' && ev.id === 'nearest_ping_escape' ? curr + 1 : curr,
+  haunt_rival: (ev, curr) =>
+    ev.type === 'haunt' ? curr + 1 : curr,
+  daily_board_leader: (ev, curr, _t, ctx) =>
+    ev.type === 'escape' && ctx?.isDailyBoardLeader ? curr + 1 : curr,
+  tape_reels: (ev, curr) =>
+    ev.type === 'objective_done' && ev.kind === 'hidden' ? curr + 1 : curr,
+  silent_film_run: (ev, curr, _t, ctx) =>
+    ev.type === 'escape' && ctx?.noiseMeterHidden ? curr + 1 : curr,
+  flock_arrival_witness: (ev, curr, _t, ctx) =>
+    ev.type === 'objective_done' && (ctx?.sawFlockDuration ?? 0) >= 3.0 ? curr + 1 : curr,
+  near_misses: (ev, curr) =>
+    ev.type === 'near_miss' && (ev as NearMissEvent).distance <= 2.0 ? curr + 1 : curr,
+  echo_bell_lures: (ev, curr) =>
+    ev.type === 'lure_success' && ev.item === 'echo_bell' ? curr + 1 : curr,
+  noisemaker_deploy: (ev, curr) =>
+    ev.type === 'item_used' && ev.item === 'noisemaker' ? curr + 1 : curr,
+  glow_stick_drop: (ev, curr) =>
+    ev.type === 'item_used' && ev.item === 'glow_stick' ? curr + 1 : curr,
+  coop_rescue: (ev, curr) =>
+    ev.type === 'rescue' ? curr + 1 : curr,
+  rank_s_finish: (ev, curr, _t, ctx) =>
+    ev.type === 'escape' && (ctx?.finalScore ?? ev.finalScore ?? 0) >= 1400 ? curr + 1 : curr,
+  secondaries: (ev, curr) =>
+    ev.type === 'objective_done' && ev.kind === 'secondary' ? curr + 1 : curr,
+  stamina_discipline: (ev, curr, _t, ctx) =>
+    ev.type === 'escape' && !ctx?.staminaExhausted ? curr + 1 : curr,
+};
+
+export const MISSION_TEMPLATES: readonly ContractTemplate[] = (missionDataRaw as Array<{
+  key: string;
+  title: string;
+  description: string;
+  modeEligibility: MissionModeEligibility;
+  targetCounts: Record<MissionDifficulty, number>;
+  rewardStatic: Record<MissionDifficulty, number>;
+  rewardXP: Record<MissionDifficulty, number>;
+}>).map((raw) => ({
+  key: raw.key,
+  title: raw.title,
+  description: (target: number) => raw.description.replace('{target}', String(target)),
+  modeEligibility: raw.modeEligibility,
+  targetCounts: raw.targetCounts,
+  rewardStatic: raw.rewardStatic,
+  rewardXP: raw.rewardXP,
+  evaluator: EVALUATOR_MAP[raw.key] ?? ((ev, curr) => (ev.type === 'escape' ? curr + 1 : curr)),
+}));
 
 export function getUtcDateKey(date = new Date()): string {
   const y = date.getUTCFullYear();
@@ -268,11 +161,36 @@ export function getUtcWeekKey(date = new Date()): string {
   return `${d.getUTCFullYear()}-W${String(weekNo).padStart(2, '0')}`;
 }
 
+const CAMPAIGN_MAP_IDS: readonly MapId[] = [
+  'natatorium',
+  'poolrooms',
+  'drowned_school',
+  'utility_tunnels',
+  'sunken_jungle',
+  'marble_atrium',
+  'neon_flood',
+  'hydro_maze',
+  'drowned_metro',
+  'drainage_core',
+];
+
+const TRIAL_MUTATOR_PAIRS: readonly [string, string][] = [
+  ['glass_water', 'blackout'],
+  ['thin_ice', 'hair_trigger'],
+  ['tinnitus', 'twin_entity'],
+  ['spring_tide', 'one_breath'],
+  ['glass_water', 'silent_film'],
+  ['blackout', 'hair_trigger'],
+  ['tinnitus', 'long_tape'],
+  ['spring_tide', 'thin_ice'],
+];
+
 export class MissionEngine {
   private contracts: MissionContract[] = [];
   private dailyDateKey: string = '';
   private weeklyDateKey: string = '';
   private dailyRerollsRemaining: number = 1;
+  private trialTokensRemaining: number = 3;
 
   constructor(snapshot?: MissionSnapshot, now = new Date()) {
     if (snapshot) {
@@ -296,21 +214,27 @@ export class MissionEngine {
 
     if (this.weeklyDateKey !== thisWeek) {
       this.weeklyDateKey = thisWeek;
+      this.trialTokensRemaining = 3;
       // Filter out old weekly contracts
       this.contracts = this.contracts.filter((c) => c.frequency !== 'weekly');
       this.contracts.push(...MissionEngine.generateContractsForDate(thisWeek, 'weekly'));
     }
   }
 
+  /**
+   * Deterministic generation matching Prompt 3 Section 6:
+   * hash('bs-missions-' + dateKey)
+   */
   static generateContractsForDate(key: string, frequency: MissionFrequency): MissionContract[] {
-    const seed = hashString(`bs-missions-${frequency}-${key}`);
+    const hashBase = frequency === 'daily' ? `bs-missions-${key}` : `bs-missions-weekly-${key}`;
+    const seed = hashString(hashBase);
     const difficulties: MissionDifficulty[] = ['easy', 'medium', 'hard'];
     const count = 3;
     const generated: MissionContract[] = [];
 
     for (let i = 0; i < count; i++) {
       const diff = difficulties[i]!;
-      const tmplIndex = (seed + i * 7) % MISSION_TEMPLATES.length;
+      const tmplIndex = (seed + i * 11) % MISSION_TEMPLATES.length;
       const tmpl = MISSION_TEMPLATES[tmplIndex]!;
       const target = tmpl.targetCounts[diff];
 
@@ -320,6 +244,7 @@ export class MissionEngine {
         description: tmpl.description(target),
         frequency,
         difficulty: diff,
+        modeEligibility: tmpl.modeEligibility,
         targetCount: target,
         currentCount: 0,
         completed: false,
@@ -341,12 +266,12 @@ export class MissionEngine {
     return MissionEngine.generateContractsForDate(weekKey, 'weekly');
   }
 
-  static stepContract(contract: MissionContract, event: RunEvent): MissionContract {
+  static stepContract(contract: MissionContract, event: RunEvent, context?: RunMetadataContext): MissionContract {
     const copy = { ...contract };
     if (copy.completed) return copy;
     const tmpl = MISSION_TEMPLATES.find((t) => t.key === copy.templateKey);
     if (tmpl) {
-      const next = tmpl.evaluator(event, copy.currentCount, copy.targetCount);
+      const next = tmpl.evaluator(event, copy.currentCount, copy.targetCount, context);
       copy.currentCount = Math.min(copy.targetCount, next);
       if (copy.currentCount >= copy.targetCount) {
         copy.completed = true;
@@ -355,13 +280,48 @@ export class MissionEngine {
     return copy;
   }
 
-  onRunEvent(event: RunEvent): void {
+  getWeeklyTrial(weekKey = this.weeklyDateKey || getUtcWeekKey()): WeeklyTrialDef {
+    const seed = hashString(`bs-weekly-trial-${weekKey}`);
+    const mapIndex = seed % CAMPAIGN_MAP_IDS.length;
+    const mapId = CAMPAIGN_MAP_IDS[mapIndex]!;
+    const mutatorIndex = (seed >>> 4) % TRIAL_MUTATOR_PAIRS.length;
+    const mutators = TRIAL_MUTATOR_PAIRS[mutatorIndex]!;
+
+    return {
+      weekKey,
+      seed,
+      mapId,
+      mutators: [mutators[0], mutators[1]],
+      attemptTokensMax: 3,
+      attemptTokensRemaining: this.trialTokensRemaining,
+    };
+  }
+
+  spendTrialToken(): boolean {
+    if (this.trialTokensRemaining <= 0) return false;
+    this.trialTokensRemaining--;
+    return true;
+  }
+
+  getTrialTokensRemaining(): number {
+    return this.trialTokensRemaining;
+  }
+
+  onRunEvent(event: RunEvent, context?: RunMetadataContext): void {
     for (const contract of this.contracts) {
       if (contract.completed) continue;
 
+      // Filter by mode eligibility
+      if (contract.modeEligibility === 'solo' && context?.mode && context.mode !== 'solo') {
+        continue;
+      }
+      if (contract.modeEligibility === 'coop' && context?.mode && context.mode === 'solo') {
+        continue;
+      }
+
       const tmpl = MISSION_TEMPLATES.find((t) => t.key === contract.templateKey);
       if (tmpl) {
-        const next = tmpl.evaluator(event, contract.currentCount, contract.targetCount);
+        const next = tmpl.evaluator(event, contract.currentCount, contract.targetCount, context);
         if (next !== contract.currentCount) {
           contract.currentCount = Math.min(contract.targetCount, next);
           if (contract.currentCount >= contract.targetCount) {
@@ -392,17 +352,19 @@ export class MissionEngine {
     if (idx === -1) return false;
 
     const oldContract = this.contracts[idx]!;
-    const newSeed = hashString(`reroll-${contractId}-${this.dailyDateKey}-${Date.now()}`);
-    const tmplIndex = (newSeed % MISSION_TEMPLATES.length);
+    // Deterministic reroll seed without Date.now()
+    const newSeed = hashString(`reroll-${contractId}-${this.dailyDateKey}-r${this.dailyRerollsRemaining}`);
+    const tmplIndex = newSeed % MISSION_TEMPLATES.length;
     const tmpl = MISSION_TEMPLATES[tmplIndex]!;
     const target = tmpl.targetCounts[oldContract.difficulty];
 
     this.contracts[idx] = {
-      id: `rerolled_${this.dailyDateKey}_${tmpl.key}_${Date.now()}`,
+      id: `rerolled_${this.dailyDateKey}_${tmpl.key}_${this.dailyRerollsRemaining}`,
       title: tmpl.title,
       description: tmpl.description(target),
       frequency: 'daily',
       difficulty: oldContract.difficulty,
+      modeEligibility: tmpl.modeEligibility,
       targetCount: target,
       currentCount: 0,
       completed: false,
@@ -425,6 +387,7 @@ export class MissionEngine {
       dailyDateKey: this.dailyDateKey,
       weeklyDateKey: this.weeklyDateKey,
       dailyRerollsRemaining: this.dailyRerollsRemaining,
+      trialTokensRemaining: this.trialTokensRemaining,
       contracts: this.contracts.map((c) => ({ ...c })),
     };
   }
@@ -433,6 +396,7 @@ export class MissionEngine {
     this.dailyDateKey = snapshot.dailyDateKey;
     this.weeklyDateKey = snapshot.weeklyDateKey;
     this.dailyRerollsRemaining = snapshot.dailyRerollsRemaining;
+    this.trialTokensRemaining = snapshot.trialTokensRemaining ?? 3;
     this.contracts = snapshot.contracts.map((c) => ({ ...c }));
   }
 }
