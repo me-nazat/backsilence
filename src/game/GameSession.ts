@@ -38,6 +38,7 @@ import { MonsterManager } from './monster/MonsterManager.js';
 import { FlockDirector } from './creatures/FlockDirector.js';
 import { LensOverlay } from './water/LensOverlay.js';
 import { JumpscareSequence, type JumpscareStats } from './monster/Jumpscare.js';
+import { WeatherDirector } from './weather/WeatherDirector.js';
 import { PlayerCamera } from './player/PlayerCamera.js';
 import { PlayerInput } from './player/PlayerInput.js';
 import { PlayerFootsteps } from './player/Footsteps.js';
@@ -90,6 +91,7 @@ export class GameSession {
   private monsters!: MonsterManager;
   private jumpscare!: JumpscareSequence;
   private flock!: FlockDirector;
+  private weatherDirector!: WeatherDirector;
   private lensOverlay!: LensOverlay;
   private opaqueDepthTarget: WebGLRenderTarget | null = null;
   private wadeSplashTimer = 0;
@@ -415,6 +417,17 @@ export class GameSession {
         audio: this.audio,
       });
       this.scene.add(this.flock.root);
+
+      this.weatherDirector = new WeatherDirector({
+        seed: this.seed,
+        mapId: this.mapId,
+        waterY: this.mapInstance.waterY,
+        tier,
+        weather: this.simWorld.weather,
+        audio: this.audio,
+        safeMode: this.settings.graphics?.safeMode ?? false,
+      });
+      this.scene.add(this.weatherDirector.particles.root);
 
       if (tier !== 'low' && typeof window !== 'undefined' && this.renderer.renderer.capabilities?.isWebGL2) {
         const w = this.container.clientWidth || 1280;
@@ -1623,6 +1636,7 @@ export class GameSession {
     // 8. Water System & Ambient Flock update
     this.water.update(dt, this.simWorld.simTime, this.camera, this.scene.fog as FogExp2);
     this.flock.update(dt, this.simWorld.simTime, this.camera);
+    this.weatherDirector.update(dt, this.simWorld.simTime, this.camera, currSnap.pos);
     this.lensOverlay.setSubmerged(this.camera.position.y < this.water.currentWaterY);
     this.lensOverlay.update(dt);
 
@@ -1768,7 +1782,8 @@ export class GameSession {
       const targetExposure = inWater ? 1.25 : 1.05;
       const blend = 1.0 - Math.exp(-(dt * 4) / 1.2);
       this.currentExposure += (targetExposure - this.currentExposure) * blend;
-      this.renderer.renderer.toneMappingExposure = Math.max(0.7, Math.min(1.5, this.currentExposure));
+      const totalExposure = this.currentExposure + this.weatherDirector.getExposureBoost();
+      this.renderer.renderer.toneMappingExposure = Math.max(0.7, Math.min(1.8, totalExposure));
 
       if (this.sunLight && this.sunLight.castShadow) {
         const shadowWorldSize = 50.0;
@@ -2780,6 +2795,7 @@ export class GameSession {
     this.water.dispose();
     this.monsters.dispose();
     this.flock.dispose();
+    this.weatherDirector.dispose();
     this.lensOverlay.dispose();
     this.opaqueDepthTarget?.dispose();
     this.mapInstance.dispose();

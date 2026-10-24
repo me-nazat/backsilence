@@ -405,6 +405,35 @@ Establish `functions/api/[[route]].ts` as the canonical Cloudflare Pages Functio
 5. Animation Lab Enhancements (`AnimationLabPanel.ts`): Added turn-rate slider (-3 to +3 rad/s), viewmodel state previewer, and pause & scrub timeline controls allowing users to freeze frame and inspect joints at any pose.
 **Reason:** Fulfills Prompt 2 Phase G mandates for commercial game feel, weight, physical secondary motion, and interactive animation debugging.
 
+### D054: Zero-Allocation Particle Systems, 10 Procedural Effects, Photosensitive Safety & Thunder Audio
+**Date:** 2026-10-24
+**Choice:**
+1. Base Zero-Allocation Particle Architecture (`ParticleSystem.ts`): Built `ParticlePool` utilizing Structure-of-Arrays `Float32Array` buffers (positions, velocities, lifetimes, scales, colors, alphas, rotations) and preallocated `InstancedMesh` quads. Frame updates execute with zero runtime heap allocation (`new` eliminated from hot loop), streaming matrices and colors via `DynamicDrawUsage`.
+2. 10 Procedural Particle Pools (`ParticleDirector.ts`):
+   - `rain_streaks`: Camera-following cylindrical volume ($26\text{m} \times 12\text{m}$), downward velocity $-18\text{ m/s}$, wind-drift angle.
+   - `drop_ripples`: Thin horizontal surface rings expanding and fading on the water plane ($y = \text{waterY} + 0.005$).
+   - `splash_droplets`: Parabolic radial spray on footfalls and wading movement ($g = -9.8\text{ m/s}^2$).
+   - `mist_sheets`: Soft warm water vapor billboards gently rising ($0.12\text{ m/s}$) from the poolrooms water.
+   - `dust_motes`: Microscopic drifting motes floating with 3D Brownian oscillation in light shafts.
+   - `fireflies`: Bioluminescent wandering orbs with undulating green-gold harmonic glow in `sunken_jungle`.
+   - `bubbles`: Subsurface rising and wobbling bubbles popping at the water plane.
+   - `steam_plumes`: Expanding turbulent high-pressure steam billows in `utility_tunnels`.
+   - `drifting_petals`: Fluttering organic leaf and petal flakes in `sunken_jungle`.
+   - `sparks`: High-speed orange-yellow electrical sparks with rapid drag deceleration.
+3. Photosensitive Safety Enforcement (`WeatherDirector.ts`):
+   - Capped frame-to-frame luminance delta to $\le 0.25$.
+   - Throttled flash frequency to $\le 3\text{ Hz}$ ($\ge 333\text{ms}$ between peaks).
+   - In `safeMode`, flash exposure boost is attenuated by 80% ($\le 0.05$).
+4. Positional Distance-Delayed Thunder:
+   - When a lightning strike occurs, distance to player (50–250m) is computed.
+   - Schedules audible thunder crack with delay $0.4\text{s} + (\text{dist} / 400) \times 1.2\text{s}$, playing positional `thunder` audio with distance-scaled intensity.
+5. Tiered Capacity Scaling:
+   - High: 100% particle budget.
+   - Medium: 50% particle budget.
+   - Low: 25% particle budget.
+**Reason:** Fulfills Prompt 2 Phase H mandates for comprehensive weather, zero-allocation particle systems, photosensitive safety compliance, and realistic distance-delayed thunder acoustics.
+
+
 
 
 
