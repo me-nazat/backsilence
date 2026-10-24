@@ -433,6 +433,23 @@ Establish `functions/api/[[route]].ts` as the canonical Cloudflare Pages Functio
    - Low: 25% particle budget.
 **Reason:** Fulfills Prompt 2 Phase H mandates for comprehensive weather, zero-allocation particle systems, photosensitive safety compliance, and realistic distance-delayed thunder acoustics.
 
+### D055: Performance Budgets, Three Quality Tiers & Auto-Quality Adaptation
+**Date:** 2026-10-24
+**Choice:**
+1. Unified Quality Matrix (`Quality.ts`):
+   - High: DPR 2.0, 1024 texture resolution, 2048 PCFSoft directional shadow map, 2 shadow lights, full post-processing chain, 32 audio voices, 100% particle budget.
+   - Medium: DPR 1.5, 512 texture resolution, 1024 PCFSoft shadow map, 1 shadow light, light post-processing chain, 24 audio voices, 50% particle budget (16.6ms frame budget target).
+   - Low: DPR 1.0, 256 texture resolution, shadows disabled, 0 shadow lights, CSS/headless post fallback, 16 audio voices, 25% particle budget (33ms mobile frame budget target).
+2. Dynamic Auto-Quality Adaptation (`AutoQualityAdapter`):
+   - Monitors running framerate against a 45 FPS threshold.
+   - Automatically downgrades tier (High -> Medium, Medium -> Low) when framerate remains below 45 FPS for 3.0 continuous seconds.
+   - Applies a 5-second cooldown grace period post-downgrade and recovers low-FPS duration counters during frame spikes.
+3. Asynchronous Pipeline Warmup:
+   - Pre-compiles all scene shader programs asynchronously via `glRenderer.compileAsync()` during loading screen before gameplay transition.
+   - Pre-uploads and binds all procedural PBR textures via `initTexture()` to eliminate first-frame GPU hitching.
+**Reason:** Fulfills Prompt 2 Phase I requirements ensuring strict 16.6ms Medium and 33ms Low performance targets across desktop, laptop, and mobile devices with seamless auto-adaptation.
+
+
 
 
 

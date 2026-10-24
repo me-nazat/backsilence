@@ -113,3 +113,66 @@ export function resolveQuality(tier: QualityTier): QualityConfig {
   const resolved = resolveQualityTier(tier);
   return QUALITY_CONFIGS[resolved];
 }
+
+/**
+ * Manages runtime auto-quality adaptation, dropping a tier after 3s below 45 FPS.
+ */
+export class AutoQualityAdapter {
+  private currentTier: Exclude<QualityTier, 'auto'>;
+  private lowFpsDuration = 0;
+  private cooldownTimer = 0;
+  readonly targetFps = 45;
+  readonly requiredDuration = 3.0; // 3 seconds below 45 FPS
+  readonly onTierDowngraded?: (newTier: Exclude<QualityTier, 'auto'>, reason: string) => void;
+
+  constructor(
+    initialTier: QualityTier = 'auto',
+    onTierDowngraded?: (newTier: Exclude<QualityTier, 'auto'>, reason: string) => void,
+  ) {
+    this.currentTier = resolveQualityTier(initialTier);
+    this.onTierDowngraded = onTierDowngraded;
+  }
+
+  getCurrentTier(): Exclude<QualityTier, 'auto'> {
+    return this.currentTier;
+  }
+
+  setCurrentTier(tier: Exclude<QualityTier, 'auto'>): void {
+    this.currentTier = tier;
+    this.lowFpsDuration = 0;
+  }
+
+  getLowFpsDuration(): number {
+    return this.lowFpsDuration;
+  }
+
+  update(dt: number, currentFps: number): boolean {
+    if (this.cooldownTimer > 0) {
+      this.cooldownTimer -= dt;
+      return false;
+    }
+
+    if (currentFps < this.targetFps) {
+      this.lowFpsDuration += dt;
+      if (this.lowFpsDuration >= this.requiredDuration) {
+        if (this.currentTier === 'high') {
+          this.currentTier = 'medium';
+          this.lowFpsDuration = 0;
+          this.cooldownTimer = 5.0; // 5s grace period
+          this.onTierDowngraded?.(this.currentTier, 'FPS below 45 for 3s');
+          return true;
+        } else if (this.currentTier === 'medium') {
+          this.currentTier = 'low';
+          this.lowFpsDuration = 0;
+          this.cooldownTimer = 5.0;
+          this.onTierDowngraded?.(this.currentTier, 'FPS below 45 for 3s');
+          return true;
+        }
+      }
+    } else if (currentFps >= 50) {
+      this.lowFpsDuration = Math.max(0, this.lowFpsDuration - dt * 2.0);
+    }
+    return false;
+  }
+}
+
