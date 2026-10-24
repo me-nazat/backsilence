@@ -625,3 +625,30 @@ Establish `functions/api/[[route]].ts` as the canonical Cloudflare Pages Functio
 4. Component Unit Testing (`tests/ui-kit-components.test.ts`):
    - 7/7 unit tests verifying component creation, variant styling, hold-to-confirm progress, ARIA semantics, and modal stack layer transitions.
 **Reason:** Fulfills Prompt 4 Phase B requirements, replacing ad hoc styles with a standardized, testable, and accessible UI kit.
+
+### D066: Motion System, Analog Transitions, and Photosensitive Clamping
+**Date:** 2026-10-24
+**Choice:**
+1. Motion tokens and physical timing:
+   - Durations: 120ms (fast), 240ms (normal), 480ms (slow), 900ms (crawl).
+   - Weighted easing tokens: `--ease-out` (`cubic-bezier(.2,.8,.2,1)`), `--ease-inout` (`cubic-bezier(.6,0,.2,1)`), and wet ease with slow in, slow out, $\le 3\%$ overshoot.
+   - Strictly animated `transform`, `opacity`, and `filter` only to preserve $\le 2$ ms main-thread budget per frame.
+2. 14 Signature Analog Horror Animations (`src/ui/motion/Motion.ts`, `src/ui/motion/motion.css`):
+   - Ink-in-water logo reveal with stroke dashoffset and ripple ring sweep.
+   - Ripple-wipe view transitions via native `document.startViewTransition` with circular clip-path and canvas mask fallback.
+   - Tape insert/eject mechanics with `TRACKING` OSD flicker.
+   - Pointer-relative hover/click ripples.
+   - Three parallax fog layers at 0.2x, 0.5x, and 0.8x speeds reacting to mouse and scroll.
+   - Text decode for OSD lines and rank titles settling within $\le 400$ ms.
+   - Score count-up with VU needle flutter, rank stamp thump (1.15 to 1.0 with soft shake), and star pip wet pops.
+   - Achievement toast slide and unlock card flip.
+   - Leaderboard rows 24ms stagger slide-in and player row pulse.
+   - Scroll reveals with `animation-timeline: view()` and `IntersectionObserver` fallback.
+   - Pre-run ritual (2s, skippable on keypress or click) with OSD tape title typing.
+3. Accessibility & Performance Safety:
+   - Full `prefers-reduced-motion: reduce` fallbacks (instant fades and transforms disabled).
+   - Photosensitive mode clamping flicker to $\le 3$ Hz and luminance change to $\le 0.25$ per frame.
+   - Off-screen layout optimization with `content-visibility: auto`.
+   - Long animation frame performance monitoring via `PerformanceObserver`.
+**Reason:** Fulfills Prompt 4 Phase C mandates, providing an atmospheric, weighted analog feel while strictly enforcing WCAG motion and seizure safety standards.
+

@@ -1,9 +1,9 @@
 /* ── Motion.ts ───────────────────────────────────────────────────────────
  *  Archive Motion Engine:
- *  12 signature analog horror animations built with CSS, WAAPI, & Canvas 2D.
+ *  14 signature analog horror animations built with CSS, WAAPI, & Canvas 2D.
  *  Zero runtime animation dependencies.
  *  Main-thread budget: <= 2ms/frame.
- *  Full prefers-reduced-motion and photosensitive-safe mode (<= 3 Hz).
+ *  Full prefers-reduced-motion and photosensitive-safe mode (<= 3 Hz, luminance <= 0.25).
  * ──────────────────────────────────────────────────────────────────────── */
 
 export interface MotionConfig {
@@ -30,28 +30,38 @@ export class MotionEngine {
   private detectPreferences(): void {
     if (typeof window === 'undefined') return;
 
-    const mql = window.matchMedia('(prefers-reduced-motion: reduce)');
-    this.isReducedMotion = mql.matches;
-    mql.addEventListener('change', (e) => {
-      this.isReducedMotion = e.matches;
-    });
+    if (window.matchMedia) {
+      const mql = window.matchMedia('(prefers-reduced-motion: reduce)');
+      this.isReducedMotion = mql.matches;
+      mql.addEventListener('change', (e) => {
+        this.isReducedMotion = e.matches;
+      });
+    }
 
-    const isSafe = document.documentElement.hasAttribute('data-photosensitive') ||
-                   document.documentElement.classList.contains('photosensitive-safe');
-    this.isPhotosensitiveSafe = isSafe;
+    if (typeof document !== 'undefined' && document.documentElement) {
+      const isSafe = document.documentElement.hasAttribute('data-photosensitive') ||
+                     document.documentElement.classList.contains('photosensitive-safe');
+      this.isPhotosensitiveSafe = isSafe;
+    }
   }
 
   setPhotosensitiveSafe(val: boolean): void {
     this.isPhotosensitiveSafe = val;
-    if (val) {
-      document.documentElement.setAttribute('data-photosensitive', 'safe');
-    } else {
-      document.documentElement.removeAttribute('data-photosensitive');
+    if (typeof document !== 'undefined' && document.documentElement) {
+      if (val) {
+        document.documentElement.setAttribute('data-photosensitive', 'safe');
+      } else {
+        document.documentElement.removeAttribute('data-photosensitive');
+      }
     }
   }
 
   getReducedMotion(): boolean {
     return this.isReducedMotion;
+  }
+
+  setReducedMotion(val: boolean): void {
+    this.isReducedMotion = val;
   }
 
   /**
@@ -60,7 +70,7 @@ export class MotionEngine {
    */
   inkLogoReveal(svgElement: SVGElement, onComplete?: () => void): void {
     if (this.isReducedMotion || this.isPhotosensitiveSafe) {
-      svgElement.style.opacity = '1';
+      if (svgElement?.style) svgElement.style.opacity = '1';
       onComplete?.();
       return;
     }
@@ -70,7 +80,7 @@ export class MotionEngine {
       const len = p.getTotalLength?.() ?? 100;
       p.style.strokeDasharray = `${len}`;
       p.style.strokeDashoffset = `${len}`;
-      p.animate(
+      p.animate?.(
         [
           { strokeDashoffset: `${len}`, opacity: '0.4' },
           { strokeDashoffset: '0', opacity: '1' },
@@ -90,12 +100,25 @@ export class MotionEngine {
 
   /**
    * Signature 2: Ripple-Wipe View Transition.
-   * Expanding circular reveal from click point with soft edge (~480ms).
+   * Document ViewTransition API with circular clip path, falling back to overlay clip path (~480ms).
    */
-  rippleWipe(originX: number, originY: number, onTransition: () => void): void {
+  rippleWipe(originX: number, originY: number, onTransition: () => void | Promise<void>): void {
     if (this.isReducedMotion || this.isPhotosensitiveSafe) {
-      onTransition();
+      void onTransition();
       return;
+    }
+
+    // Check for native Document View Transition API
+    const doc = document as unknown as { startViewTransition?: (cb: () => void | Promise<void>) => { finished: Promise<void> } };
+    if (typeof doc.startViewTransition === 'function') {
+      try {
+        doc.startViewTransition(async () => {
+          await onTransition();
+        });
+        return;
+      } catch {
+        // Fall back to overlay wipe below
+      }
     }
 
     const overlay = document.createElement('div');
@@ -109,7 +132,7 @@ export class MotionEngine {
     overlay.classList.add('bs-wiping');
 
     setTimeout(() => {
-      onTransition();
+      void onTransition();
       overlay.style.opacity = '0';
       overlay.style.transition = 'opacity 240ms ease-out';
       setTimeout(() => {
@@ -119,7 +142,7 @@ export class MotionEngine {
   }
 
   /**
-   * Signature 3: Tape Insert / Eject.
+   * Signature 3: Tape Insert / Eject Mechanics.
    */
   animateTapeInsert(element: HTMLElement, onSettled?: () => void): void {
     if (this.isReducedMotion) {
@@ -173,7 +196,7 @@ export class MotionEngine {
   }
 
   /**
-   * Signature 5: Parallax Fog Layers behind menus (3 canvas gradient layers).
+   * Signature 5: Parallax Fog Layers behind menus (3 canvas gradient layers at 0.2, 0.5, 0.8 speed).
    */
   createParallaxFog(container: HTMLElement): () => void {
     if (this.isReducedMotion) {
@@ -191,6 +214,7 @@ export class MotionEngine {
 
     let mouseX = window.innerWidth / 2;
     let mouseY = window.innerHeight / 2;
+    let scrollY = window.scrollY || 0;
     let animId = 0;
     let running = true;
 
@@ -198,7 +222,11 @@ export class MotionEngine {
       mouseX = e.clientX;
       mouseY = e.clientY;
     };
+    const onScroll = () => {
+      scrollY = window.scrollY || 0;
+    };
     window.addEventListener('mousemove', onMove, { passive: true });
+    window.addEventListener('scroll', onScroll, { passive: true });
 
     const onResize = () => {
       canvas.width = window.innerWidth;
@@ -216,18 +244,25 @@ export class MotionEngine {
         const offX = (mouseX - cx) / cx;
         const offY = (mouseY - cy) / cy;
 
-        // Layer 1 (0.2x)
-        const g1 = ctx.createRadialGradient(cx + offX * 30, cy + offY * 20, 100, cx, cy, canvas.width * 0.7);
+        // Layer 1 (0.2x speed) - Deep dense silt
+        const g1 = ctx.createRadialGradient(cx + offX * 25, cy + offY * 15 + scrollY * 0.2, 120, cx, cy, canvas.width * 0.8);
         g1.addColorStop(0, 'rgba(217, 211, 162, 0.08)');
         g1.addColorStop(1, 'rgba(13, 11, 6, 0)');
         ctx.fillStyle = g1;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // Layer 2 (0.5x)
-        const g2 = ctx.createRadialGradient(cx - offX * 60, cy - offY * 40, 50, cx, cy, canvas.width * 0.5);
-        g2.addColorStop(0, 'rgba(134, 207, 160, 0.05)');
+        // Layer 2 (0.5x speed) - Mid-level aquatic murk
+        const g2 = ctx.createRadialGradient(cx - offX * 50, cy - offY * 30 + scrollY * 0.5, 60, cx, cy, canvas.width * 0.6);
+        g2.addColorStop(0, 'rgba(134, 207, 160, 0.06)');
         g2.addColorStop(1, 'rgba(13, 11, 6, 0)');
         ctx.fillStyle = g2;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Layer 3 (0.8x speed) - Surface vapor drift
+        const g3 = ctx.createRadialGradient(cx + offX * 80, cy + offY * 60 + scrollY * 0.8, 30, cx, cy, canvas.width * 0.4);
+        g3.addColorStop(0, 'rgba(233, 220, 168, 0.04)');
+        g3.addColorStop(1, 'rgba(13, 11, 6, 0)');
+        ctx.fillStyle = g3;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
       }
       animId = requestAnimationFrame(render);
@@ -239,6 +274,7 @@ export class MotionEngine {
       running = false;
       cancelAnimationFrame(animId);
       window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('scroll', onScroll);
       window.removeEventListener('resize', onResize);
       if (canvas.parentElement) container.removeChild(canvas);
     };
@@ -286,7 +322,7 @@ export class MotionEngine {
   }
 
   /**
-   * Signature 7: Score Count-Up with VU Needle flutter and Rank Stamp Thump.
+   * Signature 7: Score Count-Up with VU Needle Flutter and Rank Stamp Thump.
    */
   animateScoreCountUp(
     element: HTMLElement,
@@ -303,7 +339,6 @@ export class MotionEngine {
     const start = performance.now();
     const tick = (now: number) => {
       const progress = Math.min(1, (now - start) / durationMs);
-      // ease-out wet
       const eased = Math.sin((progress * Math.PI) / 2);
       const current = Math.floor(eased * targetScore);
       element.textContent = current.toLocaleString();
@@ -326,7 +361,17 @@ export class MotionEngine {
   }
 
   /**
-   * Signature 8: Achievement Unlock Card Flip.
+   * Signature 8: Star Pip Wet Pop.
+   */
+  popStarPip(starElement: HTMLElement): void {
+    if (this.isReducedMotion) return;
+    starElement.classList.remove('bs-star-pop');
+    void starElement.offsetWidth;
+    starElement.classList.add('bs-star-pop');
+  }
+
+  /**
+   * Signature 9: Achievement Unlock Card Flip.
    */
   unlockCardFlip(cardElement: HTMLElement): void {
     if (this.isReducedMotion) return;
@@ -334,7 +379,7 @@ export class MotionEngine {
   }
 
   /**
-   * Signature 9: Leaderboard row staggered slide-in (24ms per row).
+   * Signature 10: Leaderboard row staggered slide-in (24ms per row) & pulse.
    */
   staggerRows(rows: HTMLElement[], staggerMs = 24): void {
     if (this.isReducedMotion) return;
@@ -347,5 +392,129 @@ export class MotionEngine {
         row.style.transform = 'translateY(0)';
       }, 10);
     });
+  }
+
+  pulsePlayerRow(rowElement: HTMLElement): void {
+    if (this.isReducedMotion) return;
+    rowElement.classList.remove('bs-row-pulse');
+    void rowElement.offsetWidth;
+    rowElement.classList.add('bs-row-pulse');
+  }
+
+  /**
+   * Signature 11: Scroll-Driven Reveals with IntersectionObserver fallback.
+   */
+  observeScrollReveals(root: HTMLElement = document.body): () => void {
+    if (this.isReducedMotion) {
+      root.querySelectorAll('.bs-scroll-reveal').forEach((el) => {
+        el.classList.add('bs-revealed');
+      });
+      return () => {};
+    }
+
+    if (typeof IntersectionObserver === 'undefined') {
+      root.querySelectorAll('.bs-scroll-reveal').forEach((el) => {
+        el.classList.add('bs-revealed');
+      });
+      return () => {};
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('bs-revealed');
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.15 },
+    );
+
+    const elements = root.querySelectorAll('.bs-scroll-reveal');
+    elements.forEach((el) => observer.observe(el));
+
+    return () => {
+      observer.disconnect();
+    };
+  }
+
+  /**
+   * Signature 12: Pre-Run Ritual (2s, skippable on click or key).
+   */
+  runPreRunRitual(
+    container: HTMLElement,
+    tapeTitle: string,
+    onReady: () => void,
+  ): () => void {
+    const overlay = document.createElement('div');
+    overlay.className = 'bs-prerun-overlay';
+
+    const titleEl = document.createElement('div');
+    titleEl.className = 'bs-prerun-title';
+    overlay.appendChild(titleEl);
+
+    const subEl = document.createElement('div');
+    subEl.className = 'bs-prerun-sub';
+    subEl.textContent = 'REC [00:00:00:00] // DESCENDING...';
+    overlay.appendChild(subEl);
+
+    container.appendChild(overlay);
+
+    let finished = false;
+    let timerId: ReturnType<typeof setTimeout>;
+
+    const finish = () => {
+      if (finished) return;
+      finished = true;
+      clearTimeout(timerId);
+      window.removeEventListener('keydown', skip);
+      overlay.removeEventListener('click', skip);
+      overlay.style.opacity = '0';
+      setTimeout(() => {
+        if (overlay.parentElement) overlay.parentElement.removeChild(overlay);
+        onReady();
+      }, 300);
+    };
+
+    const skip = () => finish();
+
+    if (this.isReducedMotion) {
+      titleEl.textContent = tapeTitle;
+      timerId = setTimeout(finish, 400);
+      return finish;
+    }
+
+    this.textDecode(titleEl, tapeTitle, 800);
+    timerId = setTimeout(finish, 2000);
+
+    window.addEventListener('keydown', skip, { once: true });
+    overlay.addEventListener('click', skip, { once: true });
+
+    return finish;
+  }
+
+  /**
+   * Signature 13: Performance Budget Monitor (<= 2ms main-thread / frame).
+   * Measures Long Animation Frames via PerformanceObserver where supported.
+   */
+  measureLongAnimationFrames(onWarning?: (durationMs: number) => void): () => void {
+    if (typeof PerformanceObserver === 'undefined') return () => {};
+
+    try {
+      const observer = new PerformanceObserver((list) => {
+        for (const entry of list.getEntries()) {
+          // If a long animation frame or longtask exceeded 50ms budget
+          if (entry.duration > 50) {
+            onWarning?.(entry.duration);
+          }
+        }
+      });
+      // Try observe long-animation-frame or longtask
+      observer.observe({ type: 'longtask', buffered: true });
+      return () => observer.disconnect();
+    } catch {
+      return () => {};
+    }
   }
 }

@@ -1,11 +1,18 @@
 /* ── src/ui/motion/motion.css ─────────────────────────────────────────────
  *  Archive Motion System Stylesheet:
  *  Weighted wet analog transitions, ripple wipes, tape ejects,
- *  chromatic shimmer, text decodes, and photosensitive safety clamps.
- *  Zero animation libraries.
+ *  chromatic shimmer, text decodes, star pops, and photosensitive safety clamps.
+ *  Zero runtime animation dependencies.
  * ──────────────────────────────────────────────────────────────────────── */
 
-/* ── Ripple Wipe Overlay ───────────────────────────────────────────────── */
+/* ── Content Visibility & Offscreen Section Performance ─────────────────── */
+.lab-section,
+.bs-offscreen-section {
+  content-visibility: auto;
+  contain-intrinsic-size: 0 400px;
+}
+
+/* ── Ripple Wipe Overlay & View Transition ─────────────────────────────── */
 .bs-wipe-overlay {
   position: fixed;
   inset: 0;
@@ -18,6 +25,12 @@
 
 .bs-wipe-overlay.bs-wiping {
   clip-path: circle(150% at var(--wipe-x, 50%) var(--wipe-y, 50%));
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: var(--bs-duration-slow);
+  animation-timing-function: var(--ease-wet);
 }
 
 /* ── Hover Ripple on Interactive Elements ──────────────────────────────── */
@@ -63,7 +76,7 @@
   100% { transform: translateY(0) scale(1); opacity: 1; }
 }
 
-/* ── Rank Stamp Thump & Shake ──────────────────────────────────────────── */
+/* ── Rank Stamp Thump & Soft Shake ─────────────────────────────────────── */
 .bs-rank-stamp {
   display: inline-block;
   transform-origin: center center;
@@ -74,10 +87,21 @@
 }
 
 @keyframes bs-thump {
-  0% { transform: scale(1.4) rotate(-8deg); opacity: 0; }
-  60% { transform: scale(0.95) rotate(2deg); opacity: 1; }
-  80% { transform: scale(1.05) rotate(-1deg); }
+  0% { transform: scale(1.15) rotate(-4deg); opacity: 0; }
+  45% { transform: scale(0.98) rotate(1deg); opacity: 1; }
+  70% { transform: scale(1.02) rotate(-0.5deg); }
   100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+/* ── Star Pip Wet Pop ──────────────────────────────────────────────────── */
+.bs-star-pop {
+  animation: bs-star-pop-anim var(--bs-duration-normal) var(--ease-wet) forwards;
+}
+
+@keyframes bs-star-pop-anim {
+  0% { transform: scale(0.5); opacity: 0; filter: brightness(1.5); }
+  60% { transform: scale(1.25); opacity: 1; filter: brightness(1.2); }
+  100% { transform: scale(1); opacity: 1; filter: brightness(1); }
 }
 
 /* ── Achievement Toast Shimmer & Unlock Flip ───────────────────────────── */
@@ -88,6 +112,41 @@
 @keyframes bs-card-flip {
   0% { transform: rotateY(90deg); opacity: 0; }
   100% { transform: rotateY(0deg); opacity: 1; }
+}
+
+/* ── Leaderboard User Row Pulse ────────────────────────────────────────── */
+.bs-row-pulse {
+  animation: bs-row-pulse-anim 1.2s var(--ease-inout) 1;
+}
+
+@keyframes bs-row-pulse-anim {
+  0% { box-shadow: 0 0 0 0 rgba(134, 207, 160, 0); }
+  40% { box-shadow: 0 0 16px 2px rgba(134, 207, 160, 0.45); }
+  100% { box-shadow: 0 0 0 0 rgba(134, 207, 160, 0); }
+}
+
+/* ── Tracking Bar with VU Flutter ──────────────────────────────────────── */
+.bs-tracking-bar {
+  position: relative;
+  height: 4px;
+  background: var(--bs-grout);
+  overflow: hidden;
+}
+
+.bs-tracking-bar-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 40%;
+  background: var(--bs-water);
+  animation: bs-tracking-flutter 1.6s ease-in-out infinite alternate;
+}
+
+@keyframes bs-tracking-flutter {
+  0% { left: 0%; width: 30%; opacity: 0.8; }
+  50% { left: 40%; width: 50%; opacity: 1; }
+  100% { left: 70%; width: 30%; opacity: 0.7; }
 }
 
 /* ── Parallax Fog Canvas ───────────────────────────────────────────────── */
@@ -116,6 +175,61 @@
   }
 }
 
+/* ── Scroll-Driven Reveals ─────────────────────────────────────────────── */
+.bs-scroll-reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity var(--bs-duration-slow) var(--ease-out), transform var(--bs-duration-slow) var(--ease-wet);
+}
+
+.bs-scroll-reveal.bs-revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@supports (animation-timeline: view()) {
+  .bs-scroll-reveal-timeline {
+    animation: bs-view-reveal linear both;
+    animation-timeline: view();
+    animation-range: entry 10% cover 30%;
+  }
+
+  @keyframes bs-view-reveal {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+}
+
+/* ── Pre-Run Ritual Overlay ────────────────────────────────────────────── */
+.bs-prerun-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--bs-ink);
+  z-index: 9998;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  opacity: 1;
+  transition: opacity 600ms ease-out;
+}
+
+.bs-prerun-title {
+  font-family: var(--bs-font-mono);
+  font-size: var(--bs-text-xl);
+  color: var(--bs-cream);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.bs-prerun-sub {
+  font-family: var(--bs-font-osd);
+  font-size: var(--bs-text-sm);
+  color: var(--bs-tan);
+  opacity: 0.7;
+}
+
 /* ── Photosensitive Mode Clamping (<= 3Hz, max delta 0.25) ─────────────── */
 [data-photosensitive="safe"],
 .photosensitive-safe * {
@@ -124,6 +238,7 @@
   transition-duration: 0.01ms !important;
   text-shadow: none !important;
   box-shadow: none !important;
+  filter: none !important;
 }
 
 /* ── Prefers-reduced-motion overrides ─────────────────────────────────── */
@@ -131,11 +246,16 @@
   .bs-wipe-overlay,
   .bs-ripple-ring,
   .bs-stamp-thump,
+  .bs-star-pop,
+  .bs-row-pulse,
   .bs-unlock-flip,
   .bs-menu-breathing,
   .bs-tape-inserting,
-  .bs-tape-ejecting {
+  .bs-tape-ejecting,
+  .bs-scroll-reveal,
+  .bs-scroll-reveal-timeline {
     animation: none !important;
     transition: opacity 120ms ease !important;
+    transform: none !important;
   }
 }
