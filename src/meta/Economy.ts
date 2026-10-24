@@ -24,6 +24,7 @@ export function computeRunStatic(
 
 export class EconomyLedger {
   private balance = 0;
+  private txSeq = 0;
   private history: Transaction[] = [];
 
   constructor(initialBalance = 0) {
@@ -34,28 +35,30 @@ export class EconomyLedger {
     return this.balance;
   }
 
-  credit(amount: number, reason: string): boolean {
+  credit(amount: number, reason: string, timestamp = 0): boolean {
     if (amount <= 0) return false;
     this.balance += amount;
+    this.txSeq++;
     this.history.push({
-      id: `tx_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+      id: `tx_${this.txSeq}`,
       amount,
       type: 'earn',
       reason,
-      timestamp: Date.now(),
+      timestamp,
     });
     return true;
   }
 
-  debit(amount: number, reason: string): boolean {
+  debit(amount: number, reason: string, timestamp = 0): boolean {
     if (amount <= 0 || this.balance < amount) return false;
     this.balance -= amount;
+    this.txSeq++;
     this.history.push({
-      id: `tx_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+      id: `tx_${this.txSeq}`,
       amount,
       type: 'spend',
       reason,
-      timestamp: Date.now(),
+      timestamp,
     });
     return true;
   }

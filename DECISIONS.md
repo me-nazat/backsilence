@@ -544,6 +544,27 @@ Establish `functions/api/[[route]].ts` as the canonical Cloudflare Pages Functio
    - `MatchmakerPort` interface with `LocalMatchmaker` finding oldest open rooms and enforcing +/- 250 SR tolerance in ranked.
 **Reason:** Fulfills Prompt 3 Section 7 mandates creating engaging multiplayer dynamics, spectator agency via haunting, clutch co-op rescues, and structured tournament competition.
 
+### D061: Scoring Engine, Inventory Budgets, Loadout Perks, Mutators & Static Economy
+**Date:** 2026-10-24
+**Choice:**
+1. Deterministic Scoring Engine (`src/meta/Scoring.ts`, `src/meta/data/par.json`):
+   - Implemented exact formula: `timeScore` (600 clamped 0.4..1.6 par ratio), `noiseScore` (400 minus noise ratio), `objectives` (150 secondaries + 250 hidden), `style` (min 300 from jumps, lurks, lures, near-misses), `penalty` (150 per death).
+   - Multipliers: Difficulty (0.8, 1.0, 1.25, 1.5), Assist (0.8), Mutators compound.
+   - Calibrated rank thresholds: S (>=1400), A (>=1100), B (>=800), C (>=500), D (<500).
+   - Anti-exploit: Non-escaping runs earn 0 time score.
+   - Comprehensive Death Replay Line generation with cause explanation, timestamp, and 30s mini-timeline.
+2. In-Run Inventory & Resource Budgets (`src/meta/Inventory.ts`):
+   - 8 items: Pebble (max 6), Bottle (max 3), Noisemaker (max 2), Glow stick (max 3), Battery cell (max 3), Echo bell (max 1), Tape reel (max 5), EMP (max 2).
+   - Resource budget validator: Perfect runs require <= 70% of placed items; recovery runs require <= 100%.
+3. Tactical Loadout System (`src/meta/Loadout.ts`):
+   - 2 active slots (Pebble Pouch, Glow Sticks, Echo Bell, Noisemaker, Bottle Satchel) + 1 passive slot (Padded Soles, Steady Breath, Light Sleeper, Tape Collector).
+   - Fixed standard loadout enforced across all competitive and ranked matches.
+4. Mutator Matrix & Static Economy (`src/meta/Mutators.ts`, `src/meta/Economy.ts`, `src/meta/data/cosmetics.json`):
+   - 12 mutators with conflict detection and multipliers.
+   - Static economy per run: `floor(final / 40) + 10 * objectives + 20` (first run of day). Spent on cosmetics and loadout choices only.
+**Reason:** Fulfills Prompt 3 Section 8 and 9 mandates establishing transparent scoring, tight resource tension, meaningful loadouts, and zero pay-to-win progression.
+
+
 
 
 

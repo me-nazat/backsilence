@@ -1,0 +1,13 @@
+{
+  "orientation": { "parSeconds": 120, "noiseBudget": 4.0 },
+  "natatorium": { "parSeconds": 240, "noiseBudget": 8.0 },
+  "poolrooms": { "parSeconds": 260, "noiseBudget": 8.0 },
+  "drowned_school": { "parSeconds": 280, "noiseBudget": 9.0 },
+  "utility_tunnels": { "parSeconds": 300, "noiseBudget": 10.0 },
+  "sunken_jungle": { "parSeconds": 320, "noiseBudget": 11.0 },
+  "marble_atrium": { "parSeconds": 290, "noiseBudget": 9.5 },
+  "neon_flood": { "parSeconds": 310, "noiseBudget": 10.5 },
+  "hydro_maze": { "parSeconds": 330, "noiseBudget": 11.0 },
+  "drowned_metro": { "parSeconds": 340, "noiseBudget": 12.0 },
+  "drainage_core": { "parSeconds": 360, "noiseBudget": 12.5 }
+}

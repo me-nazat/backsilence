@@ -10,7 +10,8 @@ export type ItemId =
   | 'glow_stick'
   | 'battery_cell'
   | 'echo_bell'
-  | 'tape_reel';
+  | 'tape_reel'
+  | 'emp';
 
 export interface ItemDef {
   id: ItemId;
@@ -25,6 +26,8 @@ export interface ItemDef {
   lightRadius?: number;
   lightDuration?: number;
   batteryBoostPercent?: number;
+  empRadius?: number;
+  empDuration?: number;
   isCollectible?: boolean;
 }
 
@@ -75,7 +78,35 @@ export const ITEM_DEFS: Record<ItemId, ItemDef> = {
     noiseProfile: { water: 0.0, dry: 0.0 },
     isCollectible: true,
   },
+  emp: {
+    id: 'emp',
+    name: 'Electromagnetic Pulse (EMP)',
+    maxCarry: 2,
+    noiseProfile: { water: 0.3, dry: 0.3 },
+    empRadius: 10.0,
+    empDuration: 20.0,
+  },
 };
+
+/**
+ * Resource budget validator from Section 9:
+ * A perfect run needs at most 70% of items placed;
+ * A recovery run (1 death, 2 mistakes) needs at most 100%.
+ */
+export function validateResourceBudget(
+  itemsUsed: number,
+  totalPlaced: number,
+  isRecoveryRun = false,
+): { valid: boolean; ratio: number; maxAllowedRatio: number } {
+  if (totalPlaced <= 0) return { valid: true, ratio: 0, maxAllowedRatio: isRecoveryRun ? 1.0 : 0.7 };
+  const ratio = itemsUsed / totalPlaced;
+  const maxAllowed = isRecoveryRun ? 1.0 : 0.7;
+  return {
+    valid: ratio <= maxAllowed + 0.001,
+    ratio,
+    maxAllowedRatio: maxAllowed,
+  };
+}
 
 export interface InventorySnapshot {
   counts: Partial<Record<ItemId, number>>;

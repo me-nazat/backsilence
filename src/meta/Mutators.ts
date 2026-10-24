@@ -155,6 +155,8 @@ export function validateMutators(activeMutators: readonly MutatorId[]): MutatorV
 }
 
 export const MutatorManager = {
+  validateMutators,
+
   validateSelection(mutators: string[]): { valid: boolean; reasons: string[] } {
     const res = validateMutators(mutators as MutatorId[]);
     return {

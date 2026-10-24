@@ -4,6 +4,7 @@
  * ──────────────────────────────────────────────────────────────────────── */
 
 import balanceData from '../sim/balance.json' with { type: 'json' };
+import parData from './data/par.json' with { type: 'json' };
 import type { RunEvent, DeathEvent } from './RunEvents.js';
 
 export type DifficultyTier = 'whisper' | 'normal' | 'deafening' | 'nightmare';
@@ -21,6 +22,7 @@ export interface ScoreInputs {
   lureSuccesses: number;
   nearMissesUnder2m: number;
   deaths: number;
+  escaped?: boolean;
   mutatorMultiplier?: number;
   hasAssists?: boolean;
   isStandardLoadout?: boolean;
@@ -61,17 +63,20 @@ function clamp(val: number, min: number, max: number): number {
 }
 
 export function computeScore(inputs: ScoreInputs): ScoreBreakdown {
-  const mapConfig = (balanceData.maps as Record<string, { parSeconds: number; noiseBudget: number }>)[inputs.mapId] ?? {
-    parSeconds: 240,
-    noiseBudget: 8.0,
-  };
+  const mapConfig = (parData as Record<string, { parSeconds: number; noiseBudget: number }>)[inputs.mapId] ??
+    (balanceData.maps as Record<string, { parSeconds: number; noiseBudget: number }>)[inputs.mapId] ?? {
+      parSeconds: 240,
+      noiseBudget: 8.0,
+    };
 
   const par = mapConfig.parSeconds;
   const noiseBudget = mapConfig.noiseBudget;
   const time = Math.max(1.0, inputs.elapsedSeconds);
 
   // 1. Time Score (600 * clamp(par / time, 0.4, 1.6))
-  const timeScore = Math.round(600 * clamp(par / time, 0.4, 1.6));
+  // Anti-exploit: A run that does not escape earns no time score
+  const isEscaped = inputs.escaped !== false;
+  const timeScore = isEscaped ? Math.round(600 * clamp(par / time, 0.4, 1.6)) : 0;
 
   // 2. Noise Score (400 * (1 - clamp(noiseUnits / noiseBudget, 0, 1)))
   const noiseRatio = clamp(inputs.noiseUnits / noiseBudget, 0.0, 1.0);

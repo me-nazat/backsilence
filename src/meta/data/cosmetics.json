@@ -1,0 +1,166 @@
+[
+  {
+    "id": "flashlight_standard",
+    "category": "flashlight",
+    "name": "Industrial Heavy Duty",
+    "description": "Standard black rubberized survey flashlight.",
+    "costStatic": 0,
+    "paletteValue": "#2a2a2a"
+  },
+  {
+    "id": "flashlight_brass",
+    "category": "flashlight",
+    "name": "Patinated Brass",
+    "description": "Turn-of-the-century nautical inspection torch.",
+    "costStatic": 350,
+    "paletteValue": "#bfa054"
+  },
+  {
+    "id": "flashlight_duck",
+    "category": "flashlight",
+    "name": "Squeaky Rubber Duck",
+    "description": "A cheerful yellow bathtub duck fitted with a high-intensity bulb. Squeaks harmlessly.",
+    "costStatic": 800,
+    "paletteValue": "#ffd43f"
+  },
+  {
+    "id": "flashlight_tactical",
+    "category": "flashlight",
+    "name": "Matte Olive Tactical",
+    "description": "Military-grade anodized aluminum casing with knurled grip.",
+    "costStatic": 450,
+    "paletteValue": "#4b5320"
+  },
+  {
+    "id": "jacket_yellow",
+    "category": "jacket",
+    "name": "Classic Yellow Slicker",
+    "description": "Traditional bright yellow maritime rain jacket.",
+    "costStatic": 0,
+    "paletteValue": "#f7d038"
+  },
+  {
+    "id": "jacket_orange",
+    "category": "jacket",
+    "name": "Safety Hazard Orange",
+    "description": "High-visibility municipal worker trench coat.",
+    "costStatic": 250,
+    "paletteValue": "#ff6700"
+  },
+  {
+    "id": "jacket_navy",
+    "category": "jacket",
+    "name": "Abyssal Navy",
+    "description": "Deep midnight blue waterproof fabric.",
+    "costStatic": 400,
+    "paletteValue": "#12233c"
+  },
+  {
+    "id": "jacket_slate",
+    "category": "jacket",
+    "name": "Concrete Slate",
+    "description": "Brutalist gray raincoat blending into municipal tiles.",
+    "costStatic": 300,
+    "paletteValue": "#54585a"
+  },
+  {
+    "id": "hood_raised",
+    "category": "hood",
+    "name": "Weather Cowl (Raised)",
+    "description": "Hood pulled up against ceiling condensation.",
+    "costStatic": 0,
+    "paletteValue": "raised"
+  },
+  {
+    "id": "hood_down",
+    "category": "hood",
+    "name": "Collar Rest (Down)",
+    "description": "Casual draped hood revealing operator collar.",
+    "costStatic": 200,
+    "paletteValue": "down"
+  },
+  {
+    "id": "splash_cyan",
+    "category": "splash_tint",
+    "name": "Chlorine Cyan",
+    "description": "Pale institutional pool chemical tint.",
+    "costStatic": 0,
+    "paletteValue": "#86cfa0"
+  },
+  {
+    "id": "splash_emerald",
+    "category": "splash_tint",
+    "name": "Subterranean Algae",
+    "description": "Deep bioluminescent jade ripple wake.",
+    "costStatic": 300,
+    "paletteValue": "#2ecc71"
+  },
+  {
+    "id": "splash_amethyst",
+    "category": "splash_tint",
+    "name": "Mineral Violet",
+    "description": "Heavy dissolved salt crystals tinting surface ripples.",
+    "costStatic": 500,
+    "paletteValue": "#9b59b6"
+  },
+  {
+    "id": "tape_label_standard",
+    "category": "tape_label",
+    "name": "Masking Tape (Pencil)",
+    "description": "Handwritten Archivist tape cataloging label.",
+    "costStatic": 0,
+    "paletteValue": "masking_pencil"
+  },
+  {
+    "id": "tape_label_dymo",
+    "category": "tape_label",
+    "name": "Embossed DYMO Tape",
+    "description": "1970s raised white plastic lettering on black tape.",
+    "costStatic": 250,
+    "paletteValue": "dymo_black"
+  },
+  {
+    "id": "nameplate_classified",
+    "category": "nameplate",
+    "name": "Classified Redaction",
+    "description": "Black marker bar with stencil lettering.",
+    "costStatic": 0,
+    "paletteValue": "classified_bar"
+  },
+  {
+    "id": "nameplate_hazard",
+    "category": "nameplate",
+    "name": "Submerged Warning",
+    "description": "Yellow and black chevron hazard plate.",
+    "costStatic": 350,
+    "paletteValue": "hazard_chevron"
+  },
+  {
+    "id": "emote_wave",
+    "category": "silent_emote",
+    "name": "Silent Wave",
+    "description": "Subtle hand raise signaling teammate without sound.",
+    "costStatic": 0
+  },
+  {
+    "id": "emote_shush",
+    "category": "silent_emote",
+    "name": "Urgent Shush",
+    "description": "Finger to lips indicating creature proximity.",
+    "costStatic": 150
+  },
+  {
+    "id": "emote_point",
+    "category": "silent_emote",
+    "name": "Tactical Point",
+    "description": "Direct gesture toward safe dry ground or objective.",
+    "costStatic": 200
+  },
+  {
+    "id": "emote_thumbs_up",
+    "category": "silent_emote",
+    "name": "All Clear Thumbs Up",
+    "description": "Reassuring nod and thumbs up across the water.",
+    "costStatic": 250
+  }
+]
