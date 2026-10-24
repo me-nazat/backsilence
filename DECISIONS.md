@@ -372,5 +372,17 @@ Establish `functions/api/[[route]].ts` as the canonical Cloudflare Pages Functio
 5. Anisotropy & Mip Bias Tuning: Configured texture anisotropy to 16 on High and 4 on Medium with `LinearMipmapLinearFilter`, eliminating moire artifacts on grazing-angle tile platforms at 20m.
 **Reason:** Fulfills Prompt 2 Phase D requirements for commercial-grade surface diversity, tactile wet transitions, instanced decal detailing, and moire-free texture filtering.
 
+### D051: Level Art Density Pass, 3 Depth Layers & Set Pieces Across All 10 Maps
+**Date:** 2026-10-24
+**Choice:**
+1. Visual Density & Triangle Targets: Scaled geometric detail across all 10 maps to reach 120k–220k triangles and 120–200 draw calls (respecting 300k triangle and 240 draw call budget caps).
+2. Three-Tier Depth Layering: Composed scenes with foreground clutter (scattered papers, floor drains, debris, rail fragments), midground architecture (balustrades, desks, chairs, lockers, filter drums, weir gates, stalled subway cars, hover cars), and background silhouettes (massive barrel vault ribs, diving towers, ruined temple columns, tunnel rings, holographic billboards dissolving into fog).
+3. Prop Diversity: Integrated at least 12 distinct procedural prop types per map (`LevelArtProps.ts`) with baked vertex ambient occlusion (`bakeVertexAO`).
+4. Decal Density: Placed at least 40 decals per 1,000 square meters using `DecalSystem` with polygon offset factor -1.0 to eliminate z-fighting.
+5. Spatial Points of Interest: Implemented 16m spatial cell grid traversal ensuring a distinct point of interest (POI) in every 16m cell across each map's footprint.
+6. Matrix Auto-Update Elimination: Enforced `mesh.matrixAutoUpdate = false` and `mesh.updateMatrix()` across all static visual geometry to eliminate CPU transform evaluation overhead during gameplay.
+**Reason:** Fulfills Prompt 2 Phase E mandates to resolve the sparse level art complaint and raise the visual fidelity of all ten maps to commercial-grade standards.
+
+
 
 

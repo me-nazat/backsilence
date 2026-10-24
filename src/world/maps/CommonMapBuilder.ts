@@ -30,6 +30,7 @@ import { buildFountainGeometry } from '../../procedural/geometry/Fountain.js';
 import { buildFluorescentFixtureGeometry } from '../../procedural/geometry/LightFixture.js';
 import { makePipeDiagramTexture } from '../../procedural/textures/PaintedLabel.js';
 import { applyWetDarkening } from '../../game/rendering/WetDarkening.js';
+import { applyMapLevelArtPass } from '../levelart/MapLevelArtPass.js';
 
 export interface CustomBuilderHook {
   onPlatformMesh?: (mesh: Mesh, def: LayoutData['platforms'][0]) => void;
@@ -297,10 +298,27 @@ export function buildStandardMapInstance(
     }
   }
 
+  // 6. Level Art Pass (3 depth layers, distinct props, POIs, instanced decals)
+  applyMapLevelArtPass({
+    root,
+    layout,
+    customMaterials,
+    materialsToDispose,
+    geometriesToDispose,
+  });
+
   // Post build hook
   if (hooks?.onPostBuild) {
     hooks.onPostBuild(root, { ground, colliders });
   }
+
+  // Freeze matrices for all static visual geometry
+  root.traverse((obj) => {
+    if (obj instanceof Mesh) {
+      obj.matrixAutoUpdate = false;
+      obj.updateMatrix();
+    }
+  });
 
   return {
     id: layout.mapId,

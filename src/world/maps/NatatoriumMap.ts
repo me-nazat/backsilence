@@ -628,6 +628,14 @@ export const NatatoriumMap: MapDefinition = {
     });
     instance.root.add(motes);
 
+    // Freeze matrices on post-build meshes
+    instance.root.traverse((obj) => {
+      if (obj instanceof Mesh) {
+        obj.matrixAutoUpdate = false;
+        obj.updateMatrix();
+      }
+    });
+
     return instance;
   },
 

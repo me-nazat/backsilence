@@ -8,6 +8,25 @@ export type AnyCanvasRenderingContext2D =
   | OffscreenCanvasRenderingContext2D
   | CanvasRenderingContext2D;
 
+if (typeof globalThis.ImageData === 'undefined') {
+  (globalThis as any).ImageData = class ImageData {
+    readonly data: Uint8ClampedArray;
+    readonly width: number;
+    readonly height: number;
+    constructor(dataOrWidth: Uint8ClampedArray | number, widthOrHeight: number, height?: number) {
+      if (typeof dataOrWidth === 'number') {
+        this.width = dataOrWidth;
+        this.height = widthOrHeight;
+        this.data = new Uint8ClampedArray(this.width * this.height * 4);
+      } else {
+        this.data = dataOrWidth;
+        this.width = widthOrHeight;
+        this.height = height ?? (dataOrWidth.length / (widthOrHeight * 4));
+      }
+    }
+  };
+}
+
 export interface PooledCanvas {
   canvas: AnyCanvas;
   ctx: AnyCanvasRenderingContext2D;
@@ -47,6 +66,7 @@ export function acquireCanvas(width: number, height: number): PooledCanvas {
     const stubCtx = {
       clearRect: () => {},
       fillRect: () => {},
+      strokeRect: () => {},
       drawImage: () => {},
       createImageData: (w = width, h = height) => ({ data: new Uint8ClampedArray(w * h * 4) }),
       getImageData: () => ({ data: new Uint8ClampedArray(width * height * 4) }),
@@ -63,6 +83,10 @@ export function acquireCanvas(width: number, height: number): PooledCanvas {
       arc: () => {},
       fill: () => {},
       stroke: () => {},
+      measureText: (txt: string) => ({ width: txt.length * 10 }),
+      fillText: () => {},
+      strokeText: () => {},
+      setLineDash: () => {},
       createRadialGradient: () => ({ addColorStop: () => {} }),
       createLinearGradient: () => ({ addColorStop: () => {} }),
     } as unknown as AnyCanvasRenderingContext2D;

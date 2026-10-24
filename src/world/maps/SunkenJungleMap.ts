@@ -349,6 +349,8 @@ export const SunkenJungleMap: MapDefinition = {
       intensity: 0.25,
     });
     canopyShaft.position.set(0, 8.0, 10);
+    canopyShaft.matrixAutoUpdate = false;
+    canopyShaft.updateMatrix();
     instance.root.add(canopyShaft);
 
     // Forest fireflies / motes
