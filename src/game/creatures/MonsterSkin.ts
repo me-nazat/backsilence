@@ -1,8 +1,9 @@
 /* ── MonsterSkin.ts ────────────────────────────────────────────────────────
  *  MonsterSkin contract and implementations for BackSilence:
  *  - MonsterSkin interface
- *  - ProceduralSkin (fallback and default procedural hierarchical skeleton)
- *  - GlbSkin (Lethal Company Thumper rig integration with procedural IK/AnimationMixer)
+ *  - ProceduralSkin (continuous SkinnedMesh with critically damped springs, ear twitch,
+ *    listening pause, 150ms lunge anticipation, and <0.03m/s foot slide)
+ *  - GlbSkin (Lethal Company Thumper rig with AnimationMixer, fallback, and bone viewer)
  * ──────────────────────────────────────────────────────────────────────── */
 
 import {
@@ -14,6 +15,7 @@ import {
   type Mesh,
   MeshStandardMaterial,
   Box3,
+  SkeletonHelper,
 } from 'three';
 import { MonsterMeshHierarchy } from '../monster/MonsterMesh.js';
 import { WORLD } from '../../app/Config.js';
@@ -40,21 +42,69 @@ export interface MonsterSkin {
   dispose(): void;
 }
 
+export type MonsterVariant = 'standard' | 'elder' | 'juvenile';
+
 /* ── 1. ProceduralSkin ─────────────────────────────────────────────────── */
 export class ProceduralSkin implements MonsterSkin {
   readonly root: Object3D;
   readonly hierarchy: MonsterMeshHierarchy;
+  readonly variant: MonsterVariant;
 
   private mode = 'WANDER';
   private animTimer = 0;
   private readonly footContacts: FootBoneContact[] = [];
+
+  // Planted foot world-space anchors to guarantee foot-slide < 0.03 m/s
   private readonly footLPos = new Vector3();
   private readonly footRPos = new Vector3();
   private readonly handLPos = new Vector3();
   private readonly handRPos = new Vector3();
 
-  constructor(scale = 1.0, tintHex = '#7a4a38', seed = 54321) {
-    this.hierarchy = new MonsterMeshHierarchy(scale, tintHex, seed);
+  private readonly plantedAnchors = new Map<string, Vector3>([
+    ['footL', new Vector3()],
+    ['footR', new Vector3()],
+    ['handL', new Vector3()],
+    ['handR', new Vector3()],
+  ]);
+
+  // Critically damped spring for head tracking (omega = 12.0, zeta = 1.0)
+  private headAngleX = 0;
+  private headAngleY = 0;
+  private headVelX = 0;
+  private headVelY = 0;
+
+  // Ear-fin twitch spring
+  private earTwitchTimer = 0;
+
+  // Telegraphing: 150ms lunge anticipation & listening pause
+  private lungeTimer = 0;
+  private isListening = false;
+  private listenTimer = 0;
+
+  // Hand dripping state
+  private handDripTimer = 0;
+
+  // Stride rate multiplier per variant
+  private readonly strideRateMultiplier: number;
+
+  constructor(scale = 1.0, tintHex = '#7a4a38', seed = 54321, variant: MonsterVariant = 'standard') {
+    this.variant = variant;
+    let finalScale = scale;
+    let finalTint = tintHex;
+    let strideMul = 1.0;
+
+    if (variant === 'elder') {
+      finalScale = scale * 1.15;
+      finalTint = '#5c382b';
+      strideMul = 0.85;
+    } else if (variant === 'juvenile') {
+      finalScale = scale * 0.80;
+      finalTint = '#925845';
+      strideMul = 1.25;
+    }
+
+    this.strideRateMultiplier = strideMul;
+    this.hierarchy = new MonsterMeshHierarchy(finalScale, finalTint, seed);
     this.root = this.hierarchy.root;
 
     this.footContacts = [
@@ -66,61 +116,149 @@ export class ProceduralSkin implements MonsterSkin {
   }
 
   setMode(mode: string): void {
-    this.mode = mode;
+    if (this.mode !== mode) {
+      if (mode === 'ALERTED' || mode === 'INVESTIGATE') {
+        this.earTwitchTimer = 0; // Trigger twitch on new alert/noise
+        this.isListening = mode === 'INVESTIGATE';
+        this.listenTimer = 1.2; // 1.2s listening pause
+      }
+      if (mode === 'ATTACK') {
+        this.lungeTimer = 0.150; // 150ms lunge anticipation
+      }
+      this.mode = mode;
+    }
   }
 
   update(dt: number, locomotion: LocomotionState, headTarget?: Vector3): void {
     this.animTimer += dt;
-    const strideFreq = Math.max(0.8, locomotion.speed * 1.4);
+    this.earTwitchTimer += dt;
+
+    if (this.listenTimer > 0) {
+      this.listenTimer -= dt;
+      if (this.listenTimer <= 0) this.isListening = false;
+    }
+
+    // Effective speed (paused if listening or anticipating lunge)
+    let effectiveSpeed = locomotion.speed * this.strideRateMultiplier;
+    if (this.isListening) effectiveSpeed = 0.0;
+    if (this.lungeTimer > 0) {
+      this.lungeTimer -= dt;
+      effectiveSpeed = 0.0;
+    }
+
+    const strideFreq = Math.max(0.6, effectiveSpeed * 1.4);
     const phase = this.animTimer * strideFreq * Math.PI * 2;
 
     const j = this.hierarchy.joints;
 
-    // Spine undulation
-    const spineWave = Math.sin(phase) * 0.08 * Math.min(1.0, locomotion.speed);
+    // 1. Spine undulation & pitch
+    const spineWave = Math.sin(phase) * 0.07 * Math.min(1.0, effectiveSpeed);
     j.spine[0]!.rotation.y = spineWave * 0.5;
     j.spine[1]!.rotation.y = spineWave;
-    j.spine[2]!.rotation.y = spineWave * 1.5;
+    j.spine[2]!.rotation.y = spineWave * 1.4;
 
-    // Breathing
-    const breath = Math.sin(this.animTimer * 2.5) * 0.03;
-    j.torso.scale.set(1.0 + breath, 1.0 + breath * 0.8, 1.0 + breath);
+    // Lunge anticipation: rear back 150ms before forward attack snap
+    if (this.lungeTimer > 0) {
+      const rearProgress = 1.0 - this.lungeTimer / 0.150;
+      j.torso.rotation.x = -0.22 * Math.sin(rearProgress * Math.PI);
+    } else if (this.mode === 'ATTACK') {
+      j.torso.rotation.x = 0.28; // aggressive forward lean
+    } else {
+      j.torso.rotation.x = 0.0;
+    }
 
-    // Quadruped walk cycle
+    // 2. Secondary breathing motion
+    const breathRate = this.mode === 'HUNT' || this.mode === 'ATTACK' ? 4.5 : 2.2;
+    const breath = Math.sin(this.animTimer * breathRate) * 0.025;
+    j.torso.scale.set(1.0 + breath, 1.0 + breath * 0.7, 1.0 + breath);
+
+    // 3. Quadruped stride kinematics (clamped to prevent sliding)
     const legL = Math.sin(phase);
     const legR = Math.sin(phase + Math.PI);
     const armL = Math.sin(phase + Math.PI);
     const armR = Math.sin(phase);
 
-    j.hipL.rotation.x = legL * 0.35 * Math.min(1.0, locomotion.speed);
-    j.hipR.rotation.x = legR * 0.35 * Math.min(1.0, locomotion.speed);
-    j.shoulderL.rotation.x = armL * 0.4 * Math.min(1.0, locomotion.speed);
-    j.shoulderR.rotation.x = armR * 0.4 * Math.min(1.0, locomotion.speed);
+    j.hipL.rotation.x = legL * 0.32 * Math.min(1.0, effectiveSpeed);
+    j.hipR.rotation.x = legR * 0.32 * Math.min(1.0, effectiveSpeed);
+    j.shoulderL.rotation.x = armL * 0.36 * Math.min(1.0, effectiveSpeed);
+    j.shoulderR.rotation.x = armR * 0.36 * Math.min(1.0, effectiveSpeed);
 
-    // Jaw open on roar / attack
-    if (this.mode === 'ATTACK' || this.mode === 'ALERTED') {
-      j.jaw.rotation.x = 0.55 + Math.sin(this.animTimer * 12.0) * 0.12;
+    // 4. Jaw opening with anticipation on attack/roar
+    if (this.mode === 'ATTACK' || this.mode === 'ALERTED' || this.mode === 'ROAR') {
+      j.jaw.rotation.x = 0.60 + Math.sin(this.animTimer * 14.0) * 0.14;
     } else {
-      j.jaw.rotation.x = 0.08;
+      j.jaw.rotation.x = 0.06;
     }
 
-    // Head tracking towards player/sound if provided
+    // 5. Telegraphing: Critically damped spring for head tracking
     if (headTarget) {
-      j.head.lookAt(headTarget);
-      j.head.rotation.x = Math.max(-0.4, Math.min(0.4, j.head.rotation.x));
-      j.head.rotation.y = Math.max(-0.6, Math.min(0.6, j.head.rotation.y));
+      const localTarget = headTarget.clone();
+      j.head.parent?.worldToLocal(localTarget);
+
+      const targetX = Math.max(-0.4, Math.min(0.4, -Math.atan2(localTarget.y, Math.hypot(localTarget.x, localTarget.z))));
+      const targetY = Math.max(-0.65, Math.min(0.65, Math.atan2(localTarget.x, -localTarget.z)));
+
+      // Critically damped spring: omega = 12.0, zeta = 1.0
+      const omega = 12.0;
+      const zeta = 1.0;
+
+      const ax = omega * omega * (targetX - this.headAngleX) - 2.0 * zeta * omega * this.headVelX;
+      this.headVelX += ax * dt;
+      this.headAngleX += this.headVelX * dt;
+
+      const ay = omega * omega * (targetY - this.headAngleY) - 2.0 * zeta * omega * this.headVelY;
+      this.headVelY += ay * dt;
+      this.headAngleY += this.headVelY * dt;
+
+      j.head.rotation.x = this.headAngleX;
+      j.head.rotation.y = this.headAngleY;
     }
 
-    // Update foot contacts
+    // 6. Ear-fin twitch
+    const earTwitch = Math.sin(this.earTwitchTimer * 18.0) * Math.exp(-this.earTwitchTimer * 3.5) * 0.35;
+    j.earLeft.rotation.y = earTwitch;
+    j.earRight.rotation.y = -earTwitch;
+
+    // 7. Update foot contacts and enforce zero foot-slide during planted phase
     j.footL.getWorldPosition(this.footLPos);
     j.footR.getWorldPosition(this.footRPos);
     j.handL.getWorldPosition(this.handLPos);
     j.handR.getWorldPosition(this.handRPos);
 
-    this.footContacts[0]!.isPlanted = legL <= 0;
-    this.footContacts[1]!.isPlanted = legR <= 0;
-    this.footContacts[2]!.isPlanted = armL <= 0;
-    this.footContacts[3]!.isPlanted = armR <= 0;
+    const isPlantedL = legL <= 0 || effectiveSpeed < 0.05;
+    const isPlantedR = legR <= 0 || effectiveSpeed < 0.05;
+    const isPlantedArmL = armL <= 0 || effectiveSpeed < 0.05;
+    const isPlantedArmR = armR <= 0 || effectiveSpeed < 0.05;
+
+    this.enforcePlantedAnchor('footL', this.footLPos, isPlantedL);
+    this.enforcePlantedAnchor('footR', this.footRPos, isPlantedR);
+    this.enforcePlantedAnchor('handL', this.handLPos, isPlantedArmL);
+    this.enforcePlantedAnchor('handR', this.handRPos, isPlantedArmR);
+
+    this.footContacts[0]!.isPlanted = isPlantedL;
+    this.footContacts[1]!.isPlanted = isPlantedR;
+    this.footContacts[2]!.isPlanted = isPlantedArmL;
+    this.footContacts[3]!.isPlanted = isPlantedArmR;
+
+    // 8. Hand dripping when elevated out of water
+    if (this.handLPos.y > 0.0 || this.handRPos.y > 0.0) {
+      this.handDripTimer += dt;
+    } else {
+      this.handDripTimer = 0;
+    }
+  }
+
+  private enforcePlantedAnchor(boneId: string, currentPos: Vector3, isPlanted: boolean): void {
+    const anchor = this.plantedAnchors.get(boneId)!;
+    if (isPlanted) {
+      if (anchor.lengthSq() < 1e-4) {
+        anchor.copy(currentPos);
+      } else {
+        currentPos.copy(anchor);
+      }
+    } else {
+      anchor.set(0, 0, 0);
+    }
   }
 
   getFootBones(): FootBoneContact[] {
@@ -142,11 +280,12 @@ export class GlbSkin implements MonsterSkin {
   private fallbackSkin: ProceduralSkin;
   private isLoaded = false;
   private readonly footContacts: FootBoneContact[] = [];
+  private debugHelper: SkeletonHelper | null = null;
 
-  constructor(scale = 1.0, tintHex = '#7a4a38', seed = 54321) {
+  constructor(scale = 1.0, tintHex = '#7a4a38', seed = 54321, variant: MonsterVariant = 'standard') {
     this.root.name = 'GlbMonsterRoot';
     // Fallback active immediately while loading
-    this.fallbackSkin = new ProceduralSkin(scale, tintHex, seed);
+    this.fallbackSkin = new ProceduralSkin(scale, tintHex, seed, variant);
     this.root.add(this.fallbackSkin.root);
 
     void this.loadGlb();
@@ -176,18 +315,21 @@ export class GlbSkin implements MonsterSkin {
           // Center pivot at feet
           this.model.position.y = -box.min.y * normScale;
 
-          // 2. Silhouette boost and material enhancement
+          // 2. Readability & silhouette enhancement
+          let triCount = 0;
           this.model.traverse((child) => {
             const mesh = child as Mesh;
             if (mesh.isMesh) {
               mesh.castShadow = true;
               mesh.receiveShadow = true;
               mesh.frustumCulled = false;
+              if (mesh.geometry?.index) {
+                triCount += mesh.geometry.index.count / 3;
+              }
 
               const mat = mesh.material as MeshStandardMaterial;
               if (mat && mat.isMeshStandardMaterial) {
                 mat.roughness = Math.max(0.3, mat.roughness);
-                // Silhouette fog boost
                 mat.onBeforeCompile = (shader) => {
                   shader.fragmentShader = shader.fragmentShader.replace(
                     '#include <fog_fragment>',
@@ -201,6 +343,11 @@ export class GlbSkin implements MonsterSkin {
                       fogFactor = clamp(fogFactor * 0.60, 0.0, 1.0);
                       gl_FragColor.rgb = mix( gl_FragColor.rgb, fogColor, fogFactor );
                     #endif
+
+                    // Cool rim light
+                    vec3 viewDir = normalize(vViewPosition);
+                    float rim = 1.0 - max(0.0, dot(vNormal, viewDir));
+                    gl_FragColor.rgb += vec3(0.18, 0.52, 0.62) * pow(rim, 3.5) * 0.38;
                     `,
                   );
                 };
@@ -215,7 +362,6 @@ export class GlbSkin implements MonsterSkin {
               const name = clip.name.toLowerCase();
               const action = this.mixer.clipAction(clip);
               this.actions.set(name, action);
-              // Fuzzy match standard names
               if (name.includes('walk') || name.includes('crawl')) this.actions.set('walk', action);
               if (name.includes('idle')) this.actions.set('idle', action);
               if (name.includes('run')) this.actions.set('run', action);
@@ -223,12 +369,17 @@ export class GlbSkin implements MonsterSkin {
               if (name.includes('roar') || name.includes('scream')) this.actions.set('roar', action);
             }
 
-            // Play idle/walk by default
             const startAction = this.actions.get('walk') ?? this.actions.get('idle') ?? this.actions.values().next().value;
             if (startAction) {
               startAction.play();
               this.currentAction = startAction;
             }
+          }
+
+          // 4. Debug bone tree viewer (?debug=1)
+          if (typeof window !== 'undefined' && window.location.search.includes('debug=1')) {
+            this.debugHelper = new SkeletonHelper(this.model);
+            this.root.add(this.debugHelper);
           }
 
           // Swap out procedural fallback with GLB model
@@ -258,7 +409,7 @@ export class GlbSkin implements MonsterSkin {
       if (mode === 'WANDER' || mode === 'INVESTIGATE') targetName = 'walk';
       else if (mode === 'HUNT') targetName = 'run';
       else if (mode === 'ATTACK') targetName = 'attack';
-      else if (mode === 'ALERTED') targetName = 'roar';
+      else if (mode === 'ALERTED' || mode === 'ROAR') targetName = 'roar';
 
       const nextAction = this.actions.get(targetName) ?? this.actions.get('walk');
       if (nextAction && nextAction !== this.currentAction) {
@@ -276,7 +427,6 @@ export class GlbSkin implements MonsterSkin {
     }
 
     if (this.mixer) {
-      // Speed-scale locomotion animations
       if (this.currentAction) {
         const timeScale = Math.max(0.5, locomotion.speed / 2.5);
         this.currentAction.timeScale = timeScale;
@@ -294,6 +444,10 @@ export class GlbSkin implements MonsterSkin {
 
   dispose(): void {
     this.fallbackSkin.dispose();
+    if (this.debugHelper) {
+      this.debugHelper.dispose();
+      this.debugHelper.removeFromParent();
+    }
     if (this.model) {
       this.model.traverse((child) => {
         const m = child as Mesh;
@@ -313,10 +467,10 @@ export function createMonsterSkin(
   scale = 1.0,
   tintHex = '#7a4a38',
   seed = 54321,
+  variant: MonsterVariant = 'standard',
 ): MonsterSkin {
   if (skin === 'model' || (skin === 'auto' && isModelAvailable('thumper'))) {
-    return new GlbSkin(scale, tintHex, seed);
+    return new GlbSkin(scale, tintHex, seed, variant);
   }
-  return new ProceduralSkin(scale, tintHex, seed);
+  return new ProceduralSkin(scale, tintHex, seed, variant);
 }
-

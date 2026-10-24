@@ -72,6 +72,10 @@ export function defaultSettings(): Settings {
       interpolationBias: 0,
       showNetStats: false,
     },
+    creatures: {
+      waterMonsterSkin: 'auto',
+      ambientFlyers: 5,
+    },
   };
 }
 
@@ -80,7 +84,6 @@ function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value));
 }
 
-/** Validate and clamp settings values to sane ranges. */
 /** Validate and clamp settings values to sane ranges. Guaranteed never to throw. */
 export function clampSettings(s: Settings): Settings {
   const def = defaultSettings();
@@ -90,6 +93,7 @@ export function clampSettings(s: Settings): Settings {
   const acc = s?.accessibility ?? def.accessibility;
   const p = s?.player ?? def.player;
   const n = s?.net ?? def.net;
+  const cr = s?.creatures ?? def.creatures;
 
   return {
     version: 2,
@@ -134,6 +138,12 @@ export function clampSettings(s: Settings): Settings {
     net: {
       interpolationBias: clamp(typeof n?.interpolationBias === 'number' ? n.interpolationBias : 0, -50, 100),
       showNetStats: Boolean(n?.showNetStats),
+    },
+    creatures: {
+      waterMonsterSkin: ['auto', 'model', 'procedural'].includes(cr?.waterMonsterSkin as string)
+        ? cr?.waterMonsterSkin!
+        : 'auto',
+      ambientFlyers: clamp(typeof cr?.ambientFlyers === 'number' ? cr.ambientFlyers : 5, 0, 5),
     },
   };
 }
@@ -206,6 +216,9 @@ export function migrateSettings(raw: Record<string, unknown>): Settings {
     },
     net: {
       ...def.net!,
+    },
+    creatures: {
+      ...def.creatures!,
     },
   };
 

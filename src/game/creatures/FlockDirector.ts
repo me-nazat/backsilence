@@ -2,7 +2,10 @@
  *  Harmless ambient fauna: 5 deterministic flying skulls circling overhead.
  *  - Category: ambient_fauna (ZERO NoiseEvents, zero collision, replication-free)
  *  - Approach from horizon -> circle at 9-16m altitude -> dip skim -> depart
- *  - InstancedMesh with flap animation and shadow discs on water surface
+ *  - InstancedMesh with LOD0 (<30m) and LOD1 (>=30m)
+ *  - Wing flap animation via vertex shader, cold emissive eye sockets, faint rim
+ *  - Soft moving shadow discs on water surface
+ *  - Cosmetic ripples on water skim
  *  - Pure function of (seed, simTime, flockIndex)
  * ──────────────────────────────────────────────────────────────────────── */
 
@@ -17,22 +20,26 @@ import {
   Vector3,
   Quaternion,
   DynamicDrawUsage,
+  type Camera,
 } from 'three';
 import type { AudioEngine } from '../../audio/AudioEngine.js';
+import type { WaterSystem } from '../water/WaterSystem.js';
 
 export interface FlockConfig {
   seed: number;
   anchor: Vector3;
   waterY: number;
-  count?: number; // default 5
+  count?: number; // default 5 (setting: creatures.ambientFlyers)
   audio?: AudioEngine | undefined;
+  water?: WaterSystem | undefined;
 }
 
 export class FlockDirector {
   static readonly FLOCK_SIZE = 5;
 
   readonly root = new Object3D();
-  readonly skullMesh: InstancedMesh;
+  readonly skullMeshLOD0: InstancedMesh;
+  readonly skullMeshLOD1: InstancedMesh;
   readonly shadowMesh: InstancedMesh;
 
   private readonly seed: number;
@@ -40,12 +47,15 @@ export class FlockDirector {
   private readonly waterY: number;
   private readonly count: number;
   private readonly audio?: AudioEngine | undefined;
+  private readonly water?: WaterSystem | undefined;
 
   private readonly dummy = new Object3D();
   private readonly vPos = new Vector3();
   private readonly vDir = new Vector3();
   private readonly qRot = new Quaternion();
   private lastAudioTime = 0;
+  private lastWingbeatTime = 0;
+  private lastRippleTime = 0;
 
   constructor(config: FlockConfig) {
     this.seed = config.seed;
@@ -53,14 +63,12 @@ export class FlockDirector {
     this.waterY = config.waterY;
     this.count = Math.min(FlockDirector.FLOCK_SIZE, config.count ?? FlockDirector.FLOCK_SIZE);
     this.audio = config.audio;
+    this.water = config.water;
 
     this.root.name = 'FlockDirector';
 
-    // 1. Procedural Skull + Wing Mesh
-    const skullGeom = new ConeGeometry(0.35, 1.1, 8);
-    skullGeom.rotateX(Math.PI / 2); // point forward along +Z
-
-    // Wing flapper shader material with non-white emissive fix
+    // 1. Procedural Wing-Skull Shader Material
+    // Enforces zero-white emissive bug: base is lit with NdotL, sockets are cyan, faint rim
     const skullMat = new ShaderMaterial({
       uniforms: {
         uTime: { value: 0 },
@@ -78,7 +86,7 @@ export class FlockDirector {
           vNormal = normalize(normalMatrix * normal);
           vec3 p = position;
 
-          // Wing flap motion: lateral vertices flap vertically
+          // Wing flap motion: lateral vertices flap vertically with phase offset
           float flap = sin(uTime * 7.5 + p.z * 2.0) * abs(p.x) * 0.45;
           p.y += flap;
 
@@ -95,7 +103,7 @@ export class FlockDirector {
         varying vec2 vUv;
 
         void main() {
-          // Dark weathered bone shading
+          // Weathered bone lighting
           float NdotL = max(0.18, dot(vNormal, normalize(vec3(0.5, 0.8, 0.3))));
           vec3 col = uBoneColor * NdotL;
 
@@ -113,10 +121,24 @@ export class FlockDirector {
       `,
     });
 
-    this.skullMesh = new InstancedMesh(skullGeom, skullMat, FlockDirector.FLOCK_SIZE);
-    this.skullMesh.instanceMatrix.setUsage(DynamicDrawUsage);
-    this.skullMesh.frustumCulled = false;
-    this.root.add(this.skullMesh);
+    // LOD0: Detailed skull geometry (< 30m, ~400 tris/skull = 2k tris total)
+    const geomLOD0 = new ConeGeometry(0.38, 1.2, 12);
+    geomLOD0.rotateX(Math.PI / 2);
+
+    this.skullMeshLOD0 = new InstancedMesh(geomLOD0, skullMat, FlockDirector.FLOCK_SIZE);
+    this.skullMeshLOD0.instanceMatrix.setUsage(DynamicDrawUsage);
+    this.skullMeshLOD0.frustumCulled = false;
+    this.root.add(this.skullMeshLOD0);
+
+    // LOD1: Simplified wedge geometry (>= 30m, 40 tris/skull)
+    const geomLOD1 = new ConeGeometry(0.35, 1.0, 5);
+    geomLOD1.rotateX(Math.PI / 2);
+
+    this.skullMeshLOD1 = new InstancedMesh(geomLOD1, skullMat, FlockDirector.FLOCK_SIZE);
+    this.skullMeshLOD1.instanceMatrix.setUsage(DynamicDrawUsage);
+    this.skullMeshLOD1.frustumCulled = false;
+    this.skullMeshLOD1.visible = false;
+    this.root.add(this.skullMeshLOD1);
 
     // 2. Soft Shadow Discs on water surface
     const shadowGeom = new CircleGeometry(1.2, 16);
@@ -139,10 +161,10 @@ export class FlockDirector {
    * Deterministic flock trajectory function of (seed, simTime, index).
    */
   evaluateFlockPosition(simTime: number, index: number, outPos: Vector3, outDir: Vector3): boolean {
-    const cyclePeriod = 110.0; // 110s cycle
+    const cyclePeriod = 110.0; // 110s recurring cycle
     const cycleTime = (simTime + this.seed * 17.3) % cyclePeriod;
 
-    // First arrival at ~25s, active for ~45s (until ~70s)
+    // First arrival at ~25s, active for ~45s (until ~75s), next visit ~110s later
     if (cycleTime < 22.0 || cycleTime > 75.0) {
       return false; // Flock is beyond horizon
     }
@@ -178,7 +200,7 @@ export class FlockDirector {
       posX = this.anchor.x + Math.cos(orbitAngle) * orbitRadius;
       posZ = this.anchor.z + Math.sin(orbitAngle) * orbitRadius;
 
-      // Occasional dip skim (skulls 1 and 3 dip to 1.5m above water)
+      // Occasional dip skim (skulls 1 and 3 dip to 1.5m - 2.0m above water)
       let baseHeight = 12.0 + Math.sin(orbitAngle * 2.0) * 3.0 + heightOffset;
       if ((index === 1 || index === 3) && orbitProgress > 0.35 && orbitProgress < 0.65) {
         const dipT = Math.sin(((orbitProgress - 0.35) / 0.3) * Math.PI);
@@ -209,11 +231,20 @@ export class FlockDirector {
     return true;
   }
 
-  update(_dt: number, simTime: number, _camera?: unknown): void {
-    const u = (this.skullMesh.material as ShaderMaterial).uniforms;
+  update(_dt: number, simTime: number, camera?: Camera): void {
+    const u = (this.skullMeshLOD0.material as ShaderMaterial).uniforms;
     if (u['uTime']) u['uTime'].value = simTime;
 
     let anyActive = false;
+    let avgDistToCam = 50.0;
+    if (camera) {
+      avgDistToCam = camera.position.distanceTo(this.anchor);
+    }
+
+    const useLOD0 = avgDistToCam < 30.0;
+    this.skullMeshLOD0.visible = useLOD0;
+    this.skullMeshLOD1.visible = !useLOD0;
+    const activeMesh = useLOD0 ? this.skullMeshLOD0 : this.skullMeshLOD1;
 
     for (let i = 0; i < FlockDirector.FLOCK_SIZE; i++) {
       if (i >= this.count) {
@@ -240,7 +271,9 @@ export class FlockDirector {
 
       this.dummy.scale.set(1.0, 1.0, 1.0);
       this.dummy.updateMatrix();
-      this.skullMesh.setMatrixAt(i, this.dummy.matrix);
+
+      this.skullMeshLOD0.setMatrixAt(i, this.dummy.matrix);
+      this.skullMeshLOD1.setMatrixAt(i, this.dummy.matrix);
 
       // 2. Shadow disc on water surface (fades with altitude)
       const altitude = this.vPos.y - this.waterY;
@@ -253,14 +286,32 @@ export class FlockDirector {
       this.dummy.updateMatrix();
       this.shadowMesh.setMatrixAt(i, this.dummy.matrix);
 
-      // Audio cues (eerie formant wail when dipping close)
-      if (altitude < 4.0 && simTime - this.lastAudioTime > 8.0 && this.audio) {
+      // 3. Water skim cosmetic ripples (strictly cosmetic: true, ignored by sim hearing)
+      if (altitude <= 2.2 && altitude >= 1.2 && simTime - this.lastRippleTime > 0.35 && this.water) {
+        this.lastRippleTime = simTime;
+        this.water.onRipple({
+          position: { x: this.vPos.x, y: this.waterY, z: this.vPos.z },
+          strength: 0.22,
+          t: simTime,
+          sourcePlayerId: 'world',
+          cosmetic: true,
+        });
+      }
+
+      // 4. Distant positional voices (wisp_wail and wisp_wingbeat)
+      if (altitude < 3.5 && simTime - this.lastAudioTime > 8.0 && this.audio) {
         this.lastAudioTime = simTime;
-        this.audio.play('wisp_wail', { position: this.vPos, gain: 0.6 });
+        this.audio.play('wisp_wail', { position: this.vPos, gain: 0.5 });
+      }
+
+      if (simTime - this.lastWingbeatTime > 3.0 && this.audio) {
+        this.lastWingbeatTime = simTime;
+        this.audio.play('wisp_wingbeat', { position: this.vPos, gain: 0.25 });
       }
     }
 
-    this.skullMesh.instanceMatrix.needsUpdate = true;
+    this.skullMeshLOD0.instanceMatrix.needsUpdate = true;
+    this.skullMeshLOD1.instanceMatrix.needsUpdate = true;
     this.shadowMesh.instanceMatrix.needsUpdate = true;
     this.root.visible = anyActive;
   }
@@ -269,13 +320,15 @@ export class FlockDirector {
     this.dummy.position.set(0, -500, 0);
     this.dummy.scale.set(0, 0, 0);
     this.dummy.updateMatrix();
-    this.skullMesh.setMatrixAt(index, this.dummy.matrix);
+    this.skullMeshLOD0.setMatrixAt(index, this.dummy.matrix);
+    this.skullMeshLOD1.setMatrixAt(index, this.dummy.matrix);
     this.shadowMesh.setMatrixAt(index, this.dummy.matrix);
   }
 
   dispose(): void {
-    this.skullMesh.geometry.dispose();
-    (this.skullMesh.material as ShaderMaterial).dispose();
+    this.skullMeshLOD0.geometry.dispose();
+    this.skullMeshLOD1.geometry.dispose();
+    (this.skullMeshLOD0.material as ShaderMaterial).dispose();
     this.shadowMesh.geometry.dispose();
     (this.shadowMesh.material as MeshBasicMaterial).dispose();
     this.root.removeFromParent();

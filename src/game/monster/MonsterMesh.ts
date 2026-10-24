@@ -1,7 +1,11 @@
 /* ── MonsterMesh.ts ────────────────────────────────────────────────────────
- *  Procedural hierarchical 3D body for the Blind Acoustic Monster.
- *  Hunched, knuckling quadruped stance, spine vertebra ridge, jaw joint with teeth,
- *  swiveling ear-fins, and organic flesh material. Zero external .glb assets.
+ *  Procedural seamless 3D body for the Blind Acoustic Monster.
+ *  Uses continuous SkinnedMesh with distance-to-segment weighting:
+ *  - Zero gaps/cracks/pops at elbows, knees, shoulders, neck at any acute angle
+ *  - Organic flesh material with procedural bump, veins, and wetness logic
+ *  - Fog extinction reduction by 40% and faint cool rim light for readability
+ *  - Vertebra spikes along spine, teeth in jaw, blind sockets, veined ear-fins
+ *  - Zero external .glb dependencies required
  * ──────────────────────────────────────────────────────────────────────── */
 
 import {
@@ -19,32 +23,34 @@ import {
   DoubleSide,
   type Material,
   type Texture,
+  Object3D,
+  type SkinnedMesh,
 } from 'three';
 import { generateFleshTextures } from '../../procedural/textures/FleshTexture.js';
-import { createNoisePermutation, fbm2D } from '../../procedural/core/noise.js';
+import { buildProceduralSkinnedMonster } from './ProceduralSkinnedMeshBuilder.js';
 
 export interface MonsterJoints {
-  root: Group;
-  pelvis: Group;
-  spine: Group[];
-  torso: Group;
-  neck: Group;
-  head: Group;
-  jaw: Group;
-  earLeft: Group;
-  earRight: Group;
-  shoulderL: Group;
-  elbowL: Group;
-  handL: Group;
-  shoulderR: Group;
-  elbowR: Group;
-  handR: Group;
-  hipL: Group;
-  kneeL: Group;
-  footL: Group;
-  hipR: Group;
-  kneeR: Group;
-  footR: Group;
+  root: Object3D;
+  pelvis: Object3D;
+  spine: Object3D[];
+  torso: Object3D;
+  neck: Object3D;
+  head: Object3D;
+  jaw: Object3D;
+  earLeft: Object3D;
+  earRight: Object3D;
+  shoulderL: Object3D;
+  elbowL: Object3D;
+  handL: Object3D;
+  shoulderR: Object3D;
+  elbowR: Object3D;
+  handR: Object3D;
+  hipL: Object3D;
+  kneeL: Object3D;
+  footL: Object3D;
+  hipR: Object3D;
+  kneeR: Object3D;
+  footR: Object3D;
 }
 
 export class MonsterMeshHierarchy {
@@ -52,6 +58,7 @@ export class MonsterMeshHierarchy {
   readonly lod0 = new Group();
   readonly lod1 = new Group();
   readonly joints: MonsterJoints;
+  readonly skinnedMesh: SkinnedMesh;
 
   private readonly vertebraMesh: InstancedMesh;
   private readonly teethMesh: InstancedMesh;
@@ -79,8 +86,46 @@ export class MonsterMeshHierarchy {
       metalness: 0.08,
       color: new Color(tintHex),
     });
-    // Silhouette boost: reduce fog extinction on creature by 40% so it reads in haze at 25-45m
+
+    // Silhouette & readability boost:
+    // - Reduce fog extinction by 40% (reads in haze at 25-45m)
+    // - Faint cool rim lighting
+    // - Submerged wetness logic (darker albedo + specular sheen below waterline)
     skinMat.onBeforeCompile = (shader) => {
+      shader.vertexShader = shader.vertexShader.replace(
+        '#include <common>',
+        /* glsl */ `
+        #include <common>
+        varying vec3 vWorldPositionForWet;
+        `,
+      );
+      shader.vertexShader = shader.vertexShader.replace(
+        '#include <worldpos_vertex>',
+        /* glsl */ `
+        #include <worldpos_vertex>
+        vWorldPositionForWet = (modelMatrix * vec4(transformed, 1.0)).xyz;
+        `,
+      );
+
+      shader.fragmentShader = shader.fragmentShader.replace(
+        '#include <common>',
+        /* glsl */ `
+        #include <common>
+        varying vec3 vWorldPositionForWet;
+        `,
+      );
+
+      shader.fragmentShader = shader.fragmentShader.replace(
+        '#include <roughnessmap_fragment>',
+        /* glsl */ `
+        #include <roughnessmap_fragment>
+        // Wetness below waterline + 0.35m
+        float wetT = clamp((0.35 - vWorldPositionForWet.y) / 0.35, 0.0, 1.0);
+        roughnessFactor = mix(roughnessFactor, 0.12, wetT * 0.85);
+        diffuseColor.rgb *= (1.0 - wetT * 0.35);
+        `,
+      );
+
       shader.fragmentShader = shader.fragmentShader.replace(
         '#include <fog_fragment>',
         /* glsl */ `
@@ -90,9 +135,16 @@ export class MonsterMeshHierarchy {
           #else
             float fogFactor = smoothstep( fogNear, fogFar, vFogDepth );
           #endif
+          // 40% reduction in fog extinction for creature readability
           fogFactor = clamp(fogFactor * 0.60, 0.0, 1.0);
           gl_FragColor.rgb = mix( gl_FragColor.rgb, fogColor, fogFactor );
         #endif
+
+        // Faint cool rim light (spectral backscatter)
+        vec3 viewDir = normalize(vViewPosition);
+        float rim = 1.0 - max(0.0, dot(vNormal, viewDir));
+        vec3 coolRim = vec3(0.18, 0.52, 0.62) * pow(rim, 3.5) * 0.38;
+        gl_FragColor.rgb += coolRim;
         `,
       );
     };
@@ -116,157 +168,48 @@ export class MonsterMeshHierarchy {
     });
     this.materials.push(earMat);
 
-    // 2. Build Joint Hierarchy
-    const pelvis = new Group();
-    pelvis.position.set(0, 0.9, 0); // ~0.9m above water floor
-    this.lod0.add(pelvis);
+    // 2. Build Seamless Procedural Skinned Mesh & Skeleton
+    const built = buildProceduralSkinnedMonster(seed, skinMat);
+    this.skinnedMesh = built.skinnedMesh;
+    this.lod0.add(this.skinnedMesh);
 
-    // Torso & Spine chain
-    const torso = new Group();
-    torso.position.set(0, 0.25, -0.2); // hunched forward
-    pelvis.add(torso);
-
-    const spineChain: Group[] = [];
-    let currentSpine = pelvis;
-    for (let i = 0; i < 5; i++) {
-      const sp = new Group();
-      sp.position.set(0, 0.12, -0.08);
-      currentSpine.add(sp);
-      spineChain.push(sp);
-      currentSpine = sp;
-    }
-
-    const neck = new Group();
-    neck.position.set(0, 0.3, -0.4);
-    torso.add(neck);
-
-    const head = new Group();
-    head.position.set(0, 0.05, -0.25);
-    neck.add(head);
-
-    const jaw = new Group();
-    jaw.position.set(0, -0.08, 0.05);
-    head.add(jaw);
-
-    const earLeft = new Group();
-    earLeft.position.set(0.18, 0.08, 0.05);
-    head.add(earLeft);
-
-    const earRight = new Group();
-    earRight.position.set(-0.18, 0.08, 0.05);
-    head.add(earRight);
-
-    // Arms
-    const shoulderL = new Group();
-    shoulderL.position.set(0.45, 0.2, -0.25);
-    torso.add(shoulderL);
-
-    const elbowL = new Group();
-    elbowL.position.set(0.15, -0.55, 0.1);
-    shoulderL.add(elbowL);
-
-    const handL = new Group();
-    handL.position.set(0.05, -0.6, -0.15);
-    elbowL.add(handL);
-
-    const shoulderR = new Group();
-    shoulderR.position.set(-0.45, 0.2, -0.25);
-    torso.add(shoulderR);
-
-    const elbowR = new Group();
-    elbowR.position.set(-0.15, -0.55, 0.1);
-    shoulderR.add(elbowR);
-
-    const handR = new Group();
-    handR.position.set(-0.05, -0.6, -0.15);
-    elbowR.add(handR);
-
-    // Legs
-    const hipL = new Group();
-    hipL.position.set(0.28, -0.1, 0.15);
-    pelvis.add(hipL);
-
-    const kneeL = new Group();
-    kneeL.position.set(0.05, -0.45, -0.15);
-    hipL.add(kneeL);
-
-    const footL = new Group();
-    footL.position.set(0.0, -0.45, 0.1);
-    kneeL.add(footL);
-
-    const hipR = new Group();
-    hipR.position.set(-0.28, -0.1, 0.15);
-    pelvis.add(hipR);
-
-    const kneeR = new Group();
-    kneeR.position.set(-0.05, -0.45, -0.15);
-    hipR.add(kneeR);
-
-    const footR = new Group();
-    footR.position.set(0.0, -0.45, 0.1);
-    kneeR.add(footR);
-
+    const bm = built.boneMap;
     this.joints = {
-      root: this.root,
-      pelvis,
-      spine: spineChain,
-      torso,
-      neck,
-      head,
-      jaw,
-      earLeft,
-      earRight,
-      shoulderL,
-      elbowL,
-      handL,
-      shoulderR,
-      elbowR,
-      handR,
-      hipL,
-      kneeL,
-      footL,
-      hipR,
-      kneeR,
-      footR,
+      root: bm.root,
+      pelvis: bm.pelvis,
+      spine: [bm.spine0, bm.spine1, bm.spine2],
+      torso: bm.spine2,
+      neck: bm.neck,
+      head: bm.head,
+      jaw: bm.jaw,
+      earLeft: bm.earLeft,
+      earRight: bm.earRight,
+      shoulderL: bm.shoulderL,
+      elbowL: bm.elbowL,
+      handL: bm.handL,
+      shoulderR: bm.shoulderR,
+      elbowR: bm.elbowR,
+      handR: bm.handR,
+      hipL: bm.hipL,
+      kneeL: bm.kneeL,
+      footL: bm.footL,
+      hipR: bm.hipR,
+      kneeR: bm.kneeR,
+      footR: bm.footR,
     };
 
-    // 3. Attach Procedural Meshes to Joints
-    // Torso Barrel mesh (hunched, lumpy flesh)
-    const torsoGeom = this.displaceGeometry(new CapsuleGeometry(0.38, 0.65, 8, 12), seed);
-    const torsoMesh = new Mesh(torsoGeom, skinMat);
-    torsoMesh.rotation.x = Math.PI / 4; // 45 deg hunched forward
-    torso.add(torsoMesh);
-
-    // Pelvis mesh
-    const pelvisGeom = new SphereGeometry(0.32, 10, 8);
-    pelvisGeom.scale(1.1, 0.8, 1.0);
-    const pelvisMesh = new Mesh(pelvisGeom, skinMat);
-    pelvis.add(pelvisMesh);
-
-    // Head: elongated skull with scarred sockets (no eyes)
-    const headGeom = new SphereGeometry(0.22, 10, 10);
-    headGeom.scale(0.85, 0.9, 1.4); // elongated forward
-    const headMesh = new Mesh(this.displaceGeometry(headGeom, seed + 1), skinMat);
-    head.add(headMesh);
-
-    // Eye sockets: smooth indented regions
+    // 3. Attach articulated accessories to skeleton bones
+    // Eye sockets: indented socket meshes parented to skull
     const socketGeom = new SphereGeometry(0.05, 6, 6);
     const socketMat = new MeshStandardMaterial({ color: new Color('#2c1613'), roughness: 0.9 });
     this.materials.push(socketMat);
     const sockL = new Mesh(socketGeom, socketMat);
     sockL.position.set(0.09, 0.04, -0.22);
-    head.add(sockL);
+    bm.head.add(sockL);
+
     const sockR = new Mesh(socketGeom, socketMat);
     sockR.position.set(-0.09, 0.04, -0.22);
-    head.add(sockR);
-
-    // Jaw mesh
-    const jawGeom = new CapsuleGeometry(0.09, 0.22, 6, 6);
-    jawGeom.scale(1.2, 0.7, 1.2);
-    const jawMesh = new Mesh(jawGeom, skinMat);
-    jawMesh.rotation.x = -Math.PI / 6;
-    jawMesh.position.set(0, -0.05, -0.1);
-    jaw.add(jawMesh);
+    bm.head.add(sockR);
 
     // Teeth: 16 tiny instanced bone cones along the jaw
     const toothGeom = new ConeGeometry(0.012, 0.035, 4);
@@ -280,18 +223,18 @@ export class MonsterMeshHierarchy {
       this.teethMesh.setMatrixAt(i, this.dummyMat);
     }
     this.teethMesh.instanceMatrix.needsUpdate = true;
-    jaw.add(this.teethMesh);
+    bm.jaw.add(this.teethMesh);
 
     // Ear-fins: translucent veined membrane planes
     const earGeom = new PlaneGeometry(0.25, 0.4);
     earGeom.translate(0.12, 0.15, 0);
     const earMeshL = new Mesh(earGeom, earMat);
-    earLeft.add(earMeshL);
+    bm.earLeft.add(earMeshL);
 
     const earGeomR = earGeom.clone();
     earGeomR.scale(-1, 1, 1);
     const earMeshR = new Mesh(earGeomR, earMat);
-    earRight.add(earMeshR);
+    bm.earRight.add(earMeshR);
 
     // Spine Ridge: 14 vertebra bone spikes along torso and pelvis
     const vertebraGeom = new ConeGeometry(0.035, 0.16, 5);
@@ -305,24 +248,7 @@ export class MonsterMeshHierarchy {
       this.vertebraMesh.setMatrixAt(i, this.dummyMat);
     }
     this.vertebraMesh.instanceMatrix.needsUpdate = true;
-    torso.add(this.vertebraMesh);
-
-    // Limbs (Arms: upper arm, forearm, hand; Legs: thigh, shin, foot)
-    this.buildLimbSegment(shoulderL, 0.55, 0.13, skinMat);
-    this.buildLimbSegment(elbowL, 0.60, 0.11, skinMat);
-    this.buildHand(handL, skinMat, true);
-
-    this.buildLimbSegment(shoulderR, 0.55, 0.13, skinMat);
-    this.buildLimbSegment(elbowR, 0.60, 0.11, skinMat);
-    this.buildHand(handR, skinMat, false);
-
-    this.buildLimbSegment(hipL, 0.45, 0.14, skinMat);
-    this.buildLimbSegment(kneeL, 0.45, 0.11, skinMat);
-    this.buildFoot(footL, skinMat);
-
-    this.buildLimbSegment(hipR, 0.45, 0.14, skinMat);
-    this.buildLimbSegment(kneeR, 0.45, 0.11, skinMat);
-    this.buildFoot(footR, skinMat);
+    bm.spine2.add(this.vertebraMesh);
 
     // 4. Build LOD1 simplified merged mesh (for distance > 35m, <= 2000 tris)
     this.buildLod1Mesh(skinMat);
@@ -335,42 +261,6 @@ export class MonsterMeshHierarchy {
     });
   }
 
-  private buildLimbSegment(parent: Group, length: number, radius: number, mat: Material): void {
-    const geom = new CapsuleGeometry(radius, length * 0.7, 6, 6);
-    geom.translate(0, -length * 0.5, 0);
-    const mesh = new Mesh(geom, mat);
-    parent.add(mesh);
-  }
-
-  private buildHand(parent: Group, mat: Material, isLeft: boolean): void {
-    const palm = new Mesh(new SphereGeometry(0.12, 6, 6), mat);
-    parent.add(palm);
-
-    // 3 long fingers + 1 thumb (curled knuckles)
-    for (let f = 0; f < 3; f++) {
-      const finger = new Mesh(new CapsuleGeometry(0.03, 0.18, 4, 4), mat);
-      finger.position.set((f - 1) * 0.06, -0.1, -0.08);
-      finger.rotation.x = Math.PI / 3;
-      parent.add(finger);
-    }
-    const thumb = new Mesh(new CapsuleGeometry(0.032, 0.14, 4, 4), mat);
-    thumb.position.set(isLeft ? 0.09 : -0.09, -0.05, 0.02);
-    thumb.rotation.z = isLeft ? -Math.PI / 4 : Math.PI / 4;
-    parent.add(thumb);
-  }
-
-  private buildFoot(parent: Group, mat: Material): void {
-    const heel = new Mesh(new SphereGeometry(0.12, 6, 6), mat);
-    parent.add(heel);
-    // 3 splayed toes
-    for (let t = -1; t <= 1; t++) {
-      const toe = new Mesh(new CapsuleGeometry(0.035, 0.16, 4, 4), mat);
-      toe.position.set(t * 0.07, -0.05, -0.1);
-      toe.rotation.x = -Math.PI / 5;
-      parent.add(toe);
-    }
-  }
-
   private buildLod1Mesh(mat: Material): void {
     // Single simplified silhouette mesh for LOD1 (<= 800 tris)
     const lod1Geom = new CapsuleGeometry(0.45, 1.2, 8, 8);
@@ -378,24 +268,6 @@ export class MonsterMeshHierarchy {
     lod1Mesh.position.set(0, 0.8, -0.2);
     lod1Mesh.rotation.x = Math.PI / 5;
     this.lod1.add(lod1Mesh);
-  }
-
-  private displaceGeometry<T extends CapsuleGeometry | SphereGeometry>(geom: T, seed: number): T {
-    const perm = createNoisePermutation(seed);
-    const pos = geom.attributes.position;
-    if (!pos) return geom;
-
-    for (let i = 0; i < pos.count; i++) {
-      const x = pos.getX(i);
-      const y = pos.getY(i);
-      const z = pos.getZ(i);
-
-      // Seeded fBm displacement (lumpy organic muscular flesh)
-      const disp = fbm2D(x * 3.5 + z * 1.5, y * 3.5 + z * 0.8, 3, 0.5, 2.0, perm) * 0.035;
-      pos.setXYZ(i, x + x * disp, y + y * disp, z + z * disp);
-    }
-    geom.computeVertexNormals();
-    return geom;
   }
 
   setLOD(distToCamera: number): void {

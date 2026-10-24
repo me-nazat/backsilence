@@ -48,18 +48,18 @@ export class CreditsScreen {
           <div id="btn-back-wrap"></div>
         </div>
 
-        <!-- 3D Models Attribution (CC BY) -->
+        <!-- 3D Models Attribution (CC BY 4.0) -->
         <div style="background: var(--bs-surface-2); border: 1px solid var(--bs-border); padding: 20px; border-radius: var(--bs-radius-sm); font-family: var(--bs-font-mono); font-size: var(--bs-text-xs); line-height: 1.6;">
           <h2 style="font-size: var(--bs-text-md); color: var(--bs-water); margin: 0 0 12px 0;">3D CREATURE ASSETS (CC BY 4.0)</h2>
           
           <div style="margin-bottom: 16px;">
-            <div style="font-weight: bold; color: var(--bs-cream);">1. Water Monster ("Thumper Rig")</div>
-            <div style="opacity: 0.85;">Derived from the Lethal Company community Thumper recreation by Zeekerss & community modellers. Used under Creative Commons Attribution 4.0 International (CC BY 4.0). Integrated with custom procedural IK and swimming kinematics.</div>
+            <div style="font-weight: bold; color: var(--bs-cream);">"Lethal Company Thumper Rig" by NO DONT EAT ME CASEOH (Ferris wheel) (@NO.DONT.EAT.ME.CASEOH), CC BY 4.0, https://sketchfab.com/3d-models/lethal-company-thumper-rig-a6bbf5cd0d284e1abcdff82f816b62b3.</div>
+            <div style="opacity: 0.85;">"Thumper is a creature from Lethal Company; this model is a fan recreation. Modified: scaled, re-skinned, animated."</div>
           </div>
 
           <div>
-            <div style="font-weight: bold; color: var(--bs-cream);">2. Ghost-Skull Flyers ("Haunted Skull")</div>
-            <div style="opacity: 0.85;">Low-poly skeletal asset by Sketchfab artist community. Used under Creative Commons Attribution 4.0 International (CC BY 4.0). Modified with custom eye shaders and flocking boids behavior.</div>
+            <div style="font-weight: bold; color: var(--bs-cream);">"Hoefnagel creature" by silicat, CC BY 4.0, https://sketchfab.com/3d-models/hoefnagel-creature-9a92596a121f412299dfbc61b1bb01aa.</div>
+            <div style="opacity: 0.85;">"Based on Georg Hoefnagel's painting 'Dolor. Allégorie de l'Hiver'. Modified: decimated, recolored, animated."</div>
           </div>
         </div>
 

@@ -102,6 +102,10 @@ export interface Settings {
     interpolationBias: number;
     showNetStats: boolean;
   };
+  creatures?: {
+    waterMonsterSkin?: 'auto' | 'model' | 'procedural';
+    ambientFlyers?: number;
+  };
 }
 
 export type NoiseKind =
@@ -146,6 +150,8 @@ export interface RippleEvent {
   strength: number;
   t: number;
   sourcePlayerId: PlayerId | 'world';
+  /** If true, cosmetic only and ignored by simulation hearing/monsters */
+  cosmetic?: boolean;
 }
 
 export type MonsterState =

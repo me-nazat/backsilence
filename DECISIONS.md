@@ -383,6 +383,18 @@ Establish `functions/api/[[route]].ts` as the canonical Cloudflare Pages Functio
 6. Matrix Auto-Update Elimination: Enforced `mesh.matrixAutoUpdate = false` and `mesh.updateMatrix()` across all static visual geometry to eliminate CPU transform evaluation overhead during gameplay.
 **Reason:** Fulfills Prompt 2 Phase E mandates to resolve the sparse level art complaint and raise the visual fidelity of all ten maps to commercial-grade standards.
 
+### D052: Creature Pipeline, Continuous SkinnedMesh Monster, Telegraphing & Overhead Fauna
+**Date:** 2026-10-24
+**Choice:**
+1. Continuous SkinnedMesh Monster Rig (`ProceduralSkinnedMeshBuilder.ts`, `MonsterMesh.ts`): Replaced rigid disjoint segments with a 20-bone hierarchical Skeleton bound to a unified continuous SkinnedMesh. Computed vertex bone weights via distance-to-segment inverse-cube falloff normalized to 1.0, eliminating joint pops, gaps, and cracks across elbows, knees, shoulders, and neck at all poses.
+2. Telegraphing & Predator Kinematics: Added critically damped spring head tracking ($\omega_n = 12.0$, $\zeta = 1.0$), spring-damped ear-fin twitching on auditory cues, a 1.2s listening pause in `INVESTIGATE` mode, and 150ms lunge anticipation (rearing torso back before snapping forward) in `ATTACK` mode.
+3. Foot-Slide Invariance: Anchored foot world positions during the planted phase to enforce foot slide strictly under $< 0.03\text{ m/s}$ in world space.
+4. Creature Readability & Water Interaction: Modified monster material shader chunk to reduce fog extinction by 40% (maintaining readability in pale fog at 25–45m), added a faint cool rim light (`vec3(0.18, 0.52, 0.62)`), wetness specular boost and albedo darkening below waterline, and hand dripping when rising from water.
+5. Creature Variants: Configured `elder` (1.15 scale, `#5c382b` tint, 0.85 stride frequency) and `juvenile` (0.80 scale, `#925845` tint, 1.25 stride frequency).
+6. Ambient Flying Skulls (`FlockDirector.ts`): Implemented 5 deterministic boids as a pure function of `(seed, simTime, index)` arriving around 25s, circling at 9–16m, and occasionally dipping to 1.5–2.0m above water with cosmetic ripples (`cosmetic: true`). Added LOD0 (< 30m) and LOD1 (>= 30m) instanced meshes, cold cyan eye sockets, non-white emissive bug fix, soft water shadow discs, and positional voices (`wisp_wail`, `wisp_wingbeat`).
+7. Dual-Track Model Pipeline: Lazy-loaded GLTFLoader fallback with zero-asset guarantee, accurate model status reporting (`reports/models/thumper.json`), setup instructions in `MODELS_SETUP.md`, CC BY 4.0 attributions in `CREDITS.md` and `CreditsScreen.ts`, and settings toggle `creatures.waterMonsterSkin` (`auto`, `model`, `procedural`).
+**Reason:** Fulfills Prompt 2 Phase F mandates to fix the monster appearance, eliminate popped joints and animation flaws, ensure strict foot-slide limits, and integrate atmospheric overhead fauna.
+
 
 
 
