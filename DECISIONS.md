@@ -564,6 +564,26 @@ Establish `functions/api/[[route]].ts` as the canonical Cloudflare Pages Functio
    - Static economy per run: `floor(final / 40) + 10 * objectives + 20` (first run of day). Spent on cosmetics and loadout choices only.
 **Reason:** Fulfills Prompt 3 Section 8 and 9 mandates establishing transparent scoring, tight resource tension, meaningful loadouts, and zero pay-to-win progression.
 
+### D062: Ranked Ladder, Silence Rating Elo, Champions, Replay Verification & Ghost Trajectory
+**Date:** 2026-10-24
+**Choice:**
+1. Silence Rating Elo System (`src/meta/RatingElo.ts`):
+   - Starting SR 1000. Multi-player pairwise Elo calculation with $K=24$ for standard matches and $K=40$ for first 5 placement matches.
+   - Deterministic logistic curve using `dPow` from `src/sim/dmath.ts` to guarantee cross-engine agreement without transcendental divergence.
+   - Five rank tiers: Whisper (0..999), Hush (1000..1299), Mute (1300..1599), Silent (1600..1899), Phantom (1900+).
+   - Inactivity decay: -10 SR/week for SR > 1500 with a floor of 1500.
+   - Season compression: 25% compression toward 1000 at season end (`round(1000 + (sr - 1000) * 0.75)`).
+   - Ranked quit rules: Quitting before the first noise is a draw (voided from rating penalty); quitting after noise places the player in last place.
+2. Weekly & Season Champions and Season Track:
+   - Weekly Champion: Highest verified, ranked-eligible score of the week on featured boards, with tie-breaking on lower noise units then earlier submission.
+   - Season Champion: Highest SR among players with $\ge 20$ ranked matches over 4-week season, tie-broken by lower noise units then earlier rank achievement.
+   - 30-tier season track with 1000 XP/tier granting procedural cosmetic unlocks only.
+3. Deterministic Run Recording & Replay Verification (`src/meta/RunRecorder.ts`, `src/meta/Replay.ts`, `src/meta/Ghost.ts`):
+   - Run-Length Encoded (RLE) player intents recording with header `(mapId, seed, difficulty, mutators, loadout, simVersion)` fitting under the 48 KB size cap for 12-minute runs.
+   - Headless re-simulation verifier computing 32-bit FNV-1a `simHash`, validating exit reach / death, and rejecting version mismatches with clear diagnostics.
+   - Pure `GhostTrajectory` providing binary-search spatial interpolation and live ahead/behind time-delta calculation.
+**Reason:** Completes Prompt 3 competitive ladder and replay verification mandates, providing robust anti-cheat validation, ghost racing, and fair seasonal rankings.
+
 
 
 

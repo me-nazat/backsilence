@@ -9,9 +9,11 @@ import type { MapId } from '../types/contracts.js';
 import type { PlayerLoadout } from './Loadout.js';
 
 export const RECORDER_SIM_VERSION = 1;
+export const MAX_RECORDING_SIZE_BYTES = 48 * 1024; // 48 KB cap for 12 minutes
 
 export interface RunRecordingHeader {
   version: number;
+  simVersion: number;
   mapId: MapId;
   seed: number;
   difficulty: 'whisper' | 'normal' | 'deafening' | 'nightmare';
@@ -61,6 +63,7 @@ export class RunRecorder {
   ) {
     this.header = {
       version: RECORDER_SIM_VERSION,
+      simVersion: RECORDER_SIM_VERSION,
       mapId,
       seed,
       difficulty,
@@ -69,6 +72,19 @@ export class RunRecorder {
       tickRate,
       totalTicks: 0,
       durationSec: 0,
+    };
+  }
+
+  /**
+   * Validates if recording JSON fits under the 48 KB cap.
+   */
+  static validateRecordingSize(recording: RunRecording): { sizeBytes: number; valid: boolean; maxAllowedBytes: number } {
+    const jsonStr = RunRecorder.serialize(recording);
+    const sizeBytes = new TextEncoder().encode(jsonStr).length;
+    return {
+      sizeBytes,
+      valid: sizeBytes <= MAX_RECORDING_SIZE_BYTES,
+      maxAllowedBytes: MAX_RECORDING_SIZE_BYTES,
     };
   }
 

@@ -38,7 +38,8 @@ export const Replay = {
    * Replays a recording headlessly and returns verification metrics and simHash.
    */
   run(recording: RunRecording, layout: LayoutData): ReplayVerificationResult {
-    if (!recording.header || recording.header.version !== RECORDER_SIM_VERSION) {
+    const recVersion = recording.header?.simVersion ?? recording.header?.version;
+    if (!recording.header || recVersion !== RECORDER_SIM_VERSION) {
       return {
         valid: false,
         totalTicks: 0,
@@ -46,7 +47,7 @@ export const Replay = {
         died: false,
         finalPosition: { x: 0, y: 0, z: 0 },
         simHash: '00000000',
-        error: `Incompatible sim version: ${recording.header?.version}. Expected: ${RECORDER_SIM_VERSION}`,
+        error: `Incompatible sim version: ${recVersion ?? 'unknown'}. Expected: ${RECORDER_SIM_VERSION}`,
       };
     }
 
