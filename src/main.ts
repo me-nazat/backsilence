@@ -147,14 +147,18 @@ async function boot(): Promise<void> {
 
   const stateMachine = new AppStateMachine(bus, 'BOOT');
   injectPaletteVars();
-  // 2.5 Early Identity & Online Platform Initialization
-  const { IdentityManager } = await import('./meta/Identity.js');
-  const { TursoProxyAdapter } = await import('./net/adapters/TursoProxyAdapter.js');
-  const { OfflineQueue } = await import('./meta/OfflineQueue.js');
-  const winAny = window as unknown as Record<string, unknown>;
-  winAny.__backsilence_identity = IdentityManager;
-  winAny.__backsilence_proxy = new TursoProxyAdapter();
-  winAny.__backsilence_offline_queue = OfflineQueue;
+
+  // 2.5 Early Identity & Online Platform Initialization (non-blocking)
+  void Promise.all([
+    import('./meta/Identity.js'),
+    import('./net/adapters/TursoProxyAdapter.js'),
+    import('./meta/OfflineQueue.js'),
+  ]).then(([{ IdentityManager }, { TursoProxyAdapter }, { OfflineQueue }]) => {
+    const winAny = window as unknown as Record<string, unknown>;
+    winAny.__backsilence_identity = IdentityManager;
+    winAny.__backsilence_proxy = new TursoProxyAdapter();
+    winAny.__backsilence_offline_queue = OfflineQueue;
+  }).catch(() => {});
 
   // 3. Dynamic-import UI Module (< 1s budget)
   console.log('[boot] 3. importing UIManager');

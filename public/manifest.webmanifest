@@ -9,7 +9,7 @@
   "orientation": "any",
   "icons": [
     {
-      "src": "/icon.svg",
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' fill='%230d0b06' rx='96'/%3E%3Ccircle cx='186' cy='196' r='32' fill='%230d0b06' stroke='%23e9dca8' stroke-width='6'/%3E%3Ccircle cx='186' cy='196' r='12' fill='%2386cfa0'/%3E%3Ccircle cx='326' cy='196' r='32' fill='%230d0b06' stroke='%23e9dca8' stroke-width='6'/%3E%3Ccircle cx='326' cy='196' r='12' fill='%2386cfa0'/%3E%3Cellipse cx='256' cy='390' rx='90' ry='20' fill='none' stroke='%2386cfa0' stroke-width='6'/%3E%3C/svg%3E",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"

@@ -130,7 +130,7 @@ export class UIManager {
     // 1. Initialize Archive Screens
     this.homeScreen = new HomeScreen({
       onDescend: () => this.navigateTo('PLAY_HUB'),
-      onDiveOnline: () => this.navigateTo('LOBBY'),
+      onDiveOnline: () => this.navigateTo('ROOM_LINK'),
       onDailyDescent: () => this.navigateTo('LEADERBOARDS'),
       onOpenPlayHub: () => this.navigateTo('PLAY_HUB'),
       onOpenBestiary: () => this.navigateTo('BESTIARY'),

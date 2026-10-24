@@ -192,6 +192,7 @@ export class HomeScreen {
       variant: 'primary',
       onClick: () => this.callbacks.onDescend(),
     });
+    descendBtn.element.id = 'btn-play-solo';
     this.motion.attachHoverRipple(descendBtn.element);
     descendWrap.appendChild(descendBtn.element);
 
@@ -200,6 +201,7 @@ export class HomeScreen {
       variant: 'ghost',
       onClick: () => this.callbacks.onDiveOnline(),
     });
+    diveBtn.element.id = 'btn-play-online';
     this.motion.attachHoverRipple(diveBtn.element);
     diveWrap.appendChild(diveBtn.element);
 
@@ -208,6 +210,7 @@ export class HomeScreen {
       variant: 'ghost',
       onClick: () => this.callbacks.onDailyDescent(),
     });
+    dailyBtn.element.id = 'btn-daily-descent';
     this.motion.attachHoverRipple(dailyBtn.element);
     dailyWrap.appendChild(dailyBtn.element);
   }
