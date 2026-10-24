@@ -25,6 +25,11 @@ import {
   CosmeticTile,
   KeyCap,
   Skeleton,
+  EmptyState,
+  ErrorState,
+  Banner,
+  Stepper,
+  Accordion,
 } from './index.js';
 
 export class UiLabPage {
@@ -63,7 +68,8 @@ export class UiLabPage {
       <section id="sec-inputs" class="lab-section" style="margin-top: 36px;"></section>
       <section id="sec-indicators" class="lab-section" style="margin-top: 36px;"></section>
       <section id="sec-social" class="lab-section" style="margin-top: 36px;"></section>
-      <section id="sec-overlays" class="lab-section" style="margin-top: 36px; margin-bottom: 48px;"></section>
+      <section id="sec-overlays" class="lab-section" style="margin-top: 36px;"></section>
+      <section id="sec-structural" class="lab-section" style="margin-top: 36px; margin-bottom: 48px;"></section>
     `;
 
     this.mountControls();
@@ -73,6 +79,7 @@ export class UiLabPage {
     this.mountIndicators();
     this.mountSocial();
     this.mountOverlays();
+    this.mountStructural();
   }
 
   private mountControls(): void {
@@ -406,4 +413,79 @@ export class UiLabPage {
       drawer.open();
     });
   }
+
+  private mountStructural(): void {
+    const sec = this.element.querySelector('#sec-structural')!;
+    sec.innerHTML = `
+      <h2 style="font-family: var(--bs-font-mono); font-size: var(--bs-text-lg); color: var(--bs-tan); margin-bottom: 16px; border-bottom: 1px solid var(--bs-border);">
+        7. BANNERS, STEPPER, ACCORDION & STATES
+      </h2>
+      <div id="structural-grid" style="display: flex; flex-direction: column; gap: 24px; max-width: 840px;"></div>
+    `;
+
+    const grid = sec.querySelector('#structural-grid')!;
+
+    // Banners
+    const bannersWrap = document.createElement('div');
+    bannersWrap.style.display = 'flex';
+    bannersWrap.style.flexDirection = 'column';
+    bannersWrap.style.gap = '8px';
+    bannersWrap.appendChild(new Banner({ message: 'Informational advisory: Hydrophones active across all sectors.', variant: 'info' }).element);
+    bannersWrap.appendChild(new Banner({ message: 'Warning: Water level has breached sector 03 platforms.', variant: 'warning' }).element);
+    bannersWrap.appendChild(new Banner({ message: 'Critical threat: Blind entity has detected surface acoustic ripple.', variant: 'danger' }).element);
+    bannersWrap.appendChild(new Banner({ message: 'Weekly Champion: Operator EchoStalker crowned in Sector 09.', variant: 'champion' }).element);
+    grid.appendChild(bannersWrap);
+
+    // Stepper
+    const stepperWrap = document.createElement('div');
+    stepperWrap.style.padding = '16px';
+    stepperWrap.style.background = 'var(--bs-surface-1)';
+    stepperWrap.style.border = '1px solid var(--bs-border)';
+    const stepper = new Stepper({
+      steps: [
+        { id: '1', label: 'Orientation' },
+        { id: '2', label: 'Loadout' },
+        { id: '3', label: 'Mutators' },
+        { id: '4', label: 'Descent' },
+      ],
+      activeStep: 1,
+    });
+    stepperWrap.appendChild(stepper.element);
+    grid.appendChild(stepperWrap);
+
+    // Accordion
+    const accordion = new Accordion({
+      items: [
+        { id: 'faq-1', title: 'ACOUSTIC PROTOCOL 01 // DRY vs WET', content: 'Movement across dry platform tiles produces 0.15 noise units. Splashing through standing water generates up to 0.85 noise units.', open: true },
+        { id: 'faq-2', title: 'ACOUSTIC PROTOCOL 02 // ENTITY BLINDNESS', content: 'The apex creature has no optic organs. It hunts purely by triangulation of fluid compression waves.' },
+        { id: 'faq-3', title: 'ACOUSTIC PROTOCOL 03 // LURES & DISTRACTIONS', content: 'Smooth river stones and glass bottles shatter to produce localized decoy sound sources.' },
+      ],
+    });
+    grid.appendChild(accordion.element);
+
+    // Empty and Error States
+    const statesWrap = document.createElement('div');
+    statesWrap.style.display = 'grid';
+    statesWrap.style.gridTemplateColumns = 'repeat(auto-fit, minmax(360px, 1fr))';
+    statesWrap.style.gap = '16px';
+
+    statesWrap.appendChild(new EmptyState({
+      icon: 'tape',
+      title: 'EMPTY ARCHIVE DRAWER',
+      description: 'No recorded tapes found in this cabinet drawer. The shelves remain submerged.',
+      actionText: 'QUERY ARCHIVE',
+      onAction: () => Toast.show('Querying municipal catalog...', 'info'),
+    }).element);
+
+    statesWrap.appendChild(new ErrorState({
+      title: 'TRACKING DISRUPTED',
+      code: 'ERR_VCO_SYNC_LOST',
+      message: 'Signal dropped beneath surface noise. Video playback head requires calibration.',
+      retryText: 'RE-ALIGN HEAD',
+      onRetry: () => Toast.show('Re-aligning video playhead...', 'warning'),
+    }).element);
+
+    grid.appendChild(statesWrap);
+  }
 }
+

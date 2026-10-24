@@ -3,8 +3,6 @@
  * ──────────────────────────────────────────────────────────────────────── */
 
 import { describe, it, expect } from 'vitest';
-import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
 import {
   PALETTE,
   HIGH_CONTRAST_PALETTE,
@@ -15,6 +13,16 @@ import {
   generateCssTokens,
 } from '../src/app/Palette.js';
 import { ICONS, RANK_EMBLEMS, renderIcon, renderRankEmblem, type IconName, type RankEmblemName } from '../src/ui/kit/Icons.js';
+
+interface FsModule {
+  readFileSync: (path: string, encoding: string) => string;
+}
+
+interface PathModule {
+  resolve: (...parts: string[]) => string;
+}
+
+declare const process: { cwd: () => string };
 
 describe('Prompt 4 Phase A: Art Direction & Design Tokens', () => {
   it('defines all required core archive palette colors', () => {
@@ -58,6 +66,13 @@ describe('Prompt 4 Phase A: Art Direction & Design Tokens', () => {
     expect(BREAKPOINTS.wide).toBe(1920);
   });
 
+  it('generates CSS custom properties matching tokens', () => {
+    expect(MOTION_TOKENS.fast).toBe(120);
+    const css = generateCssTokens();
+    expect(css).toContain('--bs-ink: #0d0b06');
+    expect(css).toContain('--bs-water: #86cfa0');
+  });
+
   it('contains ~40 inline SVG icons with 2px stroke and currentColor', () => {
     const requiredIcons: IconName[] = [
       'play', 'map', 'ear', 'drop', 'tape', 'trophy', 'crown', 'lock',
@@ -94,9 +109,13 @@ describe('Prompt 4 Phase A: Art Direction & Design Tokens', () => {
     expect(RANK_EMBLEMS.phantom).toContain('ellipse'); // hooded figure
   });
 
-  it('validates COPY.md voice table, 40 loading lines, and 30 achievements', () => {
-    const copyPath = resolve(process.cwd(), 'COPY.md');
-    const content = readFileSync(copyPath, 'utf-8');
+  it('validates COPY.md voice table, 40 loading lines, and 30 achievements', async () => {
+    const fsModName = 'node:fs';
+    const pathModName = 'node:path';
+    const fs = (await import(/* @vite-ignore */ fsModName)) as unknown as FsModule;
+    const path = (await import(/* @vite-ignore */ pathModName)) as unknown as PathModule;
+    const copyPath = path.resolve(process.cwd(), 'COPY.md');
+    const content = fs.readFileSync(copyPath, 'utf-8');
 
     expect(content.toLowerCase()).toContain('please keep your splashing to a');
     expect(content).toContain('40 Rotating Loading & Tracking Lines');

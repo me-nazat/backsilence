@@ -171,7 +171,7 @@ describe('Prompt 3 Section 10 & 13: Rating, Elo, Replay & Ghost', () => {
       mapId: 'natatorium',
       seed: 42,
       bounds: { minX: -20, maxX: 20, minZ: -20, maxZ: 20 },
-      platforms: [{ id: 'floor', rect: [-20, -20, 20, 20], topY: 0.3 }],
+      platforms: [{ id: 'floor', rect: [-20, -20, 20, 20], topY: 0.3, kind: 'tile' }],
       walls: [],
       pillars: [],
       stairs: [],

@@ -612,16 +612,16 @@ Establish `functions/api/[[route]].ts` as the canonical Cloudflare Pages Functio
    - Codified 40 rotating loading/tracking lines, action button states, results lines by score rank (S, A, B, C, D) and tier, full 30 achievement descriptions, and step-by-step native localization review protocol.
 **Reason:** Fulfills Prompt 4 Phase A mandates establishing an evocative, cohesive analog horror visual and narrative identity.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+### D065: Component Kit Completion, Screen Stack Layer Management & Living UI Lab
+**Date:** 2026-10-24
+**Choice:**
+1. Complete Component Kit in `src/ui/kit/`:
+   - Authored all required analog horror UI components with zero third-party UI libraries: Button (primary, ghost, danger, hold-to-confirm), TapeCard, MapCard, Tabs, Toggle, Slider, Select, Modal, Drawer, Toast, Tooltip, ProgressBar (VU style), RosterChip, LeaderboardRow, RankBadge, StatTile, AchievementCard, CosmeticTile, KeyCap, Skeleton, EmptyState, ErrorState, Banner, Stepper, and Accordion.
+   - Built with semantic HTML, ARIA roles (`role="status"`, `role="alert"`, `aria-expanded`, `aria-controls`), keyboard accessibility, and CSS custom property theming.
+2. Living Specification Lab (`src/ui/kit/UiLabPage.ts`):
+   - Accessible via `?lab=ui` or `?v=ui`, rendering all components organized into 7 living sections across all states (default, hover, focus, active, disabled, loading, error).
+3. Focus & Modal Stack Architecture (`src/ui/UiLayerManager.ts`):
+   - Enforces single top modal focus, sets `inert` on underlying layers and the 3D canvas, and provides global Escape dismissal with focus return.
+4. Component Unit Testing (`tests/ui-kit-components.test.ts`):
+   - 7/7 unit tests verifying component creation, variant styling, hold-to-confirm progress, ARIA semantics, and modal stack layer transitions.
+**Reason:** Fulfills Prompt 4 Phase B requirements, replacing ad hoc styles with a standardized, testable, and accessible UI kit.
