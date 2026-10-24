@@ -317,6 +317,7 @@ export class SimWorld {
         this.player.pos,
         this.player.onGround,
         isPerched,
+        this.player.isWading,
       );
       this.director.step(dt, this.monsters, this.nav, this.objectivesDone);
       // Note: dreadBeats are presentation cues for GameSession (audio, VHS, flock),

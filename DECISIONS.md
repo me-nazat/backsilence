@@ -472,7 +472,24 @@ Establish `functions/api/[[route]].ts` as the canonical Cloudflare Pages Functio
    - Memory hygiene: Zero heap allocations in hot loops, 0% texture/geometry leaks across 10 map switches.
 5. Model Pipeline Status:
    - Documented `reports/models/thumper.json` confirming `UNVERIFIED` binary status with zero external dependencies and active seamless procedural continuous `SkinnedMesh` fallback (`ProceduralSkin`).
-**Reason:** Fulfills Prompt 2 Phase J mandates providing thorough empirical evidence, rubric scores, diagnostic assertions, and determinism proof for commercial title delivery.
+### D057: Encounter Director, Dread Rhythm, Stillness Tax & Fairness Invariants
+**Date:** 2026-10-24
+**Choice:**
+1. Encounter Director Architecture (`src/sim/Director.ts`):
+   - Pure, deterministic, host-authoritative, serializable class driven by project PRNG (`mulberry32`).
+   - Cycles through four dread rhythm phases: `CALM` (20–45s), `BUILD` (40–70s), `PEAK` (15–30s), and `RELEASE` (25–40s), outputting normalized `dread` in `[0..1]`. Starts in `CALM` for 25s.
+   - Prowl / Closing / Hunt pressure clock: 35% bias in 0–2 min, 60% bias plus sweeps in 2–5 min, 80% bias plus lurks in >5 min or after 2 objectives.
+2. Fairness Invariants & Quantization:
+   - Quantizes player positions to 8m region cells (`Math.floor(x/8)*8 + 4`) so exact player positions are never leaked to monster patrol bias.
+   - Guaranteed first contact perception within 30–45s on Normal difficulty (glimpse or far call).
+   - Stillness tax: 40s within 4m schedules a sweep; 75s schedules a 10s listening event.
+   - Safety invariant: Sweeps strictly enforce $\ge 6.0$m distance from silent dry players.
+   - Attack invariant: Director never triggers attack against a silent dry player.
+   - Atmospheric fallback: Any unnavigable physical beat falls back to `executeFarCall`, ensuring no dead air $> 90$s.
+3. Difficulty Calibration (`src/sim/balance.json`):
+   - Defined difficulty multipliers and timers across Whisper, Normal, Deafening, and Nightmare tiers.
+**Reason:** Fulfills Prompt 3 Section 4 mandates ensuring players experience structured horror pacing and rhythm without feeling cheated or unfairly ambushed while playing silently.
+
 
 
 
