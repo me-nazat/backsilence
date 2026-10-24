@@ -35,8 +35,20 @@ export const ErrorBoundary = {
     window.addEventListener('error', (event) => {
       const err = event.error as { stack?: string } | null | undefined;
       const stack = typeof err?.stack === 'string' ? err.stack : undefined;
-      ErrorBoundary.recordError('error', event.message || 'Unknown runtime error', stack);
-      ErrorBoundary.showTrackingLostScreen(event.message || 'System Anomaly');
+      const msg = event.message || 'Unknown runtime error';
+      ErrorBoundary.recordError('error', msg, stack);
+
+      if (
+        (msg.includes('dynamically imported module') || msg.includes('Failed to fetch')) &&
+        typeof window !== 'undefined' &&
+        !sessionStorage.getItem('bs_import_reload')
+      ) {
+        sessionStorage.setItem('bs_import_reload', '1');
+        window.location.reload();
+        return;
+      }
+
+      ErrorBoundary.showTrackingLostScreen(msg);
     });
 
     window.addEventListener('unhandledrejection', (event) => {
@@ -44,6 +56,17 @@ export const ErrorBoundary = {
       const message = reason instanceof Error ? reason.message : String(reason);
       const stack = reason instanceof Error ? reason.stack : undefined;
       ErrorBoundary.recordError('unhandledrejection', message, stack);
+
+      if (
+        (message.includes('dynamically imported module') || message.includes('Failed to fetch')) &&
+        typeof window !== 'undefined' &&
+        !sessionStorage.getItem('bs_import_reload')
+      ) {
+        sessionStorage.setItem('bs_import_reload', '1');
+        window.location.reload();
+        return;
+      }
+
       ErrorBoundary.showTrackingLostScreen(message);
     });
   },

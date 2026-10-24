@@ -94,6 +94,7 @@ export class MonsterBrain {
   private investigatePhase: 'sniff' | 'search' = 'sniff';
   private searchTimer = 0;
   private swipeCooldown = 0;
+  private stuckTimer = 0;
 
   // Running trajectory hash for determinism testing
   private trajectoryHash = 0x811c9dc5;
@@ -138,7 +139,21 @@ export class MonsterBrain {
 
   scheduleSweep(path: PathPoint[]): void {
     if (path.length > 0) {
-      this.currentPath = [...path];
+      const fullPath: PathPoint[] = [];
+      let curX = this.pos.x;
+      let curZ = this.pos.z;
+      for (const pt of path) {
+        const seg = this.astar.findPath(curX, curZ, pt.x, pt.z);
+        if (seg.length > 0) {
+          fullPath.push(...seg);
+          const last = seg[seg.length - 1]!;
+          curX = last.x;
+          curZ = last.z;
+        } else {
+          fullPath.push(pt);
+        }
+      }
+      this.currentPath = fullPath.length > 0 ? fullPath : [...path];
       this.currentPathIndex = 0;
       if (this.state === 'DORMANT' || this.state === 'WANDER') {
         this.state = 'WANDER';
@@ -149,15 +164,22 @@ export class MonsterBrain {
   }
 
   scheduleListen(position: Vec3, seconds: number): void {
-    this.state = 'WANDER';
-    this.isListening = true;
-    this.listenTimer = seconds;
-    this.pos.x = position.x;
-    this.pos.z = position.z;
-    this.vel.x = 0;
-    this.vel.z = 0;
-    this.rearingT = 0.5;
-    this.jawOpenT = 0.2;
+    const path = this.astar.findPath(this.pos.x, this.pos.z, position.x, position.z);
+    if (path.length > 0) {
+      this.currentPath = path;
+      this.currentPathIndex = 0;
+      this.state = 'WANDER';
+      this.isListening = false;
+      this.listenTimer = seconds;
+    } else {
+      this.state = 'WANDER';
+      this.isListening = true;
+      this.listenTimer = seconds;
+      this.vel.x = 0;
+      this.vel.z = 0;
+      this.rearingT = 0.5;
+      this.jawOpenT = 0.2;
+    }
   }
 
   getSnapshot(): MonsterSnapshot {
@@ -665,16 +687,36 @@ export class MonsterBrain {
     const nextX = this.pos.x + fwdX * targetSpeed * dt;
     const nextZ = this.pos.z + fwdZ * targetSpeed * dt;
 
+    const dirX = dx / (dist || 1);
+    const dirZ = dz / (dist || 1);
+    const directX = this.pos.x + dirX * targetSpeed * dt;
+    const directZ = this.pos.z + dirZ * targetSpeed * dt;
+
     // Nav-walkability check before advancing
     if (nav.isWalkableWorld(nextX, nextZ)) {
       this.pos.x = nextX;
       this.pos.z = nextZ;
       this.vel.x = fwdX * targetSpeed;
       this.vel.z = fwdZ * targetSpeed;
+      this.stuckTimer = 0;
+    } else if (nav.isWalkableWorld(directX, directZ)) {
+      this.pos.x = directX;
+      this.pos.z = directZ;
+      this.vel.x = dirX * targetSpeed;
+      this.vel.z = dirZ * targetSpeed;
+      this.stuckTimer = 0;
     } else {
       // Minor sliding along tangent
       this.vel.x *= 0.5;
       this.vel.z *= 0.5;
+      this.stuckTimer += dt;
+      if (this.stuckTimer > 0.4) {
+        this.stuckTimer = 0;
+        this.currentPathIndex++;
+        if (this.currentPathIndex >= this.currentPath.length) {
+          this.pickNextWanderWaypoint(nav);
+        }
+      }
     }
 
     // Footfall event emission at stride intervals
@@ -692,19 +734,19 @@ export class MonsterBrain {
 
   private pickNextWanderWaypoint(nav: NavGrid, playerPos?: Vec3): void {
     const myComponent = nav.getComponentWorld(this.pos.x, this.pos.z);
-    for (let attempts = 0; attempts < 20; attempts++) {
+    for (let attempts = 0; attempts < 30; attempts++) {
       let rx: number;
       let rz: number;
 
       // 1. Director patrol bias takes priority
       if (this.patrolBias && this.rng.next() < this.patrolBias.strength) {
-        const offsetDist = this.rng.range(2.0, this.patrolBias.radius);
+        const offsetDist = this.rng.range(4.0, this.patrolBias.radius);
         const angle = this.rng.range(-D_PI, D_PI);
         rx = this.patrolBias.center.x + dSin(angle) * offsetDist;
         rz = this.patrolBias.center.z - dCos(angle) * offsetDist;
       } else if (playerPos && (attempts % 2 === 0)) {
         // 50% of the time, bias patrol waypoint toward player's general sector
-        const offsetDist = this.rng.range(12.0, 30.0);
+        const offsetDist = this.rng.range(12.0, 36.0);
         const angle = this.rng.range(-D_PI, D_PI);
         rx = playerPos.x + dSin(angle) * offsetDist;
         rz = playerPos.z - dCos(angle) * offsetDist;
@@ -715,7 +757,7 @@ export class MonsterBrain {
 
       if (nav.isWalkableWorld(rx, rz) && nav.getComponentWorld(rx, rz) === myComponent) {
         const d = dHypot(rx - this.pos.x, rz - this.pos.z);
-        if (d >= 6.0) {
+        if (d >= 8.0) {
           const path = this.astar.findPath(this.pos.x, this.pos.z, rx, rz);
           if (path.length > 0) {
             this.currentPath = path;
@@ -726,8 +768,8 @@ export class MonsterBrain {
       }
     }
 
-    // Fallback: pick nearest cell in component so monster is never stranded
-    const fallback = nav.findNearestCellInComponent(this.pos.x, this.pos.z, myComponent);
+    // Fallback: pick distant cell in component so monster is never stranded
+    const fallback = nav.findNearestCellInComponent(this.pos.x + 12, this.pos.z + 12, myComponent);
     if (fallback) {
       const path = this.astar.findPath(this.pos.x, this.pos.z, fallback.x, fallback.z);
       this.currentPath = path.length > 0 ? path : [{ x: fallback.x, z: fallback.z }];

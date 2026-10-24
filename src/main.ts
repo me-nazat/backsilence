@@ -422,6 +422,13 @@ async function boot(): Promise<void> {
     labScene.renderer.canvas.style.display = 'block';
   });
 
+  bus.on('settings:applied' as unknown as 'game:start', (rawSettings: unknown) => {
+    const s = rawSettings as Settings;
+    if (activeGameSession) {
+      activeGameSession.setSettings(s);
+    }
+  });
+
   if (isLab) {
     ui.navigateTo('GAME');
     ui.showToast('Material & Audio Lab active. Controls: WASD + mouse. Press H for HUD, B for Audio Lab.', 'info');

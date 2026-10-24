@@ -65,6 +65,13 @@ export class InputManager {
     document.addEventListener('pointerlockchange', () => {
       this.isPointerLocked = document.pointerLockElement === this.canvas;
     });
+
+    window.addEventListener('blur', () => {
+      this.keysDown.clear();
+      this.keysJustPressed.clear();
+      this.mouseDeltaX = 0;
+      this.mouseDeltaY = 0;
+    });
   }
 
   requestPointerLock(): void {
