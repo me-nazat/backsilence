@@ -652,3 +652,21 @@ Establish `functions/api/[[route]].ts` as the canonical Cloudflare Pages Functio
    - Long animation frame performance monitoring via `PerformanceObserver`.
 **Reason:** Fulfills Prompt 4 Phase C mandates, providing an atmospheric, weighted analog feel while strictly enforcing WCAG motion and seizure safety standards.
 
+### D067: Gamepad Integration, 2D Spatial Navigation, Dynamic Glyphs & Remapping
+**Date:** 2026-10-24
+**Choice:**
+1. Gamepad API Support (`src/engine/input/GamepadManager.ts`):
+   - Configurable radial deadzone (default 0.15) with power response curve (exponent 1.8) ensuring smooth low-end stick response and full 1.0 deflection.
+   - Standard mapping: Triggers for sprint (RT) and throw (LT); Left stick and D-pad for traversal and menu navigation.
+   - Guarded dual-rumble haptic feedback (`vibrationActuator.playEffect('dual-rumble')`) with presets for jumpscare (0.9/1.0, 450ms) and near-miss (0.6/0.4, 250ms).
+   - Mock gamepad injection harness for headless CI test environments where real physical gamepads are unavailable (real hardware marked UNVERIFIED).
+2. 2D Spatial Focus Navigation (`src/ui/input/SpatialNavigation.ts`):
+   - Arrow keys and Gamepad D-pad evaluate 2D Euclidean distances with quadrant filtering and perpendicular penalties to focus the nearest interactive element, maintaining visible focus states.
+3. Dynamic Prompt Glyph Switching (`src/ui/input/InputGlyphs.ts`):
+   - Tracks active input device (`keyboard`, `gamepad`, `touch`).
+   - Detects layout from gamepad identifier: Xbox (A/B/X/Y), PlayStation (Cross/Circle/Square/Triangle), Switch (B/A/Y/X), and renders clean inline SVG symbols.
+4. Key & Gamepad Remapper (`src/ui/input/KeyRemapper.ts`):
+   - Rebinds actions, detects duplicate key collisions, and supports instantaneous reset to defaults.
+**Reason:** Fulfills Prompt 4 Phase D requirements, providing native controller, touch, and keyboard parity with accessible spatial navigation.
+
+
