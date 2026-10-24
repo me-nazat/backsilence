@@ -18,7 +18,6 @@ import {
   KeypadButtonAnimation,
   SwingingBellAnimation,
   SinkingPlatformTiltAnimation,
-  smoothstep,
 } from '../src/game/interaction/InteractableAnimations.js';
 import { AnimationLabPanel } from '../src/lab/AnimationLabPanel.js';
 import { defaultSettings } from '../src/app/Settings.js';
@@ -87,6 +86,8 @@ describe('Phase G: Animation and Game Feel', () => {
       exhausted: false,
       wet: false,
       mantling: false,
+      depth: 0,
+      agitation: 0,
     };
 
     const currSnap: PlayerSnapshot = {
@@ -136,6 +137,8 @@ describe('Phase G: Animation and Game Feel', () => {
       exhausted: false,
       wet: false,
       mantling: false,
+      depth: 0,
+      agitation: 0,
     };
 
     // Monster within 2.0m (< 4m)

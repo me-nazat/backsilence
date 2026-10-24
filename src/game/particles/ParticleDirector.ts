@@ -31,7 +31,6 @@ export class ParticleDirector {
   readonly tier: GraphicsTier;
   waterY: number;
   mapId: string;
-  private readonly seed: number;
 
   // 10 Procedural Pools
   readonly rainStreaks: ParticlePool;
@@ -63,7 +62,6 @@ export class ParticleDirector {
     this.tier = options.tier ?? 'high';
     this.waterY = options.waterY ?? 0.0;
     this.mapId = options.mapId ?? 'natatorium';
-    this.seed = options.seed ?? 12345;
 
     const mul = this.tier === 'low' ? 0.25 : this.tier === 'medium' ? 0.5 : 1.0;
 

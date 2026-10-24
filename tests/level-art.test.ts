@@ -9,7 +9,7 @@
  * ──────────────────────────────────────────────────────────────────────── */
 
 import { describe, it, expect } from 'vitest';
-import { Mesh, BufferGeometry } from 'three';
+import { Mesh, BufferGeometry, Object3D } from 'three';
 import type { MapId } from '../src/types/contracts.js';
 import { PoolroomsMap } from '../src/world/maps/PoolroomsMap.js';
 import { UtilityTunnelsMap } from '../src/world/maps/UtilityTunnelsMap.js';
@@ -23,7 +23,7 @@ import { NeonFloodMap } from '../src/world/maps/NeonFloodMap.js';
 import { DrownedMetroMap } from '../src/world/maps/DrownedMetroMap.js';
 import type { MapDefinition } from '../src/world/MapTypes.js';
 
-const ALL_10_MAPS: Record<MapId, MapDefinition> = {
+const ALL_10_MAPS: Record<Exclude<MapId, 'orientation'>, MapDefinition> = {
   natatorium: NatatoriumMap,
   poolrooms: PoolroomsMap,
   drowned_school: DrownedSchoolMap,
@@ -37,7 +37,7 @@ const ALL_10_MAPS: Record<MapId, MapDefinition> = {
 };
 
 describe('Phase E: Level Art Density Pass for All 10 Maps', () => {
-  const mapIds = Object.keys(ALL_10_MAPS) as MapId[];
+  const mapIds = Object.keys(ALL_10_MAPS) as (Exclude<MapId, 'orientation'>)[];
 
   for (const mapId of mapIds) {
     it(`builds ${mapId} and verifies prop diversity, decals, matrixAutoUpdate and budgets`, async () => {
@@ -60,7 +60,7 @@ describe('Phase E: Level Art Density Pass for All 10 Maps', () => {
 
       // Note: in-game rendering includes the water mesh (~65,536 triangles) and PostFX/shadows.
       // Scene mesh triangles + water mesh triangles compose the total frame triangles.
-      instance.root.traverse((obj) => {
+      instance.root.traverse((obj: Object3D) => {
         if (obj instanceof Mesh) {
           drawCallCount++;
           if (obj.matrixAutoUpdate) {

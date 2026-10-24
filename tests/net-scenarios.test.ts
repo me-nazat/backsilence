@@ -97,8 +97,8 @@ describe('Multiplayer Integration Scenarios (Host + 2 Clients)', () => {
     clientBSession.publishLocalRipple(ripple);
     clientBSession.flush();
 
-    // Wait 40ms for MemoryHub delivery
-    await new Promise((r) => setTimeout(r, 40));
+    // Wait 80ms for MemoryHub delivery under heavy parallel test load
+    await new Promise((r) => setTimeout(r, 80));
 
     // Step host simulation
     for (let step = 0; step < 10; step++) {

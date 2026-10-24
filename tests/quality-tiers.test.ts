@@ -20,6 +20,8 @@ describe('Phase I: Quality Tiers & Performance', () => {
     const high = QUALITY_CONFIGS.high;
 
     // Low Tier (Mobile / low-end target: 33ms frame budget)
+    expect(resolveQuality('low')).toEqual(low);
+    expect(resolveQualityTier('high')).toBe('high');
     expect(low.dprCap).toBe(1.0);
     expect(low.tileTexSize).toBe(256);
     expect(low.shadows).toBe('off');

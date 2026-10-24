@@ -316,16 +316,12 @@ export class GlbSkin implements MonsterSkin {
           this.model.position.y = -box.min.y * normScale;
 
           // 2. Readability & silhouette enhancement
-          let triCount = 0;
           this.model.traverse((child) => {
             const mesh = child as Mesh;
             if (mesh.isMesh) {
               mesh.castShadow = true;
               mesh.receiveShadow = true;
               mesh.frustumCulled = false;
-              if (mesh.geometry?.index) {
-                triCount += mesh.geometry.index.count / 3;
-              }
 
               const mat = mesh.material as MeshStandardMaterial;
               if (mat && mat.isMeshStandardMaterial) {

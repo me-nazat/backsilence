@@ -140,9 +140,9 @@ export function clampSettings(s: Settings): Settings {
       showNetStats: Boolean(n?.showNetStats),
     },
     creatures: {
-      waterMonsterSkin: ['auto', 'model', 'procedural'].includes(cr?.waterMonsterSkin as string)
-        ? cr?.waterMonsterSkin!
-        : 'auto',
+      waterMonsterSkin: (['auto', 'model', 'procedural'].includes(cr?.waterMonsterSkin as string)
+        ? cr?.waterMonsterSkin
+        : 'auto') as 'auto' | 'model' | 'procedural',
       ambientFlyers: clamp(typeof cr?.ambientFlyers === 'number' ? cr.ambientFlyers : 5, 0, 5),
     },
   };

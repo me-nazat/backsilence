@@ -99,9 +99,9 @@ export function makePbrMaterialSet(options: PbrKitOptions): PbrSetResult {
       let height = 0.5;
       let ao = 255;
 
-      const n1 = fbm2DTileable(nx, ny, 4.0, 3, perm);
-      const n2 = fbm2DTileable(nx, ny, 12.0, 2, perm);
-      const n3 = fbm2DTileable(nx, ny, 32.0, 2, perm);
+      const n1 = fbm2DTileable(nx, ny, 4.0, 4.0, 3, 2.0, 0.5, perm);
+      const n2 = fbm2DTileable(nx, ny, 12.0, 12.0, 2, 2.0, 0.5, perm);
+      const n3 = fbm2DTileable(nx, ny, 32.0, 32.0, 2, 2.0, 0.5, perm);
 
       switch (kind) {
         case 'tile': {

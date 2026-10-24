@@ -244,7 +244,6 @@ export class FlockDirector {
     const useLOD0 = avgDistToCam < 30.0;
     this.skullMeshLOD0.visible = useLOD0;
     this.skullMeshLOD1.visible = !useLOD0;
-    const activeMesh = useLOD0 ? this.skullMeshLOD0 : this.skullMeshLOD1;
 
     for (let i = 0; i < FlockDirector.FLOCK_SIZE; i++) {
       if (i >= this.count) {

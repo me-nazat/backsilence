@@ -4,7 +4,7 @@
  *  and blends slope-based moss on upward-facing surfaces (normal.y > 0.65).
  * ──────────────────────────────────────────────────────────────────────── */
 
-import { ShaderMaterial, UniformsUtils, UniformsLib, Vector3, Color, type Texture } from 'three';
+import { ShaderMaterial, UniformsUtils, UniformsLib, Vector3, type Texture } from 'three';
 
 export interface TriplanarMaterialOptions {
   rockTexture: Texture;

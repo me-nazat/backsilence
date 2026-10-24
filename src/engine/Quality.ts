@@ -123,11 +123,11 @@ export class AutoQualityAdapter {
   private cooldownTimer = 0;
   readonly targetFps = 45;
   readonly requiredDuration = 3.0; // 3 seconds below 45 FPS
-  readonly onTierDowngraded?: (newTier: Exclude<QualityTier, 'auto'>, reason: string) => void;
+  readonly onTierDowngraded?: ((newTier: Exclude<QualityTier, 'auto'>, reason: string) => void) | undefined;
 
   constructor(
     initialTier: QualityTier = 'auto',
-    onTierDowngraded?: (newTier: Exclude<QualityTier, 'auto'>, reason: string) => void,
+    onTierDowngraded?: ((newTier: Exclude<QualityTier, 'auto'>, reason: string) => void)  ,
   ) {
     this.currentTier = resolveQualityTier(initialTier);
     this.onTierDowngraded = onTierDowngraded;

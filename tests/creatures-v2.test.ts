@@ -12,11 +12,11 @@ import { describe, it, expect } from 'vitest';
 import { Vector3, Camera } from 'three';
 import { buildProceduralSkinnedMonster } from '../src/game/monster/ProceduralSkinnedMeshBuilder.js';
 import { MeshStandardMaterial } from 'three';
-import { ProceduralSkin, GlbSkin, createMonsterSkin } from '../src/game/creatures/MonsterSkin.js';
+import { ProceduralSkin, GlbSkin } from '../src/game/creatures/MonsterSkin.js';
 import { FlockDirector } from '../src/game/creatures/FlockDirector.js';
 import { defaultSettings, clampSettings } from '../src/app/Settings.js';
-import { readFileSync, existsSync } from 'node:fs';
-import { join } from 'node:path';
+import type { WaterSystem } from '../src/game/water/WaterSystem.js';
+import thumperReport from '../reports/models/thumper.json';
 
 describe('Phase F: Creatures & Animation Pipeline', () => {
   it('builds continuous seamless SkinnedMesh with 20 bones and valid normalized weights', () => {
@@ -194,7 +194,7 @@ describe('Phase F: Creatures & Animation Pipeline', () => {
       anchor: new Vector3(10, 0, 10),
       waterY: 0.0,
       count: 5,
-      water: mockWater as any,
+      water: mockWater as unknown as WaterSystem,
     });
 
     expect(flock.skullMeshLOD0).toBeDefined();
@@ -228,11 +228,9 @@ describe('Phase F: Creatures & Animation Pipeline', () => {
     skin.update(0.016, { speed: 1.5, isGrounded: true, isWading: false, waterDepth: 0 });
     expect(skin.getFootBones().length).toBeGreaterThanOrEqual(2);
 
-    const reportPath = join(process.cwd(), 'reports', 'models', 'thumper.json');
-    expect(existsSync(reportPath)).toBe(true);
-    const report = JSON.parse(readFileSync(reportPath, 'utf-8'));
-    expect(report.present).toBe(false);
-    expect(report.fallbackActive).toBe('ProceduralSkin');
+    expect(thumperReport).toBeDefined();
+    expect(thumperReport.present).toBe(false);
+    expect(thumperReport.fallbackActive).toBe('ProceduralSkin');
 
     skin.dispose();
   });
@@ -246,7 +244,7 @@ describe('Phase F: Creatures & Animation Pipeline', () => {
     const clamped = clampSettings({
       ...def,
       creatures: {
-        waterMonsterSkin: 'invalid' as any,
+        waterMonsterSkin: 'invalid' as unknown as 'auto',
         ambientFlyers: 99,
       },
     });

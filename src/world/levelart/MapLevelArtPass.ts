@@ -102,7 +102,6 @@ export function applyMapLevelArtPass(env: LevelArtEnv): void {
   for (const wall of layout.walls) {
     if (decalCount >= targetDecals) break;
     const cx = (wall.min.x + wall.max.x) * 0.5;
-    const cz = (wall.min.z + wall.max.z) * 0.5;
     const cy = wall.min.y + 1.6;
 
     decalSystem.addDecal({

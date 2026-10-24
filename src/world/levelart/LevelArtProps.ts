@@ -57,9 +57,9 @@ function mergeGeometries(geoms: { geom: BufferGeometry; matrix: Matrix4 }[]): Bu
         const y = posAttr.getY(i);
         const z = posAttr.getZ(i);
 
-        const tx = x * matrix.elements[0]! + y * matrix.elements[4]! + z * matrix.elements[8]! + matrix.elements[12]!;
-        const ty = x * matrix.elements[1]! + y * matrix.elements[5]! + z * matrix.elements[9]! + matrix.elements[13]!;
-        const tz = x * matrix.elements[2]! + y * matrix.elements[6]! + z * matrix.elements[10]! + matrix.elements[14]!;
+        const tx = x * matrix.elements[0] + y * matrix.elements[4] + z * matrix.elements[8] + matrix.elements[12];
+        const ty = x * matrix.elements[1] + y * matrix.elements[5] + z * matrix.elements[9] + matrix.elements[13];
+        const tz = x * matrix.elements[2] + y * matrix.elements[6] + z * matrix.elements[10] + matrix.elements[14];
 
         positions[posOffset++] = tx;
         positions[posOffset++] = ty;
@@ -73,9 +73,9 @@ function mergeGeometries(geoms: { geom: BufferGeometry; matrix: Matrix4 }[]): Bu
         const ny = normAttr.getY(i);
         const nz = normAttr.getZ(i);
 
-        const tx = nx * normalMatrix.elements[0]! + ny * normalMatrix.elements[4]! + nz * normalMatrix.elements[8]!;
-        const ty = nx * normalMatrix.elements[1]! + ny * normalMatrix.elements[5]! + nz * normalMatrix.elements[9]!;
-        const tz = nx * normalMatrix.elements[2]! + ny * normalMatrix.elements[6]! + nz * normalMatrix.elements[10]!;
+        const tx = nx * normalMatrix.elements[0] + ny * normalMatrix.elements[4] + nz * normalMatrix.elements[8];
+        const ty = nx * normalMatrix.elements[1] + ny * normalMatrix.elements[5] + nz * normalMatrix.elements[9];
+        const tz = nx * normalMatrix.elements[2] + ny * normalMatrix.elements[6] + nz * normalMatrix.elements[10];
         const len = Math.hypot(tx, ty, tz) || 1;
 
         normals[normOffset++] = tx / len;

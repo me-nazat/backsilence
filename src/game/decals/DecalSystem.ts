@@ -18,7 +18,6 @@ import {
 } from 'three';
 import { acquireCanvas } from '../../procedural/core/canvasPool.js';
 import { layoutText } from '../../procedural/textures/strokeFont.js';
-import { Rng } from '../../procedural/core/prng.js';
 
 export type DecalKind = 'graffiti' | 'numeral' | 'crack' | 'stain' | 'drip' | 'sign';
 
@@ -40,7 +39,6 @@ export class DecalSystem {
   private readonly dummyPos = new Vector3();
   private readonly dummyQuat = new Quaternion();
   private readonly dummyScale = new Vector3();
-  private readonly dummyColor = new Color();
   private readonly atlasTexture: CanvasTexture;
 
   constructor(maxDecals = 400) {
@@ -48,7 +46,7 @@ export class DecalSystem {
 
     // Generate procedural decal atlas (4x4 cells = 16 decal patterns)
     const atlasHandle = acquireCanvas(1024, 1024);
-    const ctx = atlasHandle.ctx;
+    const ctx = atlasHandle.ctx as CanvasRenderingContext2D;
     ctx.clearRect(0, 0, 1024, 1024);
 
     this.drawAtlas(ctx);
@@ -152,7 +150,6 @@ export class DecalSystem {
     this.dummyPos.addScaledVector(def.normal, 0.015);
 
     // Orient quad facing along the surface normal
-    const up = Math.abs(def.normal.y) > 0.95 ? new Vector3(0, 0, 1) : new Vector3(0, 1, 0);
     this.dummyQuat.setFromUnitVectors(new Vector3(0, 0, 1), def.normal);
 
     if (def.rotation) {

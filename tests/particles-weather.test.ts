@@ -15,6 +15,7 @@ import { ParticlePool } from '../src/game/particles/ParticleSystem.js';
 import { ParticleDirector } from '../src/game/particles/ParticleDirector.js';
 import { WeatherDirector } from '../src/game/weather/WeatherDirector.js';
 import { WeatherSystem } from '../src/sim/Weather.js';
+import type { AudioEngine } from '../src/audio/AudioEngine.js';
 
 describe('Phase H: Zero-Allocation Particle Systems & Weather', () => {
   it('ParticlePool preallocates typed arrays and updates with zero heap growth', () => {
@@ -177,7 +178,7 @@ describe('Phase H: Zero-Allocation Particle Systems & Weather', () => {
         playedSound = sound;
         playedOptions = options;
       },
-    } as any;
+    } as unknown as AudioEngine;
 
     const weather = new WeatherSystem(999);
     const director = new WeatherDirector({ weather, seed: 999, audio: mockAudio });

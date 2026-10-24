@@ -8,7 +8,7 @@
  * ──────────────────────────────────────────────────────────────────────── */
 
 import { Vector3, type Camera } from 'three';
-import { WeatherSystem, type WeatherState } from '../../sim/Weather.js';
+import { WeatherSystem } from '../../sim/Weather.js';
 import { ParticleDirector } from '../particles/ParticleDirector.js';
 import type { AudioEngine } from '../../audio/AudioEngine.js';
 import type { GraphicsTier } from '../../types/contracts.js';

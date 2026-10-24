@@ -115,7 +115,7 @@ export class GpuWaveSimulation {
   /** Initialize GPU FBOs and materials when a WebGL renderer is provided. */
   initGpu(renderer: WebGLRenderer): boolean {
     try {
-      const gl = renderer.getContext() as WebGLRenderingContext | WebGL2RenderingContext;
+      const gl = renderer.getContext();
       const isWebGL2 = renderer.capabilities?.isWebGL2 ?? false;
 
       // Detect EXT_color_buffer_float or EXT_color_buffer_half_float

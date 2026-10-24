@@ -58,6 +58,10 @@ export class SecondOrderSpring3D {
     this.r = r;
   }
 
+  getConstants(): { f: number; z: number; r: number } {
+    return { f: this.f, z: this.z, r: this.r };
+  }
+
   reset(val: Vector3): void {
     this.current.copy(val);
     this.target.copy(val);
@@ -67,10 +71,6 @@ export class SecondOrderSpring3D {
   update(dt: number, newTarget: Vector3): Vector3 {
     this.target.copy(newTarget);
     const w = 2.0 * Math.PI * this.f;
-
-    // Numerical integration of second-order spring
-    const k1 = this.z / (Math.PI * this.f);
-    const k2 = 1.0 / (w * w);
 
     // Acceleration
     const diff = new Vector3().subVectors(this.target, this.current);
@@ -262,6 +262,10 @@ export class ViewModel {
 
   setWet(wet: boolean): void {
     this.isWet = wet;
+  }
+
+  getIsWet(): boolean {
+    return this.isWet;
   }
 
   update(

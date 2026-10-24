@@ -71,7 +71,6 @@ export class ParticlePool {
   private readonly scratchVel = new Vector3();
   private readonly scratchDir = new Vector3();
   private readonly scratchUp = new Vector3(0, 1, 0);
-  private readonly scratchRight = new Vector3();
   private readonly scratchQuat = new Quaternion();
   private readonly horizontalQuat = new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), -Math.PI / 2);
 
@@ -228,8 +227,11 @@ export class ParticlePool {
     for (let i = 0; i < this.capacity; i++) {
       if (!this.active[i]) continue;
 
-      this.age[i] += dt;
-      if (this.age[i] >= this.maxAge[i]) {
+      const curAge = (this.age[i] ?? 0) + dt;
+      const curMaxAge = this.maxAge[i] ?? 1.0;
+      this.age[i] = curAge;
+
+      if (curAge >= curMaxAge) {
         this.active[i] = 0;
         // Park offscreen
         this.dummy.position.set(0, -9999, 0);
@@ -243,25 +245,39 @@ export class ParticlePool {
       count++;
 
       // Velocity physics
+      let vx = this.velX[i] ?? 0;
+      let vy = this.velY[i] ?? 0;
+      let vz = this.velZ[i] ?? 0;
+
       if (gravity !== 0) {
-        this.velY[i] += gravity * dt;
+        vy += gravity * dt;
+        this.velY[i] = vy;
       }
       if (drag !== 1.0) {
         const factor = Math.pow(drag, dt * 60);
-        this.velX[i] *= factor;
-        this.velY[i] *= factor;
-        this.velZ[i] *= factor;
+        vx *= factor;
+        vy *= factor;
+        vz *= factor;
+        this.velX[i] = vx;
+        this.velY[i] = vy;
+        this.velZ[i] = vz;
       }
 
-      this.posX[i] += this.velX[i] * dt;
-      this.posY[i] += this.velY[i] * dt;
-      this.posZ[i] += this.velZ[i] * dt;
+      const px = (this.posX[i] ?? 0) + vx * dt;
+      const py = (this.posY[i] ?? 0) + vy * dt;
+      const pz = (this.posZ[i] ?? 0) + vz * dt;
+      this.posX[i] = px;
+      this.posY[i] = py;
+      this.posZ[i] = pz;
 
-      if (this.rotSpeed[i] !== 0) {
-        this.rot[i] += this.rotSpeed[i] * dt;
+      const rSpeed = this.rotSpeed[i] ?? 0;
+      let rAngle = this.rot[i] ?? 0;
+      if (rSpeed !== 0) {
+        rAngle += rSpeed * dt;
+        this.rot[i] = rAngle;
       }
 
-      const lifeProgress = this.age[i] / this.maxAge[i];
+      const lifeProgress = curAge / curMaxAge;
       // Quadratic fade: in during first 15%, out during last 30%
       let fade = 1.0;
       if (lifeProgress < 0.15) {
@@ -271,25 +287,27 @@ export class ParticlePool {
       }
       fade = Math.max(0.0, Math.min(1.0, fade));
 
-      const curScaleX = this.scaleX[i] * (1.0 + lifeProgress * 0.2);
-      const curScaleY = this.scaleY[i] * (1.0 + lifeProgress * 0.2);
+      const sx = this.scaleX[i] ?? 1.0;
+      const sy = this.scaleY[i] ?? 1.0;
+      const curScaleX = sx * (1.0 + lifeProgress * 0.2);
+      const curScaleY = sy * (1.0 + lifeProgress * 0.2);
 
-      this.dummy.position.set(this.posX[i], this.posY[i], this.posZ[i]);
+      this.dummy.position.set(px, py, pz);
 
       // Orientation handling
       if (this.orientation === 'billboard' && camQuat) {
         this.dummy.quaternion.copy(camQuat);
-        if (this.rot[i] !== 0) {
-          this.dummy.rotateZ(this.rot[i]);
+        if (rAngle !== 0) {
+          this.dummy.rotateZ(rAngle);
         }
       } else if (this.orientation === 'horizontal') {
         this.dummy.quaternion.copy(this.horizontalQuat);
-        if (this.rot[i] !== 0) {
-          this.dummy.rotateZ(this.rot[i]);
+        if (rAngle !== 0) {
+          this.dummy.rotateZ(rAngle);
         }
       } else if (this.orientation === 'velocity') {
         // Stretch along velocity vector
-        this.scratchVel.set(this.velX[i], this.velY[i], this.velZ[i]);
+        this.scratchVel.set(vx, vy, vz);
         const speed = this.scratchVel.length();
         if (speed > 0.01) {
           this.scratchDir.copy(this.scratchVel).divideScalar(speed);
@@ -304,10 +322,13 @@ export class ParticlePool {
       matrixChanged = true;
 
       // Color and alpha modulation
+      const cr = this.colR[i] ?? 1.0;
+      const cg = this.colG[i] ?? 1.0;
+      const cb = this.colB[i] ?? 1.0;
       this.scratchColor.setRGB(
-        this.colR[i] * fade,
-        this.colG[i] * fade,
-        this.colB[i] * fade,
+        cr * fade,
+        cg * fade,
+        cb * fade,
       );
       this.mesh.setColorAt(i, this.scratchColor);
       colorChanged = true;

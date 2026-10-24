@@ -9,7 +9,7 @@ export type AnyCanvasRenderingContext2D =
   | CanvasRenderingContext2D;
 
 if (typeof globalThis.ImageData === 'undefined') {
-  (globalThis as any).ImageData = class ImageData {
+  (globalThis as unknown as Record<string, unknown>).ImageData = class ImageData {
     readonly data: Uint8ClampedArray;
     readonly width: number;
     readonly height: number;

@@ -425,7 +425,7 @@ export class GameSession {
         tier,
         weather: this.simWorld.weather,
         audio: this.audio,
-        safeMode: this.settings.graphics?.safeMode ?? false,
+        safeMode: this.settings.graphics?.photosensitiveSafe ?? false,
       });
       this.scene.add(this.weatherDirector.particles.root);
 

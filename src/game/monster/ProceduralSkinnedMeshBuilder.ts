@@ -16,7 +16,6 @@ import {
   Vector3,
   type Material,
   Group,
-  Object3D,
 } from 'three';
 import { createNoisePermutation, fbm2D } from '../../procedural/core/noise.js';
 
@@ -434,7 +433,7 @@ export function buildProceduralSkinnedMonster(
 
       // Smooth inverse cube distance falloff
       const w = (1.0 / Math.pow(dist + 0.07, 3)) * seg.weightScale;
-      boneWeights[seg.boneIndex] += w;
+      boneWeights[seg.boneIndex] = (boneWeights[seg.boneIndex] ?? 0) + w;
     }
 
     // Find top 4 bones
