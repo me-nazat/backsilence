@@ -48,6 +48,13 @@ import {
   playKeypadBeep,
   playDoorClunk,
   playRippleTick,
+  playUiStamp,
+  playUiAchievement,
+  playUiCountdownTick,
+  playUiLobbyJoin,
+  playUiReady,
+  playUiRankUp,
+  playResultsStinger,
 } from './voices/UiSounds.js';
 import {
   playSteamHiss,
@@ -163,6 +170,13 @@ export type VoiceName =
   | 'keypad_beep'
   | 'door_clunk'
   | 'ripple_tick'
+  | 'ui_stamp'
+  | 'ui_achievement'
+  | 'ui_countdown_tick'
+  | 'ui_lobby_join'
+  | 'ui_ready'
+  | 'ui_rank_up'
+  | 'results_stinger'
   | 'steam_hiss'
   | 'pipe_groan'
   | 'valve_turn'
@@ -264,6 +278,8 @@ export interface AudioEngineApi {
   startAmbience(): void;
   stopAmbience(fade?: number): void;
   stats(): { activeVoices: number; contextState: string; sampleRate: number };
+  getContext(): AudioContext | null;
+  getBusNode(bus: AudioBusName): GainNode | null;
   dispose(): void;
 }
 
@@ -369,6 +385,14 @@ export class AudioEngine implements AudioEngineApi {
         console.warn('[AudioEngine] Tape hiss bed initialization error:', e);
       }
     }
+  }
+
+  getContext(): AudioContext | null {
+    return this.ctx;
+  }
+
+  getBusNode(bus: AudioBusName): GainNode | null {
+    return this.mixer ? this.mixer.getBusNode(bus) : null;
   }
 
   play(name: VoiceName, opts: PlayOptions = {}): VoiceHandle {
@@ -517,6 +541,27 @@ export class AudioEngine implements AudioEngineApi {
         break;
       case 'ripple_tick':
         handle = playRippleTick(voiceCtx);
+        break;
+      case 'ui_stamp':
+        handle = playUiStamp(voiceCtx);
+        break;
+      case 'ui_achievement':
+        handle = playUiAchievement(voiceCtx);
+        break;
+      case 'ui_countdown_tick':
+        handle = playUiCountdownTick(voiceCtx);
+        break;
+      case 'ui_lobby_join':
+        handle = playUiLobbyJoin(voiceCtx);
+        break;
+      case 'ui_ready':
+        handle = playUiReady(voiceCtx);
+        break;
+      case 'ui_rank_up':
+        handle = playUiRankUp(voiceCtx);
+        break;
+      case 'results_stinger':
+        handle = playResultsStinger(voiceCtx as any);
         break;
       case 'monster_footfall':
         handle = playMonsterFootfall(voiceCtx);

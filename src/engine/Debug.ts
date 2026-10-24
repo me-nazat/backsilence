@@ -14,7 +14,22 @@ import { playStepDry, playStepSqueak, playMantle, playDrip, playPlayerBreath } f
 import { playLapLoop, playHumLoop, playDroneLoop } from '../audio/voices/Loops.js';
 import { playMonsterRoar, playMonsterSnarl, playMonsterBreathLoop, playMonsterSniff, playMonsterWade, playMonsterFootfall } from '../audio/voices/Monster.js';
 import { playJumpscare, playHeartbeat } from '../audio/voices/Jumpscare.js';
-import { playUiHover, playUiClick, playUiConfirm, playUiError, playKeypadBeep, playDoorClunk, playRippleTick } from '../audio/voices/UiSounds.js';
+import {
+  playUiHover,
+  playUiClick,
+  playUiConfirm,
+  playUiError,
+  playKeypadBeep,
+  playDoorClunk,
+  playRippleTick,
+  playUiStamp,
+  playUiAchievement,
+  playUiCountdownTick,
+  playUiLobbyJoin,
+  playUiReady,
+  playUiRankUp,
+  playResultsStinger,
+} from '../audio/voices/UiSounds.js';
 import {
   playSteamHiss,
   playPipeGroan,
@@ -157,6 +172,13 @@ const ALL_VOICES: VoiceName[] = [
   'keypad_beep',
   'door_clunk',
   'ripple_tick',
+  'ui_stamp',
+  'ui_achievement',
+  'ui_countdown_tick',
+  'ui_lobby_join',
+  'ui_ready',
+  'ui_rank_up',
+  'results_stinger',
   'steam_hiss',
   'pipe_groan',
   'valve_turn',
@@ -291,6 +313,13 @@ export async function audioSelfTest(): Promise<{ passed: boolean; results: Audio
         case 'keypad_beep': playKeypadBeep(voiceCtx); break;
         case 'door_clunk': playDoorClunk(voiceCtx); break;
         case 'ripple_tick': playRippleTick(voiceCtx); break;
+        case 'ui_stamp': playUiStamp(voiceCtx); break;
+        case 'ui_achievement': playUiAchievement(voiceCtx); break;
+        case 'ui_countdown_tick': playUiCountdownTick(voiceCtx); break;
+        case 'ui_lobby_join': playUiLobbyJoin(voiceCtx); break;
+        case 'ui_ready': playUiReady(voiceCtx); break;
+        case 'ui_rank_up': playUiRankUp(voiceCtx); break;
+        case 'results_stinger': playResultsStinger(voiceCtx); break;
         case 'steam_hiss': playSteamHiss(voiceCtx); break;
         case 'pipe_groan': playPipeGroan(voiceCtx); break;
         case 'valve_turn': playValveTurn(voiceCtx); break;

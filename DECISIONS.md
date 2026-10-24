@@ -669,4 +669,17 @@ Establish `functions/api/[[route]].ts` as the canonical Cloudflare Pages Functio
    - Rebinds actions, detects duplicate key collisions, and supports instantaneous reset to defaults.
 **Reason:** Fulfills Prompt 4 Phase D requirements, providing native controller, touch, and keyboard parity with accessible spatial navigation.
 
-
+### D068: Procedural Interface Sound Map, Generative Menu Music & Audio Self-Test
+**Date:** 2026-10-24
+**Choice:**
+1. Complete Interface Sound Map in `src/audio/voices/UiSounds.ts` (100% procedural synthesis, 0 audio files):
+   - Added: `ui_stamp` (sub-bass physical thump 68->32 Hz with soft paper impact), `ui_achievement` (twin bell chime C6/E6), `ui_countdown_tick` (880 Hz metronome tick), `ui_lobby_join` (underwater sonar ping at 587 Hz), `ui_ready` (metallic dual latch click), `ui_rank_up` (4-note ascending arpeggio C5->E5->G5->C6), and `results_stinger` (S-rank resonant major 9th vs D-rank low detuned minor 2nd dissonance).
+   - Preserved: `ui_hover`, `ui_click`, `ui_confirm`, `ui_error`, `tape_insert`, `tape_eject`, and `tape_rewind`.
+2. Generative Menu Music (`src/audio/MenuMusic.ts`):
+   - Detuned analog pad (dual oscillators at 110 Hz and 111.4 Hz through 260 Hz lowpass filter).
+   - Sparse procedural pentatonic plucks (E minor pentatonic) randomized between 2.2 and 5.5s intervals sent through poolroom reverb.
+   - Dynamic dread layer: rises with in-game tension (0..1) adding sub-bass sawtooth drone, falling away to 0 in menus.
+   - Master ducking and mute on blur/focus transitions.
+3. Audio Self-Test Integration (`src/engine/Debug.ts`):
+   - Expanded `ALL_VOICES` and `audioSelfTest()` to verify all new UI voices and stingers for peak amplitude, non-clipping, and zero NaN/Infinity values.
+**Reason:** Fulfills Prompt 4 Phase E requirements, ensuring an evocative, fully synthesized soundscape with zero audio asset weight.
