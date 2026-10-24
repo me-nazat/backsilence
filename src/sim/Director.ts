@@ -305,11 +305,9 @@ export class EncounterDirector {
       return;
     } else if (primaryTarget.stillnessTime >= diffCfg.stillnessSweepDelay && !primaryTarget.stillnessSweepDone) {
       // 40s stillness: escalate to a sweep (6-10m from platform)
-      if (!primaryTarget.isWading) {
-        this.executeSweep(monster, regionPos, nav, 6.0, 10.0, pPos);
-        primaryTarget.stillnessSweepDone = true;
-        return;
-      }
+      this.executeSweep(monster, regionPos, nav, 6.0, 10.0, pPos);
+      primaryTarget.stillnessSweepDone = true;
+      return;
     }
 
     // 6. Pressure Clock Execution (Prowl 35%, Closing 60%, Hunt 80% on 8m region cells)
@@ -545,6 +543,19 @@ export class EncounterDirector {
       position: { ...position },
       t: this.simTime,
     });
+    if (kind === 'listening_event') {
+      this.dreadBeats.push({
+        kind: 'listening',
+        position: { ...position },
+        t: this.simTime,
+      });
+    } else if (kind === 'far_call') {
+      this.dreadBeats.push({
+        kind: 'ambient_far',
+        position: { ...position },
+        t: this.simTime,
+      });
+    }
     this.lastThreatBeatTime = this.simTime;
   }
 
