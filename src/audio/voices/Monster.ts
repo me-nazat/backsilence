@@ -18,6 +18,7 @@ export interface MonsterVoiceContext {
   destination: AudioNode;
   reverbSend: AudioNode;
   noise: NoiseBuffers;
+  mixer?: import('../Mixer.js').Mixer;
   intensity?: number;
   pitch?: number;
   seed?: number;
@@ -76,6 +77,11 @@ export function playMonsterRoar(cx: MonsterVoiceContext): RawVoiceHandle {
   const duration = 1.6;
   const intensity = Math.max(0.2, Math.min(2.5, cx.intensity ?? 1.25));
   const pitchMult = cx.pitch ?? 1.0;
+
+  // Prompt 4 Section 8 D.2: Roar ducks ambience by 6 dB (~0.50x) for 2.0s
+  if (cx.mixer) {
+    cx.mixer.duck('ambient', 0.50, 0.05, 2.0);
+  }
 
   const voiceGain = ctx.createGain();
   // 5 ms anti-click fade-in

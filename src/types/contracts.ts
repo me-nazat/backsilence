@@ -83,6 +83,7 @@ export interface Settings {
     monster: number;
     muteOnBlur: boolean;
     soundVisualizer: boolean;
+    outputProfile?: 'headphones' | 'speakers' | 'phone' | 'night' | 'mono' | undefined;
   };
   controls: {
     sensitivity: number;

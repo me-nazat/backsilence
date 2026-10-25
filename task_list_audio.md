@@ -32,13 +32,13 @@
   - [x] C.4 HRTF 3D positional audio with 30ms position ramps; listener driven by camera; wall proximity reflection boost
   - [x] C.5 Record Decision D097 and commit Phase C
 
-- [ ] **Phase D: Mix, Dynamics and Silence (Section 8)**
-  - [ ] D.1 Hierarchical bus architecture (sfx, ambient, monster, ui, music) with 25 Hz highpass, bus gains, master limiter (-1 dBTP) and underwater filter
-  - [ ] D.2 Loudness targets & ducking: calm play -34 to -30 LUFS, splash ~ -20, roar ~ -14, jumpscare -1 dBTP ducking other buses by 12 dB for 1.2s; listening dip to 40%
-  - [ ] D.3 Silence budget verification: >= 20% of calm 5-minute run sits below -50 dBFS RMS
-  - [ ] D.4 Output profiles in Settings: Headphones, Speakers, Phone speaker (120 Hz highpass, 3 kHz presence lift), Night mode, Mono-down
-  - [ ] D.5 First-run interactive audio diagnostic test & voice priority stealing (16, 24, 32 voices)
-  - [ ] D.6 Record Decision D098 and commit Phase D
+- [x] **Phase D: Mix, Dynamics and Silence (Section 8)**
+  - [x] D.1 Hierarchical bus architecture (sfx, ambient, monster, ui, music) with 25 Hz highpass, bus gains, master limiter (-1 dBTP) and underwater filter
+  - [x] D.2 Loudness targets & ducking: calm play -34 to -30 LUFS, splash ~ -20, roar ~ -14, jumpscare -1 dBTP ducking other buses by 12 dB for 1.2s; listening dip to 40%
+  - [x] D.3 Silence budget verification: >= 20% of calm 5-minute run sits below -50 dBFS RMS
+  - [x] D.4 Output profiles in Settings: Headphones, Speakers, Phone speaker (120 Hz highpass, 3 kHz presence lift), Night mode, Mono-down
+  - [x] D.5 First-run interactive audio diagnostic test & voice priority stealing (16, 24, 32 voices)
+  - [x] D.6 Record Decision D098 and commit Phase D
 
 - [ ] **Phase E: Adaptive and Per-Map Sound (Section 9)**
   - [ ] E.1 `AudioDirector` taking dread (0..1) driving drone level, HF tilt, heartbeat tempo, reverb send, and sparse events

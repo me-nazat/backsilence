@@ -53,6 +53,7 @@ export function defaultSettings(): Settings {
       monster: 1.0,
       muteOnBlur: true,
       soundVisualizer: false,
+      outputProfile: 'headphones',
     },
     controls: {
       sensitivity: 1.0,
@@ -118,6 +119,9 @@ export function clampSettings(s: Settings): Settings {
       monster: clamp(typeof a?.monster === 'number' ? a.monster : 1.0, 0.0, 1.0),
       muteOnBlur: Boolean(a?.muteOnBlur ?? true),
       soundVisualizer: Boolean(a?.soundVisualizer),
+      outputProfile: (['headphones', 'speakers', 'phone', 'night', 'mono'] as const).includes(a?.outputProfile as any)
+        ? a.outputProfile
+        : 'headphones',
     },
     controls: {
       sensitivity: clamp(typeof c?.sensitivity === 'number' ? c.sensitivity : 1.0, 0.1, 3.0),

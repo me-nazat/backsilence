@@ -29,8 +29,7 @@ export function playJumpscare(cx: JumpscareVoiceContext): RawVoiceHandle {
 
   // Prompt 4 Section 8 D2: Jumpscare ducks all other buses by 12 dB (~0.25 factor) for 1.2s
   if (cx.mixer) {
-    cx.mixer.duck('ambient', 0.25, 0.01, 1.2);
-    cx.mixer.duck('sfx', 0.25, 0.01, 1.2);
+    cx.mixer.duckAllExcept('monster', 0.25, 0.01, 1.2);
   }
 
   const voiceGain = ctx.createGain();

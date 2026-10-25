@@ -7,7 +7,7 @@
 import type { Vec3, Settings } from '../types/contracts.js';
 import { createNoiseBuffers, type NoiseBuffers } from './Noise.js';
 import { ReverbUnit, type ReverbPreset } from './Reverb.js';
-import { Mixer, type AudioBusName, BUS_PRIORITIES } from './Mixer.js';
+import { Mixer, type AudioBusName, type OutputProfile, BUS_PRIORITIES } from './Mixer.js';
 import { AudioDirector } from './AudioDirector.js';
 import { AudioBufferPool, type PooledVoiceCategory } from './AudioBufferPool.js';
 
@@ -287,6 +287,8 @@ export interface AudioEngineApi {
   getBufferPool(): AudioBufferPool | null;
   setColliders(c: { segmentHits(ax: number, az: number, bx: number, bz: number, minHeight?: number): number } | null): void;
   setListenerNearWall(near: boolean): void;
+  setOutputProfile(profile: OutputProfile): void;
+  setListeningDip(active: boolean): void;
   dispose(): void;
 }
 
@@ -1022,6 +1024,17 @@ export class AudioEngine implements AudioEngineApi {
       ambient: s.ambient,
       monster: s.monster,
     });
+    if (s.outputProfile) {
+      this.mixer?.setOutputProfile(s.outputProfile);
+    }
+  }
+
+  setOutputProfile(profile: OutputProfile): void {
+    this.mixer?.setOutputProfile(profile);
+  }
+
+  setListeningDip(active: boolean): void {
+    this.mixer?.setListeningDip(active);
   }
 
   startAmbience(): void {

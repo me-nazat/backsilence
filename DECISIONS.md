@@ -1161,4 +1161,25 @@ Establish `functions/api/[[route]].ts` as the canonical Cloudflare Pages Functio
    - Camera listener updates and 3D sound source updates apply 30 ms linear ramps (`linearRampToValueAtTime(..., now + 0.030)`), eliminating zipper noise and click artifacts during rapid camera movement and monster navigation.
 **Reason:** Satisfies Section 7 Phase C mandates of Prompt 4.
 
-
+### D098: Phase D Mix Architecture, Dynamics, Ducking, Silence & Output Profiles
+**Date:** 2026-10-25
+**Choice:**
+1. Hierarchical Bus Architecture & Master Dynamics (`src/audio/Mixer.ts`):
+   - Added 25 Hz 12 dB/oct sub-bass highpass filter on master output to eliminate sub-audible rumble and DC offset energy without eating headroom.
+   - Calibrated master brickwall peak limiter to -1.0 dBTP ceiling using DynamicsCompressorNode (threshold -1.0 dBFS, ratio 20:1, attack 1.0 ms, release 40 ms).
+   - Applied 20 ms exponential smoothing (`setTargetAtTime(target, now, 0.020)`) to all volume and bus gain adjustments to permanently eliminate zipper noise during slider movement.
+2. Ducking & Stillness Listening Dip:
+   - Creature roar ducks ambient drone and sparse beds by 6 dB (0.50x) for 2.0s; jumpscare stinger ducks all other buses by 12 dB (0.25x) for 1.2s with smooth ramp recovery.
+   - Implemented stillness listening dip (`setListeningDip(active)`): when player is motionless, ambient room tone drops to 40% (-8 dB) over 500 ms to accentuate faint monster footsteps and liquid drips in the distance.
+3. Output Profiles (`src/types/contracts.ts`, `src/app/Settings.ts`, `src/ui/SettingsPanel.ts`):
+   - Added 5 distinct acoustic reproduction profiles:
+     - `headphones`: Flat natural frequency response with full spatial separation.
+     - `speakers`: 40 Hz highpass and crossfeed blend to minimize unnatural stereo fatigue.
+     - `phone`: 120 Hz steep highpass protecting miniature smartphone transducers from harmonic distortion, paired with +3.5 dB peaking presence lift at 3 kHz.
+     - `night`: Dynamic range clamping via secondary limiter/compressor (threshold -18 dBFS, ratio 8:1) ensuring jumpscares stay within a safe 14 dB dynamic window.
+     - `mono`: Downmixes stereo to single-channel center feed for single-earbud / accessibility compliance.
+   - Added live select dropdown in Settings Panel with immediate real-time profile switching.
+4. Voice Priority Stealing & Unit Testing (`src/audio/AudioEngine.ts`, `tests/audio-mix-dynamics.test.ts`):
+   - Priority-based voice allocation (voice counts 16, 24, 32 based on hardware tier) with deterministic priority eviction (UI > Monster > SFX > Ambient).
+   - Authored 4 unit tests verifying highpass, limiter, profile EQ, stillness listening dip, and priority eviction.
+**Reason:** Satisfies Section 8 Phase D mandates of Prompt 4.

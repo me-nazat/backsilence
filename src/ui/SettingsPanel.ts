@@ -209,6 +209,20 @@ export class SettingsPanel {
 
           <div class="setting-row">
             <div>
+              <div class="setting-label">OUTPUT PROFILE</div>
+              <div class="setting-sub">EQ & dynamic range profile for listening environment</div>
+            </div>
+            <select id="set-output-profile" class="setting-select" style="background:#111;color:#fff;border:1px solid #444;padding:4px 8px;border-radius:3px;font-size:12px;">
+              <option value="headphones" ${(this.settings.audio.outputProfile ?? 'headphones') === 'headphones' ? 'selected' : ''}>Headphones (Flat HRTF)</option>
+              <option value="speakers" ${this.settings.audio.outputProfile === 'speakers' ? 'selected' : ''}>Speakers (Cross-Feed)</option>
+              <option value="phone" ${this.settings.audio.outputProfile === 'phone' ? 'selected' : ''}>Phone Speaker (120Hz HP + 3kHz Lift)</option>
+              <option value="night" ${this.settings.audio.outputProfile === 'night' ? 'selected' : ''}>Night Mode (14dB Dynamic Range)</option>
+              <option value="mono" ${this.settings.audio.outputProfile === 'mono' ? 'selected' : ''}>Mono Downmix</option>
+            </select>
+          </div>
+
+          <div class="setting-row">
+            <div>
               <div class="setting-label">SOUND VISUALIZER (A11Y)</div>
               <div class="setting-sub">Render directional on-screen ripple cues for sounds</div>
             </div>
@@ -447,6 +461,12 @@ export class SettingsPanel {
       const mute = this.el.querySelector('#set-muteonblur') as HTMLInputElement;
       mute?.addEventListener('change', () => {
         this.settings.audio.muteOnBlur = mute.checked;
+        this.liveApply();
+      });
+
+      const prof = this.el.querySelector('#set-output-profile') as HTMLSelectElement;
+      prof?.addEventListener('change', () => {
+        this.settings.audio.outputProfile = prof.value as 'headphones' | 'speakers' | 'phone' | 'night' | 'mono';
         this.liveApply();
       });
 
