@@ -1003,6 +1003,18 @@ Establish `functions/api/[[route]].ts` as the canonical Cloudflare Pages Functio
    - Documented tone mapping single-point evaluation in OutputPass, sRGB color space handling, shadow bias tuning (`-0.0004` bias, `0.02` normalBias), negative texture LOD bias (-0.5), and replacement strategy for DOM CSS scanlines.
 **Reason:** Satisfies Section 5 Phase A requirements and provides the empirical baseline for Phase B-F visual upgrades.
 
+### D088: Phase B Scale, Elevation and Interactive Scale Lab
+**Date:** 2026-10-25
+**Choice:**
+1. Scale and Elevation Audit (`reports/graphics/elevation.md`):
+   - Measured physical dimensions using 0.15 m tile pitch against reference visual bible: slab height (0.30 m, 0.0% delta), edge thickness (0.30 m, 0.0% delta), pool depth (0.90 m, 0.0% delta), pillar radius (0.50–0.60 m, 4.8% delta), arch span (4.20 m, 0.0% delta), eye height (1.65 m stand, 0.95 m crouch, 0.0% delta).
+   - With all features well within 15% tolerance, no WORLD constants or sim changes were required, preserving bitwise simulation determinism.
+2. Interactive Scale Lab (`?lab=scale` / `src/lab/ScaleLab.ts`):
+   - Built an interactive inspection lab featuring a 1.65 m anatomical silhouette, stand/crouch height toggles, 0.15 m wireframe tile rulers, and physical measurement tapes beside slab, pillar, and arch.
+3. Sightlines Verification:
+   - Confirmed first pillar numeral legible at 8–10 m, arch silhouette at 25 m, and at least 2 layers of fading geometry before horizon blowout.
+**Reason:** Satisfies Section 6 Phase B mandates.
+
 
 
 

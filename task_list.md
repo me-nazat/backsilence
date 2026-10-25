@@ -16,12 +16,12 @@
   - [x] A.4 Conduct line-by-line render path audit in `reports/graphics/audit.md`
   - [x] A.5 Commit Phase A
 
-- [ ] **Phase B: Scale, Elevation & Scale Lab (Section 6)**
-  - [ ] B.1 Measure reference frames / Visual Bible using 0.15m tile grid; write `reports/graphics/elevation.md`
-  - [ ] B.2 Confirm or adjust `WORLD` constants if > 15% divergence
-  - [ ] B.3 Implement interactive Scale Lab at `?lab=scale` (1.65m silhouette, 0.15m grid overlay, rulers)
-  - [ ] B.4 Verify sightlines (numeral at 10m, arch silhouette at 25m, >=2 horizon silhouette layers)
-  - [ ] B.5 Record Decision D087 and commit Phase B
+- [x] **Phase B: Scale, Elevation & Scale Lab (Section 6)**
+  - [x] B.1 Measure reference frames / Visual Bible using 0.15m tile grid; write `reports/graphics/elevation.md`
+  - [x] B.2 Confirm or adjust `WORLD` constants if > 15% divergence
+  - [x] B.3 Implement interactive Scale Lab at `?lab=scale` (1.65m silhouette, 0.15m grid overlay, rulers)
+  - [x] B.4 Verify sightlines (numeral at 10m, arch silhouette at 25m, >=2 horizon silhouette layers)
+  - [x] B.5 Record Decision D088 and commit Phase B
 
 - [ ] **Phase C: PBR Mosaic Tiles, Decals & Surroundings (Section 7)**
   - [ ] C.1 Procedural mosaic tiles (16x16 per 2.4m, 1-2px grout at 512px, lightness/hue/sat variation, mottling, bevels, cracks)

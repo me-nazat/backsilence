@@ -35,6 +35,7 @@ import { TextureRegistry } from '../procedural/textures/TextureRegistry.js';
 import { AudioEngine } from '../audio/AudioEngine.js';
 import { AudioLabPanel } from './AudioLabPanel.js';
 import { AnimationLabPanel } from './AnimationLabPanel.js';
+import { ScaleLab } from './ScaleLab.js';
 import { causticsChunk } from '../procedural/shaders/caustics.glsl.js';
 
 export interface LabSceneOptions {
@@ -56,6 +57,7 @@ export class LabScene {
   readonly input: InputManager;
   readonly audioLabPanel: AudioLabPanel;
   readonly animLabPanel: AnimationLabPanel;
+  readonly scaleLab: ScaleLab;
 
   private isMenuMode: boolean;
   private settings: Settings;
@@ -125,6 +127,15 @@ export class LabScene {
     this.animLabPanel.mount(container);
     if (typeof window !== 'undefined' && window.location.search.includes('lab=anim')) {
       this.animLabPanel.show();
+    }
+
+    this.scaleLab = new ScaleLab();
+    this.scene.add(this.scaleLab.group);
+    if (typeof window !== 'undefined' && window.location.search.includes('lab=scale')) {
+      this.scaleLab.mount(container);
+      this.camPos.set(0, 1.65, 3.8);
+      this.camYaw = 0.0;
+      this.camPitch = -0.05;
     }
 
     this.setupAtmosphere();
@@ -597,6 +608,7 @@ export class LabScene {
     this.isDisposed = true;
     this.audioLabPanel.dispose();
     this.animLabPanel.dispose();
+    this.scaleLab.dispose();
     this.renderer.dispose();
     this.input.dispose();
   }
