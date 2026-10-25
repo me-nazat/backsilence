@@ -1266,3 +1266,16 @@ Establish `functions/api/[[route]].ts` as the canonical Cloudflare Pages Functio
 6. Compiled complete findings into `reports/ux/preconditions.md`.
 **Reason:** Satisfies Section 0 Preconditions requirement of Prompt 5 of 5.
 
+### D102: Phase A Friction Audit & Baseline Telemetry (2026-10-25)
+**Context:** Section 3 (Phase A) requires building a persona audit suite across 8 distinct personas (New desktop, New phone portrait with 4x throttle, Phone landscape, Keyboard-only, Gamepad mock, Low-end laptop with 6x throttle, Returning player warm, Flaky network) measuring TTI, clicks-to-control, time-to-control, dead clicks, console errors, layout shift, input latency, p50/p95 frame times, and stuck points, accompanied by a 10-heuristic usability evaluation ranked by severity.
+**Choice:**
+1. Created `scripts/ux/persona-audit.mjs` using CDP to automate all 8 personas with exact device parameters, throttling, touch emulation, and network constraints.
+2. Captured comprehensive telemetry saved in `reports/ux/persona_telemetry_before.json` and generated `reports/ux/friction.md`.
+3. Identified top friction bottlenecks:
+   - Separate `#audio-unlock-overlay` creates dead clicks and obstructs immediate entry.
+   - Entry funnel requires 4+ clicks across disparate screens before reaching controllable frames.
+   - Screen clickability relies on manual whitelisting in `index.html`.
+   - Absence of <= 4 min skippable orientation and instant retry flow causes high bounce friction.
+4. Established baseline milestones for Phases B through G to eliminate all dead clicks, reduce time to play <= 8s warm / 15s cold, and guarantee <= 2 clicks to play.
+**Reason:** Satisfies Section 3 Phase A mandates of Prompt 5 of 5.
+

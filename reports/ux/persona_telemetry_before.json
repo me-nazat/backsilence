@@ -1,0 +1,443 @@
+[
+  {
+    "id": "desktop_new",
+    "name": "New desktop player",
+    "setupDesc": "1440x900, mouse and keyboard, never seen the game",
+    "ttiMs": 5425,
+    "clicksToControl": 2,
+    "timeToControlMs": 27778,
+    "deadClicks": 1,
+    "consoleErrors": 0,
+    "layoutShift": 0,
+    "inputLatencyMs": 0,
+    "frameTimeP50Ms": 0,
+    "frameTimeP95Ms": 0,
+    "stuckPoints": [
+      "Failed to reach controllable player: Timeout waiting for Controllable player"
+    ],
+    "timeline": [
+      {
+        "timeMs": 40,
+        "action": "navigate_start",
+        "url": "http://127.0.0.1:59312"
+      },
+      {
+        "timeMs": 5465,
+        "action": "first_interactive_menu",
+        "ttiMs": 5425
+      },
+      {
+        "timeMs": 5892,
+        "action": "pointer_journey_start"
+      },
+      {
+        "timeMs": 5900,
+        "action": "click_primary_cta"
+      },
+      {
+        "timeMs": 7766,
+        "action": "click_mode_card"
+      },
+      {
+        "timeMs": 7766,
+        "action": "awaiting_game_session"
+      },
+      {
+        "timeMs": 27819,
+        "action": "controllable_player_ready",
+        "sessionReady": false,
+        "timeToControlMs": 27778
+      },
+      {
+        "timeMs": 29300,
+        "action": "screenshot_saved",
+        "shotPath": "/Users/nazat/Desktop/Desktop/antigravity/BackSilence/poolrooms/reports/ux/persona_desktop_new.png"
+      }
+    ],
+    "screenshotPath": "/Users/nazat/Desktop/Desktop/antigravity/BackSilence/poolrooms/reports/ux/persona_desktop_new.png"
+  },
+  {
+    "id": "phone_portrait",
+    "name": "New phone player",
+    "setupDesc": "390x844, touch, DPR 3, 4x CPU throttle, portrait",
+    "ttiMs": 1324,
+    "clicksToControl": 2,
+    "timeToControlMs": 38302,
+    "deadClicks": 1,
+    "consoleErrors": 0,
+    "layoutShift": 0,
+    "inputLatencyMs": 6,
+    "frameTimeP50Ms": 0,
+    "frameTimeP95Ms": 0,
+    "stuckPoints": [
+      "Failed to reach controllable player: Timeout waiting for Controllable player"
+    ],
+    "timeline": [
+      {
+        "timeMs": 13,
+        "action": "navigate_start",
+        "url": "http://127.0.0.1:59312"
+      },
+      {
+        "timeMs": 1337,
+        "action": "first_interactive_menu",
+        "ttiMs": 1324
+      },
+      {
+        "timeMs": 1349,
+        "action": "pointer_journey_start"
+      },
+      {
+        "timeMs": 1368,
+        "action": "click_primary_cta"
+      },
+      {
+        "timeMs": 3296,
+        "action": "click_mode_card"
+      },
+      {
+        "timeMs": 3296,
+        "action": "awaiting_game_session"
+      },
+      {
+        "timeMs": 38315,
+        "action": "controllable_player_ready",
+        "sessionReady": false,
+        "timeToControlMs": 38302
+      },
+      {
+        "timeMs": 39560,
+        "action": "screenshot_saved",
+        "shotPath": "/Users/nazat/Desktop/Desktop/antigravity/BackSilence/poolrooms/reports/ux/persona_phone_portrait.png"
+      }
+    ],
+    "screenshotPath": "/Users/nazat/Desktop/Desktop/antigravity/BackSilence/poolrooms/reports/ux/persona_phone_portrait.png"
+  },
+  {
+    "id": "phone_landscape",
+    "name": "Phone player landscape",
+    "setupDesc": "844x390, touch",
+    "ttiMs": 720,
+    "clicksToControl": 2,
+    "timeToControlMs": 21354,
+    "deadClicks": 1,
+    "consoleErrors": 0,
+    "layoutShift": 0,
+    "inputLatencyMs": 14,
+    "frameTimeP50Ms": 0,
+    "frameTimeP95Ms": 0,
+    "stuckPoints": [
+      "Failed to reach controllable player: Timeout waiting for Controllable player"
+    ],
+    "timeline": [
+      {
+        "timeMs": 3,
+        "action": "navigate_start",
+        "url": "http://127.0.0.1:59312"
+      },
+      {
+        "timeMs": 722,
+        "action": "first_interactive_menu",
+        "ttiMs": 720
+      },
+      {
+        "timeMs": 730,
+        "action": "pointer_journey_start"
+      },
+      {
+        "timeMs": 743,
+        "action": "click_primary_cta"
+      },
+      {
+        "timeMs": 1312,
+        "action": "click_mode_card"
+      },
+      {
+        "timeMs": 1312,
+        "action": "awaiting_game_session"
+      },
+      {
+        "timeMs": 21357,
+        "action": "controllable_player_ready",
+        "sessionReady": false,
+        "timeToControlMs": 21354
+      },
+      {
+        "timeMs": 22944,
+        "action": "screenshot_saved",
+        "shotPath": "/Users/nazat/Desktop/Desktop/antigravity/BackSilence/poolrooms/reports/ux/persona_phone_landscape.png"
+      }
+    ],
+    "screenshotPath": "/Users/nazat/Desktop/Desktop/antigravity/BackSilence/poolrooms/reports/ux/persona_phone_landscape.png"
+  },
+  {
+    "id": "keyboard_only",
+    "name": "Keyboard-only",
+    "setupDesc": "no mouse, Tab, Enter, Space and Escape",
+    "ttiMs": 1015,
+    "clicksToControl": 3,
+    "timeToControlMs": 28216,
+    "deadClicks": 0,
+    "consoleErrors": 0,
+    "layoutShift": 0,
+    "inputLatencyMs": 16,
+    "frameTimeP50Ms": 0,
+    "frameTimeP95Ms": 0,
+    "stuckPoints": [
+      "Failed to reach controllable player: Timeout waiting for Controllable player"
+    ],
+    "timeline": [
+      {
+        "timeMs": 3,
+        "action": "navigate_start",
+        "url": "http://127.0.0.1:59312"
+      },
+      {
+        "timeMs": 1019,
+        "action": "first_interactive_menu",
+        "ttiMs": 1015
+      },
+      {
+        "timeMs": 1029,
+        "action": "keyboard_journey_start"
+      },
+      {
+        "timeMs": 8156,
+        "action": "awaiting_game_session"
+      },
+      {
+        "timeMs": 28219,
+        "action": "controllable_player_ready",
+        "sessionReady": false,
+        "timeToControlMs": 28216
+      },
+      {
+        "timeMs": 28752,
+        "action": "screenshot_saved",
+        "shotPath": "/Users/nazat/Desktop/Desktop/antigravity/BackSilence/poolrooms/reports/ux/persona_keyboard_only.png"
+      }
+    ],
+    "screenshotPath": "/Users/nazat/Desktop/Desktop/antigravity/BackSilence/poolrooms/reports/ux/persona_keyboard_only.png"
+  },
+  {
+    "id": "gamepad_mock",
+    "name": "Gamepad (mock)",
+    "setupDesc": "injected navigator.getGamepads",
+    "ttiMs": 9448,
+    "clicksToControl": 3,
+    "timeToControlMs": 35781,
+    "deadClicks": 1,
+    "consoleErrors": 0,
+    "layoutShift": 0,
+    "inputLatencyMs": 16,
+    "frameTimeP50Ms": 0,
+    "frameTimeP95Ms": 0,
+    "stuckPoints": [
+      "Gamepad A button did not dismiss legacy AudioUnlock overlay",
+      "Failed to reach controllable player: Timeout waiting for Controllable player"
+    ],
+    "timeline": [
+      {
+        "timeMs": 7,
+        "action": "navigate_start",
+        "url": "http://127.0.0.1:59312"
+      },
+      {
+        "timeMs": 9455,
+        "action": "first_interactive_menu",
+        "ttiMs": 9448
+      },
+      {
+        "timeMs": 9507,
+        "action": "gamepad_journey_start"
+      },
+      {
+        "timeMs": 15751,
+        "action": "awaiting_game_session"
+      },
+      {
+        "timeMs": 35788,
+        "action": "controllable_player_ready",
+        "sessionReady": false,
+        "timeToControlMs": 35781
+      },
+      {
+        "timeMs": 39810,
+        "action": "screenshot_saved",
+        "shotPath": "/Users/nazat/Desktop/Desktop/antigravity/BackSilence/poolrooms/reports/ux/persona_gamepad_mock.png"
+      }
+    ],
+    "screenshotPath": "/Users/nazat/Desktop/Desktop/antigravity/BackSilence/poolrooms/reports/ux/persona_gamepad_mock.png"
+  },
+  {
+    "id": "low_end_laptop",
+    "name": "Low-end laptop",
+    "setupDesc": "6x CPU throttle, quality auto",
+    "ttiMs": 2755,
+    "clicksToControl": 2,
+    "timeToControlMs": 40812,
+    "deadClicks": 1,
+    "consoleErrors": 0,
+    "layoutShift": 0,
+    "inputLatencyMs": 19,
+    "frameTimeP50Ms": 0,
+    "frameTimeP95Ms": 0,
+    "stuckPoints": [
+      "Failed to reach controllable player: Timeout waiting for Controllable player"
+    ],
+    "timeline": [
+      {
+        "timeMs": 27,
+        "action": "navigate_start",
+        "url": "http://127.0.0.1:59312"
+      },
+      {
+        "timeMs": 2782,
+        "action": "first_interactive_menu",
+        "ttiMs": 2755
+      },
+      {
+        "timeMs": 2822,
+        "action": "pointer_journey_start"
+      },
+      {
+        "timeMs": 2842,
+        "action": "click_primary_cta"
+      },
+      {
+        "timeMs": 5728,
+        "action": "click_mode_card"
+      },
+      {
+        "timeMs": 5728,
+        "action": "awaiting_game_session"
+      },
+      {
+        "timeMs": 40839,
+        "action": "controllable_player_ready",
+        "sessionReady": false,
+        "timeToControlMs": 40812
+      },
+      {
+        "timeMs": 44934,
+        "action": "screenshot_saved",
+        "shotPath": "/Users/nazat/Desktop/Desktop/antigravity/BackSilence/poolrooms/reports/ux/persona_low_end_laptop.png"
+      }
+    ],
+    "screenshotPath": "/Users/nazat/Desktop/Desktop/antigravity/BackSilence/poolrooms/reports/ux/persona_low_end_laptop.png"
+  },
+  {
+    "id": "returning_player",
+    "name": "Returning player",
+    "setupDesc": "warm cache, saved settings, one previous run",
+    "ttiMs": 1353,
+    "clicksToControl": 2,
+    "timeToControlMs": 22105,
+    "deadClicks": 1,
+    "consoleErrors": 0,
+    "layoutShift": 0,
+    "inputLatencyMs": 0,
+    "frameTimeP50Ms": 0,
+    "frameTimeP95Ms": 0,
+    "stuckPoints": [
+      "Failed to reach controllable player: Timeout waiting for Controllable player"
+    ],
+    "timeline": [
+      {
+        "timeMs": 5,
+        "action": "navigate_start",
+        "url": "http://127.0.0.1:59312"
+      },
+      {
+        "timeMs": 1358,
+        "action": "first_interactive_menu",
+        "ttiMs": 1353
+      },
+      {
+        "timeMs": 1441,
+        "action": "pointer_journey_start"
+      },
+      {
+        "timeMs": 1459,
+        "action": "click_primary_cta"
+      },
+      {
+        "timeMs": 2063,
+        "action": "click_mode_card"
+      },
+      {
+        "timeMs": 2063,
+        "action": "awaiting_game_session"
+      },
+      {
+        "timeMs": 22110,
+        "action": "controllable_player_ready",
+        "sessionReady": false,
+        "timeToControlMs": 22105
+      },
+      {
+        "timeMs": 23831,
+        "action": "screenshot_saved",
+        "shotPath": "/Users/nazat/Desktop/Desktop/antigravity/BackSilence/poolrooms/reports/ux/persona_returning_player.png"
+      }
+    ],
+    "screenshotPath": "/Users/nazat/Desktop/Desktop/antigravity/BackSilence/poolrooms/reports/ux/persona_returning_player.png"
+  },
+  {
+    "id": "flaky_network",
+    "name": "Flaky network",
+    "setupDesc": "400 ms latency, 1.5 Mbps, 3% loss, one dropped connection during load",
+    "ttiMs": 10643,
+    "clicksToControl": 2,
+    "timeToControlMs": 31233,
+    "deadClicks": 1,
+    "consoleErrors": 0,
+    "layoutShift": 0,
+    "inputLatencyMs": 5,
+    "frameTimeP50Ms": 0,
+    "frameTimeP95Ms": 0,
+    "stuckPoints": [
+      "Failed to reach controllable player: Timeout waiting for Controllable player"
+    ],
+    "timeline": [
+      {
+        "timeMs": 9,
+        "action": "navigate_start",
+        "url": "http://127.0.0.1:59312"
+      },
+      {
+        "timeMs": 10652,
+        "action": "first_interactive_menu",
+        "ttiMs": 10643
+      },
+      {
+        "timeMs": 10658,
+        "action": "pointer_journey_start"
+      },
+      {
+        "timeMs": 10664,
+        "action": "click_primary_cta"
+      },
+      {
+        "timeMs": 11172,
+        "action": "click_mode_card"
+      },
+      {
+        "timeMs": 11172,
+        "action": "awaiting_game_session"
+      },
+      {
+        "timeMs": 31243,
+        "action": "controllable_player_ready",
+        "sessionReady": false,
+        "timeToControlMs": 31233
+      },
+      {
+        "timeMs": 32754,
+        "action": "screenshot_saved",
+        "shotPath": "/Users/nazat/Desktop/Desktop/antigravity/BackSilence/poolrooms/reports/ux/persona_flaky_network.png"
+      }
+    ],
+    "screenshotPath": "/Users/nazat/Desktop/Desktop/antigravity/BackSilence/poolrooms/reports/ux/persona_flaky_network.png"
+  }
+]

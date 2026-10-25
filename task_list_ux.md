@@ -8,12 +8,12 @@
   - [x] 0.5 Write results to `reports/ux/preconditions.md`
   - [x] 0.6 Record Decision D101 in `DECISIONS.md`
 
-- [ ] **Phase A: Friction Audit with Scripted Personas (Section 3)**
-  - [ ] A.1 Create CDP persona runner in `scripts/ux/persona-audit.mjs` for 8 personas
-  - [ ] A.2 Run and record metrics (TTI, clicks-to-control, time-to-control, dead clicks, console errors, layout shift, input latency, p50/p95 frame times, stuck points)
-  - [ ] A.3 Conduct 10 Usability Heuristics review with severity 0–4 ranking and screenshots
-  - [ ] A.4 Write `reports/ux/friction.md` with ranked findings
-  - [ ] A.5 Record Decision D102 and commit Phase A
+- [x] **Phase A: Friction Audit with Scripted Personas (Section 3)**
+  - [x] A.1 Create CDP persona runner in `scripts/ux/persona-audit.mjs` for 8 personas
+  - [x] A.2 Run and record metrics (TTI, clicks-to-control, time-to-control, dead clicks, console errors, layout shift, input latency, p50/p95 frame times, stuck points)
+  - [x] A.3 Conduct 10 Usability Heuristics review with severity 0–4 ranking and screenshots
+  - [x] A.4 Write `reports/ux/friction.md` with ranked findings
+  - [x] A.5 Record Decision D102 and commit Phase A
 
 - [ ] **Phase B: The First Five Minutes (Section 4)**
   - [ ] B.1 One front door: dominant "Descend" CTA on Home; integrate audio unlock and headphones advisory into the start click; remove standalone "press any key" overlay
