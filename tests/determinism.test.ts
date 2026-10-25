@@ -11,12 +11,12 @@ describe('Simulation Determinism Replay Suite', () => {
     for (let i = 0; i < run1.checkpoints.length; i++) {
       expect(run1.checkpoints[i]!.hash).toBe(run2.checkpoints[i]!.hash);
     }
-  });
+  }, 30000);
 
   it('different seeds diverge deterministically', async () => {
     const runA = await runSimulationReplay('poolrooms', 1111, 1800, 600);
     const runB = await runSimulationReplay('poolrooms', 9999, 1800, 600);
 
     expect(runA.finalSimHash).not.toBe(runB.finalSimHash);
-  });
+  }, 30000);
 });

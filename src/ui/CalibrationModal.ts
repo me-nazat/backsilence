@@ -253,7 +253,9 @@ export class CalibrationModal {
 
       const engine = AudioEngine.getInstance();
       engine.setBusVolume('master', this.volumeVal);
-    } catch {}
+    } catch {
+      /* ignore */
+    }
 
     this.dispose();
 

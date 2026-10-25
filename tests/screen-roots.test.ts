@@ -70,6 +70,12 @@ describe('Phase D: Screen Roots & Pointer-Events Architecture', () => {
     const hudCode = fs.readFileSync(path.resolve(root, 'src/ui/Hud.ts'), 'utf8');
     expect(hudCode).toContain('bs-hud');
     expect(hudCode).toContain('pointer-events: none');
+
+    // 5. Verify no screen file contains Comic Sans MS
+    for (const file of [...screenFiles.map(f => `screens/${f}`), ...legacyScreens]) {
+      const code = fs.readFileSync(path.resolve(root, 'src/ui', file), 'utf8');
+      expect(code).not.toContain('Comic Sans MS');
+    }
   });
 
   it('verifies UiLayerManager exports and public API', async () => {

@@ -56,9 +56,10 @@ export class QualityBenchmark {
       const canvas = document.createElement('canvas');
       const gl = canvas.getContext('webgl2') || canvas.getContext('webgl');
       if (gl) {
-        const ext = gl.getExtension('WEBGL_debug_renderer_info');
+        const ext = gl.getExtension('WEBGL_debug_renderer_info') as { UNMASKED_RENDERER_WEBGL: number } | null;
         if (ext) {
-          const renderer = gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) || '';
+          const raw: unknown = gl.getParameter(ext.UNMASKED_RENDERER_WEBGL);
+          const renderer = typeof raw === 'string' ? raw : '';
           const lower = renderer.toLowerCase();
           if (lower.includes('swiftshader') || lower.includes('software') || lower.includes('llvmpipe')) {
             score -= 40;
@@ -67,7 +68,9 @@ export class QualityBenchmark {
           }
         }
       }
-    } catch {}
+    } catch {
+      /* ignore */
+    }
 
     if (score < 30) {
       this.effectiveTier = 'low';
@@ -87,7 +90,7 @@ export class QualityBenchmark {
     return new Promise((resolve) => {
       let count = 0;
       let totalMs = 0;
-      let start = performance.now();
+      const start = performance.now();
       let last = start;
 
       const loop = (now: number) => {
@@ -166,6 +169,8 @@ export class QualityBenchmark {
       const s = loadSettings();
       s.graphics.quality = this.effectiveTier;
       saveSettings(s);
-    } catch {}
+    } catch {
+      /* ignore */
+    }
   }
 }

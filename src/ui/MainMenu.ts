@@ -49,7 +49,7 @@ export class MainMenu {
       <!-- Header -->
       <div style="text-align: center; pointer-events: auto;">
         <h1 class="flicker-title" style="
-          font-family: 'Segoe Script', 'Bradley Hand', 'Comic Sans MS', cursive;
+          font-family: ui-serif, Georgia, 'Times New Roman', serif;
           font-size: clamp(2.8rem, 8vw, 5.5rem);
           color: var(--fog, #d9d3a2);
           margin-bottom: 6px;

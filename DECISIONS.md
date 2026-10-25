@@ -1293,5 +1293,28 @@ Establish `functions/api/[[route]].ts` as the canonical Cloudflare Pages Functio
    - Integrated into `GameSession.ts` for the `orientation` map: features a persistent `[ SKIP ORIENTATION ]` button, step-by-step cueing with 5s non-blocking icon cards with "Don't show again" option, guaranteed distant creature wake/slosh within 35s, and early reward chime/stamp on first objective completion.
 5. Instant Death Replay & Plain-Sentence Reason (`DeathScreen.ts` & `main.ts`):
    - Death overlay displays exact plain-sentence cause (`You splashed X.X m from it.`), auto-focuses "RETRY", and restarts session in < 1s via cached `lastConfig` without reloading the page.
-**Reason:** Satisfies Section 4 Phase B mandates of Prompt 5 of 5.
+### D104: Phase C Menus, Navigation, Choice Persistence, QR Generator, and Actionable Toasts (2026-10-25)
+**Context:** Section 5 (Phase C) requires universal screen clickability, choice persistence (last tape, mode, difficulty, settings tab), quick pause menu with inline quick settings, honest loading progress bar with Cancel button after 8s, actionable error toasts with plain language and action buttons, confirmation modals with Undo toast for destructive actions, share link with pure TypeScript zero-dependency QR code generator, photo mode (`P` key and pause menu), and removing legacy font fallbacks.
+**Choice:**
+1. Zero-Dependency Pure TS QR Code Generator (`src/ui/qr/QrCode.ts`):
+   - Implemented ISO/IEC 18004 compliant QR generator supporting versions 1–5, Byte mode, Galois Field GF(256) Reed-Solomon error correction (levels L and M), penalty-evaluated mask patterns, and direct SVG string output (`QrCode.toSvg`) and canvas rendering (`QrCode.renderToCanvas`). Zero external dependencies. Verified with unit tests in `tests/qr-code.test.ts`.
+2. Choice Persistence (`src/ui/SettingsPanel.ts`, `src/ui/UIManager.ts`):
+   - Persisted last active tape (`backsilence_last_tape`), game mode (`backsilence_last_mode`), difficulty (`backsilence_last_difficulty`), and last viewed settings tab (`backsilence_last_settings_tab`). Returning to settings opens directly to the previously active tab (e.g., Controls tab when opened from Pause Menu).
+3. Actionable Toasts & Clear Causes (`src/ui/ToastManager.ts`):
+   - Upgraded `ToastManager` to accept structured toast options with plain cause, next step, action button callback (e.g. Retry, Open Settings, Copy diagnostics, Undo), polite screen reader `aria-live` announcement, and automatic offline/online connection change toasts.
+4. Destruction Confirmation with Undo Toast (`src/ui/ConfirmationModal.ts`):
+   - Implemented accessible confirmation modal with plain consequences, focus trap to safe Cancel button by default, Escape dismissal, and destructive confirmation callback triggering an actionable Undo toast (allowing 6-second reversal of setting resets or aborts).
+5. Pause Menu & In-Game Quick Settings (`src/ui/PauseMenu.ts`):
+   - Reordered menu hierarchy: "Resume Expedition" as top dominant button (immediately re-engages pointer lock on canvas), followed by inline quick settings (Master Volume, Sensitivity slider with live numeric preview, Brightness, Sound Captions toggle), Full Settings, Controls Reference, Photo Mode, and Abort Expedition.
+6. Results Screen & 1-Click Progression (`src/ui/ResultsScreen.ts`):
+   - Added dominant "↻ PLAY AGAIN" button (restarting last configuration in 1 click) and "NEXT TAPE →" button (advancing to next tape in sequence across all 11 tapes in 1 click).
+7. Photo Mode (`src/ui/UIManager.ts`):
+   - Implemented HUD-hiding clean snapshot capture bound to `P` key and pause menu button; snapshots canvas to blob, triggers automatic download as `backsilence_photo_<timestamp>.png`, restores HUD, and notifies with an actionable toast.
+8. Honest Loading Screen (`src/ui/LoadingScreen.ts`):
+   - Informative progress stages; if asset processing or shader compilation exceeds 8 seconds, reveals a calm prompt ("Still working... shader warmup or asset processing delayed.") with an interactive "CANCEL TO MENU" button.
+9. Mobile QR Invite Panel (`src/ui/screens/LobbyScreen.ts`):
+   - Added collapsible QR invite code to multiplayer lobby using `QrCode.toSvg()` for instant smartphone camera scanning and room join.
+10. Typographic Cleanup & Font Check (`src/ui/MainMenu.ts`, `tests/screen-roots.test.ts`):
+   - Replaced all legacy font fallbacks with `ui-serif, Georgia, serif`, and reinforced `tests/screen-roots.test.ts` to assert that zero UI files contain `Comic Sans MS`.
+**Reason:** Satisfies Section 5 Phase C mandates of Prompt 5 of 5.
 

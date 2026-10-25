@@ -9,6 +9,8 @@
  * ──────────────────────────────────────────────────────────────────────── */
 
 import { RosterChip, Toast, renderIcon } from '../kit/index.js';
+import { QrCode } from '../qr/QrCode.js';
+import { ConfirmationModal } from '../ConfirmationModal.js';
 
 export interface LobbyPlayer {
   id: string;
@@ -76,9 +78,25 @@ export class LobbyScreen {
               ROOM CODE: <span class="bs-osd-readout">${this.roomCode}</span>
             </h1>
           </div>
-          <button id="btn-copy-invite" class="bs-btn bs-btn-ghost" style="display: flex; gap: 6px; align-items: center;">
-            ${renderIcon('copy', 14)} COPY INVITE LINK
-          </button>
+          <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+            <button id="btn-toggle-qr" class="bs-btn bs-btn-ghost" style="display: flex; gap: 6px; align-items: center;" title="Show QR Code for Mobile Scanning">
+              📱 QR CODE
+            </button>
+            <button id="btn-copy-invite" class="bs-btn bs-btn-ghost" style="display: flex; gap: 6px; align-items: center;">
+              ${renderIcon('copy', 14)} COPY INVITE LINK
+            </button>
+          </div>
+        </div>
+
+        <!-- Collapsible QR Code Panel -->
+        <div id="lobby-qr-panel" style="display: none; flex-direction: column; align-items: center; gap: 10px; background: rgba(0,0,0,0.5); border: 1px solid var(--bs-water); border-radius: var(--bs-radius-sm); padding: 18px;">
+          <div style="font-family: var(--bs-font-mono); font-size: 11px; color: var(--bs-water); letter-spacing: 0.1em; font-weight: bold;">
+            SCAN TO JOIN STAGING CHAMBER
+          </div>
+          <div id="lobby-qr-svg-wrap"></div>
+          <div style="font-family: var(--bs-font-mono); font-size: 10px; color: var(--bs-tan); opacity: 0.85;">
+            Point phone camera to join instantly
+          </div>
         </div>
 
         <!-- Mode Rules Card -->
@@ -135,6 +153,19 @@ export class LobbyScreen {
   }
 
   private bindEvents(inviteUrl: string): void {
+    const qrPanel = this.element.querySelector<HTMLElement>('#lobby-qr-panel');
+    const qrWrap = this.element.querySelector<HTMLElement>('#lobby-qr-svg-wrap');
+    if (qrWrap && !qrWrap.innerHTML) {
+      qrWrap.innerHTML = QrCode.toSvg(inviteUrl, { size: 160, fgColor: '#86cfa0', bgColor: '#0d0b06' });
+    }
+
+    this.element.querySelector('#btn-toggle-qr')?.addEventListener('click', () => {
+      if (qrPanel) {
+        const isHidden = qrPanel.style.display === 'none';
+        qrPanel.style.display = isHidden ? 'flex' : 'none';
+      }
+    });
+
     this.element.querySelector('#btn-copy-invite')?.addEventListener('click', () => {
       void (async () => {
         try {
@@ -151,7 +182,19 @@ export class LobbyScreen {
     });
 
     this.element.querySelector('#btn-leave-room')?.addEventListener('click', () => {
-      this.callbacks.onLeave();
+      const modal = new ConfirmationModal({
+        title: 'LEAVE STAGING CHAMBER?',
+        consequences: 'You will disconnect from this room and your diver reservation will be released.',
+        confirmLabel: 'LEAVE ROOM',
+        cancelLabel: 'STAY',
+        isDanger: true,
+        undoable: true,
+        undoMessage: 'Left staging chamber.',
+        onConfirm: () => {
+          this.callbacks.onLeave();
+        },
+      });
+      modal.mount();
     });
 
     this.element.querySelector('#btn-ready-toggle')?.addEventListener('click', () => {

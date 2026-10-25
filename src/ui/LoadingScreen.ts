@@ -1,9 +1,10 @@
 /* ── LoadingScreen.ts ──────────────────────────────────────────────────────
- *  Analog horror map loading screen:
+ *  Phase C: Analog horror map loading screen:
  *  - Map title, tagline, difficulty indicator
  *  - Procedural 2D layout mini-map drawn live on HTML5 canvas
  *  - Cooperative progress bar driven by the scheduler / texture warm-up
  *  - Rotating atmospheric survival tips
+ *  - Honest progress: after 8s shows "Still working..." with Cancel button
  * ──────────────────────────────────────────────────────────────────────── */
 
 import type { MapDefinition, LayoutData } from '../world/MapTypes.js';
@@ -20,6 +21,10 @@ const SURVIVAL_TIPS: string[] = [
   'High water flips change navigability. Seek high ground before the surge.',
 ];
 
+export interface LoadingScreenCallbacks {
+  onCancel?: () => void;
+}
+
 export class LoadingScreen {
   private el: HTMLElement | null = null;
   private canvasEl: HTMLCanvasElement | null = null;
@@ -27,7 +32,12 @@ export class LoadingScreen {
   private taglineEl: HTMLElement | null = null;
   private tipEl: HTMLElement | null = null;
   private barEl: HTMLElement | null = null;
+  private timeoutPromptEl: HTMLElement | null = null;
+  private cancelBtn: HTMLButtonElement | null = null;
   private tipInterval: ReturnType<typeof setInterval> | null = null;
+  private timeoutTimer: ReturnType<typeof setTimeout> | null = null;
+
+  constructor(private callbacks?: LoadingScreenCallbacks) {}
 
   mount(container: HTMLElement): void {
     const el = document.createElement('div');
@@ -93,6 +103,14 @@ export class LoadingScreen {
             "Crouching in deep water suppresses ripples and splashing."
           </div>
         </div>
+
+        <!-- 8s Timeout / Honest Progress Prompt -->
+        <div id="loading-timeout-prompt" style="display: none; flex-direction: column; align-items: center; gap: 10px; margin-top: 6px;">
+          <span style="font-size: 11px; color: var(--danger, #ff8a80); opacity: 0.9;">Still working... shader warmup or asset processing delayed.</span>
+          <button id="btn-loading-cancel" class="analog-btn danger" style="padding: 6px 14px; font-size: 11px;">
+            CANCEL TO MENU
+          </button>
+        </div>
       </div>
     `;
 
@@ -103,6 +121,15 @@ export class LoadingScreen {
     this.taglineEl = el.querySelector('#loading-map-tagline');
     this.tipEl = el.querySelector('#loading-tip');
     this.barEl = el.querySelector('#loading-progress-bar');
+    this.timeoutPromptEl = el.querySelector('#loading-timeout-prompt');
+    this.cancelBtn = el.querySelector('#btn-loading-cancel');
+
+    this.cancelBtn?.addEventListener('click', () => {
+      this.hide();
+      if (this.callbacks?.onCancel) {
+        this.callbacks.onCancel();
+      }
+    });
   }
 
   show(def: MapDefinition, layout: LayoutData): void {
@@ -119,11 +146,22 @@ export class LoadingScreen {
       }
     }
 
+    if (this.timeoutPromptEl) {
+      this.timeoutPromptEl.style.display = 'none';
+    }
+
     this.setProgress(10);
     this.cycleTip();
 
     if (this.tipInterval) clearInterval(this.tipInterval);
     this.tipInterval = setInterval(() => this.cycleTip(), 3500);
+
+    if (this.timeoutTimer) clearTimeout(this.timeoutTimer);
+    this.timeoutTimer = setTimeout(() => {
+      if (this.timeoutPromptEl) {
+        this.timeoutPromptEl.style.display = 'flex';
+      }
+    }, 8000);
   }
 
   setProgress(pct: number): void {
@@ -136,6 +174,13 @@ export class LoadingScreen {
     if (this.tipInterval) {
       clearInterval(this.tipInterval);
       this.tipInterval = null;
+    }
+    if (this.timeoutTimer) {
+      clearTimeout(this.timeoutTimer);
+      this.timeoutTimer = null;
+    }
+    if (this.timeoutPromptEl) {
+      this.timeoutPromptEl.style.display = 'none';
     }
     if (this.el) {
       this.el.style.display = 'none';

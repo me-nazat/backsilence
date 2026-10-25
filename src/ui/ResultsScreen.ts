@@ -88,10 +88,19 @@ export function saveRunCompletion(results: RunResults): { isNewBest: boolean; pr
 export class ResultsScreen {
   private el: HTMLElement | null = null;
   private onContinue: () => void;
+  private onPlayAgain?: (() => void) | undefined;
+  private onNextTape?: ((nextMapId: MapId) => void) | undefined;
   private audio = AudioEngine.getInstance();
+  private currentResults: RunResults | null = null;
 
-  constructor(callbacks: { onContinue: () => void }) {
+  constructor(callbacks: {
+    onContinue: () => void;
+    onPlayAgain?: () => void;
+    onNextTape?: (nextMapId: MapId) => void;
+  }) {
     this.onContinue = callbacks.onContinue;
+    this.onPlayAgain = callbacks.onPlayAgain;
+    this.onNextTape = callbacks.onNextTape;
   }
 
   mount(container: HTMLElement): void {
@@ -203,19 +212,59 @@ export class ResultsScreen {
         </div>
 
         <!-- Actions -->
-        <div style="display: flex; gap: 12px; width: 100%; flex-wrap: wrap;">
-          <button id="btn-results-share" class="analog-btn" style="flex: 1; padding: 12px; border-color: var(--water, #86cfa0);">
-            DOWNLOAD SHARE CARD (PNG)
-          </button>
-          <button id="btn-results-continue" class="analog-btn primary" style="flex: 1; padding: 12px;">
-            PROCEED TO SECTOR SELECT
-          </button>
+        <div style="display: flex; flex-direction: column; gap: 10px; width: 100%;">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%;">
+            <button id="btn-results-play-again" class="analog-btn primary" style="padding: 12px; font-weight: bold; font-size: 13px;">
+              ↻ PLAY AGAIN
+            </button>
+            <button id="btn-results-next-tape" class="analog-btn" style="padding: 12px; border-color: var(--water, #86cfa0); color: var(--water, #86cfa0); font-weight: bold; font-size: 13px;">
+              NEXT TAPE →
+            </button>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%;">
+            <button id="btn-results-share" class="analog-btn" style="padding: 10px; font-size: 11px;">
+              DOWNLOAD CARD (PNG)
+            </button>
+            <button id="btn-results-continue" class="analog-btn" style="padding: 10px; font-size: 11px;">
+              SECTOR SELECT
+            </button>
+          </div>
         </div>
       </div>
     `;
 
     container.appendChild(el);
     this.el = el;
+
+    el.querySelector('#btn-results-play-again')?.addEventListener('click', () => {
+      this.hide();
+      if (this.onPlayAgain) {
+        this.onPlayAgain();
+      }
+    });
+
+    el.querySelector('#btn-results-next-tape')?.addEventListener('click', () => {
+      this.hide();
+      const currentMap = this.currentResults?.mapId ?? 'orientation';
+      const sequence: MapId[] = [
+        'orientation',
+        'poolrooms',
+        'utility_tunnels',
+        'marble_atrium',
+        'hydro_maze',
+        'drainage_core',
+        'natatorium',
+        'drowned_school',
+        'sunken_jungle',
+        'neon_flood',
+        'drowned_metro',
+      ];
+      const idx = sequence.indexOf(currentMap);
+      const nextMap = sequence[idx + 1] ?? sequence[0]!;
+      if (this.onNextTape) {
+        this.onNextTape(nextMap);
+      }
+    });
 
     el.querySelector('#btn-results-continue')?.addEventListener('click', () => {
       this.hide();
@@ -225,6 +274,7 @@ export class ResultsScreen {
 
   show(results: RunResults): void {
     if (!this.el) return;
+    this.currentResults = results;
     this.el.style.display = 'flex';
 
     // Play soft synthesized victory chord (no jumpscare!)

@@ -335,6 +335,15 @@ export class UIManager {
         this.resumeGame();
       },
       onSettings: () => this.navigateTo('SETTINGS'),
+      onControlsReference: () => {
+        try {
+          localStorage.setItem('backsilence_last_settings_tab', 'controls');
+        } catch {
+          /* ignore */
+        }
+        this.navigateTo('SETTINGS');
+      },
+      onPhotoMode: () => this.takePhotoMode(),
       onAudioLab: () => this.toggleAudioLab(),
       onQuit: () => this.quitToMenu(),
     });
@@ -352,10 +361,24 @@ export class UIManager {
       onMenu: () => this.quitToMenu(),
     });
 
-    this.loadingScreen = new LoadingScreen();
+    this.loadingScreen = new LoadingScreen({
+      onCancel: () => this.quitToMenu(),
+    });
+
     this.resultsScreen = new ResultsScreen({
       onContinue: () => {
         this.navigateTo('PLAY_HUB');
+      },
+      onPlayAgain: () => {
+        if (this.lastConfig) {
+          this.startGame({ ...this.lastConfig, seed: Date.now() });
+        } else {
+          this.startGame({ mode: 'single', mapId: 'natatorium', difficulty: 2, seed: Date.now() });
+        }
+      },
+      onNextTape: (nextMapId) => {
+        const diff = this.lastConfig?.difficulty ?? 2;
+        this.startGame({ mode: 'single', mapId: nextMapId, difficulty: diff, seed: Date.now() });
       },
     });
 
@@ -710,7 +733,9 @@ export class UIManager {
       localStorage.setItem('backsilence_last_tape', config.mapId);
       localStorage.setItem('backsilence_last_mode', config.mode);
       localStorage.setItem('backsilence_last_difficulty', String(config.difficulty));
-    } catch {}
+    } catch {
+      /* ignore */
+    }
 
     this.currentView = 'GAME';
     this.viewStack = ['GAME'];
@@ -814,6 +839,47 @@ export class UIManager {
     this.bus.emit('settings:applied' as unknown as 'game:start', s as unknown as { mode: 'single'; mapId: 'poolrooms'; difficulty: number; seed: number });
   }
 
+  takePhotoMode(): void {
+    const canvas =
+      document.querySelector<HTMLCanvasElement>('#canvas-container canvas') ??
+      document.querySelector<HTMLCanvasElement>('canvas');
+    if (!canvas) {
+      this.toastManager.show('Photo capture failed: 3D canvas not found.', 'error');
+      return;
+    }
+
+    this.hud.hide();
+
+    requestAnimationFrame(() => {
+      try {
+        canvas.toBlob((blob) => {
+          this.hud.show();
+          if (!blob) {
+            this.toastManager.show('Photo capture failed: could not export image data.', 'error');
+            return;
+          }
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          const ts = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+          a.download = `backsilence_photo_${ts}.png`;
+          a.href = url;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          setTimeout(() => URL.revokeObjectURL(url), 5000);
+
+          this.toastManager.show('📸 Photo snapshot saved to downloads!', {
+            type: 'success',
+            durationMs: 4000,
+          });
+        }, 'image/png');
+      } catch {
+        this.hud.show();
+        this.toastManager.show('Photo export error.', 'error');
+      }
+    });
+  }
+
   private bindGlobalKeyboard(): void {
     window.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
@@ -822,6 +888,9 @@ export class UIManager {
         } else if (this.currentView !== 'MENU') {
           this.goBack();
         }
+      } else if ((e.key === 'p' || e.key === 'P') && this.currentView === 'GAME') {
+        e.preventDefault();
+        this.takePhotoMode();
       }
     });
   }

@@ -25,19 +25,19 @@
   - [x] B.7 Sub-1s death screen Retry with focus and plain-sentence cause ("You splashed 6 m from it")
   - [x] B.8 Record Decision D103 and commit Phase B
 
-- [ ] **Phase C: Menus and Navigation (Section 5)**
-  - [ ] C.1 Refactor UI layer so every screen is clickable by construction (`bs-screen`, `UiLayerManager`, focus owner, `inert` modals, Escape back); remove ID allowlist from `index.html`; add unit test and dev assertion
-  - [ ] C.2 Persist user choices (last map, mode, difficulty, loadout, settings tab); "Continue" on Home, "Play again" on results
-  - [ ] C.3 Enforce max 3 levels deep anywhere with visible Back buttons and titles
-  - [ ] C.4 Quick-access Pause menu (Resume first, inline quick settings, Settings, Controls, Quit); Resume re-locks pointer
-  - [ ] C.5 Typography & scanlines: replace Comic Sans with clean monospace/serif or stroke wordmark; scanline shader tied to VHS setting, turns off at 0 / reduced motion
-  - [ ] C.6 Scrolling containment: `100dvh` scrollable containers with `overscroll-behavior: contain` and safe-area insets
-  - [ ] C.7 Honest loading progress bar linked to asset warm-up, rotating tips, Cancel button after 8s
-  - [ ] C.8 Actionable error toasts (cause, next step, action button)
-  - [ ] C.9 Destructive action confirmation modals + Undo toasts
-  - [ ] C.10 Share & invite: room copy link + lightweight TypeScript QR code generator with test
-  - [ ] C.11 Photo mode (`P` key / button) hiding HUD and exporting canvas PNG
-  - [ ] C.12 Record Decision D104 and commit Phase C
+- [x] **Phase C: Menus and Navigation (Section 5)**
+  - [x] C.1 Refactor UI layer so every screen is clickable by construction (`bs-screen`, `UiLayerManager`, focus owner, `inert` modals, Escape back); remove ID allowlist from `index.html`; add unit test and dev assertion
+  - [x] C.2 Persist user choices (last map, mode, difficulty, loadout, settings tab); "Continue" on Home, "Play again" on results
+  - [x] C.3 Enforce max 3 levels deep anywhere with visible Back buttons and titles
+  - [x] C.4 Quick-access Pause menu (Resume first, inline quick settings, Settings, Controls, Quit); Resume re-locks pointer
+  - [x] C.5 Typography & scanlines: replace Comic Sans with clean monospace/serif or stroke wordmark; scanline shader tied to VHS setting, turns off at 0 / reduced motion
+  - [x] C.6 Scrolling containment: `100dvh` scrollable containers with `overscroll-behavior: contain` and safe-area insets
+  - [x] C.7 Honest loading progress bar linked to asset warm-up, rotating tips, Cancel button after 8s
+  - [x] C.8 Actionable error toasts (cause, next step, action button)
+  - [x] C.9 Destructive action confirmation modals + Undo toasts
+  - [x] C.10 Share & invite: room copy link + lightweight TypeScript QR code generator with test
+  - [x] C.11 Photo mode (`P` key / button) hiding HUD and exporting canvas PNG
+  - [x] C.12 Record Decision D104 and commit Phase C
 
 - [ ] **Phase D: Controls That Feel Right (Section 6)**
   - [ ] D.1 Desktop controls: pointer lock with `unadjustedMovement`, calibrated sensitivity slider with live preview, invert Y, jump buffer (0.1s), coyote time (0.1s / 0.18s assist), sprint/crouch hold/toggle, controls reference with player remap glyphs

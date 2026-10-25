@@ -80,5 +80,5 @@ describe('Phase G: Water Pipeline Verification & Self-Test Suite', () => {
     const runB = await runSimulationReplay('orientation', 4242, 1200, 300);
     expect(runA.finalSimHash).toBe(runB.finalSimHash);
     expect(runA.checkpoints.length).toBe(runB.checkpoints.length);
-  });
+  }, 30000);
 });

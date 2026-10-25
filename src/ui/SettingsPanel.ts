@@ -14,6 +14,7 @@ import { AudioEngine } from '../audio/AudioEngine.js';
 import { ToastManager } from './ToastManager.js';
 import { FirstRunSafetyFlow } from './safety/FirstRunSafetyFlow.js';
 import { MotionEngine } from './motion/Motion.js';
+import { ConfirmationModal } from './ConfirmationModal.js';
 import { I18nEngine, SUPPORTED_LOCALES, type SupportedLocale } from '../i18n/I18n.js';
 
 export interface SettingsPanelCallbacks {
@@ -26,7 +27,10 @@ export class SettingsPanel {
   private el: HTMLElement | null = null;
   private settings: Settings;
   private callbacks: SettingsPanelCallbacks;
-  private activeTab: 'graphics' | 'audio' | 'controls' | 'a11y' = 'graphics';
+  private activeTab: 'graphics' | 'audio' | 'controls' | 'a11y' =
+    (typeof localStorage !== 'undefined' &&
+      (localStorage.getItem('backsilence_last_settings_tab') as 'graphics' | 'audio' | 'controls' | 'a11y')) ||
+    'graphics';
 
   private rebindingListener: ((e: KeyboardEvent) => void) | null = null;
 
@@ -368,20 +372,41 @@ export class SettingsPanel {
       b.addEventListener('click', () => {
         engine.play('ui_click');
         this.activeTab = b.getAttribute('data-tab') as typeof this.activeTab;
+        try {
+          localStorage.setItem('backsilence_last_settings_tab', this.activeTab);
+        } catch {
+          /* ignore */
+        }
         this.render();
       });
     });
 
     // Reset All Defaults
     this.el.querySelector('#btn-reset-all')?.addEventListener('click', () => {
-      if (confirm('Are you sure you want to reset all settings to default values?')) {
-        engine.play('ui_confirm');
-        this.settings = defaultSettings();
-        saveSettings(this.settings);
-        this.callbacks.onApplySettings(this.settings);
-        this.render();
-        ToastManager.getInstance().show('All settings reset to defaults', { type: 'info' });
-      }
+      const previous = JSON.parse(JSON.stringify(this.settings)) as Settings;
+      const modal = new ConfirmationModal({
+        title: 'RESET CONFIGURATION?',
+        consequences: 'All audio, graphics, controls, and accessibility options will be restored to factory default calibration.',
+        confirmLabel: 'RESET ALL',
+        cancelLabel: 'KEEP SETTINGS',
+        isDanger: true,
+        undoable: true,
+        undoMessage: 'Settings reset to factory defaults.',
+        onConfirm: () => {
+          engine.play('ui_confirm');
+          this.settings = defaultSettings();
+          saveSettings(this.settings);
+          this.callbacks.onApplySettings(this.settings);
+          this.render();
+        },
+        onUndo: () => {
+          this.settings = previous;
+          saveSettings(this.settings);
+          this.callbacks.onApplySettings(this.settings);
+          this.render();
+        },
+      });
+      modal.mount();
     });
 
     this.bindTabSpecificEvents();

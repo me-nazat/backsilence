@@ -1,10 +1,21 @@
 /* ── ToastManager.ts ──────────────────────────────────────────────────────
- *  Non-blocking stacked notification toast system with ARIA live region.
+ *  Phase C: Actionable notification toast system with ARIA live region.
+ *  Supports plain causes, next steps, action buttons (Retry, Settings, Copy, Undo),
+ *  and clear network status guidance (solo play unaffected).
  * ──────────────────────────────────────────────────────────────────────── */
+
+export interface ToastAction {
+  label: string;
+  onClick: () => void;
+}
 
 export interface ToastOptions {
   durationMs?: number;
   type?: 'info' | 'success' | 'warning' | 'error';
+  cause?: string;
+  nextStep?: string;
+  action?: ToastAction;
+  isNetwork?: boolean;
 }
 
 export class ToastManager {
@@ -34,6 +45,7 @@ export class ToastManager {
         gap: 10px;
         z-index: 20000;
         pointer-events: none;
+        max-width: min(420px, calc(100vw - 32px));
       `;
       document.body.appendChild(el);
     }
@@ -45,7 +57,8 @@ export class ToastManager {
       typeof options === 'string'
         ? { type: options === 'warn' ? 'warning' : options }
         : options ?? {};
-    const duration = opts.durationMs ?? 3200;
+    const hasAction = Boolean(opts.action);
+    const duration = opts.durationMs ?? (hasAction ? 6000 : 3500);
     const type = opts.type ?? 'info';
 
     const toast = document.createElement('div');
@@ -61,24 +74,71 @@ export class ToastManager {
             : 'var(--fog, #d9d3a2)';
 
     toast.style.cssText = `
-      background: rgba(13, 11, 6, 0.95);
+      background: rgba(13, 11, 6, 0.96);
       border: 1px solid ${borderColor};
       color: var(--fog, #d9d3a2);
-      padding: 10px 16px;
+      padding: 12px 16px;
       border-radius: 4px;
       font-family: monospace;
       font-size: 13px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.7);
+      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.85);
       pointer-events: auto;
       opacity: 0;
       transform: translateY(10px);
       transition: opacity 0.25s ease-out, transform 0.25s ease-out;
       display: flex;
       align-items: center;
-      gap: 8px;
+      justify-content: space-between;
+      gap: 14px;
     `;
 
-    toast.innerHTML = `<span>${message}</span>`;
+    const icon =
+      type === 'success' ? '✓ ' :
+      type === 'error' ? '✕ ' :
+      type === 'warning' ? '⚠ ' : 'ℹ ';
+
+    let contentHtml = `
+      <div style="display: flex; flex-direction: column; gap: 3px; line-height: 1.4;">
+        <div style="display: flex; align-items: baseline; gap: 6px;">
+          <span style="color: ${borderColor}; font-weight: bold;">${icon}</span>
+          <span style="font-weight: 600; color: #ffffff;">${message}</span>
+        </div>
+    `;
+
+    if (opts.cause) {
+      contentHtml += `<div style="font-size: 11px; opacity: 0.8; padding-left: 18px;">Cause: ${opts.cause}</div>`;
+    }
+
+    if (opts.nextStep) {
+      contentHtml += `<div style="font-size: 11px; color: var(--water, #86cfa0); padding-left: 18px;">Next: ${opts.nextStep}</div>`;
+    }
+
+    if (opts.isNetwork) {
+      contentHtml += `<div style="font-size: 10px; color: #d8b36a; padding-left: 18px; font-style: italic;">Solo play continues unaffected offline.</div>`;
+    }
+
+    contentHtml += `</div>`;
+    toast.innerHTML = contentHtml;
+
+    if (opts.action) {
+      const btn = document.createElement('button');
+      btn.className = 'analog-btn primary';
+      btn.textContent = opts.action.label;
+      btn.style.cssText = `
+        padding: 5px 12px;
+        min-height: 32px;
+        font-size: 11px;
+        letter-spacing: 0.1em;
+        white-space: nowrap;
+        flex-shrink: 0;
+      `;
+      btn.addEventListener('click', () => {
+        opts.action!.onClick();
+        dismiss();
+      });
+      toast.appendChild(btn);
+    }
+
     this.container.appendChild(toast);
 
     // Trigger enter animation
@@ -87,8 +147,9 @@ export class ToastManager {
       toast.style.transform = 'translateY(0)';
     });
 
-    // Dismiss timer
-    setTimeout(() => {
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const dismiss = () => {
+      if (timer) clearTimeout(timer);
       toast.style.opacity = '0';
       toast.style.transform = 'translateY(-8px)';
       setTimeout(() => {
@@ -96,6 +157,8 @@ export class ToastManager {
           toast.parentElement.removeChild(toast);
         }
       }, 300);
-    }, duration);
+    };
+
+    timer = setTimeout(dismiss, duration);
   }
 }

@@ -200,7 +200,9 @@ export class OrientationDirector {
       if (step) {
         try {
           localStorage.setItem(`backsilence_hint_disabled_${step.id}`, 'true');
-        } catch {}
+        } catch {
+          /* ignore */
+        }
       }
       this.hideCard();
     });
@@ -219,7 +221,9 @@ export class OrientationDirector {
       if (localStorage.getItem(`backsilence_hint_disabled_${step.id}`) === 'true') {
         return;
       }
-    } catch {}
+    } catch {
+      /* ignore */
+    }
 
     if (this.cardEl) {
       const iconWrap = this.cardEl.querySelector('#hint-icon');
