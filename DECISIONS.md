@@ -1142,3 +1142,23 @@ Establish `functions/api/[[route]].ts` as the canonical Cloudflare Pages Functio
    - Calibrated jumpscare stinger to -1.1 dBTP with 12 dB ducking across all buses for 1.2s.
 **Reason:** Satisfies Section 6 Phase B mandates of Prompt 4.
 
+### D097: Phase C Space, Reverb, Distance & Wall Occlusion Architecture
+**Date:** 2026-10-25
+**Choice:**
+1. Image-Source Early Reflections (< 80 ms) & Octave-Band Diffuse Decay (`src/audio/Reverb.ts`):
+   - Modeled discrete geometric boundary reflections (< 80 ms) across all 8 architectural presets (e.g. poolroom water floor bounce at 8.5ms, tiled ceiling at 18.2ms, near and far lateral walls at 29.4ms and 42.1ms).
+   - Decomposed diffuse tail into 4 octave bands (125 Hz, 500 Hz, 2 kHz, 8 kHz) via 2-pole biquad bandpass filters, each driven by its exponential decay envelope $k = \ln(1000) / T_{60}$ to match Sound Bible targets: 125 Hz: 3.8s ($\pm 15\%$), 500 Hz: 3.4s ($\pm 15\%$), 2 kHz: 2.6s ($\pm 15\%$), 8 kHz: 1.4s ($\pm 15\%$).
+   - Seamless transition: early discrete reflections dominate the first 40 ms before merging smoothly into the dense diffuse reverberant field.
+2. Physical Distance Model (`src/audio/AudioEngine.ts`):
+   - Inverse distance attenuation ($d_{ref} = 2.0\text{ m}$, rolloff factor 1.0).
+   - Distance-dependent air absorption lowpass filter ($18\text{ kHz}$ down to $2.2\text{ kHz}$ at $40\text{ m}$).
+   - Distance-dependent direct-to-reverberant send ratio: smoothly ramps from 0.25 at $d \le 2\text{ m}$ up to 0.90 at $d \ge 30\text{ m}$.
+3. Wall Occlusion Model:
+   - Integrated acoustic raycast checks via `Colliders.segmentHits()` for up to 2 tall occluding walls.
+   - Each wall attenuates direct level by 6 dB (0.50x per wall) and clamps lowpass filter cutoff ($\le 2500\text{ Hz}$ for 1 wall, $\le 1200\text{ Hz}$ for 2 walls).
+   - Wall proximity boost (+1.5 dB, 1.19x) to simulate acoustic reflection boundary loading when listener sits $< 1.2\text{ m}$ from a wall.
+4. Dynamic HRTF & Spatial Position Linear Ramps:
+   - Camera listener updates and 3D sound source updates apply 30 ms linear ramps (`linearRampToValueAtTime(..., now + 0.030)`), eliminating zipper noise and click artifacts during rapid camera movement and monster navigation.
+**Reason:** Satisfies Section 7 Phase C mandates of Prompt 4.
+
+

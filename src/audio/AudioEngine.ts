@@ -254,6 +254,7 @@ export interface PlayOptions {
   bus?: AudioBusName;
   pitch?: number;
   usePool?: boolean;
+  occlusionWalls?: number;
 }
 
 export interface RawVoiceHandle {
@@ -284,6 +285,8 @@ export interface AudioEngineApi {
   getContext(): AudioContext | null;
   getBusNode(bus: AudioBusName): GainNode | null;
   getBufferPool(): AudioBufferPool | null;
+  setColliders(c: { segmentHits(ax: number, az: number, bx: number, bz: number, minHeight?: number): number } | null): void;
+  setListenerNearWall(near: boolean): void;
   dispose(): void;
 }
 
@@ -296,6 +299,9 @@ export class AudioEngine implements AudioEngineApi {
   private reverb: ReverbUnit | null = null;
   private director: AudioDirector | null = null;
   private bufferPool: AudioBufferPool | null = null;
+  private listenerPos: Vec3 = { x: 0, y: 0, z: 0 };
+  private listenerNearWall = false;
+  private colliders: { segmentHits(ax: number, az: number, bx: number, bz: number, minHeight?: number): number } | null = null;
   readonly analyser: AnalyserNode | null = null;
 
   private isInitialized = false;
@@ -428,20 +434,26 @@ export class AudioEngine implements AudioEngineApi {
 
     let destinationNode: AudioNode = busGain;
     let panner: PannerNode | null = null;
+    let airFilter: BiquadFilterNode | null = null;
+    let directGain: GainNode | null = null;
+    let revSendGain: GainNode | null = null;
 
-    // Spatial 3D HRTF audio routing
+    let activeReverbSend: AudioNode = reverbSend;
+
+    // Spatial 3D HRTF audio routing with physical distance model & wall occlusion (Section 7 C.2, C.3, C.4)
     if (opts.position) {
+      const now = this.ctx.currentTime;
       panner = this.ctx.createPanner();
       panner.panningModel = 'HRTF';
       panner.distanceModel = 'inverse';
       panner.refDistance = 2.0;
       panner.maxDistance = 60.0;
-      panner.rolloffFactor = 1.4;
+      panner.rolloffFactor = 1.0;
 
       if (panner.positionX) {
-        panner.positionX.setValueAtTime(opts.position.x, this.ctx.currentTime);
-        panner.positionY.setValueAtTime(opts.position.y, this.ctx.currentTime);
-        panner.positionZ.setValueAtTime(opts.position.z, this.ctx.currentTime);
+        panner.positionX.setValueAtTime(opts.position.x, now);
+        panner.positionY.setValueAtTime(opts.position.y, now);
+        panner.positionZ.setValueAtTime(opts.position.z, now);
       } else {
         (panner as unknown as { setPosition: (x: number, y: number, z: number) => void }).setPosition(
           opts.position.x,
@@ -450,14 +462,52 @@ export class AudioEngine implements AudioEngineApi {
         );
       }
 
+      // 1. Distance & Occlusion computation
+      const dx = opts.position.x - this.listenerPos.x;
+      const dy = opts.position.y - this.listenerPos.y;
+      const dz = opts.position.z - this.listenerPos.z;
+      const dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
+
+      let walls = opts.occlusionWalls ?? 0;
+      if (opts.occlusionWalls === undefined && this.colliders) {
+        walls = this.colliders.segmentHits(opts.position.x, opts.position.z, this.listenerPos.x, this.listenerPos.z, 1.0);
+        walls = Math.max(0, Math.min(2, walls));
+      }
+
+      // Air absorption: 18 kHz down to 2.2 kHz at 40m
+      const airCutoff = Math.max(2200, Math.min(18000, 18000 * Math.exp(-0.05 * Math.max(0, dist - 2.0))));
+      // Wall occlusion lowpass: 1 wall -> <= 2500 Hz, 2 walls -> <= 1200 Hz
+      const finalCutoff = walls === 0 ? airCutoff : walls === 1 ? Math.min(airCutoff, 2500) : Math.min(airCutoff, 1200);
+      // Wall occlusion level: -6 dB (0.50x) per wall
+      const directAtten = Math.pow(0.5, walls);
+
+      // Distance-dependent reverb send ratio (0.25 near -> 0.90 far)
+      const baseSend = Math.max(0.25, Math.min(0.90, 0.25 + 0.65 * (1.0 - Math.exp(-Math.max(0, dist - 2.0) / 14.0))));
+      const wallProxBoost = this.listenerNearWall ? 1.19 : 1.0;
+      const finalSend = Math.min(1.0, baseSend * wallProxBoost);
+
+      directGain = this.ctx.createGain();
+      directGain.gain.setValueAtTime(directAtten, now);
+
+      airFilter = this.ctx.createBiquadFilter();
+      airFilter.type = 'lowpass';
+      airFilter.frequency.setValueAtTime(finalCutoff, now);
+
+      revSendGain = this.ctx.createGain();
+      revSendGain.gain.setValueAtTime(finalSend, now);
+      revSendGain.connect(reverbSend);
+      activeReverbSend = revSendGain;
+
       panner.connect(busGain);
-      destinationNode = panner;
+      airFilter.connect(panner);
+      directGain.connect(airFilter);
+      destinationNode = directGain;
     }
 
     const voiceCtx = {
       ctx: this.ctx,
       destination: destinationNode,
-      reverbSend,
+      reverbSend: activeReverbSend,
       noise: this.noiseBuffers,
       ...(opts.intensity !== undefined || opts.gain !== undefined
         ? { intensity: opts.intensity ?? opts.gain }
@@ -809,6 +859,27 @@ export class AudioEngine implements AudioEngineApi {
         } else {
           (panner as unknown as { setPosition?: (x: number, y: number, z: number) => void }).setPosition?.(pos.x, pos.y, pos.z);
         }
+
+        // Dynamic distance, air absorption, and wall occlusion update with 30ms linear ramps
+        const cdx = pos.x - this.listenerPos.x;
+        const cdy = pos.y - this.listenerPos.y;
+        const cdz = pos.z - this.listenerPos.z;
+        const curDist = Math.sqrt(cdx * cdx + cdy * cdy + cdz * cdz);
+
+        let curWalls = opts.occlusionWalls ?? 0;
+        if (opts.occlusionWalls === undefined && this.colliders) {
+          curWalls = this.colliders.segmentHits(pos.x, pos.z, this.listenerPos.x, this.listenerPos.z, 1.0);
+          curWalls = Math.max(0, Math.min(2, curWalls));
+        }
+
+        const curAir = Math.max(2200, Math.min(18000, 18000 * Math.exp(-0.05 * Math.max(0, curDist - 2.0))));
+        const curCutoff = curWalls === 0 ? curAir : curWalls === 1 ? Math.min(curAir, 2500) : Math.min(curAir, 1200);
+        const curDirect = Math.pow(0.5, curWalls);
+        const curSend = Math.min(1.0, Math.max(0.25, Math.min(0.90, 0.25 + 0.65 * (1.0 - Math.exp(-Math.max(0, curDist - 2.0) / 14.0)))) * (this.listenerNearWall ? 1.19 : 1.0));
+
+        if (directGain) directGain.gain.linearRampToValueAtTime(curDirect, now + 0.03);
+        if (airFilter) airFilter.frequency.linearRampToValueAtTime(curCutoff, now + 0.03);
+        if (revSendGain) revSendGain.gain.linearRampToValueAtTime(curSend, now + 0.03);
       },
       ended: handle.ended,
     };
@@ -830,6 +901,9 @@ export class AudioEngine implements AudioEngineApi {
       if (panner) {
         try {
           panner.disconnect();
+          airFilter?.disconnect();
+          directGain?.disconnect();
+          revSendGain?.disconnect();
         } catch {
           /* ignore disconnect error */
         }
@@ -877,11 +951,20 @@ export class AudioEngine implements AudioEngineApi {
     return 'sfx';
   }
 
+  setColliders(c: { segmentHits(ax: number, az: number, bx: number, bz: number, minHeight?: number): number } | null): void {
+    this.colliders = c;
+  }
+
+  setListenerNearWall(near: boolean): void {
+    this.listenerNearWall = near;
+  }
+
   /**
    * Update 3D listener position, forward, and up vectors.
    */
   setListener(pos: Vec3, forward: Vec3, up: Vec3): void {
     if (!this.ctx) return;
+    this.listenerPos = { x: pos.x, y: pos.y, z: pos.z };
     const listener = this.ctx.listener;
     const now = this.ctx.currentTime;
 

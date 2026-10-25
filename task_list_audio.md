@@ -25,12 +25,12 @@
   - [x] B.6 Player and interaction sounds (wet tile steps with heel/toe squelch, breath, heartbeat 55-140 BPM, inharmonic bells, clicks, ratchets)
   - [x] B.7 Record Decision D096 and commit Phase B
 
-- [ ] **Phase C: Space, Reverb and Distance (Section 7)**
-  - [ ] C.1 Image-source early reflections (< 80ms) + octave-band filtered diffuse decay impulse responses (pool hall target: 125 Hz 3.8s, 500 Hz 3.4s, 2 kHz 2.6s, 8 kHz 1.4s) across 8 presets
-  - [ ] C.2 Physical distance model: inverse distance ($d_{ref} = 2m$) + air absorption lowpass + distance-based reverb send
-  - [ ] C.3 Wall occlusion model: up to 2 walls each reducing level by 6 dB and lowpass cutoff to 1.2–3 kHz
-  - [ ] C.4 HRTF 3D positional audio with 30ms position ramps; listener driven by camera; wall proximity reflection boost
-  - [ ] C.5 Record Decision D097 and commit Phase C
+- [x] **Phase C: Space, Reverb and Distance (Section 7)**
+  - [x] C.1 Image-source early reflections (< 80ms) + octave-band filtered diffuse decay impulse responses (pool hall target: 125 Hz 3.8s, 500 Hz 3.4s, 2 kHz 2.6s, 8 kHz 1.4s) across 8 presets
+  - [x] C.2 Physical distance model: inverse distance ($d_{ref} = 2m$) + air absorption lowpass + distance-based reverb send
+  - [x] C.3 Wall occlusion model: up to 2 walls each reducing level by 6 dB and lowpass cutoff to 1.2–3 kHz
+  - [x] C.4 HRTF 3D positional audio with 30ms position ramps; listener driven by camera; wall proximity reflection boost
+  - [x] C.5 Record Decision D097 and commit Phase C
 
 - [ ] **Phase D: Mix, Dynamics and Silence (Section 8)**
   - [ ] D.1 Hierarchical bus architecture (sfx, ambient, monster, ui, music) with 25 Hz highpass, bus gains, master limiter (-1 dBTP) and underwater filter
