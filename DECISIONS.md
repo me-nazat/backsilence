@@ -1087,6 +1087,19 @@ Establish `functions/api/[[route]].ts` as the canonical Cloudflare Pages Functio
    - Compiled full contact sheet with before/after comparisons and rubric scores for all 10 natatorium hero shots (average 4.90 / 5.00) and all 9 auxiliary maps, empirical tier budget table, and honest technical limitations statement.
 **Reason:** Satisfies Sections 11, 12, and 13 mandates of Prompt 3.
 
+### D094: Audio Preconditions Verification & Architecture Scope (Prompt 4 Section 0)
+**Date:** 2026-10-25
+**Choice:**
+1. Preconditions Empirical Verification (`reports/audio/preconditions.md`):
+   - Verified that `audioSelfTest()` executes and passes across all procedural voices in headless Chrome (`results.length = 99`, all finite and unclipped).
+   - Confirmed that `AudioContext` transitions to `running` after native CDP mouse gesture.
+   - Cataloged all 92 distinct procedural voice names across simulation events, interaction, ambience beds, and UI feedback.
+   - Profiled busiest scene offline render (Natatorium with rain, water inflow, 8 drips, and creature roar): 60 active nodes (budget < 400), computing 21.11x faster than real time (budget $\ge 5.0\text{x}$).
+2. Sound Bible Operational Baseline:
+   - In accordance with Section 0 & 3, since no external `.wav` files were provided in `reference/audio/`, calibrated synthesis against the authored Sound Bible specifications (near silence room tone at -52 to -46 dBFS RMS, hard pool hall reverb tail 3.0–3.8s at 500 Hz, van den Doel physical liquid bubbles, and glottal formant creature voice).
+**Reason:** Satisfies Section 0 mandates of Prompt 4.
+
+
 
 
 
