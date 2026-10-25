@@ -24,7 +24,14 @@ import {
   UnsignedIntType,
   Mesh,
   Texture,
+  SphereGeometry,
+  PlaneGeometry,
+  InstancedMesh,
+  MeshBasicMaterial,
+  Matrix4,
+  Object3D,
 } from 'three';
+import { runMonsterProbe, type MonsterProbeResult } from './monster/MonsterProbe.js';
 import { EngineRenderer } from '../engine/Renderer.js';
 import { PostFX } from '../engine/PostFX.js';
 import { resolveQualityTier } from '../engine/Quality.js';
@@ -210,6 +217,21 @@ export class GameSession {
   private readonly activeTimeouts: ReturnType<typeof setTimeout>[] = [];
   private pathLine: Line | null = null;
   private hearingRings: { line: Line; age: number; maxAge: number }[] = [];
+  private magentaMarker: Mesh | null = null;
+  private locatorElement: HTMLDivElement | null = null;
+  private navGridMesh: Object3D | null = null;
+  private showNavGrid = false;
+  private monstersFrozen = false;
+  private lastCachedL4Fraction = 0;
+  simTicksStepped5s = 0;
+  private simTicksTimer = 0;
+  readonly monsterMotionTracker = {
+    metersMoved60s: 0,
+    stateChangesCount: 0,
+    timeSinceLastWaypoint: 0,
+  };
+  private readonly monsterHistory: Array<{ t: number; x: number; z: number }> = [];
+  private lastMonsterState = '';
   private readonly container: HTMLElement;
 
   private scheduleTimeout(fn: () => void, ms: number): ReturnType<typeof setTimeout> {
@@ -1508,6 +1530,14 @@ export class GameSession {
 
       // Step character motor and monster brains
       this.simWorld.step(this.FIXED_DT, intent);
+      this.simTicksStepped5s++;
+      if (this.monstersFrozen) {
+        for (const m of this.simWorld.monsters) {
+          m.vel.x = 0;
+          m.vel.y = 0;
+          m.vel.z = 0;
+        }
+      }
 
       // Drain emitted events
       this.simWorld.events.drain((ev) => {
@@ -1568,6 +1598,33 @@ export class GameSession {
       this.camera,
       currSnap.pos,
     );
+
+    this.simTicksTimer += dt;
+    if (this.simTicksTimer >= 5.0) {
+      this.simTicksTimer = 0;
+      this.simTicksStepped5s = Math.round(5.0 / this.FIXED_DT);
+    }
+
+    if (this.simWorld.monsters.length > 0) {
+      const pm = this.simWorld.monsters[0]!;
+      const now = performance.now() * 0.001;
+      this.monsterHistory.push({ t: now, x: pm.pos.x, z: pm.pos.z });
+      while (this.monsterHistory.length > 0 && now - this.monsterHistory[0]!.t > 60.0) {
+        this.monsterHistory.shift();
+      }
+      let dist = 0;
+      for (let i = 1; i < this.monsterHistory.length; i++) {
+        const p0 = this.monsterHistory[i - 1]!;
+        const p1 = this.monsterHistory[i]!;
+        dist += Math.hypot(p1.x - p0.x, p1.z - p0.z);
+      }
+      this.monsterMotionTracker.metersMoved60s = dist;
+
+      if (pm.state !== this.lastMonsterState) {
+        this.monsterMotionTracker.stateChangesCount++;
+        this.lastMonsterState = pm.state;
+      }
+    }
 
     // Monster Wakes in Water
     for (let i = 0; i < this.simWorld.monsters.length; i++) {
@@ -2653,6 +2710,54 @@ export class GameSession {
     this.hearingRings.push({ line, age: 0, maxAge: 2.0 });
   }
 
+  monsterProbe(): MonsterProbeResult {
+    const res = runMonsterProbe(this);
+    this.lastCachedL4Fraction = res.L4.visibleFraction;
+    return res;
+  }
+
+  private toggleNavGridVisuals(show: boolean): void {
+    if (!show) {
+      if (this.navGridMesh) {
+        this.scene.remove(this.navGridMesh);
+      }
+      return;
+    }
+    if (!this.navGridMesh) {
+      const nav = this.simWorld.nav;
+      const count = nav.width * nav.depth;
+      let walkableCount = 0;
+      for (let i = 0; i < count; i++) {
+        if (nav.walkable[i] === 1) walkableCount++;
+      }
+      const planeGeo = new PlaneGeometry(nav.cellSize * 0.9, nav.cellSize * 0.9);
+      planeGeo.rotateX(-Math.PI / 2);
+      const planeMat = new MeshBasicMaterial({
+        color: 0x00ff88,
+        transparent: true,
+        opacity: 0.35,
+        depthWrite: false,
+      });
+      const instMesh = new InstancedMesh(planeGeo, planeMat, Math.max(1, walkableCount));
+      const dummy = new Matrix4();
+      let idx = 0;
+      for (let gz = 0; gz < nav.depth; gz++) {
+        const z = nav.minZ + (gz + 0.5) * nav.cellSize;
+        for (let gx = 0; gx < nav.width; gx++) {
+          const x = nav.minX + (gx + 0.5) * nav.cellSize;
+          if (nav.walkable[gz * nav.width + gx] === 1) {
+            dummy.makeTranslation(x, -0.85, z);
+            instMesh.setMatrixAt(idx++, dummy);
+          }
+        }
+      }
+      instMesh.instanceMatrix.needsUpdate = true;
+      instMesh.renderOrder = 1000;
+      this.navGridMesh = instMesh;
+    }
+    this.scene.add(this.navGridMesh);
+  }
+
   private setupDebugTools(): void {
     if (typeof window === 'undefined') return;
     const isDebug = new URLSearchParams(window.location.search).get('debug') === '1';
@@ -2662,41 +2767,91 @@ export class GameSession {
       if (!this.debugMode) return;
 
       switch (e.code) {
-        case 'KeyI':
-          this.godMode = !this.godMode;
-          this.hud.update({ objective: `DEBUG: God Mode ${this.godMode ? 'ON' : 'OFF'}` });
+        case 'KeyH': {
+          const forward = this.camera.getWorldDirection(new Vector3());
+          const targetX = this.camera.position.x + forward.x * 14.0;
+          const targetZ = this.camera.position.z + forward.z * 14.0;
+          const targetY = -0.9;
+          if (this.simWorld.monsters.length > 0) {
+            const m = this.simWorld.monsters[0]!;
+            m.pos.x = targetX;
+            m.pos.y = targetY;
+            m.pos.z = targetZ;
+            m.vel.x = 0;
+            m.vel.y = 0;
+            m.vel.z = 0;
+            m.forceState('WANDER');
+            const body = this.monsters.getBody(m.id);
+            if (body) {
+              body.mesh.root.position.set(targetX, targetY, targetZ);
+            }
+          } else {
+            const id = `monster_${Date.now()}`;
+            const spawnPos = { x: targetX, y: targetY, z: targetZ };
+            this.monsters.addMonster({ id, variant: 'standard', spawn: spawnPos });
+            this.simWorld.addMonster({ id, variant: 'standard', spawn: spawnPos, spawnGrace: 0.0 }, 12345);
+          }
+          const probe = this.monsterProbe();
+          console.log('[DEBUG KEY H] Placed monster 14m in front of camera. Verdict:', probe.verdict);
+          this.hud.update({ objective: `DEBUG H: Monster placed at 14m (${probe.verdict.layer})` });
           break;
-        case 'KeyT':
-          this.timeScale = this.timeScale === 0.25 ? 1.0 : 0.25;
+        }
+        case 'KeyM': {
+          const forward = this.camera.getWorldDirection(new Vector3());
+          const targetX = this.camera.position.x + forward.x * 10.0;
+          const targetZ = this.camera.position.z + forward.z * 10.0;
+          const targetY = -0.9;
+          const id = `monster_${Date.now()}`;
+          const spawnPos = { x: targetX, y: targetY, z: targetZ };
+          this.monsters.addMonster({ id, variant: 'standard', spawn: spawnPos });
+          this.simWorld.addMonster({ id, variant: 'standard', spawn: spawnPos, spawnGrace: 2.0 }, 12345);
+          const probe = this.monsterProbe();
+          console.log('[DEBUG KEY M] Spawned monster at crosshair. Verdict:', probe.verdict);
+          this.hud.update({ objective: `DEBUG M: Spawned monster (${probe.verdict.layer})` });
           break;
-        case 'KeyY':
-          this.timeScale = this.timeScale === 4.0 ? 1.0 : 4.0;
+        }
+        case 'KeyJ': {
+          this.monstersFrozen = !this.monstersFrozen;
+          const probe = this.monsterProbe();
+          console.log(`[DEBUG KEY J] Monster freeze toggled to ${this.monstersFrozen}. Verdict:`, probe.verdict);
+          this.hud.update({ objective: `DEBUG J: Monster freeze ${this.monstersFrozen ? 'ON' : 'OFF'} (${probe.verdict.layer})` });
           break;
-        case 'KeyK':
+        }
+        case 'KeyK': {
           this.simWorld.monsters.length = 0;
           this.monsters.dispose();
-          this.hud.update({ objective: 'DEBUG: All monsters eliminated' });
+          const probe = this.monsterProbe();
+          console.log('[DEBUG KEY K] All monsters removed. Verdict:', probe.verdict);
+          this.hud.update({ objective: `DEBUG K: All monsters eliminated (${probe.verdict.layer})` });
           break;
-        case 'KeyM': {
-          const id = `monster_${Date.now()}`;
-          const spawnPos = { ...this.simWorld.player.getState().pos };
-          spawnPos.x += 6;
-          spawnPos.y = -0.9;
-          this.monsters.addMonster({ id, variant: 'standard', spawn: spawnPos });
-          this.simWorld.addMonster(
-            {
-              id,
-              variant: 'standard',
-              spawn: spawnPos,
-              spawnGrace: 2.0,
-            },
-            Math.floor(Math.random() * 1000),
-          );
-          this.hud.update({ objective: `DEBUG: Spawned monster ${id}` });
+        }
+        case 'KeyI': {
+          this.godMode = !this.godMode;
+          const probe = this.monsterProbe();
+          console.log(`[DEBUG KEY I] God mode: ${this.godMode}. Verdict:`, probe.verdict);
+          this.hud.update({ objective: `DEBUG I: God Mode ${this.godMode ? 'ON' : 'OFF'} (${probe.verdict.layer})` });
+          break;
+        }
+        case 'KeyN': {
+          this.showNavGrid = !this.showNavGrid;
+          this.toggleNavGridVisuals(this.showNavGrid);
+          const probe = this.monsterProbe();
+          console.log(`[DEBUG KEY N] NavGrid visuals: ${this.showNavGrid}. Verdict:`, probe.verdict);
+          this.hud.update({ objective: `DEBUG N: NavGrid ${this.showNavGrid ? 'ON' : 'OFF'} (${probe.verdict.layer})` });
+          break;
+        }
+        case 'KeyY': {
+          this.timeScale = this.timeScale === 4.0 ? 1.0 : 4.0;
+          const probe = this.monsterProbe();
+          console.log(`[DEBUG KEY Y] Time scale: ${this.timeScale}x. Verdict:`, probe.verdict);
+          this.hud.update({ objective: `DEBUG Y: Time scale ${this.timeScale}x (${probe.verdict.layer})` });
+          break;
+        }
+        case 'KeyT': {
+          this.timeScale = this.timeScale === 0.25 ? 1.0 : 0.25;
           break;
         }
         case 'KeyP': {
-          // Debug instant win / unlock exit
           this.exitUnlocked = true;
           this.hud.update({ objective: 'DEBUG: Exit unlocked instantly' });
           break;
@@ -2718,7 +2873,7 @@ export class GameSession {
       },
     };
 
-    const g = window as unknown as { __backsilence?: { sim?: unknown } };
+    const g = window as unknown as { __backsilence?: { sim?: unknown; monsterProbe?: () => unknown } };
     if (g.__backsilence) {
       try {
         g.__backsilence.sim = simApi;
@@ -2744,10 +2899,75 @@ export class GameSession {
       }
     }
 
-    if (this.simWorld.monsters.length === 0) return;
-    const primary = this.simWorld.monsters[0]!;
-    const path = primary.getCurrentPath();
+    if (this.simWorld.monsters.length === 0) {
+      if (this.magentaMarker) this.magentaMarker.visible = false;
+      if (this.locatorElement) this.locatorElement.style.display = 'none';
+      return;
+    }
 
+    const primary = this.simWorld.monsters[0]!;
+    const mPos = new Vector3(primary.pos.x, primary.pos.y, primary.pos.z);
+
+    // 1. Magenta Marker mesh at monster's sim position (depthTest: false)
+    if (!this.magentaMarker) {
+      const geo = new SphereGeometry(0.35, 12, 12);
+      const mat = new MeshBasicMaterial({
+        color: 0xff00ff,
+        depthTest: false,
+        transparent: true,
+        opacity: 0.9,
+      });
+      this.magentaMarker = new Mesh(geo, mat);
+      this.magentaMarker.renderOrder = 9999;
+      this.scene.add(this.magentaMarker);
+    }
+    this.magentaMarker.position.set(mPos.x, mPos.y + 0.8, mPos.z);
+    this.magentaMarker.visible = true;
+
+    // 2. Edge locator arrow in DOM
+    if (typeof document !== 'undefined') {
+      if (!this.locatorElement) {
+        const el = document.createElement('div');
+        el.id = 'bs-monster-locator';
+        el.style.position = 'fixed';
+        el.style.zIndex = '999999';
+        el.style.pointerEvents = 'none';
+        el.style.color = '#ff00ff';
+        el.style.fontFamily = 'monospace';
+        el.style.fontSize = '13px';
+        el.style.fontWeight = 'bold';
+        el.style.textShadow = '0 0 4px #000';
+        el.style.display = 'flex';
+        el.style.alignItems = 'center';
+        el.style.gap = '6px';
+        document.body.appendChild(el);
+        this.locatorElement = el;
+      }
+
+      const proj = mPos.clone().add(new Vector3(0, 1.0, 0)).project(this.camera);
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      let sx = (proj.x * 0.5 + 0.5) * w;
+      let sy = (-proj.y * 0.5 + 0.5) * h;
+      if (proj.z > 1.0) {
+        sx = w - sx;
+        sy = h - sy;
+      }
+      const pad = 40;
+      const clampedX = Math.max(pad, Math.min(w - pad, sx));
+      const clampedY = Math.max(pad, Math.min(h - pad, sy));
+      const angle = Math.atan2(sy - h / 2, sx - w / 2);
+      const dist = this.camera.position.distanceTo(mPos).toFixed(1);
+      const state = primary.state;
+      const l4Frac = this.lastCachedL4Fraction.toFixed(2);
+
+      this.locatorElement.style.left = `${clampedX - 30}px`;
+      this.locatorElement.style.top = `${clampedY - 10}px`;
+      this.locatorElement.innerHTML = `<span style="transform: rotate(${angle}rad); display: inline-block;">➤</span> <span>${dist}m [${state}] L4:${l4Frac}</span>`;
+      this.locatorElement.style.display = 'flex';
+    }
+
+    const path = primary.getCurrentPath();
     if (path.length > 1) {
       const points: number[] = [];
       for (const p of path) {
@@ -2769,6 +2989,20 @@ export class GameSession {
 
   dispose(): void {
     this.isDisposed = true;
+    if (this.magentaMarker) {
+      this.scene.remove(this.magentaMarker);
+      this.magentaMarker.geometry.dispose();
+      (this.magentaMarker.material as MeshBasicMaterial).dispose();
+      this.magentaMarker = null;
+    }
+    if (this.navGridMesh) {
+      this.scene.remove(this.navGridMesh);
+      this.navGridMesh = null;
+    }
+    if (this.locatorElement) {
+      this.locatorElement.remove();
+      this.locatorElement = null;
+    }
     for (const ring of this.hearingRings) {
       this.scene.remove(ring.line);
       ring.line.geometry.dispose();

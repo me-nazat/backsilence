@@ -1,50 +1,68 @@
-# Task List — Batch 3: The Five Maps, Scenarios & Multi-Stage Puzzles (50% → 75%)
+# Task List — BackSilence Monster Presence & Pacing System (Prompt 1 of 5)
 
-- [x] **Phase 1: Shared Contracts & Core Dynamic Sim Extensions**
-  - [x] Implement `src/world/MapTypes.ts` with pure `LayoutData`, `LayoutCtx`, `MapDefinition`, and `MapInstance`
-  - [x] Implement `src/sim/WaterLevelCycle.ts` (90s dynamic water cycle: 37s LOW, 8s RISE, 37s HIGH, 8s FALL)
-  - [x] Extend `GroundGrid.ts` with `DynamicTop` provider support and `computeDistToDryField`
-  - [x] Implement `src/sim/SinkingPlatformNode.ts` (7s stand threshold, 1.5s grace, 3s sink, 10s submerged, 4s rise)
-  - [x] Implement `src/sim/Projectile.ts` (pure ballistic integration, 0.2s..1.0s hold, water vs dry landing classification)
-  - [x] Extend `Hearing.ts` with `MaskZoneManager` (mask zones with 0.45 factor reduction)
-  - [x] Extend `MonsterBrain.ts` with stranded monster retreat at hunt speed and nav per level
+- [ ] **Phase A: Monster Presence Probe & Diagnostic Baseline**
+  - [ ] Implement `window.__backsilence.monsterProbe()` with L0–L5 metrics and verdict
+  - [ ] Implement on-screen debug aids (`?debug=1`): locator arrow, magenta sim marker, keys (`H`, `M`, `J`, `K`, `I`, `N`, `Y`)
+  - [ ] Create headless trace script `scripts/monster-trace.mjs`
+  - [ ] Run headless trace across all maps, quality tiers, and mobile (390x844) to generate `reports/monster/trace.json` and `reports/monster/trace.md`
+  - [ ] Evaluate the 16-point suspect checklist with evidence
+  - [ ] Record Decision D071 in `DECISIONS.md` and commit Phase A
 
-- [x] **Phase 2: Modular Geometry Kit & Procedural Textures**
-  - [x] Implement pure geometry builders: `ArchBuilder`, `ColonnadeBuilder`, `StairBuilder`, `PipeBuilder`, `CatwalkBuilder`, `ValveWheel`, `Keypad`, `BlastDoor`, `Generator`, `FilterDrum`, `Bell`, `Fountain`, `LightFixture`
-  - [x] Implement procedural textures: `ConcreteTexture` (tunnel & filtration variants), `RustMetalTexture`, `GrateTexture`, `MarbleTexture`, `BronzeTexture`, `AlgaeGlowMask`, `PaintedLabel`, `NumberDecals`
+- [ ] **Phase B: Layer-by-Layer Repair**
+  - [ ] Implement GLB loader hardening (0x46546C67 magic check, Content-Type, 8s timeout, instant procedural fallback)
+  - [ ] Add finite assertions (`Number.isFinite`) at sim-to-presentation boundaries
+  - [ ] Eliminate silent catch blocks in monster, water, and director code
+  - [ ] Correct fog culling distance rule based on active map fog density
+  - [ ] Set `frustumCulled = false` for skinned monster components
+  - [ ] Guarantee opaque render order and depth texture write
+  - [ ] Enforce ground grid height tracking with shoulders >= 0.35m above waterline
+  - [ ] Relax navigation clearance or choose largest water component for spawns
+  - [ ] Calibrate monster body scale and hunch dimensions
+  - [ ] Add regression tests for repaired defects
+  - [ ] Record Decision D072 in `DECISIONS.md` and commit Phase B
 
-- [x] **Phase 3: Multi-Stage Pure Puzzle State Machines**
-  - [x] `SequenceKeypadNode` (Map 1: 4-digit ordinal code, wrong code alarm 0.8, 20s lockout after 3 attempts)
-  - [x] `ValveSequenceNode` (Map 2: 3-valve sequence A/B/C, 4s hold, sustained noise, pressure surge reset, 5s gate)
-  - [x] `ResonanceSequenceNode` (Map 3: 4-note melody console, 4 bronze bells with 0.9 noise, dissonance reset)
-  - [x] `FuseCoresNode` (Map 4: 3 fuse cores, 8% sprint penalty per core, bay sockets, shutter door unlock)
-  - [x] `GeneratorGridNode` (Map 5: 3 generators, 6s prime, pull-start, solo 90s runtime, 5s concurrent run win condition)
-  - [x] `PuzzleSystem` (deterministic router, event dispatcher, serialize / hydrate support)
+- [ ] **Phase C: Experience & Pacing**
+  - [ ] Implement First Sight crossing rule (within 35s on Normal, $d = \sqrt{\ln(1/0.25)}/\text{density}$)
+  - [ ] Implement Emergence rule (2.5s slow rise in clear water if crossing blocked)
+  - [ ] Implement The Sleeper (dormant monster 22–32m from spawn with >= 8m silent path)
+  - [ ] Implement distance-driven presence cues (Kelvin V-wake, splash footprints, directional ambient far audio, tape flickers)
+  - [ ] Implement readable silhouette states (Listening, Alerted, Hunting, Investigating, Blocked, Lurking)
+  - [ ] Enforce pacing cadence (<= 90s between beats, 25–40s calm post close-call)
+  - [ ] Add per-map patrol graph validator (lane within 30m of silent route)
+  - [ ] Verify 600s silent dry test (zero attacks across 5 seeds) and record replay hash
+  - [ ] Record Decision D073 in `DECISIONS.md` and commit Phase C
 
-- [x] **Phase 4: Water Profiles, Audio Voices & Atmosphere**
-  - [x] Implement `WaterProfile.ts` and update `WaterMaterial.ts` with bioluminescent emission shader & murk
-  - [x] Synthesize machinery voices: `steam_hiss`, `pipe_groan`, `valve_turn`, `valve_release`, `water_inflow_loop`, `crank_loop`, `generator_loop`, `generator_cord`, `alarm_klaxon`, `shutter_rumble`, `socket_clunk`
-  - [x] Synthesize interactable & ambient voices: `bell`, `stone_creak`, `pebble_clack`, `flashlight_click`, `keypad_buzz`, `monster_ambient_far`, `escaped`
-  - [x] Synthesize per-map ambience beds: `ambience_tunnels`, `ambience_atrium`, `ambience_filtration`, `ambience_drain`
+- [ ] **Phase D: Attack Chain & Jumpscare**
+  - [ ] Verify and harden full attack chain in real browser
+  - [ ] Jumpscare camera alignment: head centered, jaw open, 0.8m distance
+  - [ ] Assert jumpscare mask >= 25% at 0.2s and 0.6s
+  - [ ] Verify < 1s retry with monster >= 60m away
+  - [ ] Record Decision D074 in `DECISIONS.md` and commit Phase D
 
-- [x] **Phase 5: The Five Procedural Maps**
-  - [x] Map 1: The Flooded Poolrooms (`PoolroomsMap.ts`) — 14-18 slabs, 4 ordinal code pillars + 5 decoys
-  - [x] Map 2: Sub-Aquatic Utility Tunnels (`UtilityTunnelsMap.ts`) — spine & ribs, catwalks, steam mask zones
-  - [x] Map 3: The Echoing Marble Atrium (`MarbleAtriumMap.ts`) — tiered atrium, sinking platforms, pebble lures
-  - [x] Map 4: The Hydro-Filtration Maze (`HydroMazeMap.ts`) — 9x9 maze, 90s water shift, 2 nav grids
-  - [x] Map 5: The Abyssal Drainage Core (`DrainageCoreMap.ts`) — concentric rings, darkness, flashlight, 3 monsters
+- [ ] **Phase E: Creature Visuals & Skin Architecture**
+  - [ ] Integrate dual-skin architecture (`ProceduralSkin` default, `GlbSkin` optional) with clean live swap
+  - [ ] Verify continuous SkinnedMesh procedural body (no joint cracks, wetness shader, 40% fog reduction, cool rim light)
+  - [ ] Verify foot-slide < 0.03 m/s in animation lab (`?lab=anim`)
+  - [ ] Document model attribution and fan IP disclaimer in `CREDITS.md` and `MODELS_SETUP.md`
+  - [ ] Record Decision D075 in `DECISIONS.md` and commit Phase E
 
-- [x] **Phase 6: Validation, Determinism & Headless Solvers**
-  - [x] `LayoutValidator.ts`: reachability validation across silent & wade edges for all 5 maps
-  - [x] `PuzzleSolver.ts`: headless programmatic solvers proving winnability for all 5 maps
-  - [x] `tests/maps.test.ts`: 50 seeds per map tested (100% pass, 0 retries, byte-identical hash determinism)
-  - [x] `tests/puzzles.test.ts`: unit tests for all puzzle nodes and headless solver table
-  - [x] `tests/mechanics.test.ts`: water cycles, nav per level, sinking platforms, projectiles, acoustic extras
+- [ ] **Phase F: Automated Acceptance Gates (M1 to M9)**
+  - [ ] M1: Cold start default map monster presence
+  - [ ] M2: Show-me key (H) mask >= 300px, visibleFraction >= 0.6
+  - [ ] M3: Silent 150s (10 seeds, sighted within 45s in >= 9, 0 attacks)
+  - [ ] M4: Noise to death attack chain & retry
+  - [ ] M5: All ten maps sighted within 90s
+  - [ ] M6: Ten retries without memory leaks
+  - [ ] M7: Pipelines (water on/off, 3 tiers)
+  - [ ] M8: Phone view (390x844 with 4x CPU throttle)
+  - [ ] M9: Broken models fallback recovery
+  - [ ] Record Decision D076 in `DECISIONS.md` and commit Phase F
 
-- [x] **Phase 7: UI, Verification & Walkthrough**
-  - [x] Dynamic Map Picker with thumbnail previews drawn from `LayoutData`
-  - [x] Keypad modal overlay, Results screen with `localStorage` persistence (`backsilence.progress.v1`)
-  - [x] Release hardening: seeded simulation IDs/puzzle streams/procedural text, plus lint enforcement against `Math.random()` in simulation and generation code
-  - [x] `npm run verify`: TypeScript, lint, 196 Vitest assertions, production build, zero-asset and gzip-budget audit
-  - [x] `npm run browser:acceptance`: desktop and mobile routing, lab/debug, local-tab lobby, keyboard focus, console/network policy, and service-worker offline reload evidence
-  - [x] Published text-only [WALKTHROUGH.md](WALKTHROUGH.md); generated screenshots remain external release artifacts
+- [ ] **Phase G: Permanent Guardrails & Audit**
+  - [ ] Implement runtime `MonsterWatchdog`
+  - [ ] Add ESLint rule preventing empty/log-only catch blocks in core code
+  - [ ] Add unit test suite injecting suspect failures
+  - [ ] Surface probe verdict in UI diagnostics copy button
+  - [ ] Update `ARCHITECTURE.md`, `ACOUSTIC_RULEBOOK.md`, `DECISIONS.md`
+  - [ ] Generate comprehensive review pack and screenshots
+  - [ ] Record Decision D077 in `DECISIONS.md` and commit Phase G

@@ -723,4 +723,29 @@ Establish `functions/api/[[route]].ts` as the canonical Cloudflare Pages Functio
    - In-world signage, terminal vector stroke fonts, and tape IDs strictly remain Latin and numeric, documented in `ARCHITECTURE.md`.
 **Reason:** Fulfills Prompt 4 Phase G requirements, providing high-performance, native zero-dependency internationalization across 15 global locales.
 
+### D071: Monster Presence Probe Architecture & Baseline Trace Diagnostics
+**Date:** 2026-10-25
+**Choice:**
+1. Multi-Layer Instrument (`src/game/monster/MonsterProbe.ts`):
+   - Implemented `MonsterProbe` exposing `window.__backsilence.monsterProbe()` returning a strictly structured diagnostic payload across layers L0 (sim), L1 (scene), L2 (camera), L3 (mask), L4 (final visible fraction & pass isolation), and L5 (motion) with an actionable `verdict`.
+   - L3 Mask Pass: Disables environmental geometry, swaps monster materials to flat magenta unlit (`MeshBasicMaterial({ color: 0xff00ff })`), renders to an offscreen render target, counts nonzero pixels, and computes the 2D screen bounding box.
+   - L4 Visible Fraction: Captures full frame with monster enabled, captures full frame with monster hidden, and computes `deltaDiffCount` where pixel difference exceeds $\pm 8/255$. When fraction $< 0.1$, decomposes visibility through pass isolation (water pass, fog, post chain).
+2. Diagnostic On-Screen Aids (`src/game/GameSession.ts`):
+   - Off-screen edge locator arrow with distance, state, and visible fraction metrics.
+   - High-visibility unlit magenta marker cube rendered at monster sim position with `depthTest: false`.
+   - Hotkeys: `H` (place monster 14m in front on water), `M` (spawn at crosshair), `J` (freeze toggle), `K` (remove), `I` (god mode toggle), `N` (nav grid visualizer), `Y` (4x sim time speedup).
+3. Automated Headless CDP Trace Runner (`scripts/monster-trace.mjs`):
+   - Executed across all 11 sectors/maps, 3 quality tiers (low, medium, high), and mobile viewport (390x844).
+   - Produced `reports/monster/trace.json`, `reports/monster/trace.md`, and 14 mask-annotated screenshots.
+4. Baseline Trace Evidence & Root Causes:
+   - Sector 1 (Orientation), Sector 2 (Natatorium), Sector 0 (Poolrooms), Sector 3 (Utility Tunnels), Sector 4 (Marble Atrium), Sector 7 (Hydro Maze), Sector 9 (Drowned Metro), Sector 10 (Drainage Core) failed at L4 (`visibleFraction: 0`).
+   - Sector 5 (Drowned School), Sector 6 (Sunken Jungle), Sector 8 (Neon Flood) passed L4 (`visibleFraction: 0.45 - 0.53`).
+   - Root Causes Identified:
+     a) Direct `?map=` URL bootstrap initialized simulation into `PLAYING` without dispatching UI state transition `ui.navigateTo('GAME')`, leaving the dark HTML `#menu` container occluding the canvas.
+     b) Player spawn orientations on narrow maps (e.g. Orientation `minZ: -20`) face boundary perimeter walls, so `H` placed the monster at the clamp wall boundary directly behind opaque solid tile geometry.
+     c) Deep pool depths submerged procedural knuckles and body beneath opaque murky water passes (transmittance $< 0.05$).
+     d) Pacing director favored `executeFarCall` audio cues and spawned dormant monsters at $40-45$m distances where fog transmittance is $< 0.04$.
+**Reason:** Complies with prompt operating rules: instrument first, zero guessing, baseline trace artifacts recorded before any monster/game code changes.
+
+
 

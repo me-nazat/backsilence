@@ -805,6 +805,21 @@ export function installDebugApi(options: DebugApiOptions = {}): void {
       const { waterSelfTest: runWaterTest } = await import('../game/water/WaterSystem.js');
       return runWaterTest();
     },
+    monsterProbe: () => {
+      const g = window as unknown as { __backsilence_session?: { monsterProbe?: () => unknown } };
+      if (g.__backsilence_session?.monsterProbe) {
+        return g.__backsilence_session.monsterProbe();
+      }
+      return {
+        verdict: { pass: false, layer: 'L0', reason: 'No active GameSession found on window.__backsilence_session', fields: {} },
+        L0: { pass: false, monsterCount: 0, monsters: [], ticksStepped5s: 0, navWalkableCellCount: 0, connectedComponentSize: 0 },
+        L1: { pass: false, hasRoot: false, rootVisible: false, ancestorsVisible: false, layerMask: 0, cameraMask: 0, scale: { x: 0, y: 0, z: 0 }, worldMatrixFinite: false, boundingSphere: { radius: 0, center: { x: 0, y: 0, z: 0 } }, frustumCulled: false, material: { visible: false, transparent: false, opacity: 1, depthTest: true, depthWrite: true, renderOrder: 0 }, activeSkin: 'none', skinLoadError: null, triangleCount: 0, childMeshCount: 0 },
+        L2: { pass: false, distanceToCamera: Infinity, inFrustum: false, signedAngleRad: 0, fogTransmittance: 0 },
+        L3: { pass: false, pixelCount: 0, boundingBox: { minX: 0, minY: 0, maxX: 0, maxY: 0, width: 0, height: 0 } },
+        L4: { pass: false, visibleFraction: 0, occludingStage: 'none' },
+        L5: { pass: false, metersMoved60s: 0, stateChangesCount: 0, timeSinceLastWaypoint: 0 },
+      };
+    },
     get sim() {
       if (simOverride) return simOverride;
       const g = window as unknown as { __backsilence_session?: { sim?: unknown; simWorld?: unknown } };

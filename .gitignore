@@ -6,6 +6,7 @@ dist/
 .DS_Store
 *.tsbuildinfo
 scratch/
-reports/
+reports/*
+!reports/monster/
 reference/out*
 reference/*.png
