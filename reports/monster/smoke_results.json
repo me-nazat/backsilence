@@ -1,7 +1,7 @@
 {
   "M1": {
     "pass": true,
-    "durationMs": 4682,
+    "durationMs": 3096,
     "details": {
       "probeVerdict": {
         "pass": true,
@@ -10,8 +10,8 @@
         "fields": {
           "monsterCount": 1,
           "distanceToCamera": 8.27,
-          "visibleFraction": 0.5695,
-          "pixelCount": 7256
+          "visibleFraction": 0.6108,
+          "pixelCount": 7348
         }
       },
       "screenshot": "/Users/nazat/Desktop/Desktop/antigravity/BackSilence/poolrooms/reports/monster/screenshots/smoke/m1_cold_start.png"
@@ -19,10 +19,10 @@
   },
   "M2": {
     "pass": true,
-    "durationMs": 1822,
+    "durationMs": 1621,
     "details": {
-      "maskPixels": 7208,
-      "visibleFraction": 0.6444,
+      "maskPixels": 7091,
+      "visibleFraction": 0.625,
       "screenshot": "/Users/nazat/Desktop/Desktop/antigravity/BackSilence/poolrooms/reports/monster/screenshots/smoke/m2_show_me.png"
     }
   },
@@ -78,76 +78,76 @@
   },
   "M4": {
     "pass": true,
-    "durationMs": 4957,
+    "durationMs": 4491,
     "details": {
-      "maskCoverage": 0.2693371913580247,
-      "retryDurationMs": 252,
+      "maskCoverage": 0.2647253086419753,
+      "retryDurationMs": 251,
       "monsterDistAfterRetry": 60.14
     }
   },
   "M5": {
     "pass": true,
-    "durationMs": 28858,
+    "durationMs": 24229,
     "details": {
       "mapCount": 10,
       "results": [
         {
           "mapId": "natatorium",
-          "maskPixels": 7285,
+          "maskPixels": 7171,
           "distance": 9.49,
           "pass": true
         },
         {
           "mapId": "poolrooms",
-          "maskPixels": 17060,
+          "maskPixels": 17068,
           "distance": 6.01,
           "pass": true
         },
         {
           "mapId": "drowned_school",
-          "maskPixels": 7465,
+          "maskPixels": 8088,
           "distance": 8.05,
           "pass": true
         },
         {
           "mapId": "utility_tunnels",
-          "maskPixels": 7383,
+          "maskPixels": 7417,
           "distance": 8.31,
           "pass": true
         },
         {
           "mapId": "sunken_jungle",
-          "maskPixels": 3256,
+          "maskPixels": 3220,
           "distance": 12.2,
           "pass": true
         },
         {
           "mapId": "marble_atrium",
-          "maskPixels": 6838,
+          "maskPixels": 6816,
           "distance": 8.32,
           "pass": true
         },
         {
           "mapId": "neon_flood",
-          "maskPixels": 9404,
+          "maskPixels": 9395,
           "distance": 8.27,
           "pass": true
         },
         {
           "mapId": "hydro_maze",
-          "maskPixels": 6972,
+          "maskPixels": 6955,
           "distance": 8.32,
           "pass": true
         },
         {
           "mapId": "drowned_metro",
-          "maskPixels": 2393,
+          "maskPixels": 2399,
           "distance": 14.28,
           "pass": true
         },
         {
           "mapId": "drainage_core",
-          "maskPixels": 9368,
+          "maskPixels": 9385,
           "distance": 8.27,
           "pass": true
         }
@@ -157,7 +157,7 @@
   },
   "M6": {
     "pass": true,
-    "durationMs": 13613,
+    "durationMs": 12889,
     "details": {
       "retriesCount": 10,
       "initGeom": 131,
@@ -166,36 +166,36 @@
   },
   "M7": {
     "pass": true,
-    "durationMs": 10014,
+    "durationMs": 8299,
     "details": [
       {
         "tier": "low",
-        "withWater": 17058,
-        "noWater": 17407
-      },
-      {
-        "tier": "medium",
-        "withWater": 16945,
+        "withWater": 17085,
         "noWater": 17664
       },
       {
+        "tier": "medium",
+        "withWater": 17085,
+        "noWater": 17665
+      },
+      {
         "tier": "high",
-        "withWater": 17131,
-        "noWater": 17790
+        "withWater": 17069,
+        "noWater": 17615
       }
     ]
   },
   "M8": {
     "pass": true,
-    "durationMs": 7327,
+    "durationMs": 4938,
     "details": {
-      "maskPixels": 15470,
+      "maskPixels": 15528,
       "screenshot": "/Users/nazat/Desktop/Desktop/antigravity/BackSilence/poolrooms/reports/monster/screenshots/smoke/m8_phone_view.png"
     }
   },
   "M9": {
     "pass": true,
-    "durationMs": 100,
+    "durationMs": 50,
     "details": [
       {
         "test": "missing",

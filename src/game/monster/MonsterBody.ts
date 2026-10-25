@@ -51,6 +51,9 @@ export class MonsterBody {
   private lastGoodYaw = 0;
   private hasLoggedNonFinite = false;
 
+  readonly scale: number;
+  readonly tint: string;
+
   constructor(
     id: string,
     scale = 1.0,
@@ -59,6 +62,8 @@ export class MonsterBody {
     audio?: AudioEngine,
   ) {
     this.id = id;
+    this.scale = scale;
+    this.tint = tint;
     this.mesh = new MonsterMeshHierarchy(scale, tint);
     this.water = water;
     this.audio = audio;
@@ -299,6 +304,36 @@ export class MonsterBody {
       this.mesh.root.visible = false;
     } else {
       this.mesh.root.visible = true;
+    }
+  }
+
+  reloadProceduralSkin(): void {
+    try {
+      while (this.mesh.root.children.length > 0) {
+        const child = this.mesh.root.children[0]!;
+        this.mesh.root.remove(child);
+      }
+      this.mesh.dispose();
+
+      const fresh = new MonsterMeshHierarchy(this.scale, this.tint);
+      while (fresh.root.children.length > 0) {
+        const child = fresh.root.children[0]!;
+        fresh.root.remove(child);
+        this.mesh.root.add(child);
+      }
+      (this.mesh as { joints: unknown }).joints = fresh.joints;
+      (this.mesh as { lod0: unknown }).lod0 = fresh.lod0;
+      (this.mesh as { lod1: unknown }).lod1 = fresh.lod1;
+
+      this.mesh.root.position.copy(this.lastGoodPos);
+      this.mesh.root.rotation.y = this.lastGoodYaw;
+      this.mesh.root.scale.set(this.scale, this.scale, this.scale);
+      this.mesh.root.visible = true;
+      this.skinError = null;
+      this.updateErrorCount = 0;
+      this.lastUpdateError = null;
+    } catch (err: unknown) {
+      console.error(`[MonsterBody] Failed to reload procedural skin for ${this.id}:`, err);
     }
   }
 

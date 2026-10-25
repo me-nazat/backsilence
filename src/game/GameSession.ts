@@ -33,6 +33,7 @@ import {
   Euler,
 } from 'three';
 import { runMonsterProbe, type MonsterProbeResult } from './monster/MonsterProbe.js';
+import { MonsterWatchdog } from './monster/MonsterWatchdog.js';
 import { EngineRenderer } from '../engine/Renderer.js';
 import { PostFX } from '../engine/PostFX.js';
 import { resolveQualityTier } from '../engine/Quality.js';
@@ -231,6 +232,7 @@ export class GameSession {
     stateChangesCount: 0,
     timeSinceLastWaypoint: 0,
   };
+  readonly monsterWatchdog = new MonsterWatchdog();
   private readonly monsterHistory: Array<{ t: number; x: number; z: number }> = [];
   private lastMonsterState = '';
   private readonly container: HTMLElement;
@@ -1635,6 +1637,16 @@ export class GameSession {
       currSnap.pos,
     );
 
+    // 5b. Monster Watchdog Runtime Guardrail (seamless recovery on invisible/non-finite state)
+    this.monsterWatchdog.update(
+      dt,
+      this.camera,
+      this.simWorld,
+      this.monsters,
+      this.scene,
+      this.mapDef?.atmosphere?.fog?.density ?? 0.045,
+    );
+
     this.simTicksTimer += dt;
     if (this.simTicksTimer >= 5.0) {
       this.simTicksTimer = 0;
@@ -2887,7 +2899,7 @@ export class GameSession {
             m.vel.y = 0;
             m.vel.z = 0;
             m.yaw = monsterYaw;
-            m.forceState('WANDER');
+            m.forceState('DORMANT', { stateTimer: 4.0 });
             const body = this.monsters.getBody(m.id);
             if (body) {
               body.fogDensity = this.mapDef.atmosphere.fog.density;
@@ -2901,7 +2913,8 @@ export class GameSession {
             const body = this.monsters.addMonster({ id, variant: 'standard', spawn: spawnPos });
             body.fogDensity = this.mapDef.atmosphere.fog.density;
             body.mesh.root.rotation.y = monsterYaw;
-            this.simWorld.addMonster({ id, variant: 'standard', spawn: spawnPos, spawnGrace: 0.0 }, 12345);
+            const newM = this.simWorld.addMonster({ id, variant: 'standard', spawn: spawnPos, spawnGrace: 0.0 }, 12345);
+            newM.forceState('DORMANT', { stateTimer: 4.0 });
           }
 
           // Aim player and camera directly at the placed monster

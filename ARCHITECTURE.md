@@ -168,11 +168,31 @@ To ensure deterministic 60 Hz physics, zero-DOM headless simulation testing, and
 1. **Perception**: Completely blind. Senses exclusively via `NoiseEvent`s exceeding threshold through `Hearing.ts` and physical touch collision (`TOUCH_RANGE = 0.9 m`).
 2. **Clearance Navigation**: Navigation cells require `depth >= 0.45 m` and `distToDry > 1.2 m`. Trenches $\le 2.4\text{m}$ wide are impassable, triggering `BLOCKED` state.
 3. **Procedural Body & IK**: Procedural organic flesh mesh with 14-vertebra instanced spine cones, elongated skull, moving jaw with teeth, animated ear-fins, and analytic two-bone law-of-cosines IK for knuckles and feet. Zero external `.glb` models.
+4. **L0-L5 Presence Probe (`src/game/monster/MonsterProbe.ts`)**:
+   - Multi-layer diagnostic probe evaluating monster existence and presentation without guesswork:
+     - **L0 (Sim Layer)**: Finiteness of positions, velocity, speed multiplier, hearing multiplier, path validity, and connected component size.
+     - **L1 (Scene Graph Layer)**: Root existence, hierarchical visibility, finite world matrices, non-zero scale, child meshes, and triangle counts.
+     - **L2 (Camera Layer)**: Frustum containment (via up-to-date camera matrices), distance to camera, view angle, and Beer-Lambert fog transmittance.
+     - **L3 (Silhouette Mask Pass Layer)**: Hardware offscreen unlit render target rasterization; measures true silhouette coverage and screen bounding box.
+     - **L4 (Full Frame Delta Layer)**: Dual-frame subtraction (Frame A with monster shown vs Frame B with monster hidden); measures exact visible screen fraction and isolates occluding passes (water/fog/post).
+5. **Runtime Monster Watchdog (`src/game/monster/MonsterWatchdog.ts`)**:
+   - Continuous runtime guardrail active in both debug and production.
+   - Monitors each monster within 45m of the camera, inside the view frustum, and having fog transmittance $\ge 0.05$.
+   - If presentation or sim reports invisible (`root.visible === false`), empty mesh hierarchy (`children.length === 0`), non-finite values, skin load error, or continuous update exceptions for $\ge 3.0$ seconds:
+     - Resets visibility and finite scale.
+     - Reloads procedural skin hierarchy (`body.reloadProceduralSkin()`) cleanly without modifying scene graph attachments.
+     - Logs the incident into an in-memory ring buffer (max 32 entries) and surfaces summary data to `ErrorBoundary.generateDiagnostics()`.
+     - Completely seamless for the player: zero gameplay freezes, no popups, zero frame drops.
+6. **Dual-Skin Pipeline & Safe Fallback**:
+   - `creatures.waterMonsterSkin: 'auto' | 'model' | 'procedural'`.
+   - `validateAndFetchGlb()` enforces 8s timeout, checks HTTP status, Content-Type against HTML/JSON, and validates `glTF` magic bytes (`0x46546C67`).
+   - If GLB fetch fails or is rejected, immediately falls back to procedural skinned hierarchy with zero thrown errors.
 
 ---
 
 ### Internationalization & In-World Lettering Architecture
 1. **Engine Architecture**: UI text, menus, navigation screens, toasts, announcements, and subtitles are fully localized across 15 launch locales (including Arabic RTL and pseudo-locales) using `src/i18n/I18n.ts` and native ECMAScript `Intl` APIs (`PluralRules`, `NumberFormat`, `DateTimeFormat`, `RelativeTimeFormat`, `ListFormat`).
 2. **In-World Lettering**: In-world lettering (stenciled wall signage, sector codes, tape cartridge serials, and vector CRT terminal stroke fonts) remains strictly Latin and numeric. This is an intentional architectural and art direction decision: the procedural vector stroke font generator is mathematically calibrated for high-speed hardware line drawing of ASCII alphanumerics, preserving the dry 1994 municipal archive aesthetic across all active locales without bloating the zero-dependency runtime.
+
 
 

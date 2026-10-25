@@ -103,11 +103,39 @@ export const ErrorBoundary = {
   },
 
   generateDiagnostics(): string {
+    let probeVerdict: unknown = null;
+    let watchdogSummary: unknown = null;
+
+    if (typeof window !== 'undefined') {
+      const bs = (window as unknown as { __backsilence?: { monsterProbe?: () => unknown } }).__backsilence;
+      if (typeof bs?.monsterProbe === 'function') {
+        try {
+          const res = bs.monsterProbe() as { verdict?: unknown };
+          probeVerdict = res?.verdict ?? res;
+        } catch (err: unknown) {
+          probeVerdict = { error: err instanceof Error ? err.message : String(err) };
+        }
+      }
+      const session = (window as unknown as { __backsilence_session?: { monsterWatchdog?: { getRecentSummary?: () => string; getIncidents?: () => unknown } } }).__backsilence_session;
+      if (session?.monsterWatchdog) {
+        try {
+          watchdogSummary = {
+            summary: session.monsterWatchdog.getRecentSummary?.(),
+            incidents: session.monsterWatchdog.getIncidents?.(),
+          };
+        } catch (err: unknown) {
+          watchdogSummary = { error: err instanceof Error ? err.message : String(err) };
+        }
+      }
+    }
+
     const data = {
       timestamp: new Date().toISOString(),
       url: typeof window !== 'undefined' ? window.location.href : 'n/a',
       userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'n/a',
       screen: typeof window !== 'undefined' ? `${window.innerWidth}x${window.innerHeight} (dpr: ${window.devicePixelRatio})` : 'n/a',
+      probeVerdict,
+      watchdog: watchdogSummary,
       errors: ringBuffer,
     };
     return JSON.stringify(data, null, 2);

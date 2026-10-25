@@ -241,6 +241,8 @@ export class MonsterBrain {
     },
   ): void {
     this.state = state;
+    this.currentPath = [];
+    this.currentPathIndex = 0;
     if (options?.stateTimer !== undefined) this.stateTimer = options.stateTimer;
     if (options?.investigatePhase !== undefined) this.investigatePhase = options.investigatePhase;
     if (options?.searchTimer !== undefined) this.searchTimer = options.searchTimer;

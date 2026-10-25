@@ -847,6 +847,26 @@ Establish `functions/api/[[route]].ts` as the canonical Cloudflare Pages Functio
    - Solved `drowned_school` water coverage by setting flooded floor to -0.50m and opening doorway between gym and eastern hallway corridor.
 **Reason:** Fulfills Phase F gate requirements with strict empirical validation and reports saved in `reports/monster/smoke_results.json` and `reports/monster/m5_ten_maps.json`.
 
+### D077: Runtime Monster Watchdog, ESLint Guardrails, and Diagnostics Payload
+**Date:** 2026-10-25
+**Choice:**
+1. Runtime Monster Watchdog (`src/game/monster/MonsterWatchdog.ts`):
+   - Added continuous runtime monitor operating in both debug and production.
+   - Monitors all monsters within 45m of the camera with fog transmittance $\ge 0.05$ and in view frustum.
+   - On persistent anomaly (invisible root, empty mesh hierarchy, scale zero, non-finite coordinates, or skin load error) lasting $\ge 3.0$ seconds:
+     - Automatically resets visibility and finite scale.
+     - Invokes `body.reloadProceduralSkin()` to cleanly rebuild procedural mesh and bone hierarchy without scene graph detachment.
+     - Logs the incident to a local in-memory ring buffer (max 32 entries) and provides graceful, seamless player recovery with zero freezes or crashes.
+2. ESLint Static Analysis Rule (`eslint.config.js`):
+   - Enforced `'no-empty': ['error', { allowEmptyCatch: false }]` across all files in `src/game/**`, `src/sim/**`, and `src/world/**`.
+   - Disallows empty catch blocks or catch blocks that silently suppress errors.
+3. Diagnostics Payload (`src/engine/ErrorBoundary.ts`):
+   - Extended `generateDiagnostics()` to query and embed active `probeVerdict` (L0-L5 probe layer status, pixel count, visible fraction) and `watchdog` summary and incidents.
+4. Guardrail Unit Test Suite (`tests/monster-guardrails.test.ts`):
+   - 5 unit tests validating: (1) sim-level NaN recovery, (2) empty LOD / cleared hierarchy recovery after 3s, (3) presentation update exception recovery, (4) HTML 200 model rejection with procedural fallback, (5) root visibility restoration in sight cone.
+**Reason:** Fulfills Phase G requirements ensuring permanent, un-bypassable resilience and diagnostic observability.
+
+
 
 
 

@@ -78,10 +78,12 @@ The dread comes from **silence and fog**, not gore. Every sound the player makes
 
 ---
 
-## Ambient Fauna Contract (`ambient_fauna`)
+## Ambient Fauna & Environmental Disturbance Contract
 
-- **Category:** `ambient_fauna` (e.g. the 5 overhead flying skulls, drifting moths, surface water bugs).
+- **Category:** `ambient_fauna` (e.g. overhead flying skulls, drifting moths, surface water bugs, ambient bats).
 - **Acoustic Rule:** Ambient fauna **never** create `NoiseEvent`s, never alert monsters, never collide with or damage players, never trigger jumpscares, and never register on the sound visualizer / HUD feed.
-- **Visuals:** Surface skim-ripples created by ambient fauna are flagged `cosmetic: true` and strictly ignored by all simulation hearing and monster perception systems.
-- **Audio:** Voices associated with ambient fauna (`wisp_wail`, `wisp_wingbeat`) are routed exclusively to the non-diegetic atmospheric audio sub-bus and are inaudible to monsters.
+- **Visuals & Ripples:** Surface skim-ripples created by ambient fauna, rain drops, ceiling drips, and condensation ripples are purely cosmetic (`cosmetic: true` / non-player source) and are strictly ignored by all simulation hearing and monster perception systems.
+- **Audio Routing:** Voices and fluttering associated with ambient fauna (`wisp_wail`, `wisp_wingbeat`) are routed exclusively to the non-diegetic atmospheric audio sub-bus and are inaudible to monsters.
+- **Strict Rule:** Only deliberate or reckless player actions (sprinting, jumping, un-crouched wading, door slamming, pebble impacts, megaphone shouting, locker banging) produce `NoiseEvent`s that alert the monster.
+
 

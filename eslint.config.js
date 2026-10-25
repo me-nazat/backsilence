@@ -29,6 +29,12 @@ export default tseslint.config(
     ignores: ['dist/**', 'node_modules/**', 'scripts/**', 'scratch/**', 'public/**'],
   },
   {
+    files: ['src/game/**', 'src/sim/**', 'src/world/**'],
+    rules: {
+      'no-empty': ['error', { allowEmptyCatch: false }],
+    },
+  },
+  {
     files: ['src/sim/**'],
     rules: {
       'no-restricted-properties': [

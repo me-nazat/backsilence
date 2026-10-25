@@ -140,11 +140,12 @@ export class MonsterMeshHierarchy {
           gl_FragColor.rgb = mix( gl_FragColor.rgb, fogColor, fogFactor );
         #endif
 
-        // Faint cool rim light (spectral backscatter)
+        // Silhouette readability lift (subsurface backscatter) + cool rim
         vec3 viewDir = normalize(vViewPosition);
         float rim = 1.0 - max(0.0, dot(vNormal, viewDir));
-        vec3 coolRim = vec3(0.18, 0.52, 0.62) * pow(rim, 3.5) * 0.38;
-        gl_FragColor.rgb += coolRim;
+        vec3 coolRim = vec3(0.22, 0.56, 0.68) * pow(rim, 2.4) * 0.55;
+        vec3 subsurfaceLift = vec3(0.065, 0.045, 0.038);
+        gl_FragColor.rgb += coolRim + subsurfaceLift;
         `,
       );
     };
