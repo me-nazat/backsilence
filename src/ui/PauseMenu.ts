@@ -126,6 +126,12 @@ export class PauseMenu {
             <label for="pause-quick-captions" style="cursor: pointer;">Sound Captions:</label>
             <input type="checkbox" id="pause-quick-captions" style="accent-color: var(--water, #86cfa0); cursor: pointer;" />
           </div>
+
+          <!-- Minimal HUD -->
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <label for="pause-quick-minimalhud" style="cursor: pointer;">Minimal HUD:</label>
+            <input type="checkbox" id="pause-quick-minimalhud" style="accent-color: var(--water, #86cfa0); cursor: pointer;" />
+          </div>
         </div>
 
         <!-- 3. Navigation & Actions -->
@@ -212,6 +218,19 @@ export class PauseMenu {
       const s = loadSettings();
       s.audio.soundVisualizer = checked;
       saveSettings(s);
+    });
+
+    const minimalHudInput = this.el.querySelector<HTMLInputElement>('#pause-quick-minimalhud');
+    minimalHudInput?.addEventListener('change', () => {
+      const checked = minimalHudInput.checked;
+      const s = loadSettings();
+      s.accessibility.minimalHud = checked;
+      saveSettings(s);
+      const hudEl = document.querySelector('#hud-overlay');
+      if (hudEl) {
+        if (checked) hudEl.classList.add('minimal-hud');
+        else hudEl.classList.remove('minimal-hud');
+      }
     });
 
     this.el.querySelector('#pause-btn-settings')?.addEventListener('click', () => {
@@ -301,6 +320,11 @@ export class PauseMenu {
     const captionsInput = this.el.querySelector<HTMLInputElement>('#pause-quick-captions');
     if (captionsInput) {
       captionsInput.checked = Boolean(s.audio.soundVisualizer);
+    }
+
+    const minimalHudInput = this.el.querySelector<HTMLInputElement>('#pause-quick-minimalhud');
+    if (minimalHudInput) {
+      minimalHudInput.checked = Boolean(s.accessibility?.minimalHud);
     }
   }
 

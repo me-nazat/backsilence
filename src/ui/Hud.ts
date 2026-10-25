@@ -80,21 +80,39 @@ export interface HudData {
   boardingCountdown?: number | null;
   bottleCount?: number | null;
   pointerLockHint?: boolean | undefined;
+
+  // Phase E Clarity of the Screen
+  riskTag?: 'QUIET' | 'LOUD' | 'TIMED' | 'ESCAPE' | null;
+  promptHoldProgress?: number | null; // 0..1
+  waterNoiseRadius?: number | null;
+  minimalHud?: boolean;
+  uiScale?: number;
 }
 
 export class Hud {
   private el: HTMLElement | null = null;
   private noiseBarEl: HTMLElement | null = null;
   private noiseIconEl: HTMLElement | null = null;
+  private noiseRadiusLabelEl: HTMLElement | null = null;
+  private waterRadiusRingEl: SVGElement | null = null;
   private staminaBarEl: HTMLElement | null = null;
   private statusChipEl: HTMLElement | null = null;
   private objectiveEl: HTMLElement | null = null;
+  private riskTagEl: HTMLElement | null = null;
   private promptEl: HTMLElement | null = null;
+  private promptRingSvgEl: SVGElement | null = null;
+  private promptRingFillEl: SVGElement | null = null;
+  private promptTextEl: HTMLElement | null = null;
   private notebookEl: HTMLElement | null = null;
   private captionEl: HTMLElement | null = null;
   private vignetteEl: HTMLElement | null = null;
   private vhsOsdEl: HTMLElement | null = null;
   private pointerLockHintEl: HTMLElement | null = null;
+  private nearMissEl: HTMLElement | null = null;
+  private screenReaderLiveEl: HTMLElement | null = null;
+  private nearMissTimeout: ReturnType<typeof setTimeout> | null = null;
+  private lastAnnouncedStatus = '';
+  private lastAnnouncedObjective = '';
 
   // Batch 3 Elements
   private inventoryEl: HTMLElement | null = null;
@@ -140,6 +158,53 @@ export class Hud {
     this.onSpectatorFreeRoamCallback = cbs.onToggleFreeRoam;
   }
 
+  setMinimalHud(minimal: boolean): void {
+    if (!this.el) return;
+    if (minimal) {
+      this.el.classList.add('minimal-hud');
+    } else {
+      this.el.classList.remove('minimal-hud');
+    }
+  }
+
+  setUiScale(scale: number): void {
+    if (!this.el) return;
+    this.el.style.setProperty('--hud-scale', String(scale));
+  }
+
+  showNearMiss(distanceM: number): void {
+    if (!this.el) return;
+    const el = this.nearMissEl;
+    if (!el) return;
+
+    el.textContent = `[ CLOSE CALL — ${distanceM.toFixed(1)} m ]`;
+    el.style.display = 'block';
+    el.style.opacity = '1';
+
+    this.announceToScreenReader(`Warning: Monster close call, ${distanceM.toFixed(1)} meters away.`);
+
+    if (this.nearMissTimeout !== null) {
+      clearTimeout(this.nearMissTimeout);
+    }
+    this.nearMissTimeout = setTimeout(() => {
+      if (el) {
+        el.style.opacity = '0';
+        setTimeout(() => {
+          if (el) el.style.display = 'none';
+        }, 250);
+      }
+      this.nearMissTimeout = null;
+    }, 2000);
+  }
+
+  private announceToScreenReader(message: string): void {
+    if (!this.el) return;
+    const liveEl = this.screenReaderLiveEl;
+    if (liveEl) {
+      liveEl.textContent = message;
+    }
+  }
+
   mount(container: HTMLElement): void {
     const el = document.createElement('div');
     el.id = 'hud-overlay';
@@ -152,9 +217,47 @@ export class Hud {
       user-select: none;
       font-family: monospace;
       color: var(--fog, #d9d3a2);
+      --hud-scale: 1.0;
     `;
 
     el.innerHTML = `
+      <style>
+        .bs-hud {
+          --hud-scale: 1.0;
+        }
+        .bs-hud.minimal-hud #hud-vhs-osd,
+        .bs-hud.minimal-hud #hud-notebook-container,
+        .bs-hud.minimal-hud #hud-roster,
+        .bs-hud.minimal-hud #hud-level-shift,
+        .bs-hud.minimal-hud #hud-school-status,
+        .bs-hud.minimal-hud #hud-jungle-status,
+        .bs-hud.minimal-hud #hud-neon-status,
+        .bs-hud.minimal-hud #hud-metro-status {
+          display: none !important;
+        }
+        @media (max-width: 480px) {
+          #hud-objective-container {
+            max-width: calc(100vw - 32px) !important;
+          }
+          #hud-objective {
+            font-size: 11px !important;
+          }
+        }
+      </style>
+
+      <!-- Screen Reader Off-screen Live Region -->
+      <div id="hud-screen-reader-live" aria-live="polite" aria-atomic="true" style="
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+      "></div>
+
       <!-- Red / Jumpscare Damage Vignette -->
       <div id="hud-vignette" style="
         position: absolute;
@@ -172,6 +275,27 @@ export class Hud {
         opacity: 0;
         transition: opacity 0.3s ease-in-out;
         pointer-events: none;
+      "></div>
+
+      <!-- Near-Miss Alert ("CLOSE, 1.8 m") -->
+      <div id="hud-near-miss" style="
+        position: absolute;
+        top: max(72px, calc(env(safe-area-inset-top, 20px) + 52px));
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 13px;
+        font-weight: bold;
+        color: #ffb300;
+        background: rgba(8, 6, 3, 0.94);
+        border: 1.5px solid #ffb300;
+        box-shadow: 0 0 16px rgba(255, 179, 0, 0.6);
+        padding: 6px 16px;
+        border-radius: 4px;
+        letter-spacing: 0.12em;
+        display: none;
+        pointer-events: none;
+        transition: opacity 0.25s ease;
+        z-index: 200;
       "></div>
 
       <!-- Center Crosshair and Directional Arc Ring -->
@@ -202,38 +326,58 @@ export class Hud {
         </svg>
       </div>
 
-      <!-- Interaction Prompt -->
+      <!-- Interaction Prompt with Circular Hold Ring -->
       <div id="hud-prompt" style="
         position: absolute;
         top: 55%;
         left: 50%;
         transform: translateX(-50%);
-        font-size: 13px;
+        font-size: 14px;
+        font-weight: bold;
         color: var(--water, #86cfa0);
-        background: rgba(13, 11, 6, 0.75);
-        padding: 4px 10px;
-        border: 1px solid rgba(134,207,160,0.3);
-        border-radius: 3px;
+        background: rgba(8, 6, 3, 0.92);
+        padding: 6px 14px;
+        border: 1px solid rgba(134,207,160,0.4);
+        border-radius: 20px;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.8);
         display: none;
-      "></div>
+        align-items: center;
+        gap: 8px;
+        white-space: nowrap;
+      ">
+        <svg id="hud-prompt-ring" width="22" height="22" viewBox="0 0 24 24" style="display: none; flex-shrink: 0;">
+          <circle cx="12" cy="12" r="10" stroke="rgba(217,211,162,0.2)" stroke-width="2.5" fill="none"/>
+          <circle id="hud-prompt-ring-fill" cx="12" cy="12" r="10" stroke="#00e5ff" stroke-width="2.5" fill="none"
+            stroke-dasharray="62.83" stroke-dashoffset="62.83" stroke-linecap="round" transform="rotate(-90 12 12)"/>
+        </svg>
+        <span id="hud-prompt-text"></span>
+      </div>
 
       <!-- VHS OSD Elements -->
       <div id="hud-vhs-osd" style="display: block;">
-        <div style="position: absolute; top: 24px; left: 24px; font-size: 13px; letter-spacing: 0.1em; display: flex; align-items: center; gap: 8px;">
+        <div style="position: absolute; top: max(20px, env(safe-area-inset-top, 20px)); left: max(20px, env(safe-area-inset-left, 20px)); font-size: 13px; letter-spacing: 0.1em; display: flex; align-items: center; gap: 8px; background: rgba(8,6,3,0.7); padding: 3px 8px; border-radius: 3px;">
           <span id="vhs-rec-dot" style="color: var(--danger, #b3261e); font-size: 16px;">●</span>
           <span id="vhs-rec-label">REC</span>
           <span id="vhs-timestamp" style="margin-left: 8px; opacity: 0.85;">AUG 14 1998  00:12:44</span>
         </div>
-        <div style="position: absolute; top: 24px; right: 24px; font-size: 12px; opacity: 0.75; letter-spacing: 0.1em;">
+        <div style="position: absolute; top: max(20px, env(safe-area-inset-top, 20px)); right: max(20px, env(safe-area-inset-right, 20px)); font-size: 12px; opacity: 0.85; letter-spacing: 0.1em; background: rgba(8,6,3,0.7); padding: 3px 8px; border-radius: 3px;">
           SP [■■■□] · BACKSILENCE
         </div>
-        <div id="vhs-play-mode" style="position: absolute; bottom: 24px; left: 24px; font-size: 12px; opacity: 0.75; letter-spacing: 0.1em;">
+        <div id="vhs-play-mode" style="position: absolute; bottom: max(24px, env(safe-area-inset-bottom, 24px)); left: max(20px, env(safe-area-inset-left, 20px)); font-size: 12px; opacity: 0.85; letter-spacing: 0.1em; background: rgba(8,6,3,0.7); padding: 3px 8px; border-radius: 3px;">
           PLAY ▶
         </div>
       </div>
 
       <!-- Top-Right Notebook Sequence Strip -->
-      <div id="hud-notebook-container" style="position: absolute; top: 56px; right: 24px; display: none; flex-direction: column; align-items: flex-end; gap: 4px;">
+      <div id="hud-notebook-container" style="
+        position: absolute;
+        top: max(56px, calc(env(safe-area-inset-top, 20px) + 36px));
+        right: max(20px, env(safe-area-inset-right, 20px));
+        display: none;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 4px;
+      ">
         <div style="font-size: 10px; opacity: 0.6; letter-spacing: 0.1em;">PILLAR SEQUENCE</div>
         <div id="hud-notebook" style="
           background: #080603;
@@ -250,8 +394,8 @@ export class Hud {
       <!-- Top-Right Level Shift Timer (Map 4) -->
       <div id="hud-level-shift" style="
         position: absolute;
-        top: 56px;
-        right: 24px;
+        top: max(56px, calc(env(safe-area-inset-top, 20px) + 36px));
+        right: max(20px, env(safe-area-inset-right, 20px));
         display: none;
         flex-direction: column;
         align-items: flex-end;
@@ -270,8 +414,8 @@ export class Hud {
       <!-- Top-Right Generator Status (Map 5) -->
       <div id="hud-generator-status" style="
         position: absolute;
-        top: 56px;
-        right: 24px;
+        top: max(56px, calc(env(safe-area-inset-top, 20px) + 36px));
+        right: max(20px, env(safe-area-inset-right, 20px));
         display: none;
         flex-direction: column;
         align-items: flex-end;
@@ -293,8 +437,8 @@ export class Hud {
       <!-- Top-Right Schoolhouse Status -->
       <div id="hud-school-status" style="
         position: absolute;
-        top: 56px;
-        right: 24px;
+        top: max(56px, calc(env(safe-area-inset-top, 20px) + 36px));
+        right: max(20px, env(safe-area-inset-right, 20px));
         display: none;
         flex-direction: column;
         align-items: flex-end;
@@ -316,8 +460,8 @@ export class Hud {
       <!-- Top-Right Jungle Status -->
       <div id="hud-jungle-status" style="
         position: absolute;
-        top: 56px;
-        right: 24px;
+        top: max(56px, calc(env(safe-area-inset-top, 20px) + 36px));
+        right: max(20px, env(safe-area-inset-right, 20px));
         display: none;
         flex-direction: column;
         align-items: flex-end;
@@ -342,8 +486,8 @@ export class Hud {
       <!-- Top-Right Neon Flood District Status -->
       <div id="hud-neon-status" style="
         position: absolute;
-        top: 56px;
-        right: 24px;
+        top: max(56px, calc(env(safe-area-inset-top, 20px) + 36px));
+        right: max(20px, env(safe-area-inset-right, 20px));
         display: none;
         flex-direction: column;
         align-items: flex-end;
@@ -368,8 +512,8 @@ export class Hud {
       <!-- Top-Right Metro Status -->
       <div id="hud-metro-status" style="
         position: absolute;
-        top: 56px;
-        right: 24px;
+        top: max(56px, calc(env(safe-area-inset-top, 20px) + 36px));
+        right: max(20px, env(safe-area-inset-right, 20px));
         display: none;
         flex-direction: column;
         align-items: flex-end;
@@ -391,26 +535,48 @@ export class Hud {
         </div>
       </div>
 
-      <!-- Top-Center Objective Line -->
-      <div id="hud-objective" style="
+      <!-- Top-Center Objective Line with Risk Tag -->
+      <div id="hud-objective-container" style="
         position: absolute;
-        top: 24px;
+        top: max(20px, env(safe-area-inset-top, 20px));
         left: 50%;
         transform: translateX(-50%);
-        font-size: 12px;
-        background: rgba(13, 11, 6, 0.7);
-        border: 1px solid rgba(217, 211, 162, 0.2);
-        padding: 5px 14px;
-        border-radius: 12px;
-        color: var(--fog, #d9d3a2);
-        letter-spacing: 0.05em;
-        white-space: nowrap;
-      ">Find the numbered pillars. Avoid making splashes.</div>
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(8, 6, 3, 0.92);
+        border: 1px solid rgba(217, 211, 162, 0.35);
+        padding: 6px 14px;
+        border-radius: 16px;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.7);
+        max-width: min(92vw, 480px);
+        box-sizing: border-box;
+      ">
+        <span id="hud-risk-tag" style="
+          font-size: 10px;
+          font-weight: bold;
+          padding: 2px 6px;
+          border-radius: 3px;
+          background: rgba(0, 229, 255, 0.15);
+          border: 1px solid #00e5ff;
+          color: #00e5ff;
+          letter-spacing: 0.1em;
+          flex-shrink: 0;
+        ">[QUIET]</span>
+        <span id="hud-objective" style="
+          font-size: 13px;
+          color: var(--fog, #d9d3a2);
+          letter-spacing: 0.05em;
+          white-space: nowrap;
+          text-overflow: ellipsis;
+          overflow: hidden;
+        ">Find the numbered pillars. Avoid making splashes.</span>
+      </div>
 
       <!-- Hazard / Mask Alert Icon (Map 2 steam / Map 3 sinking) -->
       <div id="hud-hazard-alert" style="
         position: absolute;
-        top: 60px;
+        top: max(60px, calc(env(safe-area-inset-top, 20px) + 40px));
         left: 50%;
         transform: translateX(-50%);
         font-size: 11px;
@@ -424,8 +590,8 @@ export class Hud {
       <!-- Multiplayer Roster HUD (Top-Right) -->
       <div id="hud-roster" style="
         position: absolute;
-        top: 24px;
-        right: 24px;
+        top: max(20px, env(safe-area-inset-top, 20px));
+        right: max(20px, env(safe-area-inset-right, 20px));
         display: none;
         flex-direction: column;
         gap: 6px;
@@ -443,7 +609,7 @@ export class Hud {
       <!-- Spectator Overlay Banner (Top-Center) -->
       <div id="hud-spectator-container" style="
         position: absolute;
-        top: 60px;
+        top: max(60px, calc(env(safe-area-inset-top, 20px) + 40px));
         left: 50%;
         transform: translateX(-50%);
         display: none;
@@ -471,8 +637,8 @@ export class Hud {
       <!-- Left Bottom: Inventory Strip & Flashlight Battery -->
       <div style="
         position: absolute;
-        bottom: 28px;
-        left: 24px;
+        bottom: max(24px, env(safe-area-inset-bottom, 24px));
+        left: max(20px, env(safe-area-inset-left, 20px));
         display: flex;
         flex-direction: column;
         gap: 8px;
@@ -513,55 +679,83 @@ export class Hud {
         </div>
       </div>
 
-      <!-- Bottom-Center: The Acoustic Noise Meter & Stamina -->
-      <div style="
+      <!-- Bottom-Center: The Acoustic Noise Meter, Radius Ring & Stamina -->
+      <div id="hud-bottom-center" style="
         position: absolute;
-        bottom: 28px;
+        bottom: max(24px, env(safe-area-inset-bottom, 24px));
         left: 50%;
         transform: translateX(-50%);
         display: flex;
         flex-direction: column;
         align-items: center;
         gap: 6px;
+        pointer-events: none;
       ">
         <!-- Status & Stamina -->
-        <div style="display: flex; align-items: center; gap: 12px; width: 220px; justify-content: space-between;">
+        <div style="display: flex; align-items: center; gap: 12px; width: 230px; justify-content: space-between;">
           <div style="display: flex; align-items: center; gap: 6px;">
-            <span id="hud-status" class="badge" style="border-color: var(--water); color: var(--water); font-size: 10px;">DRY</span>
-            <span id="hud-perch-chip" class="badge" style="display: none; border-color: #86cfa0; color: #86cfa0; font-size: 10px;">PERCHED</span>
+            <span id="hud-status" class="badge" style="border-color: #86cfa0; color: #86cfa0; font-size: 11px; background: rgba(8, 6, 3, 0.9); font-weight: bold; padding: 2px 7px;">DRY</span>
+            <span id="hud-perch-chip" class="badge" style="display: none; border-color: #b388ff; color: #b388ff; font-size: 11px; background: rgba(8, 6, 3, 0.9); font-weight: bold; padding: 2px 7px;">PERCHED</span>
           </div>
           
           <!-- Stamina bar -->
-          <div style="width: 120px; height: 3px; background: rgba(217,211,162,0.15); border-radius: 2px; overflow: hidden;">
-            <div id="hud-stamina-bar" style="width: 100%; height: 100%; background: var(--water); border-radius: 2px; transition: width 0.1s linear;"></div>
+          <div style="width: 120px; height: 4px; background: rgba(217,211,162,0.18); border-radius: 2px; overflow: hidden;">
+            <div id="hud-stamina-bar" style="width: 100%; height: 100%; background: var(--water, #86cfa0); border-radius: 2px; transition: width 0.1s linear;"></div>
           </div>
         </div>
 
-        <!-- Central Noise Meter -->
+        <!-- Central Noise Meter Card with Numeric Ticks and Radius Ring -->
         <div style="
           display: flex;
-          align-items: center;
-          gap: 8px;
-          background: rgba(13, 11, 6, 0.85);
-          border: 1px solid #3d2f18;
-          padding: 6px 14px;
-          border-radius: 20px;
-          box-shadow: 0 4px 16px rgba(0,0,0,0.6);
+          flex-direction: column;
+          gap: 4px;
+          background: rgba(8, 6, 3, 0.92);
+          border: 1px solid rgba(217, 211, 162, 0.35);
+          padding: 8px 16px;
+          border-radius: 12px;
+          box-shadow: 0 4px 20px rgba(0,0,0,0.7);
         ">
-          <!-- Waveform / Ripple Icon -->
-          <svg id="hud-noise-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--fog); transition: color 0.15s, transform 0.15s;">
-            <path d="M12 3v18M8 8v8M4 11v2M16 6v12M20 9v6"/>
-          </svg>
+          <!-- Top Row: Icon, Water Radius readout & Title -->
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 10px; letter-spacing: 0.08em; opacity: 0.9;">
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <svg id="hud-noise-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #00e5ff; transition: color 0.15s, transform 0.15s; flex-shrink: 0;">
+                <circle id="hud-water-radius-ring" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.2" stroke-dasharray="2 3" opacity="0.45" />
+                <path d="M12 4v16M8 8v8M4 11v2M16 7v10M20 10v4"/>
+              </svg>
+              <span id="hud-noise-title" style="font-weight: bold; color: var(--fog, #d9d3a2);">ACOUSTIC LEVEL</span>
+            </div>
+            <span id="hud-noise-radius-label" style="font-size: 10px; color: #00e5ff; font-weight: bold;">RADIUS ~0m</span>
+          </div>
 
-          <!-- Noise loudness bar -->
-          <div style="width: 150px; height: 6px; background: rgba(217,211,162,0.15); border-radius: 3px; overflow: hidden;">
+          <!-- Noise loudness bar track with ticks -->
+          <div style="position: relative; width: 190px; height: 8px; background: rgba(217,211,162,0.18); border-radius: 4px; overflow: hidden;">
             <div id="hud-noise-bar" style="
               width: 0%;
               height: 100%;
-              background: var(--fog, #d9d3a2);
-              border-radius: 3px;
+              background: #00e5ff;
+              border-radius: 4px;
               transition: width 0.08s ease-out, background-color 0.15s;
             "></div>
+          </div>
+
+          <!-- Numeric Tick Marks: 0.12, 0.35, 0.75, 1.0 -->
+          <div style="position: relative; width: 190px; height: 14px; font-size: 9px; opacity: 0.75; font-family: monospace;">
+            <div style="position: absolute; left: 12%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center;">
+              <span style="display: block; width: 1px; height: 3px; background: rgba(217,211,162,0.5);"></span>
+              <span>.12</span>
+            </div>
+            <div style="position: absolute; left: 35%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center;">
+              <span style="display: block; width: 1px; height: 3px; background: rgba(217,211,162,0.5);"></span>
+              <span>.35</span>
+            </div>
+            <div style="position: absolute; left: 75%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center;">
+              <span style="display: block; width: 1px; height: 3px; background: rgba(217,211,162,0.5);"></span>
+              <span>.75</span>
+            </div>
+            <div style="position: absolute; left: 100%; transform: translateX(-100%); display: flex; flex-direction: column; align-items: flex-end;">
+              <span style="display: block; width: 1px; height: 3px; background: rgba(217,211,162,0.5);"></span>
+              <span>1.0</span>
+            </div>
           </div>
         </div>
       </div>
@@ -569,20 +763,23 @@ export class Hud {
       <!-- Sound Visualizer Caption -->
       <div id="hud-caption" style="
         position: absolute;
-        bottom: 60px;
-        left: 24px;
-        font-size: 12px;
+        bottom: max(68px, calc(env(safe-area-inset-bottom, 24px) + 44px));
+        left: max(20px, env(safe-area-inset-left, 20px));
+        font-size: 13px;
         color: var(--water, #86cfa0);
-        background: rgba(13, 11, 6, 0.7);
-        padding: 4px 8px;
-        border-radius: 3px;
+        background: rgba(8, 6, 3, 0.92);
+        border: 1px solid rgba(217, 211, 162, 0.35);
+        padding: 5px 12px;
+        border-radius: 4px;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.7);
         display: none;
+        max-width: min(85vw, 360px);
       "></div>
 
       <!-- Pointer Lock Hint -->
       <div id="hud-pointer-lock-hint" style="
         position: absolute;
-        bottom: 28px;
+        bottom: max(24px, env(safe-area-inset-bottom, 24px));
         left: 50%;
         transform: translateX(-50%);
         background: rgba(14, 18, 16, 0.78);
@@ -603,13 +800,21 @@ export class Hud {
     container.appendChild(el);
     this.el = el;
 
+    this.screenReaderLiveEl = el.querySelector('#hud-screen-reader-live');
+    this.nearMissEl = el.querySelector('#hud-near-miss');
     this.pointerLockHintEl = el.querySelector('#hud-pointer-lock-hint');
     this.noiseBarEl = el.querySelector('#hud-noise-bar');
     this.noiseIconEl = el.querySelector('#hud-noise-icon');
+    this.noiseRadiusLabelEl = el.querySelector('#hud-noise-radius-label');
+    this.waterRadiusRingEl = el.querySelector('#hud-water-radius-ring');
     this.staminaBarEl = el.querySelector('#hud-stamina-bar');
     this.statusChipEl = el.querySelector('#hud-status');
     this.objectiveEl = el.querySelector('#hud-objective');
+    this.riskTagEl = el.querySelector('#hud-risk-tag');
     this.promptEl = el.querySelector('#hud-prompt');
+    this.promptRingSvgEl = el.querySelector('#hud-prompt-ring');
+    this.promptRingFillEl = el.querySelector('#hud-prompt-ring-fill');
+    this.promptTextEl = el.querySelector('#hud-prompt-text');
     this.notebookEl = el.querySelector('#hud-notebook');
     this.captionEl = el.querySelector('#hud-caption');
     this.vignetteEl = el.querySelector('#hud-vignette');
@@ -672,27 +877,37 @@ export class Hud {
     this.currentData = { ...this.currentData, ...incoming };
     const data = this.currentData;
 
-    // 1. Noise Meter update
+    // 1. Noise Meter update (Color-blind safe palette + Numeric Ticks + Water Noise Radius)
     const loudnessPct = Math.min(100, Math.max(0, data.noiseLoudness * 100));
+    const noiseColor = data.noiseLoudness < 0.35 ? '#00e5ff' : data.noiseLoudness < 0.75 ? '#ffb300' : '#ff1744';
+
     if (this.noiseBarEl) {
       this.noiseBarEl.style.width = `${loudnessPct}%`;
-      if (data.noiseLoudness < 0.35) {
-        this.noiseBarEl.style.background = 'var(--fog, #d9d3a2)';
-      } else if (data.noiseLoudness < 0.7) {
-        this.noiseBarEl.style.background = '#d8b36a';
-      } else {
-        this.noiseBarEl.style.background = 'var(--danger, #b3261e)';
-      }
+      this.noiseBarEl.style.background = noiseColor;
     }
 
     if (this.noiseIconEl) {
-      if (data.noiseLoudness > 0.4) {
-        this.noiseIconEl.style.color = data.noiseLoudness > 0.7 ? 'var(--danger)' : '#d8b36a';
-        this.noiseIconEl.style.transform = 'scale(1.2)';
+      this.noiseIconEl.style.color = noiseColor;
+      if (data.noiseLoudness >= 0.75) {
+        this.noiseIconEl.style.transform = 'scale(1.25)';
+      } else if (data.noiseLoudness >= 0.35) {
+        this.noiseIconEl.style.transform = 'scale(1.1)';
       } else {
-        this.noiseIconEl.style.color = 'var(--fog)';
         this.noiseIconEl.style.transform = 'scale(1.0)';
       }
+    }
+
+    if (this.waterRadiusRingEl) {
+      this.waterRadiusRingEl.style.color = noiseColor;
+      this.waterRadiusRingEl.style.opacity = String(Math.max(0.35, Math.min(1.0, data.noiseLoudness * 1.5)));
+    }
+
+    if (this.noiseRadiusLabelEl) {
+      const radiusM = data.waterNoiseRadius !== undefined && data.waterNoiseRadius !== null
+        ? Math.round(data.waterNoiseRadius)
+        : Math.round(data.noiseLoudness * 24);
+      this.noiseRadiusLabelEl.textContent = `RADIUS ~${radiusM}m`;
+      this.noiseRadiusLabelEl.style.color = noiseColor;
     }
 
     // 2. Stamina Bar
@@ -700,33 +915,105 @@ export class Hud {
       this.staminaBarEl.style.width = `${Math.round(data.stamina * 100)}%`;
     }
 
-    // 3. Status Chip
+    // 3. Status Chip & Screen Reader Announcement
     if (this.statusChipEl) {
       this.statusChipEl.textContent = data.status;
       if (data.status === 'EXHAUSTED') {
-        this.statusChipEl.style.borderColor = 'var(--danger, #b3261e)';
-        this.statusChipEl.style.color = 'var(--danger, #b3261e)';
+        this.statusChipEl.style.borderColor = '#ff1744';
+        this.statusChipEl.style.color = '#ff5252';
+        this.statusChipEl.style.background = 'rgba(255,23,68,0.2)';
       } else if (data.status === 'WET') {
-        this.statusChipEl.style.borderColor = '#d8b36a';
-        this.statusChipEl.style.color = '#d8b36a';
+        this.statusChipEl.style.borderColor = '#00e5ff';
+        this.statusChipEl.style.color = '#00e5ff';
+        this.statusChipEl.style.background = 'rgba(0,229,255,0.2)';
       } else if (data.status === 'CROUCHED') {
-        this.statusChipEl.style.borderColor = 'var(--fog)';
-        this.statusChipEl.style.color = 'var(--fog)';
+        this.statusChipEl.style.borderColor = '#ffd54f';
+        this.statusChipEl.style.color = '#ffd54f';
+        this.statusChipEl.style.background = 'rgba(255,213,79,0.2)';
       } else {
-        this.statusChipEl.style.borderColor = 'var(--water)';
-        this.statusChipEl.style.color = 'var(--water)';
+        this.statusChipEl.style.borderColor = '#86cfa0';
+        this.statusChipEl.style.color = '#86cfa0';
+        this.statusChipEl.style.background = 'rgba(134,207,160,0.2)';
+      }
+
+      if (data.status !== this.lastAnnouncedStatus) {
+        this.lastAnnouncedStatus = data.status;
+        let desc = 'Dry ground';
+        if (data.status === 'WET') desc = 'Wading in water. Splashes will alert monsters.';
+        else if (data.status === 'CROUCHED') desc = 'Crouched. Movement noise is quieted.';
+        else if (data.status === 'EXHAUSTED') desc = 'Exhausted. Cannot sprint.';
+        this.announceToScreenReader(`Status: ${data.status} — ${desc}`);
       }
     }
 
-    // 4. Objective & Interaction Prompt
+    // 4. Objective with Risk Tag & Screen Reader Announcement
     if (this.objectiveEl && data.objective) {
       this.objectiveEl.textContent = data.objective;
+
+      if (this.riskTagEl) {
+        let tag = data.riskTag;
+        if (!tag) {
+          const lower = data.objective.toLowerCase();
+          if (lower.includes('escape') || lower.includes('exit') || lower.includes('gate opened') || lower.includes('unlocked')) {
+            tag = 'ESCAPE';
+          } else if (lower.includes('timed') || lower.includes('shift') || lower.includes('countdown') || lower.includes('departure') || lower.includes('blast doors')) {
+            tag = 'TIMED';
+          } else if (lower.includes('surge') || lower.includes('alarm') || lower.includes('loud') || lower.includes('siren') || lower.includes('train')) {
+            tag = 'LOUD';
+          } else {
+            tag = 'QUIET';
+          }
+        }
+
+        this.riskTagEl.textContent = `[${tag}]`;
+        if (tag === 'ESCAPE') {
+          this.riskTagEl.style.borderColor = '#86cfa0';
+          this.riskTagEl.style.color = '#86cfa0';
+          this.riskTagEl.style.background = 'rgba(134,207,160,0.18)';
+        } else if (tag === 'TIMED') {
+          this.riskTagEl.style.borderColor = '#ffd54f';
+          this.riskTagEl.style.color = '#ffd54f';
+          this.riskTagEl.style.background = 'rgba(255,213,79,0.18)';
+        } else if (tag === 'LOUD') {
+          this.riskTagEl.style.borderColor = '#ff1744';
+          this.riskTagEl.style.color = '#ff1744';
+          this.riskTagEl.style.background = 'rgba(255,23,68,0.18)';
+        } else {
+          this.riskTagEl.style.borderColor = '#00e5ff';
+          this.riskTagEl.style.color = '#00e5ff';
+          this.riskTagEl.style.background = 'rgba(0,229,255,0.18)';
+        }
+      }
+
+      if (data.objective !== this.lastAnnouncedObjective) {
+        this.lastAnnouncedObjective = data.objective;
+        this.announceToScreenReader(`New Objective: ${data.objective}`);
+      }
     }
 
+    // 4a. Interaction Prompt & Circular Hold Ring
     if (this.promptEl) {
       if (data.interactionPrompt) {
-        this.promptEl.textContent = data.interactionPrompt;
-        this.promptEl.style.display = 'block';
+        this.promptEl.style.display = 'flex';
+        if (this.promptTextEl) {
+          this.promptTextEl.textContent = data.interactionPrompt;
+        } else {
+          this.promptEl.textContent = data.interactionPrompt;
+        }
+
+        const isHolding = (data.promptHoldProgress !== undefined && data.promptHoldProgress !== null && data.promptHoldProgress > 0);
+        const requiresHold = data.interactionPrompt.toUpperCase().includes('HOLD') || data.interactionPrompt.toUpperCase().includes('CRANK');
+
+        if (this.promptRingSvgEl && (isHolding || requiresHold)) {
+          this.promptRingSvgEl.style.display = 'block';
+          if (this.promptRingFillEl) {
+            const circ = 62.83; // 2 * pi * 10
+            const progress = isHolding ? Math.max(0, Math.min(1, data.promptHoldProgress!)) : 0;
+            this.promptRingFillEl.style.strokeDashoffset = String(circ * (1 - progress));
+          }
+        } else if (this.promptRingSvgEl) {
+          this.promptRingSvgEl.style.display = 'none';
+        }
       } else {
         this.promptEl.style.display = 'none';
       }

@@ -211,6 +211,7 @@ export class GameSession {
   private timeSurvived = 0;
   private noisesMade = 0;
   private closestCall = 999.0;
+  private lastNearMissTime = 0;
   private alertsCount = 0;
   private godMode = false;
   private sunLight: DirectionalLight | null = null;
@@ -302,6 +303,8 @@ export class GameSession {
     this.container = container;
     this.settings = settings;
     this.hud = hud;
+    this.hud.setMinimalHud(Boolean(this.settings.accessibility.minimalHud));
+    this.hud.setUiScale(this.settings.accessibility.uiScale ?? 1.0);
     this.callbacks = callbacks;
     this.difficulty = difficulty;
     this.seed = seed;
@@ -1749,6 +1752,10 @@ export class GameSession {
       }
       if (dist < 4.0) {
         void GamepadManager.getInstance().playRumble('near-miss');
+      }
+      if (dist < 3.0 && !this.isDead && mSnap.state !== 'ATTACK' && performance.now() - this.lastNearMissTime > 4000) {
+        this.lastNearMissTime = performance.now();
+        this.hud.showNearMiss(dist);
       }
       if (mSnap.state === 'ALERTED' || mSnap.state === 'HUNT') {
         this.alertsCount++;

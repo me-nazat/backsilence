@@ -359,6 +359,14 @@ export class SettingsPanel {
 
           <div class="setting-row">
             <div>
+              <div class="setting-label">MINIMAL HUD MODE</div>
+              <div class="setting-sub">Hide auxiliary telemetry, secondary gauges, and OSD labels</div>
+            </div>
+            <input id="set-minimalhud" type="checkbox" ${this.settings.accessibility?.minimalHud ? 'checked' : ''} class="setting-toggle">
+          </div>
+
+          <div class="setting-row">
+            <div>
               <div class="setting-label">UI SCALE: <span id="lbl-uiscale">${Math.round((this.settings.accessibility?.uiScale ?? 1.0) * 100)}%</span></div>
               <div class="setting-sub">Scale on-screen interface text and elements</div>
             </div>
@@ -652,6 +660,15 @@ export class SettingsPanel {
           this.settings.accessibility = { reducedMotion: 'system', uiScale: 1.0, highContrast: false };
         }
         this.settings.accessibility.highContrast = hc.checked;
+        this.liveApply();
+      });
+
+      const minimalHud = this.el.querySelector('#set-minimalhud') as HTMLInputElement;
+      minimalHud?.addEventListener('change', () => {
+        if (!this.settings.accessibility) {
+          this.settings.accessibility = { reducedMotion: 'system', uiScale: 1.0, highContrast: false };
+        }
+        this.settings.accessibility.minimalHud = minimalHud.checked;
         this.liveApply();
       });
 

@@ -101,6 +101,7 @@ export interface Settings {
     reducedMotion: 'system' | 'on' | 'off';
     uiScale: number;
     highContrast: boolean;
+    minimalHud?: boolean | undefined;
     language?: string;
   };
   player: {

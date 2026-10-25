@@ -821,6 +821,8 @@ export class UIManager {
   applySettings(s: Settings): void {
     saveSettings(s);
     document.documentElement.style.setProperty('--ui-scale', String(s.accessibility.uiScale));
+    this.hud.setMinimalHud(Boolean(s.accessibility.minimalHud));
+    this.hud.setUiScale(s.accessibility.uiScale ?? 1.0);
 
     if (s.accessibility.highContrast) {
       document.documentElement.classList.add('high-contrast');

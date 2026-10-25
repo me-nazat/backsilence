@@ -116,12 +116,12 @@ export class AcousticSystem {
           this.audio.play('ripple_tick', { gain: 0.15 });
         }
 
-        // Generate caption
+        // Generate caption with sound descriptor, rough distance, and relative angle
         const dir = this.getDirectionLabel(relAngle);
-        const distBucket = dist < 8 ? 'near' : dist < 20 ? 'mid' : 'far';
+        const distM = Math.max(1, Math.round(dist));
         const kindLabel = this.formatKindLabel(noise.kind);
 
-        const caption = `[${kindLabel} — ${dir} (${distBucket})]`;
+        const caption = `[${kindLabel} ~${distM}m ${dir.toUpperCase()}]`;
         this.hud.addCaption(caption);
       }
     }

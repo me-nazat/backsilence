@@ -72,6 +72,7 @@ export function defaultSettings(): Settings {
       reducedMotion: 'system',
       uiScale: 1.0,
       highContrast: false,
+      minimalHud: false,
     },
     player: {
       name: '',
@@ -148,6 +149,7 @@ export function clampSettings(s: Settings): Settings {
         : 'system',
       uiScale: clamp(typeof acc?.uiScale === 'number' ? acc.uiScale : 1.0, 0.75, 1.5),
       highContrast: Boolean(acc?.highContrast),
+      minimalHud: Boolean(acc?.minimalHud),
     },
     player: {
       name: typeof p?.name === 'string' ? p.name.slice(0, 32) : '',

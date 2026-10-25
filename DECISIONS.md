@@ -1343,4 +1343,27 @@ Establish `functions/api/[[route]].ts` as the canonical Cloudflare Pages Functio
    - Acquired `navigator.wakeLock.request('screen')` on session start to prevent mobile screen sleep during horror tension; cleanly released on session cleanup.
 **Reason:** Satisfies Section 6 Phase D mandates of Prompt 5 of 5.
 
+### D106: Phase E Clarity of the Screen (2026-10-25)
+**Context:** Section 7 (Phase E) mandates enhanced screen clarity, accessibility, contrast >= 4.5:1, color-blind-safe noise meter with numeric ticks (0.12, 0.35, 0.75, 1.0), water noise radius ring, status chips (DRY, WET, CROUCHED, EXHAUSTED, PERCHED), objective line with risk tags, circular interaction hold ring, directional sound captions with meter distance and relative angle without leaking exact monster coordinates, minimal HUD mode, text-only screen reader support, near-miss alert, and safe-area compliance.
+**Choice:**
+1. Enhanced Noise Meter & Color-Blind Safe Palette (`src/ui/Hud.ts`):
+   - Implemented color-blind safe palette: Cyan `#00e5ff` (0..0.35), Warm Gold `#ffb300` (0.35..0.75), Crimson `#ff1744` (>= 0.75).
+   - Added numeric tick marks at 0.12 (stealth), 0.35 (wading ripple), 0.75 (sprint splash), and 1.0 (alert maximum).
+   - Added concentric water ripple SVG ring and live readout (`RADIUS ~Xm`) on water surface disturbance.
+2. Status Chips & Objective Risk Tags (`src/ui/Hud.ts`):
+   - Supported all 5 status chips: DRY (`#86cfa0`), WET (`#00e5ff`), CROUCHED (`#ffd54f`), EXHAUSTED (`#ff1744`), and PERCHED (`#b388ff`) on dark backing plates with contrast >= 4.5:1.
+   - Objective line tagged with prominent risk badges: `[QUIET]`, `[ESCAPE]`, `[TIMED]`, `[LOUD]`.
+3. Circular Interaction Hold Ring (`src/ui/Hud.ts`):
+   - Circular SVG progress ring next to prompt dynamically filling with `strokeDashoffset` on hold interactions.
+4. Directional & Distance Sound Captions (`src/game/AcousticSystem.ts`, `src/ui/Hud.ts`):
+   - Captions formatted as `[${kindLabel} ~${distM}m ${dir.toUpperCase()}]` (e.g. `[Splash ~12m LEFT]`), communicating approximate distance and relative orientation without exposing monster coordinates.
+5. Minimal HUD Mode & Text-Only Screen Reader Support (`src/ui/Hud.ts`, `src/app/Settings.ts`, `src/types/contracts.ts`, `src/ui/PauseMenu.ts`, `src/ui/SettingsPanel.ts`, `src/ui/UIManager.ts`):
+   - Added Minimal HUD setting in `Settings.accessibility.minimalHud` and in pause menu quick settings, hiding auxiliary gauges and OSD while keeping core noise meter and crosshair.
+   - Added off-screen `#hud-screen-reader-live` region (`aria-live="polite"`) announcing status transitions, new objectives, and near-miss warnings.
+6. Near-Miss Alert & Safe Areas (`src/ui/Hud.ts`, `src/game/GameSession.ts`):
+   - Center near-miss badge `[ CLOSE CALL — 1.8 m ]` triggered when a monster passes within 3m without attacking.
+   - Safe-area insets (`env(safe-area-inset-*)`) applied to all viewport anchors (top, bottom, left, right).
+**Reason:** Satisfies Section 7 Phase E mandates of Prompt 5 of 5.
+
+
 

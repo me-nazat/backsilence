@@ -45,15 +45,15 @@
   - [x] D.3 Gamepad controls: radial dead zone 0.15, response curve, rumble, dynamic prompt glyphs, 2D spatial menu navigation
   - [x] D.4 Record Decision D105 and commit Phase D
 
-- [ ] **Phase E: Clarity of the Screen (Section 7)**
-  - [ ] E.1 Enhanced noise meter: color-blind safe palette, numeric ticks (0.12, 0.35, 0.75, 1.0), faint noise radius ring on water; readable at 390px
-  - [ ] E.2 Status chips (DRY, WET, CROUCHED, EXHAUSTED, PERCHED), objective line with risk label, interaction hold ring
-  - [ ] E.3 Directional & distance captions for important sounds (off by default, one tap to enable)
-  - [ ] E.4 Minimal HUD mode and text-only HUD for screen readers
-  - [ ] E.5 HUD text >= 14px at 390px, UI scale setting (0.85–1.4), dark backing plate ensuring contrast >= 4.5:1
-  - [ ] E.6 Near-miss ("CLOSE, 1.8 m") and plain death explanations
-  - [ ] E.7 Safe area compliance in portrait and landscape
-  - [ ] E.8 Record Decision D106 and commit Phase E
+- [x] **Phase E: Clarity of the Screen (Section 7)**
+  - [x] E.1 Enhanced noise meter: color-blind safe palette, numeric ticks (0.12, 0.35, 0.75, 1.0), faint noise radius ring on water; readable at 390px
+  - [x] E.2 Status chips (DRY, WET, CROUCHED, EXHAUSTED, PERCHED), objective line with risk label, interaction hold ring
+  - [x] E.3 Directional & distance captions for important sounds (off by default, one tap to enable)
+  - [x] E.4 Minimal HUD mode and text-only HUD for screen readers
+  - [x] E.5 HUD text >= 14px at 390px, UI scale setting (0.85–1.4), dark backing plate ensuring contrast >= 4.5:1
+  - [x] E.6 Near-miss ("CLOSE, 1.8 m") and plain death explanations
+  - [x] E.7 Safe area compliance in portrait and landscape
+  - [x] E.8 Record Decision D106 and commit Phase E
 
 - [ ] **Phase F: Fun, Pacing and Fairness (Section 8)**
   - [ ] F.1 5 Scripted bots (silent, crouch-wader, sprint-wader, reckless, camper) playing 200 seeds in `scripts/balance/pacing-bots.mjs`
