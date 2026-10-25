@@ -2,6 +2,7 @@
  *  Master presentation water manager integrating camera-following displaced mesh,
  *  GpuWaveSimulation (2D wave equation with obstacle reflections),
  *  analytic ripples, Kelvin wakes, map data texture, scene depth texture pass,
+ *  Beer-Lambert depth absorption, CubeCamera / Planar reflections, GGX glints,
  *  foam, underwater detection, dynamic water levels, and Map 5 bioluminescence.
  * ──────────────────────────────────────────────────────────────────────── */
 
@@ -21,6 +22,14 @@ import {
   MeshBasicMaterial,
   CircleGeometry,
   type Texture,
+  CubeCamera,
+  WebGLCubeRenderTarget,
+  LinearMipmapLinearFilter,
+  WebGLRenderTarget,
+  PerspectiveCamera,
+  Vector2,
+  Vector3,
+  type WebGLRenderer,
 } from 'three';
 import type { GroundGrid } from '../../sim/GroundGrid.js';
 import type { GraphicsTier, RippleEvent } from '../../types/contracts.js';
@@ -28,7 +37,7 @@ import type { WaterProfile } from './WaterProfile.js';
 import { RippleBuffer } from './RippleBuffer.js';
 import { WakeEmitters } from './WakeEmitters.js';
 import { buildWaterMapData, type WaterMapResult } from './WaterMapData.js';
-import { createWaterMaterial } from './WaterMaterial.js';
+import { createWaterMaterial, type LightStreak } from './WaterMaterial.js';
 import { SplashSystem } from './Splashes.js';
 import { GpuWaveSimulation } from './GpuWaveSimulation.js';
 import { makeWaterNormalMap } from '../../procedural/textures/WaterNormal.js';
@@ -41,6 +50,7 @@ export interface WaterSystemOptions {
   waterY?: number;
   audio?: AudioEngine | undefined;
   profile?: WaterProfile;
+  streaks?: LightStreak[];
 }
 
 export class WaterSystem {
@@ -52,11 +62,19 @@ export class WaterSystem {
   readonly splashes: SplashSystem;
   readonly waveSim: GpuWaveSimulation;
   readonly mapData: WaterMapResult;
+  readonly tier: GraphicsTier;
 
   currentWaterY: number;
   private readonly planeSize = 192.0;
   private readonly segStep: number;
   private readonly audio?: AudioEngine | undefined;
+
+  // Reflection subsystems
+  private cubeRenderTarget: WebGLCubeRenderTarget | null = null;
+  private cubeCamera: CubeCamera | null = null;
+  private planarRenderTarget: WebGLRenderTarget | null = null;
+  private planarCamera: PerspectiveCamera | null = null;
+  private hasCapturedEnvCube = false;
 
   // Bioluminescent floating motes (Map 5)
   private motesMesh: InstancedMesh | null = null;
@@ -75,6 +93,7 @@ export class WaterSystem {
     this.currentWaterY = options.waterY ?? 0.0;
     this.audio = options.audio;
     const tier = options.tier ?? 'high';
+    this.tier = tier;
 
     // Segments: 192 (high), 160 (medium), 128 (low)
     const segments = tier === 'low' ? 128 : tier === 'medium' ? 160 : 192;
@@ -93,7 +112,30 @@ export class WaterSystem {
 
     const normalTex = makeWaterNormalMap();
 
-    // 2. Water Material
+    // 2. Setup reflection targets by tier
+    if (tier === 'medium' || tier === 'high') {
+      try {
+        this.cubeRenderTarget = new WebGLCubeRenderTarget(64, {
+          generateMipmaps: true,
+          minFilter: LinearMipmapLinearFilter,
+        });
+        this.cubeCamera = new CubeCamera(0.1, 80.0, this.cubeRenderTarget);
+        this.cubeCamera.position.set(0, this.currentWaterY + 0.15, 0);
+      } catch {
+        // Fallback gracefully in headless/test environments without WebGLCubeRenderTarget
+      }
+    }
+
+    if (tier === 'high') {
+      try {
+        this.planarRenderTarget = new WebGLRenderTarget(640, 360);
+        this.planarCamera = new PerspectiveCamera(60, 640 / 360, 0.1, 120.0);
+      } catch {
+        // Fallback gracefully
+      }
+    }
+
+    // 3. Water Material
     this.material = createWaterMaterial({
       tier,
       normalTexture: normalTex,
@@ -104,9 +146,12 @@ export class WaterSystem {
       wakeParams: this.wakes.paramsUniform,
       waterY: this.currentWaterY,
       profile: options.profile,
+      streaks: options.streaks,
+      envCube: this.cubeRenderTarget?.texture ?? null,
+      planarReflection: this.planarRenderTarget?.texture ?? null,
     });
 
-    // 3. Water Plane Geometry (XZ plane rotated from XY)
+    // 4. Water Plane Geometry (XZ plane rotated from XY)
     const geom = new PlaneGeometry(this.planeSize, this.planeSize, segments, segments);
     geom.rotateX(-Math.PI / 2);
 
@@ -115,7 +160,7 @@ export class WaterSystem {
     this.mesh.renderOrder = 10; // Render after opaque geometry
     parent.add(this.mesh);
 
-    // 4. Bioluminescent Motes for Map 5
+    // 5. Bioluminescent Motes for Map 5
     const motesCount = options.profile?.bioluminescence?.motes ?? 0;
     if (motesCount > 0) {
       const moteGeom = new CircleGeometry(0.04, 6);
@@ -158,6 +203,73 @@ export class WaterSystem {
     }
   }
 
+  /** Capture 64px CubeCamera reflection once at map load (Medium & High) */
+  captureEnvMap(renderer: WebGLRenderer, scene: Scene): void {
+    if (!this.cubeCamera || !this.cubeRenderTarget || this.hasCapturedEnvCube) return;
+    this.mesh.visible = false;
+    this.cubeCamera.update(renderer, scene);
+    this.mesh.visible = true;
+    this.hasCapturedEnvCube = true;
+    if (this.material.uniforms['uEnvCube']) {
+      this.material.uniforms['uEnvCube'].value = this.cubeRenderTarget.texture;
+    }
+  }
+
+  /** Update half-res planar reflection (High tier) */
+  updatePlanarReflection(renderer: WebGLRenderer, scene: Scene, camera: Camera): void {
+    if (this.tier !== 'high' || !this.planarRenderTarget || !this.planarCamera) return;
+    if (camera instanceof PerspectiveCamera) {
+      this.planarCamera.fov = camera.fov;
+      this.planarCamera.aspect = camera.aspect;
+      this.planarCamera.near = camera.near;
+      this.planarCamera.far = camera.far;
+      this.planarCamera.updateProjectionMatrix();
+
+      const d = 2.0 * (camera.position.y - this.currentWaterY);
+      this.planarCamera.position.set(camera.position.x, camera.position.y - d, camera.position.z);
+
+      const forward = new Vector3();
+      camera.getWorldDirection(forward);
+      forward.y = -forward.y;
+      this.planarCamera.lookAt(this.planarCamera.position.clone().add(forward));
+      this.planarCamera.updateMatrixWorld();
+
+      this.mesh.visible = false;
+      const prevTarget = renderer.getRenderTarget();
+      renderer.setRenderTarget(this.planarRenderTarget);
+      renderer.render(scene, this.planarCamera);
+      renderer.setRenderTarget(prevTarget);
+      this.mesh.visible = true;
+
+      if (this.material.uniforms['uPlanarReflection']) {
+        this.material.uniforms['uPlanarReflection'].value = this.planarRenderTarget.texture;
+      }
+    }
+  }
+
+  /** Step and render GPU wave simulation (Medium & High) */
+  renderWaveSim(renderer: WebGLRenderer): void {
+    if (this.tier === 'low') return;
+    if (!this.waveSim.isReady) {
+      this.waveSim.initGpu(renderer);
+    }
+    if (this.waveSim.isReady) {
+      this.waveSim.renderGpu(renderer);
+      const tex = this.waveSim.texture;
+      const u = this.material.uniforms;
+      if (tex && u['uWaveSimTexture']) {
+        u['uWaveSimTexture'].value = tex;
+        if (u['uHasWaveSim']) u['uHasWaveSim'].value = 1.0;
+        if (u['uWaveSimCenter']) (u['uWaveSimCenter'].value as Vector2).set(
+          this.waveSim.windowCenter.x,
+          this.waveSim.windowCenter.y,
+        );
+        if (u['uWaveSimSize']) u['uWaveSimSize'].value = this.waveSim.windowSize;
+        if (u['uWaveSimResolution']) u['uWaveSimResolution'].value = this.waveSim.resolution;
+      }
+    }
+  }
+
   /** Upload scene depth & color textures from opaque pre-pass */
   setDepthTextures(
     depthTexture: Texture | null,
@@ -177,19 +289,19 @@ export class WaterSystem {
     }
     if (u['uCameraNear']) u['uCameraNear'].value = near;
     if (u['uCameraFar']) u['uCameraFar'].value = far;
-    if (u['uResolution']) (u['uResolution'].value as import('three').Vector2).set(width, height);
+    if (u['uResolution']) (u['uResolution'].value as Vector2).set(width, height);
   }
 
-  setLightStreaks(streaks: import('./WaterMaterial.js').LightStreak[]): void {
+  setLightStreaks(streaks: LightStreak[]): void {
     const u = this.material.uniforms;
     const count = Math.min(16, streaks.length);
     if (u['uStreakCount']) u['uStreakCount'].value = count;
     for (let i = 0; i < count; i++) {
       const s = streaks[i]!;
-      (u['uStreakPos']!.value as import('three').Vector3[])[i]!.copy(s.pos);
-      (u['uStreakDir']!.value as import('three').Vector3[])[i]!.copy(s.dir).normalize();
+      (u['uStreakPos']!.value as Vector3[])[i]!.copy(s.pos);
+      (u['uStreakDir']!.value as Vector3[])[i]!.copy(s.dir).normalize();
       (u['uStreakSize']!.value as Float32Array)[i] = s.size;
-      (u['uStreakColor']!.value as import('three').Vector3[])[i]!.set(s.color.r, s.color.g, s.color.b);
+      (u['uStreakColor']!.value as Vector3[])[i]!.set(s.color.r, s.color.g, s.color.b);
       (u['uStreakIntensity']!.value as Float32Array)[i] = s.intensity;
     }
   }
@@ -280,6 +392,8 @@ export class WaterSystem {
     this.mapData.texture.dispose();
     this.splashes.dispose();
     this.waveSim.dispose();
+    this.cubeRenderTarget?.dispose();
+    this.planarRenderTarget?.dispose();
     this.mesh.removeFromParent();
 
     if (this.motesMesh) {

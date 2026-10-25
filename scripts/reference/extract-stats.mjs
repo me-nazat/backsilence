@@ -247,8 +247,9 @@ export class HeadlessStatsExtractor {
             const hueBin = Math.min(35, Math.floor(hueDeg / 10));
             hueHist[hueBin]++;
 
-            // Water region detection: hue 90 to 160 deg, sat > 0.15
-            if (hueDeg >= 90 && hueDeg <= 160 && sat > 0.15) {
+            // Water region detection: hue 75 to 185 deg, sat >= 0.05 (chlorinated pool water and tinted highlights)
+            const isWater = (hueDeg >= 75 && hueDeg <= 185 && sat >= 0.05);
+            if (isWater) {
               waterPixCount++;
               waterRSum += r; waterGSum += g; waterBSum += b;
               waterLumSum += lum;

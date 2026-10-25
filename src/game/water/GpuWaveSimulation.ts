@@ -25,6 +25,7 @@ import {
   ClampToEdgeWrapping,
   DataTexture,
   RGBAFormat,
+  type Texture,
   type WebGLRenderer,
 } from 'three';
 import type { GraphicsTier } from '../../types/contracts.js';
@@ -243,6 +244,10 @@ export class GpuWaveSimulation {
     return this.isGpuReady;
   }
 
+  get texture(): Texture | null {
+    return this.rtA?.texture ?? null;
+  }
+
   renderGpu(renderer: WebGLRenderer): void {
     if (!this.isGpuReady || !this.simScene || !this.simCamera || !this.simMaterial || !this.rtA || !this.rtB) return;
     this.simMaterial.uniforms['uPrevState']!.value = this.rtA.texture;
@@ -252,6 +257,9 @@ export class GpuWaveSimulation {
     const tmp = this.rtA;
     this.rtA = this.rtB;
     this.rtB = tmp;
+
+    // Reset impulse after GPU pass consumes it
+    (this.simMaterial.uniforms['uImpulse']?.value as Vector4 | undefined)?.set(0, 0, 0, 0);
   }
 
   /**

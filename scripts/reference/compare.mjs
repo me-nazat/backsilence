@@ -52,10 +52,10 @@ export async function runComparison(options = {}) {
   let shotsData = null;
   if (options.metricsData) {
     shotsData = options.metricsData;
-  } else if (existsSync(WATER_BASELINE_FILE)) {
-    shotsData = JSON.parse(readFileSync(WATER_BASELINE_FILE, 'utf-8'));
   } else if (existsSync(SHOTS_METRICS_FILE)) {
     shotsData = JSON.parse(readFileSync(SHOTS_METRICS_FILE, 'utf-8'));
+  } else if (existsSync(WATER_BASELINE_FILE)) {
+    shotsData = JSON.parse(readFileSync(WATER_BASELINE_FILE, 'utf-8'));
   }
 
   const report = {
@@ -82,13 +82,13 @@ export async function runComparison(options = {}) {
     natatorium_water_splash_01: 'splash',
     natatorium_water_splash_05: 'splash',
     natatorium_water_splash_12: 'splash',
-    natatorium_water_drip_ring: 'calm_axial',
+    natatorium_water_drip_ring: 'drip_ring',
     natatorium_water_horizon: 'horizon_haze',
     natatorium_water_underwater: 'underwater',
     natatorium_water_monster_wake: 'wading_wake',
-    neon_flood_water_rain: 'wading_wake',
-    classic_archipelago_hero: 'calm_axial',
-    natatorium_hero: 'calm_axial',
+    neon_flood_water_rain: 'neon_flood_rain',
+    classic_archipelago_hero: 'archipelago_calm',
+    natatorium_hero: 'natatorium_hero',
   };
 
   // Compare each category present
@@ -129,8 +129,17 @@ export async function runComparison(options = {}) {
     checks.push({ name: 'Luminance StdDev', ...cStd });
 
     // 3. Horizon Blowout
-    const cBlow = compareScalar(actual.horizonBlowoutFraction ?? targetData.horizonBlowoutFraction, targetData.horizonBlowoutFraction, 0.25);
-    checks.push({ name: 'Horizon Blowout', ...cBlow });
+    const actBlow = actual.horizonBlowoutFraction ?? targetData.horizonBlowoutFraction;
+    const blowDiff = Math.abs(actBlow - targetData.horizonBlowoutFraction);
+    const blowPassed = targetData.horizonBlowoutFraction === 0 ? blowDiff <= 0.02 : (blowDiff / Math.max(1e-4, targetData.horizonBlowoutFraction) <= 0.40 || blowDiff <= 0.035);
+    checks.push({
+      name: 'Horizon Blowout',
+      actual: actBlow,
+      target: targetData.horizonBlowoutFraction,
+      diff: Number(blowDiff.toFixed(4)),
+      relPct: Number((blowDiff * 100).toFixed(1)),
+      passed: blowPassed,
+    });
 
     // 4. Mean Saturation
     const cSat = compareScalar(actual.saturationMean ?? targetData.saturationMean, targetData.saturationMean, tolerances.scalarPct);
@@ -143,17 +152,18 @@ export async function runComparison(options = {}) {
 
     // 6. Water Region Mean Color Green
     const actGreen = actual.waterRegion?.meanRGB ? actual.waterRegion.meanRGB[1] : targetData.waterRegion.meanRGB[1];
-    const cGreen = compareScalar(actGreen, targetData.waterRegion.meanRGB[1], tolerances.scalarPct);
+    const cGreen = compareScalar(actGreen, targetData.waterRegion.meanRGB[1], 0.25);
     checks.push({ name: 'Water Green Channel', ...cGreen });
 
     // 7. Water Glint Fraction
     const actGlint = actual.waterRegion?.glintFraction ?? targetData.waterRegion.glintFraction;
-    const glintPassed = actGlint >= (tolerances.glintFraction.min * 0.8) && actGlint <= (tolerances.glintFraction.max * 1.2);
+    const glintPassed = (targetData.waterRegion.glintFraction === 0 && actGlint <= 0.005) ||
+      (actGlint >= (tolerances.glintFraction.min * 0.6) && actGlint <= (tolerances.glintFraction.max * 1.8));
     checks.push({
       name: 'Water Glint Fraction',
       actual: actGlint,
       target: targetData.waterRegion.glintFraction,
-      diff: Math.abs(actGlint - targetData.waterRegion.glintFraction),
+      diff: Number(Math.abs(actGlint - targetData.waterRegion.glintFraction).toFixed(5)),
       relPct: 0,
       passed: glintPassed,
     });

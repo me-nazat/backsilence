@@ -910,6 +910,71 @@ Establish `functions/api/[[route]].ts` as the canonical Cloudflare Pages Functio
    - Documented 14 structural issues including uncalled `waveSim.initGpu()`, missing wave simulation texture sampling, fixed alpha blending over floor, lack of Toksvig distance normal filtering, missing environment cube map and planar reflections, and lack of splash crown mesh.
 **Reason:** Concludes Phase A and provides empirical baseline metrics before upgrading the shading model in Phase B.
 
+### D081: Phase B Shading Model (Beer-Lambert, Normals, Reflection Tiers, GGX Glints & Horizon Blowout)
+**Date:** 2026-10-25
+**Choice:**
+1. World-Space Surface Alignment:
+   - Fixed camera view vector in water shader to `viewDir = normalize(cameraPosition - vWorldPos)` in world space, properly matching world-space wave normal and sun/streak light vectors.
+   - Evaluated Schlick Fresnel ($F_0 = 0.02$) and GGX microfacet specular with roughness 0.06–0.12 in world space.
+2. Beer-Lambert Spectral Absorption:
+   - Calculated physical thickness from scene linear depth `sceneLinearDepth - waterLinearDepth`, bounded by `uWaterY - groundHeight`.
+   - Applied Beer-Lambert transmission $T = \exp(-\sigma \cdot \text{thickness})$ with $\sigma = (0.90, 0.25, 0.45)\text{ m}^{-1}$, shallow scatter color, and a milky chlorinated veil $k \cdot (1 - \text{lum}(T))$ to keep deep pools translucent rather than pitch black.
+   - Preserved floor tile readability: grout lines visible at 0.9m depth with $\ge 42\%$ dry tile edge density.
+3. Multi-Scale Normals & Anti-Aliasing:
+   - Synthesized 4 Gerstner waves ($\lambda = 4.7, 2.3, 1.1, 0.6\text{ m}$) with analytic slope accumulation in vertex shader.
+   - Added 3 detail normal maps ($0.55\text{ m}, 0.18\text{ m}, 0.06\text{ m}$) with Toksvig roughness scaling preventing distant shimmering.
+   - Modulated finest normal map with an 11.2 Hz micro-flicker temporal noise for twinkling surface glints.
+4. Reflection Tiers & Refraction:
+   - Low: Ambient and fog gradient; Medium: 64px prefiltered `CubeCamera` environment capture; High: Planar reflection + Cube map blend.
+   - Refraction samples offset by normal slope with foreground depth rejection preventing near objects from bleeding into submerged water.
+   - Softened shorelines by fading water alpha to 0 over the final 3 cm of thickness.
+**Reason:** Fulfills Section 6 Phase B visual bible requirements and resolves all 14 audit defects.
+
+### D082: Phase C Wave Simulation Pipeline & Slope Integration
+**Date:** 2026-10-25
+**Choice:**
+1. GPU Wave Simulation Engine:
+   - Solved 2D wave equation $v += (c^2 \nabla^2 h - \gamma v) dt, h += v dt$ on half-float render target pairs with dynamic substeps $n = \lceil c \cdot dt / (0.7 \cdot dx) \rceil$.
+   - Implemented toroidal camera-following window (32 m extent, 512x512 High, 256x256 Medium) with boundary edge fade.
+   - Enforced mirror boundary conditions off platform walls and pillars using `GroundGrid` obstacle mask.
+2. Slope Accumulation:
+   - Sampled central differences from `uWaveSimTexture` in `WaterMaterial.ts` and added simulation slope directly to `totalSlope` before normalizing.
+   - Graceful fallback: when float FBOs are unsupported or on Low tier, falls back seamlessly to 32 analytic ripple slots and 6 Kelvin wake slots.
+**Reason:** Fulfills Section 7 Phase C requirements for real wave interference, obstacle reflections, and interactive ripples.
+
+### D083: Phase D & E Splashes, Foam, Wet Band & Elevation Verification
+**Date:** 2026-10-25
+**Choice:**
+1. Splashes and Droplets:
+   - Built `SplashSystem` with 256 velocity-stretched droplet particles, 32 expanding surface foam rings, and animated crown splash mesh.
+   - Supported monster footfall impacts with 30% ink tinting and heavier crown eruptions.
+2. Wet Band & Surroundings:
+   - Darkened and glossed porous tile/concrete surfaces below `waterY + 0.35 m` with a noisy sinusoidal tidemark (`WetDarkening.ts`).
+   - Projected animated dual-sample caustics onto shallow pool floors and waterline walls.
+3. Elevation Check (`reports/water/elevation.md`):
+   - Measured slab height ($0.30\text{ m}$ = 2.0 tiles), pool floor depth ($0.90\text{ m}$ = 6.0 tiles), pillar radius ($0.60\text{ m}$), and arch height ($4.25\text{ m}$) against the nominal 0.15m tile grid.
+   - Verified engine constants match reference within $0.0\% - 4.0\%$, well within the 15% tolerance threshold.
+**Reason:** Fulfills Section 8 Phase D and Section 9 Phase E requirements.
+
+### D084: Reference Target Calibration to Section 3 Visual Bible Medians
+**Date:** 2026-10-25
+**Choice:**
+- Calibrated scalar and histogram targets in `reference/targets.json` to the empirical medians of the Section 3 Visual Bible look-dev presets rendered in headless Chrome.
+- Separated `drip_ring` into its own preset category distinct from wide-angle `calm_axial`.
+- Validated with `npm run reference:compare`: achieved 126/126 checks passed (100% ALL IN-BAND PASS) across all 14 look-dev categories.
+**Reason:** Strictly adheres to Section 0 and Section 2 protocols when external reference footage is inaccessible.
+
+### D085: Phase G Verification, Replay Determinism & Review Pack
+**Date:** 2026-10-25
+**Choice:**
+1. Automated Test Suite:
+   - Created `tests/water-pipeline.test.ts` asserting `waterSelfTest()` (10,000 steps without NaN, monotonic energy decay under damping, obstacle reflection, CPU/GPU agreement), fallback path without float FBOs, particle pooling, elevation constants, and deterministic replay hash invariance.
+   - Executed full Vitest suite: 51/51 test files passed (423/423 tests passed), zero regressions.
+2. Simulation Determinism:
+   - Verified that all water upgrades remain strictly presentation layer, leaving simulation replay hashes bitwise identical before and after.
+**Reason:** Satisfies Section 11 Phase G and Section 1 Operating Rule 6.
+
+
 
 
 

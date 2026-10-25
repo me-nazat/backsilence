@@ -426,7 +426,8 @@ export class GameSession {
       // 4. Compute terrain distance transform and all level NavGrids FIRST
       this.simWorld.finalizeTerrain();
 
-      // 5. Water System Setup (now has computed distance-to-dry)
+      // 5. Water System Setup (now has computed distance-to-dry and light streaks)
+      const lightStreaks = (this.mapInstance.root.userData['lightStreaks'] as import('./water/WaterMaterial.js').LightStreak[]) ?? [];
       this.water = new WaterSystem(this.scene, {
         scene: this.scene,
         ground: this.simWorld.ground,
@@ -434,6 +435,7 @@ export class GameSession {
         waterY: this.mapInstance.waterY,
         audio: this.audio,
         profile: this.mapDef.waterProfile,
+        streaks: lightStreaks,
       });
 
       // 5b. Lens overlay & Ambient Flock setup
@@ -457,7 +459,7 @@ export class GameSession {
       });
       this.scene.add(this.weatherDirector.particles.root);
 
-      if (tier !== 'low' && typeof window !== 'undefined' && this.renderer.renderer.capabilities?.isWebGL2) {
+      if (typeof window !== 'undefined' && this.renderer.renderer.capabilities?.isWebGL2) {
         const w = this.container.clientWidth || 1280;
         const h = this.container.clientHeight || 720;
         const depthTexture = new DepthTexture(w, h);
@@ -1861,9 +1863,18 @@ export class GameSession {
   private renderScene(dt: number): void {
     if (
       this.opaqueDepthTarget &&
-      this.renderer.renderer.capabilities?.isWebGL2 &&
-      this.settings.graphics.quality !== 'low'
+      this.renderer.renderer.capabilities?.isWebGL2
     ) {
+      // 1. Capture environment cube map once if not captured yet (Medium / High)
+      this.water.captureEnvMap(this.renderer.renderer, this.scene);
+
+      // 2. Update planar reflection (High tier)
+      this.water.updatePlanarReflection(this.renderer.renderer, this.scene, this.camera);
+
+      // 3. Step & render GPU wave simulation (Medium & High)
+      this.water.renderWaveSim(this.renderer.renderer);
+
+      // 4. Render opaque geometry pre-pass into depth + color target
       this.water.mesh.visible = false;
       this.renderer.renderer.setRenderTarget(this.opaqueDepthTarget);
       this.renderer.render(this.scene, this.camera);
