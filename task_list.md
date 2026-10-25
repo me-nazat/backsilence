@@ -1,73 +1,72 @@
-# Task List — BackSilence Water System Matching Reference Footage (Prompt 2 of 5)
+# Task List — BackSilence Graphics, Surroundings & Elevation (Prompt 3 of 5)
 
 - [x] **Preconditions & Setup (Section 0 & 2)**
   - [x] 0.1 Verify headless Chrome default map load and canvas non-blank
-  - [x] 0.2 Capture water program compile logs and verify no fallback material
-  - [x] 0.3 Verify player ripple events reach water uniforms or simulation texture
-  - [x] 0.4 Document active water implementation (analytic rings vs GPU simulation)
-  - [x] 0.5 Write results to `reports/water/preconditions.md`
-  - [x] 0.6 Create `reference/` structure (`README.md`, `video/notes.md`, `targets.json`, git-ignore `video/frames/`)
-  - [x] 0.7 Implement `scripts/reference/extract-stats.mjs` and `scripts/reference/compare.mjs` (`npm run reference:compare`)
-  - [x] 0.8 Record Decision D079 in `DECISIONS.md`
+  - [x] 0.2 Inspect render path (direct vs composer), tone mapping, color space, fog, shadows
+  - [x] 0.3 Measure triangle count, draw calls, texture memory, frame times across tiers
+  - [x] 0.4 Check `reference/` status and frame count
+  - [x] 0.5 Write results to `reports/graphics/preconditions.md`
+  - [x] 0.6 Extend `scripts/reference/extract-stats.mjs` and `compare.mjs` for tile autocorrelation & fog curve
+  - [x] 0.7 Record Decision D086 in `DECISIONS.md`
 
 - [x] **Phase A: Baseline Measurement & Audit (Section 5)**
-  - [x] A.1 Add water camera presets to `shots.json` (axial calm, grazing calm, slab edge, wading wake, splashes 0.1/0.5/1.2s, drip ring, horizon, underwater, monster wake, rain)
-  - [x] A.2 Render baseline shots and compute stats in `reports/water/baseline/`
-  - [x] A.3 Score shots 0–5 across rubric with 1-sentence justifications
-  - [x] A.4 Conduct line-by-line audit of water code into `reports/water/audit.md`
+  - [x] A.1 Add graphics look-dev camera presets in `shots.json` (spawn view, along slab edge, pillar numeral at 8m, arch in fog at 25m, tagline wall, trench from slab, long horizon view, close tile wall, floor through water, monster at 25m, 9:16 portrait)
+  - [x] A.2 Render baseline shots and metrics into `reports/graphics/baseline/`
+  - [x] A.3 Score shots 0–5 across rubric pillars with 1-sentence justifications
+  - [x] A.4 Conduct line-by-line render path audit in `reports/graphics/audit.md`
   - [x] A.5 Commit Phase A
 
-- [x] **Phase B: Shading Model (Section 6)**
-  - [x] B.1 Depth & Absorption (scene depth copy, thickness, Beer-Lambert $\sigma = (0.90, 0.25, 0.45)$, milky veil, $\ge 40\%$ grout line edge density at 0.9m)
-  - [x] B.2 Surface Normals (4 Gerstner waves, 3 scrolling detail normals, Toksvig AA, wave sim gradient)
-  - [x] B.3 Reflection & Refraction (Fresnel $F_0=0.02$, tiered reflection: gradient / 64px CubeCamera / planar reflection, depth-safe refraction offset, 3cm shoreline soft edge)
-  - [x] B.4 Glints & Flashing (up to 16 light proxies, GGX specular roughness 0.06–0.12, 8–14Hz micro-flicker, bloom thresholding, 0.2%–1.5% glints, scrub alias test)
-  - [x] B.5 Fog & Horizon (height fog integration, seamless blown-out cream horizon fade)
-  - [x] B.6 Record Decision D081 and commit Phase B
+- [ ] **Phase B: Scale, Elevation & Scale Lab (Section 6)**
+  - [ ] B.1 Measure reference frames / Visual Bible using 0.15m tile grid; write `reports/graphics/elevation.md`
+  - [ ] B.2 Confirm or adjust `WORLD` constants if > 15% divergence
+  - [ ] B.3 Implement interactive Scale Lab at `?lab=scale` (1.65m silhouette, 0.15m grid overlay, rulers)
+  - [ ] B.4 Verify sightlines (numeral at 10m, arch silhouette at 25m, >=2 horizon silhouette layers)
+  - [ ] B.5 Record Decision D087 and commit Phase B
 
-- [x] **Phase C: Wave Simulation & Interaction (Section 7)**
-  - [x] C.1 Half-float $(h, v)$ ping-pong wave equation (512x512 High, 256x256 Med, substeps $n = \lceil c \cdot dt / (0.7 \cdot dx) \rceil$)
-  - [x] C.2 Toroidal camera-following window snapping with newly exposed strip clearing and edge fade
-  - [x] C.3 Solid obstacle mask from `GroundGrid` with boundary mirroring for wave reflections
-  - [x] C.4 Dynamic impulses: player wading V-wake, footsteps, monster heavy splashes, ceiling drips, rain
-  - [x] C.5 CPU reference simulation on 64x64 grid for unit tests
-  - [x] C.6 Record Decision D082 and commit Phase C
+- [ ] **Phase C: PBR Mosaic Tiles, Decals & Surroundings (Section 7)**
+  - [ ] C.1 Procedural mosaic tiles (16x16 per 2.4m, 1-2px grout at 512px, lightness/hue/sat variation, mottling, bevels, cracks)
+  - [ ] C.2 Full PBR set (albedo, normal from heightfield, roughness, AO, mipmaps, anisotropy, LOD bias)
+  - [ ] C.3 Parallax occlusion mapping within 6m (Medium and High)
+  - [ ] C.4 Slabs & fittings (bullnose edges, drain grates, handrails, ladders, lane ropes, markers, numerals, vents, friezes, pipe runs)
+  - [ ] C.5 Shared wet shader chunk (below `waterY + 0.35m` darken diffuse, lower roughness, noisy tidemark; damp streaks above)
+  - [ ] C.6 Instanced decal quads (stains, cracks, drips, black marker graffiti, giant spray-painted numerals)
+  - [ ] C.7 Baked vertex AO and contact darkening at slab bases
+  - [ ] C.8 Record Decision D088 and commit Phase C
 
-- [x] **Phase D: Splashes, Drops & Foam (Section 8)**
-  - [x] D.1 Animated splash crown mesh (0.4s vertical displacement), simulation ring impulse, 256 pooled instanced droplets
-  - [x] D.2 Monster dark droplets (ink tint 30%) and heavier crown splashes
-  - [x] D.3 Sparse seeded ceiling drips synced with audio engine
-  - [x] D.4 Shoreline foam from thickness, crest foam from negative curvature, persistent 4s decay foam render target on High
-  - [x] D.5 Rising bubble particles from splashes and underwater movement
-  - [x] D.6 Meniscus transition line and camera lens droplets (1.5s fade, photosensitive-safe)
-  - [x] D.7 Record Decision D083 and commit Phase D
+- [ ] **Phase D: Lighting Rig, Fog In-Scatter & Horizon Blowout (Section 8)**
+  - [ ] D.1 Lighting rig (warm hemisphere, soft directional key with texel-snapped shadow, faint fill, water bounce)
+  - [ ] D.2 Atmospheric fog + in-scatter term forward toward key light
+  - [ ] D.3 Horizon blowout with 2-3 layers of instanced far silhouettes in haze
+  - [ ] D.4 Tone mapping comparison (ACES vs AgX vs Neutral) with `reference:compare`, single `OutputPass`
+  - [ ] D.5 Auto exposure (4-frame luminance chain, 1.2s easing)
+  - [ ] D.6 Procedural 3D LUT color grade per map (warm cream lift, teal shadows, +6% to +8% sat)
+  - [ ] D.7 Light shafts and vertical dust motes at ceiling openings
+  - [ ] D.8 Record Decision D089 and commit Phase D
 
-- [x] **Phase E: Surroundings & Elevation (Section 9)**
-  - [x] E.1 Wet band: tile darkening and gloss below `waterY + 0.35m` with noisy tidemark
-  - [x] E.2 Floor and wall caustics (2 samples Med/High, 1 sample Low, depth fading)
-  - [x] E.3 Contact shadows / ambient occlusion at slab-water intersection
-  - [x] E.4 Underwater presentation: milky green grade, particulate, light shafts, bubbles, muffled audio
-  - [x] E.5 Tile-grid elevation audit against `WORLD` constants; document in `reports/water/elevation.md`
-  - [x] E.6 Record Decision D083 and commit Phase E
+- [ ] **Phase E: Camera Stack, Lens Effects & Shader VHS (Section 9)**
+  - [ ] E.1 Resolution scale & clean upsampling (0.75-0.90)
+  - [ ] E.2 Thresholded bloom pass on highlights and fog
+  - [ ] E.3 Camera motion blur (velocity from depth and previous VP matrix)
+  - [ ] E.4 Lens stack: chromatic aberration (0.0006-0.0031), vignette, film grain, barrel distortion (0-0.03)
+  - [ ] E.5 Replace static CSS scanlines with procedural shader VHS pass scaling with dread; remove CSS overlay when active
+  - [ ] E.6 Photosensitive safety verification (< 0.25 frame delta, <= 3 Hz flash)
+  - [ ] E.7 9:16 Portrait camera mode and golden framing
+  - [ ] E.8 Record Decision D090 and commit Phase E
 
-- [x] **Phase F: Quality Tiers, Performance & Mobile (Section 10)**
-  - [x] F.1 Low/Medium/High configuration matrix implementation and validation
-  - [x] F.2 Measure frame costs at 1080p ($\le 1.0$ms Low, $\le 2.0$ms Med, $\le 3.5$ms High) and mobile 390x844 $\ge 30$ FPS
-  - [x] F.3 Pre-compile water shader during initial map loading
-  - [x] F.4 Record Decision D084 and commit Phase F
+- [ ] **Phase F: Set Dressing & 10 Maps Elevation (Section 10)**
+  - [ ] F.1 3 depth layers per view (foreground clutter, midground architecture, background silhouettes)
+  - [ ] F.2 Points of interest in every 16m cell (>= 12 prop types per map, <= 3 draw calls per material per batch)
+  - [ ] F.3 Leading lines check on hero views
+  - [ ] F.4 Hero shot suite for default map + 9 other maps with written briefs (rubric average >= 4.0)
+  - [ ] F.5 Record Decision D091 and commit Phase F
 
-- [x] **Phase G: Tests & Verification (Section 11)**
-  - [x] G.1 `waterSelfTest()` (10,000 steps no NaN, energy decay, CPU/GPU agreement $< 1e-3$, wall reflection)
-  - [x] G.2 Determinism replay hash verification before vs after
-  - [x] G.3 Golden shots SSIM $\ge 0.97$
-  - [x] G.4 Reference compare test in-band across all 4 benchmark maps
-  - [x] G.5 Fallback test when simulation render targets are unavailable
-  - [x] G.6 Record Decision D085 and commit Phase G
-
-- [x] **Review Pack & Final Delivery (Section 12)**
-  - [x] Before/after contact sheet with rubric scores ($\ge 4.0$ for all water shots)
-  - [x] `reference:compare` table or visual bible compliance statement
-  - [x] `reports/water/elevation.md` with measured vs chosen heights
-  - [x] Frame strips (splash 0.1/0.5/1.2s, wading wake, drip ring, glint flicker)
-  - [x] `waterSelfTest()` logs and timing per tier
-  - [x] Limitations report and final git publish command
+- [ ] **Phase G & H: Performance Tiers, Tests & Review Pack (Sections 11–13)**
+  - [ ] G.1 Performance tier configuration matrix & profiling (draw calls, tris, frame times)
+  - [ ] H.1 Replay determinism verification before vs after
+  - [ ] H.2 Composer vs direct render parity test (MAE < 1.5%)
+  - [ ] H.3 Photosensitive synthetic flash test
+  - [ ] H.4 Tile moire grazing angle test
+  - [ ] H.5 Automated test suite in `tests/graphics-pipeline.test.ts`
+  - [ ] H.6 Contact sheet before/after with rubric scores
+  - [ ] H.7 Elevation report, scale lab screenshots, limitations report
+  - [ ] H.8 Final git commit and push command

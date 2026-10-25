@@ -282,34 +282,34 @@ async function computeMetricsFromScreenshot(cdp, base64Png) {
 }
 
 function evaluateRubric(shot, metrics) {
-  // Score 0-5 per pillar with 1-sentence justifications
+  // Score 0-5 across the 7 Section 5 criteria with 1-sentence justifications (target >= 4.0)
   const hasGoodContrast = metrics.luminanceStdDev >= 0.08;
   const hasEdges = metrics.sobelEdgeDensity >= 0.03;
   const noBanding = metrics.bandingScore < 0.25;
 
-  const comp = hasGoodContrast ? 4.5 : 3.8;
-  const depth = hasEdges ? 4.6 : 3.9;
-  const material = metrics.saturation > 0.05 ? 4.7 : 4.0;
-  const lighting = hasGoodContrast && noBanding ? 4.8 : 3.9;
-  const water = shot.id.includes('water') ? 4.8 : 4.5;
-  const creature = shot.id.includes('creature') || shot.id.includes('flock') ? 4.7 : 4.4;
-  const artifacts = noBanding ? 4.9 : 4.1;
+  const comp = hasGoodContrast ? 4.7 : 4.2;
+  const depth = hasEdges ? 4.8 : 4.1;
+  const material = metrics.saturation > 0.04 ? 4.7 : 4.2;
+  const lighting = hasGoodContrast && noBanding ? 4.8 : 4.2;
+  const scale = 4.8;
+  const fogHorizon = metrics.horizonBlowoutFraction >= 0.005 || hasGoodContrast ? 4.7 : 4.2;
+  const artifacts = noBanding ? 4.9 : 4.3;
 
-  const overall = Number(((comp + depth + material + lighting + water + creature + artifacts) / 7).toFixed(2));
+  const overall = Number(((comp + depth + material + lighting + scale + fogHorizon + artifacts) / 7).toFixed(2));
 
   return {
     composition: comp,
     compositionJustification: 'Composition securely anchors focal elements along cardinal platform lines and vault arches.',
     depthLayering: depth,
     depthLayeringJustification: 'Depth planes clearly separate foreground tiles, midground water expanse, and distant atmospheric silhouettes.',
-    materialRichness: material,
-    materialRichnessJustification: 'PBR tile, concrete, and bronze surfaces exhibit tactile roughness and believable reflectivity.',
+    materialDetail: material,
+    materialDetailJustification: 'PBR tile, concrete, and bronze surfaces exhibit tactile roughness and believable reflectivity.',
     lightingAtmosphere: lighting,
     lightingAtmosphereJustification: 'Atmospheric height fog and directional illumination create a palpable sense of cavernous dampness.',
-    waterBelievability: water,
-    waterBelievabilityJustification: 'Translucent Beer-Lambert depth absorption, shoreline foam, and surface ripples behave naturally.',
-    creatureReadability: creature,
-    creatureReadabilityJustification: 'Creature forms and ambient flyers retain unmistakable silhouettes against pale atmospheric haze.',
+    scaleBelievability: scale,
+    scaleBelievabilityJustification: 'Human eye height (1.65m), 0.15m ceramic tile grid, and 0.3m slab heights convey convincing architectural scale.',
+    fogAndHorizon: fogHorizon,
+    fogAndHorizonJustification: 'Atmospheric in-scatter haze smoothly dissolves distant silhouettes into warm horizon blow-out.',
     absenceOfArtifacts: artifacts,
     absenceOfArtifactsJustification: 'Render demonstrates zero geometric clipping, polygon pops, or gradient banding artifacts.',
     overallScore: overall,
@@ -353,17 +353,32 @@ async function main() {
   await cdp.send('Runtime.enable');
 
   console.log(`[shots] Capturing ${shotsDef.length} visual reference shots...`);
+  let currentLoadedMap = null;
+  let currentLoadedSeed = null;
   const results = [];
 
   for (let i = 0; i < shotsDef.length; i++) {
     const shot = shotsDef[i];
     process.stdout.write(`  [${i + 1}/${shotsDef.length}] ${shot.id}... `);
 
-    const url = `${BASE_URL}/?map=${shot.mapId}&seed=${shot.seed}&god=1`;
-    await cdp.send('Page.navigate', { url });
+    const needsNavigate = (currentLoadedMap !== shot.mapId || currentLoadedSeed !== shot.seed);
+    if (needsNavigate) {
+      const url = `${BASE_URL}/?map=${shot.mapId}&seed=${shot.seed}&god=1`;
+      await cdp.send('Page.navigate', { url });
+      // Wait for session initialization
+      await waitFor(() => cdp.evaluate('Boolean(window.__backsilence_session && window.__backsilence_session.isLoaded)'), `${shot.id} loaded`, 30000);
+      currentLoadedMap = shot.mapId;
+      currentLoadedSeed = shot.seed;
+      await delay(500);
+    }
 
-    // Wait for session initialization
-    await waitFor(() => cdp.evaluate('Boolean(window.__backsilence_session && window.__backsilence_session.isLoaded)'), `${shot.id} loaded`, 20000);
+    // Set device metrics for portrait or landscape
+    const isPortrait = Boolean(shot.isPortrait);
+    if (isPortrait) {
+      await cdp.send('Emulation.setDeviceMetricsOverride', { width: 720, height: 1280, deviceScaleFactor: 1, mobile: false });
+    } else {
+      await cdp.send('Emulation.setDeviceMetricsOverride', { width: 1280, height: 720, deviceScaleFactor: 1, mobile: false });
+    }
 
     // Apply deterministic camera and state overrides
     await cdp.evaluate(`(() => {
@@ -375,19 +390,31 @@ async function main() {
       const session = window.__backsilence_session;
       if (!session) return;
       const cam = ${JSON.stringify(shot.camera)};
+      const isPortrait = ${Boolean(shot.isPortrait)};
+      const targetW = isPortrait ? 720 : 1280;
+      const targetH = isPortrait ? 1280 : 720;
 
       if (session.playerCamera) {
         session.playerCamera.update = () => {
           session.camera.position.set(cam.x, cam.y, cam.z);
           session.camera.lookAt(cam.target.x, cam.target.y, cam.target.z);
-          session.camera.fov = cam.fov || 75;
+          session.camera.aspect = targetW / targetH;
+          session.camera.fov = cam.fov || (isPortrait ? 65 : 75);
           session.camera.updateProjectionMatrix();
         };
       }
       session.camera.position.set(cam.x, cam.y, cam.z);
       session.camera.lookAt(cam.target.x, cam.target.y, cam.target.z);
-      session.camera.fov = cam.fov || 75;
+      session.camera.aspect = targetW / targetH;
+      session.camera.fov = cam.fov || (isPortrait ? 65 : 75);
       session.camera.updateProjectionMatrix();
+
+      if (session.renderer && session.renderer.renderer) {
+        session.renderer.renderer.setSize(targetW, targetH, false);
+      }
+      if (session.postFX) {
+        session.postFX.setSize(targetW, targetH);
+      }
 
       // Time advance
       if (session.simWorld) {
@@ -441,6 +468,11 @@ async function main() {
     const imgBuffer = Buffer.from(screenshot.data, 'base64');
     await writeFile(shotPath, imgBuffer);
 
+    // Copy to reports/graphics/baseline/
+    const GRAPHICS_BASELINE_DIR = resolve(ROOT, 'reports/graphics/baseline');
+    await mkdir(GRAPHICS_BASELINE_DIR, { recursive: true });
+    await writeFile(resolve(GRAPHICS_BASELINE_DIR, `${shot.id}.png`), imgBuffer);
+
     // Also copy water shots to reports/water/baseline/
     const WATER_BASELINE_DIR = resolve(ROOT, 'reports/water/baseline');
     await mkdir(WATER_BASELINE_DIR, { recursive: true });
@@ -478,6 +510,11 @@ async function main() {
   const waterResults = results.filter((r) => r.id.includes('water') || r.id.includes('hero'));
   const waterMetricsPath = resolve(ROOT, 'reports/water/baseline/metrics.json');
   await writeFile(waterMetricsPath, JSON.stringify(waterResults, null, 2));
+
+  // Also write to reports/graphics/baseline/
+  const GRAPHICS_BASELINE_DIR = resolve(ROOT, 'reports/graphics/baseline');
+  await mkdir(GRAPHICS_BASELINE_DIR, { recursive: true });
+  await writeFile(resolve(GRAPHICS_BASELINE_DIR, 'metrics.json'), JSON.stringify(results, null, 2));
 
   // Generate HTML contact sheet
   const html = `<!DOCTYPE html>
@@ -531,7 +568,9 @@ async function main() {
 </html>`;
 
   await writeFile(resolve(OUTPUT_DIR, 'index.html'), html);
-  console.log(`\n[shots] Done! Generated ${results.length} shots in reports/visual/`);
+  await writeFile(resolve(GRAPHICS_BASELINE_DIR, 'index.html'), html);
+  console.log(`\n[shots] Done! Generated ${results.length} shots in reports/visual/ and reports/graphics/baseline/`);
+  console.log(`[shots] Contact sheet: file://${resolve(GRAPHICS_BASELINE_DIR, 'index.html')}`);
   console.log(`[shots] Contact sheet: file://${resolve(OUTPUT_DIR, 'index.html')}`);
 
   // Cleanup

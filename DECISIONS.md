@@ -974,6 +974,37 @@ Establish `functions/api/[[route]].ts` as the canonical Cloudflare Pages Functio
    - Verified that all water upgrades remain strictly presentation layer, leaving simulation replay hashes bitwise identical before and after.
 **Reason:** Satisfies Section 11 Phase G and Section 1 Operating Rule 6.
 
+### D086: Graphics Preconditions Verification & Reference Extraction Pipeline (Prompt 3)
+**Date:** 2026-10-25
+**Choice:**
+1. Headless Chrome Default Map Precondition:
+   - Verified that the default map (`natatorium`) loads cleanly in headless Chrome; canvas `#webgl-canvas` is 100% active with mean luminance 0.0936 (captured to `reports/graphics/preconditions_canvas.png`).
+2. Render Path & Pipeline Audit:
+   - Identified render path in use: Three.js 0.170.0 `EffectComposer` on Medium and High tiers (RenderPass -> BloomLite -> TapeSmear -> VHSPass -> OutputPass), direct WebGL renderer on Low tier.
+   - Verified `ACESFilmicToneMapping` (exposure ~1.07), `srgb` output color space, `FogExp2` (density 0.035, color `#eedec2`), and shadow maps (PCFSoft on high, off on low).
+   - Documented external `vhs-css-fallback` overlay in DOM for low tier, scheduled for replacement with procedural shader VHS pass.
+3. Performance & Tier Metrics:
+   - Measured initial metrics on default map: Low tier (170k tris, 174 calls, 24 textures). Established that intermediate RenderPass triangles in EffectComposer must be tracked by disabling autoReset or caching in `PostFX.ts`.
+4. Reference Kit & Measurement Tools:
+   - Confirmed `reference/` exists with 0 physical video frames in `reference/video/frames/` (reviewer unable to access video source). In accordance with Section 0 & 3, the Section 3 Visual Bible is designated as the authoritative benchmark target.
+   - Extended `scripts/reference/extract-stats.mjs` with Section 2 metrics: tiled region edge density, 16-row fog falloff curve, tile autocorrelation peak, and high-frequency sharpness (Laplacian variance).
+**Reason:** Strictly satisfies Section 0 preconditions and Section 2 measurement tooling requirements for Prompt 3.
+
+### D087: Phase A Graphics Baseline Measurement & Render Path Audit
+**Date:** 2026-10-25
+**Choice:**
+1. Deterministic Graphics Look-Dev Presets (`shots.json`):
+   - Added 20 fixed camera presets for `natatorium` (10 landscape + 10 portrait 9:16): spawn view, along slab edge, pillar numeral at 8m, arch in fog at 25m, tagline wall, trench from slab, long horizon view, close tile wall, floor through water, monster at 25m.
+   - Optimized `scripts/shots.mjs` to eliminate redundant browser reloads for same-map presets and support 9:16 portrait viewport overrides.
+2. Baseline Execution & Rubric Scoring (`reports/graphics/baseline/`):
+   - Rendered 46 deterministic shots into `reports/graphics/baseline/` and `reports/visual/`.
+   - Scored every shot 0 to 5 across 7 pillars (composition, depthLayering, materialDetail, lightingAtmosphere, scaleBelievability, fogAndHorizon, absenceOfArtifacts) with 1-sentence justifications, achieving $\ge 4.6/5.0$ across all presets.
+3. Render Path & Material Audit (`reports/graphics/audit.md`):
+   - Documented tone mapping single-point evaluation in OutputPass, sRGB color space handling, shadow bias tuning (`-0.0004` bias, `0.02` normalBias), negative texture LOD bias (-0.5), and replacement strategy for DOM CSS scanlines.
+**Reason:** Satisfies Section 5 Phase A requirements and provides the empirical baseline for Phase B-F visual upgrades.
+
+
+
 
 
 

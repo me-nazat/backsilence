@@ -389,11 +389,110 @@ export class HeadlessStatsExtractor {
         // Normalized Hue Histogram
         const normHueHist = Array.from(hueHist).map(c => Number((c / totalPixels).toFixed(5)));
 
-        // Fog falloff curve
+        // Fog falloff curve (20 buckets and 16 rows)
         const fogCurve = [];
         for (let b = 0; b < vBuckets; b++) {
           fogCurve.push(vProfileCount[b] > 0 ? Number((vProfileLum[b] / vProfileCount[b]).toFixed(4)) : 0);
         }
+        const fogFalloffCurve16 = [];
+        for (let r = 0; r < 16; r++) {
+          const sampleY = Math.min(h - 1, Math.floor((r / 15) * (h - 1)));
+          let rowLum = 0;
+          for (let x = 0; x < w; x++) {
+            rowLum += lumArray[sampleY * w + x];
+          }
+          fogFalloffCurve16.push(Number((rowLum / w).toFixed(4)));
+        }
+
+        // Tiled region detection: warm tan / cream hue 20°–65°, sat 0.08–0.60, non-blowout
+        let tiledPixCount = 0;
+        let tiledEdgeCount = 0;
+        const tiledRows = [];
+        for (let y = 1; y < h - 1; y += 2) {
+          let rowTiledCount = 0;
+          const rowSamples = [];
+          for (let x = 1; x < w - 1; x += 2) {
+            const idx = y * w + x;
+            const pxIdx = idx * 4;
+            const r = data[pxIdx] / 255.0;
+            const g = data[pxIdx + 1] / 255.0;
+            const b = data[pxIdx + 2] / 255.0;
+            const max = Math.max(r, g, b);
+            const min = Math.min(r, g, b);
+            const d = max - min;
+            let hue = 0;
+            if (d > 1e-4) {
+              if (max === r) hue = ((g - b) / d + (g < b ? 6 : 0)) / 6;
+              else if (max === g) hue = ((b - r) / d + 2) / 6;
+              else hue = ((r - g) / d + 4) / 6;
+            }
+            const hueDeg = hue * 360;
+            const sat = max > 1e-4 ? d / max : 0;
+            const isTile = (hueDeg >= 20 && hueDeg <= 65 && sat >= 0.06 && lumArray[idx] > 0.12 && lumArray[idx] < 0.92);
+            if (isTile) {
+              tiledPixCount++;
+              rowTiledCount++;
+              rowSamples.push(lumArray[idx]);
+              // Check local gradient for edge
+              const gx = lumArray[idx + 1] - lumArray[idx - 1];
+              const gy = lumArray[idx + w] - lumArray[idx - w];
+              if (Math.hypot(gx, gy) > 0.08) tiledEdgeCount++;
+            }
+          }
+          if (rowTiledCount > w * 0.15) {
+            tiledRows.push(rowSamples);
+          }
+        }
+        const edgeDensityTiled = tiledPixCount > 50 ? tiledEdgeCount / tiledPixCount : sobel1;
+
+        // Estimated tile size via autocorrelation peak (lag 4 to 80 px)
+        let estimatedTileSizePx = 24.0;
+        if (tiledRows.length > 5) {
+          const maxLag = Math.min(80, Math.floor(w * 0.25));
+          const autoCorr = new Float32Array(maxLag);
+          let sampleCount = 0;
+          for (const row of tiledRows.slice(0, 15)) {
+            if (row.length < maxLag * 2) continue;
+            let rowMean = 0;
+            for (let i = 0; i < row.length; i++) rowMean += row[i];
+            rowMean /= row.length;
+            for (let lag = 4; lag < maxLag; lag++) {
+              let sum = 0;
+              for (let i = 0; i < row.length - lag; i++) {
+                sum += (row[i] - rowMean) * (row[i + lag] - rowMean);
+              }
+              autoCorr[lag] += sum / (row.length - lag);
+            }
+            sampleCount++;
+          }
+          if (sampleCount > 0) {
+            let bestPeak = -Infinity;
+            let peakLag = 24;
+            for (let lag = 6; lag < maxLag - 1; lag++) {
+              if (autoCorr[lag] > autoCorr[lag - 1] && autoCorr[lag] > autoCorr[lag + 1] && autoCorr[lag] > bestPeak) {
+                bestPeak = autoCorr[lag];
+                peakLag = lag * 2; // account for x+=2 stride
+              }
+            }
+            estimatedTileSizePx = peakLag;
+          }
+        }
+
+        // Sharpness estimate (high-frequency Laplacian variance)
+        let lapSum = 0;
+        let lapSqSum = 0;
+        let lapCount = 0;
+        for (let y = 1; y < h - 1; y += 2) {
+          for (let x = 1; x < w - 1; x += 2) {
+            const idx = y * w + x;
+            const lap = 4 * lumArray[idx] - lumArray[idx - 1] - lumArray[idx + 1] - lumArray[idx - w] - lumArray[idx + w];
+            lapSum += lap;
+            lapSqSum += lap * lap;
+            lapCount++;
+          }
+        }
+        const lapMean = lapCount > 0 ? lapSum / lapCount : 0;
+        const sharpness = lapCount > 0 ? Math.sqrt(Math.max(0, (lapSqSum / lapCount) - (lapMean * lapMean))) : 0.05;
 
         resolve({
           width: w,
@@ -418,8 +517,12 @@ export class HeadlessStatsExtractor {
             scale1: Number(sobel1.toFixed(4)),
             scale2: Number(sobel2.toFixed(4)),
             scale4: Number(sobel4.toFixed(4)),
+            tiledRegions: Number(edgeDensityTiled.toFixed(4)),
           },
           fogFalloffCurve: fogCurve,
+          fogFalloffCurve16,
+          estimatedTileSizePx: Number(estimatedTileSizePx.toFixed(1)),
+          sharpness: Number(sharpness.toFixed(4)),
           waterRegion: {
             pixelCount: waterPixCount,
             meanRGB: waterMeanRGB.map(v => Number(v.toFixed(3))),

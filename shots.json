@@ -1,5 +1,197 @@
 [
   {
+    "id": "natatorium_spawn_view",
+    "name": "Natatorium Spawn View Down Channel",
+    "mapId": "natatorium",
+    "seed": 42,
+    "simTime": 2.0,
+    "camera": { "x": 0.0, "y": 1.95, "z": 50.0, "target": { "x": 0.0, "y": 1.5, "z": 25.0 }, "fov": 75 },
+    "description": "Spawn perspective looking north down the primary platform channel into misty pool hall"
+  },
+  {
+    "id": "natatorium_spawn_view_portrait",
+    "name": "Natatorium Spawn View (Portrait 9:16)",
+    "mapId": "natatorium",
+    "seed": 42,
+    "simTime": 2.0,
+    "isPortrait": true,
+    "camera": { "x": 0.0, "y": 1.95, "z": 50.0, "target": { "x": 0.0, "y": 1.5, "z": 25.0 }, "fov": 70 },
+    "description": "Portrait vertical framing of spawn corridor with high arches and floor tiles"
+  },
+  {
+    "id": "natatorium_slab_edge",
+    "name": "Along a Platform Slab Edge",
+    "mapId": "natatorium",
+    "seed": 42,
+    "simTime": 3.0,
+    "camera": { "x": -2.0, "y": 0.65, "z": 35.5, "target": { "x": 15.0, "y": 0.2, "z": 35.5 }, "fov": 60 },
+    "description": "Low grazing angle along the 0.3m slab edge showing bullnose tile trim and water contact line"
+  },
+  {
+    "id": "natatorium_slab_edge_portrait",
+    "name": "Along a Platform Slab Edge (Portrait 9:16)",
+    "mapId": "natatorium",
+    "seed": 42,
+    "simTime": 3.0,
+    "isPortrait": true,
+    "camera": { "x": -2.0, "y": 0.65, "z": 35.5, "target": { "x": 15.0, "y": 0.2, "z": 35.5 }, "fov": 55 },
+    "description": "Vertical portrait view looking along the wet slab edge into the water expanse"
+  },
+  {
+    "id": "natatorium_pillar_numeral_8m",
+    "name": "Pillar With Stenciled Numeral at 8m",
+    "mapId": "natatorium",
+    "seed": 42,
+    "simTime": 2.0,
+    "camera": { "x": -8.0, "y": 1.8, "z": 56.0, "target": { "x": -8.0, "y": 2.2, "z": 48.0 }, "fov": 65 },
+    "description": "Tile pillar at 8m distance displaying giant spray-painted black numeral with edge overspray"
+  },
+  {
+    "id": "natatorium_pillar_numeral_8m_portrait",
+    "name": "Pillar With Stenciled Numeral at 8m (Portrait 9:16)",
+    "mapId": "natatorium",
+    "seed": 42,
+    "simTime": 2.0,
+    "isPortrait": true,
+    "camera": { "x": -8.0, "y": 1.8, "z": 56.0, "target": { "x": -8.0, "y": 2.2, "z": 48.0 }, "fov": 60 },
+    "description": "Portrait composition framing the vertical height of the numbered pillar and vault ceiling"
+  },
+  {
+    "id": "natatorium_arch_fog_25m",
+    "name": "Vault Arch in Fog at 25m",
+    "mapId": "natatorium",
+    "seed": 42,
+    "simTime": 2.0,
+    "camera": { "x": 0.0, "y": 1.95, "z": 25.0, "target": { "x": 0.0, "y": 3.5, "z": 0.0 }, "fov": 70 },
+    "description": "Tiled archway 25m distant emerging as a soft silhouette against atmospheric in-scatter fog"
+  },
+  {
+    "id": "natatorium_arch_fog_25m_portrait",
+    "name": "Vault Arch in Fog at 25m (Portrait 9:16)",
+    "mapId": "natatorium",
+    "seed": 42,
+    "simTime": 2.0,
+    "isPortrait": true,
+    "camera": { "x": 0.0, "y": 1.95, "z": 25.0, "target": { "x": 0.0, "y": 3.5, "z": 0.0 }, "fov": 65 },
+    "description": "Vertical composition capturing the monumental scale of the 25m foggy arch"
+  },
+  {
+    "id": "natatorium_tagline_wall",
+    "name": "Tagline Graffiti Wall",
+    "mapId": "natatorium",
+    "seed": 42,
+    "simTime": 2.0,
+    "camera": { "x": 0.0, "y": 1.8, "z": 54.0, "target": { "x": 0.0, "y": 1.8, "z": 58.0 }, "fov": 70 },
+    "description": "Hand-lettered black marker graffiti on cream tiles: IT CAN'T SEE YOU. IT HEARS THE WATER."
+  },
+  {
+    "id": "natatorium_tagline_wall_portrait",
+    "name": "Tagline Graffiti Wall (Portrait 9:16)",
+    "mapId": "natatorium",
+    "seed": 42,
+    "simTime": 2.0,
+    "isPortrait": true,
+    "camera": { "x": 0.0, "y": 1.8, "z": 54.0, "target": { "x": 0.0, "y": 1.8, "z": 58.0 }, "fov": 65 },
+    "description": "Portrait framing of the iconic marker tagline with falling water droplet drawing"
+  },
+  {
+    "id": "natatorium_trench_view",
+    "name": "Narrow Trench Seen From Slab",
+    "mapId": "natatorium",
+    "seed": 42,
+    "simTime": 2.5,
+    "camera": { "x": -3.5, "y": 1.65, "z": 36.5, "target": { "x": -2.5, "y": -0.6, "z": 36.5 }, "fov": 65 },
+    "description": "Looking down into a flooded 1.8m drainage trench between fractured platform slabs"
+  },
+  {
+    "id": "natatorium_trench_view_portrait",
+    "name": "Narrow Trench Seen From Slab (Portrait 9:16)",
+    "mapId": "natatorium",
+    "seed": 42,
+    "simTime": 2.5,
+    "isPortrait": true,
+    "camera": { "x": -3.5, "y": 1.65, "z": 36.5, "target": { "x": -2.5, "y": -0.6, "z": 36.5 }, "fov": 60 },
+    "description": "Portrait angle showing trench depth, water surface, and tiled vertical sidewalls"
+  },
+  {
+    "id": "natatorium_horizon_long",
+    "name": "Long Water View to Blown-Out Horizon",
+    "mapId": "natatorium",
+    "seed": 42,
+    "simTime": 2.0,
+    "camera": { "x": 4.0, "y": 1.2, "z": 20.0, "target": { "x": 4.0, "y": 0.8, "z": -45.0 }, "fov": 60 },
+    "description": "Long sightline across calm water with multiple fading silhouette layers dissolving into cream horizon haze"
+  },
+  {
+    "id": "natatorium_horizon_long_portrait",
+    "name": "Long Water View to Horizon (Portrait 9:16)",
+    "mapId": "natatorium",
+    "seed": 42,
+    "simTime": 2.0,
+    "isPortrait": true,
+    "camera": { "x": 4.0, "y": 1.2, "z": 20.0, "target": { "x": 4.0, "y": 0.8, "z": -45.0 }, "fov": 55 },
+    "description": "Vertical vista showing the endless flooded hall dissolving into white sky"
+  },
+  {
+    "id": "natatorium_close_tile_wall",
+    "name": "Close Tiled Wall Material Detail",
+    "mapId": "natatorium",
+    "seed": 42,
+    "simTime": 2.0,
+    "camera": { "x": 11.0, "y": 1.65, "z": 45.0, "target": { "x": 12.0, "y": 1.65, "z": 45.0 }, "fov": 60 },
+    "description": "Close-up at 1m distance displaying square mosaic ceramic tiles, thin grout, bevels, and micro-cracks"
+  },
+  {
+    "id": "natatorium_close_tile_wall_portrait",
+    "name": "Close Tiled Wall (Portrait 9:16)",
+    "mapId": "natatorium",
+    "seed": 42,
+    "simTime": 2.0,
+    "isPortrait": true,
+    "camera": { "x": 11.0, "y": 1.65, "z": 45.0, "target": { "x": 12.0, "y": 1.65, "z": 45.0 }, "fov": 55 },
+    "description": "Vertical macro perspective of ceramic glaze sheen and fine hairline fissures"
+  },
+  {
+    "id": "natatorium_floor_through_water",
+    "name": "Tile Floor Seen Through Translucent Water",
+    "mapId": "natatorium",
+    "seed": 42,
+    "simTime": 3.0,
+    "camera": { "x": 0.0, "y": 0.9, "z": 12.0, "target": { "x": 0.0, "y": -0.9, "z": 8.0 }, "fov": 70 },
+    "description": "Looking down into 0.9m pool depth showing large floor tiles, dark grout, caustics, and water clarity"
+  },
+  {
+    "id": "natatorium_floor_through_water_portrait",
+    "name": "Tile Floor Through Water (Portrait 9:16)",
+    "mapId": "natatorium",
+    "seed": 42,
+    "simTime": 3.0,
+    "isPortrait": true,
+    "camera": { "x": 0.0, "y": 0.9, "z": 12.0, "target": { "x": 0.0, "y": -0.9, "z": 8.0 }, "fov": 65 },
+    "description": "Portrait vertical shot of refracted floor mosaic and caustics below milky green water"
+  },
+  {
+    "id": "natatorium_monster_25m",
+    "name": "Monster in Fog at 25m",
+    "mapId": "natatorium",
+    "seed": 42,
+    "simTime": 3.0,
+    "creature": { "distance": -25.0, "facing": 0 },
+    "camera": { "x": 0.0, "y": 1.65, "z": 27.0, "target": { "x": 0.0, "y": 1.0, "z": 2.0 }, "fov": 65 },
+    "description": "The blind lurker wading at 25m distance through misty water, casting a shadowy silhouette"
+  },
+  {
+    "id": "natatorium_monster_25m_portrait",
+    "name": "Monster in Fog at 25m (Portrait 9:16)",
+    "mapId": "natatorium",
+    "seed": 42,
+    "simTime": 3.0,
+    "isPortrait": true,
+    "creature": { "distance": -25.0, "facing": 0 },
+    "camera": { "x": 0.0, "y": 1.65, "z": 27.0, "target": { "x": 0.0, "y": 1.0, "z": 2.0 }, "fov": 60 },
+    "description": "Ominous vertical portrait of the blind lurker silhouetted against the pale atmospheric haze"
+  },
+  {
     "id": "natatorium_hero",
     "name": "Natatorium Hero Arch & Pool",
     "mapId": "natatorium",

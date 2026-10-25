@@ -9,6 +9,11 @@ scratch/
 reports/*
 !reports/monster/
 !reports/water/
+!reports/graphics/
+reports/graphics/**/*.png
+!reports/audio/
+reports/audio/**/*.wav
+reports/audio/**/*.png
 reference/out*
 reference/*.png
 reference/video/frames/*.png
