@@ -5,6 +5,7 @@
 
 import type { MapId } from '../../types/contracts.js';
 import type { LayoutData, PlatformDef, LayoutCtx, MapDefinition } from '../MapTypes.js';
+import type { NavGrid } from '../../sim/NavGrid.js';
 
 export interface ValidationResult {
   valid: boolean;
@@ -23,6 +24,23 @@ export class LayoutValidationError extends Error {
     this.seed = seed;
     this.errors = errors;
   }
+}
+
+/**
+ * Validates that the monster's navigable water component covers at least 40% of the map's water area.
+ */
+export function validateMonsterWaterCoverage(nav: NavGrid, minCoverage = 0.40): { valid: boolean; coverage: number; error?: string } {
+  if (nav.waterCoverageRatio < minCoverage) {
+    return {
+      valid: false,
+      coverage: nav.waterCoverageRatio,
+      error: `Monster navigable water component covers only ${(nav.waterCoverageRatio * 100).toFixed(1)}% of water area (minimum ${(minCoverage * 100).toFixed(0)}%)`,
+    };
+  }
+  return {
+    valid: true,
+    coverage: nav.waterCoverageRatio,
+  };
 }
 
 function dist2D(x1: number, z1: number, x2: number, z2: number): number {

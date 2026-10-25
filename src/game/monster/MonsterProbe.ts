@@ -142,6 +142,8 @@ export function runMonsterProbe(session: GameSession): MonsterProbeResult {
         skinnedMesh?: SkinnedMesh;
       };
       skinLoadError?: string | null;
+      skinError?: string | null;
+      skinType?: 'model' | 'procedural';
     } | undefined;
   } }).monsters;
 
@@ -307,8 +309,8 @@ export function runMonsterProbe(session: GameSession): MonsterProbeResult {
   }
 
   const primaryBody = primaryMonster ? monstersManager?.getBody(primaryMonster.id) : undefined;
-  const skinLoadError = primaryBody?.skinLoadError ?? null;
-  const activeSkin: 'model' | 'procedural' | 'none' = primaryBody?.mesh ? 'procedural' : 'none';
+  const skinLoadError = primaryBody?.skinLoadError ?? primaryBody?.skinError ?? null;
+  const activeSkin: 'model' | 'procedural' | 'none' = primaryBody?.skinType ?? (primaryBody?.mesh ? 'procedural' : 'none');
 
   const l1Pass = hasRoot && rootVisible && ancestorsVisible && worldMatrixFinite && childMeshCount > 0;
   const L1: MonsterProbeResult['L1'] = {

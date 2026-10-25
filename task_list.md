@@ -1,25 +1,25 @@
 # Task List — BackSilence Monster Presence & Pacing System (Prompt 1 of 5)
 
-- [ ] **Phase A: Monster Presence Probe & Diagnostic Baseline**
-  - [ ] Implement `window.__backsilence.monsterProbe()` with L0–L5 metrics and verdict
-  - [ ] Implement on-screen debug aids (`?debug=1`): locator arrow, magenta sim marker, keys (`H`, `M`, `J`, `K`, `I`, `N`, `Y`)
-  - [ ] Create headless trace script `scripts/monster-trace.mjs`
-  - [ ] Run headless trace across all maps, quality tiers, and mobile (390x844) to generate `reports/monster/trace.json` and `reports/monster/trace.md`
-  - [ ] Evaluate the 16-point suspect checklist with evidence
-  - [ ] Record Decision D071 in `DECISIONS.md` and commit Phase A
+- [x] **Phase A: Monster Presence Probe & Diagnostic Baseline**
+  - [x] Implement `window.__backsilence.monsterProbe()` with L0–L5 metrics and verdict
+  - [x] Implement on-screen debug aids (`?debug=1`): locator arrow, magenta sim marker, keys (`H`, `M`, `J`, `K`, `I`, `N`, `Y`)
+  - [x] Create headless trace script `scripts/monster-trace.mjs`
+  - [x] Run headless trace across all maps, quality tiers, and mobile (390x844) to generate `reports/monster/trace.json` and `reports/monster/trace.md`
+  - [x] Evaluate the 16-point suspect checklist with evidence
+  - [x] Record Decision D071 in `DECISIONS.md` and commit Phase A
 
-- [ ] **Phase B: Layer-by-Layer Repair**
-  - [ ] Implement GLB loader hardening (0x46546C67 magic check, Content-Type, 8s timeout, instant procedural fallback)
-  - [ ] Add finite assertions (`Number.isFinite`) at sim-to-presentation boundaries
-  - [ ] Eliminate silent catch blocks in monster, water, and director code
-  - [ ] Correct fog culling distance rule based on active map fog density
-  - [ ] Set `frustumCulled = false` for skinned monster components
-  - [ ] Guarantee opaque render order and depth texture write
-  - [ ] Enforce ground grid height tracking with shoulders >= 0.35m above waterline
-  - [ ] Relax navigation clearance or choose largest water component for spawns
-  - [ ] Calibrate monster body scale and hunch dimensions
-  - [ ] Add regression tests for repaired defects
-  - [ ] Record Decision D072 in `DECISIONS.md` and commit Phase B
+- [x] **Phase B: Layer-by-Layer Repair**
+  - [x] Implement GLB loader hardening (0x46546C67 magic check, Content-Type, 8s timeout, instant procedural fallback)
+  - [x] Add finite assertions (`Number.isFinite`) at sim-to-presentation boundaries
+  - [x] Eliminate silent catch blocks in monster, water, and director code
+  - [x] Correct fog culling distance rule based on active map fog density
+  - [x] Set `frustumCulled = false` for skinned monster components
+  - [x] Guarantee opaque render order and depth texture write
+  - [x] Enforce ground grid height tracking with shoulders >= 0.35m above waterline
+  - [x] Relax navigation clearance or choose largest water component for spawns
+  - [x] Calibrate monster body scale and hunch dimensions
+  - [x] Add regression tests for repaired defects
+  - [x] Record Decision D072 in `DECISIONS.md` and commit Phase B
 
 - [ ] **Phase C: Experience & Pacing**
   - [ ] Implement First Sight crossing rule (within 35s on Normal, $d = \sqrt{\ln(1/0.25)}/\text{density}$)

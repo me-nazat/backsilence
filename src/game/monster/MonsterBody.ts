@@ -37,6 +37,19 @@ export class MonsterBody {
   private currentRearing = 0;
   private breathPhase = 0;
 
+  // Hardening and Diagnostic Probe fields (Phase B)
+  readonly skinType: 'model' | 'procedural' = 'procedural';
+  skinError: string | null = null;
+  updateErrorCount = 0;
+  lastUpdateError: string | null = null;
+  nonFiniteCount = 0;
+  nonFiniteDetected = false;
+  fogDensity = 0.045;
+
+  private readonly lastGoodPos = new Vector3(0, 0, 0);
+  private lastGoodYaw = 0;
+  private hasLoggedNonFinite = false;
+
   constructor(
     id: string,
     scale = 1.0,
@@ -85,15 +98,78 @@ export class MonsterBody {
     ground: GroundGrid,
     camera: Camera,
   ): void {
+    try {
+      this.updateInternal(dt, snapshot, ground, camera);
+    } catch (err: unknown) {
+      this.updateErrorCount++;
+      const msg = err instanceof Error ? err.message : typeof err === 'string' ? err : 'Unknown monster update error';
+      this.lastUpdateError = msg;
+      console.warn(`[MonsterBody] update threw for ${this.id}: ${msg}. Maintaining procedural presentation.`);
+      if (typeof window !== 'undefined' && window.location.search.includes('debug=1')) {
+        const hud = document.getElementById('hud');
+        if (hud) {
+          hud.setAttribute('data-monster-error', `${this.id}: ${msg}`);
+        }
+      }
+      // Ensure root remains positioned and visible
+      this.mesh.root.position.copy(this.lastGoodPos);
+      this.mesh.root.visible = true;
+    }
+  }
+
+  private updateInternal(
+    dt: number,
+    snapshot: MonsterSnapshot,
+    ground: GroundGrid,
+    camera: Camera,
+  ): void {
+    // 0. Finite checks at sim-to-presentation boundary
+    const isFinitePos =
+      Number.isFinite(snapshot.pos.x) &&
+      Number.isFinite(snapshot.pos.y) &&
+      Number.isFinite(snapshot.pos.z);
+    const isFiniteYaw = Number.isFinite(snapshot.yaw);
+    const isFiniteVel =
+      Number.isFinite(snapshot.vel.x) &&
+      Number.isFinite(snapshot.vel.z);
+    const isFiniteScale = Number.isFinite(this.mesh.root.scale.x);
+
+    if (!isFinitePos || !isFiniteYaw || !isFiniteVel || !isFiniteScale) {
+      this.nonFiniteCount++;
+      this.nonFiniteDetected = true;
+      if (!this.hasLoggedNonFinite) {
+        console.warn(
+          `[MonsterBody] Non-finite value detected for ${this.id}: pos=(${snapshot.pos.x}, ${snapshot.pos.y}, ${snapshot.pos.z}), yaw=${snapshot.yaw}. Resetting to last good finite state.`,
+        );
+        this.hasLoggedNonFinite = true;
+      }
+      snapshot.pos.x = this.lastGoodPos.x;
+      snapshot.pos.y = this.lastGoodPos.y;
+      snapshot.pos.z = this.lastGoodPos.z;
+      snapshot.yaw = this.lastGoodYaw;
+      snapshot.vel.x = 0;
+      snapshot.vel.z = 0;
+    }
+
     const joints = this.mesh.joints;
 
-    // 1. Root Position & Orientation
-    this.mesh.root.position.set(snapshot.pos.x, snapshot.pos.y, snapshot.pos.z);
+    // 1. Depth placement: root y follows GroundGrid.heightAt and sits so shoulders clear water by >= 0.35m
+    const rawGroundY = ground.heightAt(snapshot.pos.x, snapshot.pos.z);
+    const groundY = Number.isFinite(rawGroundY) ? rawGroundY : -0.9;
+    const waterLevel = this.water ? this.water.currentWaterY : 0.0;
+    // Shoulders are 1.4m above root in hunched gait; ensure shoulders clear surface by >= 0.35m
+    const minRootYForShoulders = waterLevel + 0.35 - 1.40;
+    const finalRootY = Math.max(groundY, minRootYForShoulders);
+
+    this.mesh.root.position.set(snapshot.pos.x, finalRootY, snapshot.pos.z);
     this.currentYaw += (snapshot.yaw - this.currentYaw) * Math.min(1.0, dt * 10.0);
     this.mesh.root.rotation.y = this.currentYaw;
 
+    this.lastGoodPos.copy(this.mesh.root.position);
+    this.lastGoodYaw = this.currentYaw;
+
     const speed = Math.hypot(snapshot.vel.x, snapshot.vel.z);
-    _worldRoot.set(snapshot.pos.x, snapshot.pos.y, snapshot.pos.z);
+    _worldRoot.copy(this.mesh.root.position);
 
     // 2. Gait update & Limb target placement
     this.gait.update(dt, speed, _worldRoot, this.currentYaw, ground, this.onGaitPlant);
@@ -166,6 +242,15 @@ export class MonsterBody {
     // 10. Distance-based LOD
     const distToCam = this.mesh.root.position.distanceTo(camera.position);
     this.mesh.setLOD(distToCam);
+
+    // 11. Fog visibility rule: never set visible = false unless transmittance < 0.01 AND distance > 60m
+    const density = this.fogDensity > 0 ? this.fogDensity : 0.045;
+    const transmittance = Math.exp(-Math.pow(density * distToCam, 2));
+    if (distToCam > 60.0 && transmittance < 0.01) {
+      this.mesh.root.visible = false;
+    } else {
+      this.mesh.root.visible = true;
+    }
   }
 
   dispose(): void {

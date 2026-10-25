@@ -2769,41 +2769,100 @@ export class GameSession {
       switch (e.code) {
         case 'KeyH': {
           const forward = this.camera.getWorldDirection(new Vector3());
-          const targetX = this.camera.position.x + forward.x * 14.0;
-          const targetZ = this.camera.position.z + forward.z * 14.0;
-          const targetY = -0.9;
+          forward.y = 0;
+          if (forward.lengthSq() > 0.001) forward.normalize();
+          else forward.set(0, 0, -1);
+
+          const camX = this.camera.position.x;
+          const camZ = this.camera.position.z;
+          const bounds = this.layout.bounds;
+
+          let bestX = camX + forward.x * 14.0;
+          let bestZ = camZ + forward.z * 14.0;
+          let foundClear = false;
+
+          // Search candidate rays within forward cone (or widened if blocked)
+          const angleOffsets = [0, 0.26, -0.26, 0.52, -0.52, 0.78, -0.78, 1.2, -1.2, Math.PI];
+          const distSteps = [14.0, 12.0, 10.0, 8.0, 6.0];
+
+          for (const d of distSteps) {
+            for (const angle of angleOffsets) {
+              const baseAngle = Math.atan2(forward.x, forward.z);
+              const testAngle = baseAngle + angle;
+              const tx = camX + Math.sin(testAngle) * d;
+              const tz = camZ + Math.cos(testAngle) * d;
+
+              // Check within bounds
+              if (tx < bounds.minX + 1.5 || tx > bounds.maxX - 1.5 || tz < bounds.minZ + 1.5 || tz > bounds.maxZ - 1.5) {
+                continue;
+              }
+
+              // Check zero wall intersections (direct line of sight)
+              if (this.simWorld.colliders.segmentHits(camX, camZ, tx, tz) === 0) {
+                // Prefer walkable water cell
+                if (this.simWorld.nav.isWalkableWorld(tx, tz)) {
+                  bestX = tx;
+                  bestZ = tz;
+                  foundClear = true;
+                  break;
+                } else if (!foundClear) {
+                  bestX = tx;
+                  bestZ = tz;
+                }
+              }
+            }
+            if (foundClear) break;
+          }
+
+          // Depth placement: shoulders clear water surface by >= 0.35m
+          const groundY = this.mapInstance.ground.heightAt(bestX, bestZ);
+          const waterLevel = this.water.currentWaterY;
+          const shoulderMinY = waterLevel + 0.35 - 1.40;
+          const targetY = Math.max(groundY, shoulderMinY);
+
           if (this.simWorld.monsters.length > 0) {
             const m = this.simWorld.monsters[0]!;
-            m.pos.x = targetX;
+            m.pos.x = bestX;
             m.pos.y = targetY;
-            m.pos.z = targetZ;
+            m.pos.z = bestZ;
             m.vel.x = 0;
             m.vel.y = 0;
             m.vel.z = 0;
             m.forceState('WANDER');
             const body = this.monsters.getBody(m.id);
             if (body) {
-              body.mesh.root.position.set(targetX, targetY, targetZ);
+              body.fogDensity = this.mapDef.atmosphere.fog.density;
+              body.mesh.root.position.set(bestX, targetY, bestZ);
             }
           } else {
             const id = `monster_${Date.now()}`;
-            const spawnPos = { x: targetX, y: targetY, z: targetZ };
-            this.monsters.addMonster({ id, variant: 'standard', spawn: spawnPos });
+            const spawnPos = { x: bestX, y: targetY, z: bestZ };
+            const body = this.monsters.addMonster({ id, variant: 'standard', spawn: spawnPos });
+            body.fogDensity = this.mapDef.atmosphere.fog.density;
             this.simWorld.addMonster({ id, variant: 'standard', spawn: spawnPos, spawnGrace: 0.0 }, 12345);
           }
           const probe = this.monsterProbe();
-          console.log('[DEBUG KEY H] Placed monster 14m in front of camera. Verdict:', probe.verdict);
+          console.log('[DEBUG KEY H] Placed monster in clear view. Verdict:', probe.verdict);
           this.hud.update({ objective: `DEBUG H: Monster placed at 14m (${probe.verdict.layer})` });
           break;
         }
         case 'KeyM': {
           const forward = this.camera.getWorldDirection(new Vector3());
+          forward.y = 0;
+          if (forward.lengthSq() > 0.001) forward.normalize();
+          else forward.set(0, 0, -1);
+
           const targetX = this.camera.position.x + forward.x * 10.0;
           const targetZ = this.camera.position.z + forward.z * 10.0;
-          const targetY = -0.9;
+          const groundY = this.mapInstance.ground.heightAt(targetX, targetZ);
+          const waterLevel = this.water.currentWaterY;
+          const shoulderMinY = waterLevel + 0.35 - 1.40;
+          const targetY = Math.max(groundY, shoulderMinY);
+
           const id = `monster_${Date.now()}`;
           const spawnPos = { x: targetX, y: targetY, z: targetZ };
-          this.monsters.addMonster({ id, variant: 'standard', spawn: spawnPos });
+          const body = this.monsters.addMonster({ id, variant: 'standard', spawn: spawnPos });
+          body.fogDensity = this.mapDef.atmosphere.fog.density;
           this.simWorld.addMonster({ id, variant: 'standard', spawn: spawnPos, spawnGrace: 2.0 }, 12345);
           const probe = this.monsterProbe();
           console.log('[DEBUG KEY M] Spawned monster at crosshair. Verdict:', probe.verdict);

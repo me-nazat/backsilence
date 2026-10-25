@@ -43,24 +43,28 @@ export async function getCreatureManifest(): Promise<CreatureManifest> {
   try {
     const res = await fetch('models/manifest.json');
     if (res.ok) {
-      cachedManifest = (await res.json()) as CreatureManifest;
-      return cachedManifest;
+      const ct = res.headers.get('content-type') ?? '';
+      if (!ct.includes('text/html')) {
+        cachedManifest = (await res.json()) as CreatureManifest;
+        return cachedManifest;
+      }
     }
-  } catch {
-    // manifest.json not found
+  } catch (err: unknown) {
+    console.debug('[ModelManifest] manifest.json check:', err);
   }
 
-  // Probe thumper.glb via HEAD request
+  // Probe thumper.glb via HEAD request with Content-Type verification
   try {
     const headRes = await fetch('models/thumper.glb', { method: 'HEAD' });
-    if (headRes.ok) {
+    const ct = headRes.headers.get('content-type') ?? '';
+    if (headRes.ok && !ct.includes('text/html') && (ct.includes('model/gltf') || ct.includes('octet-stream'))) {
       const copy = JSON.parse(JSON.stringify(defaultManifest)) as CreatureManifest;
       copy.models.thumper.present = true;
       cachedManifest = copy;
       return cachedManifest;
     }
-  } catch {
-    // thumper.glb not present
+  } catch (err: unknown) {
+    console.debug('[ModelManifest] thumper.glb probe:', err);
   }
 
   cachedManifest = defaultManifest;

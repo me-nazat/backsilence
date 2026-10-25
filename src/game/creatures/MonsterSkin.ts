@@ -49,6 +49,8 @@ export class ProceduralSkin implements MonsterSkin {
   readonly root: Object3D;
   readonly hierarchy: MonsterMeshHierarchy;
   readonly variant: MonsterVariant;
+  readonly skinType = 'procedural' as const;
+  readonly skinError = null;
 
   private mode = 'WANDER';
   private animTimer = 0;
@@ -270,6 +272,55 @@ export class ProceduralSkin implements MonsterSkin {
   }
 }
 
+export interface GlbValidationResult {
+  ok: boolean;
+  buffer?: ArrayBuffer;
+  reason?: string;
+}
+
+export async function validateAndFetchGlb(
+  url: string,
+  timeoutMs = 8000,
+): Promise<GlbValidationResult> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const res = await fetch(url, { signal: controller.signal });
+    clearTimeout(timer);
+
+    if (!res.ok) {
+      return { ok: false, reason: `HTTP status ${res.status} ${res.statusText}` };
+    }
+
+    const contentType = res.headers.get('content-type') ?? '';
+    if (contentType.toLowerCase().includes('text/html') || contentType.toLowerCase().includes('application/json')) {
+      return { ok: false, reason: `Invalid Content-Type '${contentType}', expected binary model/gltf-binary` };
+    }
+
+    const buffer = await res.arrayBuffer();
+    if (buffer.byteLength < 4) {
+      return { ok: false, reason: `Response too short (${buffer.byteLength} bytes)` };
+    }
+
+    const view = new DataView(buffer);
+    const magicLE = view.getUint32(0, true);
+    // 0x46546C67 in little-endian = ASCII 'glTF'
+    if (magicLE !== 0x46546c67) {
+      return {
+        ok: false,
+        reason: `Invalid GLB magic bytes 0x${magicLE.toString(16)} (expected 0x46546c67 'glTF')`,
+      };
+    }
+
+    return { ok: true, buffer };
+  } catch (err: unknown) {
+    clearTimeout(timer);
+    const msg = err instanceof Error ? (err.name === 'AbortError' ? 'Fetch timeout after 8s' : err.message) : typeof err === 'string' ? err : 'Unknown fetch error';
+    return { ok: false, reason: msg };
+  }
+}
+
 /* ── 2. GlbSkin (Thumper Rig) ─────────────────────────────────────────── */
 export class GlbSkin implements MonsterSkin {
   readonly root = new Object3D();
@@ -281,6 +332,11 @@ export class GlbSkin implements MonsterSkin {
   private isLoaded = false;
   private readonly footContacts: FootBoneContact[] = [];
   private debugHelper: SkeletonHelper | null = null;
+  skinError: string | null = null;
+
+  get skinType(): 'model' | 'procedural' {
+    return this.isLoaded ? 'model' : 'procedural';
+  }
 
   constructor(scale = 1.0, tintHex = '#7a4a38', seed = 54321, variant: MonsterVariant = 'standard') {
     this.root.name = 'GlbMonsterRoot';
@@ -294,12 +350,22 @@ export class GlbSkin implements MonsterSkin {
   private async loadGlb(): Promise<void> {
     if (typeof window === 'undefined') return;
 
+    const validation = await validateAndFetchGlb('models/thumper.glb', 8000);
+    if (!validation.ok || !validation.buffer) {
+      const reason = validation.reason ?? 'Unknown validation failure';
+      this.skinError = reason;
+      console.warn(`[MonsterSkin] GLB load rejected (${reason}), selected ProceduralSkin fallback`);
+      this.isLoaded = false;
+      return;
+    }
+
     try {
       const { GLTFLoader } = await import('three/examples/jsm/loaders/GLTFLoader.js');
       const loader = new GLTFLoader();
 
-      loader.load(
-        'models/thumper.glb',
+      loader.parse(
+        validation.buffer,
+        '',
         (gltf) => {
           this.model = gltf.scene;
 
@@ -308,7 +374,7 @@ export class GlbSkin implements MonsterSkin {
           const size = new Vector3();
           box.getSize(size);
           const currentHeight = size.y || 1.8;
-          const targetHeight = WORLD.MONSTER.HUNCH_HEIGHT; // ~1.85m
+          const targetHeight = WORLD.MONSTER.HUNCH_HEIGHT; // ~1.4m
           const normScale = targetHeight / currentHeight;
           this.model.scale.set(normScale, normScale, normScale);
 
@@ -325,6 +391,9 @@ export class GlbSkin implements MonsterSkin {
 
               const mat = mesh.material as MeshStandardMaterial;
               if (mat && mat.isMeshStandardMaterial) {
+                mat.transparent = false;
+                mat.depthWrite = true;
+                mat.depthTest = true;
                 mat.roughness = Math.max(0.3, mat.roughness);
                 mat.onBeforeCompile = (shader) => {
                   shader.fragmentShader = shader.fragmentShader.replace(
@@ -382,14 +451,19 @@ export class GlbSkin implements MonsterSkin {
           this.root.remove(this.fallbackSkin.root);
           this.root.add(this.model);
           this.isLoaded = true;
+          this.skinError = null;
         },
-        undefined,
-        () => {
-          // Keep procedural fallback if GLB not found or failed
+        (err) => {
+          const reason = err instanceof Error ? err.message : typeof err === 'string' ? err : 'GLTF parse error';
+          this.skinError = reason;
+          console.warn(`[MonsterSkin] GLTF parse error (${reason}), selecting ProceduralSkin fallback`);
           this.isLoaded = false;
         },
       );
-    } catch {
+    } catch (err: unknown) {
+      const reason = err instanceof Error ? err.message : typeof err === 'string' ? err : 'GLB loader error';
+      this.skinError = reason;
+      console.warn(`[MonsterSkin] GLB loader failed (${reason}), selecting ProceduralSkin fallback`);
       this.isLoaded = false;
     }
   }

@@ -17,6 +17,10 @@ export class NavGrid {
   readonly components: Int32Array; // Component ID per cell (-1 = unassigned/blocked)
   readonly profile: WorldProfile;
   componentCounts: Map<number, number> = new Map();
+  totalWaterCells = 0;
+  largestComponentId = -1;
+  largestComponentCount = 0;
+  waterCoverageRatio = 1.0;
 
   static readonly TRENCH_BLOCK_CLEARANCE = 1.2; // 2.4m trench / 2
   static readonly MIN_WATER_DEPTH = 0.45;
@@ -34,13 +38,57 @@ export class NavGrid {
     this.components = new Int32Array(count);
     this.components.fill(-1);
 
-    this.build(ground, waterY);
+    this.totalWaterCells = this.build(ground, waterY, 1.0);
     this.labelConnectedComponents();
+    let largest = this.computeLargestComponent();
+    let ratio = this.totalWaterCells > 0 ? largest / this.totalWaterCells : 1.0;
+
+    // Phase B Rule 8: if monster's component is under 40% of the map's water area, relax clearance thresholds
+    if (this.totalWaterCells > 20 && ratio < 0.40) {
+      this.components.fill(-1);
+      this.totalWaterCells = this.build(ground, waterY, 0.65);
+      this.labelConnectedComponents();
+      largest = this.computeLargestComponent();
+      ratio = this.totalWaterCells > 0 ? largest / this.totalWaterCells : 1.0;
+    }
+
+    this.largestComponentCount = largest;
+    this.waterCoverageRatio = ratio;
   }
 
-  private build(ground: GroundGrid, waterY: number): void {
+  private computeLargestComponent(): number {
+    let maxCount = 0;
+    let maxId = -1;
+    for (const [id, count] of this.componentCounts.entries()) {
+      if (count > maxCount) {
+        maxCount = count;
+        maxId = id;
+      }
+    }
+    this.largestComponentId = maxId;
+    return maxCount;
+  }
+
+  findSpawnInLargestComponent(): { x: number; z: number } | null {
+    if (this.largestComponentId === -1) return null;
+    for (let gz = 0; gz < this.depth; gz++) {
+      const row = gz * this.width;
+      for (let gx = 0; gx < this.width; gx++) {
+        if (this.components[row + gx] === this.largestComponentId) {
+          return {
+            x: this.minX + (gx + 0.5) * this.cellSize,
+            z: this.minZ + (gz + 0.5) * this.cellSize,
+          };
+        }
+      }
+    }
+    return null;
+  }
+
+  private build(ground: GroundGrid, waterY: number, clearanceMultiplier = 1.0): number {
     const minDepth = this.profile.monsterMinDepth;
     const clear = this.profile.clearance;
+    let waterCells = 0;
 
     for (let gz = 0; gz < this.depth; gz++) {
       const z = this.minZ + (gz + 0.5) * this.cellSize;
@@ -50,7 +98,9 @@ export class NavGrid {
         const x = this.minX + (gx + 0.5) * this.cellSize;
 
         const depth = ground.depthAt(x, z, waterY);
-        if (depth < minDepth) {
+        if (depth >= minDepth) {
+          waterCells++;
+        } else {
           this.walkable[row + gx] = 0;
           continue;
         }
@@ -62,10 +112,10 @@ export class NavGrid {
 
         // Walkable iff depth >= monsterMinDepth AND every class distance exceeds clearance threshold
         if (
-          dPlat > clear.platform &&
-          dFurn > clear.furniture &&
-          dWall > clear.wall &&
-          dRock > clear.rock
+          dPlat > clear.platform * clearanceMultiplier &&
+          dFurn > clear.furniture * clearanceMultiplier &&
+          dWall > clear.wall * clearanceMultiplier &&
+          dRock > clear.rock * clearanceMultiplier
         ) {
           this.walkable[row + gx] = 1;
         } else {
@@ -73,6 +123,7 @@ export class NavGrid {
         }
       }
     }
+    return waterCells;
   }
 
   private labelConnectedComponents(): void {

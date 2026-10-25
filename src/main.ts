@@ -382,6 +382,8 @@ async function boot(): Promise<void> {
     );
     g.__backsilence_session = activeGameSession;
     stateMachine.goTo('PLAYING');
+    ui.navigateTo('GAME');
+    ui.getHud().show();
   });
 
   bus.on('game:start:net' as unknown as 'game:start', (rawCfg: unknown) => {
@@ -423,6 +425,8 @@ async function boot(): Promise<void> {
     );
     g.__backsilence_session = activeGameSession;
     stateMachine.goTo('PLAYING');
+    ui.navigateTo('GAME');
+    ui.getHud().show();
   });
 
   bus.on('game:retry' as unknown as 'game:start', () => {

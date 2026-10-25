@@ -747,5 +747,32 @@ Establish `functions/api/[[route]].ts` as the canonical Cloudflare Pages Functio
      d) Pacing director favored `executeFarCall` audio cues and spawned dormant monsters at $40-45$m distances where fog transmittance is $< 0.04$.
 **Reason:** Complies with prompt operating rules: instrument first, zero guessing, baseline trace artifacts recorded before any monster/game code changes.
 
+### D072: Monster Presentation, Loader Hardening, and Water Placement Repairs
+**Date:** 2026-10-25
+**Choice:**
+1. Direct URL Boot UI State Transitions (`src/main.ts`):
+   - Dispatched `ui.navigateTo('GAME')` and `ui.getHud().show()` on `game:start` and `game:start:net` events.
+   - Eliminates DOM `#menu` overlay occlusion over the WebGL canvas on direct boots (`?map=`).
+2. GLB Loader Hardening (`src/game/creatures/MonsterSkin.ts`, `src/game/creatures/ModelManifest.ts`):
+   - Created `validateAndFetchGlb()`: enforces 8s timeout via `AbortController`, validates HTTP status, checks Content-Type against `text/html` (rejecting Vite SPA fallback 200 responses), and validates first 4 magic bytes `0x46546C67` (`glTF` little-endian).
+   - On rejection: immediately selects `ProceduralSkin` fallback, logs one line (`[MonsterSkin] GLB load rejected (...), selected ProceduralSkin fallback`), records `skinError` on body and probe, and avoids silent try/catch suppression.
+3. Sim-to-Presentation Boundary Finite Checks (`src/game/monster/MonsterBody.ts`):
+   - Asserts `Number.isFinite` for position, yaw, velocity, and scale.
+   - On non-finite value: logs warning once, resets to last known finite position and yaw, flags `nonFiniteDetected = true`.
+4. Depth Placement & Shoulder Clearance (`src/game/monster/MonsterBody.ts`):
+   - Roots follow `GroundGrid.heightAt(x, z)` and clamp to `rootY = Math.max(groundY, waterLevel + 0.35 - 1.40)`.
+   - Guarantees shoulders clear the water surface by at least 0.35m on deep pools (-1.5m to -2.5m) rather than submerging beneath murky water passes.
+5. Fog Visibility Rule (`src/game/monster/MonsterBody.ts`):
+   - Never sets `visible = false` for distance unless distance exceeds 60m AND fog transmittance is below 0.01 (computed using the active map's real fog density: `exp(-(density * d)^2)`).
+6. Line-of-Sight Show-Me Placement (`src/game/GameSession.ts`):
+   - Key `H` traces forward 14m and uses `ColliderSet.segmentHits()` and `NavGrid.isWalkableWorld()` to find an unoccluded line-of-sight position on water within the view cone, preventing monsters from spawning behind perimeter walls.
+7. NavGrid Water Component Coverage Validator (`src/sim/NavGrid.ts`, `src/world/validate/LayoutValidator.ts`):
+   - Dynamically calculates water cell count vs largest connected component; automatically relaxes clearance thresholds to 65% if coverage is under 40%.
+   - Added `validateMonsterWaterCoverage(nav, 0.40)` validator export.
+8. Regression Suite (`tests/monster-phase-b.test.ts`):
+   - 7 unit tests verifying loader rejection of HTML 200, corrupt magic bytes, valid glTF binary, NaN recovery, deep pool shoulder clearance, fog distance rules, and component coverage.
+**Reason:** Resolves Phase B repair specifications layer-by-layer based directly on Phase A probe evidence.
+
+
 
 
