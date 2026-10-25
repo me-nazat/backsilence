@@ -864,7 +864,22 @@ Establish `functions/api/[[route]].ts` as the canonical Cloudflare Pages Functio
    - Extended `generateDiagnostics()` to query and embed active `probeVerdict` (L0-L5 probe layer status, pixel count, visible fraction) and `watchdog` summary and incidents.
 4. Guardrail Unit Test Suite (`tests/monster-guardrails.test.ts`):
    - 5 unit tests validating: (1) sim-level NaN recovery, (2) empty LOD / cleared hierarchy recovery after 3s, (3) presentation update exception recovery, (4) HTML 200 model rejection with procedural fallback, (5) root visibility restoration in sight cone.
-**Reason:** Fulfills Phase G requirements ensuring permanent, un-bypassable resilience and diagnostic observability.
+### D078: Phase H Review Pack, Post-Repair Trace Matrix, and Acceptance Proofs
+**Date:** 2026-10-25
+**Choice:**
+1. Post-Repair Trace Matrix (`reports/monster/trace.md`):
+   - Executed headless CDP trace runner across all 11 maps, 3 quality tiers, and mobile (390x844).
+   - Upgraded baseline pass rate from 3/15 (20.0%) to 15/15 (100.0%).
+   - All 11 maps display clear monster silhouettes with visible fractions between 0.2330 and 0.6917 and thousands of mask pixels.
+2. 3D Line-of-Sight Clearance in Debug Placement (`GameSession.ts`):
+   - Implemented `hasClearSight3D()` checking 14 intermediate points against `simWorld.ground.heightAt` down to waist height.
+   - Prevents monster placement behind elevated platform slabs or raised terrain (e.g. in `drowned_metro`).
+3. Automated Acceptance Gates (M1 to M9):
+   - 100% passing across cold start (M1), show-me key H (M2: 7,091 px, visibleFraction 0.625), silent dry 150s (M3: 10/10 seeds scheduled, 0 attacks), noise attack chain (M4: jumpscare framing 26.5%, retry 251ms, distance 60.1m), all 10 non-default maps (M5), ten retries (M6: flat memory), 3 quality pipelines (M7), phone emulation (M8: 15,528 mask px), and broken model fallback (M9: 404/HTML 200 rejection).
+4. Full Test Suite Integrity:
+   - 50/50 test files passed (417/417 tests passed) with zero tests deleted, skipped, or weakened.
+**Reason:** Concludes Phase H and completes Prompt 1 of 5 requirements with empirical proof and zero guessing.
+
 
 
 

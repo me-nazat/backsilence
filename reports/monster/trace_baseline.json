@@ -1,0 +1,1658 @@
+[
+  {
+    "testId": "map_orientation_high",
+    "map": "orientation",
+    "tier": "high",
+    "viewport": "1440x900",
+    "verdict": {
+      "pass": false,
+      "layer": "L4",
+      "reason": "Monster visibleFraction (0) is below 0.2 (hidden by none)",
+      "fields": {
+        "visibleFraction": 0,
+        "maskPixelCount": 25516,
+        "deltaDiffCount": 0,
+        "occludingStage": "none"
+      }
+    },
+    "L0": {
+      "pass": true,
+      "monsterCount": 1,
+      "monsters": [
+        {
+          "id": "tethered_entity",
+          "state": "WANDER",
+          "pos": {
+            "x": -1.254760410595885,
+            "y": -0.9,
+            "z": -19.983835967012876
+          },
+          "isFinite": true,
+          "currentTarget": null,
+          "pathLength": 0,
+          "waypointCount": 0,
+          "spawnGraceRemaining": 0,
+          "speedMul": 1,
+          "hearingMul": 1
+        }
+      ],
+      "ticksStepped5s": 132,
+      "navWalkableCellCount": 3738,
+      "connectedComponentSize": 3738
+    },
+    "L1": {
+      "pass": true,
+      "hasRoot": true,
+      "rootVisible": true,
+      "ancestorsVisible": true,
+      "layerMask": 1,
+      "cameraMask": 1,
+      "scale": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "worldMatrixFinite": true,
+      "boundingSphere": {
+        "radius": 1.8331358922568803,
+        "center": {
+          "x": -1.2693015013697522,
+          "y": -0.011885841612939818,
+          "z": -19.683932490873495
+        }
+      },
+      "frustumCulled": false,
+      "material": {
+        "visible": true,
+        "transparent": false,
+        "opacity": 1,
+        "depthTest": true,
+        "depthWrite": true,
+        "renderOrder": 0
+      },
+      "activeSkin": "procedural",
+      "skinLoadError": null,
+      "triangleCount": 1694,
+      "childMeshCount": 8
+    },
+    "L2": {
+      "pass": true,
+      "distanceToCamera": 5.88,
+      "inFrustum": true,
+      "signedAngleRad": -0.247,
+      "fogTransmittance": 0.9586
+    },
+    "L3": {
+      "pass": true,
+      "pixelCount": 25516,
+      "boundingBox": {
+        "minX": 442,
+        "minY": 566,
+        "maxX": 651,
+        "maxY": 852,
+        "width": 210,
+        "height": 287
+      }
+    },
+    "L4": {
+      "pass": false,
+      "visibleFraction": 0,
+      "occludingStage": "none"
+    },
+    "L5": {
+      "pass": true,
+      "metersMoved60s": 43.99,
+      "stateChangesCount": 2,
+      "timeSinceLastWaypoint": 0
+    },
+    "screenshot": "screenshots/map_orientation_high.png"
+  },
+  {
+    "testId": "map_natatorium_high",
+    "map": "natatorium",
+    "tier": "high",
+    "viewport": "1440x900",
+    "verdict": {
+      "pass": false,
+      "layer": "L4",
+      "reason": "Monster visibleFraction (0) is below 0.2 (hidden by none)",
+      "fields": {
+        "visibleFraction": 0,
+        "maskPixelCount": 2344,
+        "deltaDiffCount": 0,
+        "occludingStage": "none"
+      }
+    },
+    "L0": {
+      "pass": true,
+      "monsterCount": 1,
+      "monsters": [
+        {
+          "id": "monster_1",
+          "state": "WANDER",
+          "pos": {
+            "x": -0.22595616579467154,
+            "y": -0.9,
+            "z": 33.9727510902808
+          },
+          "isFinite": true,
+          "currentTarget": null,
+          "pathLength": 0,
+          "waypointCount": 0,
+          "spawnGraceRemaining": 0,
+          "speedMul": 1,
+          "hearingMul": 1
+        }
+      ],
+      "ticksStepped5s": 159,
+      "navWalkableCellCount": 49401,
+      "connectedComponentSize": 14853
+    },
+    "L1": {
+      "pass": true,
+      "hasRoot": true,
+      "rootVisible": true,
+      "ancestorsVisible": true,
+      "layerMask": 1,
+      "cameraMask": 1,
+      "scale": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "worldMatrixFinite": true,
+      "boundingSphere": {
+        "radius": 1.7775728650245384,
+        "center": {
+          "x": -0.2734370790344739,
+          "y": -0.10000000000000009,
+          "z": 33.773906119246256
+        }
+      },
+      "frustumCulled": false,
+      "material": {
+        "visible": true,
+        "transparent": false,
+        "opacity": 1,
+        "depthTest": true,
+        "depthWrite": true,
+        "renderOrder": 0
+      },
+      "activeSkin": "procedural",
+      "skinLoadError": null,
+      "triangleCount": 1694,
+      "childMeshCount": 8
+    },
+    "L2": {
+      "pass": true,
+      "distanceToCamera": 16.28,
+      "inFrustum": true,
+      "signedAngleRad": -0.014,
+      "fogTransmittance": 0.7228
+    },
+    "L3": {
+      "pass": true,
+      "pixelCount": 2344,
+      "boundingBox": {
+        "minX": 688,
+        "minY": 484,
+        "maxX": 736,
+        "maxY": 564,
+        "width": 49,
+        "height": 81
+      }
+    },
+    "L4": {
+      "pass": false,
+      "visibleFraction": 0,
+      "occludingStage": "none"
+    },
+    "L5": {
+      "pass": true,
+      "metersMoved60s": 35.8,
+      "stateChangesCount": 2,
+      "timeSinceLastWaypoint": 0
+    },
+    "screenshot": "screenshots/map_natatorium_high.png"
+  },
+  {
+    "testId": "map_poolrooms_high",
+    "map": "poolrooms",
+    "tier": "high",
+    "viewport": "1440x900",
+    "verdict": {
+      "pass": false,
+      "layer": "L4",
+      "reason": "Monster visibleFraction (0) is below 0.2 (hidden by none)",
+      "fields": {
+        "visibleFraction": 0,
+        "maskPixelCount": 5586,
+        "deltaDiffCount": 0,
+        "occludingStage": "none"
+      }
+    },
+    "L0": {
+      "pass": true,
+      "monsterCount": 1,
+      "monsters": [
+        {
+          "id": "monster_standard",
+          "state": "WANDER",
+          "pos": {
+            "x": -38.256760180397876,
+            "y": -0.9,
+            "z": -47.8864211765798
+          },
+          "isFinite": true,
+          "currentTarget": null,
+          "pathLength": 0,
+          "waypointCount": 0,
+          "spawnGraceRemaining": 0,
+          "speedMul": 1,
+          "hearingMul": 1
+        }
+      ],
+      "ticksStepped5s": 145,
+      "navWalkableCellCount": 29056,
+      "connectedComponentSize": 29056
+    },
+    "L1": {
+      "pass": true,
+      "hasRoot": true,
+      "rootVisible": true,
+      "ancestorsVisible": true,
+      "layerMask": 1,
+      "cameraMask": 1,
+      "scale": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "worldMatrixFinite": true,
+      "boundingSphere": {
+        "radius": 1.734688621639905,
+        "center": {
+          "x": -38.26241226893878,
+          "y": -0.016096665582587044,
+          "z": -47.6866662826016
+        }
+      },
+      "frustumCulled": false,
+      "material": {
+        "visible": true,
+        "transparent": false,
+        "opacity": 1,
+        "depthTest": true,
+        "depthWrite": true,
+        "renderOrder": 0
+      },
+      "activeSkin": "procedural",
+      "skinLoadError": null,
+      "triangleCount": 1694,
+      "childMeshCount": 8
+    },
+    "L2": {
+      "pass": true,
+      "distanceToCamera": 10.73,
+      "inFrustum": true,
+      "signedAngleRad": -0.122,
+      "fogTransmittance": 0.8685
+    },
+    "L3": {
+      "pass": true,
+      "pixelCount": 5586,
+      "boundingBox": {
+        "minX": 602,
+        "minY": 497,
+        "maxX": 686,
+        "maxY": 619,
+        "width": 85,
+        "height": 123
+      }
+    },
+    "L4": {
+      "pass": false,
+      "visibleFraction": 0,
+      "occludingStage": "none"
+    },
+    "L5": {
+      "pass": true,
+      "metersMoved60s": 70.58,
+      "stateChangesCount": 2,
+      "timeSinceLastWaypoint": 0
+    },
+    "screenshot": "screenshots/map_poolrooms_high.png"
+  },
+  {
+    "testId": "map_drowned_school_high",
+    "map": "drowned_school",
+    "tier": "high",
+    "viewport": "1440x900",
+    "verdict": {
+      "pass": true,
+      "layer": "NONE",
+      "reason": "Monster is present, finite, rendered, and visible on screen",
+      "fields": {
+        "monsterCount": 1,
+        "distanceToCamera": 5.89,
+        "visibleFraction": 0.5276,
+        "pixelCount": 19652
+      }
+    },
+    "L0": {
+      "pass": true,
+      "monsterCount": 1,
+      "monsters": [
+        {
+          "id": "monster_school_1",
+          "state": "HUNT",
+          "pos": {
+            "x": 37.5176057478143,
+            "y": -0.9,
+            "z": -21.637966593036236
+          },
+          "isFinite": true,
+          "currentTarget": {
+            "x": 38,
+            "y": 0,
+            "z": -16
+          },
+          "pathLength": 2,
+          "waypointCount": 1,
+          "spawnGraceRemaining": 0,
+          "speedMul": 1,
+          "hearingMul": 1
+        }
+      ],
+      "ticksStepped5s": 136,
+      "navWalkableCellCount": 16128,
+      "connectedComponentSize": 16128
+    },
+    "L1": {
+      "pass": true,
+      "hasRoot": true,
+      "rootVisible": true,
+      "ancestorsVisible": true,
+      "layerMask": 1,
+      "cameraMask": 1,
+      "scale": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "worldMatrixFinite": true,
+      "boundingSphere": {
+        "radius": 1.859836228722716,
+        "center": {
+          "x": 37.50723332109298,
+          "y": -0.2127127137694187,
+          "z": -21.439496083509884
+        }
+      },
+      "frustumCulled": false,
+      "material": {
+        "visible": true,
+        "transparent": false,
+        "opacity": 1,
+        "depthTest": true,
+        "depthWrite": true,
+        "renderOrder": 0
+      },
+      "activeSkin": "procedural",
+      "skinLoadError": null,
+      "triangleCount": 1694,
+      "childMeshCount": 8
+    },
+    "L2": {
+      "pass": true,
+      "distanceToCamera": 5.89,
+      "inFrustum": true,
+      "signedAngleRad": -0.085,
+      "fogTransmittance": 0.9583
+    },
+    "L3": {
+      "pass": true,
+      "pixelCount": 19652,
+      "boundingBox": {
+        "minX": 588,
+        "minY": 420,
+        "maxX": 735,
+        "maxY": 632,
+        "width": 148,
+        "height": 213
+      }
+    },
+    "L4": {
+      "pass": true,
+      "visibleFraction": 0.5276,
+      "occludingStage": "none"
+    },
+    "L5": {
+      "pass": true,
+      "metersMoved60s": 68.14,
+      "stateChangesCount": 4,
+      "timeSinceLastWaypoint": 0
+    },
+    "screenshot": "screenshots/map_drowned_school_high.png"
+  },
+  {
+    "testId": "map_utility_tunnels_high",
+    "map": "utility_tunnels",
+    "tier": "high",
+    "viewport": "1440x900",
+    "verdict": {
+      "pass": false,
+      "layer": "L4",
+      "reason": "Monster visibleFraction (0) is below 0.2 (hidden by none)",
+      "fields": {
+        "visibleFraction": 0,
+        "maskPixelCount": 3130,
+        "deltaDiffCount": 0,
+        "occludingStage": "none"
+      }
+    },
+    "L0": {
+      "pass": true,
+      "monsterCount": 1,
+      "monsters": [
+        {
+          "id": "monster_tunnel",
+          "state": "WANDER",
+          "pos": {
+            "x": -44.68,
+            "y": -0.9,
+            "z": -14
+          },
+          "isFinite": true,
+          "currentTarget": null,
+          "pathLength": 0,
+          "waypointCount": 0,
+          "spawnGraceRemaining": 0,
+          "speedMul": 1,
+          "hearingMul": 1
+        }
+      ],
+      "ticksStepped5s": 155,
+      "navWalkableCellCount": 21380,
+      "connectedComponentSize": 21380
+    },
+    "L1": {
+      "pass": true,
+      "hasRoot": true,
+      "rootVisible": true,
+      "ancestorsVisible": true,
+      "layerMask": 1,
+      "cameraMask": 1,
+      "scale": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "worldMatrixFinite": true,
+      "boundingSphere": {
+        "radius": 1.6544393609178751,
+        "center": {
+          "x": -44.68425543823946,
+          "y": -0.09932253497840948,
+          "z": -14.2
+        }
+      },
+      "frustumCulled": false,
+      "material": {
+        "visible": true,
+        "transparent": false,
+        "opacity": 1,
+        "depthTest": true,
+        "depthWrite": true,
+        "renderOrder": 0
+      },
+      "activeSkin": "procedural",
+      "skinLoadError": null,
+      "triangleCount": 1694,
+      "childMeshCount": 8
+    },
+    "L2": {
+      "pass": true,
+      "distanceToCamera": 14.32,
+      "inFrustum": true,
+      "signedAngleRad": 0,
+      "fogTransmittance": 0.7779
+    },
+    "L3": {
+      "pass": true,
+      "pixelCount": 3130,
+      "boundingBox": {
+        "minX": 691,
+        "minY": 495,
+        "maxX": 748,
+        "maxY": 588,
+        "width": 58,
+        "height": 94
+      }
+    },
+    "L4": {
+      "pass": false,
+      "visibleFraction": 0,
+      "occludingStage": "none"
+    },
+    "L5": {
+      "pass": true,
+      "metersMoved60s": 72.05,
+      "stateChangesCount": 2,
+      "timeSinceLastWaypoint": 0
+    },
+    "screenshot": "screenshots/map_utility_tunnels_high.png"
+  },
+  {
+    "testId": "map_sunken_jungle_high",
+    "map": "sunken_jungle",
+    "tier": "high",
+    "viewport": "1440x900",
+    "verdict": {
+      "pass": true,
+      "layer": "NONE",
+      "reason": "Monster is present, finite, rendered, and visible on screen",
+      "fields": {
+        "monsterCount": 1,
+        "distanceToCamera": 14.31,
+        "visibleFraction": 0.468,
+        "pixelCount": 3154
+      }
+    },
+    "L0": {
+      "pass": true,
+      "monsterCount": 1,
+      "monsters": [
+        {
+          "id": "monster_jungle_1",
+          "state": "WANDER",
+          "pos": {
+            "x": -55,
+            "y": -0.9,
+            "z": -69
+          },
+          "isFinite": true,
+          "currentTarget": null,
+          "pathLength": 0,
+          "waypointCount": 0,
+          "spawnGraceRemaining": 0,
+          "speedMul": 1,
+          "hearingMul": 1
+        }
+      ],
+      "ticksStepped5s": 151,
+      "navWalkableCellCount": 70730,
+      "connectedComponentSize": 70727
+    },
+    "L1": {
+      "pass": true,
+      "hasRoot": true,
+      "rootVisible": true,
+      "ancestorsVisible": true,
+      "layerMask": 1,
+      "cameraMask": 1,
+      "scale": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "worldMatrixFinite": true,
+      "boundingSphere": {
+        "radius": 1.6535478430252848,
+        "center": {
+          "x": -54.99705414812462,
+          "y": -0.0956166240567895,
+          "z": -69.2
+        }
+      },
+      "frustumCulled": false,
+      "material": {
+        "visible": true,
+        "transparent": false,
+        "opacity": 1,
+        "depthTest": true,
+        "depthWrite": true,
+        "renderOrder": 0
+      },
+      "activeSkin": "procedural",
+      "skinLoadError": null,
+      "triangleCount": 1694,
+      "childMeshCount": 8
+    },
+    "L2": {
+      "pass": true,
+      "distanceToCamera": 14.31,
+      "inFrustum": true,
+      "signedAngleRad": 0,
+      "fogTransmittance": 0.7782
+    },
+    "L3": {
+      "pass": true,
+      "pixelCount": 3154,
+      "boundingBox": {
+        "minX": 691,
+        "minY": 493,
+        "maxX": 748,
+        "maxY": 586,
+        "width": 58,
+        "height": 94
+      }
+    },
+    "L4": {
+      "pass": true,
+      "visibleFraction": 0.468,
+      "occludingStage": "none"
+    },
+    "L5": {
+      "pass": true,
+      "metersMoved60s": 82.35,
+      "stateChangesCount": 2,
+      "timeSinceLastWaypoint": 0
+    },
+    "screenshot": "screenshots/map_sunken_jungle_high.png"
+  },
+  {
+    "testId": "map_marble_atrium_high",
+    "map": "marble_atrium",
+    "tier": "high",
+    "viewport": "1440x900",
+    "verdict": {
+      "pass": false,
+      "layer": "L4",
+      "reason": "Monster visibleFraction (0) is below 0.2 (hidden by none)",
+      "fields": {
+        "visibleFraction": 0,
+        "maskPixelCount": 3144,
+        "deltaDiffCount": 0,
+        "occludingStage": "none"
+      }
+    },
+    "L0": {
+      "pass": true,
+      "monsterCount": 1,
+      "monsters": [
+        {
+          "id": "monster_atrium",
+          "state": "WANDER",
+          "pos": {
+            "x": 0,
+            "y": -0.9,
+            "z": -28
+          },
+          "isFinite": true,
+          "currentTarget": null,
+          "pathLength": 0,
+          "waypointCount": 0,
+          "spawnGraceRemaining": 0,
+          "speedMul": 1,
+          "hearingMul": 1
+        }
+      ],
+      "ticksStepped5s": 151,
+      "navWalkableCellCount": 19876,
+      "connectedComponentSize": 19200
+    },
+    "L1": {
+      "pass": true,
+      "hasRoot": true,
+      "rootVisible": true,
+      "ancestorsVisible": true,
+      "layerMask": 1,
+      "cameraMask": 1,
+      "scale": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "worldMatrixFinite": true,
+      "boundingSphere": {
+        "radius": 1.6533956700301602,
+        "center": {
+          "x": 0.0029897219946852793,
+          "y": -0.09601746937379563,
+          "z": -28.2
+        }
+      },
+      "frustumCulled": false,
+      "material": {
+        "visible": true,
+        "transparent": false,
+        "opacity": 1,
+        "depthTest": true,
+        "depthWrite": true,
+        "renderOrder": 0
+      },
+      "activeSkin": "procedural",
+      "skinLoadError": null,
+      "triangleCount": 1694,
+      "childMeshCount": 8
+    },
+    "L2": {
+      "pass": true,
+      "distanceToCamera": 14.32,
+      "inFrustum": true,
+      "signedAngleRad": 0,
+      "fogTransmittance": 0.7778
+    },
+    "L3": {
+      "pass": true,
+      "pixelCount": 3144,
+      "boundingBox": {
+        "minX": 691,
+        "minY": 496,
+        "maxX": 748,
+        "maxY": 589,
+        "width": 58,
+        "height": 94
+      }
+    },
+    "L4": {
+      "pass": false,
+      "visibleFraction": 0,
+      "occludingStage": "none"
+    },
+    "L5": {
+      "pass": true,
+      "metersMoved60s": 40.79,
+      "stateChangesCount": 2,
+      "timeSinceLastWaypoint": 0
+    },
+    "screenshot": "screenshots/map_marble_atrium_high.png"
+  },
+  {
+    "testId": "map_neon_flood_high",
+    "map": "neon_flood",
+    "tier": "high",
+    "viewport": "1440x900",
+    "verdict": {
+      "pass": true,
+      "layer": "NONE",
+      "reason": "Monster is present, finite, rendered, and visible on screen",
+      "fields": {
+        "monsterCount": 1,
+        "distanceToCamera": 7.57,
+        "visibleFraction": 0.4517,
+        "pixelCount": 12817
+      }
+    },
+    "L0": {
+      "pass": true,
+      "monsterCount": 1,
+      "monsters": [
+        {
+          "id": "monster_city_1",
+          "state": "WANDER",
+          "pos": {
+            "x": -1.2540138843697388,
+            "y": -0.9,
+            "z": -54.904361134969236
+          },
+          "isFinite": true,
+          "currentTarget": null,
+          "pathLength": 0,
+          "waypointCount": 0,
+          "spawnGraceRemaining": 0,
+          "speedMul": 1,
+          "hearingMul": 1
+        }
+      ],
+      "ticksStepped5s": 128,
+      "navWalkableCellCount": 45067,
+      "connectedComponentSize": 43702
+    },
+    "L1": {
+      "pass": true,
+      "hasRoot": true,
+      "rootVisible": true,
+      "ancestorsVisible": true,
+      "layerMask": 1,
+      "cameraMask": 1,
+      "scale": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "worldMatrixFinite": true,
+      "boundingSphere": {
+        "radius": 1.8796910180176398,
+        "center": {
+          "x": -1.2836288556418807,
+          "y": -0.012572173574552092,
+          "z": -54.72199753437342
+        }
+      },
+      "frustumCulled": false,
+      "material": {
+        "visible": true,
+        "transparent": false,
+        "opacity": 1,
+        "depthTest": true,
+        "depthWrite": true,
+        "renderOrder": 0
+      },
+      "activeSkin": "procedural",
+      "skinLoadError": null,
+      "triangleCount": 1694,
+      "childMeshCount": 8
+    },
+    "L2": {
+      "pass": true,
+      "distanceToCamera": 7.57,
+      "inFrustum": true,
+      "signedAngleRad": -0.18,
+      "fogTransmittance": 0.9321
+    },
+    "L3": {
+      "pass": true,
+      "pixelCount": 12817,
+      "boundingBox": {
+        "minX": 546,
+        "minY": 532,
+        "maxX": 667,
+        "maxY": 725,
+        "width": 122,
+        "height": 194
+      }
+    },
+    "L4": {
+      "pass": true,
+      "visibleFraction": 0.4517,
+      "occludingStage": "none"
+    },
+    "L5": {
+      "pass": true,
+      "metersMoved60s": 71.07,
+      "stateChangesCount": 2,
+      "timeSinceLastWaypoint": 0
+    },
+    "screenshot": "screenshots/map_neon_flood_high.png"
+  },
+  {
+    "testId": "map_hydro_maze_high",
+    "map": "hydro_maze",
+    "tier": "high",
+    "viewport": "1440x900",
+    "verdict": {
+      "pass": false,
+      "layer": "L4",
+      "reason": "Monster visibleFraction (0) is below 0.2 (hidden by none)",
+      "fields": {
+        "visibleFraction": 0,
+        "maskPixelCount": 11618,
+        "deltaDiffCount": 0,
+        "occludingStage": "none"
+      }
+    },
+    "L0": {
+      "pass": true,
+      "monsterCount": 1,
+      "monsters": [
+        {
+          "id": "monster_maze",
+          "state": "WANDER",
+          "pos": {
+            "x": -26.831825256027805,
+            "y": -0.9,
+            "z": -35.97153228785841
+          },
+          "isFinite": true,
+          "currentTarget": null,
+          "pathLength": 0,
+          "waypointCount": 0,
+          "spawnGraceRemaining": 0,
+          "speedMul": 1,
+          "hearingMul": 1
+        }
+      ],
+      "ticksStepped5s": 156,
+      "navWalkableCellCount": 5682,
+      "connectedComponentSize": 168
+    },
+    "L1": {
+      "pass": true,
+      "hasRoot": true,
+      "rootVisible": true,
+      "ancestorsVisible": true,
+      "layerMask": 1,
+      "cameraMask": 1,
+      "scale": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "worldMatrixFinite": true,
+      "boundingSphere": {
+        "radius": 1.9076386939398253,
+        "center": {
+          "x": -26.86813613635912,
+          "y": -0.010370198478602988,
+          "z": -35.78392089724428
+        }
+      },
+      "frustumCulled": false,
+      "material": {
+        "visible": true,
+        "transparent": false,
+        "opacity": 1,
+        "depthTest": true,
+        "depthWrite": true,
+        "renderOrder": 0
+      },
+      "activeSkin": "procedural",
+      "skinLoadError": null,
+      "triangleCount": 1694,
+      "childMeshCount": 8
+    },
+    "L2": {
+      "pass": true,
+      "distanceToCamera": 7.11,
+      "inFrustum": true,
+      "signedAngleRad": 0.916,
+      "fogTransmittance": 0.9399
+    },
+    "L3": {
+      "pass": true,
+      "pixelCount": 11618,
+      "boundingBox": {
+        "minX": 1350,
+        "minY": 658,
+        "maxX": 1439,
+        "maxY": 876,
+        "width": 90,
+        "height": 219
+      }
+    },
+    "L4": {
+      "pass": false,
+      "visibleFraction": 0,
+      "occludingStage": "none"
+    },
+    "L5": {
+      "pass": true,
+      "metersMoved60s": 64.63,
+      "stateChangesCount": 2,
+      "timeSinceLastWaypoint": 0
+    },
+    "screenshot": "screenshots/map_hydro_maze_high.png"
+  },
+  {
+    "testId": "map_drowned_metro_high",
+    "map": "drowned_metro",
+    "tier": "high",
+    "viewport": "1440x900",
+    "verdict": {
+      "pass": false,
+      "layer": "L4",
+      "reason": "Monster visibleFraction (0) is below 0.2 (hidden by none)",
+      "fields": {
+        "visibleFraction": 0,
+        "maskPixelCount": 3157,
+        "deltaDiffCount": 0,
+        "occludingStage": "none"
+      }
+    },
+    "L0": {
+      "pass": true,
+      "monsterCount": 1,
+      "monsters": [
+        {
+          "id": "monster_metro_1",
+          "state": "WANDER",
+          "pos": {
+            "x": 9.999999999999998,
+            "y": -0.9,
+            "z": -25
+          },
+          "isFinite": true,
+          "currentTarget": null,
+          "pathLength": 0,
+          "waypointCount": 0,
+          "spawnGraceRemaining": 0,
+          "speedMul": 1,
+          "hearingMul": 1
+        }
+      ],
+      "ticksStepped5s": 159,
+      "navWalkableCellCount": 25729,
+      "connectedComponentSize": 23653
+    },
+    "L1": {
+      "pass": true,
+      "hasRoot": true,
+      "rootVisible": true,
+      "ancestorsVisible": true,
+      "layerMask": 1,
+      "cameraMask": 1,
+      "scale": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "worldMatrixFinite": true,
+      "boundingSphere": {
+        "radius": 1.83589963048837,
+        "center": {
+          "x": 10.055004872119122,
+          "y": 0.0949284297918469,
+          "z": -25.2
+        }
+      },
+      "frustumCulled": false,
+      "material": {
+        "visible": true,
+        "transparent": false,
+        "opacity": 1,
+        "depthTest": true,
+        "depthWrite": true,
+        "renderOrder": 0
+      },
+      "activeSkin": "procedural",
+      "skinLoadError": null,
+      "triangleCount": 1694,
+      "childMeshCount": 8
+    },
+    "L2": {
+      "pass": true,
+      "distanceToCamera": 14.44,
+      "inFrustum": true,
+      "signedAngleRad": 0,
+      "fogTransmittance": 0.7745
+    },
+    "L3": {
+      "pass": true,
+      "pixelCount": 3157,
+      "boundingBox": {
+        "minX": 691,
+        "minY": 518,
+        "maxX": 748,
+        "maxY": 612,
+        "width": 58,
+        "height": 95
+      }
+    },
+    "L4": {
+      "pass": false,
+      "visibleFraction": 0,
+      "occludingStage": "none"
+    },
+    "L5": {
+      "pass": true,
+      "metersMoved60s": 55.33,
+      "stateChangesCount": 2,
+      "timeSinceLastWaypoint": 0
+    },
+    "screenshot": "screenshots/map_drowned_metro_high.png"
+  },
+  {
+    "testId": "map_drainage_core_high",
+    "map": "drainage_core",
+    "tier": "high",
+    "viewport": "1440x900",
+    "verdict": {
+      "pass": false,
+      "layer": "L4",
+      "reason": "Monster visibleFraction (0) is below 0.2 (hidden by none)",
+      "fields": {
+        "visibleFraction": 0,
+        "maskPixelCount": 4201,
+        "deltaDiffCount": 0,
+        "occludingStage": "none"
+      }
+    },
+    "L0": {
+      "pass": true,
+      "monsterCount": 3,
+      "monsters": [
+        {
+          "id": "monster_elder",
+          "state": "WANDER",
+          "pos": {
+            "x": -48,
+            "y": -0.9,
+            "z": -60
+          },
+          "isFinite": true,
+          "currentTarget": null,
+          "pathLength": 0,
+          "waypointCount": 0,
+          "spawnGraceRemaining": 0,
+          "speedMul": 0.85,
+          "hearingMul": 1.25
+        },
+        {
+          "id": "monster_juv_1",
+          "state": "DORMANT",
+          "pos": {
+            "x": -35,
+            "y": -0.9,
+            "z": 0
+          },
+          "isFinite": true,
+          "currentTarget": null,
+          "pathLength": 0,
+          "waypointCount": 0,
+          "spawnGraceRemaining": 5.916666666666674,
+          "speedMul": 1.2,
+          "hearingMul": 0.8
+        },
+        {
+          "id": "monster_juv_2",
+          "state": "DORMANT",
+          "pos": {
+            "x": 0,
+            "y": -0.9,
+            "z": 19
+          },
+          "isFinite": true,
+          "currentTarget": null,
+          "pathLength": 0,
+          "waypointCount": 0,
+          "spawnGraceRemaining": 5.916666666666674,
+          "speedMul": 1.2,
+          "hearingMul": 0.8
+        }
+      ],
+      "ticksStepped5s": 125,
+      "navWalkableCellCount": 38754,
+      "connectedComponentSize": 13184
+    },
+    "L1": {
+      "pass": true,
+      "hasRoot": true,
+      "rootVisible": true,
+      "ancestorsVisible": true,
+      "layerMask": 1,
+      "cameraMask": 1,
+      "scale": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "worldMatrixFinite": true,
+      "boundingSphere": {
+        "radius": 47.65125482198422,
+        "center": {
+          "x": -24.062864475169043,
+          "y": 0.022374783143013666,
+          "z": -20.785047708065417
+        }
+      },
+      "frustumCulled": false,
+      "material": {
+        "visible": true,
+        "transparent": false,
+        "opacity": 1,
+        "depthTest": true,
+        "depthWrite": true,
+        "renderOrder": 0
+      },
+      "activeSkin": "procedural",
+      "skinLoadError": null,
+      "triangleCount": 5082,
+      "childMeshCount": 24
+    },
+    "L2": {
+      "pass": true,
+      "distanceToCamera": 14.29,
+      "inFrustum": true,
+      "signedAngleRad": 0,
+      "fogTransmittance": 0.7788
+    },
+    "L3": {
+      "pass": true,
+      "pixelCount": 4201,
+      "boundingBox": {
+        "minX": 689,
+        "minY": 477,
+        "maxX": 750,
+        "maxY": 581,
+        "width": 62,
+        "height": 105
+      }
+    },
+    "L4": {
+      "pass": false,
+      "visibleFraction": 0,
+      "occludingStage": "none"
+    },
+    "L5": {
+      "pass": true,
+      "metersMoved60s": 134.03,
+      "stateChangesCount": 2,
+      "timeSinceLastWaypoint": 0
+    },
+    "screenshot": "screenshots/map_drainage_core_high.png"
+  },
+  {
+    "testId": "tier_low_poolrooms",
+    "map": "poolrooms",
+    "tier": "low",
+    "viewport": "1440x900",
+    "verdict": {
+      "pass": false,
+      "layer": "L4",
+      "reason": "Monster visibleFraction (0) is below 0.2 (hidden by none)",
+      "fields": {
+        "visibleFraction": 0,
+        "maskPixelCount": 5591,
+        "deltaDiffCount": 0,
+        "occludingStage": "none"
+      }
+    },
+    "L0": {
+      "pass": true,
+      "monsterCount": 1,
+      "monsters": [
+        {
+          "id": "monster_standard",
+          "state": "WANDER",
+          "pos": {
+            "x": -38.256760180397876,
+            "y": -0.9,
+            "z": -47.88642117657981
+          },
+          "isFinite": true,
+          "currentTarget": null,
+          "pathLength": 0,
+          "waypointCount": 0,
+          "spawnGraceRemaining": 0,
+          "speedMul": 1,
+          "hearingMul": 1
+        }
+      ],
+      "ticksStepped5s": 145,
+      "navWalkableCellCount": 29056,
+      "connectedComponentSize": 29056
+    },
+    "L1": {
+      "pass": true,
+      "hasRoot": true,
+      "rootVisible": true,
+      "ancestorsVisible": true,
+      "layerMask": 1,
+      "cameraMask": 1,
+      "scale": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "worldMatrixFinite": true,
+      "boundingSphere": {
+        "radius": 1.735345334147742,
+        "center": {
+          "x": -38.26230121193437,
+          "y": -0.015965738522583983,
+          "z": -47.68666628261913
+        }
+      },
+      "frustumCulled": false,
+      "material": {
+        "visible": true,
+        "transparent": false,
+        "opacity": 1,
+        "depthTest": true,
+        "depthWrite": true,
+        "renderOrder": 0
+      },
+      "activeSkin": "procedural",
+      "skinLoadError": null,
+      "triangleCount": 1694,
+      "childMeshCount": 8
+    },
+    "L2": {
+      "pass": true,
+      "distanceToCamera": 10.73,
+      "inFrustum": true,
+      "signedAngleRad": -0.122,
+      "fogTransmittance": 0.8685
+    },
+    "L3": {
+      "pass": true,
+      "pixelCount": 5591,
+      "boundingBox": {
+        "minX": 602,
+        "minY": 497,
+        "maxX": 686,
+        "maxY": 619,
+        "width": 85,
+        "height": 123
+      }
+    },
+    "L4": {
+      "pass": false,
+      "visibleFraction": 0,
+      "occludingStage": "none"
+    },
+    "L5": {
+      "pass": true,
+      "metersMoved60s": 70.49,
+      "stateChangesCount": 2,
+      "timeSinceLastWaypoint": 0
+    },
+    "screenshot": "screenshots/tier_low_poolrooms.png"
+  },
+  {
+    "testId": "tier_med_poolrooms",
+    "map": "poolrooms",
+    "tier": "medium",
+    "viewport": "1440x900",
+    "verdict": {
+      "pass": false,
+      "layer": "L4",
+      "reason": "Monster visibleFraction (0) is below 0.2 (hidden by none)",
+      "fields": {
+        "visibleFraction": 0,
+        "maskPixelCount": 5649,
+        "deltaDiffCount": 0,
+        "occludingStage": "none"
+      }
+    },
+    "L0": {
+      "pass": true,
+      "monsterCount": 1,
+      "monsters": [
+        {
+          "id": "monster_standard",
+          "state": "WANDER",
+          "pos": {
+            "x": -38.256760180397876,
+            "y": -0.9,
+            "z": -47.88642117657981
+          },
+          "isFinite": true,
+          "currentTarget": null,
+          "pathLength": 0,
+          "waypointCount": 0,
+          "spawnGraceRemaining": 0,
+          "speedMul": 1,
+          "hearingMul": 1
+        }
+      ],
+      "ticksStepped5s": 153,
+      "navWalkableCellCount": 29056,
+      "connectedComponentSize": 29056
+    },
+    "L1": {
+      "pass": true,
+      "hasRoot": true,
+      "rootVisible": true,
+      "ancestorsVisible": true,
+      "layerMask": 1,
+      "cameraMask": 1,
+      "scale": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "worldMatrixFinite": true,
+      "boundingSphere": {
+        "radius": 1.7359354280166948,
+        "center": {
+          "x": -38.25376248338618,
+          "y": -0.01674048787755633,
+          "z": -47.68666628259965
+        }
+      },
+      "frustumCulled": false,
+      "material": {
+        "visible": true,
+        "transparent": false,
+        "opacity": 1,
+        "depthTest": true,
+        "depthWrite": true,
+        "renderOrder": 0
+      },
+      "activeSkin": "procedural",
+      "skinLoadError": null,
+      "triangleCount": 1694,
+      "childMeshCount": 8
+    },
+    "L2": {
+      "pass": true,
+      "distanceToCamera": 10.73,
+      "inFrustum": true,
+      "signedAngleRad": -0.122,
+      "fogTransmittance": 0.8685
+    },
+    "L3": {
+      "pass": true,
+      "pixelCount": 5649,
+      "boundingBox": {
+        "minX": 599,
+        "minY": 505,
+        "maxX": 686,
+        "maxY": 615,
+        "width": 88,
+        "height": 111
+      }
+    },
+    "L4": {
+      "pass": false,
+      "visibleFraction": 0,
+      "occludingStage": "none"
+    },
+    "L5": {
+      "pass": true,
+      "metersMoved60s": 70.58,
+      "stateChangesCount": 2,
+      "timeSinceLastWaypoint": 0
+    },
+    "screenshot": "screenshots/tier_med_poolrooms.png"
+  },
+  {
+    "testId": "mobile_orientation",
+    "map": "orientation",
+    "tier": "medium",
+    "viewport": "390x844",
+    "verdict": {
+      "pass": false,
+      "layer": "L4",
+      "reason": "Monster visibleFraction (0) is below 0.2 (hidden by none)",
+      "fields": {
+        "visibleFraction": 0,
+        "maskPixelCount": 24826,
+        "deltaDiffCount": 0,
+        "occludingStage": "none"
+      }
+    },
+    "L0": {
+      "pass": true,
+      "monsterCount": 1,
+      "monsters": [
+        {
+          "id": "tethered_entity",
+          "state": "WANDER",
+          "pos": {
+            "x": -1.254760410595885,
+            "y": -0.9,
+            "z": -19.983835967012876
+          },
+          "isFinite": true,
+          "currentTarget": null,
+          "pathLength": 0,
+          "waypointCount": 0,
+          "spawnGraceRemaining": 0,
+          "speedMul": 1,
+          "hearingMul": 1
+        }
+      ],
+      "ticksStepped5s": 150,
+      "navWalkableCellCount": 3738,
+      "connectedComponentSize": 3738
+    },
+    "L1": {
+      "pass": true,
+      "hasRoot": true,
+      "rootVisible": true,
+      "ancestorsVisible": true,
+      "layerMask": 1,
+      "cameraMask": 1,
+      "scale": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "worldMatrixFinite": true,
+      "boundingSphere": {
+        "radius": 1.767025065825929,
+        "center": {
+          "x": -1.2050398806148248,
+          "y": -0.013223444048239719,
+          "z": -19.783877398557802
+        }
+      },
+      "frustumCulled": false,
+      "material": {
+        "visible": true,
+        "transparent": false,
+        "opacity": 1,
+        "depthTest": true,
+        "depthWrite": true,
+        "renderOrder": 0
+      },
+      "activeSkin": "procedural",
+      "skinLoadError": null,
+      "triangleCount": 1694,
+      "childMeshCount": 8
+    },
+    "L2": {
+      "pass": true,
+      "distanceToCamera": 5.88,
+      "inFrustum": true,
+      "signedAngleRad": -0.247,
+      "fogTransmittance": 0.9586
+    },
+    "L3": {
+      "pass": true,
+      "pixelCount": 24826,
+      "boundingBox": {
+        "minX": 0,
+        "minY": 566,
+        "maxX": 192,
+        "maxY": 794,
+        "width": 193,
+        "height": 229
+      }
+    },
+    "L4": {
+      "pass": false,
+      "visibleFraction": 0,
+      "occludingStage": "none"
+    },
+    "L5": {
+      "pass": true,
+      "metersMoved60s": 44.13,
+      "stateChangesCount": 2,
+      "timeSinceLastWaypoint": 0
+    },
+    "screenshot": "screenshots/mobile_orientation.png"
+  },
+  {
+    "testId": "mobile_poolrooms",
+    "map": "poolrooms",
+    "tier": "medium",
+    "viewport": "390x844",
+    "verdict": {
+      "pass": false,
+      "layer": "L4",
+      "reason": "Monster visibleFraction (0) is below 0.2 (hidden by none)",
+      "fields": {
+        "visibleFraction": 0,
+        "maskPixelCount": 8010,
+        "deltaDiffCount": 0,
+        "occludingStage": "none"
+      }
+    },
+    "L0": {
+      "pass": true,
+      "monsterCount": 1,
+      "monsters": [
+        {
+          "id": "monster_standard",
+          "state": "WANDER",
+          "pos": {
+            "x": -38.256760180397876,
+            "y": -0.9,
+            "z": -47.88642117657981
+          },
+          "isFinite": true,
+          "currentTarget": null,
+          "pathLength": 0,
+          "waypointCount": 0,
+          "spawnGraceRemaining": 0,
+          "speedMul": 1,
+          "hearingMul": 1
+        }
+      ],
+      "ticksStepped5s": 152,
+      "navWalkableCellCount": 29056,
+      "connectedComponentSize": 29056
+    },
+    "L1": {
+      "pass": true,
+      "hasRoot": true,
+      "rootVisible": true,
+      "ancestorsVisible": true,
+      "layerMask": 1,
+      "cameraMask": 1,
+      "scale": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "worldMatrixFinite": true,
+      "boundingSphere": {
+        "radius": 1.7359423999207375,
+        "center": {
+          "x": -38.25422970609693,
+          "y": -0.016427734758146517,
+          "z": -47.68666628260415
+        }
+      },
+      "frustumCulled": false,
+      "material": {
+        "visible": true,
+        "transparent": false,
+        "opacity": 1,
+        "depthTest": true,
+        "depthWrite": true,
+        "renderOrder": 0
+      },
+      "activeSkin": "procedural",
+      "skinLoadError": null,
+      "triangleCount": 1694,
+      "childMeshCount": 8
+    },
+    "L2": {
+      "pass": true,
+      "distanceToCamera": 10.73,
+      "inFrustum": true,
+      "signedAngleRad": -0.122,
+      "fogTransmittance": 0.8685
+    },
+    "L3": {
+      "pass": true,
+      "pixelCount": 8010,
+      "boundingBox": {
+        "minX": 122,
+        "minY": 501,
+        "maxX": 245,
+        "maxY": 615,
+        "width": 124,
+        "height": 115
+      }
+    },
+    "L4": {
+      "pass": false,
+      "visibleFraction": 0,
+      "occludingStage": "none"
+    },
+    "L5": {
+      "pass": true,
+      "metersMoved60s": 70.52,
+      "stateChangesCount": 2,
+      "timeSinceLastWaypoint": 0
+    },
+    "screenshot": "screenshots/mobile_poolrooms.png"
+  }
+]

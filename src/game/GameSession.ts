@@ -2822,6 +2822,7 @@ export class GameSession {
           else forward.set(0, 0, -1);
 
           const camX = this.camera.position.x;
+          const camY = this.camera.position.y;
           const camZ = this.camera.position.z;
           const bounds = this.layout.bounds;
 
@@ -2829,9 +2830,33 @@ export class GameSession {
           let bestZ = camZ + forward.z * 14.0;
           let foundClear = false;
 
-          // Search candidate rays within forward cone (4m to 28m)
+          const waterLevel = this.water.currentWaterY;
+          const shoulderMinY = waterLevel + 1.25 - 1.40;
+
+          // Helper to check 3D line-of-sight clearance against elevated terrain/platforms
+          const hasClearSight3D = (tx: number, tz: number): boolean => {
+            if (this.simWorld.colliders.segmentHits(camX, camZ, tx, tz) !== 0) return false;
+            if (!this.simWorld.nav.isWalkableWorld(tx, tz)) return false;
+
+            const targetY = Math.max(this.mapInstance.ground.heightAt(tx, tz), shoulderMinY);
+            const waistY = targetY + 0.5;
+            const steps = 14;
+            for (let s = 1; s < steps; s++) {
+              const t = s / steps;
+              const ix = camX + (tx - camX) * t;
+              const iz = camZ + (tz - camZ) * t;
+              const rayY = camY + (waistY - camY) * t;
+              const gY = this.simWorld.ground.heightAt(ix, iz);
+              if (gY > rayY - 0.10) {
+                return false; // occluded by intermediate platform slab / elevated terrain
+              }
+            }
+            return true;
+          };
+
+          // Search candidate rays within forward cone (4m to 20m), 8m optimal framing first with close fallback
           const angleOffsets = [0, 0.15, -0.15, 0.3, -0.3, 0.45, -0.45, 0.6, -0.6];
-          const distSteps = [8.0, 10.0, 12.0, 14.0, 16.0, 6.0, 18.0, 20.0, 22.0, 4.0];
+          const distSteps = [8.0, 10.0, 7.0, 6.0, 5.0, 12.0, 14.0, 16.0, 4.0];
 
           for (const d of distSteps) {
             for (const angle of angleOffsets) {
@@ -2845,22 +2870,18 @@ export class GameSession {
                 continue;
               }
 
-              // Check zero wall intersections (direct line of sight)
-              if (this.simWorld.colliders.segmentHits(camX, camZ, tx, tz) === 0) {
-                // Require walkable water cell
-                if (this.simWorld.nav.isWalkableWorld(tx, tz)) {
-                  bestX = tx;
-                  bestZ = tz;
-                  foundClear = true;
-                  break;
-                }
+              if (hasClearSight3D(tx, tz)) {
+                bestX = tx;
+                bestZ = tz;
+                foundClear = true;
+                break;
               }
             }
             if (foundClear) break;
           }
 
           // If forward cone did not find walkable water (e.g. spawned in dry foyer),
-          // search radially for the closest walkable water cell with direct line of sight
+          // search radially for the closest walkable water cell with unobstructed 3D line of sight
           if (!foundClear) {
             let closestDistSq = Infinity;
             for (let gz = 0; gz < this.simWorld.nav.depth; gz++) {
@@ -2869,7 +2890,7 @@ export class GameSession {
                   const world = this.simWorld.nav.gridToWorld(gx, gz);
                   const dSq = (world.x - camX) ** 2 + (world.z - camZ) ** 2;
                   if (dSq < closestDistSq && dSq >= 16.0 && dSq <= 1200.0) {
-                    if (this.simWorld.colliders.segmentHits(camX, camZ, world.x, world.z) === 0) {
+                    if (hasClearSight3D(world.x, world.z)) {
                       closestDistSq = dSq;
                       bestX = world.x;
                       bestZ = world.z;
@@ -2883,8 +2904,6 @@ export class GameSession {
 
           // Depth placement: shoulders clear water surface by >= 1.25m so almost full body is above water level
           const groundY = this.mapInstance.ground.heightAt(bestX, bestZ);
-          const waterLevel = this.water.currentWaterY;
-          const shoulderMinY = waterLevel + 1.25 - 1.40;
           const targetY = Math.max(groundY, shoulderMinY);
 
           // Monster faces player

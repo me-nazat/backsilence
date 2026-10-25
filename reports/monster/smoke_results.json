@@ -1,7 +1,7 @@
 {
   "M1": {
     "pass": true,
-    "durationMs": 3096,
+    "durationMs": 3134,
     "details": {
       "probeVerdict": {
         "pass": true,
@@ -10,8 +10,8 @@
         "fields": {
           "monsterCount": 1,
           "distanceToCamera": 8.27,
-          "visibleFraction": 0.6108,
-          "pixelCount": 7348
+          "visibleFraction": 0.6131,
+          "pixelCount": 7341
         }
       },
       "screenshot": "/Users/nazat/Desktop/Desktop/antigravity/BackSilence/poolrooms/reports/monster/screenshots/smoke/m1_cold_start.png"
@@ -19,10 +19,10 @@
   },
   "M2": {
     "pass": true,
-    "durationMs": 1621,
+    "durationMs": 1620,
     "details": {
-      "maskPixels": 7091,
-      "visibleFraction": 0.625,
+      "maskPixels": 7101,
+      "visibleFraction": 0.6241,
       "screenshot": "/Users/nazat/Desktop/Desktop/antigravity/BackSilence/poolrooms/reports/monster/screenshots/smoke/m2_show_me.png"
     }
   },
@@ -78,52 +78,52 @@
   },
   "M4": {
     "pass": true,
-    "durationMs": 4491,
+    "durationMs": 4456,
     "details": {
-      "maskCoverage": 0.2647253086419753,
-      "retryDurationMs": 251,
+      "maskCoverage": 0.26608796296296294,
+      "retryDurationMs": 255,
       "monsterDistAfterRetry": 60.14
     }
   },
   "M5": {
     "pass": true,
-    "durationMs": 24229,
+    "durationMs": 24166,
     "details": {
       "mapCount": 10,
       "results": [
         {
           "mapId": "natatorium",
-          "maskPixels": 7171,
+          "maskPixels": 7145,
           "distance": 9.49,
           "pass": true
         },
         {
           "mapId": "poolrooms",
-          "maskPixels": 17068,
+          "maskPixels": 17531,
           "distance": 6.01,
           "pass": true
         },
         {
           "mapId": "drowned_school",
-          "maskPixels": 8088,
+          "maskPixels": 7886,
           "distance": 8.05,
           "pass": true
         },
         {
           "mapId": "utility_tunnels",
-          "maskPixels": 7417,
+          "maskPixels": 7383,
           "distance": 8.31,
           "pass": true
         },
         {
           "mapId": "sunken_jungle",
-          "maskPixels": 3220,
+          "maskPixels": 3237,
           "distance": 12.2,
           "pass": true
         },
         {
           "mapId": "marble_atrium",
-          "maskPixels": 6816,
+          "maskPixels": 6828,
           "distance": 8.32,
           "pass": true
         },
@@ -141,13 +141,13 @@
         },
         {
           "mapId": "drowned_metro",
-          "maskPixels": 2399,
-          "distance": 14.28,
+          "maskPixels": 2257,
+          "distance": 16.24,
           "pass": true
         },
         {
           "mapId": "drainage_core",
-          "maskPixels": 9385,
+          "maskPixels": 9405,
           "distance": 8.27,
           "pass": true
         }
@@ -157,7 +157,7 @@
   },
   "M6": {
     "pass": true,
-    "durationMs": 12889,
+    "durationMs": 13002,
     "details": {
       "retriesCount": 10,
       "initGeom": 131,
@@ -166,36 +166,36 @@
   },
   "M7": {
     "pass": true,
-    "durationMs": 8299,
+    "durationMs": 8503,
     "details": [
       {
         "tier": "low",
         "withWater": 17085,
-        "noWater": 17664
-      },
-      {
-        "tier": "medium",
-        "withWater": 17085,
         "noWater": 17665
       },
       {
+        "tier": "medium",
+        "withWater": 17439,
+        "noWater": 17571
+      },
+      {
         "tier": "high",
-        "withWater": 17069,
-        "noWater": 17615
+        "withWater": 17085,
+        "noWater": 17665
       }
     ]
   },
   "M8": {
     "pass": true,
-    "durationMs": 4938,
+    "durationMs": 5196,
     "details": {
-      "maskPixels": 15528,
+      "maskPixels": 15604,
       "screenshot": "/Users/nazat/Desktop/Desktop/antigravity/BackSilence/poolrooms/reports/monster/screenshots/smoke/m8_phone_view.png"
     }
   },
   "M9": {
     "pass": true,
-    "durationMs": 50,
+    "durationMs": 45,
     "details": [
       {
         "test": "missing",
