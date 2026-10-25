@@ -53,12 +53,12 @@
   - [x] E.7 9:16 Portrait camera mode and golden framing
   - [x] E.8 Record Decision D091 and commit Phase E
 
-- [ ] **Phase F: Set Dressing & 10 Maps Elevation (Section 10)**
-  - [ ] F.1 3 depth layers per view (foreground clutter, midground architecture, background silhouettes)
-  - [ ] F.2 Points of interest in every 16m cell (>= 12 prop types per map, <= 3 draw calls per material per batch)
-  - [ ] F.3 Leading lines check on hero views
-  - [ ] F.4 Hero shot suite for default map + 9 other maps with written briefs (rubric average >= 4.0)
-  - [ ] F.5 Record Decision D091 and commit Phase F
+- [x] **Phase F: Set Dressing & 10 Maps Elevation (Section 10)**
+  - [x] F.1 3 depth layers per view (foreground clutter, midground architecture, background silhouettes)
+  - [x] F.2 Points of interest in every 16m cell (>= 12 prop types per map, <= 3 draw calls per material per batch)
+  - [x] F.3 Leading lines check on hero views
+  - [x] F.4 Hero shot suite for default map + 9 other maps with written briefs (rubric average >= 4.0)
+  - [x] F.5 Record Decision D092 and commit Phase F
 
 - [ ] **Phase G & H: Performance Tiers, Tests & Review Pack (Sections 11–13)**
   - [ ] G.1 Performance tier configuration matrix & profiling (draw calls, tris, frame times)

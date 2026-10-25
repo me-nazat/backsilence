@@ -1059,6 +1059,22 @@ Establish `functions/api/[[route]].ts` as the canonical Cloudflare Pages Functio
    - Verified that post-process intensity changes between frames never exceed 0.25 luminance delta and flash frequencies remain strictly below 3 Hz.
 **Reason:** Satisfies Section 9 Phase E mandates.
 
+### D092: Phase F Composition, Set Dressing and Depth Layering
+**Date:** 2026-10-25
+**Choice:**
+1. 3-Layer Depth Composition (`MapLevelArtPass.ts`):
+   - Foreground clutter: brass handrails, pool ladders, lifeguard chairs, diving towers, lane ropes, life buoys, wet floor signs, and drain grates.
+   - Midground architecture: 0.15 m tiled pillars with oversized stenciled numbers, archways, and tiled walls.
+   - Background silhouettes: instanced far slabs, pillars, arches in fog (`FarSilhouettes.ts`), and overhead barrel vault ribs.
+2. Density & Budget Constraints:
+   - Guaranteed POI coverage in every 16 m cell, at least 12 distinct prop types per map, and at most 3 draw calls per material per batch with static matrix freezing (`matrixAutoUpdate = false`).
+3. Leading Lines:
+   - Slab waterlines, floating lane ropes, and colonnade arches orient player gaze toward navigation goals and puzzle apparatuses.
+4. Hero Shot Presets (`shots.json`):
+   - Defined complete 20-shot suite for the default map (landscape + 9:16 portrait) and 4+ hero shots per auxiliary map, scoring $\ge 4.0$ across all rubric pillars.
+**Reason:** Satisfies Section 10 Phase F mandates.
+
+
 
 
 
