@@ -148,7 +148,7 @@ export function clampSettings(s: Settings): Settings {
       reducedMotion: ['system', 'on', 'off'].includes(acc?.reducedMotion)
         ? acc.reducedMotion
         : 'system',
-      uiScale: clamp(typeof acc?.uiScale === 'number' ? acc.uiScale : 1.0, 0.75, 1.5),
+      uiScale: clamp(typeof acc?.uiScale === 'number' ? acc.uiScale : 1.0, 0.75, 2.0),
       highContrast: Boolean(acc?.highContrast),
       minimalHud: Boolean(acc?.minimalHud),
     },

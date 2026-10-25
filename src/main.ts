@@ -98,6 +98,12 @@ if (typeof window !== 'undefined') {
     const detail = (e as CustomEvent<{ reason?: string }>).detail;
     showWebGlError(detail?.reason || 'WebGL context lost.');
   });
+
+  document.getElementById('skip-to-play')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    const playBtn = document.getElementById('btn-play-solo') || document.getElementById('nav-btn-play');
+    playBtn?.focus();
+  });
 }
 
 /** Register the offline shell without delaying the interactive menu. */

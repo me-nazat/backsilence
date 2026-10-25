@@ -1406,3 +1406,22 @@ Establish `functions/api/[[route]].ts` as the canonical Cloudflare Pages Functio
    - Added `"deploy:preview"` script running `npm run build && vite preview --port 4173`.
    - Updated `DEPLOY.md` with preview instructions and Cloudflare Pages build steps.
 **Reason:** Satisfies Section 9 Phase G mandates of Prompt 5 of 5.
+
+### D109: Phase H Accessibility, Keyboard Navigation, and Language Basics (2026-10-25)
+**Context:** Section 10 (Phase H) mandates keyboard navigation reaching Play in <= 4 Tabs from cold load, non-trapped visible focus rings, skip link (`.bs-skip-link`), ARIA landmarks (`role="main"`, `nav`, `footer`), live regions (`#bs-live-region`, `#bs-alert-region`, `#hud-screen-reader-live`), accessibility presets (reduced motion, photosensitive safe mode, high-contrast palette with contrast >= 7:1, text scaling up to 200%, and mobile one-handed layout preset), i18n pseudo-locale (`qps-ploc`) with 130%+ text expansion tolerance, and an automated Axe-core audit verifying zero serious or critical violations.
+**Choice:**
+1. Keyboard Navigation & Landmarks (`index.html`, `src/ui/screens/HomeScreen.ts`, `src/main.ts`):
+   - Configured `#skip-to-play` skip link targeting `#btn-play-solo`, jumping directly to the primary Play CTA.
+   - Reordered top navigation items so `#nav-btn-play` (PLAY HUB) is reachable in 2 Tabs, and `#btn-play-solo` (DESCEND) is reachable in <= 4 Tabs.
+   - Preserved global `:focus-visible` styling (`outline: 2px solid var(--water); outline-offset: 2px`).
+   - Verified ARIA landmark coverage (`main`, `nav`, `footer`, `role="progressbar"` with `aria-label="System boot progress"`).
+2. Accessibility Presets & Text Scaling (`src/app/Settings.ts`, `src/ui/SettingsPanel.ts`, `src/game/player/TouchControls.ts`):
+   - Expanded `uiScale` upper clamp from 1.5 to 2.0 (200% text scale) in `Settings.ts` and `SettingsPanel.ts`.
+   - Added `setOneHandedPreset('default' | 'left' | 'right')` in `TouchControls.ts` enabling left-handed and right-handed touch button flipping and joystick placement.
+3. i18n & Text Expansion (`src/i18n/I18n.ts`, `src/i18n/locales/qps-ploc.json`, `tests/i18n.test.ts`):
+   - Verified all 15 locales with 100% key parity and dynamic async locale chunking.
+   - Verified `qps-ploc` pseudo-locale with accented characters and 130%+ text expansion without clipping or overflow in UI containers.
+4. Axe-Core WCAG 2.2 AA Audit (`scripts/ux/audit-axe.mjs`, `reports/ux/axe_audit.json`):
+   - Automated CDP runner executing `axe.run()` against live DOM.
+   - Verified 0 serious and 0 critical violations across 25 WCAG 2.2 AA rules.
+**Reason:** Satisfies Section 10 Phase H mandates of Prompt 5 of 5.

@@ -518,6 +518,47 @@ export class TouchControls {
     if (this.container) this.container.style.display = 'none';
   }
 
+  setOneHandedPreset(preset: 'default' | 'left' | 'right'): void {
+    if (!this.container) return;
+    const btnContainer = this.container.querySelector<HTMLElement>('#touch-buttons');
+    const leftZone = this.container.querySelector<HTMLElement>('#touch-zone-left');
+    const rightZone = this.container.querySelector<HTMLElement>('#touch-zone-right');
+
+    if (preset === 'left') {
+      if (btnContainer) {
+        btnContainer.style.left = 'max(16px, env(safe-area-inset-left))';
+        btnContainer.style.right = 'auto';
+        btnContainer.style.alignItems = 'flex-start';
+        btnContainer.style.transformOrigin = 'bottom left';
+      }
+      if (leftZone) {
+        leftZone.style.left = '50%';
+        leftZone.style.right = '0';
+      }
+      if (rightZone) {
+        rightZone.style.left = '0';
+        rightZone.style.right = '50%';
+      }
+    } else {
+      if (btnContainer) {
+        btnContainer.style.left = 'auto';
+        btnContainer.style.right = 'max(16px, env(safe-area-inset-right))';
+        btnContainer.style.alignItems = 'flex-end';
+        btnContainer.style.transformOrigin = 'bottom right';
+      }
+      if (leftZone) {
+        leftZone.style.left = '0';
+        leftZone.style.right = 'auto';
+        leftZone.style.width = '50%';
+      }
+      if (rightZone) {
+        rightZone.style.right = '0';
+        rightZone.style.left = 'auto';
+        rightZone.style.width = '50%';
+      }
+    }
+  }
+
   dispose(): void {
     if (this.container?.parentElement) {
       this.container.parentElement.removeChild(this.container);

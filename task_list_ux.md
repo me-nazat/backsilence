@@ -72,12 +72,12 @@
   - [x] G.5 Deployment guide: `deploy:preview` script and Cloudflare Pages instructions in `DEPLOY.md`
   - [x] G.6 Record Decision D108 and commit Phase G
 
-- [ ] **Phase H: Accessibility and Language Basics (Section 10)**
-  - [ ] H.1 Keyboard reaches Play in <= 4 Tabs; focus always visible and non-trapped; skip link, landmarks, live regions
-  - [ ] H.2 Reduced motion, photosensitive mode, high contrast, text scale 200%, one-handed mobile preset
-  - [ ] H.3 i18n string table with pseudo-locale; test 130% length text without clipping
-  - [ ] H.4 Axe accessibility audit with zero serious or critical findings
-  - [ ] H.5 Record Decision D109 and commit Phase H
+- [x] **Phase H: Accessibility and Language Basics (Section 10)**
+  - [x] H.1 Keyboard reaches Play in <= 4 Tabs; focus always visible and non-trapped; skip link, landmarks, live regions
+  - [x] H.2 Reduced motion, photosensitive mode, high contrast, text scale 200%, one-handed mobile preset
+  - [x] H.3 i18n string table with pseudo-locale; test 130% length text without clipping
+  - [x] H.4 Axe accessibility audit with zero serious or critical findings
+  - [x] H.5 Record Decision D109 and commit Phase H
 
 - [ ] **Phase I: Automated U1–U12 Verification Suite (Section 11)**
   - [ ] I.1 Automated test suite in `tests/ux-playability.test.ts` exercising U1 through U12

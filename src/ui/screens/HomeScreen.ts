@@ -62,10 +62,10 @@ export class HomeScreen {
             ${renderIcon('tape', 16)} <span>ARCHIVE FILE // 1994-BS</span>
           </div>
           <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+            <button id="nav-btn-play" class="bs-btn bs-btn-ghost" style="padding: 4px 10px; min-height: 36px;">PLAY HUB</button>
             <button id="nav-btn-quality" class="bs-btn bs-btn-ghost" style="padding: 4px 10px; min-height: 36px; font-size: 11px; font-family: var(--bs-font-mono); color: var(--bs-water); border: 1px solid rgba(134,207,160,0.3);" title="Quality Auto-Detect (tap to change)">
               QUALITY: AUTO
             </button>
-            <button id="nav-btn-play" class="bs-btn bs-btn-ghost" style="padding: 4px 10px; min-height: 36px;">PLAY HUB</button>
             <button id="nav-btn-leaderboards" class="bs-btn bs-btn-ghost" style="padding: 4px 10px; min-height: 36px;">SILENCE</button>
             <button id="nav-btn-bestiary" class="bs-btn bs-btn-ghost" style="padding: 4px 10px; min-height: 36px;">BESTIARY</button>
             <button id="nav-btn-champions" class="bs-btn bs-btn-ghost" style="padding: 4px 10px; min-height: 36px;">CHAMPIONS</button>

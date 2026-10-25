@@ -74,7 +74,7 @@ describe('Prompt 4 Phase F: Accessibility & Safety Compliance', () => {
 
     // Skip link & landmarks
     expect(html).toContain('class="bs-skip-link"');
-    expect(html).toContain('Skip to main content');
+    expect(html).toContain('Skip to Descend (Play)');
     expect(html).toContain('aria-label="Decorative hero scene"');
     expect(html).toContain('role="img"');
 

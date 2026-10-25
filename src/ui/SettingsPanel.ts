@@ -382,7 +382,7 @@ export class SettingsPanel {
               <div class="setting-label">UI SCALE: <span id="lbl-uiscale">${Math.round((this.settings.accessibility?.uiScale ?? 1.0) * 100)}%</span></div>
               <div class="setting-sub">Scale on-screen interface text and elements</div>
             </div>
-            <input id="set-uiscale" type="range" min="0.8" max="1.4" step="0.05" value="${this.settings.accessibility?.uiScale ?? 1.0}" class="setting-slider">
+            <input id="set-uiscale" type="range" min="0.8" max="2.0" step="0.05" value="${this.settings.accessibility?.uiScale ?? 1.0}" class="setting-slider">
           </div>
 
           <div class="setting-row">

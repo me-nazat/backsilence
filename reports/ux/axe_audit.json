@@ -1,0 +1,11 @@
+{
+  "timestamp": "2026-10-25T14:55:46.684Z",
+  "url": "http://127.0.0.1:60573/",
+  "testedScreens": [
+    "HomeScreen"
+  ],
+  "passesCount": 25,
+  "violationsCount": 0,
+  "criticalOrSeriousCount": 0,
+  "violations": []
+}
