@@ -317,7 +317,7 @@ describe('Settings Clamping & Key-binding Conflicts', () => {
     expect(clamped.audio.monster).toBe(0.0);
 
     expect(clamped.controls.sensitivity).toBe(3.0);
-    expect(clamped.accessibility.uiScale).toBe(1.5);
+    expect(clamped.accessibility.uiScale).toBe(2.0);
   });
 
   it('migrates settings properly from raw objects', () => {

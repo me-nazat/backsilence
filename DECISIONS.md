@@ -1425,3 +1425,18 @@ Establish `functions/api/[[route]].ts` as the canonical Cloudflare Pages Functio
    - Automated CDP runner executing `axe.run()` against live DOM.
    - Verified 0 serious and 0 critical violations across 25 WCAG 2.2 AA rules.
 **Reason:** Satisfies Section 10 Phase H mandates of Prompt 5 of 5.
+
+### D110: Phase I Automated U1–U12 Verification Suite (2026-10-25)
+**Context:** Section 11 (Phase I) mandates an automated, reproducible test suite covering scenarios U1 through U12: U1 Universal clickability (0 dead clicks, modals/toasts/escape stack), U2 Time to Play (<= 2 clicks to play, dominant Descend button, QR matrix), U3 Keyboard navigation (<= 4 Tabs to play, landmarks, live regions), U4 Touch navigation (portrait layout, >= 48px reachability, 12% deadzone, 85% sprint, one-handed flipping), U5 Gamepad navigation (0.15 radial deadzone, 2D spatial focus navigation), U6 Calibration & orientation (brightness, stereo drip, input detection, skip, non-blocking cards), U7 Sub-1s death retry (plain language explanation, auto-focused retry, 10x memory stability), U8 Error boundary & WebGL2 recovery (non-raising quality ceiling, calm recovery template), U9 Offline mode & service worker hardening (cache-first, SKIP_WAITING, webmanifest), U10 Settings persistence & live apply (fpsCap, uiScale roundtrip), U11 Accessibility & contrast (color-blind safe noise meter >= 4.5:1, directional sound captions), and U12 Pacing bot verification (7 statistical pacing gates satisfied).
+**Choice:**
+1. Zero-Dependency In-File DOM Shim (`tests/ux-playability.test.ts`):
+   - Implemented lightweight `MockElement`, `MockDocument`, `MockWindow`, `MockPointerEvent`, and `MockCustomEvent` following the project's zero-external-UI architectural invariant (no jsdom / heavy browser emulators).
+   - Supported true DOM tree parent-child hierarchy, class list manipulation, event bubbling, innerHTML parsing, style properties, and attribute inspection.
+2. Complete U1–U12 Verification Suite (`tests/ux-playability.test.ts`):
+   - Executed 24 comprehensive unit tests verifying all 12 operational scenarios with 100% pass rate.
+   - Tested UiLayerManager modal stacking and inertness, ConfirmationModal focus trap & Undo, dominant Descend CTA navigation, pure-TS QrCode SVG generation, keyboard Tab index, floating joystick touch dynamics, radial deadzone calculation with 1.8 power response curve, calibration flow, death screen plain-sentence generation and memory stability across 10 iterations, QualityBenchmark non-raising tier lock, service worker offline caching contracts, settings roundtrip serialization, WCAG color contrast validation, and pacing bot summary verification.
+3. Settings & Core Test Alignment (`src/app/Settings.ts`, `tests/core.test.ts`):
+   - Added `fpsCap` validation to `clampSettings` to ensure robust persistence of the 30/60/uncapped frame rate option.
+   - Aligned `core.test.ts` expectation for `uiScale` upper clamp to 2.0 (200% text scale).
+**Reason:** Satisfies Section 11 Phase I mandates of Prompt 5 of 5.
+

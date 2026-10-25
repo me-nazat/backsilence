@@ -120,6 +120,7 @@ export function clampSettings(s: Settings): Settings {
       photosensitiveSafe: Boolean(g?.photosensitiveSafe),
       vhsOsd: g?.vhsOsd !== undefined ? Boolean(g.vhsOsd) : true,
       vhsLines: g?.vhsLines === 360 || g?.vhsLines === 480 ? g.vhsLines : 240,
+      fpsCap: typeof g?.fpsCap === 'number' && (g.fpsCap === 30 || g.fpsCap === 60 || g.fpsCap === 0) ? g.fpsCap : 0,
     },
     audio: {
       master: clamp(typeof a?.master === 'number' ? a.master : 0.8, 0.0, 1.0),

@@ -79,10 +79,10 @@
   - [x] H.4 Axe accessibility audit with zero serious or critical findings
   - [x] H.5 Record Decision D109 and commit Phase H
 
-- [ ] **Phase I: Automated U1–U12 Verification Suite (Section 11)**
-  - [ ] I.1 Automated test suite in `tests/ux-playability.test.ts` exercising U1 through U12
-  - [ ] I.2 Verify all U1–U12 pass conditions with file paths
-  - [ ] I.3 Record Decision D110 and commit Phase I
+- [x] **Phase I: Automated U1–U12 Verification Suite (Section 11)**
+  - [x] I.1 Automated test suite in `tests/ux-playability.test.ts` exercising U1 through U12
+  - [x] I.2 Verify all U1–U12 pass conditions with file paths
+  - [x] I.3 Record Decision D110 and commit Phase I
 
 - [ ] **Review Pack & Publication (Section 12)**
   - [ ] R.1 Compile `reports/ux/friction.md` with before/after comparisons and dead-click count (0)
