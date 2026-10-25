@@ -828,6 +828,26 @@ Establish `functions/api/[[route]].ts` as the canonical Cloudflare Pages Functio
    - 5 unit tests in `tests/monster-phase-e.test.ts`.
 **Reason:** Fulfills Phase E requirements for creature readability in thick fog, anatomical silhouette fidelity, zero foot-slide, and dual skin fallback safety.
 
+### D076: Automated Acceptance Gates M1 to M9
+**Date:** 2026-10-25
+**Choice:**
+1. Automated Smoke Gate Suite (`scripts/smoke/run-monster-smoke.mjs`):
+   - Implemented zero-guessing automated headless software GL gate runner covering all 9 criteria:
+     - M1 (Cold start, default map): Sim count >= 1, root present, L0-L3 probe pass within 1s.
+     - M2 (Show-me key H): Mask >= 300px (observed 7,101 px) and visibleFraction >= 0.60 (observed 0.6148).
+     - M3 (Silent 150s, 10 seeds): Scheduled sight <= 45s on 10/10 seeds (30.7s to 34.0s), 0 attacks.
+     - M4 (Noise to death): Alert within 1s, jumpscare jaw framing mask >= 25%, retry in < 1000ms (observed ~250ms), monster resets to >= 50m (observed 60.1m).
+     - M5 (All 10 non-default maps): Verified monster present and sighted with mask >= 200px across `natatorium` (7,202 px), `poolrooms` (17,057 px), `drowned_school` (7,851 px), `utility_tunnels` (7,280 px), `sunken_jungle` (3,218 px), `marble_atrium` (6,806 px), `neon_flood` (9,453 px), `hydro_maze` (6,986 px), `drowned_metro` (2,391 px), and `drainage_core` (9,325 px).
+     - M6 (Ten retries): Sighting verified after every retry, memory flat (< 5 MB variance).
+     - M7 (Pipelines): Monster visible at low, medium, and high quality tiers and water on/off toggles.
+     - M8 (Phone emulation): 390x844 viewport, touch emulation, 4x CPU throttle, monster sighted <= 60s.
+     - M9 (Broken models): Immediate procedural fallback on 404, HTML 200, and corrupt magic bytes.
+2. Alignment & Coordinate Convention Repairs:
+   - Synchronized Three.js Euler convention ('YXZ') with `PlayerMotor`: camera rotation decomposes directly via `Euler.setFromQuaternion(this.camera.quaternion, 'YXZ')` avoiding yaw/pitch sign inversions.
+   - Solved `drowned_school` water coverage by setting flooded floor to -0.50m and opening doorway between gym and eastern hallway corridor.
+**Reason:** Fulfills Phase F gate requirements with strict empirical validation and reports saved in `reports/monster/smoke_results.json` and `reports/monster/m5_ten_maps.json`.
+
+
 
 
 

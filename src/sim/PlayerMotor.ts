@@ -157,13 +157,20 @@ export class PlayerMotor {
     return this.previousState;
   }
 
-  teleport(pos: Partial<Vec3>): void {
+  teleport(pos: Partial<Vec3>, yaw?: number): void {
     if (pos.x !== undefined) this.pos.x = pos.x;
     if (pos.y !== undefined) this.pos.y = pos.y;
     if (pos.z !== undefined) this.pos.z = pos.z;
+    if (yaw !== undefined) this.yaw = yaw;
     this.vel.x = 0;
     this.vel.y = 0;
     this.vel.z = 0;
+    this.copyToState(this.previousState);
+  }
+
+  setYaw(yaw: number, pitch = 0): void {
+    this.yaw = yaw;
+    this.pitch = pitch;
     this.copyToState(this.previousState);
   }
 

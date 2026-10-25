@@ -30,6 +30,7 @@ import {
   MeshBasicMaterial,
   Matrix4,
   Object3D,
+  Euler,
 } from 'three';
 import { runMonsterProbe, type MonsterProbeResult } from './monster/MonsterProbe.js';
 import { EngineRenderer } from '../engine/Renderer.js';
@@ -531,6 +532,12 @@ export class GameSession {
       this.acoustics = new AcousticSystem(this.audio, this.hud, this.settings);
 
       this.setupNetSession();
+
+      // Orient player towards map center on spawn
+      const pSpawn = this.layout.spawns.player[0] ?? { x: 0, y: 1.0, z: 0 };
+      const centerZ = (this.layout.bounds.minZ + this.layout.bounds.maxZ) / 2;
+      const initialYaw = Math.atan2(-(0 - pSpawn.x), -(centerZ - pSpawn.z));
+      this.simWorld.player.setYaw(initialYaw);
 
       // 7. Flashlight Setup (Map 5)
       if (this.mapId === 'drainage_core') {
@@ -1464,7 +1471,9 @@ export class GameSession {
     this.isDead = false;
 
     const spawn = this.layout.spawns.player[0] ?? { x: 0, y: 1.0, z: 0 };
-    this.simWorld.player.teleport(spawn);
+    const centerZ = (this.layout.bounds.minZ + this.layout.bounds.maxZ) / 2;
+    const initialYaw = Math.atan2(-(0 - spawn.x), -(centerZ - spawn.z));
+    this.simWorld.player.teleport(spawn, initialYaw);
     this.simWorld.resetOnRetry(spawn);
     for (const m of this.simWorld.monsters) {
       const body = this.monsters.getBody(m.id);
@@ -2808,9 +2817,9 @@ export class GameSession {
           let bestZ = camZ + forward.z * 14.0;
           let foundClear = false;
 
-          // Search candidate rays within forward cone (or widened if blocked)
-          const angleOffsets = [0, 0.26, -0.26, 0.52, -0.52, 0.78, -0.78, 1.2, -1.2, Math.PI];
-          const distSteps = [14.0, 12.0, 10.0, 8.0, 6.0];
+          // Search candidate rays within forward cone (4m to 28m)
+          const angleOffsets = [0, 0.15, -0.15, 0.3, -0.3, 0.45, -0.45, 0.6, -0.6];
+          const distSteps = [8.0, 10.0, 12.0, 14.0, 16.0, 6.0, 18.0, 20.0, 22.0, 4.0];
 
           for (const d of distSteps) {
             for (const angle of angleOffsets) {
@@ -2826,26 +2835,48 @@ export class GameSession {
 
               // Check zero wall intersections (direct line of sight)
               if (this.simWorld.colliders.segmentHits(camX, camZ, tx, tz) === 0) {
-                // Prefer walkable water cell
+                // Require walkable water cell
                 if (this.simWorld.nav.isWalkableWorld(tx, tz)) {
                   bestX = tx;
                   bestZ = tz;
                   foundClear = true;
                   break;
-                } else if (!foundClear) {
-                  bestX = tx;
-                  bestZ = tz;
                 }
               }
             }
             if (foundClear) break;
           }
 
-          // Depth placement: shoulders clear water surface by >= 0.35m
+          // If forward cone did not find walkable water (e.g. spawned in dry foyer),
+          // search radially for the closest walkable water cell with direct line of sight
+          if (!foundClear) {
+            let closestDistSq = Infinity;
+            for (let gz = 0; gz < this.simWorld.nav.depth; gz++) {
+              for (let gx = 0; gx < this.simWorld.nav.width; gx++) {
+                if (this.simWorld.nav.walkable[gz * this.simWorld.nav.width + gx] === 1) {
+                  const world = this.simWorld.nav.gridToWorld(gx, gz);
+                  const dSq = (world.x - camX) ** 2 + (world.z - camZ) ** 2;
+                  if (dSq < closestDistSq && dSq >= 16.0 && dSq <= 1200.0) {
+                    if (this.simWorld.colliders.segmentHits(camX, camZ, world.x, world.z) === 0) {
+                      closestDistSq = dSq;
+                      bestX = world.x;
+                      bestZ = world.z;
+                      foundClear = true;
+                    }
+                  }
+                }
+              }
+            }
+          }
+
+          // Depth placement: shoulders clear water surface by >= 1.25m so almost full body is above water level
           const groundY = this.mapInstance.ground.heightAt(bestX, bestZ);
           const waterLevel = this.water.currentWaterY;
-          const shoulderMinY = waterLevel + 0.35 - 1.40;
+          const shoulderMinY = waterLevel + 1.25 - 1.40;
           const targetY = Math.max(groundY, shoulderMinY);
+
+          // Monster faces player
+          const monsterYaw = Math.atan2(camX - bestX, -(camZ - bestZ));
 
           if (this.simWorld.monsters.length > 0) {
             const m = this.simWorld.monsters[0]!;
@@ -2855,22 +2886,39 @@ export class GameSession {
             m.vel.x = 0;
             m.vel.y = 0;
             m.vel.z = 0;
+            m.yaw = monsterYaw;
             m.forceState('WANDER');
             const body = this.monsters.getBody(m.id);
             if (body) {
               body.fogDensity = this.mapDef.atmosphere.fog.density;
               body.mesh.root.position.set(bestX, targetY, bestZ);
+              body.mesh.root.rotation.y = monsterYaw;
+              body.mesh.root.visible = true;
             }
           } else {
             const id = `monster_${Date.now()}`;
             const spawnPos = { x: bestX, y: targetY, z: bestZ };
             const body = this.monsters.addMonster({ id, variant: 'standard', spawn: spawnPos });
             body.fogDensity = this.mapDef.atmosphere.fog.density;
+            body.mesh.root.rotation.y = monsterYaw;
             this.simWorld.addMonster({ id, variant: 'standard', spawn: spawnPos, spawnGrace: 0.0 }, 12345);
           }
+
+          // Aim player and camera directly at the placed monster
+          const lookDx = bestX - camX;
+          const lookDz = bestZ - camZ;
+          const lookDist = Math.hypot(lookDx, lookDz);
+          if (lookDist > 0.1) {
+            this.camera.position.set(camX, this.simWorld.player.pos.y + 1.65, camZ);
+            this.camera.lookAt(bestX, targetY + 1.1, bestZ);
+            const aimEuler = new Euler().setFromQuaternion(this.camera.quaternion, 'YXZ');
+            this.simWorld.player.setYaw(aimEuler.y, aimEuler.x);
+            this.camera.updateMatrixWorld(true);
+          }
+
           const probe = this.monsterProbe();
           console.log('[DEBUG KEY H] Placed monster in clear view. Verdict:', probe.verdict);
-          this.hud.update({ objective: `DEBUG H: Monster placed at 14m (${probe.verdict.layer})` });
+          this.hud.update({ objective: `DEBUG H: Monster placed at ${lookDist.toFixed(1)}m (${probe.verdict.layer})` });
           break;
         }
         case 'KeyM': {

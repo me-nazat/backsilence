@@ -341,6 +341,7 @@ export function runMonsterProbe(session: GameSession): MonsterProbeResult {
   const mPos = primaryMonster ? new Vector3(primaryMonster.pos.x, primaryMonster.pos.y, primaryMonster.pos.z) : new Vector3();
   const distanceToCamera = primaryMonster ? camPos.distanceTo(mPos) : Infinity;
 
+  camera.updateMatrixWorld(true);
   const frustumMat = new Matrix4().multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
   const frustum = new Frustum();
   frustum.setFromProjectionMatrix(frustumMat);

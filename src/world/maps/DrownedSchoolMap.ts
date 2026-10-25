@@ -77,25 +77,25 @@ export const DrownedSchoolMap: MapDefinition = {
     // 1. Outer perimeter walls
     walls.push({
       id: 'wall_school_north',
-      min: { x: -48, y: -0.34, z: 27.5 },
+      min: { x: -48, y: -0.50, z: 27.5 },
       max: { x: 48, y: 3.5, z: 28 },
       isWall: true,
     });
     walls.push({
       id: 'wall_school_south',
-      min: { x: -48, y: -0.34, z: -28 },
+      min: { x: -48, y: -0.50, z: -28 },
       max: { x: 48, y: 3.5, z: -27.5 },
       isWall: true,
     });
     walls.push({
       id: 'wall_school_west',
-      min: { x: -48, y: -0.34, z: -28 },
+      min: { x: -48, y: -0.50, z: -28 },
       max: { x: -47.5, y: 3.5, z: 28 },
       isWall: true,
     });
     walls.push({
       id: 'wall_school_east',
-      min: { x: 47.5, y: -0.34, z: -28 },
+      min: { x: 47.5, y: -0.50, z: -28 },
       max: { x: 48, y: 3.5, z: 28 },
       isWall: true,
     });
@@ -120,13 +120,13 @@ export const DrownedSchoolMap: MapDefinition = {
     // Principal's office dividing wall
     walls.push({
       id: 'wall_principal_s',
-      min: { x: -48, y: -0.34, z: 13.5 },
+      min: { x: -48, y: -0.50, z: 13.5 },
       max: { x: -30, y: 3.5, z: 14.5 },
       isWall: true,
     });
     walls.push({
       id: 'wall_west_corridor',
-      min: { x: -30.5, y: -0.34, z: -28 },
+      min: { x: -30.5, y: -0.50, z: -28 },
       max: { x: -29.5, y: 3.5, z: 28 },
       isWall: true,
     });
@@ -154,13 +154,19 @@ export const DrownedSchoolMap: MapDefinition = {
     // East wing dividing wall between Gym and Auditorium
     walls.push({
       id: 'wall_gym_auditorium',
-      min: { x: 26, y: -0.34, z: 6.5 },
+      min: { x: 26, y: -0.50, z: 6.5 },
       max: { x: 48, y: 3.5, z: 7.5 },
       isWall: true,
     });
     walls.push({
-      id: 'wall_east_corridor',
-      min: { x: 25.5, y: -0.34, z: -28 },
+      id: 'wall_east_corridor_south',
+      min: { x: 25.5, y: -0.50, z: -28 },
+      max: { x: 26.5, y: 3.5, z: -19 },
+      isWall: true,
+    });
+    walls.push({
+      id: 'wall_east_corridor_north',
+      min: { x: 25.5, y: -0.50, z: -13 },
       max: { x: 26.5, y: 3.5, z: 28 },
       isWall: true,
     });
@@ -263,7 +269,7 @@ export const DrownedSchoolMap: MapDefinition = {
     // Player spawn in Gym
     const playerSpawn = { x: 38, y: 0.5, z: -16 };
     // Monster spawn in west corridor or classroom
-    const monsterSpawn = { x: -18, y: -0.34, z: -16 }; // distance ~60m >= 40m
+    const monsterSpawn = { x: -18, y: -0.50, z: -16 }; // distance ~60m >= 40m
 
     return {
       mapId: 'drowned_school',
@@ -277,7 +283,7 @@ export const DrownedSchoolMap: MapDefinition = {
         {
           id: 'school_flood',
           rect: [-48, -28, 48, 28],
-          floorY: -0.34,
+          floorY: -0.50,
           waterY: 0.0,
         },
       ],
@@ -301,7 +307,7 @@ export const DrownedSchoolMap: MapDefinition = {
             id: 'monster_school_1',
             variant: 'standard' as const,
             spawn: monsterSpawn,
-            sleeperSpawn: { x: 14, y: -0.34, z: -16 },
+            sleeperSpawn: { x: 14, y: -0.50, z: -16 },
           },
         ],
       },
@@ -309,12 +315,12 @@ export const DrownedSchoolMap: MapDefinition = {
         {
           id: 'school_hallway',
           points: [
-            { x: 30, y: -0.34, z: -16 },
-            { x: 14, y: -0.34, z: -16 },
-            { x: 0, y: -0.34, z: -16 },
-            { x: -4, y: -0.34, z: 0 },
-            { x: -4, y: -0.34, z: 10 },
-            { x: -35, y: -0.34, z: 0 },
+            { x: 30, y: -0.50, z: -16 },
+            { x: 14, y: -0.50, z: -16 },
+            { x: 0, y: -0.50, z: -16 },
+            { x: -4, y: -0.50, z: 0 },
+            { x: -4, y: -0.50, z: 10 },
+            { x: -35, y: -0.50, z: 0 },
           ],
         },
       ],

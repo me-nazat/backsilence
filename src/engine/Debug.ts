@@ -820,6 +820,14 @@ export function installDebugApi(options: DebugApiOptions = {}): void {
         L5: { pass: false, metersMoved60s: 0, stateChangesCount: 0, timeSinceLastWaypoint: 0 },
       };
     },
+    validateAndFetchGlb: async (path = 'models/thumper.glb', timeoutMs = 8000) => {
+      const { validateAndFetchGlb: validate } = await import('../game/creatures/MonsterSkin.js');
+      return validate(path, timeoutMs);
+    },
+    createMonsterSkin: async (choice: 'auto' | 'model' | 'procedural' = 'auto', scale = 1.0, tint = '#7a4a38') => {
+      const { createMonsterSkin: createSkin, GlbSkin, ProceduralSkin } = await import('../game/creatures/MonsterSkin.js');
+      return { skin: createSkin(choice, scale, tint), GlbSkin, ProceduralSkin };
+    },
     get sim() {
       if (simOverride) return simOverride;
       const g = window as unknown as { __backsilence_session?: { sim?: unknown; simWorld?: unknown } };
