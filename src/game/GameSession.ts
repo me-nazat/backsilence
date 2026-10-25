@@ -650,25 +650,7 @@ export class GameSession {
   }
 
   private startMapAmbience(): void {
-    if (this.mapId === 'utility_tunnels') {
-      this.audio.play('ambience_tunnels', { gain: 0.65 });
-    } else if (this.mapId === 'marble_atrium') {
-      this.audio.play('ambience_atrium', { gain: 0.65 });
-    } else if (this.mapId === 'hydro_maze') {
-      this.audio.play('ambience_filtration', { gain: 0.65 });
-    } else if (this.mapId === 'drainage_core') {
-      this.audio.play('ambience_drain', { gain: 0.7 });
-    } else if (this.mapId === 'drowned_school') {
-      this.audio.play('ambience_school', { gain: 0.65 });
-    } else if (this.mapId === 'sunken_jungle') {
-      this.audio.play('ambience_jungle', { gain: 0.65 });
-    } else if (this.mapId === 'neon_flood') {
-      this.audio.play('rain_loop', { gain: 0.65 });
-    } else if (this.mapId === 'drowned_metro') {
-      this.audio.play('rail_sing_loop', { gain: 0.65 });
-    } else {
-      this.audio.play('lap_loop', { gain: 0.65 });
-    }
+    this.audio.startMapAmbience(this.mapId);
   }
 
   private initMapPuzzles(): void {

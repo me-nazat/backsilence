@@ -30,6 +30,13 @@ export function playUiHover(cx: UiVoiceContext): RawVoiceHandle {
 
   osc.connect(g);
   g.connect(cx.destination);
+
+  // Subtle wet poolroom reverb send (Prompt 4 Section 9 E.3)
+  const wet = ctx.createGain();
+  wet.gain.setValueAtTime(0.12, now);
+  g.connect(wet);
+  wet.connect(cx.reverbSend);
+
   osc.start(now);
   osc.stop(now + 0.015);
 
@@ -39,13 +46,23 @@ export function playUiHover(cx: UiVoiceContext): RawVoiceHandle {
   });
 
   setTimeout(() => {
-    g.disconnect();
+    try {
+      g.disconnect();
+      wet.disconnect();
+    } catch {
+      /* ignore */
+    }
     endedResolve();
-  }, 30);
+  }, 35);
 
   return {
     stop(): void {
-      g.disconnect();
+      try {
+        g.disconnect();
+        wet.disconnect();
+      } catch {
+        /* ignore */
+      }
     },
     setParam(): void {},
     ended,
@@ -53,7 +70,7 @@ export function playUiHover(cx: UiVoiceContext): RawVoiceHandle {
 }
 
 /**
- * ui_click: short low-passed click plus gentle tone (22 ms).
+ * ui_click: short low-passed click plus gentle tone and soft wet droplet plink (25 ms).
  */
 export function playUiClick(cx: UiVoiceContext): RawVoiceHandle {
   const ctx = cx.ctx;
@@ -71,6 +88,26 @@ export function playUiClick(cx: UiVoiceContext): RawVoiceHandle {
 
   osc.connect(g);
   g.connect(cx.destination);
+
+  // Subtle wet poolroom reverb send (Prompt 4 Section 9 E.3)
+  const wet = ctx.createGain();
+  wet.gain.setValueAtTime(0.18, now);
+  g.connect(wet);
+  wet.connect(cx.reverbSend);
+
+  // Soft wet water droplet plink (1400 -> 1550 Hz, 18ms)
+  const dropOsc = ctx.createOscillator();
+  dropOsc.frequency.setValueAtTime(1400, now);
+  dropOsc.frequency.linearRampToValueAtTime(1550, now + 0.018);
+  const dropGain = ctx.createGain();
+  dropGain.gain.setValueAtTime(0.04, now);
+  dropGain.gain.exponentialRampToValueAtTime(0.001, now + 0.022);
+  dropOsc.connect(dropGain);
+  dropGain.connect(cx.destination);
+  dropGain.connect(wet);
+  dropOsc.start(now);
+  dropOsc.stop(now + 0.025);
+
   osc.start(now);
   osc.stop(now + 0.03);
 
@@ -80,13 +117,25 @@ export function playUiClick(cx: UiVoiceContext): RawVoiceHandle {
   });
 
   setTimeout(() => {
-    g.disconnect();
+    try {
+      g.disconnect();
+      wet.disconnect();
+      dropGain.disconnect();
+    } catch {
+      /* ignore */
+    }
     endedResolve();
-  }, 45);
+  }, 50);
 
   return {
     stop(): void {
-      g.disconnect();
+      try {
+        g.disconnect();
+        wet.disconnect();
+        dropGain.disconnect();
+      } catch {
+        /* ignore */
+      }
     },
     setParam(): void {},
     ended,
@@ -94,7 +143,7 @@ export function playUiClick(cx: UiVoiceContext): RawVoiceHandle {
 }
 
 /**
- * ui_confirm: two ascending soft sine tones, perfect fifth (C5 -> G5: 523.25 -> 783.99 Hz).
+ * ui_confirm: two ascending soft sine tones, perfect fifth with wet pool reverb (C5 -> G5: 523.25 -> 783.99 Hz).
  */
 export function playUiConfirm(cx: UiVoiceContext): RawVoiceHandle {
   const ctx = cx.ctx;
@@ -103,6 +152,12 @@ export function playUiConfirm(cx: UiVoiceContext): RawVoiceHandle {
   const voiceGain = ctx.createGain();
   voiceGain.gain.setValueAtTime(0.18, now);
   voiceGain.connect(cx.destination);
+
+  // Wet poolroom reverb send
+  const wet = ctx.createGain();
+  wet.gain.setValueAtTime(0.24, now);
+  voiceGain.connect(wet);
+  wet.connect(cx.reverbSend);
 
   // Tone 1
   const osc1 = ctx.createOscillator();

@@ -57,6 +57,14 @@ import {
   playAmbienceFiltration,
   playAmbienceDrain,
   playMonsterAmbientFar,
+  playSparsePipeClank,
+  playSparseMetalCreak,
+  playSparseSteamHiss,
+  playSparseElectricalCrackle,
+  playSparseSubShudder,
+  playSparseWaterSurge,
+  playSparseCavernDraft,
+  playSparsePebbleFall,
 } from '../audio/voices/AmbienceBeds.js';
 import {
   playVhsGlitch,
@@ -243,6 +251,14 @@ const ALL_VOICES: VoiceName[] = [
   'station_announce_chime',
   'monster_swipe',
   'monster_collapse',
+  'sparse_pipe_clank',
+  'sparse_metal_creak',
+  'sparse_steam_hiss',
+  'sparse_electrical_crackle',
+  'sparse_sub_shudder',
+  'sparse_water_surge',
+  'sparse_cavern_draft',
+  'sparse_pebble_fall',
 ];
 
 /**
@@ -342,6 +358,14 @@ export async function audioSelfTest(): Promise<{ passed: boolean; results: Audio
         case 'ambience_atrium': playAmbienceAtrium(voiceCtx); break;
         case 'ambience_filtration': playAmbienceFiltration(voiceCtx); break;
         case 'ambience_drain': playAmbienceDrain(voiceCtx); break;
+        case 'sparse_pipe_clank': playSparsePipeClank(voiceCtx); break;
+        case 'sparse_metal_creak': playSparseMetalCreak(voiceCtx); break;
+        case 'sparse_steam_hiss': playSparseSteamHiss(voiceCtx); break;
+        case 'sparse_electrical_crackle': playSparseElectricalCrackle(voiceCtx); break;
+        case 'sparse_sub_shudder': playSparseSubShudder(voiceCtx); break;
+        case 'sparse_water_surge': playSparseWaterSurge(voiceCtx); break;
+        case 'sparse_cavern_draft': playSparseCavernDraft(voiceCtx); break;
+        case 'sparse_pebble_fall': playSparsePebbleFall(voiceCtx); break;
         case 'vhs_glitch': playVhsGlitch(voiceCtx); break;
         case 'tape_rewind': playTapeRewind(voiceCtx); break;
         case 'tape_eject': playTapeEject(voiceCtx); break;

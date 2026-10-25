@@ -185,6 +185,16 @@ export class MenuMusic {
       g.connect(this.padGain);
     }
 
+    // Connect plucks to pool-hall reverb send (Prompt 4 Section 9 E.3)
+    const reverbSend = this.engine.getReverbSend();
+    if (reverbSend) {
+      const wetGain = ctx.createGain();
+      wetGain.gain.setValueAtTime(0.38, now);
+      wetGain.gain.exponentialRampToValueAtTime(0.0001, now + 1.2);
+      g.connect(wetGain);
+      wetGain.connect(reverbSend);
+    }
+
     osc.start(now);
     osc.stop(now + 1.25);
   }

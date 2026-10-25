@@ -40,11 +40,11 @@
   - [x] D.5 First-run interactive audio diagnostic test & voice priority stealing (16, 24, 32 voices)
   - [x] D.6 Record Decision D098 and commit Phase D
 
-- [ ] **Phase E: Adaptive and Per-Map Sound (Section 9)**
-  - [ ] E.1 `AudioDirector` taking dread (0..1) driving drone level, HF tilt, heartbeat tempo, reverb send, and sparse events
-  - [ ] E.2 9 per-map ambience beds with at least 5 randomized sparse events (zero loop repetition inside 3 minutes)
-  - [ ] E.3 Generative menu pad with sparse plucks and pool-hall reverb; soft wet UI feedback
-  - [ ] E.4 Record Decision D099 and commit Phase E
+- [x] **Phase E: Adaptive and Per-Map Sound (Section 9)**
+  - [x] E.1 `AudioDirector` taking dread (0..1) driving drone level, HF tilt, heartbeat tempo, reverb send, and sparse events
+  - [x] E.2 9 per-map ambience beds with at least 5 randomized sparse events (zero loop repetition inside 3 minutes)
+  - [x] E.3 Generative menu pad with sparse plucks and pool-hall reverb; soft wet UI feedback
+  - [x] E.4 Record Decision D099 and commit Phase E
 
 - [ ] **Phase F & G: Audio Lab, Automated Tests & Review Pack (Sections 10 & 11)**
   - [ ] F.1 Interactive Audio Lab at `?lab=audio` (voice triggers, live meter, bus mutes, A/B reference, WAV downloader)

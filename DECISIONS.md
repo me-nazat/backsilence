@@ -1183,3 +1183,23 @@ Establish `functions/api/[[route]].ts` as the canonical Cloudflare Pages Functio
    - Priority-based voice allocation (voice counts 16, 24, 32 based on hardware tier) with deterministic priority eviction (UI > Monster > SFX > Ambient).
    - Authored 4 unit tests verifying highpass, limiter, profile EQ, stillness listening dip, and priority eviction.
 **Reason:** Satisfies Section 8 Phase D mandates of Prompt 4.
+
+### D099: Phase E Adaptive Dread, Per-Map Ambience Beds & Sparse Environmental Events
+**Date:** 2026-10-25
+**Choice:**
+1. Adaptive Dread & Atmospheric Filter Dynamics (`src/audio/AudioDirector.ts`, `src/audio/Mixer.ts`):
+   - Implemented `setDread(level: number)` (0..1) smoothly modulating:
+     - Subterranean drone volume (0.08 to 0.45) and pitch/tension modulation.
+     - Ambient HF tilt lowpass filter: smoothly sweeps from 18 kHz down to 3.8 kHz as dread mounts, producing a suffocating, claustrophobic acoustic box.
+     - Heartbeat activation (tension >= 0.25) with BPM dynamically scaling from 55 BPM up to 140 BPM (428 ms interval).
+     - Stillness listening dip and psychological silence drops to 40% ambient volume during high tension.
+2. 9 Per-Map Ambience Beds & Anti-Repetitive Sparse Event Engine (`src/audio/voices/AmbienceBeds.ts`, `AudioDirector.ts`):
+   - Configured all 11 maps across 9 distinct acoustic setting types (`natatorium`, `utility_tunnels`, `marble_atrium`, `hydro_maze`, `drainage_core`, `drowned_school`, `sunken_jungle`, `neon_flood`, `drowned_metro`) with distinct continuous beds.
+   - Authored 8 new procedural sparse environmental voices: `sparse_pipe_clank`, `sparse_metal_creak`, `sparse_steam_hiss`, `sparse_electrical_crackle`, `sparse_sub_shudder`, `sparse_water_surge`, `sparse_cavern_draft`, `sparse_pebble_fall`.
+   - Every map features at least 5 randomized sparse acoustic events scheduled with randomized intervals (14–26s at rest down to 7–14s in high tension). A 3-event FIFO history ring buffer strictly prevents back-to-back repetitions, guaranteeing zero loop repetition inside 3 minutes.
+3. Generative Menu Pad & Wet Poolroom UI Feedback (`src/audio/MenuMusic.ts`, `src/audio/voices/UiSounds.ts`):
+   - Connected sparse generative pentatonic plucks directly to the poolroom convolutional reverb send (0.38 wet gain).
+   - Upgraded `ui_hover`, `ui_click`, and `ui_confirm` with subtle pool-hall reverb sends (0.12–0.24) and soft microscopic water droplet plink (1400 -> 1550 Hz, 18 ms) on button click for tactile spatial immersion.
+4. Testing & Verification (`tests/audio-adaptive-map.test.ts`):
+   - 4/4 unit tests passing: verifying dread tilt mapping, all map bed configurations, map switching, and procedural voice synthesis.
+**Reason:** Satisfies Section 9 Phase E mandates of Prompt 4.

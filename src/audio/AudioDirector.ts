@@ -1,27 +1,159 @@
 /* ── AudioDirector.ts ───────────────────────────────────────────────────────
  *  Dynamic tension coordinator and ambient soundscape director.
- *  Modulates subterranean drone, heartbeat BPM (55–140), hum brightness,
- *  reverb sends, and psychological "listening silence" dips.
+ *  Modulates subterranean drone, HF tilt, heartbeat BPM (55–140), hum brightness,
+ *  reverb sends, and per-map procedural beds with randomized sparse events.
  * ──────────────────────────────────────────────────────────────────────── */
 
-import type { AudioEngine } from './AudioEngine.js';
-import type { VoiceHandle } from './AudioEngine.js';
+import type { AudioEngine, VoiceHandle } from './AudioEngine.js';
+import type { MapId } from '../types/contracts.js';
 import { Rng } from '../procedural/core/prng.js';
+
+interface MapAudioConfig {
+  bedType: 'triad' | 'neon_duo' | 'metro_duo' | 'single';
+  singleVoice?: string;
+  sparseEvents: string[];
+}
+
+export const MAP_AUDIO_CONFIGS: Record<MapId, MapAudioConfig> = {
+  natatorium: {
+    bedType: 'triad', // lap_loop + hum_loop + drone_loop
+    sparseEvents: [
+      'drip',
+      'sparse_pipe_clank',
+      'sparse_water_surge',
+      'sparse_cavern_draft',
+      'sparse_electrical_crackle',
+      'monster_ambient_far',
+    ],
+  },
+  poolrooms: {
+    bedType: 'triad',
+    sparseEvents: [
+      'drip',
+      'sparse_pipe_clank',
+      'sparse_water_surge',
+      'sparse_cavern_draft',
+      'sparse_electrical_crackle',
+      'monster_ambient_far',
+    ],
+  },
+  orientation: {
+    bedType: 'triad',
+    sparseEvents: [
+      'drip',
+      'sparse_pipe_clank',
+      'sparse_water_surge',
+      'sparse_cavern_draft',
+      'sparse_electrical_crackle',
+    ],
+  },
+  utility_tunnels: {
+    bedType: 'single',
+    singleVoice: 'ambience_tunnels',
+    sparseEvents: [
+      'sparse_pipe_clank',
+      'sparse_steam_hiss',
+      'sparse_electrical_crackle',
+      'sparse_metal_creak',
+      'sparse_water_surge',
+      'monster_ambient_far',
+    ],
+  },
+  marble_atrium: {
+    bedType: 'single',
+    singleVoice: 'ambience_atrium',
+    sparseEvents: [
+      'sparse_cavern_draft',
+      'sparse_pebble_fall',
+      'sparse_sub_shudder',
+      'sparse_pipe_clank',
+      'drip',
+      'monster_ambient_far',
+    ],
+  },
+  hydro_maze: {
+    bedType: 'single',
+    singleVoice: 'ambience_filtration',
+    sparseEvents: [
+      'sparse_water_surge',
+      'sparse_pipe_clank',
+      'sparse_steam_hiss',
+      'sparse_metal_creak',
+      'drip',
+      'monster_ambient_far',
+    ],
+  },
+  drainage_core: {
+    bedType: 'single',
+    singleVoice: 'ambience_drain',
+    sparseEvents: [
+      'sparse_sub_shudder',
+      'sparse_metal_creak',
+      'sparse_cavern_draft',
+      'sparse_water_surge',
+      'monster_ambient_far',
+    ],
+  },
+  drowned_school: {
+    bedType: 'single',
+    singleVoice: 'ambience_school',
+    sparseEvents: [
+      'creak',
+      'chalk_scratch',
+      'piano_clunk',
+      'pa_chime',
+      'pa_garble',
+      'sparse_electrical_crackle',
+    ],
+  },
+  sunken_jungle: {
+    bedType: 'single',
+    singleVoice: 'ambience_jungle',
+    sparseEvents: [
+      'bird_call',
+      'insect_drone',
+      'wind_leaves',
+      'drip',
+      'sparse_water_surge',
+    ],
+  },
+  neon_flood: {
+    bedType: 'neon_duo', // rain_loop + neon_buzz_loop
+    sparseEvents: [
+      'thunder',
+      'siren_wail',
+      'sparse_electrical_crackle',
+      'drip',
+      'sparse_water_surge',
+    ],
+  },
+  drowned_metro: {
+    bedType: 'metro_duo', // rail_sing_loop + train_rumble_loop
+    sparseEvents: [
+      'train_horn',
+      'lever_clunk',
+      'bottle_shatter',
+      'station_announce_chime',
+      'sparse_metal_creak',
+    ],
+  },
+};
 
 export class AudioDirector {
   private engine: AudioEngine;
   private tension = 0.0;
+  private currentMapId: MapId = 'natatorium';
 
-  private lapLoop: VoiceHandle | null = null;
-  private humLoop: VoiceHandle | null = null;
+  private activeLoops: VoiceHandle[] = [];
   private droneLoop: VoiceHandle | null = null;
 
   private heartbeatTimer: ReturnType<typeof setTimeout> | null = null;
-  private dripTimer: ReturnType<typeof setTimeout> | null = null;
+  private sparseTimer: ReturnType<typeof setTimeout> | null = null;
   private dipTimer: ReturnType<typeof setTimeout> | null = null;
 
   private isAmbienceRunning = false;
   private rng = new Rng(808);
+  private recentSparseEvents: string[] = [];
 
   constructor(engine: AudioEngine) {
     this.engine = engine;
@@ -31,18 +163,31 @@ export class AudioDirector {
     return this.tension;
   }
 
+  get currentDread(): number {
+    return this.tension;
+  }
+
+  get activeMapId(): MapId {
+    return this.currentMapId;
+  }
+
   /**
-   * Set game tension (0..1) smoothly driving heartbeat, drone, and atmospheric dread.
+   * Set game dread / tension (0..1) smoothly driving drone volume, HF tilt,
+   * heartbeat BPM (55–140), and psychological "listening silence" dips.
    */
   setTension(amount: number): void {
     const prev = this.tension;
     this.tension = Math.max(0.0, Math.min(1.0, amount));
 
+    // 1. Modulate subterranean drone
     if (this.droneLoop) {
       this.droneLoop.setParam('tension', this.tension);
     }
 
-    // Heartbeat logic: activates at tension >= 0.25
+    // 2. Modulate ambient high-frequency tilt (Prompt 4 Section 9 E.1)
+    this.engine.setAmbientHfTilt(this.tension);
+
+    // 3. Heartbeat logic: activates at tension >= 0.25 (55 to 140 BPM)
     if (this.tension >= 0.25 && prev < 0.25) {
       this.scheduleNextHeartbeat();
     } else if (this.tension < 0.25 && this.heartbeatTimer) {
@@ -50,10 +195,17 @@ export class AudioDirector {
       this.heartbeatTimer = null;
     }
 
-    // High tension: occasional eerie "listening silence" dip
+    // 4. High tension: occasional eerie "listening silence" dip
     if (this.tension >= 0.7 && !this.dipTimer) {
       this.scheduleListeningDip();
     }
+  }
+
+  /**
+   * Alias for setTension matching Sound Bible terminology.
+   */
+  setDread(level: number): void {
+    this.setTension(level);
   }
 
   private scheduleNextHeartbeat(): void {
@@ -91,34 +243,104 @@ export class AudioDirector {
   }
 
   /**
-   * Start looping water laps, electrical hum, drone, and sparse acoustic drips.
+   * Start default ambience (natatorium).
    */
   startAmbience(): void {
-    if (this.isAmbienceRunning) return;
+    this.startMapAmbience(this.currentMapId);
+  }
+
+  /**
+   * Start procedural map ambience bed and sparse event scheduler (Prompt 4 Section 9 E.2).
+   */
+  startMapAmbience(mapId?: MapId): void {
+    if (mapId) {
+      this.currentMapId = mapId;
+    }
+
+    // Stop existing loops
+    for (const loop of this.activeLoops) {
+      loop.stop(0.5);
+    }
+    this.activeLoops = [];
+    this.droneLoop = null;
+
     this.isAmbienceRunning = true;
+    const config = MAP_AUDIO_CONFIGS[this.currentMapId] ?? MAP_AUDIO_CONFIGS.natatorium;
 
-    this.lapLoop = this.engine.play('lap_loop', { bus: 'ambient' });
-    this.humLoop = this.engine.play('hum_loop', { bus: 'ambient' });
-    this.droneLoop = this.engine.play('drone_loop', { bus: 'ambient' });
-    this.droneLoop.setParam('tension', this.tension);
+    if (config.bedType === 'triad') {
+      const lap = this.engine.play('lap_loop', { bus: 'ambient' });
+      const hum = this.engine.play('hum_loop', { bus: 'ambient' });
+      const drone = this.engine.play('drone_loop', { bus: 'ambient' });
+      drone.setParam('tension', this.tension);
+      this.activeLoops.push(lap, hum, drone);
+      this.droneLoop = drone;
+    } else if (config.bedType === 'neon_duo') {
+      const rain = this.engine.play('rain_loop', { bus: 'ambient' });
+      const neon = this.engine.play('neon_buzz_loop', { bus: 'ambient' });
+      const drone = this.engine.play('drone_loop', { bus: 'ambient' });
+      drone.setParam('tension', this.tension);
+      this.activeLoops.push(rain, neon, drone);
+      this.droneLoop = drone;
+    } else if (config.bedType === 'metro_duo') {
+      const rail = this.engine.play('rail_sing_loop', { bus: 'ambient' });
+      const train = this.engine.play('train_rumble_loop', { bus: 'ambient' });
+      const drone = this.engine.play('drone_loop', { bus: 'ambient' });
+      drone.setParam('tension', this.tension);
+      this.activeLoops.push(rail, train, drone);
+      this.droneLoop = drone;
+    } else if (config.singleVoice) {
+      const bed = this.engine.play(config.singleVoice as any, { bus: 'ambient' });
+      const drone = this.engine.play('drone_loop', { bus: 'ambient' });
+      drone.setParam('tension', this.tension);
+      this.activeLoops.push(bed, drone);
+      this.droneLoop = drone;
+    }
 
-    this.scheduleNextDrip();
+    // Initialize HF tilt
+    this.engine.setAmbientHfTilt(this.tension);
+
+    // Schedule sparse environmental events
+    this.scheduleNextSparseEvent();
+
     if (this.tension >= 0.25) {
       this.scheduleNextHeartbeat();
     }
   }
 
-  private scheduleNextDrip(): void {
+  private scheduleNextSparseEvent(): void {
+    if (this.sparseTimer) {
+      clearTimeout(this.sparseTimer);
+      this.sparseTimer = null;
+    }
     if (!this.isAmbienceRunning) return;
-    const delay = this.rng.range(6000, 18000);
-    this.dripTimer = setTimeout(() => {
-      if (this.isAmbienceRunning) {
-        this.engine.play('drip', {
-          bus: 'ambient',
-          seed: this.rng.int(1, 99999),
-        });
-        this.scheduleNextDrip();
+
+    const config = MAP_AUDIO_CONFIGS[this.currentMapId] ?? MAP_AUDIO_CONFIGS.natatorium;
+    const events = config.sparseEvents;
+    if (events.length === 0) return;
+
+    // Base interval scales down as tension mounts (14–26s at rest down to 7–14s in danger)
+    const baseDelay = this.rng.range(14000, 26000);
+    const delay = Math.max(5000, Math.floor(baseDelay * (1.0 - this.tension * 0.45)));
+
+    this.sparseTimer = setTimeout(() => {
+      if (!this.isAmbienceRunning) return;
+
+      // Pick an event not in the recent history to prevent loop repetition within 3 minutes
+      const candidates = events.filter((e) => !this.recentSparseEvents.includes(e));
+      const pool = candidates.length > 0 ? candidates : events;
+      const chosen = pool[this.rng.int(0, pool.length - 1)]!;
+
+      this.engine.play(chosen as any, {
+        bus: 'ambient',
+        seed: this.rng.int(1, 99999),
+      });
+
+      this.recentSparseEvents.push(chosen);
+      if (this.recentSparseEvents.length > 3) {
+        this.recentSparseEvents.shift();
       }
+
+      this.scheduleNextSparseEvent();
     }, delay);
   }
 
@@ -128,27 +350,20 @@ export class AudioDirector {
       clearTimeout(this.heartbeatTimer);
       this.heartbeatTimer = null;
     }
-    if (this.dripTimer) {
-      clearTimeout(this.dripTimer);
-      this.dripTimer = null;
+    if (this.sparseTimer) {
+      clearTimeout(this.sparseTimer);
+      this.sparseTimer = null;
     }
     if (this.dipTimer) {
       clearTimeout(this.dipTimer);
       this.dipTimer = null;
     }
 
-    if (this.lapLoop) {
-      this.lapLoop.stop(fade);
-      this.lapLoop = null;
+    for (const loop of this.activeLoops) {
+      loop.stop(fade);
     }
-    if (this.humLoop) {
-      this.humLoop.stop(fade);
-      this.humLoop = null;
-    }
-    if (this.droneLoop) {
-      this.droneLoop.stop(fade);
-      this.droneLoop = null;
-    }
+    this.activeLoops = [];
+    this.droneLoop = null;
   }
 
   dispose(): void {

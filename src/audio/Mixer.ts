@@ -66,6 +66,7 @@ export class Mixer {
   readonly uiGain: GainNode;
 
   readonly subBassHighpass: BiquadFilterNode;
+  readonly ambientTiltFilter: BiquadFilterNode;
   readonly compressor: DynamicsCompressorNode;
   readonly underwaterFilter: BiquadFilterNode;
   readonly profileHighpass: BiquadFilterNode;
@@ -98,6 +99,13 @@ export class Mixer {
     this.monsterGain = ctx.createGain();
     this.uiGain = ctx.createGain();
 
+    // Ambient HF Tilt Filter (Prompt 4 Section 9 E.1: atmospheric tilt driven by dread)
+    this.ambientTiltFilter = ctx.createBiquadFilter();
+    this.ambientTiltFilter.type = 'lowpass';
+    this.ambientTiltFilter.frequency.value = 18000;
+    this.ambientTiltFilter.Q.value = 0.707;
+    this.ambientGain.connect(this.ambientTiltFilter);
+
     // 1. 25 Hz 12 dB/oct Sub-Bass Highpass filter (Section 8 D.1)
     this.subBassHighpass = ctx.createBiquadFilter();
     this.subBassHighpass.type = 'highpass';
@@ -106,7 +114,7 @@ export class Mixer {
 
     // Bus routing into sub-bass highpass
     this.sfxGain.connect(this.subBassHighpass);
-    this.ambientGain.connect(this.subBassHighpass);
+    this.ambientTiltFilter.connect(this.subBassHighpass);
     this.monsterGain.connect(this.subBassHighpass);
     this.uiGain.connect(this.subBassHighpass);
 
@@ -254,6 +262,17 @@ export class Mixer {
     const now = this.ctx.currentTime;
     const target = active ? this.baseVolumes.ambient * 0.40 : this.baseVolumes.ambient;
     this.ambientGain.gain.setTargetAtTime(target, now, 0.05);
+  }
+
+  /**
+   * Modulate ambient high-frequency tilt based on dread (Prompt 4 Section 9 E.1):
+   * Rolls off highs from 18 kHz down to 3.8 kHz as dread increases (0..1) to create claustrophobic dread.
+   */
+  setAmbientHfTilt(dread: number): void {
+    const d = Math.max(0, Math.min(1.0, dread));
+    const now = this.ctx.currentTime;
+    const cutoff = 18000.0 * Math.pow(3800.0 / 18000.0, d);
+    this.ambientTiltFilter.frequency.setTargetAtTime(cutoff, now, 0.05);
   }
 
   /**

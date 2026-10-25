@@ -392,3 +392,483 @@ export function playMonsterAmbientFar(cx: BedVoiceContext): RawVoiceHandle {
     ended,
   };
 }
+
+/**
+ * sparse_pipe_clank: Metallic resonant pipe knock with pool reverberation.
+ */
+export function playSparsePipeClank(cx: BedVoiceContext): RawVoiceHandle {
+  const ctx = cx.ctx;
+  const now = ctx.currentTime;
+  const dur = 1.4;
+
+  const master = ctx.createGain();
+  master.gain.setValueAtTime(0.001, now);
+  master.gain.linearRampToValueAtTime(0.28, now + 0.003);
+  master.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+  master.connect(cx.destination);
+  master.connect(cx.reverbSend);
+
+  const osc1 = ctx.createOscillator();
+  const osc2 = ctx.createOscillator();
+  osc1.type = 'sine';
+  osc2.type = 'sine';
+  osc1.frequency.setValueAtTime(820, now);
+  osc2.frequency.setValueAtTime(1640, now);
+
+  const filter = ctx.createBiquadFilter();
+  filter.type = 'bandpass';
+  filter.frequency.setValueAtTime(1200, now);
+  filter.Q.setValueAtTime(5.0, now);
+
+  osc1.connect(filter);
+  osc2.connect(filter);
+  filter.connect(master);
+
+  osc1.start(now);
+  osc2.start(now);
+  osc1.stop(now + dur);
+  osc2.stop(now + dur);
+
+  let endedResolve: () => void;
+  const ended = new Promise<void>((r) => { endedResolve = r; });
+
+  setTimeout(() => {
+    try {
+      master.disconnect();
+    } catch {
+      /* ignore */
+    }
+    endedResolve();
+  }, dur * 1000 + 40);
+
+  return {
+    stop(fade = 0.1): void {
+      const t = ctx.currentTime;
+      master.gain.setValueAtTime(master.gain.value, t);
+      master.gain.linearRampToValueAtTime(0.0001, t + fade);
+    },
+    setParam(): void {},
+    ended,
+  };
+}
+
+/**
+ * sparse_metal_creak: Resonant friction creak from shifting submerged metal beam.
+ */
+export function playSparseMetalCreak(cx: BedVoiceContext): RawVoiceHandle {
+  const ctx = cx.ctx;
+  const now = ctx.currentTime;
+  const dur = 2.2;
+
+  const master = ctx.createGain();
+  master.gain.setValueAtTime(0.001, now);
+  master.gain.linearRampToValueAtTime(0.22, now + 0.06);
+  master.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+  master.connect(cx.destination);
+  master.connect(cx.reverbSend);
+
+  const osc1 = ctx.createOscillator();
+  const osc2 = ctx.createOscillator();
+  osc1.type = 'triangle';
+  osc2.type = 'triangle';
+  osc1.frequency.setValueAtTime(220, now);
+  osc2.frequency.setValueAtTime(225, now);
+
+  const lfo = ctx.createOscillator();
+  lfo.frequency.setValueAtTime(4.5, now);
+  const lfoGain = ctx.createGain();
+  lfoGain.gain.setValueAtTime(6.0, now);
+  lfo.connect(lfoGain);
+  lfoGain.connect(osc1.frequency);
+
+  const filter = ctx.createBiquadFilter();
+  filter.type = 'bandpass';
+  filter.frequency.setValueAtTime(680, now);
+  filter.Q.setValueAtTime(3.5, now);
+
+  osc1.connect(filter);
+  osc2.connect(filter);
+  filter.connect(master);
+
+  osc1.start(now);
+  osc2.start(now);
+  lfo.start(now);
+  osc1.stop(now + dur);
+  osc2.stop(now + dur);
+  lfo.stop(now + dur);
+
+  let endedResolve: () => void;
+  const ended = new Promise<void>((r) => { endedResolve = r; });
+
+  setTimeout(() => {
+    try {
+      master.disconnect();
+    } catch {
+      /* ignore */
+    }
+    endedResolve();
+  }, dur * 1000 + 40);
+
+  return {
+    stop(fade = 0.1): void {
+      const t = ctx.currentTime;
+      master.gain.setValueAtTime(master.gain.value, t);
+      master.gain.linearRampToValueAtTime(0.0001, t + fade);
+    },
+    setParam(): void {},
+    ended,
+  };
+}
+
+/**
+ * sparse_steam_hiss: Sudden short valve steam release with pool echo.
+ */
+export function playSparseSteamHiss(cx: BedVoiceContext): RawVoiceHandle {
+  const ctx = cx.ctx;
+  const now = ctx.currentTime;
+  const dur = 1.6;
+
+  const master = ctx.createGain();
+  master.gain.setValueAtTime(0.001, now);
+  master.gain.linearRampToValueAtTime(0.20, now + 0.02);
+  master.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+  master.connect(cx.destination);
+  master.connect(cx.reverbSend);
+
+  const noise = ctx.createBufferSource();
+  noise.buffer = cx.noise.pink;
+  const filter = ctx.createBiquadFilter();
+  filter.type = 'bandpass';
+  filter.frequency.setValueAtTime(2600, now);
+  filter.Q.setValueAtTime(2.2, now);
+
+  noise.connect(filter);
+  filter.connect(master);
+
+  noise.start(now);
+  noise.stop(now + dur);
+
+  let endedResolve: () => void;
+  const ended = new Promise<void>((r) => { endedResolve = r; });
+
+  setTimeout(() => {
+    try {
+      master.disconnect();
+    } catch {
+      /* ignore */
+    }
+    endedResolve();
+  }, dur * 1000 + 40);
+
+  return {
+    stop(fade = 0.1): void {
+      const t = ctx.currentTime;
+      master.gain.setValueAtTime(master.gain.value, t);
+      master.gain.linearRampToValueAtTime(0.0001, t + fade);
+    },
+    setParam(): void {},
+    ended,
+  };
+}
+
+/**
+ * sparse_electrical_crackle: Fluorescent tube starter buzz and high-voltage arc.
+ */
+export function playSparseElectricalCrackle(cx: BedVoiceContext): RawVoiceHandle {
+  const ctx = cx.ctx;
+  const now = ctx.currentTime;
+  const dur = 0.9;
+
+  const master = ctx.createGain();
+  master.gain.setValueAtTime(0.001, now);
+  master.gain.linearRampToValueAtTime(0.24, now + 0.01);
+  master.gain.setValueAtTime(0.04, now + 0.08);
+  master.gain.linearRampToValueAtTime(0.22, now + 0.12);
+  master.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+  master.connect(cx.destination);
+  master.connect(cx.reverbSend);
+
+  const saw = ctx.createOscillator();
+  saw.type = 'sawtooth';
+  saw.frequency.setValueAtTime(120, now);
+
+  const noise = ctx.createBufferSource();
+  noise.buffer = cx.noise.pink;
+
+  const filter = ctx.createBiquadFilter();
+  filter.type = 'bandpass';
+  filter.frequency.setValueAtTime(3200, now);
+  filter.Q.setValueAtTime(3.8, now);
+
+  saw.connect(filter);
+  noise.connect(filter);
+  filter.connect(master);
+
+  saw.start(now);
+  noise.start(now);
+  saw.stop(now + dur);
+  noise.stop(now + dur);
+
+  let endedResolve: () => void;
+  const ended = new Promise<void>((r) => { endedResolve = r; });
+
+  setTimeout(() => {
+    try {
+      master.disconnect();
+    } catch {
+      /* ignore */
+    }
+    endedResolve();
+  }, dur * 1000 + 40);
+
+  return {
+    stop(fade = 0.1): void {
+      const t = ctx.currentTime;
+      master.gain.setValueAtTime(master.gain.value, t);
+      master.gain.linearRampToValueAtTime(0.0001, t + fade);
+    },
+    setParam(): void {},
+    ended,
+  };
+}
+
+/**
+ * sparse_sub_shudder: Subterranean structural low-frequency tectonic shudder.
+ */
+export function playSparseSubShudder(cx: BedVoiceContext): RawVoiceHandle {
+  const ctx = cx.ctx;
+  const now = ctx.currentTime;
+  const dur = 2.8;
+
+  const master = ctx.createGain();
+  master.gain.setValueAtTime(0.001, now);
+  master.gain.linearRampToValueAtTime(0.32, now + 0.4);
+  master.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+  master.connect(cx.destination);
+  master.connect(cx.reverbSend);
+
+  const sub = ctx.createOscillator();
+  sub.type = 'sine';
+  sub.frequency.setValueAtTime(38, now);
+  sub.frequency.linearRampToValueAtTime(24, now + dur);
+
+  const filter = ctx.createBiquadFilter();
+  filter.type = 'lowpass';
+  filter.frequency.setValueAtTime(75, now);
+  filter.Q.setValueAtTime(1.5, now);
+
+  sub.connect(filter);
+  filter.connect(master);
+
+  sub.start(now);
+  sub.stop(now + dur);
+
+  let endedResolve: () => void;
+  const ended = new Promise<void>((r) => { endedResolve = r; });
+
+  setTimeout(() => {
+    try {
+      master.disconnect();
+    } catch {
+      /* ignore */
+    }
+    endedResolve();
+  }, dur * 1000 + 40);
+
+  return {
+    stop(fade = 0.1): void {
+      const t = ctx.currentTime;
+      master.gain.setValueAtTime(master.gain.value, t);
+      master.gain.linearRampToValueAtTime(0.0001, t + fade);
+    },
+    setParam(): void {},
+    ended,
+  };
+}
+
+/**
+ * sparse_water_surge: Sudden underwater gush and displacement surge through drains.
+ */
+export function playSparseWaterSurge(cx: BedVoiceContext): RawVoiceHandle {
+  const ctx = cx.ctx;
+  const now = ctx.currentTime;
+  const dur = 3.0;
+
+  const master = ctx.createGain();
+  master.gain.setValueAtTime(0.001, now);
+  master.gain.linearRampToValueAtTime(0.26, now + 0.8);
+  master.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+  master.connect(cx.destination);
+  master.connect(cx.reverbSend);
+
+  const noise = ctx.createBufferSource();
+  noise.buffer = cx.noise.pink;
+
+  const filter = ctx.createBiquadFilter();
+  filter.type = 'bandpass';
+  filter.frequency.setValueAtTime(180, now);
+  filter.frequency.linearRampToValueAtTime(460, now + 1.0);
+  filter.frequency.linearRampToValueAtTime(200, now + dur);
+  filter.Q.setValueAtTime(2.0, now);
+
+  noise.connect(filter);
+  filter.connect(master);
+
+  noise.start(now);
+  noise.stop(now + dur);
+
+  let endedResolve: () => void;
+  const ended = new Promise<void>((r) => { endedResolve = r; });
+
+  setTimeout(() => {
+    try {
+      master.disconnect();
+    } catch {
+      /* ignore */
+    }
+    endedResolve();
+  }, dur * 1000 + 40);
+
+  return {
+    stop(fade = 0.1): void {
+      const t = ctx.currentTime;
+      master.gain.setValueAtTime(master.gain.value, t);
+      master.gain.linearRampToValueAtTime(0.0001, t + fade);
+    },
+    setParam(): void {},
+    ended,
+  };
+}
+
+/**
+ * sparse_cavern_draft: Eerie hollow resonant air draft through vaulted arches.
+ */
+export function playSparseCavernDraft(cx: BedVoiceContext): RawVoiceHandle {
+  const ctx = cx.ctx;
+  const now = ctx.currentTime;
+  const dur = 3.6;
+
+  const master = ctx.createGain();
+  master.gain.setValueAtTime(0.001, now);
+  master.gain.linearRampToValueAtTime(0.22, now + 1.2);
+  master.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+  master.connect(cx.destination);
+  master.connect(cx.reverbSend);
+
+  const noise = ctx.createBufferSource();
+  noise.buffer = cx.noise.pink;
+
+  const bp1 = ctx.createBiquadFilter();
+  bp1.type = 'bandpass';
+  bp1.frequency.setValueAtTime(320, now);
+  bp1.Q.setValueAtTime(3.0, now);
+
+  const bp2 = ctx.createBiquadFilter();
+  bp2.type = 'bandpass';
+  bp2.frequency.setValueAtTime(640, now);
+  bp2.Q.setValueAtTime(2.5, now);
+
+  noise.connect(bp1);
+  noise.connect(bp2);
+  bp1.connect(master);
+  bp2.connect(master);
+
+  noise.start(now);
+  noise.stop(now + dur);
+
+  let endedResolve: () => void;
+  const ended = new Promise<void>((r) => { endedResolve = r; });
+
+  setTimeout(() => {
+    try {
+      master.disconnect();
+    } catch {
+      /* ignore */
+    }
+    endedResolve();
+  }, dur * 1000 + 40);
+
+  return {
+    stop(fade = 0.1): void {
+      const t = ctx.currentTime;
+      master.gain.setValueAtTime(master.gain.value, t);
+      master.gain.linearRampToValueAtTime(0.0001, t + fade);
+    },
+    setParam(): void {},
+    ended,
+  };
+}
+
+/**
+ * sparse_pebble_fall: Tile and mineral debris falling from ceiling into pool.
+ */
+export function playSparsePebbleFall(cx: BedVoiceContext): RawVoiceHandle {
+  const ctx = cx.ctx;
+  const now = ctx.currentTime;
+  const dur = 1.8;
+
+  const master = ctx.createGain();
+  master.gain.setValueAtTime(0.001, now);
+  master.gain.linearRampToValueAtTime(0.24, now + 0.01);
+  master.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+  master.connect(cx.destination);
+  master.connect(cx.reverbSend);
+
+  // Ping 1
+  const osc1 = ctx.createOscillator();
+  osc1.frequency.setValueAtTime(2100, now);
+  const g1 = ctx.createGain();
+  g1.gain.setValueAtTime(0.2, now);
+  g1.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+  osc1.connect(g1);
+  g1.connect(master);
+  osc1.start(now);
+  osc1.stop(now + 0.05);
+
+  // Ping 2 at 80ms
+  const osc2 = ctx.createOscillator();
+  osc2.frequency.setValueAtTime(2800, now + 0.08);
+  const g2 = ctx.createGain();
+  g2.gain.setValueAtTime(0.001, now);
+  g2.gain.setValueAtTime(0.18, now + 0.08);
+  g2.gain.exponentialRampToValueAtTime(0.001, now + 0.13);
+  osc2.connect(g2);
+  g2.connect(master);
+  osc2.start(now + 0.08);
+  osc2.stop(now + 0.15);
+
+  // Splash drop at 0.32s
+  const drop = ctx.createOscillator();
+  drop.frequency.setValueAtTime(1450, now + 0.32);
+  drop.frequency.linearRampToValueAtTime(1600, now + 0.37);
+  const gDrop = ctx.createGain();
+  gDrop.gain.setValueAtTime(0.001, now);
+  gDrop.gain.setValueAtTime(0.22, now + 0.32);
+  gDrop.gain.exponentialRampToValueAtTime(0.001, now + 0.39);
+  drop.connect(gDrop);
+  gDrop.connect(master);
+  drop.start(now + 0.32);
+  drop.stop(now + 0.40);
+
+  let endedResolve: () => void;
+  const ended = new Promise<void>((r) => { endedResolve = r; });
+
+  setTimeout(() => {
+    try {
+      master.disconnect();
+    } catch {
+      /* ignore */
+    }
+    endedResolve();
+  }, dur * 1000 + 40);
+
+  return {
+    stop(fade = 0.1): void {
+      const t = ctx.currentTime;
+      master.gain.setValueAtTime(master.gain.value, t);
+      master.gain.linearRampToValueAtTime(0.0001, t + fade);
+    },
+    setParam(): void {},
+    ended,
+  };
+}

@@ -85,6 +85,14 @@ import {
   playAmbienceFiltration,
   playAmbienceDrain,
   playMonsterAmbientFar,
+  playSparsePipeClank,
+  playSparseMetalCreak,
+  playSparseSteamHiss,
+  playSparseElectricalCrackle,
+  playSparseSubShudder,
+  playSparseWaterSurge,
+  playSparseCavernDraft,
+  playSparsePebbleFall,
 } from './voices/AmbienceBeds.js';
 import {
   playVhsGlitch,
@@ -244,7 +252,15 @@ export type VoiceName =
   | 'monster_swipe'
   | 'monster_collapse'
   | 'wisp_wail'
-  | 'wisp_wingbeat';
+  | 'wisp_wingbeat'
+  | 'sparse_pipe_clank'
+  | 'sparse_metal_creak'
+  | 'sparse_steam_hiss'
+  | 'sparse_electrical_crackle'
+  | 'sparse_sub_shudder'
+  | 'sparse_water_surge'
+  | 'sparse_cavern_draft'
+  | 'sparse_pebble_fall';
 
 export interface PlayOptions {
   position?: Vec3;
@@ -713,6 +729,30 @@ export class AudioEngine implements AudioEngineApi {
       case 'ambience_drain':
         handle = playAmbienceDrain(voiceCtx);
         break;
+      case 'sparse_pipe_clank':
+        handle = playSparsePipeClank(voiceCtx);
+        break;
+      case 'sparse_metal_creak':
+        handle = playSparseMetalCreak(voiceCtx);
+        break;
+      case 'sparse_steam_hiss':
+        handle = playSparseSteamHiss(voiceCtx);
+        break;
+      case 'sparse_electrical_crackle':
+        handle = playSparseElectricalCrackle(voiceCtx);
+        break;
+      case 'sparse_sub_shudder':
+        handle = playSparseSubShudder(voiceCtx);
+        break;
+      case 'sparse_water_surge':
+        handle = playSparseWaterSurge(voiceCtx);
+        break;
+      case 'sparse_cavern_draft':
+        handle = playSparseCavernDraft(voiceCtx);
+        break;
+      case 'sparse_pebble_fall':
+        handle = playSparsePebbleFall(voiceCtx);
+        break;
       case 'vhs_glitch':
         handle = playVhsGlitch(voiceCtx);
         break;
@@ -1033,12 +1073,28 @@ export class AudioEngine implements AudioEngineApi {
     this.mixer?.setOutputProfile(profile);
   }
 
+  getReverbSend(): AudioNode | null {
+    return this.reverb?.input ?? null;
+  }
+
+  setAmbientHfTilt(dread: number): void {
+    this.mixer?.setAmbientHfTilt(dread);
+  }
+
   setListeningDip(active: boolean): void {
     this.mixer?.setListeningDip(active);
   }
 
+  setDread(level: number): void {
+    this.director?.setDread(level);
+  }
+
   startAmbience(): void {
     this.director?.startAmbience();
+  }
+
+  startMapAmbience(mapId: import('../types/contracts.js').MapId): void {
+    this.director?.startMapAmbience(mapId);
   }
 
   stopAmbience(fade = 1.0): void {
