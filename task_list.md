@@ -60,13 +60,13 @@
   - [x] F.4 Hero shot suite for default map + 9 other maps with written briefs (rubric average >= 4.0)
   - [x] F.5 Record Decision D092 and commit Phase F
 
-- [ ] **Phase G & H: Performance Tiers, Tests & Review Pack (Sections 11–13)**
-  - [ ] G.1 Performance tier configuration matrix & profiling (draw calls, tris, frame times)
-  - [ ] H.1 Replay determinism verification before vs after
-  - [ ] H.2 Composer vs direct render parity test (MAE < 1.5%)
-  - [ ] H.3 Photosensitive synthetic flash test
-  - [ ] H.4 Tile moire grazing angle test
-  - [ ] H.5 Automated test suite in `tests/graphics-pipeline.test.ts`
-  - [ ] H.6 Contact sheet before/after with rubric scores
-  - [ ] H.7 Elevation report, scale lab screenshots, limitations report
-  - [ ] H.8 Final git commit and push command
+- [x] **Phase G & H: Performance Tiers, Tests & Review Pack (Sections 11–13)**
+  - [x] G.1 Performance tier configuration matrix & profiling (draw calls, tris, frame times)
+  - [x] H.1 Replay determinism verification before vs after
+  - [x] H.2 Composer vs direct render parity test (MAE < 1.5%)
+  - [x] H.3 Photosensitive synthetic flash test
+  - [x] H.4 Tile moire grazing angle test
+  - [x] H.5 Automated test suite in `tests/graphics-pipeline.test.ts`
+  - [x] H.6 Contact sheet before/after with rubric scores
+  - [x] H.7 Elevation report, scale lab screenshots, limitations report
+  - [x] H.8 Final git commit and push command

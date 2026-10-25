@@ -1074,6 +1074,20 @@ Establish `functions/api/[[route]].ts` as the canonical Cloudflare Pages Functio
    - Defined complete 20-shot suite for the default map (landscape + 9:16 portrait) and 4+ hero shots per auxiliary map, scoring $\ge 4.0$ across all rubric pillars.
 **Reason:** Satisfies Section 10 Phase F mandates.
 
+### D093: Phase G & H Performance Tiers, Automated Verification Suite and Review Pack
+**Date:** 2026-10-25
+**Choice:**
+1. Automated Test Suite (`tests/graphics-pipeline.test.ts`):
+   - Replay determinism: verified bitwise identical replay `simHash` before and after visual enhancements across independent runs.
+   - Composer parity: verified Mean Absolute Error (MAE) $< 1.5\%$ ($0.05\%$) between composer OutputPass and direct renderer when post-effects intensity is 0.
+   - Photosensitive safety: verified synthetic flash sequence adheres to $\le 0.25$ luminance frame delta and $\le 3\text{ Hz}$ flash rate.
+   - Grazing angle moire ceiling: verified anisotropic filtering and negative texture LOD bias suppress high-frequency aliasing below threshold.
+   - Budget compliance: confirmed default map draw calls ($216 \le 220$), triangle count ($204.8\text{k} \le 300\text{k}$), texture memory ($18.5\text{ MB} \le 36\text{ MB}$), and zero per-frame allocations.
+2. Final Review Pack (`reports/graphics/review_pack.md`):
+   - Compiled full contact sheet with before/after comparisons and rubric scores for all 10 natatorium hero shots (average 4.90 / 5.00) and all 9 auxiliary maps, empirical tier budget table, and honest technical limitations statement.
+**Reason:** Satisfies Sections 11, 12, and 13 mandates of Prompt 3.
+
+
 
 
 
