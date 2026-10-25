@@ -1,7 +1,7 @@
 {
   "M1": {
     "pass": true,
-    "durationMs": 3134,
+    "durationMs": 3369,
     "details": {
       "probeVerdict": {
         "pass": true,
@@ -10,8 +10,8 @@
         "fields": {
           "monsterCount": 1,
           "distanceToCamera": 8.27,
-          "visibleFraction": 0.6131,
-          "pixelCount": 7341
+          "visibleFraction": 0.6049,
+          "pixelCount": 7216
         }
       },
       "screenshot": "/Users/nazat/Desktop/Desktop/antigravity/BackSilence/poolrooms/reports/monster/screenshots/smoke/m1_cold_start.png"
@@ -19,10 +19,10 @@
   },
   "M2": {
     "pass": true,
-    "durationMs": 1620,
+    "durationMs": 1599,
     "details": {
-      "maskPixels": 7101,
-      "visibleFraction": 0.6241,
+      "maskPixels": 7254,
+      "visibleFraction": 0.6209,
       "screenshot": "/Users/nazat/Desktop/Desktop/antigravity/BackSilence/poolrooms/reports/monster/screenshots/smoke/m2_show_me.png"
     }
   },
@@ -78,58 +78,58 @@
   },
   "M4": {
     "pass": true,
-    "durationMs": 4456,
+    "durationMs": 4557,
     "details": {
-      "maskCoverage": 0.26608796296296294,
+      "maskCoverage": 0.2654969135802469,
       "retryDurationMs": 255,
       "monsterDistAfterRetry": 60.14
     }
   },
   "M5": {
     "pass": true,
-    "durationMs": 24166,
+    "durationMs": 24112,
     "details": {
       "mapCount": 10,
       "results": [
         {
           "mapId": "natatorium",
-          "maskPixels": 7145,
+          "maskPixels": 7162,
           "distance": 9.49,
           "pass": true
         },
         {
           "mapId": "poolrooms",
-          "maskPixels": 17531,
+          "maskPixels": 17085,
           "distance": 6.01,
           "pass": true
         },
         {
           "mapId": "drowned_school",
-          "maskPixels": 7886,
+          "maskPixels": 7655,
           "distance": 8.05,
           "pass": true
         },
         {
           "mapId": "utility_tunnels",
-          "maskPixels": 7383,
+          "maskPixels": 7286,
           "distance": 8.31,
           "pass": true
         },
         {
           "mapId": "sunken_jungle",
-          "maskPixels": 3237,
+          "maskPixels": 3217,
           "distance": 12.2,
           "pass": true
         },
         {
           "mapId": "marble_atrium",
-          "maskPixels": 6828,
+          "maskPixels": 6816,
           "distance": 8.32,
           "pass": true
         },
         {
           "mapId": "neon_flood",
-          "maskPixels": 9395,
+          "maskPixels": 9510,
           "distance": 8.27,
           "pass": true
         },
@@ -141,13 +141,13 @@
         },
         {
           "mapId": "drowned_metro",
-          "maskPixels": 2257,
+          "maskPixels": 2254,
           "distance": 16.24,
           "pass": true
         },
         {
           "mapId": "drainage_core",
-          "maskPixels": 9405,
+          "maskPixels": 9316,
           "distance": 8.27,
           "pass": true
         }
@@ -157,7 +157,7 @@
   },
   "M6": {
     "pass": true,
-    "durationMs": 13002,
+    "durationMs": 12910,
     "details": {
       "retriesCount": 10,
       "initGeom": 131,
@@ -166,36 +166,36 @@
   },
   "M7": {
     "pass": true,
-    "durationMs": 8503,
+    "durationMs": 8550,
     "details": [
       {
         "tier": "low",
-        "withWater": 17085,
-        "noWater": 17665
+        "withWater": 17153,
+        "noWater": 17923
       },
       {
         "tier": "medium",
-        "withWater": 17439,
-        "noWater": 17571
+        "withWater": 17085,
+        "noWater": 17665
       },
       {
         "tier": "high",
-        "withWater": 17085,
-        "noWater": 17665
+        "withWater": 17439,
+        "noWater": 17527
       }
     ]
   },
   "M8": {
     "pass": true,
-    "durationMs": 5196,
+    "durationMs": 5175,
     "details": {
-      "maskPixels": 15604,
+      "maskPixels": 15573,
       "screenshot": "/Users/nazat/Desktop/Desktop/antigravity/BackSilence/poolrooms/reports/monster/screenshots/smoke/m8_phone_view.png"
     }
   },
   "M9": {
     "pass": true,
-    "durationMs": 45,
+    "durationMs": 55,
     "details": [
       {
         "test": "missing",
