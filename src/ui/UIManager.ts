@@ -22,6 +22,7 @@ import { HowToPlay } from './HowToPlay.js';
 import { Hud, type HudData } from './Hud.js';
 import { PauseMenu } from './PauseMenu.js';
 import { DeathScreen } from './DeathScreen.js';
+import { CalibrationModal } from './CalibrationModal.js';
 import { LoadingScreen } from './LoadingScreen.js';
 import { ResultsScreen, type RunResults } from './ResultsScreen.js';
 import { KeypadModal } from './KeypadModal.js';
@@ -117,6 +118,7 @@ export class UIManager {
   private audioLabPanel: AudioLabPanel | null = null;
   private isAudioUnlocked = false;
   private lastResults: RunResults | null = null;
+  private lastConfig?: { mode: 'single' | 'multi'; mapId: MapId; difficulty: number; seed: number; room?: string } | undefined;
 
   constructor(opts: UIManagerOptions) {
     this.container = opts.container;
@@ -130,7 +132,35 @@ export class UIManager {
 
     // 1. Initialize Archive Screens
     this.homeScreen = new HomeScreen({
-      onDescend: () => this.navigateTo('PLAY_HUB'),
+      onDescend: () => {
+        // Direct user gesture unlocks AudioContext immediately
+        this.isAudioUnlocked = true;
+        const engine = AudioEngine.getInstance();
+        void engine.init().then(() => engine.startAmbience());
+
+        const isCalibrated = typeof localStorage !== 'undefined' && localStorage.getItem('backsilence_calibration_done') === 'true';
+
+        const startDescent = () => {
+          const lastTape = typeof localStorage !== 'undefined' ? (localStorage.getItem('backsilence_last_tape') as MapId | null) : null;
+          const targetMap = lastTape ?? 'orientation';
+          this.startGame({
+            mode: 'single',
+            mapId: targetMap,
+            difficulty: 1,
+            seed: Date.now(),
+          });
+        };
+
+        if (!isCalibrated) {
+          const modal = new CalibrationModal({
+            onComplete: () => startDescent(),
+            onSkip: () => startDescent(),
+          });
+          modal.mount(this.container);
+        } else {
+          startDescent();
+        }
+      },
       onDiveOnline: () => this.navigateTo('ROOM_LINK'),
       onDailyDescent: () => this.navigateTo('LEADERBOARDS'),
       onOpenPlayHub: () => this.navigateTo('PLAY_HUB'),
@@ -312,8 +342,12 @@ export class UIManager {
     this.deathScreen = new DeathScreen({
       onRetry: () => {
         this.deathScreen.hide();
-        this.bus.emit('game:retry' as unknown as 'game:start', undefined as unknown as { mode: 'single'; mapId: 'poolrooms'; difficulty: number; seed: number });
-        this.resumeGame();
+        if (this.lastConfig) {
+          this.startGame({ ...this.lastConfig, seed: Date.now() });
+        } else {
+          this.bus.emit('game:retry' as unknown as 'game:start', undefined as unknown as { mode: 'single'; mapId: 'poolrooms'; difficulty: number; seed: number });
+          this.resumeGame();
+        }
       },
       onMenu: () => this.quitToMenu(),
     });
@@ -671,6 +705,13 @@ export class UIManager {
   }
 
   private startGame(config: { mode: 'single' | 'multi'; mapId: MapId; difficulty: number; seed: number; room?: string }): void {
+    this.lastConfig = config;
+    try {
+      localStorage.setItem('backsilence_last_tape', config.mapId);
+      localStorage.setItem('backsilence_last_mode', config.mode);
+      localStorage.setItem('backsilence_last_difficulty', String(config.difficulty));
+    } catch {}
+
     this.currentView = 'GAME';
     this.viewStack = ['GAME'];
     this.updateViewVisibility();
@@ -787,5 +828,9 @@ export class UIManager {
 
   getCurrentView(): UIView {
     return this.currentView;
+  }
+
+  getLastConfig(): { mode: 'single' | 'multi'; mapId: MapId; difficulty: number; seed: number; room?: string } | undefined {
+    return this.lastConfig;
   }
 }

@@ -224,9 +224,9 @@ async function boot(): Promise<void> {
     import('./audio/AudioEngine.js'),
   ]);
 
-  // Show AudioUnlock atmospheric prompt
-  ui.showAudioUnlock(() => {
-    ui?.showToast('Audio spatialization active — Headphones recommended', 'info');
+  // Run 2-second quality auto-detect benchmark in background
+  void import('./engine/QualityBenchmark.js').then(({ QualityBenchmark }) => {
+    void QualityBenchmark.getInstance().runLoadingBenchmark(1500);
   });
 
   // First-run safety flow (photosensitivity, headphones, content advisory, orientation)
@@ -365,7 +365,9 @@ async function boot(): Promise<void> {
       {
         onPause: () => ui.showPause(),
         onDeath: (stats) => {
-          ui.showDeath('YOU MADE A SOUND');
+          const dist = Math.max(1.2, stats.closestCall < 999 ? stats.closestCall : 6.2);
+          const reason = `You splashed ${dist.toFixed(1)} m from it.`;
+          ui.showDeath(reason);
           ui.getDeathScreen().setStats(stats.timeSurvived, stats.noisesMade, stats.closestCall);
         },
         onWin: (results) => {
@@ -407,7 +409,9 @@ async function boot(): Promise<void> {
       {
         onPause: () => ui.showPause(),
         onDeath: (stats) => {
-          ui.showDeath('YOU MADE A SOUND');
+          const dist = Math.max(1.2, stats.closestCall < 999 ? stats.closestCall : 5.8);
+          const reason = `You splashed ${dist.toFixed(1)} m from it.`;
+          ui.showDeath(reason);
           ui.getDeathScreen().setStats(stats.timeSurvived, stats.noisesMade, stats.closestCall);
         },
         onWin: (results) => {

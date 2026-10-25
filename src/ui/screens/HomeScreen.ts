@@ -57,11 +57,14 @@ export class HomeScreen {
       <section style="min-height: 100vh; width: 100%; display: flex; flex-direction: column; justify-content: space-between; align-items: center; padding: clamp(24px, 5vw, 60px) 24px; box-sizing: border-box; position: relative;">
         
         <!-- Top Nav Bar -->
-        <nav style="width: min(1200px, 95vw); display: flex; justify-content: space-between; align-items: center; pointer-events: auto;">
+        <nav style="width: min(1200px, 95vw); display: flex; justify-content: space-between; align-items: center; pointer-events: auto; flex-wrap: wrap; gap: 8px;">
           <div style="font-family: var(--bs-font-mono); font-size: var(--bs-text-xs); color: var(--bs-tan); letter-spacing: 0.1em; display: flex; align-items: center; gap: 8px;">
             ${renderIcon('tape', 16)} <span>ARCHIVE FILE // 1994-BS</span>
           </div>
-          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+            <button id="nav-btn-quality" class="bs-btn bs-btn-ghost" style="padding: 4px 10px; min-height: 36px; font-size: 11px; font-family: var(--bs-font-mono); color: var(--bs-water); border: 1px solid rgba(134,207,160,0.3);" title="Quality Auto-Detect (tap to change)">
+              QUALITY: AUTO
+            </button>
             <button id="nav-btn-play" class="bs-btn bs-btn-ghost" style="padding: 4px 10px; min-height: 36px;">PLAY HUB</button>
             <button id="nav-btn-leaderboards" class="bs-btn bs-btn-ghost" style="padding: 4px 10px; min-height: 36px;">SILENCE</button>
             <button id="nav-btn-bestiary" class="bs-btn bs-btn-ghost" style="padding: 4px 10px; min-height: 36px;">BESTIARY</button>
@@ -88,11 +91,17 @@ export class HomeScreen {
             Found-footage acoustic survival in drowned municipal architecture.
           </div>
 
-          <!-- CTAs -->
-          <div style="display: flex; flex-direction: column; gap: 12px; width: min(340px, 85vw); margin-top: 32px;">
+          <!-- One Front Door CTAs -->
+          <div style="display: flex; flex-direction: column; width: min(340px, 85vw); margin-top: 28px;">
             <div id="btn-descend-wrap"></div>
-            <div id="btn-dive-online-wrap"></div>
-            <div id="btn-daily-descent-wrap"></div>
+            <div style="display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 11px; color: var(--bs-tan); opacity: 0.85; margin: 8px 0 16px 0; font-family: var(--bs-font-mono);">
+              ${renderIcon('ear', 14)}
+              <span>HEADPHONES RECOMMENDED // STEREO HRTF</span>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+              <div id="btn-dive-online-wrap"></div>
+              <div id="btn-daily-descent-wrap"></div>
+            </div>
           </div>
         </div>
 
@@ -194,12 +203,20 @@ export class HomeScreen {
     const diveWrap = this.element.querySelector('#btn-dive-online-wrap')!;
     const dailyWrap = this.element.querySelector('#btn-daily-descent-wrap')!;
 
+    const lastTape = typeof localStorage !== 'undefined' ? localStorage.getItem('backsilence_last_tape') : null;
+    const descendText = lastTape ? 'CONTINUE TAPE // DESCEND' : 'DESCEND';
+
     const descendBtn = new Button({
-      text: 'DESCEND (SOLO)',
+      text: descendText,
       variant: 'primary',
       onClick: () => this.callbacks.onDescend(),
     });
     descendBtn.element.id = 'btn-play-solo';
+    descendBtn.element.style.minHeight = '52px';
+    descendBtn.element.style.fontSize = '1.05rem';
+    descendBtn.element.style.fontWeight = '700';
+    descendBtn.element.style.letterSpacing = '0.15em';
+    descendBtn.element.style.boxShadow = '0 0 24px rgba(134,207,160,0.35)';
     this.motion.attachHoverRipple(descendBtn.element);
     descendWrap.appendChild(descendBtn.element);
 
@@ -223,6 +240,21 @@ export class HomeScreen {
   }
 
   private bindEvents(): void {
+    const qualityBtn = this.element.querySelector('#nav-btn-quality') as HTMLButtonElement;
+    if (qualityBtn) {
+      import('../../engine/QualityBenchmark.js').then(({ QualityBenchmark }) => {
+        const qm = QualityBenchmark.getInstance();
+        const updateText = () => {
+          qualityBtn.textContent = `QUALITY: ${qm.getEffectiveTier().toUpperCase()}`;
+        };
+        updateText();
+        qualityBtn.addEventListener('click', () => {
+          qm.cycleTier();
+          updateText();
+        });
+      }).catch(() => {});
+    }
+
     this.element.querySelector('#nav-btn-play')?.addEventListener('click', () => this.callbacks.onOpenPlayHub());
     this.element.querySelector('#nav-btn-leaderboards')?.addEventListener('click', () => this.callbacks.onOpenLeaderboards());
     this.element.querySelector('#nav-btn-bestiary')?.addEventListener('click', () => this.callbacks.onOpenBestiary());

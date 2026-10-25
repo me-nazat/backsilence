@@ -67,6 +67,7 @@ import { RemotePlayerAvatar } from './player/RemotePlayerAvatar.js';
 import { PingMarkerManager } from './player/PingMarkerManager.js';
 import { SpectatorController } from './player/SpectatorController.js';
 import { ToastManager } from '../ui/ToastManager.js';
+import { OrientationDirector } from './OrientationDirector.js';
 
 export interface GameSessionCallbacks {
   onPause: () => void;
@@ -128,6 +129,7 @@ export class GameSession {
   // Map 1 Puzzle Data
   private inspectedPillars = new Map<number, number>(); // ordinal -> digit
   private exitUnlocked = false;
+  private orientationDirector: OrientationDirector | null = null;
 
   // Multiplayer & Replication
   private netSession?: NetSession | undefined;
@@ -663,6 +665,36 @@ export class GameSession {
           selectedItemIndex: 0,
         });
 
+        this.orientationDirector = new OrientationDirector(
+          this.simWorld,
+          this.hud,
+          this.audio,
+          {
+            onComplete: () => {
+              this.exitUnlocked = true;
+              this.callbacks.onWin({
+                mapId: 'orientation',
+                timeSurvived: this.simWorld.simTime,
+                noisesMade: this.noisesMade,
+                closestCall: this.closestCall,
+                alertsCount: 0,
+                retries: 0,
+              });
+            },
+            onSkip: () => {
+              this.exitUnlocked = true;
+              this.callbacks.onWin({
+                mapId: 'orientation',
+                timeSurvived: this.simWorld.simTime,
+                noisesMade: this.noisesMade,
+                closestCall: this.closestCall,
+                alertsCount: 0,
+                retries: 0,
+              });
+            },
+          }
+        );
+
         this.interactions.register({
           id: 'orientation_exit',
           position: this.layout.exit.position,
@@ -678,7 +710,20 @@ export class GameSession {
               loudness: 0.6,
               sourcePlayerId: 'player_local',
             });
-            this.hud.update({ objective: 'Airlock unlocked! Proceed through to escape.' });
+            if (this.orientationDirector) {
+              this.orientationDirector.triggerEarlyReward('AIRLOCK OPENED // EXTRACTION READY');
+            }
+            this.hud.update({ objective: 'Airlock unlocked! Proceed through to complete orientation.' });
+            setTimeout(() => {
+              this.callbacks.onWin({
+                mapId: 'orientation',
+                timeSurvived: this.simWorld.simTime,
+                noisesMade: this.noisesMade,
+                closestCall: this.closestCall,
+                alertsCount: 0,
+                retries: 0,
+              });
+            }, 800);
           },
         });
         break;
@@ -1892,6 +1937,10 @@ export class GameSession {
         this.sunLight.target.position.set(snappedX, 0, snappedZ);
         this.sunLight.target.updateMatrixWorld();
       }
+    }
+
+    if (this.orientationDirector) {
+      this.orientationDirector.update(dt);
     }
 
     this.postFX.render(this.scene, this.camera, dt);
@@ -3193,6 +3242,10 @@ export class GameSession {
     this.opaqueDepthTarget?.dispose();
     this.mapInstance.dispose();
     this.pingMarkers.dispose();
+    if (this.orientationDirector) {
+      this.orientationDirector.dispose();
+      this.orientationDirector = null;
+    }
 
     for (const avatar of this.remoteAvatars.values()) {
       this.scene.remove(avatar.root);

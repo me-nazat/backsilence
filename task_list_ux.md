@@ -15,15 +15,15 @@
   - [x] A.4 Write `reports/ux/friction.md` with ranked findings
   - [x] A.5 Record Decision D102 and commit Phase A
 
-- [ ] **Phase B: The First Five Minutes (Section 4)**
-  - [ ] B.1 One front door: dominant "Descend" CTA on Home; integrate audio unlock and headphones advisory into the start click; remove standalone "press any key" overlay
-  - [ ] B.2 20s skippable calibration: brightness slider with visual check tile, volume check with stereo drips, auto input detection
-  - [ ] B.3 2s quality auto-detect benchmark during load; Low/Med/High summary; never raise tier after a drop
-  - [ ] B.4 Orientation run (<= 4 min) as default first experience with persistent Skip button; small non-blocking icon-and-word cards with "don't show again"
-  - [ ] B.5 Guaranteed early threat encounter within 35s
-  - [ ] B.6 Early reward: first objective audio/visual stamp; first escape score count-up
-  - [ ] B.7 Sub-1s death screen Retry with focus and plain-sentence cause ("You splashed 6 m from it")
-  - [ ] B.8 Record Decision D103 and commit Phase B
+- [x] **Phase B: The First Five Minutes (Section 4)**
+  - [x] B.1 One front door: dominant "Descend" CTA on Home; integrate audio unlock and headphones advisory into the start click; remove standalone "press any key" overlay
+  - [x] B.2 20s skippable calibration: brightness slider with visual check tile, volume check with stereo drips, auto input detection
+  - [x] B.3 2s quality auto-detect benchmark during load; Low/Med/High summary; never raise tier after a drop
+  - [x] B.4 Orientation run (<= 4 min) as default first experience with persistent Skip button; small non-blocking icon-and-word cards with "don't show again"
+  - [x] B.5 Guaranteed early threat encounter within 35s
+  - [x] B.6 Early reward: first objective audio/visual stamp; first escape score count-up
+  - [x] B.7 Sub-1s death screen Retry with focus and plain-sentence cause ("You splashed 6 m from it")
+  - [x] B.8 Record Decision D103 and commit Phase B
 
 - [ ] **Phase C: Menus and Navigation (Section 5)**
   - [ ] C.1 Refactor UI layer so every screen is clickable by construction (`bs-screen`, `UiLayerManager`, focus owner, `inert` modals, Escape back); remove ID allowlist from `index.html`; add unit test and dev assertion

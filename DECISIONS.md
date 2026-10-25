@@ -1279,3 +1279,19 @@ Establish `functions/api/[[route]].ts` as the canonical Cloudflare Pages Functio
 4. Established baseline milestones for Phases B through G to eliminate all dead clicks, reduce time to play <= 8s warm / 15s cold, and guarantee <= 2 clicks to play.
 **Reason:** Satisfies Section 3 Phase A mandates of Prompt 5 of 5.
 
+### D103: Phase B The First Five Minutes & Onboarding Funnel (2026-10-25)
+**Context:** Section 4 mandates reducing onboarding friction to <= 2 clicks and <= 8s warm / 15s cold from landing to controllable player. Requires One Front Door (dominant Descend button, unified audio gesture + headphones note, deletion of separate "press any key" overlay), 20s skippable sensor calibration, quality auto-detect benchmark with non-raising ceiling, <= 4 min Orientation run with persistent Skip button, guaranteed <= 35s creature encounter, early objective rewards, and sub-1s death retry with plain-sentence explanation.
+**Choice:**
+1. Unified Front Door (`HomeScreen.ts` & `UIManager.ts`):
+   - Redesigned Home screen around a single dominant 52px CTA: "DESCEND" (`btn-play-solo`) with an adjacent headphones advisory (`🎧 Headphones recommended // Stereo HRTF`).
+   - Eliminated the standalone blocking `#audio-unlock-overlay` from boot; direct click on "Descend" unlocks Web Audio context and starts descent.
+2. Calibration Modal (`src/ui/CalibrationModal.ts`):
+   - Created skippable 20s modal featuring a visual brightness slider over a procedural tile contrast pattern, a stereo audio check with spatialized left/right droplet playback, and auto-detected input mode (keyboard/touch/gamepad). Saved to `localStorage` and never blocks repeat visits.
+3. Quality Auto-Detect (`src/engine/QualityBenchmark.ts`):
+   - Implemented a 1.5s background loading benchmark and hardware capability probe (device memory, CPU concurrency, GPU vendor, mobile touch), establishing an adaptive session tier with an immutable ceiling (never raised after a drop). Added an interactive nav summary chip (`QUALITY: [AUTO]`).
+4. Guided Orientation Run (`src/game/OrientationDirector.ts`):
+   - Integrated into `GameSession.ts` for the `orientation` map: features a persistent `[ SKIP ORIENTATION ]` button, step-by-step cueing with 5s non-blocking icon cards with "Don't show again" option, guaranteed distant creature wake/slosh within 35s, and early reward chime/stamp on first objective completion.
+5. Instant Death Replay & Plain-Sentence Reason (`DeathScreen.ts` & `main.ts`):
+   - Death overlay displays exact plain-sentence cause (`You splashed X.X m from it.`), auto-focuses "RETRY", and restarts session in < 1s via cached `lastConfig` without reloading the page.
+**Reason:** Satisfies Section 4 Phase B mandates of Prompt 5 of 5.
+
