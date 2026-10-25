@@ -98,6 +98,16 @@ export function applyWetDarkening(
             gl_FragColor.rgb *= (1.0 - streakFade);
           }
         }
+
+        // Green water bounce term on surfaces near the water line
+        float bounceDist = vWorldPositionForWet.y - uWaterY_Wet;
+        if (bounceDist >= -0.3 && bounceDist <= 0.8) {
+          float bounceFactor = (1.0 - abs(bounceDist - 0.15) / 0.65);
+          if (bounceFactor > 0.0) {
+            vec3 waterBounce = vec3(0.035, 0.075, 0.052) * (bounceFactor * bounceFactor);
+            gl_FragColor.rgb += waterBounce;
+          }
+        }
         `,
       );
     }

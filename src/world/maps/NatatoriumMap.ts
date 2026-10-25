@@ -31,6 +31,7 @@ import { buildStandardMapInstance } from './CommonMapBuilder.js';
 import { makeMosaicEarTexture } from '../../procedural/textures/MosaicEarTexture.js';
 import { bakeVertexAO } from '../../procedural/geometry/VertexAO.js';
 import { applyWetDarkening } from '../../game/rendering/WetDarkening.js';
+import { applyParallaxOcclusion } from '../../game/rendering/ParallaxOcclusion.js';
 import { createLightShaftMesh, createDustMotes } from '../../game/rendering/LightShafts.js';
 import type { LightStreak } from '../../game/water/WaterMaterial.js';
 
@@ -559,10 +560,12 @@ export const NatatoriumMap: MapDefinition = {
       map: poolTiles.albedo,
       roughnessMap: poolTiles.roughness,
       normalMap: poolTiles.normal,
+      aoMap: poolTiles.ao,
       roughness: 0.35,
       metalness: 0.02,
     });
     applyWetDarkening(platformMat, { waterY: 0.0 });
+    applyParallaxOcclusion(platformMat, { heightMap: poolTiles.height, scale: 0.025, maxDistance: 6.0 });
 
     const wallMat = new MeshStandardMaterial({
       map: marbleTex.albedo,
@@ -577,9 +580,11 @@ export const NatatoriumMap: MapDefinition = {
       map: poolTiles.albedo,
       roughnessMap: poolTiles.roughness,
       normalMap: poolTiles.normal,
+      aoMap: poolTiles.ao,
       roughness: 0.25,
       metalness: 0.04,
     });
+    applyParallaxOcclusion(floorMat, { heightMap: poolTiles.height, scale: 0.02, maxDistance: 6.0 });
 
     const instance = buildStandardMapInstance(layout, env, {
       platformMat,

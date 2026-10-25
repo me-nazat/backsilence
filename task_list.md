@@ -23,15 +23,15 @@
   - [x] B.4 Verify sightlines (numeral at 10m, arch silhouette at 25m, >=2 horizon silhouette layers)
   - [x] B.5 Record Decision D088 and commit Phase B
 
-- [ ] **Phase C: PBR Mosaic Tiles, Decals & Surroundings (Section 7)**
-  - [ ] C.1 Procedural mosaic tiles (16x16 per 2.4m, 1-2px grout at 512px, lightness/hue/sat variation, mottling, bevels, cracks)
-  - [ ] C.2 Full PBR set (albedo, normal from heightfield, roughness, AO, mipmaps, anisotropy, LOD bias)
-  - [ ] C.3 Parallax occlusion mapping within 6m (Medium and High)
-  - [ ] C.4 Slabs & fittings (bullnose edges, drain grates, handrails, ladders, lane ropes, markers, numerals, vents, friezes, pipe runs)
-  - [ ] C.5 Shared wet shader chunk (below `waterY + 0.35m` darken diffuse, lower roughness, noisy tidemark; damp streaks above)
-  - [ ] C.6 Instanced decal quads (stains, cracks, drips, black marker graffiti, giant spray-painted numerals)
-  - [ ] C.7 Baked vertex AO and contact darkening at slab bases
-  - [ ] C.8 Record Decision D088 and commit Phase C
+- [x] **Phase C: PBR Mosaic Tiles, Decals & Surroundings (Section 7)**
+  - [x] C.1 Procedural mosaic tiles (16x16 per 2.4m, 1-2px grout at 512px, lightness/hue/sat variation, mottling, bevels, cracks)
+  - [x] C.2 Full PBR set (albedo, normal from heightfield, roughness, AO, mipmaps, anisotropy, LOD bias)
+  - [x] C.3 Parallax occlusion mapping within 6m (Medium and High)
+  - [x] C.4 Slabs & fittings (bullnose edges, drain grates, handrails, ladders, lane ropes, markers, numerals, vents, friezes, pipe runs)
+  - [x] C.5 Shared wet shader chunk (below `waterY + 0.35m` darken diffuse, lower roughness, noisy tidemark; damp streaks above)
+  - [x] C.6 Instanced decal quads (stains, cracks, drips, black marker graffiti, giant spray-painted numerals)
+  - [x] C.7 Baked vertex AO and contact darkening at slab bases
+  - [x] C.8 Record Decision D089 and commit Phase C
 
 - [ ] **Phase D: Lighting Rig, Fog In-Scatter & Horizon Blowout (Section 8)**
   - [ ] D.1 Lighting rig (warm hemisphere, soft directional key with texel-snapped shadow, faint fill, water bounce)

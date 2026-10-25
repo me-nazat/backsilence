@@ -1015,6 +1015,21 @@ Establish `functions/api/[[route]].ts` as the canonical Cloudflare Pages Functio
    - Confirmed first pillar numeral legible at 8–10 m, arch silhouette at 25 m, and at least 2 layers of fading geometry before horizon blowout.
 **Reason:** Satisfies Section 6 Phase B mandates.
 
+### D089: Phase C Mosaic Tiles, Parallax Occlusion, PBR Surfaces and Decals
+**Date:** 2026-10-25
+**Choice:**
+1. Ceramic Mosaic PBR Suite (`src/procedural/textures/TileTexture.ts`):
+   - Expanded procedural mosaic generation to provide a complete 5-texture PBR suite: albedo, height, normal, roughness, and ambient occlusion (AO).
+   - Enforced 16x16 tiles per 2.4 m repeat, 1–2 px grout at 512 px, lightness variation $\pm 4\%$, hue $\pm 2^\circ$, sat $\pm 5\%$, 2-octave mottling, chipped corners (1%), hairline cracks (2% dry, 8% underwater), and stained tiles (4%).
+   - Configured high-quality anisotropic filtering (up to 8x) and linear mipmap filtering.
+2. Parallax Occlusion Mapping (`src/game/rendering/ParallaxOcclusion.ts`):
+   - Implemented an 8-step screen-derivative POM raymarching pass that runs within 6.0 m on Medium and High tiers to provide deep physical grout perception, smoothly fading to standard normal mapping beyond 6.0 m with zero runtime branch overhead.
+3. Wet Logic & Water Bounce Light (`src/game/rendering/WetDarkening.ts`):
+   - Injected a green water bounce term (`#86cfa0`) on surfaces near the waterline ($y \in [-0.3, +0.8]\text{ m}$) alongside tidemark darkening and upward damp streaks.
+4. Trim, Fittings & Decals (`DecalSystem.ts`, `MapLevelArtPass.ts`):
+   - Verified instanced decal quads (stains, drips, black marker graffiti, giant spray-painted numerals with overspray halos) with polygonOffset up to 400 decals per map and at least 12 distinct prop types.
+**Reason:** Satisfies Section 7 Phase C mandates without altering simulation state.
+
 
 
 

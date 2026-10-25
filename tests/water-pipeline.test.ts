@@ -5,7 +5,7 @@ import { SplashSystem } from '../src/game/water/Splashes.js';
 import { waterSelfTest } from '../src/game/water/WaterSystem.js';
 import { runSimulationReplay } from '../src/meta/SimReplayRunner.js';
 import { PLATFORM_TOP_Y, WATER_FLOOR_Y, WATER_SURFACE_Y } from '../src/sim/ProvingGroundsData.js';
-import { Object3D, Vector3, Vector4 } from 'three';
+import { Object3D, Vector3, Vector4, Texture } from 'three';
 
 describe('Phase G: Water Pipeline Verification & Self-Test Suite', () => {
   it('1. waterSelfTest() passes all 4 criteria (stability, decay, reflection, agreement)', () => {
@@ -25,14 +25,16 @@ describe('Phase G: Water Pipeline Verification & Self-Test Suite', () => {
   });
 
   it('3. WaterMaterial compiles and functions gracefully when simulation targets are unavailable (fallback)', () => {
-    // Low tier or headless fallback without float textures
-    const ripples = new Float32Array(32 * 4);
-    const wakes = new Float32Array(6 * 4);
-    const wakeParams = new Float32Array(6 * 4);
+    const ripples = Array.from({ length: 32 }, () => new Vector4());
+    const wakes = Array.from({ length: 6 }, () => new Vector4());
+    const wakeParams = Array.from({ length: 6 }, () => new Vector4());
 
     const mat = createWaterMaterial({
       tier: 'low',
       waterY: 0.0,
+      normalTexture: new Texture(),
+      mapDataTexture: new Texture(),
+      mapBounds: new Vector4(-50, -50, 50, 50),
       ripples,
       wakes,
       wakeParams,

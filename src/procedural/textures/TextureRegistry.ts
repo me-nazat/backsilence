@@ -68,6 +68,7 @@ export class TextureRegistry {
       this.trackTexture(set.height, size, size);
       this.trackTexture(set.normal, size, size);
       this.trackTexture(set.roughness, size, size);
+      this.trackTexture(set.ao, size, size);
       this.tileSets.set(key, set);
     }
     return set;

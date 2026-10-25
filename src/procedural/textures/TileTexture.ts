@@ -8,6 +8,8 @@ import {
   RepeatWrapping,
   SRGBColorSpace,
   NoColorSpace,
+  LinearMipmapLinearFilter,
+  LinearFilter,
 } from 'three';
 import { Rng } from '../core/prng.js';
 import { createNoisePermutation, fbm2DTileable } from '../core/noise.js';
@@ -20,6 +22,7 @@ export interface TileSetOptions {
   variant: TileVariant;
   size?: number;
   seed?: number;
+  anisotropy?: number;
 }
 
 export interface TileSetResult {
@@ -27,6 +30,7 @@ export interface TileSetResult {
   height: CanvasTexture;
   normal: CanvasTexture;
   roughness: CanvasTexture;
+  ao: CanvasTexture;
 }
 
 const PALETTE: Record<TileVariant, { base: string; grout: string; grid: number; crackRate: number }> = {
@@ -67,11 +71,12 @@ export function makeTileSet(options: TileSetOptions): TileSetResult {
   const rng = new Rng(seed);
   const perm = createNoisePermutation(seed);
 
-  // Allocate image data buffers for all 4 channels
+  // Allocate image data buffers for all 5 PBR channels
   const albedoData = new Uint8ClampedArray(size * size * 4);
   const heightData = new Uint8ClampedArray(size * size * 4);
   const normalData = new Uint8ClampedArray(size * size * 4);
   const roughnessData = new Uint8ClampedArray(size * size * 4);
+  const aoData = new Uint8ClampedArray(size * size * 4);
 
   // Pre-generate tile descriptors for grid x grid
   interface TileInfo {
@@ -164,6 +169,12 @@ export function makeTileSet(options: TileSetOptions): TileSetResult {
         roughnessData[idx + 1] = 217;
         roughnessData[idx + 2] = 217;
         roughnessData[idx + 3] = 255;
+
+        // Ambient occlusion: grout crevices get deep occlusion (~0.59)
+        aoData[idx] = 150;
+        aoData[idx + 1] = 150;
+        aoData[idx + 2] = 150;
+        aoData[idx + 3] = 255;
       } else {
         // Inside tile: 2-octave fBm mottling
         const mottle = fbm2DTileable(x * 0.08, y * 0.08, size * 0.08, size * 0.08, 2, 2, 0.5, perm) * 12;
@@ -224,6 +235,13 @@ export function makeTileSet(options: TileSetOptions): TileSetResult {
         roughnessData[idx + 1] = rough;
         roughnessData[idx + 2] = rough;
         roughnessData[idx + 3] = 255;
+
+        // Ambient occlusion: soft bevel transition to full brightness on tile face
+        const tileAo = Math.round(180 + bevelDist * 75);
+        aoData[idx] = tileAo;
+        aoData[idx + 1] = tileAo;
+        aoData[idx + 2] = tileAo;
+        aoData[idx + 3] = 255;
       }
 
       // Height map pixel
@@ -272,6 +290,8 @@ export function makeTileSet(options: TileSetOptions): TileSetResult {
     }
   }
 
+  const anisotropy = options.anisotropy ?? 4;
+
   // Helper to convert Uint8ClampedArray to CanvasTexture
   function createTextureFromBuffer(data: Uint8ClampedArray, isColor: boolean): CanvasTexture {
     const pooled = acquireCanvas(size, size);
@@ -283,6 +303,9 @@ export function makeTileSet(options: TileSetOptions): TileSetResult {
     tex.wrapT = RepeatWrapping;
     tex.colorSpace = isColor ? SRGBColorSpace : NoColorSpace;
     tex.generateMipmaps = true;
+    tex.minFilter = LinearMipmapLinearFilter;
+    tex.magFilter = LinearFilter;
+    tex.anisotropy = anisotropy;
     tex.needsUpdate = true;
 
     return tex;
@@ -293,5 +316,6 @@ export function makeTileSet(options: TileSetOptions): TileSetResult {
     height: createTextureFromBuffer(heightData, false),
     normal: createTextureFromBuffer(normalData, false),
     roughness: createTextureFromBuffer(roughnessData, false),
+    ao: createTextureFromBuffer(aoData, false),
   };
 }

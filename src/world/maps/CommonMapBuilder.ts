@@ -30,6 +30,7 @@ import { buildFountainGeometry } from '../../procedural/geometry/Fountain.js';
 import { buildFluorescentFixtureGeometry } from '../../procedural/geometry/LightFixture.js';
 import { makePipeDiagramTexture } from '../../procedural/textures/PaintedLabel.js';
 import { applyWetDarkening } from '../../game/rendering/WetDarkening.js';
+import { applyParallaxOcclusion } from '../../game/rendering/ParallaxOcclusion.js';
 import { applyMapLevelArtPass } from '../levelart/MapLevelArtPass.js';
 
 export interface CustomBuilderHook {
@@ -63,6 +64,10 @@ export function buildStandardMapInstance(
   applyWetDarkening(customMaterials.platformMat, { waterY: 0.0 });
   applyWetDarkening(customMaterials.wallMat, { waterY: 0.0 });
   applyWetDarkening(customMaterials.floorMat, { waterY: 0.0 });
+
+  // Apply parallax occlusion mapping for grout depth within 6m
+  const defaultTileSet = TextureRegistry.getInstance().getTileSet('platform', layout.seed);
+  applyParallaxOcclusion(customMaterials.platformMat, { heightMap: defaultTileSet.height, scale: 0.025, maxDistance: 6.0 });
 
   const geometriesToDispose: { dispose: () => void }[] = [];
   const sinkingNodes: SinkingPlatformNode[] = [];

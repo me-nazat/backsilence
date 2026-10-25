@@ -11,14 +11,12 @@ import {
   Group,
   Mesh,
   MeshBasicMaterial,
-  PlaneGeometry,
   BoxGeometry,
   LineSegments,
   BufferGeometry,
   Float32BufferAttribute,
   LineBasicMaterial,
   DoubleSide,
-  Vector3,
 } from 'three';
 import { WORLD } from '../app/Config.js';
 
