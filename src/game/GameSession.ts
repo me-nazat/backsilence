@@ -384,6 +384,9 @@ export class GameSession {
         colliders: this.mapInstance.colliders,
         mode: simMode,
       });
+      if (this.mapDef?.atmosphere?.fog?.density) {
+        this.simWorld.director.setFogDensity(this.mapDef.atmosphere.fog.density);
+      }
 
       // Spectator & Ping setup
       this.spectatorController = new SpectatorController(this.camera);
@@ -551,8 +554,8 @@ export class GameSession {
             this.timeScale = scale;
           },
           onDeath: (stats: JumpscareStats) => {
+            this.isDead = true;
             if (this.netSession) {
-              this.isDead = true;
               this.netSession.publishDeath();
               this.updateRosterHud();
               const livingPeers = this.netSession.getRemotePeers().filter((p) => p.alive && !p.escaped);
@@ -596,7 +599,9 @@ export class GameSession {
   private setupAtmosphere(def: MapDefinition): void {
     const fogColor = parseInt(def.atmosphere.fog.color.replace('#', '0x'), 16);
     this.scene.fog = new FogExp2(fogColor, def.atmosphere.fog.density);
-    this.simWorld.director.setFogDensity(def.atmosphere.fog.density);
+    if (this.simWorld?.director) {
+      this.simWorld.director.setFogDensity(def.atmosphere.fog.density);
+    }
 
     // Set camera.far from fog density so distant geometry fades to fog color, never hard clips
     const fogFar = Math.max(75.0, Math.ceil(2.8 / Math.max(0.015, def.atmosphere.fog.density)));
@@ -1456,9 +1461,17 @@ export class GameSession {
     this.accumulator = 0;
     this.isPaused = false;
     this.isWon = false;
+    this.isDead = false;
 
     const spawn = this.layout.spawns.player[0] ?? { x: 0, y: 1.0, z: 0 };
     this.simWorld.player.teleport(spawn);
+    this.simWorld.resetOnRetry(spawn);
+    for (const m of this.simWorld.monsters) {
+      const body = this.monsters.getBody(m.id);
+      if (body) {
+        body.mesh.root.position.set(m.pos.x, m.pos.y, m.pos.z);
+      }
+    }
 
     this.playerInput.requestPointerLock();
   }
@@ -1673,7 +1686,7 @@ export class GameSession {
         this.alertsCount++;
       }
 
-      if (mSnap.state === 'ATTACK' && !this.godMode && !this.jumpscare.isActive()) {
+      if (mSnap.state === 'ATTACK' && !this.godMode && !this.isDead && !this.jumpscare.isActive()) {
         const body = this.monsters.getBody(m.id);
         const headWorld = body
           ? body.mesh.joints.head.getWorldPosition(new Vector3())

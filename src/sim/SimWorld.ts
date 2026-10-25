@@ -232,6 +232,25 @@ export class SimWorld {
     return brain;
   }
 
+  resetOnRetry(playerSpawn: Vec3): void {
+    this.simTime = 0;
+    this.noiseSequence = 0;
+    this.director.resetOnRetry(0);
+
+    for (const monster of this.monsters) {
+      const distantCell = this.nav.findDistantCell(playerSpawn.x, playerSpawn.z, 60.0);
+      if (distantCell) {
+        monster.pos.x = distantCell.x;
+        monster.pos.z = distantCell.z;
+        monster.pos.y = this.currentWaterY;
+      }
+      monster.vel.x = 0;
+      monster.vel.y = 0;
+      monster.vel.z = 0;
+      monster.forceState('DORMANT', { stateTimer: 8.0 });
+    }
+  }
+
   step(dt: number, intent: PlayerIntent): void {
     this.simTime += dt;
 

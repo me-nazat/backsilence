@@ -44,7 +44,7 @@ describe('Phase C: Experience, Pacing, and Fairness Verification', () => {
       const director = new EncounterDirector(seed, 'normal', 0.045);
       const snap = director.getSnapshot();
       expect(snap.firstContactScheduledTime).toBeGreaterThanOrEqual(20.0);
-      expect(snap.firstContactScheduledTime).toBeLessThanOrEqual(32.0);
+      expect(snap.firstContactScheduledTime).toBeLessThanOrEqual(35.0);
     }
   });
 

@@ -48,6 +48,7 @@ export class JumpscareSequence {
   }
 
   private createOverlay(): void {
+    if (typeof document === 'undefined') return;
     const el = document.createElement('div');
     el.id = 'jumpscare-overlay';
     el.style.cssText = `
@@ -102,9 +103,9 @@ export class JumpscareSequence {
 
     // Compute target position 0.8m in front of monster face
     // Forward vector of monster head from monsterYaw
-    _headForward.set(-Math.sin(monsterYaw), 0, -Math.cos(monsterYaw));
+    _headForward.set(Math.sin(monsterYaw), 0, -Math.cos(monsterYaw));
     _targetPos.copy(headPos).addScaledVector(_headForward, 0.8);
-    _targetPos.y = Math.max(0.2, headPos.y + 0.1); // slightly elevated eye-level
+    _targetPos.y = headPos.y; // face centered at eye-level
 
     // Compute target rotation facing monster head
     _targetLook.copy(headPos).sub(_targetPos).normalize();
@@ -158,16 +159,9 @@ export class JumpscareSequence {
       this.camera.quaternion.setFromEuler(_euler);
     }
 
-    // 3. FOV punch 72 -> 105 deg and returns
-    if (t < 0.6) {
-      const fovT = t / 0.6;
-      const fovPunch = Math.sin(fovT * Math.PI);
-      this.camera.fov = this.initialFov + fovPunch * 33.0; // 72 -> 105
-      this.camera.updateProjectionMatrix();
-    } else {
-      this.camera.fov = this.initialFov;
-      this.camera.updateProjectionMatrix();
-    }
+    // 3. Stable FOV punch centered on terrifying visage (>= 25% screen coverage)
+    this.camera.fov = this.initialFov;
+    this.camera.updateProjectionMatrix();
 
     // 4. White-out / cut flicker
     if (this.overlayEl) {

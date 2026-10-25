@@ -161,6 +161,20 @@ export class EncounterDirector {
     return 'prowl';
   }
 
+  resetOnRetry(simTime = 0): void {
+    this.simTime = simTime;
+    this.firstContactDone = false;
+    const diffCfg = balanceData.difficulty[this.difficulty] ?? balanceData.difficulty.normal;
+    this.firstContactScheduledTime = simTime + this.rng.range(diffCfg.firstContactMin, diffCfg.firstContactMax);
+    this.lastThreatBeatTime = simTime;
+    this.breatherTimer = 0;
+    this.currentDreadPhase = 'CALM';
+    this.phaseTime = 0;
+    this.dreadValue = 0.1;
+    this.dreadBeats.length = 0;
+    this.playerTracks.clear();
+  }
+
   updatePlayer(
     id: PlayerId,
     pos: Vec3,

@@ -1,0 +1,81 @@
+{
+  "timestamp": "2026-10-25T05:11:14.384Z",
+  "viewport": {
+    "width": 1280,
+    "height": 720
+  },
+  "chain": {
+    "initialProbeVerdict": {
+      "pass": false,
+      "layer": "L2",
+      "reason": "Monster outside camera view frustum",
+      "fields": {
+        "inFrustum": false,
+        "distanceToCamera": 24.649277881267622,
+        "far": 75,
+        "fogTransmittance": 0.47506960322211234,
+        "signedAngleRad": 2.374101299265974
+      }
+    },
+    "setup": {
+      "noiseEmitted": true,
+      "monsterState": "ALERTED",
+      "monsterPos": {
+        "x": -37,
+        "y": 0,
+        "z": -40.419999999999995
+      },
+      "playerPos": {
+        "x": -37,
+        "y": 0.30000001192092896,
+        "z": -37.62
+      }
+    }
+  },
+  "jumpscare": {
+    "triggered": true,
+    "t02": {
+      "distance": 2.05,
+      "maskPixels": 266843,
+      "maskCoverage": 0.2895431857638889,
+      "screenshot": "/Users/nazat/Desktop/Desktop/antigravity/BackSilence/poolrooms/reports/monster/screenshots/jumpscare_0.2s.png",
+      "boundingBox": {
+        "minX": 96,
+        "minY": 143,
+        "maxX": 1036,
+        "maxY": 719,
+        "width": 941,
+        "height": 577
+      }
+    },
+    "t06": {
+      "distance": 2.05,
+      "maskPixels": 266843,
+      "maskCoverage": 0.2895431857638889,
+      "screenshot": "/Users/nazat/Desktop/Desktop/antigravity/BackSilence/poolrooms/reports/monster/screenshots/jumpscare_0.6s.png",
+      "boundingBox": {
+        "minX": 96,
+        "minY": 143,
+        "maxX": 1036,
+        "maxY": 719,
+        "width": 941,
+        "height": 577
+      }
+    }
+  },
+  "retry": {
+    "durationMs": 304,
+    "monsterDistance": 60.14,
+    "screenshot": "/Users/nazat/Desktop/Desktop/antigravity/BackSilence/poolrooms/reports/monster/screenshots/retry_spawn.png",
+    "directorPacing": {
+      "firstContactDone": false,
+      "firstContactScheduledTime": 30.369764110073447
+    }
+  },
+  "pass": true,
+  "deathScreen": {
+    "visible": true,
+    "title": "YOU MADE A SOUND",
+    "subtitle": "YOU MADE A SOUND"
+  }
+}

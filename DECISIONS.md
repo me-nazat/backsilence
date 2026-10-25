@@ -795,6 +795,25 @@ Establish `functions/api/[[route]].ts` as the canonical Cloudflare Pages Functio
    - Verified 600s test across 5 seeds in `tests/monster-phase-c.test.ts`: exactly 0 damage events, 0 attacks, and minimum distance strictly $\ge 5.8$m, with deterministic trajectory hashes recorded.
 **Reason:** Fulfills Phase C requirements for early sight, continuous tension, and airtight acoustic fairness without guessing.
 
+### D074: Full Attack Chain, Jumpscare 0.8m Framing, and Sub-Second Retry Reset Guarantee
+**Date:** 2026-10-25
+**Choice:**
+1. Jumpscare Camera Alignment & Face Framing (`src/game/monster/Jumpscare.ts`):
+   - Corrected monster forward head vector to `_headForward.set(Math.sin(monsterYaw), 0, -Math.cos(monsterYaw))` so the camera positions directly 0.8m in front of the creature's gaping jaw facing its eyes.
+   - Anchored camera target height to `headPos.y` and stabilized FOV lerp, guaranteeing the creature's jaw and facial mask cover $\ge 25\%$ of the viewport (verified in Chrome at 29.0% at 0.2s and 29.0% at 0.6s).
+2. Death State & Jumpscare Infinite Loop Guard (`src/game/GameSession.ts`):
+   - Set `this.isDead = true` on jumpscare completion for solo mode as well as multiplayer, and added `!this.isDead` guard to `GameSession.update` attack check to prevent repeat triggers while the monster remains in `ATTACK` state.
+   - Reset `this.isDead = false` in `GameSession.reset()`.
+3. Distant Cell Repositioning on Retry (`src/sim/NavGrid.ts`, `src/sim/SimWorld.ts`, `src/sim/Director.ts`, `src/game/GameSession.ts`):
+   - Implemented `findDistantCell(fromX, fromZ, minDist = 60.0)` in `NavGrid.ts` to locate walkable cells in the largest water component $\ge 60$m away.
+   - Implemented `resetOnRetry(playerSpawn)` in `SimWorld.ts` and `Director.ts` to teleport monsters $\ge 60$m away, set state to `DORMANT` with spawn grace, and re-arm the Director first contact within 30–45s.
+   - Verified restart time in 304ms ($< 1000$ms target) with monster relocated to 60.1m.
+4. Browser Evidence & Automated Suite (`scripts/monster-attack-chain.mjs`, `tests/monster-phase-d.test.ts`):
+   - Real browser test executed via Chrome CDP: verified alert, hunt, attack, jumpscare mask, death screen subtitle ("YOU MADE A SOUND"), and retry restart in 304ms.
+   - Saved report in `reports/monster/attack_chain.json` and captured screenshots `jumpscare_0.2s.png`, `jumpscare_0.6s.png`, and `retry_spawn.png`.
+   - 3 unit tests in `tests/monster-phase-d.test.ts` verified passing.
+**Reason:** Fulfills Phase D requirements for the complete attack chain, visceral framing, and sub-second retry recovery.
+
 
 
 

@@ -6,6 +6,7 @@
 
 import type { GroundGrid } from './GroundGrid.js';
 import { DEFAULT_WORLD_PROFILE, type WorldProfile } from './WorldProfile.js';
+import { dHypot } from './dmath.js';
 
 export class NavGrid {
   readonly cellSize: number;
@@ -308,6 +309,40 @@ export class NavGrid {
     }
 
     return found ? { x: bestX, z: bestZ } : null;
+  }
+
+  /**
+   * Find a walkable cell in the largest component at least minDist away from (fromX, fromZ).
+   * If no cell is at least minDist away (e.g. on small maps), returns the cell with maximum distance.
+   */
+  findDistantCell(
+    fromX: number,
+    fromZ: number,
+    minDist = 60.0,
+    preferredComponent?: number,
+  ): { x: number; z: number } | null {
+    const comp = preferredComponent ?? this.largestComponentId;
+    let maxDist = -1;
+    let bestCell: { x: number; z: number } | null = null;
+
+    for (let gz = 0; gz < this.depth; gz++) {
+      const row = gz * this.width;
+      for (let gx = 0; gx < this.width; gx++) {
+        if (this.walkable[row + gx] === 1 && (comp < 0 || this.components[row + gx] === comp)) {
+          const world = this.gridToWorld(gx, gz);
+          const d = dHypot(world.x - fromX, world.z - fromZ);
+          if (d >= minDist) {
+            return world;
+          }
+          if (d > maxDist) {
+            maxDist = d;
+            bestCell = world;
+          }
+        }
+      }
+    }
+
+    return bestCell;
   }
 }
 
