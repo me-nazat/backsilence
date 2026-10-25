@@ -33,15 +33,15 @@
   - [x] C.7 Baked vertex AO and contact darkening at slab bases
   - [x] C.8 Record Decision D089 and commit Phase C
 
-- [ ] **Phase D: Lighting Rig, Fog In-Scatter & Horizon Blowout (Section 8)**
-  - [ ] D.1 Lighting rig (warm hemisphere, soft directional key with texel-snapped shadow, faint fill, water bounce)
-  - [ ] D.2 Atmospheric fog + in-scatter term forward toward key light
-  - [ ] D.3 Horizon blowout with 2-3 layers of instanced far silhouettes in haze
-  - [ ] D.4 Tone mapping comparison (ACES vs AgX vs Neutral) with `reference:compare`, single `OutputPass`
-  - [ ] D.5 Auto exposure (4-frame luminance chain, 1.2s easing)
-  - [ ] D.6 Procedural 3D LUT color grade per map (warm cream lift, teal shadows, +6% to +8% sat)
-  - [ ] D.7 Light shafts and vertical dust motes at ceiling openings
-  - [ ] D.8 Record Decision D089 and commit Phase D
+- [x] **Phase D: Lighting Rig, Fog In-Scatter & Horizon Blowout (Section 8)**
+  - [x] D.1 Lighting rig (warm hemisphere, soft directional key with texel-snapped shadow, faint fill, water bounce)
+  - [x] D.2 Atmospheric fog + in-scatter term forward toward key light
+  - [x] D.3 Horizon blowout with 2-3 layers of instanced far silhouettes in haze
+  - [x] D.4 Tone mapping comparison (ACES vs AgX vs Neutral) with `reference:compare`, single `OutputPass`
+  - [x] D.5 Auto exposure (4-frame luminance chain, 1.2s easing)
+  - [x] D.6 Procedural 3D LUT color grade per map (warm cream lift, teal shadows, +6% to +8% sat)
+  - [x] D.7 Light shafts and vertical dust motes at ceiling openings
+  - [x] D.8 Record Decision D090 and commit Phase D
 
 - [ ] **Phase E: Camera Stack, Lens Effects & Shader VHS (Section 9)**
   - [ ] E.1 Resolution scale & clean upsampling (0.75-0.90)

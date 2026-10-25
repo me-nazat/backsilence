@@ -31,6 +31,7 @@ import { buildFluorescentFixtureGeometry } from '../../procedural/geometry/Light
 import { makePipeDiagramTexture } from '../../procedural/textures/PaintedLabel.js';
 import { applyWetDarkening } from '../../game/rendering/WetDarkening.js';
 import { applyParallaxOcclusion } from '../../game/rendering/ParallaxOcclusion.js';
+import { createFarSilhouettes } from '../../game/rendering/FarSilhouettes.js';
 import { applyMapLevelArtPass } from '../levelart/MapLevelArtPass.js';
 
 export interface CustomBuilderHook {
@@ -311,6 +312,13 @@ export function buildStandardMapInstance(
     materialsToDispose,
     geometriesToDispose,
   });
+
+  // 7. Atmospheric Far Silhouettes in Fog (1 to 3 instanced layers)
+  const farSilhouettes = createFarSilhouettes({
+    tier: 'high',
+    seed: layout.seed + 1234,
+  });
+  root.add(farSilhouettes);
 
   // Post build hook
   if (hooks?.onPostBuild) {

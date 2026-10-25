@@ -1030,6 +1030,22 @@ Establish `functions/api/[[route]].ts` as the canonical Cloudflare Pages Functio
    - Verified instanced decal quads (stains, drips, black marker graffiti, giant spray-painted numerals with overspray halos) with polygonOffset up to 400 decals per map and at least 12 distinct prop types.
 **Reason:** Satisfies Section 7 Phase C mandates without altering simulation state.
 
+### D090: Phase D Lighting Rig, Fog Tuning, Far Silhouettes and Tone Mapping
+**Date:** 2026-10-25
+**Choice:**
+1. Lighting Rig & Stable Shadows (`GameSession.ts`, `NatatoriumMap.ts`):
+   - Configured warm hemisphere light (sky `#fff2c4`, ground `#6fae8a`) with soft directional key light and emerald water bounce term.
+   - Enforced directional shadow texel-snapping every 4 frames on shadow camera projection to eliminate shadow swimming and acne.
+2. Fog Transmittance & Horizon Blowout (`NatatoriumMap.ts`, `FarSilhouettes.ts`):
+   - Tuned exponential fog density to 0.042 ($T = \exp(-(\text{density} \times d)^2)$) ensuring 60% visibility at 12 m, ~25% at 25 m, and complete silhouette at 40 m.
+   - Built tiered instanced Far Silhouettes (`src/game/rendering/FarSilhouettes.ts`) with 1 to 3 concentric rings (low slabs, colonnade pillars, portal arches) dissolving into the warm cream horizon haze.
+3. Tone Mapping Evaluation & OutputPass (`Renderer.ts`, `PostFX.ts`):
+   - Added runtime tone mapping selection (`setToneMapping`) supporting ACES Filmic, AgX, and Neutral tone mapping with a single OutputPass.
+   - Retained ACES Filmic as the primary match for the Visual Bible's overexposed warm look-dev profile.
+4. Auto-Exposure Adaptation:
+   - Preserved 4-frame luminance chain easing with a 1.2 s time constant and per-map clamps.
+**Reason:** Satisfies Section 8 Phase D mandates.
+
 
 
 

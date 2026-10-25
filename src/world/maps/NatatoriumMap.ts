@@ -47,25 +47,27 @@ export const NatatoriumMap: MapDefinition = {
   atmosphere: {
     fog: {
       color: '#d9d3a2',
-      density: 0.034,
+      density: 0.042,
     },
-    exposure: 1.1,
+    exposure: 1.12,
     hemisphere: {
-      sky: '#e8e2c0',
-      ground: '#5c8a77',
+      sky: '#fff2c4',
+      ground: '#6fae8a',
     },
     sun: {
       color: '#fff6e0',
-      intensity: 1.3,
+      intensity: 1.35,
       direction: { x: 0.35, y: 0.9, z: 0.25 },
       castShadow: true,
     },
   },
   waterProfile: WATER_PROFILES.natatorium,
   postGrade: {
-    lift: [0.04, 0.035, 0.02],
-    saturation: 1.08,
+    lift: [0.045, 0.038, 0.022],
+    gamma: [0.98, 1.01, 1.02],
     gain: [1.02, 1.0, 0.96],
+    saturation: 1.08,
+    tint: [1.01, 1.0, 0.98],
   },
 
   generateLayout(ctx: LayoutCtx): LayoutData {

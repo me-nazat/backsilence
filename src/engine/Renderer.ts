@@ -7,6 +7,8 @@
 import {
   WebGLRenderer,
   ACESFilmicToneMapping,
+  AgXToneMapping,
+  NeutralToneMapping,
   SRGBColorSpace,
   PCFSoftShadowMap,
   type Scene,
@@ -75,6 +77,16 @@ export class EngineRenderer {
     const rawDpr = window.devicePixelRatio ?? 1.0;
     const effectiveDpr = Math.min(rawDpr, quality.dprCap) * (s.graphics.resolutionScale / 100.0);
     this.renderer.setPixelRatio(Math.max(0.5, effectiveDpr));
+  }
+
+  setToneMapping(mode: 'aces' | 'agx' | 'neutral'): void {
+    if (mode === 'agx') {
+      this.renderer.toneMapping = AgXToneMapping;
+    } else if (mode === 'neutral') {
+      this.renderer.toneMapping = NeutralToneMapping;
+    } else {
+      this.renderer.toneMapping = ACESFilmicToneMapping;
+    }
   }
 
   private setupContextHandlers(): void {
