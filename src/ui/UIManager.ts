@@ -119,6 +119,7 @@ export class UIManager {
   private isAudioUnlocked = false;
   private lastResults: RunResults | null = null;
   private lastConfig?: { mode: 'single' | 'multi'; mapId: MapId; difficulty: number; seed: number; room?: string } | undefined;
+  private deathTimestamps: number[] = [];
 
   constructor(opts: UIManagerOptions) {
     this.container = opts.container;
@@ -768,6 +769,10 @@ export class UIManager {
   }
 
   showDeath(reason?: string): void {
+    const now = Date.now();
+    this.deathTimestamps = this.deathTimestamps.filter((t) => now - t < 300000); // 5 min window
+    this.deathTimestamps.push(now);
+
     if (reason) {
       this.deathScreen.setReason(reason);
     }
@@ -776,6 +781,32 @@ export class UIManager {
     this.updateViewVisibility();
     this.deathScreen.show();
     this.stateMachine.goTo('DEAD');
+
+    // Frustration protection (Phase F): Offer assists after 2 rapid deaths, orientation after 3
+    if (this.deathTimestamps.length === 2) {
+      setTimeout(() => {
+        this.toastManager.show('Struggling? Assistance available: jump buffer and visual noise arcs can be configured.', {
+          type: 'info',
+          action: {
+            label: 'SETTINGS',
+            onClick: () => this.navigateTo('SETTINGS'),
+          },
+        });
+      }, 1200);
+    } else if (this.deathTimestamps.length >= 3) {
+      setTimeout(() => {
+        this.toastManager.show('Multiple casualties in 5 minutes. Would you like to practice in the guided Orientation run?', {
+          type: 'warning',
+          action: {
+            label: 'ORIENTATION',
+            onClick: () => {
+              this.deathScreen.hide();
+              this.startGame({ mode: 'single', mapId: 'orientation', difficulty: 1, seed: Date.now() });
+            },
+          },
+        });
+      }, 1200);
+    }
   }
 
   showPause(): void {

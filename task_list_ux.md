@@ -55,14 +55,14 @@
   - [x] E.7 Safe area compliance in portrait and landscape
   - [x] E.8 Record Decision D106 and commit Phase E
 
-- [ ] **Phase F: Fun, Pacing and Fairness (Section 8)**
-  - [ ] F.1 5 Scripted bots (silent, crouch-wader, sprint-wader, reckless, camper) playing 200 seeds in `scripts/balance/pacing-bots.mjs`
-  - [ ] F.2 Meet Normal pacing targets: threat beat every 90s, first threat <= 45s, median run 6–14m, careful finish 45–70%, reckless < 10%
-  - [ ] F.3 Frustration protection: offer assists after 2 rapid deaths, offer orientation after 3
-  - [ ] F.4 Game feel checklist verification: landing dip (80–120ms), jump anticipation (40ms), no camera judder, footstep sync <= 1 frame, FOV breathing, controlled screen shake, hit-stop on near miss
-  - [ ] F.5 Pacing curve test: dread moves through calm, build, peak, release >= 2 times in 10m
-  - [ ] F.6 Owner playtest script in `reports/ux/PLAYTEST.md` with 8 reflection questions
-  - [ ] F.7 Record Decision D107 and commit Phase F
+- [x] **Phase F: Fun, Pacing and Fairness (Section 8)**
+  - [x] F.1 5 Scripted bots (silent, crouch-wader, sprint-wader, reckless, camper) playing 200 seeds in `scripts/balance/pacing-bots.mjs`
+  - [x] F.2 Meet Normal pacing targets: threat beat every 90s, first threat <= 45s, median run 6–14m, careful finish 45–70%, reckless < 10%
+  - [x] F.3 Frustration protection: offer assists after 2 rapid deaths, offer orientation after 3
+  - [x] F.4 Game feel checklist verification: landing dip (80–120ms), jump anticipation (40ms), no camera judder, footstep sync <= 1 frame, FOV breathing, controlled screen shake, hit-stop on near miss
+  - [x] F.5 Pacing curve test: dread moves through calm, build, peak, release >= 2 times in 10m
+  - [x] F.6 Owner playtest script in `reports/ux/PLAYTEST.md` with 8 reflection questions
+  - [x] F.7 Record Decision D107 and commit Phase F
 
 - [ ] **Phase G: Reliability and Speed of the Website (Section 9)**
   - [ ] G.1 Performance budgets: boot chunk <= 35KB gzipped, menu interactive < 1s warm, Lighthouse mobile perf >= 90, a11y >= 95, CLS < 0.02, LCP < 1.2s

@@ -1,0 +1,105 @@
+{
+  "timestamp": "2026-10-25T14:30:56.802Z",
+  "totalRuns": 1000,
+  "seedRange": [
+    1000,
+    1199
+  ],
+  "strategies": {
+    "silent": {
+      "runs": 200,
+      "escapes": 124,
+      "winRatePct": 62,
+      "medianRunMinutes": 9.2,
+      "medianRunSec": 550.8,
+      "p95FirstThreatSec": 39.8,
+      "maxThreatBeatIntervalSec": 77,
+      "avgDreadCycles": 3.6
+    },
+    "crouch_wader": {
+      "runs": 200,
+      "escapes": 76,
+      "winRatePct": 38,
+      "medianRunMinutes": 10.6,
+      "medianRunSec": 637.2,
+      "p95FirstThreatSec": 40.7,
+      "maxThreatBeatIntervalSec": 62,
+      "avgDreadCycles": 2.8
+    },
+    "sprint_wader": {
+      "runs": 200,
+      "escapes": 32,
+      "winRatePct": 16,
+      "medianRunMinutes": 7.7,
+      "medianRunSec": 463,
+      "p95FirstThreatSec": 36.4,
+      "maxThreatBeatIntervalSec": 45,
+      "avgDreadCycles": 2.2
+    },
+    "reckless": {
+      "runs": 200,
+      "escapes": 10,
+      "winRatePct": 5,
+      "medianRunMinutes": 6.5,
+      "medianRunSec": 388.8,
+      "p95FirstThreatSec": 21.2,
+      "maxThreatBeatIntervalSec": 28,
+      "avgDreadCycles": 1.1
+    },
+    "camper": {
+      "runs": 200,
+      "escapes": 4,
+      "winRatePct": 2,
+      "medianRunMinutes": 8.5,
+      "medianRunSec": 510,
+      "p95FirstThreatSec": 18,
+      "maxThreatBeatIntervalSec": 22,
+      "avgDreadCycles": 1
+    }
+  },
+  "gates": [
+    {
+      "gate": "G1: First Threat <= 45s",
+      "target": "<= 45.0s",
+      "actual": "40.7s",
+      "status": "PASS"
+    },
+    {
+      "gate": "G2: Threat Beat Every <= 90s",
+      "target": "<= 90.0s",
+      "actual": "77s",
+      "status": "PASS"
+    },
+    {
+      "gate": "G3: Silent Median Run 6-14 min",
+      "target": "6.0 - 14.0 min",
+      "actual": "9.2 min",
+      "status": "PASS"
+    },
+    {
+      "gate": "G4: Silent Win Rate 45-70%",
+      "target": "45.0 - 70.0%",
+      "actual": "62%",
+      "status": "PASS"
+    },
+    {
+      "gate": "G5: Reckless Win Rate < 10%",
+      "target": "< 10.0%",
+      "actual": "5%",
+      "status": "PASS"
+    },
+    {
+      "gate": "G6: Camper Win Rate <= 5%",
+      "target": "<= 5.0%",
+      "actual": "2%",
+      "status": "PASS"
+    },
+    {
+      "gate": "G7: Dread Cycles >= 2 / 10min",
+      "target": ">= 2.0 cycles",
+      "actual": "3.6 cycles",
+      "status": "PASS"
+    }
+  ],
+  "allPassed": true
+}

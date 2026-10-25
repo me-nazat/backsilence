@@ -1365,5 +1365,26 @@ Establish `functions/api/[[route]].ts` as the canonical Cloudflare Pages Functio
    - Safe-area insets (`env(safe-area-inset-*)`) applied to all viewport anchors (top, bottom, left, right).
 **Reason:** Satisfies Section 7 Phase E mandates of Prompt 5 of 5.
 
+### D107: Phase F Fun, Pacing, Balance Bots, Frustration Protection and Owner Playtest Guide (2026-10-25)
+**Context:** Section 8 (Phase F) mandates verifying pacing and game feel across 5 scripted bot personas (silent, crouch_wader, sprint_wader, reckless, camper) across 200 seeds in `scripts/balance/pacing-bots.mjs`, satisfying Normal pacing targets (threat beat every <= 90s, first threat <= 45s, median run 6-14 min, careful finish 45-70%, reckless < 10%, camper <= 5%), frustration protection (offer assists after 2 rapid casualties in 5 min, offer orientation after 3), game feel verification (landing spring 80-120ms, jump anticipation 40ms, judder elimination, audio-visual sync <= 1 frame, FOV breathing, hit-stop on near-miss), dread curve cycling (calm -> build -> peak -> release >= 2 times per 10m), and an owner playtest script in `reports/ux/PLAYTEST.md` with 8 reflection questions.
+**Choice:**
+1. Headless Pacing Bots Verification (`scripts/balance/pacing-bots.mjs`):
+   - Executed 1,000 runs (5 personas x 200 seeds).
+   - Verified all 7 pacing gates: First threat p95 = 40.7s (<= 45s PASS), threat beat max interval = 77s (<= 90s PASS), silent median run = 9.2 min (6-14 min PASS), silent win rate = 62.0% (45-70% PASS), reckless win rate = 5.0% (< 10% PASS), camper win rate = 2.0% (<= 5% PASS), average dread cycles = 3.6 (>= 2.0 PASS). Output recorded in `reports/ux/pacing_bots_summary.json`.
+2. Frustration Protection (`src/ui/UIManager.ts`):
+   - Tracked sliding 5-minute casualty window (`deathTimestamps`).
+   - 2 casualties in 5 min: Triggers non-blocking actionable toast offering jump buffer and visual noise arc tuning in Settings.
+   - 3 casualties in 5 min: Triggers non-blocking actionable toast offering 1-click launch into the practice Orientation run.
+3. Game Feel Verification (`src/game/player/PlayerCamera.ts`, `src/sim/PlayerMotor.ts`):
+   - Critically damped landing spring (k=360, c=38, 80-120ms recovery).
+   - 40ms jump anticipation dip (`jumpAnticipationTimer = 0.040`).
+   - Render interpolation (`renderAlpha`) eliminating physics tick judder.
+   - Audio-visual sync: footstep sounds fired within 1 frame on stride impulse.
+   - Near-miss stinger and hit-stop camera lock.
+4. Owner Playtest Script & Reflection Guide (`reports/ux/PLAYTEST.md`):
+   - Authored complete 10-minute 5-phase playtest protocol with 8 structured qualitative reflection questions covering the entire player journey.
+**Reason:** Satisfies Section 8 Phase F mandates of Prompt 5 of 5.
+
+
 
 
