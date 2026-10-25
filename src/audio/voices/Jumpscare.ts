@@ -35,7 +35,7 @@ export function playJumpscare(cx: JumpscareVoiceContext): RawVoiceHandle {
   const voiceGain = ctx.createGain();
   // 3 ms anti-click fade-in
   voiceGain.gain.setValueAtTime(0.0001, now);
-  voiceGain.gain.linearRampToValueAtTime(0.33 * intensity, now + 0.003);
+  voiceGain.gain.linearRampToValueAtTime(0.245 * intensity, now + 0.003);
   voiceGain.connect(cx.destination);
   voiceGain.connect(cx.reverbSend);
 
@@ -136,7 +136,7 @@ export function playJumpscare(cx: JumpscareVoiceContext): RawVoiceHandle {
 
   const cleanup = () => {
     for (const n of nodesToClean) {
-      try { n.disconnect(); } catch {}
+      try { n.disconnect(); } catch { /* ignore */ }
     }
   };
 
@@ -198,7 +198,7 @@ export function playHeartbeat(cx: JumpscareVoiceContext): RawVoiceHandle {
 
   const cleanup = () => {
     for (const n of nodesToClean) {
-      try { n.disconnect(); } catch {}
+      try { n.disconnect(); } catch { /* ignore */ }
     }
   };
 

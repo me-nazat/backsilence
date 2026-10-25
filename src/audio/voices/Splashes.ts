@@ -32,7 +32,7 @@ export function playSplash(
 ): RawVoiceHandle {
   const ctx = cx.ctx;
   const now = ctx.currentTime;
-  const intensity = Math.max(0.1, Math.min(2.5, cx.intensity ?? (type === 'small' ? 0.45 : type === 'big' ? 1.0 : 1.45)));
+  const intensity = Math.max(0.1, Math.min(2.5, cx.intensity ?? (type === 'small' ? 0.45 : type === 'big' ? 1.35 : 1.65)));
   const pitchMult = cx.pitch ?? 1.0;
   const rng = new Rng(cx.seed ?? Math.floor(Math.random() * 100000));
 
@@ -42,7 +42,7 @@ export function playSplash(
     if (pool.isReady()) {
       const cat = type === 'small' ? 'splash_small' : type === 'big' ? 'splash_medium' : 'splash_heavy';
       return pool.play(cat, cx.destination, cx.reverbSend, {
-        volume: 0.85 * intensity,
+        volume: 0.95 * intensity,
         pitchMult,
         reverbGain: type === 'small' ? 0.35 : 0.65,
       });
@@ -54,7 +54,7 @@ export function playSplash(
   const voiceGain = ctx.createGain();
   // 3 ms anti-click fade-in
   voiceGain.gain.setValueAtTime(0.0001, now);
-  voiceGain.gain.linearRampToValueAtTime(0.85 * intensity, now + 0.003);
+  voiceGain.gain.linearRampToValueAtTime(0.52 * intensity, now + 0.003);
   voiceGain.connect(cx.destination);
 
   const revGain = ctx.createGain();
@@ -183,7 +183,7 @@ export function playSplash(
 
   const cleanup = () => {
     for (const node of nodesToDisconnect) {
-      try { node.disconnect(); } catch {}
+      try { node.disconnect(); } catch { /* ignore */ }
     }
   };
 
@@ -276,7 +276,9 @@ export function playWadeLoop(cx: SplashVoiceContext): RawVoiceHandle {
           noise.disconnect();
           filter.disconnect();
           voiceGain.disconnect();
-        } catch {}
+        } catch {
+          /* ignore */
+        }
         endedResolve();
       }, fade * 1000);
     },
@@ -337,7 +339,9 @@ export function playPebblePlink(cx: SplashVoiceContext): RawVoiceHandle {
       osc.disconnect();
       oscGain.disconnect();
       voiceGain.disconnect();
-    } catch {}
+    } catch {
+      /* ignore */
+    }
     endedResolve();
   }, 320);
 
@@ -346,7 +350,9 @@ export function playPebblePlink(cx: SplashVoiceContext): RawVoiceHandle {
       splash.stop(fade);
       try {
         voiceGain.disconnect();
-      } catch {}
+      } catch {
+        /* ignore */
+      }
     },
     setParam(): void {},
     ended,

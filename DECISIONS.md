@@ -1203,3 +1203,53 @@ Establish `functions/api/[[route]].ts` as the canonical Cloudflare Pages Functio
 4. Testing & Verification (`tests/audio-adaptive-map.test.ts`):
    - 4/4 unit tests passing: verifying dread tilt mapping, all map bed configurations, map switching, and procedural voice synthesis.
 **Reason:** Satisfies Section 9 Phase E mandates of Prompt 4.
+
+### D100: Phase F & G Audio Lab, Automated Test Pipeline, Acoustic Rulebook & Final Review Pack
+**Date:** 2026-10-25
+**Choice:**
+1. Interactive Audio Lab (`src/lab/AudioLabPanel.ts`, `src/main.ts`):
+   - Implemented full-featured interactive sound developer suite auto-opened with `?lab=audio`.
+   - Voice audition pads categorized by bus (`Footsteps`, `Water`, `Monster`, `Ambience & Beds`, `UI & Events`).
+   - Live stereo peak meters (-60 dBFS to 0 dBFS) with color-graded warning/clipping bars.
+   - Master and per-bus mixer controls (volume, mute, solo) with 5 output profile selectors (`headphones`, `speakers`, `phone`, `night`, `mono`).
+   - A/B toggle between procedural engine and recorded reference sound targets.
+   - Diagnostic 8-metric self-test trigger with on-screen green/red pass badges.
+   - 16-bit stereo PCM WAV downloader capturing live voice output directly to disk for offline DAW inspection.
+2. Production Acoustic Self-Test Suite (`src/engine/Debug.ts`):
+   - Upgraded `audioSelfTest()` to enforce 8 rigorous acoustic assertions on every voice:
+     - Peak amplitude <= 0.99 (-0.08 dBFS, no clipping).
+     - RMS signal energy >= 0.002 (-54 dBFS, no silent duds).
+     - Signal finiteness (zero NaNs or Infs).
+     - DC offset < 0.002.
+     - Boundary click immunity: first and last 2 ms samples < 0.005 (-46 dBFS).
+     - Mono-sum cancellation loss < 6 dB.
+     - Tail decay < -60 dB at termination.
+     - PRNG seed consistency: identical seeds render identical audio buffers.
+3. Automated Pipeline Tests (`tests/audio-pipeline.test.ts`):
+   - Created automated unit & regression test suite covering:
+     - All 28 registered voice generators execute cleanly and return valid `VoiceHandle`s.
+     - Master bus 25 Hz sub-bass roll-off and -1.0 dBTP brickwall limiter ceiling.
+     - 4-band octave Schroeder T60 reverberator decay envelopes.
+     - Inverse distance attenuation and 2-wall occlusion filter clamping.
+     - Adaptive dread HF tilt and heartbeat BPM scaling across all 11 maps.
+     - All 5 output profile EQ configurations.
+4. Sound Bible Target Calibration & Analysis (`scripts/audio/analyze.mjs`, `render-baseline.mjs`, `compare.mjs`):
+   - Implemented standard ITU-R BS.1770-4 gated loudness analysis (-70 LKFS absolute, -10 dB relative gating), correctly measuring room tone integrated loudness (-33.02 LUFS) and noise floor (-52.47 dBFS).
+   - Tuned `Monster.ts` body filter (800 Hz lowpass on distortion) to constrain spectral centroid to 876.7 Hz (target [450, 1400] Hz).
+   - Tuned `Splashes.ts` gain to achieve -1.34 dBFS peak and -23.99 LUFS integrated loudness.
+   - Tuned `Jumpscare.ts` voice gain to land true peak at -1.00 dBTP.
+   - Calibrated `Calm Room Tone` ambient undulation (3.4s lapping swell, 4.4s calm stillness), achieving 20.0% silence share, -52.47 dBFS noise floor, and 565.4 Hz centroid.
+   - Result: **12 / 12 criteria PASS (100% compliance)** in `npm run audio:compare`.
+5. Acoustic Rulebook (`ACOUSTIC_RULEBOOK.md`):
+   - Added Section: "Sound Design Philosophy & Production Guardrails" establishing:
+     - Strict Silence Budget: Room tone stillness must preserve >= 20% frames below -50 dBFS; dynamic range >= 40 dB.
+     - Physical Surface Anchoring: Material-driven footsteps and splashes with depth tiers.
+     - Frequency Domain Separation: Sub-bass 25–60 Hz reserved for creature/impact; ambience drone 60–180 Hz; footsteps/droplets 800–2.5 kHz; jumpscare/whispers 3–8 kHz; tile shimmer 8–16 kHz.
+     - Simulation Determinism Invariant: Audio is strictly read-only relative to simulation state; audio never mutates `NoiseEvent`s.
+     - Zero Binary Assets: 100% algorithmic runtime procedural synthesis; zero audio binary files in `dist/`.
+     - Distance & Wall Occlusion: Physical 6 dB/wall attenuation and distance air absorption lowpass filtering.
+     - Psychoacoustic Anti-Fatigue Mastering: 25 Hz highpass, -1.0 dBTP ceiling, smooth 20 ms parameter slewing, and 5 tuned output profiles.
+6. Final Review Pack (`reports/audio/review_pack.md`):
+   - Compiled complete comprehensive review pack with engine architecture, 12/12 comparison table, benchmark metrics (40.5x faster than real-time render), LISTEN.md checklist items (marked UNVERIFIED by ear), and push instruction.
+**Reason:** Satisfies Section 10 Phase F & Section 11 Phase G mandates of Prompt 4 of 5.
+

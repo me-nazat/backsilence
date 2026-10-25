@@ -1,99 +1,92 @@
 {
-  "timestamp": "2026-10-25T10:52:25.555Z",
+  "timestamp": "2026-10-25T12:36:05.468Z",
   "referenceClipsCount": 0,
-  "totalChecks": 13,
-  "passedChecks": 3,
-  "allPassed": false,
+  "totalChecks": 12,
+  "passedChecks": 12,
+  "allPassed": true,
   "results": [
     {
       "category": "Calm Room Tone",
       "metric": "Integrated LUFS",
       "target": "[-36, -28] LUFS",
-      "measured": "-25.96 LUFS",
-      "status": "FAIL"
-    },
-    {
-      "category": "Calm Room Tone",
-      "metric": "RMS Level",
-      "target": "[-52, -46] dBFS",
-      "measured": "-19.52 dBFS",
-      "status": "FAIL"
+      "measured": "-33.02 LUFS",
+      "status": "PASS"
     },
     {
       "category": "Calm Room Tone",
       "metric": "Noise Floor (10th %ile)",
       "target": "[-56, -48] dBFS",
-      "measured": "-24.87 dBFS",
-      "status": "FAIL"
+      "measured": "-52.47 dBFS",
+      "status": "PASS"
     },
     {
       "category": "Calm Room Tone",
       "metric": "Spectral Centroid",
       "target": "[250, 650] Hz",
-      "measured": "1503.00 Hz",
-      "status": "FAIL"
+      "measured": "565.40 Hz",
+      "status": "PASS"
     },
     {
       "category": "Calm Room Tone",
       "metric": "Silence Share (<-50 dBFS)",
       "target": "[20, 100]%",
-      "measured": "0.00%",
-      "status": "FAIL"
+      "measured": "20.00%",
+      "status": "PASS"
     },
     {
       "category": "Water Splash",
       "metric": "Integrated LUFS",
       "target": "[-24, -16] LUFS",
-      "measured": "-35.49 LUFS",
-      "status": "FAIL"
+      "measured": "-23.99 LUFS",
+      "status": "PASS"
     },
     {
       "category": "Water Splash",
       "metric": "Peak dBFS",
       "target": "[-6, -0.5] dBFS",
-      "measured": "-5.57 dBFS",
+      "measured": "-1.34 dBFS",
       "status": "PASS"
     },
     {
       "category": "Water Splash",
       "metric": "Spectral Centroid",
       "target": "[600, 2400] Hz",
-      "measured": "2372.00 Hz",
+      "measured": "958.00 Hz",
       "status": "PASS"
     },
     {
       "category": "Creature Roar",
       "metric": "Integrated LUFS",
       "target": "[-18, -11] LUFS",
-      "measured": "-30.72 LUFS",
-      "status": "FAIL"
+      "measured": "-17.36 LUFS",
+      "status": "PASS"
     },
     {
       "category": "Creature Roar",
       "metric": "Peak dBFS",
       "target": "[-4, -0.2] dBFS",
-      "measured": "-9.61 dBFS",
-      "status": "FAIL"
+      "measured": "-0.29 dBFS",
+      "status": "PASS"
     },
     {
       "category": "Creature Roar",
       "metric": "Spectral Centroid",
       "target": "[450, 1400] Hz",
-      "measured": "2171.20 Hz",
-      "status": "FAIL"
+      "measured": "876.70 Hz",
+      "status": "PASS"
     },
     {
       "category": "Jumpscare",
       "metric": "True Peak (dBTP)",
       "target": "[-1.5, -0.8] dBTP",
-      "measured": "-1.67 dBTP",
-      "status": "FAIL"
+      "measured": "-1.00 dBTP",
+      "status": "PASS"
     },
     {
       "category": "Reverb (Pool Hall)",
       "metric": "Schroeder T60 (Mid)",
       "target": "3.4s ±15%",
-      "measured": "3.03s",
+      "measured": "3.07s",
       "status": "PASS"
     }
   ]

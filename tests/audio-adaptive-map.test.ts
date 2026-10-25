@@ -3,7 +3,7 @@
  * ──────────────────────────────────────────────────────────────────────── */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { AudioEngine } from '../src/audio/AudioEngine.js';
+import { AudioEngine, type VoiceHandle } from '../src/audio/AudioEngine.js';
 import { AudioDirector, MAP_AUDIO_CONFIGS } from '../src/audio/AudioDirector.js';
 import { Mixer } from '../src/audio/Mixer.js';
 import { ALL_MAP_IDS } from '../src/world/MapRegistry.js';
@@ -18,8 +18,14 @@ import {
   playSparsePebbleFall,
 } from '../src/audio/voices/AmbienceBeds.js';
 
+interface EngineInternals {
+  ctx: BaseAudioContext;
+  mixer: Mixer;
+  director: AudioDirector;
+}
+
 function createMockAudioContext(): BaseAudioContext {
-  let currTime = 0;
+  const currTime = 0;
   const createAudioParam = (initial = 0) => {
     let val = initial;
     return {
@@ -106,10 +112,11 @@ describe('Phase E: Adaptive and Per-Map Sound Suite', () => {
   beforeEach(() => {
     ctx = createMockAudioContext();
     engine = new AudioEngine();
-    (engine as any).ctx = ctx;
-    (engine as any).mixer = new Mixer(ctx);
+    const internals = engine as unknown as EngineInternals;
+    internals.ctx = ctx;
+    internals.mixer = new Mixer(ctx);
     director = new AudioDirector(engine);
-    (engine as any).director = director;
+    internals.director = director;
   });
 
   afterEach(() => {
@@ -120,7 +127,8 @@ describe('Phase E: Adaptive and Per-Map Sound Suite', () => {
     // Baseline dread 0
     director.setDread(0.0);
     expect(director.currentDread).toBe(0.0);
-    expect((engine as any).mixer.ambientTiltFilter.frequency.value).toBe(18000);
+    const internals = engine as unknown as EngineInternals;
+    expect(internals.mixer.ambientTiltFilter.frequency.value).toBe(18000);
 
     // Mid dread 0.5
     director.setDread(0.5);
@@ -152,12 +160,13 @@ describe('Phase E: Adaptive and Per-Map Sound Suite', () => {
   });
 
   it('3. AudioDirector startMapAmbience activates per-map beds and scheduler', () => {
-    const playSpy = vi.spyOn(engine, 'play').mockImplementation(() => ({
+    const dummyHandle: VoiceHandle = {
       stop: () => {},
       setParam: () => {},
       setPosition: () => {},
       ended: Promise.resolve(),
-    } as any));
+    };
+    const playSpy = vi.spyOn(engine, 'play').mockImplementation(() => dummyHandle);
 
     director.startMapAmbience('utility_tunnels');
     expect(director.activeMapId).toBe('utility_tunnels');

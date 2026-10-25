@@ -134,7 +134,11 @@ export interface DebugApiOptions {
 export interface AudioSelfTestResult {
   voice: VoiceName;
   peakAmplitude: number;
+  rms: number;
+  dcOffset: number;
+  startEndClean: boolean;
   nanInfFree: boolean;
+  monoLossDb: number;
   status: 'PASS' | 'FAIL';
   reason?: string | undefined;
 }
@@ -413,36 +417,66 @@ export async function audioSelfTest(): Promise<{ passed: boolean; results: Audio
       const renderedBuffer = await offlineCtx.startRendering();
 
       let peak = 0;
+      let sum = 0;
+      let sumSq = 0;
       let hasNanInf = false;
+      let totalSamples = 0;
 
-      for (let ch = 0; ch < renderedBuffer.numberOfChannels; ch++) {
-        const data = renderedBuffer.getChannelData(ch);
-        for (let i = 0; i < data.length; i++) {
-          const val = data[i]!;
-          if (!Number.isFinite(val)) {
-            hasNanInf = true;
-            break;
-          }
-          const abs = Math.abs(val);
-          if (abs > peak) peak = abs;
+      const left = renderedBuffer.getChannelData(0);
+      const right = renderedBuffer.getChannelData(1);
+      const len = left.length;
+
+      let maxMono = 0;
+      for (let i = 0; i < len; i++) {
+        const l = left[i]!;
+        const r = right[i]!;
+        if (!Number.isFinite(l) || !Number.isFinite(r)) {
+          hasNanInf = true;
+          break;
         }
+        const absL = Math.abs(l);
+        const absR = Math.abs(r);
+        if (absL > peak) peak = absL;
+        if (absR > peak) peak = absR;
+
+        sum += l + r;
+        sumSq += l * l + r * r;
+        totalSamples += 2;
+
+        const mono = Math.abs(l + r) * 0.5;
+        if (mono > maxMono) maxMono = mono;
       }
 
-      const pass = !hasNanInf && peak >= 0.01 && peak <= 1.25;
+      const rms = totalSamples > 0 ? Math.sqrt(sumSq / totalSamples) : 0;
+      const dcOffset = totalSamples > 0 ? Math.abs(sum / totalSamples) : 0;
+      const startClean = Math.abs(left[0] ?? 0) < 0.005 && Math.abs(right[0] ?? 0) < 0.005;
+      const monoLossDb = peak > 1e-5 ? Math.max(0, 20 * Math.log10(peak / (maxMono || 1e-6))) : 0;
+
+      const pass = !hasNanInf && peak >= 0.002 && peak <= 0.99 && dcOffset < 0.002 && startClean && monoLossDb < 6.0;
       if (!pass) allPass = false;
 
       const reason = hasNanInf
         ? 'Contains NaN or Infinity'
-        : peak < 0.01
+        : peak < 0.002
           ? 'Silence or too quiet'
-          : peak > 1.25
-            ? 'Clipping'
-            : undefined;
+          : peak > 0.99
+            ? `Peak exceeds limiter ceiling (> 0.99: ${peak.toFixed(3)})`
+            : dcOffset >= 0.002
+              ? `DC offset too high (${dcOffset.toFixed(4)})`
+              : !startClean
+                ? 'Click/pop detected at start boundary'
+                : monoLossDb >= 6.0
+                  ? `Phase cancellation in mono-sum (${monoLossDb.toFixed(1)} dB)`
+                  : undefined;
 
       results.push({
         voice,
         peakAmplitude: Math.round(peak * 1000) / 1000,
+        rms: Math.round(rms * 1000) / 1000,
+        dcOffset: Math.round(dcOffset * 10000) / 10000,
+        startEndClean: startClean,
         nanInfFree: !hasNanInf,
+        monoLossDb: Math.round(monoLossDb * 10) / 10,
         status: pass ? 'PASS' : 'FAIL',
         ...(reason !== undefined ? { reason } : {}),
       });
@@ -451,7 +485,11 @@ export async function audioSelfTest(): Promise<{ passed: boolean; results: Audio
       results.push({
         voice,
         peakAmplitude: 0,
+        rms: 0,
+        dcOffset: 0,
+        startEndClean: false,
         nanInfFree: false,
+        monoLossDb: 0,
         status: 'FAIL',
         reason: String(err),
       });

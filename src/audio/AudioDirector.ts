@@ -4,14 +4,14 @@
  *  reverb sends, and per-map procedural beds with randomized sparse events.
  * ──────────────────────────────────────────────────────────────────────── */
 
-import type { AudioEngine, VoiceHandle } from './AudioEngine.js';
+import type { AudioEngine, VoiceHandle, VoiceName } from './AudioEngine.js';
 import type { MapId } from '../types/contracts.js';
 import { Rng } from '../procedural/core/prng.js';
 
 interface MapAudioConfig {
   bedType: 'triad' | 'neon_duo' | 'metro_duo' | 'single';
-  singleVoice?: string;
-  sparseEvents: string[];
+  singleVoice?: VoiceName;
+  sparseEvents: VoiceName[];
 }
 
 export const MAP_AUDIO_CONFIGS: Record<MapId, MapAudioConfig> = {
@@ -289,7 +289,7 @@ export class AudioDirector {
       this.activeLoops.push(rail, train, drone);
       this.droneLoop = drone;
     } else if (config.singleVoice) {
-      const bed = this.engine.play(config.singleVoice as any, { bus: 'ambient' });
+      const bed = this.engine.play(config.singleVoice, { bus: 'ambient' });
       const drone = this.engine.play('drone_loop', { bus: 'ambient' });
       drone.setParam('tension', this.tension);
       this.activeLoops.push(bed, drone);
@@ -330,7 +330,7 @@ export class AudioDirector {
       const pool = candidates.length > 0 ? candidates : events;
       const chosen = pool[this.rng.int(0, pool.length - 1)]!;
 
-      this.engine.play(chosen as any, {
+      this.engine.play(chosen, {
         bus: 'ambient',
         seed: this.rng.int(1, 99999),
       });

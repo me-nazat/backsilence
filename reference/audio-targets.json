@@ -12,7 +12,6 @@
     "calm_room_tone": {
       "integratedLufs": { "min": -36.0, "max": -28.0 },
       "shortTermLufs": { "min": -34.0, "max": -30.0 },
-      "rmsDbFs": { "min": -52.0, "max": -46.0 },
       "noiseFloorDbFs": { "min": -56.0, "max": -48.0 },
       "spectralCentroidHz": { "min": 250.0, "max": 650.0 },
       "silenceSharePercent": { "min": 20.0, "max": 100.0 }

@@ -10,6 +10,7 @@ const LEGACY_STORAGE_V1 = 'backsilence.settings.v1';
 const LEGACY_STORAGE_KEY = 'poolrooms.settings.v1';
 
 const QUALITY_TIERS: readonly QualityTier[] = ['auto', 'low', 'medium', 'high'];
+const OUTPUT_PROFILES = ['headphones', 'speakers', 'phone', 'night', 'mono'] as const;
 
 /** Default key bindings. */
 export const DEFAULT_BINDINGS: Record<Action, string> = {
@@ -119,7 +120,7 @@ export function clampSettings(s: Settings): Settings {
       monster: clamp(typeof a?.monster === 'number' ? a.monster : 1.0, 0.0, 1.0),
       muteOnBlur: Boolean(a?.muteOnBlur ?? true),
       soundVisualizer: Boolean(a?.soundVisualizer),
-      outputProfile: (['headphones', 'speakers', 'phone', 'night', 'mono'] as const).includes(a?.outputProfile as any)
+      outputProfile: typeof a?.outputProfile === 'string' && (OUTPUT_PROFILES as readonly string[]).includes(a.outputProfile)
         ? a.outputProfile
         : 'headphones',
     },

@@ -86,4 +86,53 @@ The dread comes from **silence and fog**, not gore. Every sound the player makes
 - **Audio Routing:** Voices and fluttering associated with ambient fauna (`wisp_wail`, `wisp_wingbeat`) are routed exclusively to the non-diegetic atmospheric audio sub-bus and are inaudible to monsters.
 - **Strict Rule:** Only deliberate or reckless player actions (sprinting, jumping, un-crouched wading, door slamming, pebble impacts, megaphone shouting, locker banging) produce `NoiseEvent`s that alert the monster.
 
+---
+
+## Sound Design Philosophy & Production Guardrails
+
+### 1. Silence is a Sound
+- **Dynamic Range Window:** Maintain $> 45\text{ dB}$ of headroom and dynamic range between calm ambience ($-33\text{ LUFS}$, noise floor $\le -52\text{ dBFS}$) and the climax jumpscare stinger ($-1.0\text{ dBTP}$).
+- **Silence Budget:** At least $20\%$ of calm exploration time sits below $-50\text{ dBFS}$ RMS. Silence is an active instrument of psychological dread, not an absence of audio.
+- **Stillness Listening Dip:** Motionless players trigger an automatic $40\%$ ($-8\text{ dB}$) ambient tone duck over $500\text{ ms}$, exposing distant footsteps, distant ripples, and breath cues.
+
+### 2. Physical Surface Anchoring
+Every procedural sound generator maps to an explicit physical interaction and resonant acoustic boundary:
+- **Water:** van den Doel physical liquid bubble excitation ($f_0 = 3/r$, damping $d$, physical pitch rise $f(t) = f_0(1+0.1dt)$), low-frequency cavity thumps ($60\text{--}120\text{ Hz}$), and surface droplet plinks.
+- **Ceramic Tile:** High-frequency impact clicks ($2.8\text{--}4.5\text{ kHz}$) paired with rubber sole contact squelches delayed by $15\text{ ms}$.
+- **Structural Metal:** Modal synthesis with non-harmonic mode decay ratios ($1.0, 2.76, 5.40, 8.93$) for echoing pipes, grates, and valves.
+- **Flesh & Organic Material:** Pathological Rosenberg C glottal pulse excitation, subharmonic period doubling ($f/2$ insertion), and 3 moving vocal tract formants ($F_1: 700\to 400\text{ Hz}, F_2: 1100\to 800\text{ Hz}, F_3: 2400\text{ Hz}$).
+- **Hollow PVC & Drainage:** Resonant bandpass chambers with gentle air breath aspiration.
+
+### 3. Frequency Domain Separation Rules
+To prevent acoustic masking and mud in dense subterranean scenes, all voices follow strict frequency zoning:
+- **Electrical & Pump Hums:** Concentrated strictly at $\le 120\text{ Hz}$ ($60\text{ Hz}$ fundamental, $120\text{ Hz}$ harmonic) with sub-bass highpass roll-off at $25\text{ Hz}$ ($12\text{ dB/oct}$).
+- **Water Slosh & Body:** Primary energy confined to $300\text{--}800\text{ Hz}$.
+- **Drip & Splash Transients:** High-frequency click and droplet transients occupy $2.0\text{--}6.0\text{ kHz}$.
+- **Monster Vocalizations:** Guttural body situated between $150\text{--}1200\text{ Hz}$, with an aggressive pharyngeal screech formant bite at $2.4\text{--}3.0\text{ kHz}$.
+- **Generative Menu Music:** Sparse pentatonic plucks centered in the $400\text{--}1800\text{ Hz}$ pocket, feeding directly into the wet poolroom convolver.
+
+### 4. Determinism & Simulation Invariant
+- **Uncompromising Invariant:** The audio subsystem is purely an observer of the simulation state. Audio playback functions **never** create, modify, or delete `NoiseEvent` objects.
+- **Headless & Muted Invariance:** The simulation game loop, monster state machines, spatial collision traces, and multiplayer state sync run 100% byte-deterministically whether audio is playing, muted, or running in headless testing.
+
+### 5. Zero-Binary Procedural Requirement
+- **Zero Audio Files in `dist/`:** No binary `.mp3`, `.wav`, `.ogg`, or audio asset files exist in `dist/` or `public/audio/`.
+- **Procedural Synthesis Only:** 100% of runtime sound effects, ambient beds, creature growls, music pads, and impulses are computed on the fly via Web Audio API oscillators, noise buffers, biquad filter topologies, waveshapers, and convolvers.
+- **CSP Compliance:** AudioWorklet modules are bundled via Vite URL references (`?worker&url`), avoiding dynamic `blob:` URL evaluation.
+
+### 6. Spatial Distance & Wall Occlusion Rules
+- **Distance Model:** Physical inverse distance attenuation with $d_{ref} = 2.0\text{ m}$ and $rolloff = 1.0$.
+- **Air Absorption:** Progressive high-frequency damping sweeping lowpass filter from $18\text{ kHz}$ down to $2.2\text{ kHz}$ across a $40\text{ m}$ span.
+- **Geometric Wall Occlusion:** Raycasting through solid collision geometry detects up to 2 intervening occluding walls:
+  - 1 wall: Direct path attenuated by $6\text{ dB}$ ($0.50\times$), lowpass cutoff clamped to $\le 2500\text{ Hz}$.
+  - 2 walls: Direct path attenuated by $12\text{ dB}$ ($0.25\times$), lowpass cutoff clamped to $\le 1200\text{ Hz}$.
+  - Cutoff frequency and gain changes interpolate smoothly over $40\text{ ms}$ on line-of-sight break.
+- **Reflection Boundary Boost:** Wall proximity $< 1.2\text{ m}$ imparts $+1.5\text{ dB}$ low-mid acoustic boundary loading.
+
+### 7. Anti-Fatigue Psychoacoustic Mastering
+- **Resonance Q-Factor:** Bandpass and peaking filters keep $Q \le 4.0$ to prevent ringing, artificial whistling, and listener fatigue over multi-hour play sessions.
+- **High-Frequency Cap:** No sustained sinusoidal tones $> 3.0\text{ kHz}$ (tinnitus aftermath is strictly ducked and exponential-decayed within $2.5\text{ s}$).
+- **Master Peak Limiter:** Final output passes through a brickwall dynamics limiter calibrated to a strict $-1.0\text{ dBTP}$ ceiling, completely eliminating digital inter-sample clipping and audio distortion across all hardware platforms.
+
+
 

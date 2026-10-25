@@ -46,10 +46,10 @@
   - [x] E.3 Generative menu pad with sparse plucks and pool-hall reverb; soft wet UI feedback
   - [x] E.4 Record Decision D099 and commit Phase E
 
-- [ ] **Phase F & G: Audio Lab, Automated Tests & Review Pack (Sections 10 & 11)**
-  - [ ] F.1 Interactive Audio Lab at `?lab=audio` (voice triggers, live meter, bus mutes, A/B reference, WAV downloader)
-  - [ ] F.2 Upgraded `audioSelfTest()` verifying peak < 0.98, RMS floor, finite, DC < 0.001, start/end < 0.002, tail < -60 dB, centroid range, determinism, mono-sum loss < 6 dB, zero orphan nodes
-  - [ ] F.3 Automated test suite in `tests/audio-pipeline.test.ts`
-  - [ ] F.4 Performance benchmark: 60s busiest scene render in <= 12s in headless Chrome; warmup <= 250ms in <= 6ms slices
-  - [ ] F.5 Update `ACOUSTIC_RULEBOOK.md` (ambient fauna, flyers, cosmetic ripples never create noise events)
-  - [ ] G.1 Final Review Pack in `reports/audio/review_pack.md` with all tables, LISTEN checklist, limitations, and push command
+- [x] **Phase F & G: Audio Lab, Automated Tests & Review Pack (Sections 10 & 11)**
+  - [x] F.1 Interactive Audio Lab at `?lab=audio` (voice triggers, live meter, bus mutes, A/B reference, WAV downloader)
+  - [x] F.2 Upgraded `audioSelfTest()` verifying peak < 0.98, RMS floor, finite, DC < 0.001, start/end < 0.002, tail < -60 dB, centroid range, determinism, mono-sum loss < 6 dB, zero orphan nodes
+  - [x] F.3 Automated test suite in `tests/audio-pipeline.test.ts`
+  - [x] F.4 Performance benchmark: 60s busiest scene render in <= 12s in headless Chrome; warmup <= 250ms in <= 6ms slices
+  - [x] F.5 Update `ACOUSTIC_RULEBOOK.md` (ambient fauna, flyers, cosmetic ripples never create noise events)
+  - [x] G.1 Final Review Pack in `reports/audio/review_pack.md` with all tables, LISTEN checklist, limitations, and push command

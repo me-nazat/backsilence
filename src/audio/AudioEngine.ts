@@ -1073,6 +1073,10 @@ export class AudioEngine implements AudioEngineApi {
     this.mixer?.setOutputProfile(profile);
   }
 
+  setBusVolume(bus: AudioBusName | 'master', vol: number): void {
+    this.mixer?.setVolumes({ [bus]: vol });
+  }
+
   getReverbSend(): AudioNode | null {
     return this.reverb?.input ?? null;
   }

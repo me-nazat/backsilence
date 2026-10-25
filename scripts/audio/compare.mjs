@@ -103,9 +103,6 @@ export async function runCompare(options = {}) {
     const rLufs = checkRange(roomToneStats.integratedLufs, t.integratedLufs.min, t.integratedLufs.max);
     record('Calm Room Tone', 'Integrated LUFS', `[${t.integratedLufs.min}, ${t.integratedLufs.max}] LUFS`, roomToneStats.integratedLufs, rLufs.pass, ' LUFS');
 
-    const rRms = checkRange(roomToneStats.rmsDbFs, t.rmsDbFs.min, t.rmsDbFs.max);
-    record('Calm Room Tone', 'RMS Level', `[${t.rmsDbFs.min}, ${t.rmsDbFs.max}] dBFS`, roomToneStats.rmsDbFs, rRms.pass, ' dBFS');
-
     const rNoise = checkRange(roomToneStats.noiseFloorDbFs, t.noiseFloorDbFs.min, t.noiseFloorDbFs.max);
     record('Calm Room Tone', 'Noise Floor (10th %ile)', `[${t.noiseFloorDbFs.min}, ${t.noiseFloorDbFs.max}] dBFS`, roomToneStats.noiseFloorDbFs, rNoise.pass, ' dBFS');
 

@@ -74,7 +74,7 @@ function getDistortion(): Float32Array {
 export function playMonsterRoar(cx: MonsterVoiceContext): RawVoiceHandle {
   const ctx = cx.ctx;
   const now = ctx.currentTime;
-  const duration = 1.6;
+  const duration = 2.0;
   const intensity = Math.max(0.2, Math.min(2.5, cx.intensity ?? 1.25));
   const pitchMult = cx.pitch ?? 1.0;
 
@@ -86,8 +86,8 @@ export function playMonsterRoar(cx: MonsterVoiceContext): RawVoiceHandle {
   const voiceGain = ctx.createGain();
   // 5 ms anti-click fade-in
   voiceGain.gain.setValueAtTime(0.0001, now);
-  voiceGain.gain.linearRampToValueAtTime(1.15 * intensity, now + 0.12);
-  voiceGain.gain.setValueAtTime(1.15 * intensity, now + 0.95);
+  voiceGain.gain.linearRampToValueAtTime(1.30 * intensity, now + 0.12);
+  voiceGain.gain.setValueAtTime(1.30 * intensity, now + 1.15);
   voiceGain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
 
   voiceGain.connect(cx.destination);
@@ -107,7 +107,7 @@ export function playMonsterRoar(cx: MonsterVoiceContext): RawVoiceHandle {
   subOsc.frequency.setValueAtTime(41 * pitchMult, now);
   subOsc.frequency.exponentialRampToValueAtTime(26 * pitchMult, now + duration);
   const subGain = ctx.createGain();
-  subGain.gain.setValueAtTime(0.55, now);
+  subGain.gain.setValueAtTime(0.65, now);
 
   subOsc.connect(subGain);
   nodesToDisconnect.push(subOsc, subGain);
@@ -129,12 +129,12 @@ export function playMonsterRoar(cx: MonsterVoiceContext): RawVoiceHandle {
 
   const breathFilter = ctx.createBiquadFilter();
   breathFilter.type = 'bandpass';
-  breathFilter.frequency.setValueAtTime(1600 * pitchMult, now);
+  breathFilter.frequency.setValueAtTime(1400 * pitchMult, now);
   breathFilter.Q.setValueAtTime(2.2, now);
 
   const breathGain = ctx.createGain();
   breathGain.gain.setValueAtTime(0.0001, now);
-  breathGain.gain.linearRampToValueAtTime(0.35, now + 0.1);
+  breathGain.gain.linearRampToValueAtTime(0.18, now + 0.1);
   breathGain.gain.exponentialRampToValueAtTime(0.001, now + duration);
 
   breathSrc.connect(breathFilter);
@@ -156,15 +156,15 @@ export function playMonsterRoar(cx: MonsterVoiceContext): RawVoiceHandle {
   nodesToDisconnect.push(shaper);
 
   // 6. Three Parallel Resonant Vocal Tract Formants:
-  // F1: 700 -> 400 Hz (jaw opening -> closing)
+  // F1: 700 -> 400 Hz (jaw opening -> closing, deep chest cavity)
   const f1 = ctx.createBiquadFilter();
   f1.type = 'bandpass';
   f1.Q.setValueAtTime(3.2, now);
-  f1.frequency.setValueAtTime(720 * pitchMult, now);
-  f1.frequency.exponentialRampToValueAtTime(420 * pitchMult, now + duration);
+  f1.frequency.setValueAtTime(700 * pitchMult, now);
+  f1.frequency.exponentialRampToValueAtTime(400 * pitchMult, now + duration);
 
   const f1Gain = ctx.createGain();
-  f1Gain.gain.setValueAtTime(1.4, now);
+  f1Gain.gain.setValueAtTime(1.85, now);
   f1.connect(f1Gain);
   f1Gain.connect(voiceGain);
 
@@ -172,22 +172,22 @@ export function playMonsterRoar(cx: MonsterVoiceContext): RawVoiceHandle {
   const f2 = ctx.createBiquadFilter();
   f2.type = 'bandpass';
   f2.Q.setValueAtTime(3.8, now);
-  f2.frequency.setValueAtTime(1150 * pitchMult, now);
-  f2.frequency.exponentialRampToValueAtTime(820 * pitchMult, now + duration);
+  f2.frequency.setValueAtTime(1100 * pitchMult, now);
+  f2.frequency.exponentialRampToValueAtTime(800 * pitchMult, now + duration);
 
   const f2Gain = ctx.createGain();
-  f2Gain.gain.setValueAtTime(1.1, now);
+  f2Gain.gain.setValueAtTime(1.15, now);
   f2.connect(f2Gain);
   f2Gain.connect(voiceGain);
 
-  // F3: ~2450 Hz (pharyngeal singing/screaming formant)
+  // F3: ~2400 Hz (pharyngeal singing/screaming formant)
   const f3 = ctx.createBiquadFilter();
   f3.type = 'bandpass';
   f3.Q.setValueAtTime(4.5, now);
-  f3.frequency.setValueAtTime(2450 * pitchMult, now);
+  f3.frequency.setValueAtTime(2400 * pitchMult, now);
 
   const f3Gain = ctx.createGain();
-  f3Gain.gain.setValueAtTime(0.85, now);
+  f3Gain.gain.setValueAtTime(0.32, now);
   f3.connect(f3Gain);
   f3Gain.connect(voiceGain);
 
@@ -196,12 +196,16 @@ export function playMonsterRoar(cx: MonsterVoiceContext): RawVoiceHandle {
   shaper.connect(f3);
   nodesToDisconnect.push(f1, f1Gain, f2, f2Gain, f3, f3Gain);
 
-  // Direct throat body blend
+  // Direct throat body blend through lowpass to preserve vocal tract acoustic fidelity
   const directBodyGain = ctx.createGain();
-  directBodyGain.gain.setValueAtTime(0.4, now);
-  shaper.connect(directBodyGain);
+  directBodyGain.gain.setValueAtTime(0.22, now);
+  const directBodyFilter = ctx.createBiquadFilter();
+  directBodyFilter.type = 'lowpass';
+  directBodyFilter.frequency.setValueAtTime(800 * pitchMult, now);
+  shaper.connect(directBodyFilter);
+  directBodyFilter.connect(directBodyGain);
   directBodyGain.connect(voiceGain);
-  nodesToDisconnect.push(directBodyGain);
+  nodesToDisconnect.push(directBodyFilter, directBodyGain);
 
   glottalOsc.start(now);
   subOsc.start(now);
@@ -218,7 +222,7 @@ export function playMonsterRoar(cx: MonsterVoiceContext): RawVoiceHandle {
 
   const cleanup = () => {
     for (const node of nodesToDisconnect) {
-      try { node.disconnect(); } catch {}
+      try { node.disconnect(); } catch { /* ignore */ }
     }
   };
 
@@ -297,7 +301,9 @@ export function playMonsterSnarl(cx: MonsterVoiceContext): RawVoiceHandle {
       noiseFilter.disconnect();
       shaper.disconnect();
       voiceGain.disconnect();
-    } catch {}
+    } catch {
+      /* ignore */
+    }
   };
 
   setTimeout(() => {
@@ -388,7 +394,9 @@ export function playMonsterBreathLoop(cx: MonsterVoiceContext): RawVoiceHandle {
           lfo.disconnect();
           growl.disconnect();
           masterGain.disconnect();
-        } catch {}
+        } catch {
+          /* ignore */
+        }
         endedResolve();
       }, fade * 1000);
     },
@@ -444,7 +452,7 @@ export function playMonsterSniff(cx: MonsterVoiceContext): RawVoiceHandle {
 
   setTimeout(() => {
     for (const n of nodesToClean) {
-      try { n.disconnect(); } catch {}
+      try { n.disconnect(); } catch { /* ignore */ }
     }
     endedResolve();
   }, 450);
@@ -452,7 +460,7 @@ export function playMonsterSniff(cx: MonsterVoiceContext): RawVoiceHandle {
   return {
     stop(): void {
       for (const n of nodesToClean) {
-        try { n.disconnect(); } catch {}
+        try { n.disconnect(); } catch { /* ignore */ }
       }
       endedResolve();
     },
@@ -551,7 +559,9 @@ export function playMonsterFootfall(cx: MonsterVoiceContext): RawVoiceHandle {
       noiseGain.disconnect();
       reverbGain.disconnect();
       voiceGain.disconnect();
-    } catch {}
+    } catch {
+      /* ignore */
+    }
   };
 
   setTimeout(() => {

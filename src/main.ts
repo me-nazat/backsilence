@@ -461,6 +461,9 @@ async function boot(): Promise<void> {
 
   if (isLab) {
     ui.navigateTo('GAME');
+    if (typeof location !== 'undefined' && location.search.includes('lab=audio')) {
+      labScene.audioLabPanel.toggle(true);
+    }
     ui.showToast('Material & Audio Lab active. Controls: WASD + mouse. Press H for HUD, B for Audio Lab.', 'info');
   } else if (route.map) {
     // Direct launch via ?map=<id>&seed=<n>

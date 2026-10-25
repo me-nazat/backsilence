@@ -311,6 +311,10 @@ export class Mixer {
     return this.currentProfile;
   }
 
+  getProfile(): OutputProfile {
+    return this.currentProfile;
+  }
+
   /**
    * Register a new voice, stealing an existing one if the tier limit is exceeded.
    */

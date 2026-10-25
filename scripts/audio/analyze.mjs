@@ -219,13 +219,50 @@ export function analyzeAudio(wav) {
   const truePeak = computeTruePeak(mono);
   const truePeakDb = truePeak > 0 ? 20 * Math.log10(truePeak) : -120;
 
-  // 2. Loudness (ITU-R BS.1770 approximation)
+  // 2. Loudness (ITU-R BS.1770-4 two-stage gated integrated loudness)
   const kFiltered = applyKWeighting(mono, sampleRate);
-  let kSumSq = 0;
-  for (let i = 0; i < kFiltered.length; i++) kSumSq += kFiltered[i] * kFiltered[i];
-  const kRms = Math.sqrt(kSumSq / Math.max(1, kFiltered.length));
-  // Standard BS.1770 offset formula: -0.691 + 10 log10(sum)
-  const integratedLufs = kRms > 1e-6 ? -0.691 + 20 * Math.log10(kRms) : -100;
+  const blockSamples = Math.floor(sampleRate * 0.400); // 400ms window
+  const hopSamples = Math.floor(sampleRate * 0.100);   // 100ms step (75% overlap)
+  const zBlocks = [];
+  for (let s = 0; s + blockSamples <= kFiltered.length; s += hopSamples) {
+    let sum = 0;
+    for (let i = 0; i < blockSamples; i++) {
+      const v = kFiltered[s + i];
+      sum += v * v;
+    }
+    zBlocks.push(sum / blockSamples);
+  }
+
+  let integratedLufs = -100;
+  if (zBlocks.length > 0) {
+    // Stage 1: Absolute threshold (-70 LKFS)
+    const gammaAThresh = Math.pow(10, (-70 + 0.691) / 10);
+    const passAbs = zBlocks.filter((z) => z >= gammaAThresh);
+    if (passAbs.length > 0) {
+      const meanAbs = passAbs.reduce((acc, z) => acc + z, 0) / passAbs.length;
+      const gammaA = -0.691 + 10 * Math.log10(meanAbs);
+
+      // Stage 2: Relative threshold (gamma_r = gammaA - 10 dB)
+      const gammaRThresh = Math.pow(10, (gammaA - 10 + 0.691) / 10);
+      const passRel = passAbs.filter((z) => z >= gammaRThresh);
+      if (passRel.length > 0) {
+        const meanRel = passRel.reduce((acc, z) => acc + z, 0) / passRel.length;
+        integratedLufs = -0.691 + 10 * Math.log10(meanRel);
+      } else {
+        integratedLufs = gammaA;
+      }
+    } else {
+      let kSumSq = 0;
+      for (let i = 0; i < kFiltered.length; i++) kSumSq += kFiltered[i] * kFiltered[i];
+      const kRms = Math.sqrt(kSumSq / Math.max(1, kFiltered.length));
+      integratedLufs = kRms > 1e-6 ? -0.691 + 20 * Math.log10(kRms) : -100;
+    }
+  } else {
+    let kSumSq = 0;
+    for (let i = 0; i < kFiltered.length; i++) kSumSq += kFiltered[i] * kFiltered[i];
+    const kRms = Math.sqrt(kSumSq / Math.max(1, kFiltered.length));
+    integratedLufs = kRms > 1e-6 ? -0.691 + 20 * Math.log10(kRms) : -100;
+  }
 
   // 3. 50ms window RMS, Noise Floor, Silence Fraction (< -50 dBFS)
   const window50ms = Math.max(1, Math.floor(sampleRate * 0.05));

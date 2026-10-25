@@ -395,6 +395,31 @@ export class AudioBufferPool {
     return this.initialized;
   }
 
+  get ready(): boolean {
+    return this.initialized;
+  }
+
+  get size(): number {
+    let count = 0;
+    for (const list of this.pools.values()) {
+      count += list.length;
+    }
+    return count;
+  }
+
+  stats(): Record<string, number> {
+    const res: Record<string, number> = {
+      splash: (this.pools.get('splash_small')?.length ?? 0) +
+              (this.pools.get('splash_medium')?.length ?? 0) +
+              (this.pools.get('splash_heavy')?.length ?? 0),
+      wade: this.pools.get('wade_step')?.length ?? 0,
+      drip: this.pools.get('drip')?.length ?? 0,
+      step: this.pools.get('step_wet')?.length ?? 0,
+      monster_footfall: this.pools.get('monster_footfall')?.length ?? 0,
+    };
+    return res;
+  }
+
   /**
    * Play a pooled one-shot with pitch jitter (+/- 3%) and zero runtime allocation.
    */
@@ -410,7 +435,7 @@ export class AudioBufferPool {
   ): RawVoiceHandle {
     // If not warmed up yet, warm up synchronously
     if (!this.initialized) {
-      this.warmup();
+      void this.warmup();
     }
 
     const list = this.pools.get(category);
@@ -472,7 +497,9 @@ export class AudioBufferPool {
         filter.disconnect();
         gain.disconnect();
         if (revGain) revGain.disconnect();
-      } catch {}
+      } catch {
+        /* ignore cleanup errors */
+      }
       endedResolve();
     };
 
@@ -489,7 +516,9 @@ export class AudioBufferPool {
             filter.disconnect();
             gain.disconnect();
             if (revGain) revGain.disconnect();
-          } catch {}
+          } catch {
+            /* ignore cleanup errors */
+          }
           endedResolve();
         }, fadeSec * 1000);
       },

@@ -9,7 +9,7 @@ import { Mixer, selectVoiceToSteal, type ManagedVoice } from '../src/audio/Mixer
 
 describe('Phase D: Mix, Dynamics, Silence & Output Profiles Suite', () => {
   function createMockAudioContext() {
-    let currTime = 0;
+    const currTime = 0;
     const createGainNode = () => {
       let val = 1.0;
       return {

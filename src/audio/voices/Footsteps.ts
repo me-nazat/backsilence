@@ -93,7 +93,7 @@ export function playStepDry(cx: FootstepVoiceContext): RawVoiceHandle {
 
   const cleanup = () => {
     for (const node of nodesToDisconnect) {
-      try { node.disconnect(); } catch {}
+      try { node.disconnect(); } catch { /* ignore */ }
     }
   };
 
@@ -164,7 +164,9 @@ export function playStepSqueak(cx: FootstepVoiceContext): RawVoiceHandle {
       filter.disconnect();
       oscGain.disconnect();
       voiceGain.disconnect();
-    } catch {}
+    } catch {
+      /* ignore */
+    }
   };
 
   setTimeout(() => {
@@ -242,7 +244,9 @@ export function playMantle(cx: FootstepVoiceContext): RawVoiceHandle {
       thud.disconnect();
       thudGain.disconnect();
       voiceGain.disconnect();
-    } catch {}
+    } catch {
+      /* ignore */
+    }
   };
 
   setTimeout(() => {
@@ -330,7 +334,9 @@ export function playDrip(cx: FootstepVoiceContext): RawVoiceHandle {
       oscGain.disconnect();
       reverbGain.disconnect();
       voiceGain.disconnect();
-    } catch {}
+    } catch {
+      /* ignore */
+    }
   };
 
   setTimeout(() => {
@@ -412,7 +418,9 @@ export function playPlayerBreath(cx: FootstepVoiceContext): RawVoiceHandle {
         filter.disconnect();
         cycleGain.disconnect();
         voiceGain.disconnect();
-      } catch {}
+      } catch {
+        /* ignore */
+      }
       endedResolve();
     }, fadeSec * 1000 + 30);
   }

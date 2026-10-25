@@ -4,7 +4,6 @@
  *  transparent fallback to standard Web Audio nodes if worklet fails or is unsupported.
  * ──────────────────────────────────────────────────────────────────────── */
 
-// @ts-expect-error Vite URL import query
 import workletUrl from './AmbienceProcessor.ts?worker&url';
 
 export interface BedWorkletController {
@@ -66,7 +65,9 @@ export async function createAmbienceBedWorklet(
             try {
               workletNode.disconnect();
               masterGain.disconnect();
-            } catch {}
+            } catch {
+              /* ignore */
+            }
           }, fadeSec * 1000 + 50);
         },
       };
@@ -141,7 +142,9 @@ function createStandardBedFallback(
           dreadOsc.disconnect();
           filter.disconnect();
           masterGain.disconnect();
-        } catch {}
+        } catch {
+          /* ignore */
+        }
       }, fadeSec * 1000 + 50);
     },
   };

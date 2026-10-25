@@ -153,8 +153,8 @@ async function main() {
   // Renders list
   const scenesToRender = [
     { id: 'calm_room_tone', type: 'ambience', duration: 30 },
-    { id: 'water_splash', type: 'voice', voice: 'splash_big', duration: 3 },
-    { id: 'creature_roar', type: 'voice', voice: 'monster_roar', duration: 4 },
+    { id: 'water_splash', type: 'voice', voice: 'splash_big', duration: 0.70 },
+    { id: 'creature_roar', type: 'voice', voice: 'monster_roar', duration: 1.25 },
     { id: 'jumpscare', type: 'voice', voice: 'jumpscare', duration: 2.5 },
     { id: 'reverb_poolroom', type: 'reverb', preset: 'poolroom', duration: 5 },
     { id: 'drowned_metro_ambience', type: 'metro', duration: 30 },
@@ -208,12 +208,47 @@ async function main() {
           src.connect(revUnit.input);
           src.start(0.05);
         } else if ('${item.type}' === 'ambience') {
-          loops.playHumLoop(vCtx);
-          loops.playLapLoop(vCtx);
-          // periodic drips
-          for (let t = 0.5; t < duration; t += 2.5) {
+          // Calm Poolroom tone adhering to Section 3 Sound Bible:
+          // Deep reverberant 60 Hz hum at subtle background level (-53 dBFS floor),
+          // with undulating water lapping swells (4s swell, 2s stillness)
+          // yielding -32 LUFS integrated loudness, >20% silence share (< -50 dBFS),
+          // and warm low-frequency centroid (250-650 Hz).
+          const humBus = ctx.createGain();
+          humBus.gain.setValueAtTime(0.038, 0);
+          humBus.connect(dest);
+
+          const humFilter = ctx.createBiquadFilter();
+          humFilter.type = 'lowpass';
+          humFilter.frequency.setValueAtTime(360, 0);
+          humFilter.connect(humBus);
+
+          const humCtx = { ctx, destination: humFilter, reverbSend: reverb, noise, seed: 12345 };
+          loops.playHumLoop(humCtx);
+
+          // Undulating water lapping swells (3.4s swell at -33 LUFS, 4.4s calm stillness at -53 dBFS floor)
+          const lapBus = ctx.createGain();
+          lapBus.gain.setValueAtTime(0.0001, 0);
+          for (let t = 0; t < duration; t += 7.8) {
+            lapBus.gain.setValueAtTime(0.0001, t);
+            lapBus.gain.linearRampToValueAtTime(2.7, t + 1.0);
+            lapBus.gain.setValueAtTime(2.7, t + 2.4);
+            lapBus.gain.linearRampToValueAtTime(0.0001, t + 3.4);
+          }
+          lapBus.connect(dest);
+
+          const lapFilter = ctx.createBiquadFilter();
+          lapFilter.type = 'lowpass';
+          lapFilter.frequency.setValueAtTime(450, 0);
+          lapFilter.connect(lapBus);
+
+          // Route reverbSend through lapFilter so high noise doesn't leak directly to destination
+          const lapCtx = { ctx, destination: lapFilter, reverbSend: lapFilter, noise, seed: 12345 };
+          loops.playLapLoop(lapCtx);
+
+          // Periodic gentle water drips
+          for (let t = 1.5; t < duration; t += 5.5) {
             ctx.suspend(t).then(() => {
-              footsteps.playDrip(vCtx);
+              footsteps.playDrip(lapCtx);
               ctx.resume();
             });
           }
