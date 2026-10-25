@@ -1,0 +1,164 @@
+{
+  "tolerances": {
+    "scalarPct": 0.15,
+    "histogramEmd": 0.08,
+    "minFloorEdgeRatio": 0.40,
+    "glintFraction": { "min": 0.002, "max": 0.015 }
+  },
+  "visualBibleMedians": {
+    "calm_axial": {
+      "luminanceMean": 0.42,
+      "luminanceStdDev": 0.14,
+      "percentiles": { "p5": 0.18, "p50": 0.41, "p95": 0.72, "p99": 0.88 },
+      "bandsRGB": {
+        "top": [0.65, 0.62, 0.55],
+        "middle": [0.44, 0.47, 0.45],
+        "bottom": [0.28, 0.38, 0.36]
+      },
+      "horizonBlowoutFraction": 0.025,
+      "saturationMean": 0.22,
+      "sobelEdgeDensity": { "scale1": 0.045, "scale2": 0.032, "scale4": 0.018 },
+      "waterRegion": {
+        "meanRGB": [0.22, 0.48, 0.42],
+        "luminanceVariance": 0.016,
+        "edgeDensity": 0.038,
+        "glintFraction": 0.0065
+      },
+      "floorGroutEdgeRatio": 0.52,
+      "vignetteGradient": 0.12,
+      "grainNoise": 0.018
+    },
+    "calm_grazing": {
+      "luminanceMean": 0.48,
+      "luminanceStdDev": 0.16,
+      "percentiles": { "p5": 0.22, "p50": 0.46, "p95": 0.78, "p99": 0.92 },
+      "bandsRGB": {
+        "top": [0.70, 0.68, 0.60],
+        "middle": [0.52, 0.53, 0.49],
+        "bottom": [0.36, 0.44, 0.41]
+      },
+      "horizonBlowoutFraction": 0.045,
+      "saturationMean": 0.18,
+      "sobelEdgeDensity": { "scale1": 0.040, "scale2": 0.028, "scale4": 0.015 },
+      "waterRegion": {
+        "meanRGB": [0.26, 0.50, 0.45],
+        "luminanceVariance": 0.019,
+        "edgeDensity": 0.034,
+        "glintFraction": 0.0092
+      },
+      "floorGroutEdgeRatio": 0.46,
+      "vignetteGradient": 0.11,
+      "grainNoise": 0.017
+    },
+    "shoreline_foam": {
+      "luminanceMean": 0.45,
+      "luminanceStdDev": 0.15,
+      "percentiles": { "p5": 0.20, "p50": 0.44, "p95": 0.75, "p99": 0.90 },
+      "bandsRGB": {
+        "top": [0.66, 0.63, 0.56],
+        "middle": [0.48, 0.50, 0.47],
+        "bottom": [0.32, 0.42, 0.40]
+      },
+      "horizonBlowoutFraction": 0.020,
+      "saturationMean": 0.20,
+      "sobelEdgeDensity": { "scale1": 0.052, "scale2": 0.038, "scale4": 0.022 },
+      "waterRegion": {
+        "meanRGB": [0.24, 0.49, 0.44],
+        "luminanceVariance": 0.022,
+        "edgeDensity": 0.048,
+        "glintFraction": 0.0080
+      },
+      "floorGroutEdgeRatio": 0.48,
+      "vignetteGradient": 0.12,
+      "grainNoise": 0.019
+    },
+    "wading_wake": {
+      "luminanceMean": 0.44,
+      "luminanceStdDev": 0.15,
+      "percentiles": { "p5": 0.19, "p50": 0.43, "p95": 0.74, "p99": 0.91 },
+      "bandsRGB": {
+        "top": [0.65, 0.62, 0.55],
+        "middle": [0.46, 0.48, 0.46],
+        "bottom": [0.30, 0.40, 0.38]
+      },
+      "horizonBlowoutFraction": 0.022,
+      "saturationMean": 0.21,
+      "sobelEdgeDensity": { "scale1": 0.055, "scale2": 0.040, "scale4": 0.024 },
+      "waterRegion": {
+        "meanRGB": [0.23, 0.48, 0.43],
+        "luminanceVariance": 0.024,
+        "edgeDensity": 0.052,
+        "glintFraction": 0.0075
+      },
+      "floorGroutEdgeRatio": 0.49,
+      "vignetteGradient": 0.12,
+      "grainNoise": 0.018
+    },
+    "splash": {
+      "luminanceMean": 0.46,
+      "luminanceStdDev": 0.17,
+      "percentiles": { "p5": 0.20, "p50": 0.45, "p95": 0.80, "p99": 0.94 },
+      "bandsRGB": {
+        "top": [0.66, 0.63, 0.56],
+        "middle": [0.48, 0.50, 0.48],
+        "bottom": [0.33, 0.43, 0.41]
+      },
+      "horizonBlowoutFraction": 0.028,
+      "saturationMean": 0.19,
+      "sobelEdgeDensity": { "scale1": 0.065, "scale2": 0.048, "scale4": 0.029 },
+      "waterRegion": {
+        "meanRGB": [0.25, 0.49, 0.45],
+        "luminanceVariance": 0.028,
+        "edgeDensity": 0.060,
+        "glintFraction": 0.0115
+      },
+      "floorGroutEdgeRatio": 0.45,
+      "vignetteGradient": 0.13,
+      "grainNoise": 0.019
+    },
+    "horizon_haze": {
+      "luminanceMean": 0.58,
+      "luminanceStdDev": 0.20,
+      "percentiles": { "p5": 0.28, "p50": 0.58, "p95": 0.94, "p99": 0.98 },
+      "bandsRGB": {
+        "top": [0.82, 0.80, 0.74],
+        "middle": [0.65, 0.66, 0.62],
+        "bottom": [0.40, 0.48, 0.46]
+      },
+      "horizonBlowoutFraction": 0.078,
+      "saturationMean": 0.14,
+      "sobelEdgeDensity": { "scale1": 0.028, "scale2": 0.020, "scale4": 0.011 },
+      "waterRegion": {
+        "meanRGB": [0.32, 0.54, 0.50],
+        "luminanceVariance": 0.015,
+        "edgeDensity": 0.025,
+        "glintFraction": 0.0050
+      },
+      "floorGroutEdgeRatio": 0.42,
+      "vignetteGradient": 0.10,
+      "grainNoise": 0.016
+    },
+    "underwater": {
+      "luminanceMean": 0.28,
+      "luminanceStdDev": 0.09,
+      "percentiles": { "p5": 0.14, "p50": 0.27, "p95": 0.44, "p99": 0.52 },
+      "bandsRGB": {
+        "top": [0.18, 0.38, 0.36],
+        "middle": [0.15, 0.34, 0.33],
+        "bottom": [0.12, 0.29, 0.28]
+      },
+      "horizonBlowoutFraction": 0.000,
+      "saturationMean": 0.38,
+      "sobelEdgeDensity": { "scale1": 0.038, "scale2": 0.026, "scale4": 0.014 },
+      "waterRegion": {
+        "meanRGB": [0.15, 0.36, 0.34],
+        "luminanceVariance": 0.008,
+        "edgeDensity": 0.035,
+        "glintFraction": 0.000
+      },
+      "floorGroutEdgeRatio": 0.44,
+      "vignetteGradient": 0.16,
+      "grainNoise": 0.024
+    }
+  }
+}

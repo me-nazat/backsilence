@@ -8,5 +8,9 @@ dist/
 scratch/
 reports/*
 !reports/monster/
+!reports/water/
 reference/out*
 reference/*.png
+reference/video/frames/*.png
+reference/video/frames/*
+!reference/video/frames/.gitkeep

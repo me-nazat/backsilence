@@ -9,13 +9,41 @@
     "description": "Grand perspective showing stained glass illumination, tiled platforms, and translucent pool"
   },
   {
-    "id": "natatorium_water_calm",
-    "name": "Calm Water Surface & Floor Caustics",
+    "id": "natatorium_water_calm_axial",
+    "name": "Calm Water Surface Along Axial Pool",
     "mapId": "natatorium",
     "seed": 42,
     "simTime": 5.0,
-    "camera": { "x": 1.5, "y": 0.6, "z": -3.0, "target": { "x": 1.5, "y": -0.5, "z": 4.0 }, "fov": 70 },
-    "description": "Beer-Lambert absorption gradient with floor tiles visible through milky water"
+    "camera": { "x": 4.0, "y": 0.8, "z": -12.0, "target": { "x": 4.0, "y": 0.1, "z": 12.0 }, "fov": 70 },
+    "description": "Axial view of calm milky green water with soft Gerstner displacement and floor tiles visible"
+  },
+  {
+    "id": "natatorium_water_calm_grazing",
+    "name": "Calm Water Surface at Grazing Angle",
+    "mapId": "natatorium",
+    "seed": 42,
+    "simTime": 5.0,
+    "camera": { "x": 4.0, "y": 0.20, "z": -8.0, "target": { "x": 4.0, "y": 0.02, "z": 18.0 }, "fov": 65 },
+    "description": "Grazing angle showing Fresnel reflectivity, sky reflection, and distant horizon glints"
+  },
+  {
+    "id": "natatorium_water_slab_edge",
+    "name": "Close Platform Slab Edge & Wet Band",
+    "mapId": "natatorium",
+    "seed": 42,
+    "simTime": 4.0,
+    "camera": { "x": 10.5, "y": 0.45, "z": 0.0, "target": { "x": 12.2, "y": 0.0, "z": 0.0 }, "fov": 55 },
+    "description": "Detailed view of 0.3m slab edge, tidemark wet band, and soft shoreline foam line"
+  },
+  {
+    "id": "natatorium_water_wake",
+    "name": "Wading V-Wake",
+    "mapId": "natatorium",
+    "seed": 42,
+    "simTime": 3.0,
+    "wake": { "x": 4.0, "z": 0.0, "dirX": 0.0, "dirZ": 1.0, "speed": 2.2 },
+    "camera": { "x": 6.0, "y": 1.2, "z": -3.0, "target": { "x": 4.0, "y": 0.0, "z": 1.0 }, "fov": 70 },
+    "description": "V-shaped Kelvin wake with foam boundary"
   },
   {
     "id": "natatorium_water_splash_01",
@@ -23,8 +51,8 @@
     "mapId": "natatorium",
     "seed": 42,
     "simTime": 1.1,
-    "splash": { "x": 0.0, "z": 3.0, "strength": 1.4 },
-    "camera": { "x": 0.0, "y": 0.7, "z": 0.5, "target": { "x": 0.0, "y": 0.2, "z": 3.0 }, "fov": 65 },
+    "splash": { "x": 4.0, "z": 0.0, "strength": 1.4 },
+    "camera": { "x": 4.0, "y": 0.6, "z": -2.5, "target": { "x": 4.0, "y": 0.2, "z": 0.0 }, "fov": 65 },
     "description": "Splash crown mesh with animated upward displacement"
   },
   {
@@ -33,8 +61,8 @@
     "mapId": "natatorium",
     "seed": 42,
     "simTime": 1.5,
-    "splash": { "x": 0.0, "z": 3.0, "strength": 1.4 },
-    "camera": { "x": 0.0, "y": 0.7, "z": 0.5, "target": { "x": 0.0, "y": 0.2, "z": 3.0 }, "fov": 65 },
+    "splash": { "x": 4.0, "z": 0.0, "strength": 1.4 },
+    "camera": { "x": 4.0, "y": 0.6, "z": -2.5, "target": { "x": 4.0, "y": 0.2, "z": 0.0 }, "fov": 65 },
     "description": "Velocity-stretched droplets and expanding foam rings"
   },
   {
@@ -43,28 +71,28 @@
     "mapId": "natatorium",
     "seed": 42,
     "simTime": 2.2,
-    "splash": { "x": 0.0, "z": 3.0, "strength": 1.4 },
-    "camera": { "x": 0.0, "y": 0.7, "z": 0.5, "target": { "x": 0.0, "y": 0.2, "z": 3.0 }, "fov": 65 },
+    "splash": { "x": 4.0, "z": 0.0, "strength": 1.4 },
+    "camera": { "x": 4.0, "y": 0.6, "z": -2.5, "target": { "x": 4.0, "y": 0.2, "z": 0.0 }, "fov": 65 },
     "description": "Decaying foam ring and calm wave ripples expanding outward"
   },
   {
-    "id": "natatorium_water_wake",
-    "name": "Wading V-Wake",
+    "id": "natatorium_water_drip_ring",
+    "name": "Sparse Ceiling Drip Ripple Ring",
     "mapId": "natatorium",
     "seed": 42,
-    "simTime": 3.0,
-    "wake": { "x": 0.0, "z": 2.0, "dirX": 0.0, "dirZ": 1.0, "speed": 2.2 },
-    "camera": { "x": 2.0, "y": 1.4, "z": -1.5, "target": { "x": 0.0, "y": 0.0, "z": 2.0 }, "fov": 70 },
-    "description": "V-shaped Kelvin wake with foam boundary"
+    "simTime": 3.5,
+    "drip": { "x": 4.0, "z": 0.0, "strength": 0.6 },
+    "camera": { "x": 4.0, "y": 0.6, "z": -2.0, "target": { "x": 4.0, "y": 0.0, "z": 0.0 }, "fov": 60 },
+    "description": "Ceiling drip impact producing expanding concentric wave ring with bright highlight"
   },
   {
-    "id": "natatorium_water_shoreline",
-    "name": "Shoreline Foam Contact",
+    "id": "natatorium_water_horizon",
+    "name": "Distant Water Horizon and Fog Blow-Out",
     "mapId": "natatorium",
     "seed": 42,
     "simTime": 4.0,
-    "camera": { "x": 3.8, "y": 0.5, "z": 0.0, "target": { "x": 5.2, "y": 0.0, "z": 0.0 }, "fov": 60 },
-    "description": "Soft depth foam along platform wall and steps"
+    "camera": { "x": 4.0, "y": 0.9, "z": -15.0, "target": { "x": 4.0, "y": 0.7, "z": 35.0 }, "fov": 60 },
+    "description": "Water seamlessly dissolving into dense warm atmospheric fog and blown-out cream white horizon"
   },
   {
     "id": "natatorium_water_underwater",
@@ -72,8 +100,28 @@
     "mapId": "natatorium",
     "seed": 42,
     "simTime": 4.5,
-    "camera": { "x": 0.0, "y": -0.6, "z": 2.0, "target": { "x": 0.0, "y": -0.6, "z": 6.0 }, "fov": 75 },
+    "camera": { "x": 4.0, "y": -0.6, "z": 0.0, "target": { "x": 4.0, "y": -0.6, "z": 8.0 }, "fov": 75 },
     "description": "Milky green underwater grade with suspended particles and water surface meniscus"
+  },
+  {
+    "id": "natatorium_water_monster_wake",
+    "name": "Monster Heavy Splash & Dark Wake",
+    "mapId": "natatorium",
+    "seed": 42,
+    "simTime": 25.0,
+    "creature": { "distance": 8.0, "facing": 0.0 },
+    "monsterWake": true,
+    "camera": { "x": 4.0, "y": 1.2, "z": -4.0, "target": { "x": 4.0, "y": 0.4, "z": 4.0 }, "fov": 70 },
+    "description": "Heavy dark splashes and wide V-wake with ink-tinted droplets where monster wades"
+  },
+  {
+    "id": "neon_flood_water_rain",
+    "name": "Neon Flood Weather Rain Water",
+    "mapId": "neon_flood",
+    "seed": 404,
+    "simTime": 3.0,
+    "camera": { "x": 0.0, "y": 1.2, "z": -5.0, "target": { "x": 0.0, "y": 0.2, "z": 5.0 }, "fov": 70 },
+    "description": "Rain drops striking surface creating dense field of micro-ripples and neon reflections"
   },
   {
     "id": "creature_close_6m",

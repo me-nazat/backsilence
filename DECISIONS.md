@@ -878,7 +878,37 @@ Establish `functions/api/[[route]].ts` as the canonical Cloudflare Pages Functio
    - 100% passing across cold start (M1), show-me key H (M2: 7,091 px, visibleFraction 0.625), silent dry 150s (M3: 10/10 seeds scheduled, 0 attacks), noise attack chain (M4: jumpscare framing 26.5%, retry 251ms, distance 60.1m), all 10 non-default maps (M5), ten retries (M6: flat memory), 3 quality pipelines (M7), phone emulation (M8: 15,528 mask px), and broken model fallback (M9: 404/HTML 200 rejection).
 4. Full Test Suite Integrity:
    - 50/50 test files passed (417/417 tests passed) with zero tests deleted, skipped, or weakened.
-**Reason:** Concludes Phase H and completes Prompt 1 of 5 requirements with empirical proof and zero guessing.
+### D079: Water Preconditions Verification and Reference Comparison Harness Setup
+**Date:** 2026-10-25
+**Choice:**
+1. Preconditions Verification (`reports/water/preconditions.md`):
+   - Confirmed default map (`natatorium`) canvas renders non-blank with 100.0% non-zero pixels (avg rgb(143.0, 113.3, 60.6)).
+   - Verified water shader compiles cleanly with no fallback material (0 WebGL program errors/warnings).
+   - Verified player ripple events propagate into `RippleBuffer`, `uRipples` uniforms, and `GpuWaveSimulation` impulses.
+   - Identified current implementation architecture: hybrid analytic rings (capacity 8 on low/32 on high), 6 Kelvin wake slots, and CPU wave equation stepping; GPU ping-pong targets unlinked at runtime.
+2. Reference Kit Architecture (`reference/`):
+   - Established `reference/README.md`, `reference/video/notes.md`, and git-ignored `reference/video/frames/` with `.gitkeep`.
+   - Explicitly configured fallback to Section 3 Visual Bible when external video is inaccessible or frames are not provided.
+   - Configured `reference/targets.json` with ±15% scalar tolerances and < 0.08 Earth Mover's Distance for hue histograms.
+3. Measurement & Comparison Tooling:
+   - Built `scripts/reference/extract-stats.mjs` using headless Chrome CDP and HTML5 Canvas (zero new dependencies) for luminance percentiles, RGB bands, horizon blow-out, multi-scale Sobel, fog curves, water region glints, and grain.
+   - Built `scripts/reference/compare.mjs` and wired `npm run reference:compare`.
+**Reason:** Fulfills Section 0 and Section 2 requirements, establishing an empirical baseline before modifying water presentation.
+
+### D080: Phase A Water Baseline Measurements and Line-by-Line Subsystem Audit
+**Date:** 2026-10-25
+**Choice:**
+1. Deterministic Water Camera Presets (`shots.json`):
+   - Added all 12 required water look-dev camera presets (axial calm, grazing calm, slab edge, wading wake, splashes at 0.1s/0.5s/1.2s, drip ring, horizon haze, underwater, monster wake, and rain).
+   - Calibrated camera coordinates to unobstructed open pool channels (x=4.0) and fixed camera drift by overriding `playerCamera.update` during look-dev rendering.
+2. Baseline Measurement & Rubric Evaluation (`reports/water/baseline/`):
+   - Rendered 26 deterministic baseline shots and captured all 23 water PNGs and metrics.
+   - Evaluated 0–5 rubric across 6 pillars (surface believability, depth & floor visibility, glints & highlights, motion, shoreline, absence of artifacts) with 1-sentence justifications.
+   - Identified critical deficits: glint fraction is 0.0000 (target 0.002–0.015), horizon blowout is 0.0000, and floor grout lines are obscured by flat alpha blending.
+3. Line-by-Line Code Audit (`reports/water/audit.md`):
+   - Audited `WaterMaterial.ts`, `WaterSystem.ts`, `GpuWaveSimulation.ts`, `Splashes.ts`, `WakeEmitters.ts`, and `WaterMapData.ts`.
+   - Documented 14 structural issues including uncalled `waveSim.initGpu()`, missing wave simulation texture sampling, fixed alpha blending over floor, lack of Toksvig distance normal filtering, missing environment cube map and planar reflections, and lack of splash crown mesh.
+**Reason:** Concludes Phase A and provides empirical baseline metrics before upgrading the shading model in Phase B.
 
 
 

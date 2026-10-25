@@ -117,101 +117,98 @@ class Cdp {
   }
 }
 
-async function computeMetricsInBrowser(cdp) {
-  return await cdp.evaluate(`(() => {
-    const canvas = document.querySelector('canvas#webgl-canvas');
-    if (!canvas) return null;
-    const w = canvas.width;
-    const h = canvas.height;
-    if (!w || !h) return null;
+async function computeMetricsFromScreenshot(cdp, base64Png) {
+  const dataUrl = `data:image/png;base64,${base64Png}`;
+  return await cdp.evaluate(`new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      const w = img.naturalWidth || 640;
+      const h = img.naturalHeight || 360;
+      const off = document.createElement('canvas');
+      off.width = w;
+      off.height = h;
+      const ctx = off.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+      const data = ctx.getImageData(0, 0, w, h).data;
+      const count = w * h;
 
-    // Read pixels via temporary 2D canvas
-    const off = document.createElement('canvas');
-    off.width = Math.min(640, w);
-    off.height = Math.min(360, h);
-    const ctx = off.getContext('2d');
-    ctx.drawImage(canvas, 0, 0, off.width, off.height);
-    const imgData = ctx.getImageData(0, 0, off.width, off.height);
-    const data = imgData.data;
-    const count = off.width * off.height;
+      let lumSum = 0;
+      let satSum = 0;
+      let clippedCount = 0;
+      const lumArray = new Float32Array(count);
 
-    let lumSum = 0;
-    let satSum = 0;
-    let clippedCount = 0;
-    const lumArray = new Float32Array(count);
+      for (let i = 0; i < count; i++) {
+        const idx = i * 4;
+        const r = data[idx] / 255.0;
+        const g = data[idx + 1] / 255.0;
+        const b = data[idx + 2] / 255.0;
 
-    for (let i = 0; i < count; i++) {
-      const idx = i * 4;
-      const r = data[idx] / 255.0;
-      const g = data[idx + 1] / 255.0;
-      const b = data[idx + 2] / 255.0;
+        const lum = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+        lumArray[i] = lum;
+        lumSum += lum;
 
-      const lum = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-      lumArray[i] = lum;
-      lumSum += lum;
+        if (r >= 0.95 && g >= 0.95 && b >= 0.95) {
+          clippedCount++;
+        }
 
-      if (r >= 0.98 && g >= 0.98 && b >= 0.98) {
-        clippedCount++;
+        const max = Math.max(r, g, b);
+        const min = Math.min(r, g, b);
+        const sat = max > 1e-4 ? (max - min) / max : 0;
+        satSum += sat;
       }
 
-      const max = Math.max(r, g, b);
-      const min = Math.min(r, g, b);
-      const sat = max > 1e-4 ? (max - min) / max : 0;
-      satSum += sat;
-    }
+      const meanLuminance = lumSum / count;
+      let varSum = 0;
+      for (let i = 0; i < count; i++) {
+        const diff = lumArray[i] - meanLuminance;
+        varSum += diff * diff;
+      }
+      const luminanceStdDev = Math.sqrt(varSum / count);
+      const saturation = satSum / count;
+      const clippedHighlightsPct = Number(((clippedCount / count) * 100.0).toFixed(2));
 
-    const meanLuminance = lumSum / count;
-    let varSum = 0;
-    for (let i = 0; i < count; i++) {
-      const diff = lumArray[i] - meanLuminance;
-      varSum += diff * diff;
-    }
-    const luminanceStdDev = Math.sqrt(varSum / count);
-    const saturation = satSum / count;
-    const clippedHighlightsPct = Number(((clippedCount / count) * 100.0).toFixed(2));
+      // Sobel edge density
+      let edgeCount = 0;
+      let stepDiscontinuities = 0;
 
-    // Sobel edge density
-    const W = off.width;
-    const H = off.height;
-    let edgeCount = 0;
-    let stepDiscontinuities = 0;
+      for (let y = 1; y < h - 1; y++) {
+        const row = y * w;
+        for (let x = 1; x < w - 1; x++) {
+          const idx = row + x;
+          const gx =
+            -lumArray[idx - w - 1] + lumArray[idx - w + 1]
+            -2 * lumArray[idx - 1] + 2 * lumArray[idx + 1]
+            -lumArray[idx + w - 1] + lumArray[idx + w + 1];
 
-    for (let y = 1; y < H - 1; y++) {
-      const row = y * W;
-      for (let x = 1; x < W - 1; x++) {
-        const idx = row + x;
-        const gx =
-          -lumArray[idx - W - 1] + lumArray[idx - W + 1]
-          -2 * lumArray[idx - 1] + 2 * lumArray[idx + 1]
-          -lumArray[idx + W - 1] + lumArray[idx + W + 1];
+          const gy =
+            -lumArray[idx - w - 1] - 2 * lumArray[idx - w] - lumArray[idx - w + 1]
+            +lumArray[idx + w - 1] + 2 * lumArray[idx + w] + lumArray[idx + w + 1];
 
-        const gy =
-          -lumArray[idx - W - 1] - 2 * lumArray[idx - W] - lumArray[idx - W + 1]
-          +lumArray[idx + W - 1] + 2 * lumArray[idx + W] + lumArray[idx + W + 1];
+          const mag = Math.hypot(gx, gy);
+          if (mag > 0.12) edgeCount++;
 
-        const mag = Math.hypot(gx, gy);
-        if (mag > 0.12) edgeCount++;
-
-        // Banding in smooth gradient areas (weak gradient with high discrete jump)
-        if (mag > 0.02 && mag < 0.06) {
-          const deltaLeft = Math.abs(lumArray[idx] - lumArray[idx - 1]);
-          if (deltaLeft > 0.015) stepDiscontinuities++;
+          if (mag > 0.02 && mag < 0.06) {
+            const deltaLeft = Math.abs(lumArray[idx] - lumArray[idx - 1]);
+            if (deltaLeft > 0.015) stepDiscontinuities++;
+          }
         }
       }
-    }
 
-    const sobelEdgeDensity = edgeCount / (W * H);
-    const bandingScore = Math.min(1.0, (stepDiscontinuities / (W * H)) * 50.0);
+      const sobelEdgeDensity = edgeCount / count;
+      const bandingScore = Math.min(1.0, (stepDiscontinuities / count) * 50.0);
 
-    return {
-      meanLuminance: Number(meanLuminance.toFixed(4)),
-      luminanceStdDev: Number(luminanceStdDev.toFixed(4)),
-      sobelEdgeDensity: Number(sobelEdgeDensity.toFixed(4)),
-      bandingScore: Number(bandingScore.toFixed(4)),
-      saturation: Number(saturation.toFixed(4)),
-      clippedHighlightsPct,
+      resolve({
+        meanLuminance: Number(meanLuminance.toFixed(4)),
+        luminanceStdDev: Number(luminanceStdDev.toFixed(4)),
+        sobelEdgeDensity: Number(sobelEdgeDensity.toFixed(4)),
+        bandingScore: Number(bandingScore.toFixed(4)),
+        saturation: Number(saturation.toFixed(4)),
+        clippedHighlightsPct,
+      });
     };
-  })()`);
+    img.onerror = () => resolve(null);
+    img.src = ${JSON.stringify(dataUrl)};
+  })`);
 }
 
 function evaluateRubric(shot, metrics) {
@@ -300,9 +297,23 @@ async function main() {
 
     // Apply deterministic camera and state overrides
     await cdp.evaluate(`(() => {
+      const overlay = document.getElementById('audio-unlock-overlay');
+      if (overlay) overlay.remove();
+      const screens = document.querySelectorAll('.bs-screen');
+      screens.forEach(s => s.remove());
+
       const session = window.__backsilence_session;
       if (!session) return;
       const cam = ${JSON.stringify(shot.camera)};
+
+      if (session.playerCamera) {
+        session.playerCamera.update = () => {
+          session.camera.position.set(cam.x, cam.y, cam.z);
+          session.camera.lookAt(cam.target.x, cam.target.y, cam.target.z);
+          session.camera.fov = cam.fov || 75;
+          session.camera.updateProjectionMatrix();
+        };
+      }
       session.camera.position.set(cam.x, cam.y, cam.z);
       session.camera.lookAt(cam.target.x, cam.target.y, cam.target.z);
       session.camera.fov = cam.fov || 75;
@@ -318,6 +329,12 @@ async function main() {
 
       // Wake override
       ${shot.wake ? `session.water.wakes.addWake(${shot.wake.x}, ${shot.wake.z}, ${shot.wake.dirX}, ${shot.wake.dirZ}, ${shot.wake.speed}, 1.2);` : ''}
+
+      // Drip override
+      ${shot.drip ? `session.water.ripples.addRipple(${shot.drip.x}, ${shot.drip.z}, ${shot.drip.strength}, session.simWorld.simTime);` : ''}
+
+      // Monster wake override
+      ${shot.monsterWake ? `session.water.wakes.addWake(0.0, 8.0, 0.0, 1.0, 3.5, 2.5); session.water.splashes.burst({ x: 0.0, y: session.water.currentWaterY, z: 8.0 }, 1.8, true);` : ''}
 
       // Creature positioning override
       ${shot.creature ? `
@@ -335,8 +352,10 @@ async function main() {
         }
       ` : ''}
 
-      // Force render frame with full postFX pipeline
-      if (session.postFX) {
+      // Force render frame with full scene depth & postFX pipeline
+      if (typeof session.renderScene === 'function') {
+        session.renderScene(0.016);
+      } else if (session.postFX) {
         session.postFX.render(session.scene, session.camera, 0.016);
       } else {
         session.renderer.render(session.scene, session.camera);
@@ -349,10 +368,18 @@ async function main() {
     // Take screenshot
     const shotPath = resolve(OUTPUT_DIR, `${shot.id}.png`);
     const screenshot = await cdp.send('Page.captureScreenshot', { format: 'png' });
-    await writeFile(shotPath, Buffer.from(screenshot.data, 'base64'));
+    const imgBuffer = Buffer.from(screenshot.data, 'base64');
+    await writeFile(shotPath, imgBuffer);
 
-    // Compute metrics
-    const metrics = (await computeMetricsInBrowser(cdp)) || {
+    // Also copy water shots to reports/water/baseline/
+    const WATER_BASELINE_DIR = resolve(ROOT, 'reports/water/baseline');
+    await mkdir(WATER_BASELINE_DIR, { recursive: true });
+    if (shot.id.includes('water') || shot.id.includes('hero')) {
+      await writeFile(resolve(WATER_BASELINE_DIR, `${shot.id}.png`), imgBuffer);
+    }
+
+    // Compute metrics from screenshot PNG
+    const metrics = (await computeMetricsFromScreenshot(cdp, screenshot.data)) || {
       meanLuminance: 0.35,
       luminanceStdDev: 0.12,
       sobelEdgeDensity: 0.05,
@@ -374,9 +401,13 @@ async function main() {
     console.log(`OK (Score: ${rubric.overallScore}/5)`);
   }
 
-  // Write metrics.json
+  // Write metrics.json to reports/visual and reports/water/baseline
   const metricsPath = resolve(OUTPUT_DIR, 'metrics.json');
   await writeFile(metricsPath, JSON.stringify(results, null, 2));
+
+  const waterResults = results.filter((r) => r.id.includes('water') || r.id.includes('hero'));
+  const waterMetricsPath = resolve(ROOT, 'reports/water/baseline/metrics.json');
+  await writeFile(waterMetricsPath, JSON.stringify(waterResults, null, 2));
 
   // Generate HTML contact sheet
   const html = `<!DOCTYPE html>

@@ -1,68 +1,73 @@
-# Task List — BackSilence Monster Presence & Pacing System (Prompt 1 of 5)
+# Task List — BackSilence Water System Matching Reference Footage (Prompt 2 of 5)
 
-- [x] **Phase A: Monster Presence Probe & Diagnostic Baseline**
-  - [x] Implement `window.__backsilence.monsterProbe()` with L0–L5 metrics and verdict
-  - [x] Implement on-screen debug aids (`?debug=1`): locator arrow, magenta sim marker, keys (`H`, `M`, `J`, `K`, `I`, `N`, `Y`)
-  - [x] Create headless trace script `scripts/monster-trace.mjs`
-  - [x] Run headless trace across all maps, quality tiers, and mobile (390x844) to generate `reports/monster/trace.json` and `reports/monster/trace.md`
-  - [x] Evaluate the 16-point suspect checklist with evidence
-  - [x] Record Decision D071 in `DECISIONS.md` and commit Phase A
+- [x] **Preconditions & Setup (Section 0 & 2)**
+  - [x] 0.1 Verify headless Chrome default map load and canvas non-blank
+  - [x] 0.2 Capture water program compile logs and verify no fallback material
+  - [x] 0.3 Verify player ripple events reach water uniforms or simulation texture
+  - [x] 0.4 Document active water implementation (analytic rings vs GPU simulation)
+  - [x] 0.5 Write results to `reports/water/preconditions.md`
+  - [x] 0.6 Create `reference/` structure (`README.md`, `video/notes.md`, `targets.json`, git-ignore `video/frames/`)
+  - [x] 0.7 Implement `scripts/reference/extract-stats.mjs` and `scripts/reference/compare.mjs` (`npm run reference:compare`)
+  - [x] 0.8 Record Decision D079 in `DECISIONS.md`
 
-- [x] **Phase B: Layer-by-Layer Repair**
-  - [x] Implement GLB loader hardening (0x46546C67 magic check, Content-Type, 8s timeout, instant procedural fallback)
-  - [x] Add finite assertions (`Number.isFinite`) at sim-to-presentation boundaries
-  - [x] Eliminate silent catch blocks in monster, water, and director code
-  - [x] Correct fog culling distance rule based on active map fog density
-  - [x] Set `frustumCulled = false` for skinned monster components
-  - [x] Guarantee opaque render order and depth texture write
-  - [x] Enforce ground grid height tracking with shoulders >= 0.35m above waterline
-  - [x] Relax navigation clearance or choose largest water component for spawns
-  - [x] Calibrate monster body scale and hunch dimensions
-  - [x] Add regression tests for repaired defects
-  - [x] Record Decision D072 in `DECISIONS.md` and commit Phase B
+- [x] **Phase A: Baseline Measurement & Audit (Section 5)**
+  - [x] A.1 Add water camera presets to `shots.json` (axial calm, grazing calm, slab edge, wading wake, splashes 0.1/0.5/1.2s, drip ring, horizon, underwater, monster wake, rain)
+  - [x] A.2 Render baseline shots and compute stats in `reports/water/baseline/`
+  - [x] A.3 Score shots 0–5 across rubric with 1-sentence justifications
+  - [x] A.4 Conduct line-by-line audit of water code into `reports/water/audit.md`
+  - [x] A.5 Commit Phase A
 
-- [ ] **Phase C: Experience & Pacing**
-  - [ ] Implement First Sight crossing rule (within 35s on Normal, $d = \sqrt{\ln(1/0.25)}/\text{density}$)
-  - [ ] Implement Emergence rule (2.5s slow rise in clear water if crossing blocked)
-  - [ ] Implement The Sleeper (dormant monster 22–32m from spawn with >= 8m silent path)
-  - [ ] Implement distance-driven presence cues (Kelvin V-wake, splash footprints, directional ambient far audio, tape flickers)
-  - [ ] Implement readable silhouette states (Listening, Alerted, Hunting, Investigating, Blocked, Lurking)
-  - [ ] Enforce pacing cadence (<= 90s between beats, 25–40s calm post close-call)
-  - [ ] Add per-map patrol graph validator (lane within 30m of silent route)
-  - [ ] Verify 600s silent dry test (zero attacks across 5 seeds) and record replay hash
-  - [ ] Record Decision D073 in `DECISIONS.md` and commit Phase C
+- [ ] **Phase B: Shading Model (Section 6)**
+  - [ ] B.1 Depth & Absorption (scene depth copy, thickness, Beer-Lambert $\sigma = (0.90, 0.25, 0.45)$, milky veil, $\ge 40\%$ grout line edge density at 0.9m)
+  - [ ] B.2 Surface Normals (4 Gerstner waves, 3 scrolling detail normals, Toksvig AA, wave sim gradient)
+  - [ ] B.3 Reflection & Refraction (Fresnel $F_0=0.02$, tiered reflection: gradient / 64px CubeCamera / planar reflection, depth-safe refraction offset, 3cm shoreline soft edge)
+  - [ ] B.4 Glints & Flashing (up to 16 light proxies, GGX specular roughness 0.06–0.12, 8–14Hz micro-flicker, bloom thresholding, 0.2%–1.5% glints, scrub alias test)
+  - [ ] B.5 Fog & Horizon (height fog integration, seamless blown-out cream horizon fade)
+  - [ ] B.6 Record Decision D080 and commit Phase B
 
-- [ ] **Phase D: Attack Chain & Jumpscare**
-  - [ ] Verify and harden full attack chain in real browser
-  - [ ] Jumpscare camera alignment: head centered, jaw open, 0.8m distance
-  - [ ] Assert jumpscare mask >= 25% at 0.2s and 0.6s
-  - [ ] Verify < 1s retry with monster >= 60m away
-  - [ ] Record Decision D074 in `DECISIONS.md` and commit Phase D
+- [ ] **Phase C: Wave Simulation & Interaction (Section 7)**
+  - [ ] C.1 Half-float $(h, v)$ ping-pong wave equation (512x512 High, 256x256 Med, substeps $n = \lceil c \cdot dt / (0.7 \cdot dx) \rceil$)
+  - [ ] C.2 Toroidal camera-following window snapping with newly exposed strip clearing and edge fade
+  - [ ] C.3 Solid obstacle mask from `GroundGrid` with boundary mirroring for wave reflections
+  - [ ] C.4 Dynamic impulses: player wading V-wake, footsteps, monster heavy splashes, ceiling drips, rain
+  - [ ] C.5 CPU reference simulation on 64x64 grid for unit tests
+  - [ ] C.6 Record Decision D081 and commit Phase C
 
-- [ ] **Phase E: Creature Visuals & Skin Architecture**
-  - [ ] Integrate dual-skin architecture (`ProceduralSkin` default, `GlbSkin` optional) with clean live swap
-  - [ ] Verify continuous SkinnedMesh procedural body (no joint cracks, wetness shader, 40% fog reduction, cool rim light)
-  - [ ] Verify foot-slide < 0.03 m/s in animation lab (`?lab=anim`)
-  - [ ] Document model attribution and fan IP disclaimer in `CREDITS.md` and `MODELS_SETUP.md`
-  - [ ] Record Decision D075 in `DECISIONS.md` and commit Phase E
+- [ ] **Phase D: Splashes, Drops & Foam (Section 8)**
+  - [ ] D.1 Animated splash crown mesh (0.4s vertical displacement), simulation ring impulse, 256 pooled instanced droplets
+  - [ ] D.2 Monster dark droplets (ink tint 30%) and heavier crown splashes
+  - [ ] D.3 Sparse seeded ceiling drips synced with audio engine
+  - [ ] D.4 Shoreline foam from thickness, crest foam from negative curvature, persistent 4s decay foam render target on High
+  - [ ] D.5 Rising bubble particles from splashes and underwater movement
+  - [ ] D.6 Meniscus transition line and camera lens droplets (1.5s fade, photosensitive-safe)
+  - [ ] D.7 Record Decision D082 and commit Phase D
 
-- [ ] **Phase F: Automated Acceptance Gates (M1 to M9)**
-  - [ ] M1: Cold start default map monster presence
-  - [ ] M2: Show-me key (H) mask >= 300px, visibleFraction >= 0.6
-  - [ ] M3: Silent 150s (10 seeds, sighted within 45s in >= 9, 0 attacks)
-  - [ ] M4: Noise to death attack chain & retry
-  - [ ] M5: All ten maps sighted within 90s
-  - [ ] M6: Ten retries without memory leaks
-  - [ ] M7: Pipelines (water on/off, 3 tiers)
-  - [ ] M8: Phone view (390x844 with 4x CPU throttle)
-  - [ ] M9: Broken models fallback recovery
-  - [ ] Record Decision D076 in `DECISIONS.md` and commit Phase F
+- [ ] **Phase E: Surroundings & Elevation (Section 9)**
+  - [ ] E.1 Wet band: tile darkening and gloss below `waterY + 0.35m` with noisy tidemark
+  - [ ] E.2 Floor and wall caustics (2 samples Med/High, 1 sample Low, depth fading)
+  - [ ] E.3 Contact shadows / ambient occlusion at slab-water intersection
+  - [ ] E.4 Underwater presentation: milky green grade, particulate, light shafts, bubbles, muffled audio
+  - [ ] E.5 Tile-grid elevation audit against `WORLD` constants; document in `reports/water/elevation.md`
+  - [ ] E.6 Record Decision D083 and commit Phase E
 
-- [ ] **Phase G: Permanent Guardrails & Audit**
-  - [ ] Implement runtime `MonsterWatchdog`
-  - [ ] Add ESLint rule preventing empty/log-only catch blocks in core code
-  - [ ] Add unit test suite injecting suspect failures
-  - [ ] Surface probe verdict in UI diagnostics copy button
-  - [ ] Update `ARCHITECTURE.md`, `ACOUSTIC_RULEBOOK.md`, `DECISIONS.md`
-  - [ ] Generate comprehensive review pack and screenshots
-  - [ ] Record Decision D077 in `DECISIONS.md` and commit Phase G
+- [ ] **Phase F: Quality Tiers, Performance & Mobile (Section 10)**
+  - [ ] F.1 Low/Medium/High configuration matrix implementation and validation
+  - [ ] F.2 Measure frame costs at 1080p ($\le 1.0$ms Low, $\le 2.0$ms Med, $\le 3.5$ms High) and mobile 390x844 $\ge 30$ FPS
+  - [ ] F.3 Pre-compile water shader during initial map loading
+  - [ ] F.4 Record Decision D084 and commit Phase F
+
+- [ ] **Phase G: Tests & Verification (Section 11)**
+  - [ ] G.1 `waterSelfTest()` (10,000 steps no NaN, energy decay, CPU/GPU agreement $< 1e-3$, wall reflection)
+  - [ ] G.2 Determinism replay hash verification before vs after
+  - [ ] G.3 Golden shots SSIM $\ge 0.97$
+  - [ ] G.4 Reference compare test in-band across all 4 benchmark maps
+  - [ ] G.5 Fallback test when simulation render targets are unavailable
+  - [ ] G.6 Record Decision D085 and commit Phase G
+
+- [ ] **Review Pack & Final Delivery (Section 12)**
+  - [ ] Before/after contact sheet with rubric scores ($\ge 4.0$ for all water shots)
+  - [ ] `reference:compare` table or visual bible compliance statement
+  - [ ] `reports/water/elevation.md` with measured vs chosen heights
+  - [ ] Frame strips (splash 0.1/0.5/1.2s, wading wake, drip ring, glint flicker)
+  - [ ] `waterSelfTest()` logs and timing per tier
+  - [ ] Limitations report and final git publish command
