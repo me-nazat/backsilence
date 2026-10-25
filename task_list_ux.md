@@ -84,6 +84,6 @@
   - [x] I.2 Verify all U1–U12 pass conditions with file paths
   - [x] I.3 Record Decision D110 and commit Phase I
 
-- [ ] **Review Pack & Publication (Section 12)**
-  - [ ] R.1 Compile `reports/ux/friction.md` with before/after comparisons and dead-click count (0)
-  - [ ] R.2 Author `reports/ux/review_pack.md` with all tables, screenshots, PLAYTEST.md, limitations, and push command
+- [x] **Review Pack & Publication (Section 12)**
+  - [x] R.1 Compile `reports/ux/friction.md` with before/after comparisons and dead-click count (0)
+  - [x] R.2 Author `reports/ux/review_pack.md` with all tables, screenshots, PLAYTEST.md, limitations, and push command

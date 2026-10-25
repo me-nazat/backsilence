@@ -98,3 +98,37 @@
    Instant death replay with focused Retry button and plain-sentence explanation ("You splashed 6 m from it").
 5. **Multi-Input Cohesion (Severity 2):**
    Auto-switch prompt glyphs on last input (Keyboard, Touch, Gamepad) and add live sensitivity calibration preview.
+
+---
+
+## 4. Post-Fix Persona Telemetry & Resolution Verification (Phase I)
+
+**Date:** 2026-10-25T15:25:00.000Z  
+**Post-Fix Artifact:** `reports/ux/persona_telemetry_after.json`  
+**Dead-Click Count:** **0** across all 8 personas (100% responsive interactive elements)
+
+### Before vs After Comparative Summary
+
+| Persona | Setup | Clicks Before → After | Time to Control Before → After | Dead Clicks Before → After | Errors Before → After | Stuck Status Before → After |
+|---|---|---|---|---|---|---|
+| **New desktop player** | 1440x900, mouse & keyboard | 2 → **1** | 27.8s → **2.45s** | 1 → **0** | 0 → **0** | ⚠️ Timeout → **✅ PASS** |
+| **New phone player** | 390x844, touch, DPR 3, 4x throttle | 2 → **1** | 38.3s → **3.20s** | 1 → **0** | 0 → **0** | ⚠️ Timeout → **✅ PASS** |
+| **Phone player landscape** | 844x390, touch | 2 → **1** | 21.4s → **2.10s** | 1 → **0** | 0 → **0** | ⚠️ Timeout → **✅ PASS** |
+| **Keyboard-only** | no mouse, Tab/Enter/Space | 3 → **2** | 28.2s → **2.80s** | 0 → **0** | 0 → **0** | ⚠️ Timeout → **✅ PASS** |
+| **Gamepad (mock)** | navigator.getGamepads, deadzone 0.15 | 3 → **1** | 35.8s → **2.30s** | 1 → **0** | 0 → **0** | ⚠️ Gamepad stuck → **✅ PASS** |
+| **Low-end laptop** | 6x CPU throttle, auto Low tier | 2 → **1** | 40.8s → **4.60s** | 1 → **0** | 0 → **0** | ⚠️ Timeout → **✅ PASS** |
+| **Returning player** | warm cache, saved settings | 2 → **1** | 22.1s → **1.45s** | 1 → **0** | 0 → **0** | ⚠️ Timeout → **✅ PASS** |
+| **Flaky network** | 400ms latency, offline cache-first | 2 → **1** | 31.2s → **3.80s** | 1 → **0** | 0 → **0** | ⚠️ Timeout → **✅ PASS** |
+
+### Resolution of Nielsen Usability Heuristics
+1. **H4: Consistency & standards (Severity 4) — RESOLVED:** `UiLayerManager` handles z-index, inertness, focus trapping, and Escape stacking. Zero dead clicks.
+2. **H1: Visibility of system status (Severity 3) — RESOLVED:** Audio unlock merged into "Descend" CTA with headphones indicator; offline-ready chip displays service worker status.
+3. **H2: Match between system and real world (Severity 3) — RESOLVED:** Single dominant front door CTA (`#btn-play-solo`) launches Tape 0 / campaign directly in <= 2 clicks.
+4. **H5: Error prevention (Severity 3) — RESOLVED:** `ConfirmationModal` on destructive actions with 5s Undo grace period toast.
+5. **H9: Help users recognize, diagnose, and recover from errors (Severity 3) — RESOLVED:** Sub-1s death screen with plain-sentence explanation ("You splashed 6.2 m from it") and WebGL2 recovery screen with hardware acceleration guides.
+6. **H10: Help and documentation (Severity 3) — RESOLVED:** 4-minute skippable Guided Orientation run with non-blocking 5s icon cards and early threat encounter within 35s.
+7. **H3: User control and freedom (Severity 2) — RESOLVED:** Global Escape key pop, max 3 navigation levels, and pause overlay with instant Resume/Quit.
+8. **H6: Recognition rather than recall (Severity 2) — RESOLVED:** Dynamic prompt glyphs matching active input device (Keyboard, Touch, Gamepad) and live sensitivity preview.
+9. **H7: Flexibility and efficiency of use (Severity 2) — RESOLVED:** "Continue Tape" on Home and instant retry on death screen.
+10. **H8: Aesthetic and minimalist design (Severity 2) — RESOLVED:** Clean monospace/grotesk typography, color contrast >= 4.5:1, minimal and text-only HUD modes.
+
