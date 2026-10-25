@@ -244,8 +244,8 @@ export class SettingsPanel {
         return `
           <div class="setting-row">
             <div>
-              <div class="setting-label">MOUSE SENSITIVITY: <span id="lbl-sens">${this.settings.controls.sensitivity.toFixed(1)}</span></div>
-              <div class="setting-sub">Look speed scaling</div>
+              <div class="setting-label">MOUSE SENSITIVITY: <span id="lbl-sens">${this.settings.controls.sensitivity.toFixed(1)} (${Math.round(this.settings.controls.sensitivity * 360)}°)</span></div>
+              <div class="setting-sub">Look speed scaling (degrees per standard 30cm swipe)</div>
             </div>
             <input id="set-sens" type="range" min="0.1" max="3.0" step="0.1" value="${this.settings.controls.sensitivity}" class="setting-slider">
           </div>
@@ -253,7 +253,7 @@ export class SettingsPanel {
           <div class="setting-row">
             <div>
               <div class="setting-label">INVERT VERTICAL LOOK (Y-AXIS)</div>
-              <div class="setting-sub">Invert pitch axis</div>
+              <div class="setting-sub">Invert pitch axis for mouse, gamepad, and touch</div>
             </div>
             <input id="set-inverty" type="checkbox" ${this.settings.controls.invertY ? 'checked' : ''} class="setting-toggle">
           </div>
@@ -264,6 +264,54 @@ export class SettingsPanel {
               <div class="setting-sub">Press to toggle crouch instead of holding key</div>
             </div>
             <input id="set-togglecrouch" type="checkbox" ${this.settings.controls.toggleCrouch ? 'checked' : ''} class="setting-toggle">
+          </div>
+
+          <div class="setting-row">
+            <div>
+              <div class="setting-label">TOGGLE SPRINT</div>
+              <div class="setting-sub">Press to toggle sprint instead of holding shift</div>
+            </div>
+            <input id="set-togglesprint" type="checkbox" ${this.settings.controls.toggleSprint ? 'checked' : ''} class="setting-toggle">
+          </div>
+
+          <div class="setting-row">
+            <div>
+              <div class="setting-label">RAW MOUSE INPUT (UNADJUSTED)</div>
+              <div class="setting-sub">Bypass browser/OS mouse acceleration for 1:1 precision</div>
+            </div>
+            <input id="set-unadjusted" type="checkbox" ${this.settings.controls.unadjustedMovement !== false ? 'checked' : ''} class="setting-toggle">
+          </div>
+
+          <div class="setting-row">
+            <div>
+              <div class="setting-label">HAPTIC FEEDBACK</div>
+              <div class="setting-sub">Rumble controller or vibrate mobile device on jumps and near-misses</div>
+            </div>
+            <input id="set-haptics" type="checkbox" ${this.settings.controls.haptics !== false ? 'checked' : ''} class="setting-toggle">
+          </div>
+
+          <div class="setting-row">
+            <div>
+              <div class="setting-label">AUTO-SPRINT ASSIST (MOBILE / EASY)</div>
+              <div class="setting-sub">Engage sprint automatically when moving forward without crouch</div>
+            </div>
+            <input id="set-autosprint" type="checkbox" ${this.settings.controls.autoSprint ? 'checked' : ''} class="setting-toggle">
+          </div>
+
+          <div class="setting-row">
+            <div>
+              <div class="setting-label">AUTO-CROUCH ASSIST (MOBILE / EASY)</div>
+              <div class="setting-sub">Automatically crouch in water or low-clearance areas</div>
+            </div>
+            <input id="set-autocrouch" type="checkbox" ${this.settings.controls.autoCrouch ? 'checked' : ''} class="setting-toggle">
+          </div>
+
+          <div class="setting-row">
+            <div>
+              <div class="setting-label">TOUCH BUTTONS SCALE: <span id="lbl-touchscale">${Math.round((this.settings.controls.touchScale ?? 1.0) * 100)}%</span></div>
+              <div class="setting-sub">Scale action buttons on touchscreen devices</div>
+            </div>
+            <input id="set-touchscale" type="range" min="0.75" max="1.5" step="0.05" value="${this.settings.controls.touchScale ?? 1.0}" class="setting-slider">
           </div>
 
           <div style="margin-top: 12px;">
@@ -510,7 +558,7 @@ export class SettingsPanel {
       sens?.addEventListener('input', () => {
         this.settings.controls.sensitivity = parseFloat(sens.value);
         const lbl = this.el?.querySelector('#lbl-sens');
-        if (lbl) lbl.textContent = this.settings.controls.sensitivity.toFixed(1);
+        if (lbl) lbl.textContent = `${this.settings.controls.sensitivity.toFixed(1)} (${Math.round(this.settings.controls.sensitivity * 360)}°)`;
         this.liveApply();
       });
 
@@ -523,6 +571,49 @@ export class SettingsPanel {
       const tc = this.el.querySelector('#set-togglecrouch') as HTMLInputElement;
       tc?.addEventListener('change', () => {
         this.settings.controls.toggleCrouch = tc.checked;
+        this.liveApply();
+      });
+
+      const ts = this.el.querySelector('#set-togglesprint') as HTMLInputElement;
+      ts?.addEventListener('change', () => {
+        this.settings.controls.toggleSprint = ts.checked;
+        this.liveApply();
+      });
+
+      const unadj = this.el.querySelector('#set-unadjusted') as HTMLInputElement;
+      unadj?.addEventListener('change', () => {
+        this.settings.controls.unadjustedMovement = unadj.checked;
+        this.liveApply();
+      });
+
+      const hapt = this.el.querySelector('#set-haptics') as HTMLInputElement;
+      hapt?.addEventListener('change', () => {
+        this.settings.controls.haptics = hapt.checked;
+        this.liveApply();
+      });
+
+      const as = this.el.querySelector('#set-autosprint') as HTMLInputElement;
+      as?.addEventListener('change', () => {
+        this.settings.controls.autoSprint = as.checked;
+        this.liveApply();
+      });
+
+      const ac = this.el.querySelector('#set-autocrouch') as HTMLInputElement;
+      ac?.addEventListener('change', () => {
+        this.settings.controls.autoCrouch = ac.checked;
+        this.liveApply();
+      });
+
+      const touchscale = this.el.querySelector('#set-touchscale') as HTMLInputElement;
+      touchscale?.addEventListener('input', () => {
+        this.settings.controls.touchScale = parseFloat(touchscale.value);
+        const lbl = this.el?.querySelector('#lbl-touchscale');
+        if (lbl) lbl.textContent = `${Math.round(this.settings.controls.touchScale * 100)}%`;
+        try {
+          localStorage.setItem('backsilence_touch_scale', String(this.settings.controls.touchScale));
+        } catch {
+          /* ignore */
+        }
         this.liveApply();
       });
 

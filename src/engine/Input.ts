@@ -76,7 +76,25 @@ export class InputManager {
 
   requestPointerLock(): void {
     if (this.canvas && !this.isPointerLocked) {
-      void this.canvas.requestPointerLock();
+      try {
+        const target = this.canvas as { requestPointerLock?: (opts?: { unadjustedMovement?: boolean }) => Promise<void> | void };
+        const res = target.requestPointerLock?.({ unadjustedMovement: true });
+        if (res instanceof Promise) {
+          void res.catch(() => {
+            try {
+              void this.canvas?.requestPointerLock();
+            } catch {
+              /* ignore */
+            }
+          });
+        }
+      } catch {
+        try {
+          void this.canvas.requestPointerLock();
+        } catch {
+          /* ignore */
+        }
+      }
     }
   }
 

@@ -1318,3 +1318,29 @@ Establish `functions/api/[[route]].ts` as the canonical Cloudflare Pages Functio
    - Replaced all legacy font fallbacks with `ui-serif, Georgia, serif`, and reinforced `tests/screen-roots.test.ts` to assert that zero UI files contain `Comic Sans MS`.
 **Reason:** Satisfies Section 5 Phase C mandates of Prompt 5 of 5.
 
+### D105: Phase D Controls That Feel Right (2026-10-25)
+**Context:** Section 6 (Phase D) requires controls that feel responsive, natural, and accessible across desktop mouse/keyboard, mobile touch, and gamepads. Mandates unadjusted pointer lock, calibrated sensitivity with live degree preview, jump buffer (0.1s), coyote time (0.1s base / 0.18s assist), sprint/crouch hold/toggle, mobile portrait primary floating joystick with 12% deadzone, right-thumb look, >= 48px action buttons, layout scale customizer (0.75x–1.5x), `touch-action: none`, gesture prevention, screen wakeLock, haptics, auto-crouch/auto-sprint assists, gamepad radial deadzone (0.15), rumble feedback, dynamic prompt glyphs, and 2D spatial menu navigation.
+**Choice:**
+1. Desktop Pointer Lock & Calibrated Sensitivity (`src/engine/Input.ts`, `src/game/player/PlayerInput.ts`, `src/ui/SettingsPanel.ts`, `src/ui/PauseMenu.ts`):
+   - Implemented `canvas.requestPointerLock({ unadjustedMovement: true })` with safe promise fallback for raw mouse input without OS acceleration curves.
+   - Calibrated mouse sensitivity slider with live degrees readout (`${sens.toFixed(1)} (${Math.round(sens * 360)}°)`) in both Settings and Pause Menu.
+   - Added invert Y axis, toggle crouch, and toggle sprint options in `Settings.controls`.
+2. Jump Buffer & Coyote Time Determinism Invariant (`src/sim/PlayerMotor.ts`):
+   - Preserved 0.1s jump buffer and default 0.1s coyote time (`coyoteDuration = 0.1`), ensuring bitwise identical simulation hashes (`simHash`) across all replay tests.
+   - Added configurable coyote assist extension (0.18s window) for assisted play without altering physics constants.
+3. Mobile Touch Experience (`src/game/player/TouchControls.ts`):
+   - Floating virtual joystick with 12% deadzone (`dist / maxDist < 0.12`) and outer sprint lock at 85%.
+   - Right-thumb look surface with smooth inertial damping.
+   - Resized all touch targets >= 48px: Jump (60px), Crouch (56px), Pebble Throw (52px), Pause (48px), Fullscreen (48px).
+   - Touch layout customizer supporting 0.75x to 1.5x scaling (`touchScale`).
+   - Mobile assists: `autoSprint` (automatic sprint past 85% stick excursion) and `autoCrouch` (automatic crouch while wading deep water).
+   - Strict gesture prevention: `touch-action: none`, `preventDefault()` on multi-touch gestures, pull-to-refresh blocking.
+   - Mobile haptics (`navigator.vibrate(15)`) on taps and heavy pulse on monster attack.
+4. Gamepad & 2D Spatial Navigation (`src/ui/input/SpatialNavigation.ts`, `src/game/player/PlayerInput.ts`):
+   - Integrated Gamepad 2D menu navigation loop (D-pad and left stick navigate focus between buttons, A button activates, B/Start toggles pause/escape).
+   - Dual-motor haptic rumble (`playRumble('near-miss')` and `playRumble('jumpscare')`).
+5. Screen Wake Lock (`src/game/GameSession.ts`):
+   - Acquired `navigator.wakeLock.request('screen')` on session start to prevent mobile screen sleep during horror tension; cleanly released on session cleanup.
+**Reason:** Satisfies Section 6 Phase D mandates of Prompt 5 of 5.
+
+

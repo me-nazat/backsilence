@@ -68,6 +68,7 @@ import { PingMarkerManager } from './player/PingMarkerManager.js';
 import { SpectatorController } from './player/SpectatorController.js';
 import { ToastManager } from '../ui/ToastManager.js';
 import { OrientationDirector } from './OrientationDirector.js';
+import { GamepadManager } from '../engine/input/GamepadManager.js';
 
 export interface GameSessionCallbacks {
   onPause: () => void;
@@ -138,6 +139,7 @@ export class GameSession {
   private spectatorController!: SpectatorController;
   private isSpectating = false;
   private isDead = false;
+  private wakeLock: unknown = null;
   private hasEscaped = false;
   private netSnapshotTimer = 0;
   private netMonsterTimer = 0;
@@ -327,6 +329,19 @@ export class GameSession {
     });
     if (typeof window !== 'undefined') {
       (window as unknown as { __backsilence_session?: unknown }).__backsilence_session = this;
+    }
+
+    if (typeof navigator !== 'undefined' && 'wakeLock' in navigator) {
+      try {
+        void (navigator as unknown as { wakeLock: { request: (type: string) => Promise<unknown> } })
+          .wakeLock.request('screen').then((lock) => {
+            this.wakeLock = lock;
+          }).catch(() => {
+            /* ignore */
+          });
+      } catch {
+        /* ignore */
+      }
     }
     this.setupDebugTools();
 
@@ -1732,6 +1747,9 @@ export class GameSession {
       if (dist < this.closestCall) {
         this.closestCall = dist;
       }
+      if (dist < 4.0) {
+        void GamepadManager.getInstance().playRumble('near-miss');
+      }
       if (mSnap.state === 'ALERTED' || mSnap.state === 'HUNT') {
         this.alertsCount++;
       }
@@ -1749,6 +1767,14 @@ export class GameSession {
             window.matchMedia('(prefers-reduced-motion: reduce)').matches);
 
         this.postFX.triggerJumpscare();
+        void GamepadManager.getInstance().playRumble('jumpscare');
+        if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
+          try {
+            navigator.vibrate([100, 50, 200]);
+          } catch {
+            /* ignore */
+          }
+        }
         this.jumpscare.trigger(
           this.camera,
           headWorld,
@@ -3197,6 +3223,14 @@ export class GameSession {
 
   dispose(): void {
     this.isDisposed = true;
+    if (this.wakeLock) {
+      try {
+        void (this.wakeLock as { release: () => Promise<void> }).release();
+        this.wakeLock = null;
+      } catch {
+        /* ignore */
+      }
+    }
     if (this.magentaMarker) {
       this.scene.remove(this.magentaMarker);
       this.magentaMarker.geometry.dispose();

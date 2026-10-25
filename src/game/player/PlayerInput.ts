@@ -7,6 +7,7 @@
 import type { PlayerIntent } from '../../sim/PlayerMotor.js';
 import type { Action, Settings } from '../../types/contracts.js';
 import { TouchControls } from './TouchControls.js';
+import { GamepadManager } from '../../engine/input/GamepadManager.js';
 
 export interface PlayerInputCallbacks {
   onPauseRequested: () => void;
@@ -42,6 +43,10 @@ export class PlayerInput {
   private callbacks: PlayerInputCallbacks;
   private freezeInput = false;
   public isSpectating = false;
+
+  private sprintToggled = false;
+  private crouchToggled = false;
+  private wasGpPause = false;
 
   constructor(settings: Settings, callbacks: PlayerInputCallbacks) {
     this.settings = settings;
@@ -84,6 +89,10 @@ export class PlayerInput {
       // Escape or Pause binding triggers pause
       if (e.code === 'Escape' || e.code === this.settings.controls.bindings.pause) {
         this.callbacks.onPauseRequested();
+      } else if (e.code === this.settings.controls.bindings.crouch && this.settings.controls.toggleCrouch) {
+        this.crouchToggled = !this.crouchToggled;
+      } else if (e.code === this.settings.controls.bindings.sprint && this.settings.controls.toggleSprint) {
+        this.sprintToggled = !this.sprintToggled;
       } else if (e.code === (this.settings.controls.bindings.ping ?? 'KeyV')) {
         this.callbacks.onPing?.();
       } else if (e.code === 'KeyQ') {
@@ -212,7 +221,30 @@ export class PlayerInput {
 
   requestPointerLock(): void {
     if (this.canvas && !this.isLocked) {
-      void this.canvas.requestPointerLock();
+      const wantUnadjusted = this.settings.controls.unadjustedMovement !== false;
+      try {
+        const target = this.canvas as { requestPointerLock?: (opts?: { unadjustedMovement?: boolean }) => Promise<void> | void };
+        if (wantUnadjusted && typeof target.requestPointerLock === 'function') {
+          const res = target.requestPointerLock({ unadjustedMovement: true });
+          if (res instanceof Promise) {
+            void res.catch(() => {
+              try {
+                void this.canvas?.requestPointerLock();
+              } catch {
+                /* ignore */
+              }
+            });
+          }
+        } else {
+          void this.canvas.requestPointerLock();
+        }
+      } catch {
+        try {
+          void this.canvas.requestPointerLock();
+        } catch {
+          /* ignore */
+        }
+      }
     }
   }
 
@@ -291,10 +323,15 @@ export class PlayerInput {
     if (isDown('left')) moveX -= 1;
     if (isDown('right')) moveX += 1;
 
-    let sprint = isDown('sprint');
-    let crouch = isDown('crouch');
+    let sprint = this.settings.controls.toggleSprint ? this.sprintToggled : isDown('sprint');
+    let crouch = this.settings.controls.toggleCrouch ? this.crouchToggled : isDown('crouch');
     let jump = isDown('jump');
     let interact = isDown('interact');
+
+    // Auto-sprint assist: if enabled and moving forward without crouch
+    if (this.settings.controls.autoSprint && Math.hypot(moveX, moveZ) > 0.05 && !crouch) {
+      sprint = true;
+    }
 
     // Mouse look deltas (in radians)
     const sens = this.settings.controls.sensitivity * 0.0022;
@@ -307,6 +344,33 @@ export class PlayerInput {
 
     this.mouseDeltaX = 0;
     this.mouseDeltaY = 0;
+
+    // Merge Gamepad controls if connected
+    const gamepad = GamepadManager.getInstance();
+    const gpPad = gamepad.getPrimaryGamepad();
+    if (gpPad) {
+      const axes = gamepad.pollAxes();
+      const btns = gamepad.pollButtons();
+
+      if (Math.hypot(axes.moveX, axes.moveY) > 0.05) {
+        moveX = axes.moveX;
+        moveZ = axes.moveY;
+      }
+
+      if (btns.pause && !this.wasGpPause) {
+        this.callbacks.onPauseRequested();
+      }
+      this.wasGpPause = btns.pause;
+
+      sprint = sprint || btns.sprint;
+      crouch = crouch || btns.crouch;
+      jump = jump || btns.jump;
+      interact = interact || btns.interact;
+
+      const gpSens = this.settings.controls.sensitivity * 0.045;
+      lookDeltaYaw += -axes.lookX * gpSens;
+      lookDeltaPitch += (invertY ? axes.lookY : -axes.lookY) * gpSens;
+    }
 
     // Merge Touch controls if active
     if (this.touchControls.isActive()) {

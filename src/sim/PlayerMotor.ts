@@ -78,6 +78,7 @@ export class PlayerMotor {
   private wasOnGround = true;
 
   // Timers for jump buffer and coyote time
+  public coyoteDuration = 0.1;
   private coyoteTimer = 0;
   private jumpBufferTimer = 0;
 
@@ -286,7 +287,7 @@ export class PlayerMotor {
 
     // 9. Jump & Gravity logic (Coyote time & Jump buffer)
     if (this.onGround) {
-      this.coyoteTimer = 0.1;
+      this.coyoteTimer = this.coyoteDuration;
     } else {
       this.coyoteTimer = Math.max(0, this.coyoteTimer - dt);
     }

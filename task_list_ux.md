@@ -39,11 +39,11 @@
   - [x] C.11 Photo mode (`P` key / button) hiding HUD and exporting canvas PNG
   - [x] C.12 Record Decision D104 and commit Phase C
 
-- [ ] **Phase D: Controls That Feel Right (Section 6)**
-  - [ ] D.1 Desktop controls: pointer lock with `unadjustedMovement`, calibrated sensitivity slider with live preview, invert Y, jump buffer (0.1s), coyote time (0.1s / 0.18s assist), sprint/crouch hold/toggle, controls reference with player remap glyphs
-  - [ ] D.2 Touch controls: portrait primary layout; floating joystick (12% dead zone, sprint at 85%); right thumb drag look with inertia; >= 48px action buttons; controls layout customizer; `touch-action: none`; prevent gestures; fullscreen; wakeLock; haptics; auto-crouch / auto-sprint assists
-  - [ ] D.3 Gamepad controls: radial dead zone 0.15, response curve, rumble, dynamic prompt glyphs, 2D spatial menu navigation
-  - [ ] D.4 Record Decision D105 and commit Phase D
+- [x] **Phase D: Controls That Feel Right (Section 6)**
+  - [x] D.1 Desktop controls: pointer lock with `unadjustedMovement`, calibrated sensitivity slider with live preview, invert Y, jump buffer (0.1s), coyote time (0.1s / 0.18s assist), sprint/crouch hold/toggle, controls reference with player remap glyphs
+  - [x] D.2 Touch controls: portrait primary layout; floating joystick (12% dead zone, sprint at 85%); right thumb drag look with inertia; >= 48px action buttons; controls layout customizer; `touch-action: none`; prevent gestures; fullscreen; wakeLock; haptics; auto-crouch / auto-sprint assists
+  - [x] D.3 Gamepad controls: radial dead zone 0.15, response curve, rumble, dynamic prompt glyphs, 2D spatial menu navigation
+  - [x] D.4 Record Decision D105 and commit Phase D
 
 - [ ] **Phase E: Clarity of the Screen (Section 7)**
   - [ ] E.1 Enhanced noise meter: color-blind safe palette, numeric ticks (0.12, 0.35, 0.75, 1.0), faint noise radius ring on water; readable at 390px

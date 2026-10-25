@@ -11,6 +11,7 @@ export interface TouchIntent {
   crouch: boolean;
   jump: boolean;
   interact: boolean;
+  throw?: boolean;
   lookDeltaYaw: number;
   lookDeltaPitch: number;
   pauseRequested: boolean;
@@ -36,9 +37,11 @@ export class TouchControls {
   private jumpPressed = false;
   private crouchToggled = false;
   private interactPressed = false;
+  private throwPressed = false;
   private pauseRequested = false;
 
   private active = false;
+  private touchScale = 1.0;
 
   constructor() {
     this.checkAutoEnable();
@@ -78,6 +81,7 @@ export class TouchControls {
       touch-action: none;
       user-select: none;
       -webkit-user-select: none;
+      overscroll-behavior: contain;
     `;
 
     el.innerHTML = `
@@ -89,6 +93,7 @@ export class TouchControls {
         width: 50%;
         height: 100%;
         pointer-events: auto;
+        touch-action: none;
       "></div>
 
       <!-- Right Look Zone -->
@@ -99,6 +104,7 @@ export class TouchControls {
         width: 50%;
         height: 100%;
         pointer-events: auto;
+        touch-action: none;
       "></div>
 
       <!-- Joystick Visuals -->
@@ -126,7 +132,50 @@ export class TouchControls {
         "></div>
       </div>
 
-      <!-- Action Buttons Container (Bottom-Right, safe-area aware) -->
+      <!-- Header Controls: Fullscreen & Pause (>= 48px targets) -->
+      <button id="touch-btn-fullscreen" aria-label="Toggle Fullscreen" style="
+        position: fixed;
+        top: max(16px, env(safe-area-inset-top));
+        left: max(16px, env(safe-area-inset-left));
+        width: 48px;
+        height: 48px;
+        min-width: 48px;
+        min-height: 48px;
+        border-radius: 8px;
+        background: rgba(13, 11, 6, 0.75);
+        border: 1px solid rgba(217, 211, 162, 0.4);
+        color: var(--fog, #d9d3a2);
+        font-family: monospace;
+        font-size: 16px;
+        pointer-events: auto;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      ">⛶</button>
+
+      <button id="touch-btn-pause" aria-label="Pause Game" style="
+        position: fixed;
+        top: max(16px, env(safe-area-inset-top));
+        right: max(16px, env(safe-area-inset-right));
+        width: 48px;
+        height: 48px;
+        min-width: 48px;
+        min-height: 48px;
+        border-radius: 8px;
+        background: rgba(13, 11, 6, 0.75);
+        border: 1px solid rgba(217, 211, 162, 0.4);
+        color: var(--fog, #d9d3a2);
+        font-family: monospace;
+        font-size: 18px;
+        pointer-events: auto;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      ">⏸</button>
+
+      <!-- Action Buttons Container (Bottom-Right, safe-area aware, >= 48px) -->
       <div id="touch-buttons" style="
         position: absolute;
         right: max(16px, env(safe-area-inset-right));
@@ -136,58 +185,66 @@ export class TouchControls {
         gap: 16px;
         pointer-events: auto;
         align-items: flex-end;
+        transform-origin: bottom right;
       ">
-        <button id="touch-btn-pause" style="
-          position: fixed;
-          top: max(16px, env(safe-area-inset-top));
-          right: max(16px, env(safe-area-inset-right));
-          width: 44px;
-          height: 44px;
-          border-radius: 8px;
-          background: rgba(13, 11, 6, 0.7);
-          border: 1px solid rgba(217, 211, 162, 0.4);
-          color: var(--fog, #d9d3a2);
-          font-family: monospace;
-          font-size: 18px;
-        ">⏸</button>
-
-        <div style="display: flex; gap: 14px; align-items: center;">
-          <!-- Interact Button -->
-          <button id="touch-btn-interact" style="
-            width: 52px;
-            height: 52px;
+        <div style="display: flex; gap: 12px; align-items: center;">
+          <!-- Throw Pebble Button (>= 48px) -->
+          <button id="touch-btn-throw" aria-label="Throw Pebble" style="
+            width: 48px;
+            height: 48px;
+            min-width: 48px;
+            min-height: 48px;
             border-radius: 50%;
             background: rgba(217, 211, 162, 0.2);
             border: 2px solid rgba(217, 211, 162, 0.5);
             color: var(--fog, #d9d3a2);
             font-family: monospace;
-            font-size: 14px;
+            font-size: 11px;
+            font-weight: bold;
+          ">DIST</button>
+
+          <!-- Interact Button (>= 48px) -->
+          <button id="touch-btn-interact" aria-label="Interact" style="
+            width: 52px;
+            height: 52px;
+            min-width: 52px;
+            min-height: 52px;
+            border-radius: 50%;
+            background: rgba(217, 211, 162, 0.2);
+            border: 2px solid rgba(217, 211, 162, 0.5);
+            color: var(--fog, #d9d3a2);
+            font-family: monospace;
+            font-size: 13px;
             font-weight: bold;
           ">USE</button>
 
-          <!-- Crouch Toggle Button -->
-          <button id="touch-btn-crouch" style="
+          <!-- Crouch Toggle Button (>= 48px) -->
+          <button id="touch-btn-crouch" aria-label="Toggle Crouch" style="
             width: 52px;
             height: 52px;
+            min-width: 52px;
+            min-height: 52px;
             border-radius: 50%;
             background: rgba(217, 211, 162, 0.2);
             border: 2px solid rgba(217, 211, 162, 0.5);
             color: var(--fog, #d9d3a2);
             font-family: monospace;
-            font-size: 14px;
+            font-size: 12px;
             font-weight: bold;
           ">CROUCH</button>
 
-          <!-- Jump Button -->
-          <button id="touch-btn-jump" style="
+          <!-- Jump Button (>= 48px) -->
+          <button id="touch-btn-jump" aria-label="Jump" style="
             width: 64px;
             height: 64px;
+            min-width: 64px;
+            min-height: 64px;
             border-radius: 50%;
             background: rgba(217, 211, 162, 0.3);
             border: 2px solid rgba(217, 211, 162, 0.8);
             color: var(--fog, #d9d3a2);
             font-family: monospace;
-            font-size: 16px;
+            font-size: 15px;
             font-weight: bold;
           ">JUMP</button>
         </div>
@@ -236,6 +293,17 @@ export class TouchControls {
       const dy = e.clientY - this.joystickOrigin.y;
       const maxDist = 55.0; // radius of joystick base
       const dist = Math.hypot(dx, dy);
+
+      // 12% radial deadzone to eliminate touch jitter
+      if (dist / maxDist < 0.12) {
+        this.joystickVec.x = 0;
+        this.joystickVec.y = 0;
+        this.isSprintThreshold = false;
+        if (this.joystickThumb) {
+          this.joystickThumb.style.transform = 'translate(-50%, -50%)';
+        }
+        return;
+      }
 
       const clampedDist = Math.min(dist, maxDist);
       const angle = Math.atan2(dy, dx);
@@ -303,10 +371,26 @@ export class TouchControls {
     rightZone.addEventListener('pointerup', releaseLook);
     rightZone.addEventListener('pointercancel', releaseLook);
 
+    // Fullscreen Toggle Button
+    const fsBtn = this.container.querySelector<HTMLElement>('#touch-btn-fullscreen');
+    fsBtn?.addEventListener('click', () => {
+      this.triggerHaptic();
+      try {
+        if (!document.fullscreenElement) {
+          void document.documentElement.requestFullscreen?.();
+        } else {
+          void document.exitFullscreen?.();
+        }
+      } catch {
+        /* ignore */
+      }
+    });
+
     // Buttons
     const jumpBtn = this.container.querySelector('#touch-btn-jump') as HTMLElement;
     jumpBtn.addEventListener('pointerdown', () => {
       this.jumpPressed = true;
+      this.triggerHaptic();
     });
     jumpBtn.addEventListener('pointerup', () => {
       this.jumpPressed = false;
@@ -318,6 +402,7 @@ export class TouchControls {
     const crouchBtn = this.container.querySelector('#touch-btn-crouch') as HTMLElement;
     crouchBtn.addEventListener('click', () => {
       this.crouchToggled = !this.crouchToggled;
+      this.triggerHaptic();
       crouchBtn.style.background = this.crouchToggled
         ? 'rgba(217, 211, 162, 0.6)'
         : 'rgba(217, 211, 162, 0.2)';
@@ -326,6 +411,7 @@ export class TouchControls {
     const interactBtn = this.container.querySelector('#touch-btn-interact') as HTMLElement;
     interactBtn.addEventListener('pointerdown', () => {
       this.interactPressed = true;
+      this.triggerHaptic();
     });
     interactBtn.addEventListener('pointerup', () => {
       this.interactPressed = false;
@@ -334,10 +420,58 @@ export class TouchControls {
       this.interactPressed = false;
     });
 
+    const throwBtn = this.container.querySelector<HTMLElement>('#touch-btn-throw');
+    throwBtn?.addEventListener('pointerdown', () => {
+      this.throwPressed = true;
+      this.triggerHaptic();
+    });
+    throwBtn?.addEventListener('pointerup', () => {
+      this.throwPressed = false;
+    });
+    throwBtn?.addEventListener('pointercancel', () => {
+      this.throwPressed = false;
+    });
+
     const pauseBtn = this.container.querySelector('#touch-btn-pause') as HTMLElement;
     pauseBtn.addEventListener('click', () => {
       this.pauseRequested = true;
+      this.triggerHaptic();
     });
+
+    // Apply saved touch scale if available
+    try {
+      const savedScale = localStorage.getItem('backsilence_touch_scale');
+      if (savedScale) {
+        this.setScale(parseFloat(savedScale));
+      }
+    } catch {
+      /* ignore */
+    }
+  }
+
+  private triggerHaptic(): void {
+    if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
+      try {
+        navigator.vibrate(15);
+      } catch {
+        /* ignore */
+      }
+    }
+  }
+
+  setScale(scale: number): void {
+    this.touchScale = Math.max(0.75, Math.min(1.5, scale));
+    if (this.container) {
+      const btns = this.container.querySelector<HTMLElement>('#touch-buttons');
+      if (btns) {
+        btns.style.transform = `scale(${this.touchScale})`;
+      }
+    }
+    try {
+      localStorage.setItem('backsilence_touch_scale', String(this.touchScale));
+    } catch {
+      /* ignore */
+    }
   }
 
   consumeIntent(sensitivity = 1.0, invertY = false): TouchIntent {
@@ -365,6 +499,7 @@ export class TouchControls {
       crouch: this.crouchToggled,
       jump: this.jumpPressed,
       interact: this.interactPressed,
+      throw: this.throwPressed,
       lookDeltaYaw: yawDelta,
       lookDeltaPitch: pitchDelta,
       pauseRequested: pause,

@@ -89,6 +89,12 @@ export interface Settings {
     sensitivity: number;
     invertY: boolean;
     toggleCrouch: boolean;
+    toggleSprint?: boolean | undefined;
+    unadjustedMovement?: boolean | undefined;
+    haptics?: boolean | undefined;
+    autoSprint?: boolean | undefined;
+    autoCrouch?: boolean | undefined;
+    touchScale?: number | undefined;
     bindings: Record<Action, string>;
   };
   accessibility: {

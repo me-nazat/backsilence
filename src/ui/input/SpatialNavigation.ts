@@ -4,6 +4,8 @@
  *  Maintains visible focus rings and optional navigation sound cues.
  * ──────────────────────────────────────────────────────────────────────── */
 
+import { GamepadManager } from '../../engine/input/GamepadManager.js';
+
 export type SpatialDirection = 'up' | 'down' | 'left' | 'right';
 
 export interface SpatialNavigationOptions {
@@ -17,6 +19,12 @@ export class SpatialNavigation {
   private keydownHandler: ((e: KeyboardEvent) => void) | null = null;
   private isEnabled = true;
 
+  private gamepadRafId: number | null = null;
+  private lastGamepadNavTime = 0;
+  private lastGpActionTime = 0;
+  private wasGpA = false;
+  private wasGpB = false;
+
   constructor(opts?: SpatialNavigationOptions) {
     this.container = opts?.container ?? null;
     this.onNavigate = opts?.onNavigate;
@@ -29,6 +37,12 @@ export class SpatialNavigation {
 
   setEnabled(val: boolean): void {
     this.isEnabled = val;
+    if (val && !this.gamepadRafId && typeof requestAnimationFrame !== 'undefined') {
+      this.gamepadRafId = requestAnimationFrame(() => this.pollGamepadLoop());
+    } else if (!val && this.gamepadRafId && typeof cancelAnimationFrame !== 'undefined') {
+      cancelAnimationFrame(this.gamepadRafId);
+      this.gamepadRafId = null;
+    }
   }
 
   private bindEvents(): void {
@@ -62,9 +76,62 @@ export class SpatialNavigation {
     };
 
     window.addEventListener('keydown', this.keydownHandler);
+
+    if (typeof requestAnimationFrame !== 'undefined') {
+      this.gamepadRafId = requestAnimationFrame(() => this.pollGamepadLoop());
+    }
+  }
+
+  private pollGamepadLoop(): void {
+    if (!this.isEnabled) return;
+    const gamepad = GamepadManager.getInstance();
+    const pad = gamepad.getPrimaryGamepad();
+    if (pad) {
+      const now = performance.now();
+      const btns = gamepad.pollButtons();
+      const axes = gamepad.pollAxes();
+
+      let dir: SpatialDirection | null = null;
+      if (btns.dpadUp || axes.moveY < -0.5) dir = 'up';
+      else if (btns.dpadDown || axes.moveY > 0.5) dir = 'down';
+      else if (btns.dpadLeft || axes.moveX < -0.5) dir = 'left';
+      else if (btns.dpadRight || axes.moveX > 0.5) dir = 'right';
+
+      if (dir && now - this.lastGamepadNavTime > 200) {
+        this.lastGamepadNavTime = now;
+        this.navigate(dir);
+      }
+
+      // Button 0 (A / Cross) -> click active element
+      if (btns.jump && !this.wasGpA && now - this.lastGpActionTime > 250) {
+        this.lastGpActionTime = now;
+        const active = typeof document !== 'undefined' ? (document.activeElement as HTMLElement | null) : null;
+        if (active && typeof active.click === 'function') {
+          active.click();
+        }
+      }
+      this.wasGpA = btns.jump;
+
+      // Button 1 (B / Circle) -> Escape / Cancel
+      if (btns.crouch && !this.wasGpB && now - this.lastGpActionTime > 250) {
+        this.lastGpActionTime = now;
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', bubbles: true }));
+        }
+      }
+      this.wasGpB = btns.crouch;
+    }
+
+    if (this.isEnabled && typeof requestAnimationFrame !== 'undefined') {
+      this.gamepadRafId = requestAnimationFrame(() => this.pollGamepadLoop());
+    }
   }
 
   dispose(): void {
+    if (this.gamepadRafId && typeof cancelAnimationFrame !== 'undefined') {
+      cancelAnimationFrame(this.gamepadRafId);
+      this.gamepadRafId = null;
+    }
     if (this.keydownHandler && typeof window !== 'undefined') {
       window.removeEventListener('keydown', this.keydownHandler);
       this.keydownHandler = null;

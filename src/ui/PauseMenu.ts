@@ -193,7 +193,7 @@ export class PauseMenu {
 
     sensInput?.addEventListener('input', () => {
       const val = Number(sensInput.value) / 100;
-      if (sensVal) sensVal.textContent = `${val.toFixed(1)}x`;
+      if (sensVal) sensVal.textContent = `${val.toFixed(1)}x (${Math.round(val * 360)}°)`;
       const s = loadSettings();
       s.controls.sensitivity = val;
       saveSettings(s);
@@ -287,7 +287,7 @@ export class PauseMenu {
     if (sensInput && sensVal) {
       const sens = s.controls.sensitivity ?? 1.0;
       sensInput.value = String(Math.round(sens * 100));
-      sensVal.textContent = `${sens.toFixed(1)}x`;
+      sensVal.textContent = `${sens.toFixed(1)}x (${Math.round(sens * 360)}°)`;
     }
 
     const brightInput = this.el.querySelector<HTMLInputElement>('#pause-quick-brightness');
