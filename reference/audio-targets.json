@@ -1,0 +1,48 @@
+{
+  "version": "1.0",
+  "tolerances": {
+    "thirdOctaveRelativeDbAbove100Hz": 3.0,
+    "thirdOctaveRelativeDbBelow100Hz": 5.0,
+    "spectralCentroidPercent": 15.0,
+    "noiseFloorDb": 4.0,
+    "reverbDecayPercent": 15.0,
+    "dynamicRangeLu": 20.0
+  },
+  "targets": {
+    "calm_room_tone": {
+      "integratedLufs": { "min": -36.0, "max": -28.0 },
+      "shortTermLufs": { "min": -34.0, "max": -30.0 },
+      "rmsDbFs": { "min": -52.0, "max": -46.0 },
+      "noiseFloorDbFs": { "min": -56.0, "max": -48.0 },
+      "spectralCentroidHz": { "min": 250.0, "max": 650.0 },
+      "silenceSharePercent": { "min": 20.0, "max": 100.0 }
+    },
+    "water_splash": {
+      "integratedLufs": { "min": -24.0, "max": -16.0 },
+      "peakDbFs": { "min": -6.0, "max": -0.5 },
+      "spectralCentroidHz": { "min": 600.0, "max": 2400.0 },
+      "decayMs": { "min": 180.0, "max": 950.0 }
+    },
+    "creature_roar": {
+      "integratedLufs": { "min": -18.0, "max": -11.0 },
+      "peakDbFs": { "min": -4.0, "max": -0.2 },
+      "spectralCentroidHz": { "min": 450.0, "max": 1400.0 },
+      "formants": {
+        "F1": { "min": 400.0, "max": 750.0 },
+        "F2": { "min": 800.0, "max": 1250.0 },
+        "F3": { "min": 2100.0, "max": 2600.0 }
+      }
+    },
+    "jumpscare": {
+      "peakDbTp": { "min": -1.5, "max": -0.8 },
+      "duckingDepthDb": { "min": 10.0, "max": 15.0 },
+      "duckingDurationSec": { "min": 1.0, "max": 1.5 }
+    },
+    "reverb_poolroom": {
+      "125Hz": { "targetSec": 3.8, "tolerancePercent": 15.0 },
+      "500Hz": { "targetSec": 3.4, "tolerancePercent": 15.0 },
+      "2kHz": { "targetSec": 2.6, "tolerancePercent": 15.0 },
+      "8kHz": { "targetSec": 1.4, "tolerancePercent": 15.0 }
+    }
+  }
+}

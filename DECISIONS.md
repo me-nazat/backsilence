@@ -1099,17 +1099,21 @@ Establish `functions/api/[[route]].ts` as the canonical Cloudflare Pages Functio
    - In accordance with Section 0 & 3, since no external `.wav` files were provided in `reference/audio/`, calibrated synthesis against the authored Sound Bible specifications (near silence room tone at -52 to -46 dBFS RMS, hard pool hall reverb tail 3.0–3.8s at 500 Hz, van den Doel physical liquid bubbles, and glottal formant creature voice).
 **Reason:** Satisfies Section 0 mandates of Prompt 4.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+### D095: Audio Baseline Measurements, Pure-Node Analysis Suite & Line-by-Line Code Audit
+**Date:** 2026-10-25
+**Choice:**
+1. Zero-Dependency Audio Analysis Engine (`scripts/audio/analyze.mjs`):
+   - Implemented pure Node.js WAV parser (16-bit PCM and 32-bit float) and acoustic analysis suite.
+   - Evaluates 4x oversampled true peak (dBTP) via cubic Hermite interpolation, ITU-R BS.1770 K-weighted loudness (integrated and short-term LUFS), 28 nominal 1/3-octave band energies (31.5 Hz to 16 kHz) via Cooley-Tukey radix-2 FFT with Hann windowing, spectral centroid, noise floor (10th percentile 50ms RMS), silence share (<-50 dBFS), and Schroeder backward integration reverberation decay (T20 extrapolated to T60).
+2. Audio Comparison Suite & Targets (`scripts/audio/compare.mjs`, `reference/audio-targets.json`, `npm run audio:compare`):
+   - Configured comparative test runner against Sound Bible tolerances: 1/3-octave levels within $\pm 3\text{ dB}$ (above 100 Hz) and $\pm 5\text{ dB}$ (below 100 Hz), centroid within 15%, noise floor within 4 dB, and reverb decay within 15%.
+   - Added `"audio:compare"` npm script for automated regression verification.
+3. Offline Baseline Renders & Spectrograms (`scripts/audio/render-baseline.mjs`, `reports/audio/baseline/`):
+   - Rendered 8 baseline voices and 30s scene mixes in headless Chrome with `OfflineAudioContext` at 48 kHz.
+   - Generated and committed metric JSONs and color-mapped STFT spectrogram PNGs (`reports/audio/baseline/*_spectrogram.png`) while ignoring raw WAV binaries in `.gitignore`.
+   - Identified baseline pass rate of 3 / 13 criteria (23%): calm room tone sits too loud (-25.96 LUFS vs -34 target), roar sits too quiet (-30.72 LUFS vs -14 target), and jumpscare peaks at -1.67 dBTP without dynamic limiter calibration.
+4. Line-by-Line Audio Code Audit (`reports/audio/audit.md`):
+   - Documented zipper noise on setting sliders, click discontinuities at voice start/end, 2x oversampling distortion aliasing, lack of node pooling for one-shots, and `setTimeout` lifecycle cleanup.
+5. Two-Minute Listening Checklist (`reports/audio/LISTEN.md`):
+   - Formulated 12 distinct human listening checks across water, spaces, creature, footsteps, heartbeat, and silence, strictly marked `UNVERIFIED by ear`.
+**Reason:** Satisfies Section 2 and Section 5 Phase A mandates of Prompt 4.

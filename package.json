@@ -23,7 +23,8 @@
     "balance": "node scripts/balance/run-balance.mjs",
     "browser:acceptance": "node scripts/browser-acceptance.mjs",
     "perf": "node scripts/perf/run-perf.mjs",
-    "reference:compare": "node scripts/reference/compare.mjs"
+    "reference:compare": "node scripts/reference/compare.mjs",
+    "audio:compare": "node scripts/audio/compare.mjs"
   },
   "dependencies": {
     "three": "0.170.0"

@@ -8,13 +8,13 @@
   - [x] 0.5 Write results to `reports/audio/preconditions.md`
   - [x] 0.6 Record Decision D094 in `DECISIONS.md`
 
-- [ ] **Phase A: Baseline Measurement & Audit (Section 2 & 5)**
-  - [ ] A.1 Write `scripts/audio/analyze.mjs` (Node-only WAV analyzer: RMS, peak dBFS, true peak, K-weighting LUFS, 1/3-octave bands, centroid, noise floor, Schroeder T60)
-  - [ ] A.2 Write `scripts/audio/compare.mjs` and `npm run audio:compare` with tolerances in `reference/audio-targets.json`
-  - [ ] A.3 Render baseline voices and 60s scene mixes into `reports/audio/baseline/`
-  - [ ] A.4 Line-by-line audio code audit in `reports/audio/audit.md` (zipper noise, clicks, ramps, pooling, CPU)
-  - [ ] A.5 Publish 2-minute listening checklist in `reports/audio/LISTEN.md` (12 tests, marked UNVERIFIED by ear)
-  - [ ] A.6 Record Decision D095 and commit Phase A
+- [x] **Phase A: Baseline Measurement & Audit (Section 2 & 5)**
+  - [x] A.1 Write `scripts/audio/analyze.mjs` (Node-only WAV analyzer: RMS, peak dBFS, true peak, K-weighting LUFS, 1/3-octave bands, centroid, noise floor, Schroeder T60)
+  - [x] A.2 Write `scripts/audio/compare.mjs` and `npm run audio:compare` with tolerances in `reference/audio-targets.json`
+  - [x] A.3 Render baseline voices and 60s scene mixes into `reports/audio/baseline/`
+  - [x] A.4 Line-by-line audio code audit in `reports/audio/audit.md` (zipper noise, clicks, ramps, pooling, CPU)
+  - [x] A.5 Publish 2-minute listening checklist in `reports/audio/LISTEN.md` (12 tests, marked UNVERIFIED by ear)
+  - [x] A.6 Record Decision D095 and commit Phase A
 
 - [ ] **Phase B: Synthesis Engine Upgrades (Section 6)**
   - [ ] B.1 van den Doel liquid bubble physics ($f_0 = 3/r$, damping $d$, pitch rise $f(t) = f_0(1+0.1dt)$) for splashes, wade steps, and Poisson drips

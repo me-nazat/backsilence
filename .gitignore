@@ -13,9 +13,10 @@ reports/*
 reports/graphics/**/*.png
 !reports/audio/
 reports/audio/**/*.wav
-reports/audio/**/*.png
 reference/out*
 reference/*.png
-reference/video/frames/*.png
 reference/video/frames/*
 !reference/video/frames/.gitkeep
+reference/audio/*.wav
+!reference/audio/notes.md
+

@@ -31,12 +31,36 @@ reference/
 4. For each frame, add a one-line entry in `reference/video/notes.md` detailing:
    `[frame_filename]: [what it shows], camera height: [X.X]m`
 
-## Fallback: Visual Bible (Section 3)
-When external video footage is inaccessible or reference frames are not provided, the harness automatically falls back to the written visual bible in Section 3 of Prompt 2 and `reference/targets.json`:
-1. Milky chlorinated green water, semi-opaque, brighter/paler shallow, darker deep.
-2. Tiled pool floor visible through water, cracked grout lines (darker grout, larger tiles than walls).
-3. Soft white specular streaks, fine bright glints flickering with motion.
-4. V-shaped wake trails behind moving entities; heavy dark splashes for monster limbs.
-5. Raised slabs ~0.3m above waterline with thin wet band and soft contact foam.
-6. Dense warm fog fading water and distant slabs to blown-out cream white at horizon.
-7. Soft camera aesthetic with bloom and gentle motion blur.
+## Audio Reference Kit (Prompt 4 Section 2)
+```
+reference/
+  README.md
+  audio/clip_01.wav ... clip_08.wav   20 to 60 s each, 44.1 kHz stereo
+  audio/notes.md                       one line per clip: what is audible, at what time
+```
+
+### How to Extract Audio Clips with ffmpeg:
+Extract 20 to 60 second clips (44.1 kHz stereo 16-bit WAV) from source footage:
+```bash
+# Example extracting a 40-second clip starting at 00:00:10
+ffmpeg -i video.mp4 -vn -ac 2 -ar 44100 -ss 00:00:10 -t 40 reference/audio/clip_01.wav
+```
+Prefer clips with:
+- Ambience (pool hall room tone, low hum, water lapping)
+- Wading through shallow water
+- Water splashes (small, medium, heavy)
+- Single dripping bubble tones with reverberant tails
+- Distant creature breathing, footfalls, or roars
+- Moments of near silence
+
+In `reference/audio/notes.md`, record one line per clip:
+`clip_01.wav: Pool hall room tone with distant water drops, no speech, 00:10-00:50`
+
+### Fallback: Sound Bible (Prompt 4 Section 3)
+When external reference audio is not provided:
+1. Near silence is baseline: room tone sits around -52 to -46 dBFS RMS (low 100/120 Hz hum, air hiss > 4 kHz, slow lapping).
+2. Large tiled pool hall reverb: 3.0 to 3.8s at 500 Hz, shorter at high frequencies (1.4s at 8 kHz), early reflections in first 80ms.
+3. Liquid bubble physics: van den Doel model $f_0 = 3/r$, damping $d = 0.043 f_0 + 0.0014 f_0^{1.5}$, pitch rise $f(t) = f_0(1+0.1dt)$.
+4. Creature voice: glottal pulse source, jitter/shimmer, period doubling, 3 moving formants (F1, F2, F3), AM throat growl 20–40 Hz.
+5. Dynamic range: calm -34 to -30 LUFS, splash -20, roar -14, jumpscare peak -1 dBTP ducking other buses.
+
