@@ -8,7 +8,7 @@ import type { Vec3, PlayerId, NoiseEvent } from '../types/contracts.js';
 import type { MonsterBrain } from './MonsterBrain.js';
 import type { NavGrid } from './NavGrid.js';
 import { Rng } from './rng.js';
-import { dHypot, dSin, dCos, D_PI, D_HALF_PI } from './dmath.js';
+import { dHypot, dSin, dCos, dAtan2, dLog, D_PI } from './dmath.js';
 import balanceData from './balance.json';
 
 export type DirectorDifficulty = 'whisper' | 'normal' | 'deafening' | 'nightmare';
@@ -48,6 +48,7 @@ export interface PlayerTrack {
   isPerched: boolean;
   onGround: boolean;
   isWading: boolean;
+  yaw?: number;
 }
 
 export interface DirectorSnapshot {
@@ -64,6 +65,7 @@ export interface DirectorSnapshot {
   assistOfferPending: boolean;
   activeSweepTimer: number;
   currentPhase: 'prowl' | 'closing' | 'hunt';
+  fogDensity?: number;
 }
 
 export class EncounterDirector {
@@ -85,17 +87,31 @@ export class EncounterDirector {
   private assistOfferPending = false;
   private activeSweepTimer = 25.0;
   private listeningActive = false;
+  private closeCallActive = false;
+  fogDensity = 0.045;
+  patrolLanes: { id: string; points: Vec3[] }[] = [];
 
   readonly dreadBeats: DreadBeat[] = [];
   private readonly playerTracks = new Map<PlayerId, PlayerTrack>();
 
-  constructor(seed = 4242, difficulty: DirectorDifficulty = 'normal') {
+  constructor(seed = 4242, difficulty: DirectorDifficulty = 'normal', fogDensity = 0.045) {
     this.seed = seed;
     this.rng = new Rng(seed ^ 0x9e3779b9);
     this.difficulty = difficulty;
+    this.fogDensity = fogDensity > 0 ? fogDensity : 0.045;
 
     const diffCfg = balanceData.difficulty[difficulty] ?? balanceData.difficulty.normal;
     this.firstContactScheduledTime = this.rng.range(diffCfg.firstContactMin, diffCfg.firstContactMax);
+  }
+
+  setFogDensity(density: number): void {
+    if (Number.isFinite(density) && density > 0) {
+      this.fogDensity = density;
+    }
+  }
+
+  setPatrolLanes(lanes: { id: string; points: Vec3[] }[]): void {
+    this.patrolLanes = [...lanes];
   }
 
   get dread(): number {
@@ -151,6 +167,7 @@ export class EncounterDirector {
     onGround: boolean,
     isPerched: boolean,
     isWading = false,
+    yaw = 0,
   ): void {
     let track = this.playerTracks.get(id);
     if (!track) {
@@ -165,6 +182,7 @@ export class EncounterDirector {
         isPerched,
         onGround,
         isWading,
+        yaw,
       };
       this.playerTracks.set(id, track);
       return;
@@ -176,6 +194,7 @@ export class EncounterDirector {
     track.onGround = onGround;
     track.isPerched = isPerched;
     track.isWading = isWading;
+    track.yaw = yaw;
 
     const distFromAnchor = dHypot(pos.x - track.anchorPos.x, pos.z - track.anchorPos.z);
     if (distFromAnchor > 4.0) {
@@ -286,13 +305,17 @@ export class EncounterDirector {
     }
     this.dreadValue = dynamicDread;
 
-    // 4. First Contact Guarantee (within 30..45s on Normal)
+    // Close call calm: 25-40s calm after a close call (<= 8m)
+    if (distToPlayer <= 8.0 && (monster.state === 'HUNT' || monster.state === 'ALERTED')) {
+      this.closeCallActive = true;
+    } else if (this.closeCallActive && (distToPlayer > 12.0 || monster.state === 'WANDER' || monster.state === 'DORMANT')) {
+      this.closeCallActive = false;
+      this.triggerBreather(diffCfg.breatherMin ?? 25.0, diffCfg.breatherMax ?? 40.0);
+    }
+
+    // 4. First Sight Guarantee (within 35s on Normal)
     if (!this.firstContactDone && this.simTime >= this.firstContactScheduledTime) {
-      if (this.rng.next() < 0.65) {
-        this.executeGlimpse(monster, pPos, nav, diffCfg);
-      } else {
-        this.executeFarCall(monster, pPos);
-      }
+      this.executeCrossing(monster, primaryTarget, nav);
       this.firstContactDone = true;
       return;
     }
@@ -403,31 +426,128 @@ export class EncounterDirector {
     }
   }
 
-  private executeGlimpse(
+  private executeCrossing(
     monster: MonsterBrain,
-    playerPos: Vec3,
+    playerTrack: PlayerTrack,
     nav: NavGrid,
-    diffCfg: { firstContactDistMin: number; firstContactDistMax: number },
-  ): void {
+  ): boolean {
+    const density = this.fogDensity > 0 ? this.fogDensity : 0.045;
+    // d = sqrt(ln(1 / 0.25)) / density clamped to 18..38 m (at 0.045, d ≈ 26.2m)
+    const d = Math.min(38.0, Math.max(18.0, Math.sqrt(dLog(4.0)) / density));
+    const pPos = playerTrack.pos;
+    const yaw = playerTrack.yaw ?? 0;
     const myComp = nav.getComponentWorld(monster.pos.x, monster.pos.z);
-    const baseAngle = this.rng.range(-D_HALF_PI, D_HALF_PI);
-    const dist = this.rng.range(diffCfg.firstContactDistMin, diffCfg.firstContactDistMax);
 
-    const midX = playerPos.x + dSin(baseAngle) * dist;
-    const midZ = playerPos.z - dCos(baseAngle) * dist;
+    // Forward direction from player yaw: (-sin(yaw), -cos(yaw))
+    // Try forward 70° cone (half-angle 35° = 0.61 rad), then widen to 100° cone (half-angle 50° = 0.87 rad)
+    const coneAngles = [0.610865, 0.87266];
 
-    const endX = playerPos.x + dSin(baseAngle + 0.6) * dist;
-    const endZ = playerPos.z - dCos(baseAngle + 0.6) * dist;
+    for (const halfAngle of coneAngles) {
+      // Try both left-to-right and right-to-left crossings
+      const directions = [1, -1];
+      for (const dir of directions) {
+        const startAngle = yaw - dir * halfAngle;
+        const midAngle = yaw;
+        const endAngle = yaw + dir * halfAngle;
 
-    if (nav.isWalkableWorld(midX, midZ) && nav.getComponentWorld(midX, midZ) === myComp) {
-      monster.scheduleSweep([
-        { x: midX, z: midZ },
-        { x: endX, z: endZ },
-      ]);
-      this.emitDreadBeat('glimpse', { x: midX, y: playerPos.y, z: midZ });
-    } else {
-      this.executeFarCall(monster, playerPos);
+        const sx = pPos.x - dSin(startAngle) * d;
+        const sz = pPos.z - dCos(startAngle) * d;
+
+        const mx = pPos.x - dSin(midAngle) * d;
+        const mz = pPos.z - dCos(midAngle) * d;
+
+        const ex = pPos.x - dSin(endAngle) * (d + 4.0);
+        const ez = pPos.z - dCos(endAngle) * (d + 4.0);
+
+        // Verify start, mid, and end are walkable water cells in the monster's component
+        if (
+          nav.isWalkableWorld(sx, sz) &&
+          nav.isWalkableWorld(mx, mz) &&
+          nav.isWalkableWorld(ex, ez) &&
+          nav.getComponentWorld(sx, sz) === myComp &&
+          nav.getComponentWorld(mx, mz) === myComp &&
+          nav.getComponentWorld(ex, ez) === myComp
+        ) {
+          // Verify end is at least 14m away and no point comes within 6m of player
+          const endDist = dHypot(ex - pPos.x, ez - pPos.z);
+          const midDist = dHypot(mx - pPos.x, mz - pPos.z);
+          const startDist = dHypot(sx - pPos.x, sz - pPos.z);
+          if (endDist >= 14.0 && midDist >= 6.0 && startDist >= 6.0) {
+            monster.scheduleSweep([
+              { x: sx, z: sz },
+              { x: mx, z: mz },
+              { x: ex, z: ez },
+            ]);
+            this.emitDreadBeat('glimpse', { x: mx, y: pPos.y, z: mz });
+            return true;
+          }
+        }
+      }
     }
+
+    // If crossing is impossible, use emergence rule:
+    return this.executeEmergence(monster, playerTrack, nav, d);
+  }
+
+  private executeEmergence(
+    monster: MonsterBrain,
+    playerTrack: PlayerTrack,
+    nav: NavGrid,
+    d: number,
+  ): boolean {
+    const pPos = playerTrack.pos;
+    const yaw = playerTrack.yaw ?? 0;
+    const myComp = nav.getComponentWorld(monster.pos.x, monster.pos.z);
+
+    // Search for a walkable water cell at distance d within forward 100° cone
+    let bestCell: { x: number; z: number } | null = null;
+
+    for (let a = -0.87; a <= 0.87; a += 0.15) {
+      const angle = yaw + a;
+      const cx = pPos.x - dSin(angle) * d;
+      const cz = pPos.z - dCos(angle) * d;
+
+      if (nav.isWalkableWorld(cx, cz) && nav.getComponentWorld(cx, cz) === myComp) {
+        bestCell = { x: cx, z: cz };
+        break;
+      }
+    }
+
+    if (!bestCell) {
+      // Fallback: search around distance d
+      for (let dist = d; dist >= 16.0; dist -= 2.0) {
+        for (let a = -D_PI; a <= D_PI; a += 0.3) {
+          const cx = pPos.x - dSin(a) * dist;
+          const cz = pPos.z - dCos(a) * dist;
+          if (nav.isWalkableWorld(cx, cz) && nav.getComponentWorld(cx, cz) === myComp) {
+            bestCell = { x: cx, z: cz };
+            break;
+          }
+        }
+        if (bestCell) break;
+      }
+    }
+
+    if (bestCell) {
+      // Emergence rule: rises from dormant crouch at distance d in clear water,
+      // turns head to player's side, then wades away. Rise is visible, slow (2.5 s) and never lethal.
+      monster.pos.x = bestCell.x;
+      monster.pos.z = bestCell.z;
+      const toPlayerYaw = dAtan2(pPos.x - bestCell.x, -(pPos.z - bestCell.z));
+      monster.yaw = toPlayerYaw + 0.5; // turned slightly to player's side
+      monster.forceState('DORMANT', { stateTimer: 2.5 });
+      const awayAngle = toPlayerYaw + D_PI;
+      const awayX = bestCell.x - dSin(awayAngle) * 16.0;
+      const awayZ = bestCell.z - dCos(awayAngle) * 16.0;
+      if (nav.isWalkableWorld(awayX, awayZ) && nav.getComponentWorld(awayX, awayZ) === myComp) {
+        monster.scheduleSweep([{ x: awayX, z: awayZ }]);
+      }
+      this.emitDreadBeat('glimpse', { x: bestCell.x, y: pPos.y, z: bestCell.z });
+      return true;
+    }
+
+    this.executeFarCall(monster, pPos);
+    return false;
   }
 
   private executeFarCall(_monster: MonsterBrain, playerPos: Vec3): void {
@@ -449,45 +569,48 @@ export class EncounterDirector {
     playerPos?: Vec3,
   ): void {
     const myComp = nav.getComponentWorld(monster.pos.x, monster.pos.z);
-    const angle = this.rng.range(-D_PI, D_PI);
-    // Ensure sweep passes at least 6m away from platform
-    const sweepDist = Math.max(6.0, this.rng.range(minDist, maxDist));
+    for (let attempt = 0; attempt < 16; attempt++) {
+      const angle = this.rng.range(-D_PI, D_PI);
+      // Ensure sweep passes at least 6m away from platform
+      const sweepDist = Math.max(6.0, this.rng.range(minDist, maxDist));
 
-    let sx = centerPos.x + dSin(angle) * sweepDist;
-    let sz = centerPos.z - dCos(angle) * sweepDist;
+      let sx = centerPos.x + dSin(angle) * sweepDist;
+      let sz = centerPos.z - dCos(angle) * sweepDist;
 
-    if (playerPos) {
-      const d = dHypot(sx - playerPos.x, sz - playerPos.z);
-      if (d < 6.05) {
-        const factor = 6.1 / Math.max(0.01, d);
-        sx = playerPos.x + (sx - playerPos.x) * factor;
-        sz = playerPos.z + (sz - playerPos.z) * factor;
+      if (playerPos) {
+        const d = dHypot(sx - playerPos.x, sz - playerPos.z);
+        if (d < 6.05) {
+          const factor = 6.1 / Math.max(0.01, d);
+          sx = playerPos.x + (sx - playerPos.x) * factor;
+          sz = playerPos.z + (sz - playerPos.z) * factor;
+        }
+      }
+
+      const exitAngle = angle + D_PI * 0.65;
+      let ex = centerPos.x + dSin(exitAngle) * (sweepDist + 10.0);
+      let ez = centerPos.z - dCos(exitAngle) * (sweepDist + 10.0);
+
+      if (playerPos) {
+        const dEnd = dHypot(ex - playerPos.x, ez - playerPos.z);
+        if (dEnd < 6.05) {
+          const factor = 6.1 / Math.max(0.01, dEnd);
+          ex = playerPos.x + (ex - playerPos.x) * factor;
+          ez = playerPos.z + (ez - playerPos.z) * factor;
+        }
+      }
+
+      if (nav.isWalkableWorld(sx, sz) && nav.getComponentWorld(sx, sz) === myComp) {
+        monster.scheduleSweep([
+          { x: sx, z: sz },
+          { x: ex, z: ez },
+        ]);
+        this.emitDreadBeat('sweep', { x: sx, y: centerPos.y, z: sz });
+        return;
       }
     }
 
-    const exitAngle = angle + D_PI * 0.65;
-    let ex = centerPos.x + dSin(exitAngle) * (sweepDist + 10.0);
-    let ez = centerPos.z - dCos(exitAngle) * (sweepDist + 10.0);
-
-    if (playerPos) {
-      const dEnd = dHypot(ex - playerPos.x, ez - playerPos.z);
-      if (dEnd < 6.05) {
-        const factor = 6.1 / Math.max(0.01, dEnd);
-        ex = playerPos.x + (ex - playerPos.x) * factor;
-        ez = playerPos.z + (ez - playerPos.z) * factor;
-      }
-    }
-
-    if (nav.isWalkableWorld(sx, sz) && nav.getComponentWorld(sx, sz) === myComp) {
-      monster.scheduleSweep([
-        { x: sx, z: sz },
-        { x: ex, z: ez },
-      ]);
-      this.emitDreadBeat('sweep', { x: sx, y: centerPos.y, z: sz });
-    } else {
-      monster.setPatrolBias(centerPos, maxDist, 0.7);
-      this.executeFarCall(monster, centerPos);
-    }
+    monster.setPatrolBias(centerPos, maxDist, 0.7);
+    this.executeFarCall(monster, centerPos);
   }
 
   private executeListeningEvent(

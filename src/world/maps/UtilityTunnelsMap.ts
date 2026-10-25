@@ -229,10 +229,31 @@ export const UtilityTunnelsMap: MapDefinition = {
             id: 'monster_tunnel',
             variant: 'standard',
             spawn: monsterPos,
+            sleeperSpawn: { x: -18.0, y: -0.9, z: 0.0 },
             hearingMul: 1.15,
           },
         ],
       },
+      patrolLanes: [
+        {
+          id: 'lane_main',
+          points: [
+            { x: -35.0, y: -0.9, z: 0.0 },
+            { x: -18.0, y: -0.9, z: 0.0 },
+            { x: 0.0, y: -0.9, z: 0.0 },
+            { x: 25.0, y: -0.9, z: 0.0 },
+            { x: 40.0, y: -0.9, z: 0.0 },
+          ],
+        },
+        {
+          id: 'lane_bypass',
+          points: [
+            { x: -20.0, y: -0.9, z: 8.0 },
+            { x: 0.0, y: -0.9, z: 8.0 },
+            { x: 20.0, y: -0.9, z: 8.0 },
+          ],
+        },
+      ],
       exit: {
         id: 'exit_utility_tunnels',
         position: { x: 46.5, y: 0.45, z: 0.0 },

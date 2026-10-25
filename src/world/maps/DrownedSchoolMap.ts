@@ -301,9 +301,23 @@ export const DrownedSchoolMap: MapDefinition = {
             id: 'monster_school_1',
             variant: 'standard' as const,
             spawn: monsterSpawn,
+            sleeperSpawn: { x: 14, y: -0.34, z: -16 },
           },
         ],
       },
+      patrolLanes: [
+        {
+          id: 'school_hallway',
+          points: [
+            { x: 30, y: -0.34, z: -16 },
+            { x: 14, y: -0.34, z: -16 },
+            { x: 0, y: -0.34, z: -16 },
+            { x: -4, y: -0.34, z: 0 },
+            { x: -4, y: -0.34, z: 10 },
+            { x: -35, y: -0.34, z: 0 },
+          ],
+        },
+      ],
       exit: {
         id: 'lobby_exit_doors',
         position: exitPos,

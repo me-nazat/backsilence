@@ -168,10 +168,21 @@ export const OrientationMap: MapDefinition = {
           {
             id: 'tethered_entity',
             spawn: { x: 0, y: 0.0, z: 4.0 },
+            sleeperSpawn: { x: 0, y: 0.0, z: 8.0 },
             variant: 'standard',
           },
         ],
       },
+      patrolLanes: [
+        {
+          id: 'orientation_channel',
+          points: [
+            { x: 0, y: 0.0, z: -5.0 },
+            { x: 0, y: 0.0, z: 4.0 },
+            { x: 0, y: 0.0, z: 12.0 },
+          ],
+        },
+      ],
       exit: {
         id: 'exit_door',
         position: { x: 0, y: 0.3, z: 16 },

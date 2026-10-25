@@ -477,11 +477,12 @@ export const NatatoriumMap: MapDefinition = {
     // Monster spawn in Grand Pool Hall at center Ear mosaic, >= 45m from player spawn (distance = 48m)
     const monsterSpawn = { x: 0, y: -0.9, z: 2 };
 
-    const monsters: Array<{ id: string; variant: 'standard' | 'elder' | 'juvenile'; spawn: Vec3; spawnGrace?: number }> = [
+    const monsters: Array<{ id: string; variant: 'standard' | 'elder' | 'juvenile'; spawn: Vec3; sleeperSpawn?: Vec3; spawnGrace?: number }> = [
       {
         id: 'monster_1',
         variant: 'standard',
         spawn: monsterSpawn,
+        sleeperSpawn: { x: 0, y: -0.9, z: 25 },
         spawnGrace: 2.0,
       },
     ];
@@ -526,6 +527,18 @@ export const NatatoriumMap: MapDefinition = {
         player: [playerSpawn],
         monsters,
       },
+      patrolLanes: [
+        {
+          id: 'natatorium_lane_main',
+          points: [
+            { x: 0, y: -0.9, z: 35 },
+            { x: 0, y: -0.9, z: 25 },
+            { x: 0, y: -0.9, z: 10 },
+            { x: -12, y: -0.9, z: -10 },
+            { x: 0, y: -0.9, z: -30 },
+          ],
+        },
+      ],
       exit: {
         id: 'exit_doors',
         position: exitPos,

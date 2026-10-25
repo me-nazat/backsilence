@@ -20,6 +20,7 @@ export interface MonsterDef {
   id: string;
   variant: 'standard' | 'elder' | 'juvenile';
   spawn: Vec3;
+  sleeperSpawn?: Vec3;
   hearingMul?: number;
   speedMul?: number;
   scale?: number;
@@ -494,7 +495,7 @@ export class MonsterBrain {
     }
 
     const speed = (MonsterBrain.SPEED_WANDER + this.agitation * 0.6) * this.speedMul;
-    this.followPath(dt, speed, MonsterBrain.TURN_RATE_WANDER, nav, events, simTime);
+    this.followPath(dt, speed, MonsterBrain.TURN_RATE_WANDER, nav, events, simTime, playerPos);
 
     // If path finished, choose next waypoint
     if (this.currentPathIndex >= this.currentPath.length) {
@@ -654,6 +655,7 @@ export class MonsterBrain {
     nav: NavGrid,
     events: EventRingBuffer,
     simTime: number,
+    playerPos?: Vec3,
   ): void {
     if (this.currentPathIndex >= this.currentPath.length) {
       this.vel.x = 0;
@@ -694,12 +696,30 @@ export class MonsterBrain {
 
     // Nav-walkability check before advancing
     if (nav.isWalkableWorld(nextX, nextZ)) {
+      if (playerPos && (this.state === 'WANDER' || this.state === 'DORMANT')) {
+        if (dHypot(nextX - playerPos.x, nextZ - playerPos.z) < 6.0) {
+          this.vel.x = 0;
+          this.vel.z = 0;
+          this.currentPathIndex = this.currentPath.length;
+          this.pickNextWanderWaypoint(nav, playerPos);
+          return;
+        }
+      }
       this.pos.x = nextX;
       this.pos.z = nextZ;
       this.vel.x = fwdX * targetSpeed;
       this.vel.z = fwdZ * targetSpeed;
       this.stuckTimer = 0;
     } else if (nav.isWalkableWorld(directX, directZ)) {
+      if (playerPos && (this.state === 'WANDER' || this.state === 'DORMANT')) {
+        if (dHypot(directX - playerPos.x, directZ - playerPos.z) < 6.0) {
+          this.vel.x = 0;
+          this.vel.z = 0;
+          this.currentPathIndex = this.currentPath.length;
+          this.pickNextWanderWaypoint(nav, playerPos);
+          return;
+        }
+      }
       this.pos.x = directX;
       this.pos.z = directZ;
       this.vel.x = dirX * targetSpeed;
@@ -714,7 +734,7 @@ export class MonsterBrain {
         this.stuckTimer = 0;
         this.currentPathIndex++;
         if (this.currentPathIndex >= this.currentPath.length) {
-          this.pickNextWanderWaypoint(nav);
+          this.pickNextWanderWaypoint(nav, playerPos);
         }
       }
     }
@@ -755,11 +775,29 @@ export class MonsterBrain {
         rz = this.rng.range(nav.minZ + 4, nav.minZ + nav.depth * nav.cellSize - 4);
       }
 
+      if (playerPos) {
+        const distToP = dHypot(rx - playerPos.x, rz - playerPos.z);
+        if (distToP < 7.0) {
+          continue;
+        }
+      }
+
       if (nav.isWalkableWorld(rx, rz) && nav.getComponentWorld(rx, rz) === myComponent) {
         const d = dHypot(rx - this.pos.x, rz - this.pos.z);
         if (d >= 8.0) {
           const path = this.astar.findPath(this.pos.x, this.pos.z, rx, rz);
           if (path.length > 0) {
+            if (playerPos) {
+              let pathTooClose = false;
+              for (let pIdx = 0; pIdx < path.length; pIdx++) {
+                const pt = path[pIdx]!;
+                if (dHypot(pt.x - playerPos.x, pt.z - playerPos.z) < 6.5) {
+                  pathTooClose = true;
+                  break;
+                }
+              }
+              if (pathTooClose) continue;
+            }
             this.currentPath = path;
             this.currentPathIndex = 0;
             return;
@@ -772,8 +810,22 @@ export class MonsterBrain {
     const fallback = nav.findNearestCellInComponent(this.pos.x + 12, this.pos.z + 12, myComponent);
     if (fallback) {
       const path = this.astar.findPath(this.pos.x, this.pos.z, fallback.x, fallback.z);
-      this.currentPath = path.length > 0 ? path : [{ x: fallback.x, z: fallback.z }];
-      this.currentPathIndex = 0;
+      if (playerPos) {
+        let pathTooClose = false;
+        for (const pt of path) {
+          if (dHypot(pt.x - playerPos.x, pt.z - playerPos.z) < 6.5) {
+            pathTooClose = true;
+            break;
+          }
+        }
+        if (!pathTooClose) {
+          this.currentPath = path.length > 0 ? path : [{ x: fallback.x, z: fallback.z }];
+          this.currentPathIndex = 0;
+        }
+      } else {
+        this.currentPath = path.length > 0 ? path : [{ x: fallback.x, z: fallback.z }];
+        this.currentPathIndex = 0;
+      }
     }
   }
 

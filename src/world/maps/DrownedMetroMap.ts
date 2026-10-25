@@ -219,11 +219,12 @@ export const DrownedMetroMap: MapDefinition = {
     // Monster spawn in flooded west end of T1 (>= 45m from player spawn)
     const monsterSpawn = { x: -45, y: -0.9, z: -19 };
 
-    const monsters: Array<{ id: string; variant: 'standard' | 'elder' | 'juvenile'; spawn: Vec3 }> = [
+    const monsters: Array<{ id: string; variant: 'standard' | 'elder' | 'juvenile'; spawn: Vec3; sleeperSpawn?: Vec3 }> = [
       {
         id: 'monster_metro_1',
         variant: 'standard',
         spawn: monsterSpawn,
+        sleeperSpawn: { x: -14, y: -0.9, z: -19 },
       },
     ];
 
@@ -267,6 +268,18 @@ export const DrownedMetroMap: MapDefinition = {
         player: [playerSpawn],
         monsters,
       },
+      patrolLanes: [
+        {
+          id: 'metro_track_1',
+          points: [
+            { x: 5, y: -0.9, z: -19 },
+            { x: -14, y: -0.9, z: -19 },
+            { x: -30, y: -0.9, z: -19 },
+            { x: 20, y: -0.9, z: -19 },
+            { x: 40, y: -0.9, z: -19 },
+          ],
+        },
+      ],
       exit: {
         id: 'train_cab_exit',
         position: cabPos,

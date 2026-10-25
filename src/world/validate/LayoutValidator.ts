@@ -58,6 +58,72 @@ function rectsOverlap(r1: [number, number, number, number], r2: [number, number,
 }
 
 /**
+ * Validates that every map defines patrol lanes through open water
+ * and at least one lane lies within 30m of the player's silent route (spawn) and the first objective.
+ */
+export function validatePatrolGraph(mapId: MapId, layout: LayoutData): { valid: boolean; errors: string[] } {
+  const errors: string[] = [];
+  if (!layout.patrolLanes || layout.patrolLanes.length === 0) {
+    errors.push(`Map ${mapId} does not define any patrol lanes in layout.patrolLanes`);
+    return { valid: false, errors };
+  }
+
+  const pSpawn = layout.spawns.player[0] ?? { x: 0, y: 0, z: 0 };
+  const firstObj = layout.puzzles[0]?.position ?? layout.exit?.position ?? pSpawn;
+
+  let foundCloseLane = false;
+  for (const lane of layout.patrolLanes) {
+    if (lane.points.length < 2) {
+      errors.push(`Patrol lane ${lane.id} has fewer than 2 waypoints`);
+      continue;
+    }
+
+    let minDistToSpawn = Infinity;
+    let minDistToObj = Infinity;
+
+    for (const pt of lane.points) {
+      const dSpawn = dist2D(pt.x, pt.z, pSpawn.x, pSpawn.z);
+      const dObj = dist2D(pt.x, pt.z, firstObj.x, firstObj.z);
+      if (dSpawn < minDistToSpawn) minDistToSpawn = dSpawn;
+      if (dObj < minDistToObj) minDistToObj = dObj;
+    }
+
+    if (minDistToSpawn <= 30.0 && minDistToObj <= 30.0) {
+      foundCloseLane = true;
+    }
+  }
+
+  if (!foundCloseLane) {
+    errors.push(
+      `Map ${mapId} requires at least one patrol lane within 30m of both player spawn and first objective`,
+    );
+  }
+
+  return { valid: errors.length === 0, errors };
+}
+
+/**
+ * Validates that on Normal / Whisper, primary monster has a sleeper spawn
+ * in plain view 22 to 32 m from the first player spawn.
+ */
+export function validateSleeperSpawn(layout: LayoutData): { valid: boolean; errors: string[] } {
+  const errors: string[] = [];
+  const pSpawn = layout.spawns.player[0];
+  const m = layout.spawns.monsters[0];
+  if (!pSpawn || !m) return { valid: true, errors };
+
+  const sPos = m.sleeperSpawn ?? m.spawn;
+  const d = dist2D(pSpawn.x, pSpawn.z, sPos.x, sPos.z);
+  if (d < 22.0 || d > 32.5) {
+    errors.push(
+      `Primary monster sleeper spawn must be 22 to 32m from player spawn, found ${d.toFixed(1)}m`,
+    );
+  }
+
+  return { valid: errors.length === 0, errors };
+}
+
+/**
  * Validates LayoutData against architectural, acoustic, and puzzle solvability rules.
  */
 export function validateLayout(mapId: MapId, layout: LayoutData): ValidationResult {
@@ -79,6 +145,18 @@ export function validateLayout(mapId: MapId, layout: LayoutData): ValidationResu
 
   if (pSpawn.x < bounds.minX || pSpawn.x > bounds.maxX || pSpawn.z < bounds.minZ || pSpawn.z > bounds.maxZ) {
     errors.push(`Player spawn (${pSpawn.x}, ${pSpawn.z}) outside map bounds`);
+  }
+
+  // Validate patrol graph (Section 5 Item 7)
+  const patrolResult = validatePatrolGraph(mapId, layout);
+  if (!patrolResult.valid) {
+    errors.push(...patrolResult.errors);
+  }
+
+  // Validate sleeper spawn (Section 5 Item 3)
+  const sleeperResult = validateSleeperSpawn(layout);
+  if (!sleeperResult.valid) {
+    errors.push(...sleeperResult.errors);
   }
 
   // Map-specific validation

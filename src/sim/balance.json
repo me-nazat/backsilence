@@ -6,8 +6,8 @@
       "spawnGrace": 12.0,
       "biasBonus": 0.0,
       "extra": "none",
-      "firstContactMin": 40.0,
-      "firstContactMax": 55.0,
+      "firstContactMin": 25.0,
+      "firstContactMax": 35.0,
       "prowlBias": 0.20,
       "closingBias": 0.40,
       "huntBias": 0.60,
@@ -17,8 +17,8 @@
       "deadAirMax": 120.0,
       "breatherMin": 35.0,
       "breatherMax": 50.0,
-      "firstContactDistMin": 30.0,
-      "firstContactDistMax": 50.0
+      "firstContactDistMin": 22.0,
+      "firstContactDistMax": 38.0
     },
     "normal": {
       "hearingMul": 1.0,
@@ -27,7 +27,7 @@
       "biasBonus": 0.0,
       "extra": "none",
       "firstContactMin": 30.0,
-      "firstContactMax": 45.0,
+      "firstContactMax": 35.0,
       "prowlBias": 0.35,
       "closingBias": 0.60,
       "huntBias": 0.80,
@@ -37,8 +37,8 @@
       "deadAirMax": 90.0,
       "breatherMin": 25.0,
       "breatherMax": 40.0,
-      "firstContactDistMin": 25.0,
-      "firstContactDistMax": 45.0
+      "firstContactDistMin": 18.0,
+      "firstContactDistMax": 38.0
     },
     "deafening": {
       "hearingMul": 1.3,
@@ -46,8 +46,8 @@
       "spawnGrace": 3.0,
       "biasBonus": 0.05,
       "extra": "juvenile",
-      "firstContactMin": 20.0,
-      "firstContactMax": 35.0,
+      "firstContactMin": 14.0,
+      "firstContactMax": 24.0,
       "prowlBias": 0.50,
       "closingBias": 0.75,
       "huntBias": 0.90,
@@ -57,8 +57,8 @@
       "deadAirMax": 60.0,
       "breatherMin": 15.0,
       "breatherMax": 25.0,
-      "firstContactDistMin": 20.0,
-      "firstContactDistMax": 40.0
+      "firstContactDistMin": 18.0,
+      "firstContactDistMax": 35.0
     },
     "nightmare": {
       "hearingMul": 1.45,
@@ -66,8 +66,8 @@
       "spawnGrace": 2.0,
       "biasBonus": 0.10,
       "extra": "second_monster",
-      "firstContactMin": 15.0,
-      "firstContactMax": 25.0,
+      "firstContactMin": 10.0,
+      "firstContactMax": 20.0,
       "prowlBias": 0.70,
       "closingBias": 0.85,
       "huntBias": 0.95,

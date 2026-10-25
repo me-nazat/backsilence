@@ -152,6 +152,7 @@ export const DrainageCoreMap: MapDefinition = {
         id: 'monster_elder',
         variant: 'elder' as const,
         spawn: { x: 30, y: -0.9, z: 49 },
+        sleeperSpawn: { x: -30.0, y: -0.9, z: -30.0 },
         hearingMul: 1.25,
         speedMul: 0.85,
         scale: 1.15,
@@ -203,6 +204,18 @@ export const DrainageCoreMap: MapDefinition = {
         player: [playerSpawn],
         monsters,
       },
+      patrolLanes: [
+        {
+          id: 'drainage_channel',
+          points: [
+            { x: -40.0, y: -0.9, z: -40.0 },
+            { x: -30.0, y: -0.9, z: -30.0 },
+            { x: -15.0, y: -0.9, z: -20.0 },
+            { x: 0.0, y: -0.9, z: -15.0 },
+            { x: 15.0, y: -0.9, z: 0.0 },
+          ],
+        },
+      ],
       exit: {
         id: 'exit_drainage_core',
         position: { x: 0, y: 0.3, z: -25.0 },

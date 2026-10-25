@@ -36,6 +36,7 @@ export class MonsterBody {
   private currentJawOpen = 0;
   private currentRearing = 0;
   private breathPhase = 0;
+  private wakeTimer = 0;
 
   // Hardening and Diagnostic Probe fields (Phase B)
   readonly skinType: 'model' | 'procedural' = 'procedural';
@@ -233,6 +234,54 @@ export class MonsterBody {
     const earDelta = snapshot.earAngle - this.currentYaw;
     joints.earLeft.rotation.y = earDelta * 0.6 + Math.sin(snapshot.pos.x * 2.0) * 0.1;
     joints.earRight.rotation.y = earDelta * 0.6 - Math.sin(snapshot.pos.z * 2.0) * 0.1;
+
+    // 8b. Pose modifications for distinct readable silhouettes at 25m:
+    if (snapshot.isListening || snapshot.state === 'DORMANT') {
+      // Listening / Dormant: head tilts, ear fins twitch
+      joints.head.rotation.z = 0.35;
+      joints.head.rotation.x = -0.15;
+      joints.neck.rotation.x = 0.0;
+      joints.neck.rotation.y = 0.0;
+    } else if (snapshot.state === 'INVESTIGATE') {
+      // Investigating: sniffing water surface, neck and head lowered down to water
+      joints.neck.rotation.x = 0.45;
+      joints.head.rotation.x = 0.55;
+      joints.head.rotation.z = 0.0;
+      joints.neck.rotation.y = 0.0;
+    } else if (snapshot.state === 'BLOCKED') {
+      // Blocked / pacing at edge: restless agitated neck scan
+      joints.neck.rotation.x = 0.15;
+      joints.neck.rotation.y = Math.sin(this.breathPhase * 3.0) * 0.35;
+      joints.head.rotation.z = 0.0;
+    } else if (snapshot.state === 'LURK') {
+      // Lurk: predatory crouch, tense head posture
+      joints.torso.rotation.x = Math.PI / 4 + 0.15;
+      joints.neck.rotation.x = 0.25;
+      joints.head.rotation.z = 0.0;
+      joints.neck.rotation.y = 0.0;
+    } else {
+      joints.neck.rotation.x = 0.0;
+      joints.neck.rotation.y = 0.0;
+      joints.head.rotation.z = 0.0;
+    }
+
+    // 8c. V-wake and ripple trail emission when moving in water
+    if (this.water && speed > 0.4) {
+      this.wakeTimer += dt;
+      if (this.wakeTimer >= 0.15) {
+        this.wakeTimer = 0;
+        this.water.wakes.addWake(
+          snapshot.pos.x,
+          snapshot.pos.z,
+          snapshot.vel.x / speed,
+          snapshot.vel.z / speed,
+          speed,
+          0.85,
+          1.2,
+          5.0,
+        );
+      }
+    }
 
     // 9. Secondary breathing motion (torso scale +-1.5%)
     this.breathPhase += dt * (snapshot.state === 'ALERTED' || snapshot.state === 'HUNT' ? 4.0 : 1.2);

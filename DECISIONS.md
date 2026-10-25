@@ -773,6 +773,28 @@ Establish `functions/api/[[route]].ts` as the canonical Cloudflare Pages Functio
    - 7 unit tests verifying loader rejection of HTML 200, corrupt magic bytes, valid glTF binary, NaN recovery, deep pool shoulder clearance, fog distance rules, and component coverage.
 **Reason:** Resolves Phase B repair specifications layer-by-layer based directly on Phase A probe evidence.
 
+### D073: Experience Pacing, First Sight Crossing, Sleeper Spawns, Patrol Graphs, and Fairness Proof
+**Date:** 2026-10-25
+**Choice:**
+1. First Sight Guarantee & Crossing/Emergence Pacing (`src/sim/Director.ts`, `src/sim/balance.json`):
+   - Configured `firstContactMin: 30.0` and `firstContactMax: 35.0` on Normal difficulty, guaranteeing first sight within 35s while maintaining compatibility with 30-45s bounds in existing suites.
+   - Calculated crossing distance based on active map fog density: $d = \sqrt{\ln(1 / 0.25)} / \text{density}$, clamped between 18.0m and 38.0m (at 0.045, $d \approx 26.2$m with 25% transmittance).
+   - Evaluated 70° forward view cone, widening to 100° cone; verifies start, mid, and end cells are walkable in monster component, ending $\ge 14$m away and $\ge 6.0$m from player.
+   - Emergence rule fallback: if crossing is obstructed, monster rises from dormant crouch at distance $d$ in clear water, turns head to player's side, and slowly wades away (2.5s, non-lethal).
+2. Sleeper Monster Placement (`src/world/MapTypes.ts`, `src/sim/MonsterBrain.ts`, all 11 map definitions):
+   - Added `sleeperSpawn?: Vec3` to `MonsterDef` and configured all 11 sectors (`Orientation`, `Natatorium`, `Poolrooms`, `Utility Tunnels`, `Marble Atrium`, `Drowned School`, `Sunken Jungle`, `Hydro Maze`, `Neon Flood`, `Drowned Metro`, `Drainage Core`) with dormant sleeper placements 22 to 32m in direct line of sight from player spawn on Normal/Whisper.
+   - Added `validateSleeperSpawn` ensuring sleeper distance is strictly within $[22, 32]$m and on walkable water.
+3. Connected Patrol Graph (`src/world/MapTypes.ts`, `src/world/validate/LayoutValidator.ts`, all 11 map definitions):
+   - Added `PatrolLane` interface and `patrolLanes?: PatrolLane[]` across open water intersecting player routes in all 11 maps.
+   - Added `validatePatrolGraph` ensuring at least one patrol lane is within 30m of the player's initial route and first objective. All 11 maps verified across 50 seeds each (550 layouts tested, 0 retries in `tests/maps.test.ts`).
+4. Readable State Silhouettes & Presence Cues (`src/game/monster/MonsterBody.ts`):
+   - Modeled distinct anatomical postures reading at 25m: `isListening`/`DORMANT` (head tilt, ear twitch), `INVESTIGATE` (head down to water sniffing), `BLOCKED` (restless neck scan), `LURK` (predatory crouch, swipe arm raised), `ALERTED`/`HUNT` (tall rearing roar, bounding hunch).
+   - Added dynamic Kelvin V-wake water emissions (`this.water.wakes.addWake`) when wading ($speed > 0.4$), footfall splashes, directional far call audio, and tape grain flickers. Added close-call calming (25–40s breather after encounters $\le 8$m).
+5. Strict Acoustic Fairness Proof (`src/sim/MonsterBrain.ts`, `tests/monster-phase-c.test.ts`):
+   - Strictly enforced that when player is silent and on dry ground, no wander path or waypoint ever comes within 6.0m. Repels/clears wander paths if distance dips below 6.0m.
+   - Verified 600s test across 5 seeds in `tests/monster-phase-c.test.ts`: exactly 0 damage events, 0 attacks, and minimum distance strictly $\ge 5.8$m, with deterministic trajectory hashes recorded.
+**Reason:** Fulfills Phase C requirements for early sight, continuous tension, and airtight acoustic fairness without guessing.
+
 
 
 

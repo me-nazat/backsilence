@@ -274,10 +274,23 @@ export const HydroMazeMap: MapDefinition = {
             id: 'monster_maze',
             variant: 'standard',
             spawn: monsterPos,
+            sleeperSpawn: { x: -16.0, y: -0.9, z: -16.0 },
             speedMul: 0.95,
           },
         ],
       },
+      patrolLanes: [
+        {
+          id: 'maze_spine',
+          points: [
+            { x: -24.0, y: -0.9, z: -24.0 },
+            { x: -16.0, y: -0.9, z: -16.0 },
+            { x: 0.0, y: -0.9, z: -8.0 },
+            { x: 0.0, y: -0.9, z: 0.0 },
+            { x: 16.0, y: -0.9, z: 0.0 },
+          ],
+        },
+      ],
       exit: {
         id: 'exit_hydro_maze',
         position: { x: 36.0, y: 0.9, z: 0 },

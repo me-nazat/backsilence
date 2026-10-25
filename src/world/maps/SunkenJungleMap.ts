@@ -222,11 +222,12 @@ export const SunkenJungleMap: MapDefinition = {
     const playerSpawn = { x: -55, y: 0.4, z: -55 };
     const monsterSpawn = { x: 20, y: -0.85, z: -35 }; // in large pond >= 45m from player
 
-    const monsters: Array<{ id: string; variant: 'standard' | 'elder' | 'juvenile'; spawn: Vec3 }> = [
+    const monsters: Array<{ id: string; variant: 'standard' | 'elder' | 'juvenile'; spawn: Vec3; sleeperSpawn?: Vec3 }> = [
       {
         id: 'monster_jungle_1',
         variant: 'standard',
         spawn: monsterSpawn,
+        sleeperSpawn: { x: -38, y: -0.85, z: -38 },
       },
     ];
 
@@ -269,6 +270,19 @@ export const SunkenJungleMap: MapDefinition = {
         player: [playerSpawn],
         monsters,
       },
+      patrolLanes: [
+        {
+          id: 'jungle_river',
+          points: [
+            { x: -45, y: -0.85, z: -45 },
+            { x: -38, y: -0.85, z: -38 },
+            { x: -20, y: -0.85, z: -20 },
+            { x: 0, y: -0.85, z: 0 },
+            { x: 25, y: -0.85, z: 25 },
+            { x: 45, y: -0.85, z: 45 },
+          ],
+        },
+      ],
       exit: {
         id: 'temple_gate_door',
         position: exitPos,

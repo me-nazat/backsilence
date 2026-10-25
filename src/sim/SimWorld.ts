@@ -68,6 +68,7 @@ export class SimWorld {
   readonly drones: Drone[] = [];
 
   readonly director: EncounterDirector;
+  readonly difficulty: DirectorDifficulty;
   objectivesDone = 0;
 
   hearingCtx: HearingContext;
@@ -77,7 +78,9 @@ export class SimWorld {
   constructor(config: SimWorldConfig) {
     this.seed = config.seed;
     this.rng = new Rng(config.seed);
-    this.director = config.director ?? new EncounterDirector(config.seed, config.difficulty ?? 'normal');
+    const diff = config.difficulty ?? 'normal';
+    this.difficulty = diff;
+    this.director = config.director ?? new EncounterDirector(config.seed, diff);
     this.baseWaterY = config.waterY;
     this.currentWaterY = config.waterY;
     this.worldProfile = config.worldProfile ?? DEFAULT_WORLD_PROFILE;
@@ -107,8 +110,7 @@ export class SimWorld {
     this.colliders = config.colliders ?? new ColliderSet(4.0);
     this.events = new EventRingBuffer(256);
 
-    const diff = config.difficulty ?? 'normal';
-    const diffHearing = diff === 'whisper' ? 0.75 : diff === 'deafening' ? 1.3 : 1.0;
+    const diffHearing = this.difficulty === 'whisper' ? 0.75 : this.difficulty === 'deafening' ? 1.3 : 1.0;
     this.hearingCtx = {
       difficultyHearing: diffHearing,
       maskFactor: (pos: Vec3) => {
@@ -220,7 +222,12 @@ export class SimWorld {
   }
 
   addMonster(def: MonsterDef, seed?: number): MonsterBrain {
-    const brain = new MonsterBrain(def, this.nav, seed ?? 42);
+    const finalSpawn =
+      (this.difficulty === 'normal' || this.difficulty === 'whisper') && def.sleeperSpawn
+        ? def.sleeperSpawn
+        : def.spawn;
+    const finalDef: MonsterDef = { ...def, spawn: finalSpawn };
+    const brain = new MonsterBrain(finalDef, this.nav, seed ?? 42);
     this.monsters.push(brain);
     return brain;
   }
@@ -318,6 +325,7 @@ export class SimWorld {
         this.player.onGround,
         isPerched,
         this.player.isWading,
+        this.player.yaw,
       );
       this.director.step(dt, this.monsters, this.nav, this.objectivesDone);
       // Note: dreadBeats are presentation cues for GameSession (audio, VHS, flock),

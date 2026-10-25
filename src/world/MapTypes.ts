@@ -88,6 +88,11 @@ export interface PuzzleDef {
   params?: Record<string, unknown>;
 }
 
+export interface PatrolLane {
+  id: string;
+  points: Vec3[];
+}
+
 export interface LayoutData {
   mapId: MapId;
   seed: number;
@@ -103,6 +108,7 @@ export interface LayoutData {
     player: Vec3[];
     monsters: MonsterDef[];
   };
+  patrolLanes?: PatrolLane[];
   exit: {
     id: string;
     position: Vec3;

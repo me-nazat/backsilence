@@ -217,11 +217,12 @@ export const NeonFloodMap: MapDefinition = {
     const playerSpawn = { x: 0, y: 0.3, z: -48 }; // in south alley
     const monsterSpawn = { x: 0, y: -0.9, z: 0 }; // flooded plaza >= 45m from spawn (48m away)
 
-    const monsters: Array<{ id: string; variant: 'standard' | 'elder' | 'juvenile'; spawn: Vec3 }> = [
+    const monsters: Array<{ id: string; variant: 'standard' | 'elder' | 'juvenile'; spawn: Vec3; sleeperSpawn?: Vec3 }> = [
       {
         id: 'monster_city_1',
         variant: 'standard',
         spawn: monsterSpawn,
+        sleeperSpawn: { x: 0, y: -0.9, z: -24 },
       },
     ];
 
@@ -264,6 +265,18 @@ export const NeonFloodMap: MapDefinition = {
         player: [playerSpawn],
         monsters,
       },
+      patrolLanes: [
+        {
+          id: 'neon_avenue',
+          points: [
+            { x: 0, y: -0.9, z: -35 },
+            { x: 0, y: -0.9, z: -24 },
+            { x: 0, y: -0.9, z: 0 },
+            { x: 0, y: -0.9, z: 20 },
+            { x: 0, y: -0.9, z: 40 },
+          ],
+        },
+      ],
       exit: {
         id: 'transit_gate_door',
         position: exitPos,

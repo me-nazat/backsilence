@@ -466,18 +466,31 @@ export class GameSession {
       this.monsters = new MonsterManager(this.water, this.audio);
       this.scene.add(this.monsters.root);
 
+      if (this.layout.patrolLanes) {
+        this.simWorld.director.setPatrolLanes(this.layout.patrolLanes);
+      }
+
       for (const mDef of this.layout.spawns.monsters) {
-        this.monsters.addMonster({
+        const spawnPos =
+          (this.difficulty === 'normal' || this.difficulty === 'whisper') && mDef.sleeperSpawn
+            ? mDef.sleeperSpawn
+            : mDef.spawn;
+
+        const body = this.monsters.addMonster({
           id: mDef.id,
           variant: mDef.variant,
-          spawn: mDef.spawn,
+          spawn: spawnPos,
         });
+        if (this.mapDef?.atmosphere?.fog?.density) {
+          body.fogDensity = this.mapDef.atmosphere.fog.density;
+        }
 
         this.simWorld.addMonster(
           {
             id: mDef.id,
             variant: mDef.variant,
-            spawn: mDef.spawn,
+            spawn: spawnPos,
+            ...(mDef.sleeperSpawn ? { sleeperSpawn: mDef.sleeperSpawn } : {}),
             spawnGrace: this.difficulty === 'deafening' ? 4.0 : 8.0,
           },
           this.seed,
@@ -583,6 +596,7 @@ export class GameSession {
   private setupAtmosphere(def: MapDefinition): void {
     const fogColor = parseInt(def.atmosphere.fog.color.replace('#', '0x'), 16);
     this.scene.fog = new FogExp2(fogColor, def.atmosphere.fog.density);
+    this.simWorld.director.setFogDensity(def.atmosphere.fog.density);
 
     // Set camera.far from fog density so distant geometry fades to fog color, never hard clips
     const fogFar = Math.max(75.0, Math.ceil(2.8 / Math.max(0.015, def.atmosphere.fog.density)));

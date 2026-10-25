@@ -269,10 +269,31 @@ export const PoolroomsMap: MapDefinition = {
             id: 'monster_standard',
             variant: 'standard',
             spawn: monsterPos,
+            sleeperSpawn: { x: -20, y: -0.9, z: -20 },
             hearingMul: 1.0,
           },
         ],
       },
+      patrolLanes: [
+        {
+          id: 'patrol_central',
+          points: [
+            { x: -32, y: -0.9, z: -32 },
+            { x: -20, y: -0.9, z: -20 },
+            { x: 0, y: -0.9, z: 0 },
+            { x: 20, y: -0.9, z: 20 },
+            { x: 32, y: -0.9, z: 32 },
+          ],
+        },
+        {
+          id: 'patrol_south',
+          points: [
+            { x: -30, y: -0.9, z: -10 },
+            { x: 0, y: -0.9, z: -20 },
+            { x: 25, y: -0.9, z: -15 },
+          ],
+        },
+      ],
       exit: {
         id: 'exit_poolrooms',
         position: { x: exitX, y: exitSlab.topY, z: exitZ },

@@ -277,10 +277,23 @@ export const MarbleAtriumMap: MapDefinition = {
             id: 'monster_atrium',
             variant: 'standard',
             spawn: monsterPos,
+            sleeperSpawn: { x: 8, y: -0.9, z: 12 },
             hearingMul: 1.1,
           },
         ],
       },
+      patrolLanes: [
+        {
+          id: 'atrium_court',
+          points: [
+            { x: -8, y: -0.9, z: -5 },
+            { x: 0, y: -0.9, z: 0 },
+            { x: 8, y: -0.9, z: 12 },
+            { x: 14, y: -0.9, z: 5 },
+            { x: 0, y: -0.9, z: 18 },
+          ],
+        },
+      ],
       exit: {
         id: 'exit_marble_atrium',
         position: { x: 18.0, y: 0.3, z: 0 },
