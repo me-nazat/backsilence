@@ -1253,3 +1253,16 @@ Establish `functions/api/[[route]].ts` as the canonical Cloudflare Pages Functio
    - Compiled complete comprehensive review pack with engine architecture, 12/12 comparison table, benchmark metrics (40.5x faster than real-time render), LISTEN.md checklist items (marked UNVERIFIED by ear), and push instruction.
 **Reason:** Satisfies Section 10 Phase F & Section 11 Phase G mandates of Prompt 4 of 5.
 
+### D101: Prompt 5 Preconditions & Initial UX Baseline (2026-10-25)
+**Context:** Verification of preconditions for Prompt 5 of 5 ("playability, enjoyment and ease of the website"). Requires headless Chrome validation at 1440x900 and 390x844 with touch emulation, auditing button clickability/reachability, verifying solo play start and movement, and inventorying all major UI screens.
+**Choice:**
+1. Authored `scripts/ux/verify-preconditions.mjs` using headless Chrome via CDP with SwiftShader WebGL2.
+2. Verified 1440x900 desktop load and 390x844 mobile touch load, saving screenshots to `reports/ux/preconditions_1440x900.png` and `reports/ux/preconditions_390x844.png`.
+3. Discovered critical interaction blockers:
+   - `#audio-unlock-overlay` sits at `z-index: 10000`, intercepting initial clicks before reaching menu buttons.
+   - `index.html` enforces a legacy pointer-events whitelist requiring `.bs-screen` for screens to receive pointer events.
+4. Verified Solo Play launch into `GameSession` and confirmed player movement (`displacement = 0.421 m > 0.05 m`). Added `isSessionLoaded` and `playerPosition` getters to `GameSession.ts`.
+5. Confirmed inventory of all 9 screens/features: Lobby, Results, Campaign Shelf, Missions, Leaderboard, Profile, Settings (5 tabs), Pause Menu, Death Screen.
+6. Compiled complete findings into `reports/ux/preconditions.md`.
+**Reason:** Satisfies Section 0 Preconditions requirement of Prompt 5 of 5.
+

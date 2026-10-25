@@ -3243,4 +3243,15 @@ export class GameSession {
   get activeDirector(): EncounterDirector {
     return this.simWorld.director;
   }
+
+  get isSessionLoaded(): boolean {
+    return this.isLoaded;
+  }
+
+  get playerPosition(): { x: number; y: number; z: number } | null {
+    if (!this.simWorld?.player?.pos) return null;
+    const p = this.simWorld.player.pos;
+    return { x: p.x, y: p.y, z: p.z };
+  }
 }
+

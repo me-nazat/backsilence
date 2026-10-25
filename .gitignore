@@ -13,6 +13,7 @@ reports/*
 reports/graphics/**/*.png
 !reports/audio/
 reports/audio/**/*.wav
+!reports/ux/
 reference/out*
 reference/*.png
 reference/video/frames/*
