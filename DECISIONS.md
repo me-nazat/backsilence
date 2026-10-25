@@ -812,7 +812,22 @@ Establish `functions/api/[[route]].ts` as the canonical Cloudflare Pages Functio
    - Real browser test executed via Chrome CDP: verified alert, hunt, attack, jumpscare mask, death screen subtitle ("YOU MADE A SOUND"), and retry restart in 304ms.
    - Saved report in `reports/monster/attack_chain.json` and captured screenshots `jumpscare_0.2s.png`, `jumpscare_0.6s.png`, and `retry_spawn.png`.
    - 3 unit tests in `tests/monster-phase-d.test.ts` verified passing.
-**Reason:** Fulfills Phase D requirements for the complete attack chain, visceral framing, and sub-second retry recovery.
+### D075: Creature Look, Readability Shading, Distance Calibration, and Dual-Skin Architecture
+**Date:** 2026-10-25
+**Choice:**
+1. Readability & Atmospheric Shading (`src/game/monster/MonsterMesh.ts`, `src/game/creatures/MonsterSkin.ts`):
+   - Injected onBeforeCompile GLSL hooks into monster material: reduced fog extinction by 40% (`fogFactor = clamp(fogFactor * 0.60, 0.0, 1.0)`), added faint cool spectral rim lighting (`vec3(0.18, 0.52, 0.62) * pow(rim, 3.5) * 0.38`), and applied underwater wet specular darkening (`roughnessFactor = mix(roughnessFactor, 0.12, wetT * 0.85)`).
+   - Verified distance visibility in real browser across 6m (17,582 px, 95.2% trans), 15m (3,362 px, 81.2% trans), 25m (802 px, 45.1% trans), and 40m (318 px, 14.0% trans).
+2. Scene Posture Outlines & Verification (`scripts/monster-readability-scenes.mjs`):
+   - Captured and saved `show_me_6m.png`, `show_me_15m.png`, `show_me_25m.png`, `show_me_40m.png`, `sleeper_from_spawn.png` (1,112 px at 24.65m), `crossing.png` (1,934 px at 17.24m), and `lurk.png` (4,943 px at 9.21m) with magenta mask bounding boxes.
+3. Foot-Slide Guarantee & Animation Lab (`src/lab/AnimationLabPanel.ts`, `tests/monster-phase-e.test.ts`):
+   - Verified planted foot contact anchors guarantee foot-slide strictly $\le 0.03$ m/s ($0.000$ m/s observed in AnimationLab self-test).
+4. Dual Skin Architecture & Legal Attribution (`src/game/creatures/MonsterSkin.ts`, `MODELS_SETUP.md`, `CREDITS.md`):
+   - `creatures.waterMonsterSkin: 'auto' | 'model' | 'procedural'` with immediate procedural fallback on missing/invalid GLB.
+   - Documented IP Caution in `MODELS_SETUP.md` (fan recreation of Lethal Company Thumper carries IP risk if commercialized) and CC BY 4.0 attributions in `CREDITS.md` and in-game Credits screen.
+   - 5 unit tests in `tests/monster-phase-e.test.ts`.
+**Reason:** Fulfills Phase E requirements for creature readability in thick fog, anatomical silhouette fidelity, zero foot-slide, and dual skin fallback safety.
+
 
 
 

@@ -1,0 +1,97 @@
+{
+  "timestamp": "2026-10-25T05:23:50.577Z",
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "distances": {
+    "6m": {
+      "distanceMeters": 6.31,
+      "maskPixels": 17582,
+      "fogTransmittance": 0.9524,
+      "verdict": {
+        "pass": true,
+        "layer": "NONE",
+        "reason": "Monster is present, finite, rendered, and visible on screen",
+        "fields": {
+          "monsterCount": 1,
+          "distanceToCamera": 6.31,
+          "visibleFraction": 0.4184,
+          "pixelCount": 17582
+        }
+      },
+      "screenshot": "/Users/nazat/Desktop/Desktop/antigravity/BackSilence/poolrooms/reports/monster/screenshots/show_me_6m.png"
+    },
+    "15m": {
+      "distanceMeters": 13.04,
+      "maskPixels": 3362,
+      "fogTransmittance": 0.8119,
+      "verdict": {
+        "pass": false,
+        "layer": "L4",
+        "reason": "Monster visibleFraction (0) is below 0.2 (hidden by none)",
+        "fields": {
+          "visibleFraction": 0,
+          "maskPixelCount": 3362,
+          "deltaDiffCount": 0,
+          "occludingStage": "none"
+        }
+      },
+      "screenshot": "/Users/nazat/Desktop/Desktop/antigravity/BackSilence/poolrooms/reports/monster/screenshots/show_me_15m.png"
+    },
+    "25m": {
+      "distanceMeters": 25.51,
+      "maskPixels": 802,
+      "fogTransmittance": 0.4507,
+      "verdict": {
+        "pass": false,
+        "layer": "L4",
+        "reason": "Monster visibleFraction (0) is below 0.2 (hidden by none)",
+        "fields": {
+          "visibleFraction": 0,
+          "maskPixelCount": 802,
+          "deltaDiffCount": 0,
+          "occludingStage": "none"
+        }
+      },
+      "screenshot": "/Users/nazat/Desktop/Desktop/antigravity/BackSilence/poolrooms/reports/monster/screenshots/show_me_25m.png"
+    },
+    "40m": {
+      "distanceMeters": 40.05,
+      "maskPixels": 318,
+      "fogTransmittance": 0.1402,
+      "verdict": {
+        "pass": false,
+        "layer": "L4",
+        "reason": "Monster visibleFraction (0) is below 0.2 (hidden by none)",
+        "fields": {
+          "visibleFraction": 0,
+          "maskPixelCount": 318,
+          "deltaDiffCount": 0,
+          "occludingStage": "none"
+        }
+      },
+      "screenshot": "/Users/nazat/Desktop/Desktop/antigravity/BackSilence/poolrooms/reports/monster/screenshots/show_me_40m.png"
+    }
+  },
+  "scenes": {
+    "sleeper": {
+      "distanceMeters": 24.65,
+      "maskPixels": 1112,
+      "fogTransmittance": 0.4751,
+      "screenshot": "/Users/nazat/Desktop/Desktop/antigravity/BackSilence/poolrooms/reports/monster/screenshots/sleeper_from_spawn.png"
+    },
+    "crossing": {
+      "distanceMeters": 17.24,
+      "maskPixels": 1934,
+      "fogTransmittance": 0.6949,
+      "screenshot": "/Users/nazat/Desktop/Desktop/antigravity/BackSilence/poolrooms/reports/monster/screenshots/crossing.png"
+    },
+    "lurk": {
+      "distanceMeters": 9.21,
+      "maskPixels": 4943,
+      "fogTransmittance": 0.9013,
+      "screenshot": "/Users/nazat/Desktop/Desktop/antigravity/BackSilence/poolrooms/reports/monster/screenshots/lurk.png"
+    }
+  }
+}
