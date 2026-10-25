@@ -93,11 +93,21 @@ export class EngineRenderer {
     this.canvas.addEventListener('webglcontextlost', (e) => {
       e.preventDefault();
       console.warn('[EngineRenderer] WebGL Context Lost');
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(
+          new CustomEvent('backsilence:webgl-lost', {
+            detail: { reason: 'GPU graphics context was lost or reset by the operating system.' },
+          }),
+        );
+      }
     });
 
     this.canvas.addEventListener('webglcontextrestored', () => {
       console.info('[EngineRenderer] WebGL Context Restored');
       this.renderer.setSize(this.canvas.clientWidth, this.canvas.clientHeight, false);
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('backsilence:webgl-restored'));
+      }
     });
   }
 

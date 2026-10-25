@@ -75,6 +75,7 @@ export interface Settings {
     photosensitiveSafe: boolean;
     vhsOsd: boolean;
     vhsLines: number;
+    fpsCap?: 30 | 60 | 0 | undefined;
   };
   audio: {
     master: number;

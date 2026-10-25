@@ -46,6 +46,7 @@ export function defaultSettings(): Settings {
       photosensitiveSafe: false,
       vhsOsd: true,
       vhsLines: 240,
+      fpsCap: 0,
     },
     audio: {
       master: 0.8,

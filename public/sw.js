@@ -18,6 +18,12 @@ const APP_SHELL = [
   '/manifest.webmanifest',
 ];
 
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    void self.skipWaiting();
+  }
+});
+
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)

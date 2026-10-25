@@ -167,6 +167,18 @@ export class SettingsPanel {
             </div>
             <input id="set-showfps" type="checkbox" ${this.settings.graphics.showFps ? 'checked' : ''} class="setting-toggle">
           </div>
+
+          <div class="setting-row">
+            <div>
+              <div class="setting-label">FRAME RATE CAP</div>
+              <div class="setting-sub">Battery saver & low-spec device frame limiter</div>
+            </div>
+            <select id="set-fpscap" class="setting-select">
+              <option value="0" ${(this.settings.graphics.fpsCap ?? 0) === 0 ? 'selected' : ''}>Uncapped (Display native)</option>
+              <option value="60" ${this.settings.graphics.fpsCap === 60 ? 'selected' : ''}>60 FPS (Stable)</option>
+              <option value="30" ${this.settings.graphics.fpsCap === 30 ? 'selected' : ''}>30 FPS (Battery saver / Low mobile)</option>
+            </select>
+          </div>
         `;
 
       case 'audio':
@@ -520,6 +532,12 @@ export class SettingsPanel {
       const showfps = this.el.querySelector('#set-showfps') as HTMLInputElement;
       showfps?.addEventListener('change', () => {
         this.settings.graphics.showFps = showfps.checked;
+        this.liveApply();
+      });
+
+      const fpscap = this.el.querySelector('#set-fpscap') as HTMLSelectElement;
+      fpscap?.addEventListener('change', () => {
+        this.settings.graphics.fpsCap = parseInt(fpscap.value, 10) as 30 | 60 | 0;
         this.liveApply();
       });
     } else if (this.activeTab === 'audio') {

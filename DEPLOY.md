@@ -19,7 +19,14 @@ This executes:
 4. `build` (`vite build`)
 5. `audit` (Bundle budget checks: boot chunk $\le 35\text{ KB}$ gz, non-map core $\le 450\text{ KB}$ gz)
 
+6. `deploy:preview` (`npm run deploy:preview` — builds and serves locally on port 4173 with simulated production headers)
+
 The output directory is `dist/`.
+
+To test the preview build locally prior to publication:
+```bash
+npm run deploy:preview
+```
 
 ---
 

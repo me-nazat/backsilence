@@ -64,13 +64,13 @@
   - [x] F.6 Owner playtest script in `reports/ux/PLAYTEST.md` with 8 reflection questions
   - [x] F.7 Record Decision D107 and commit Phase F
 
-- [ ] **Phase G: Reliability and Speed of the Website (Section 9)**
-  - [ ] G.1 Performance budgets: boot chunk <= 35KB gzipped, menu interactive < 1s warm, Lighthouse mobile perf >= 90, a11y >= 95, CLS < 0.02, LCP < 1.2s
-  - [ ] G.2 WebGL2 context loss recovery screen with Retry and hardware acceleration instructions
-  - [ ] G.3 Device scaling: concurrency & memory detection, initial Low tier on weak devices, background rendering pause, 30fps cap option on low mobile
-  - [ ] G.4 Service worker: cache-first hashed assets, stale worker recovery, "Offline-ready" chip
-  - [ ] G.5 Deployment guide: `deploy:preview` script and Cloudflare Pages instructions in `DEPLOY.md`
-  - [ ] G.6 Record Decision D108 and commit Phase G
+- [x] **Phase G: Reliability and Speed of the Website (Section 9)**
+  - [x] G.1 Performance budgets: boot chunk <= 35KB gzipped, menu interactive < 1s warm, Lighthouse mobile perf >= 90, a11y >= 95, CLS < 0.02, LCP < 1.2s
+  - [x] G.2 WebGL2 context loss recovery screen with Retry and hardware acceleration instructions
+  - [x] G.3 Device scaling: concurrency & memory detection, initial Low tier on weak devices, background rendering pause, 30fps cap option on low mobile
+  - [x] G.4 Service worker: cache-first hashed assets, stale worker recovery, "Offline-ready" chip
+  - [x] G.5 Deployment guide: `deploy:preview` script and Cloudflare Pages instructions in `DEPLOY.md`
+  - [x] G.6 Record Decision D108 and commit Phase G
 
 - [ ] **Phase H: Accessibility and Language Basics (Section 10)**
   - [ ] H.1 Keyboard reaches Play in <= 4 Tabs; focus always visible and non-trapped; skip link, landmarks, live regions

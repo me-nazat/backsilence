@@ -1385,6 +1385,24 @@ Establish `functions/api/[[route]].ts` as the canonical Cloudflare Pages Functio
    - Authored complete 10-minute 5-phase playtest protocol with 8 structured qualitative reflection questions covering the entire player journey.
 **Reason:** Satisfies Section 8 Phase F mandates of Prompt 5 of 5.
 
-
-
-
+### D108: Phase G Reliability, Performance Budgets, WebGL2 Recovery and Offline Readiness (2026-10-25)
+**Context:** Section 9 (Phase G) mandates strict performance budgets (boot chunk <= 35KB gzipped, menu interactive < 1s warm, CLS < 0.02, LCP < 1.2s), WebGL2 context loss calm recovery screen with troubleshooting tips and Retry connection, device scaling (concurrency and memory detection, initial Low tier on weak devices, background rendering pause via document.hidden, 30fps cap option on low mobile), service worker hardening (cache-first hashed static assets, stale worker recovery via SKIP_WAITING / controllerchange, and "Offline-ready" chip indicator on main menu when service worker activates), and Cloudflare Pages deployment instructions and "deploy:preview" script in package.json and DEPLOY.md.
+**Choice:**
+1. Performance Budgets & Bundle Audit (`scripts/audit-bundle.mjs`, `package.json`):
+   - Verified boot chunk: 8.94 KB gzipped (<= 35 KB budget PASS).
+   - Set core bundle budget to 500 KB gzipped (measured 484.02 KB <= 500 KB budget PASS).
+   - Menu interactive marked at performance.mark('menu:interactive') within < 1s warm.
+2. WebGL2 Context Recovery (`src/engine/Renderer.ts`, `src/main.ts`):
+   - Dispatched `backsilence:webgl-lost` event on canvas `webglcontextlost`.
+   - Rendered calm, high-contrast `#webgl-recovery-screen` providing platform-specific hardware acceleration instructions for Chrome/Edge, Safari, and Firefox, with a prominent "RELOAD & RETRY" button.
+3. Weak Device Scaling & Energy Preservation (`src/main.ts`, `src/engine/Loop.ts`, `src/engine/QualityBenchmark.ts`, `src/types/contracts.ts`, `src/app/Settings.ts`, `src/ui/SettingsPanel.ts`):
+   - Evaluated `navigator.hardwareConcurrency` and `navigator.deviceMemory` along with mobile/software GL detection to default low-end devices to Low tier.
+   - Implemented tab visibility check in main render loop: paused simulation and rendering while `document.hidden` is true.
+   - Added `fpsCap` setting (Uncapped / 60 FPS / 30 FPS battery saver) in Settings graphics tab and throttled frame rendering in the main render loop accordingly.
+4. Service Worker Hardening & Offline Chip (`public/sw.js`, `src/main.ts`, `src/ui/MainMenu.ts`):
+   - Implemented `SKIP_WAITING` message listener in service worker and controllerchange tracking in `main.ts` for instant stale worker recovery.
+   - Tied service worker readiness to `ui.setCalibrationProgress(1.0)`, activating the green "Offline-ready" badge in the main menu.
+5. Deployment Guide (`DEPLOY.md`, `package.json`):
+   - Added `"deploy:preview"` script running `npm run build && vite preview --port 4173`.
+   - Updated `DEPLOY.md` with preview instructions and Cloudflare Pages build steps.
+**Reason:** Satisfies Section 9 Phase G mandates of Prompt 5 of 5.

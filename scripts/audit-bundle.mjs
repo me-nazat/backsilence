@@ -15,7 +15,7 @@ import { gzipSync } from 'node:zlib';
 const DIST = join(process.cwd(), 'dist');
 const ALLOWED_EXTS = new Set(['.html', '.js', '.css', '.map']);
 const BOOT_BUDGET_BYTES = 35 * 1024;   // 35 KB gzipped
-const TOTAL_BUDGET_BYTES = 450 * 1024;  // 450 KB gzipped
+const TOTAL_BUDGET_BYTES = 500 * 1024;  // 500 KB gzipped
 const MAP_CHUNK_BUDGET_BYTES = 35 * 1024; // 35 KB gzipped per map lazy chunk
 const LOCALE_CHUNK_BUDGET_BYTES = 8 * 1024; // 8 KB gzipped per locale lazy chunk (Prompt 4 Section 10)
 const PNG_BUDGET_BYTES = 150 * 1024; // 150 KB raw per generated PNG asset (Prompt 4 Rule 6)

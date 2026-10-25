@@ -60,36 +60,79 @@ function showWebGlError(reason: string): void {
   app.style.padding = '20px';
   app.style.textAlign = 'center';
   app.innerHTML = `
-    <div style="
+    <div id="webgl-recovery-screen" style="
       background: rgba(13,11,6,0.95);
       border: 1px solid rgba(179,38,30,0.6);
       padding: 30px 24px;
-      max-width: 480px;
+      max-width: 520px;
       color: var(--fog, #d9d3a2);
       font-family: monospace;
       box-shadow: 0 0 30px rgba(179,38,30,0.4);
+      border-radius: 4px;
+      text-align: left;
     ">
-      <h2 style="color: var(--danger, #b3261e); margin-bottom: 12px;">HARDWARE ACCELERATION REQUIRED</h2>
-      <p style="font-size: 13px; opacity: 0.8; margin-bottom: 20px; line-height: 1.5;">
-        BackSilence requires WebGL 2.0 to render procedural caustics and ceramic PBR shaders.
+      <h2 style="color: var(--danger, #b3261e); margin-bottom: 12px; font-size: 16px; letter-spacing: 0.1em; text-align: center;">GRAPHICS ACCELERATION / WEBGL 2.0 REQUIRED</h2>
+      <p style="font-size: 13px; opacity: 0.85; margin-bottom: 16px; line-height: 1.5;">
+        BackSilence requires WebGL 2.0 with hardware acceleration to render real-time caustics and ceramic PBR shaders.
         <br><br>
-        <strong>Reason:</strong> ${reason}
+        <strong>Diagnostic:</strong> ${reason}
       </p>
-      <button class="analog-btn primary" onclick="window.location.reload()">RETRY CONNECTION</button>
+      <div style="background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); padding: 12px; margin-bottom: 20px; font-size: 12px; line-height: 1.6; color: rgba(217,211,162,0.85);">
+        <strong>Troubleshooting Instructions:</strong>
+        <ul style="margin: 6px 0 0 16px; padding: 0;">
+          <li><strong>Chrome / Edge:</strong> Settings → System → Enable <em>"Use graphics acceleration when available"</em>, then relaunch.</li>
+          <li><strong>Safari:</strong> Settings → Advanced → Feature Flags → Ensure <em>"WebGL 2.0"</em> is enabled.</li>
+          <li><strong>Firefox:</strong> Settings → General → Performance → Check <em>"Use recommended performance settings"</em>.</li>
+          <li>Update your display drivers and close other memory-intensive 3D tabs.</li>
+        </ul>
+      </div>
+      <div style="display: flex; gap: 12px; justify-content: center;">
+        <button id="btn-webgl-retry" class="analog-btn primary" onclick="window.location.reload()">RELOAD & RETRY</button>
+      </div>
     </div>
   `;
 }
 
+if (typeof window !== 'undefined') {
+  window.addEventListener('backsilence:webgl-lost', (e) => {
+    const detail = (e as CustomEvent<{ reason?: string }>).detail;
+    showWebGlError(detail?.reason || 'WebGL context lost.');
+  });
+}
+
 /** Register the offline shell without delaying the interactive menu. */
-function registerOfflineSupport(onFailure: (message: string) => void): void {
+function registerOfflineSupport(onReady: () => void, onFailure: (message: string) => void): void {
   if (!import.meta.env.PROD || !('serviceWorker' in navigator)) return;
+
+  // Stale worker recovery: controllerchange tracking
+  let refreshing = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!refreshing) {
+      refreshing = true;
+      console.log('[BackSilence] Service worker updated and active.');
+    }
+  });
 
   const registerAfterFirstPaint = () => {
     window.requestAnimationFrame(() => {
       void (async () => {
         try {
-          await navigator.serviceWorker.register('/sw.js', { scope: '/' });
+          const reg = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
+
+          if (reg.waiting) {
+            reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+          }
+          reg.addEventListener('updatefound', () => {
+            const newWorker = reg.installing;
+            newWorker?.addEventListener('statechange', () => {
+              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                newWorker.postMessage({ type: 'SKIP_WAITING' });
+              }
+            });
+          });
+
           await navigator.serviceWorker.ready;
+          onReady();
 
           const prefetch = () => {
             void (async () => {
@@ -98,6 +141,7 @@ function registerOfflineSupport(onFailure: (message: string) => void): void {
                 import('./game/GameSession.js'),
                 ...ALL_MAP_IDS.map((mapId) => getMapDefinition(mapId)),
               ]);
+              onReady();
             })().catch(() => onFailure('Offline cache could not be prepared. Online play is still available.'));
           };
           if (typeof window.requestIdleCallback === 'function') {
@@ -318,7 +362,12 @@ async function boot(): Promise<void> {
   });
 
   ui.setAudioLabPanel(labScene.audioLabPanel);
-  registerOfflineSupport((message) => ui?.showToast(message, 'warn'));
+  registerOfflineSupport(
+    () => {
+      ui?.setCalibrationProgress(1.0);
+    },
+    (message) => ui?.showToast(message, 'warn'),
+  );
 
   type GlobalRefs = {
     __backsilence_bus?: typeof bus;
@@ -500,8 +549,22 @@ async function boot(): Promise<void> {
     activeVoices: 0,
   };
 
+  let lastRenderTime = 0;
+
   function animate(now: number): void {
     requestAnimationFrame(animate);
+
+    // Pause updates & rendering when tab is hidden to preserve battery & GPU resources
+    if (typeof document !== 'undefined' && document.hidden) {
+      lastTime = now;
+      return;
+    }
+
+    // Optional 30fps cap for battery saver & low-tier mobile devices
+    if (settings.graphics.fpsCap === 30 && now - lastRenderTime < 32.5) {
+      return;
+    }
+    lastRenderTime = now;
 
     const dt = Math.min((now - lastTime) / 1000, 0.1);
     const dtMs = dt * 1000;

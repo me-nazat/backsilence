@@ -8,6 +8,7 @@
     "dev:api": "vite-node scripts/dev-api-proxy.mjs",
     "build": "vite build",
     "preview": "vite preview",
+    "deploy:preview": "npm run build && vite preview --port 4173",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "test": "vitest run",
