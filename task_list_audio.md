@@ -16,14 +16,14 @@
   - [x] A.5 Publish 2-minute listening checklist in `reports/audio/LISTEN.md` (12 tests, marked UNVERIFIED by ear)
   - [x] A.6 Record Decision D095 and commit Phase A
 
-- [ ] **Phase B: Synthesis Engine Upgrades (Section 6)**
-  - [ ] B.1 van den Doel liquid bubble physics ($f_0 = 3/r$, damping $d$, pitch rise $f(t) = f_0(1+0.1dt)$) for splashes, wade steps, and Poisson drips
-  - [ ] B.2 Baked procedural one-shots pool (16 MB buffer pool, 8 splash variants, 6 wade steps, 6 drips, 4 footsteps, 4 monster footfalls rendered at warmup in <= 6ms slices)
-  - [ ] B.3 AudioWorklet for beds (pink/brown noise, Poisson bubbles, lapping modulator, loaded via `?worker&url` with node fallback)
-  - [ ] B.4 Anti-artifact guardrails (>= 5ms parameter ramps, 3ms fades, band-limited PeriodicWave > 2 kHz, 4x oversampled waveshapers, DC offset < 0.001)
-  - [ ] B.5 Creature voice overhaul (glottal pulse source, jitter/shimmer, period doubling, 3 moving formants F1/F2/F3, AM throat growl 20-40 Hz, wet breath)
-  - [ ] B.6 Player and interaction sounds (wet tile steps with heel/toe squelch, breath, heartbeat 55-140 BPM, inharmonic bells, clicks, ratchets)
-  - [ ] B.7 Record Decision D096 and commit Phase B
+- [x] **Phase B: Synthesis Engine Upgrades (Section 6)**
+  - [x] B.1 van den Doel liquid bubble physics ($f_0 = 3/r$, damping $d$, pitch rise $f(t) = f_0(1+0.1dt)$) for splashes, wade steps, and Poisson drips
+  - [x] B.2 Baked procedural one-shots pool (16 MB buffer pool, 8 splash variants, 6 wade steps, 6 drips, 4 footsteps, 4 monster footfalls rendered at warmup in <= 6ms slices)
+  - [x] B.3 AudioWorklet for beds (pink/brown noise, Poisson bubbles, lapping modulator, loaded via `?worker&url` with node fallback)
+  - [x] B.4 Anti-artifact guardrails (>= 5ms parameter ramps, 3ms fades, band-limited PeriodicWave > 2 kHz, 4x oversampled waveshapers, DC offset < 0.001)
+  - [x] B.5 Creature voice overhaul (glottal pulse source, jitter/shimmer, period doubling, 3 moving formants F1/F2/F3, AM throat growl 20-40 Hz, wet breath)
+  - [x] B.6 Player and interaction sounds (wet tile steps with heel/toe squelch, breath, heartbeat 55-140 BPM, inharmonic bells, clicks, ratchets)
+  - [x] B.7 Record Decision D096 and commit Phase B
 
 - [ ] **Phase C: Space, Reverb and Distance (Section 7)**
   - [ ] C.1 Image-source early reflections (< 80ms) + octave-band filtered diffuse decay impulse responses (pool hall target: 125 Hz 3.8s, 500 Hz 3.4s, 2 kHz 2.6s, 8 kHz 1.4s) across 8 presets

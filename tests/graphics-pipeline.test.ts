@@ -14,7 +14,7 @@ import { runSimulationReplay } from '../src/meta/SimReplayRunner.js';
 import { getMapDefinition } from '../src/world/MapRegistry.js';
 import { TextureRegistry } from '../src/procedural/textures/TextureRegistry.js';
 import { VHSShader } from '../src/procedural/shaders/vhs.glsl.js';
-import { Vector3, Vector2, Color, Mesh, BufferGeometry } from 'three';
+import { Mesh, BufferGeometry } from 'three';
 
 describe('Phase H: Graphics Pipeline Verification & Tier Budget Suite', () => {
   it('1. Replay hash before and after visual additions remains bitwise deterministic', async () => {
@@ -33,9 +33,6 @@ describe('Phase H: Graphics Pipeline Verification & Tier Budget Suite', () => {
     // When post-effects intensity is 0, the shader evaluates identity pass:
     // col = texture2D(tDiffuse, vUv).rgb with 0 aberration, 0 grain, 0 scanlines
     const intensity = 0.0;
-    const aberration = 0.0;
-    const noise = 0.0;
-    const scanlines = 0.0;
 
     // Simulate identity transfer across a synthetic test gradient
     let totalAbsError = 0;
@@ -43,7 +40,7 @@ describe('Phase H: Graphics Pipeline Verification & Tier Budget Suite', () => {
     for (let i = 0; i < numSamples; i++) {
       const inputVal = i / 255.0;
       // In bypass mode, output equals input exactly
-      const outputVal = inputVal + (intensity * 0.02 + aberration * 0.01 + noise * 0.005);
+      const outputVal = inputVal + (intensity * 0.02);
       totalAbsError += Math.abs(outputVal - inputVal);
     }
     const maePercent = (totalAbsError / numSamples) * 100;

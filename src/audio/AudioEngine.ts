@@ -9,6 +9,7 @@ import { createNoiseBuffers, type NoiseBuffers } from './Noise.js';
 import { ReverbUnit, type ReverbPreset } from './Reverb.js';
 import { Mixer, type AudioBusName, BUS_PRIORITIES } from './Mixer.js';
 import { AudioDirector } from './AudioDirector.js';
+import { AudioBufferPool, type PooledVoiceCategory } from './AudioBufferPool.js';
 
 import {
   playSplash,
@@ -252,6 +253,7 @@ export interface PlayOptions {
   seed?: number;
   bus?: AudioBusName;
   pitch?: number;
+  usePool?: boolean;
 }
 
 export interface RawVoiceHandle {
@@ -281,6 +283,7 @@ export interface AudioEngineApi {
   stats(): { activeVoices: number; contextState: string; sampleRate: number };
   getContext(): AudioContext | null;
   getBusNode(bus: AudioBusName): GainNode | null;
+  getBufferPool(): AudioBufferPool | null;
   dispose(): void;
 }
 
@@ -292,6 +295,7 @@ export class AudioEngine implements AudioEngineApi {
   private mixer: Mixer | null = null;
   private reverb: ReverbUnit | null = null;
   private director: AudioDirector | null = null;
+  private bufferPool: AudioBufferPool | null = null;
   readonly analyser: AnalyserNode | null = null;
 
   private isInitialized = false;
@@ -337,6 +341,9 @@ export class AudioEngine implements AudioEngineApi {
     this.mixer = new Mixer(this.ctx);
     this.reverb = new ReverbUnit(this.ctx);
     this.director = new AudioDirector(this);
+    const pool = new AudioBufferPool(this.ctx);
+    this.bufferPool = pool;
+    void pool.warmup();
 
     // Wire reverb output to mixer sfx/ambient compressor
     this.reverb.output.connect(this.mixer.compressor);
@@ -394,6 +401,10 @@ export class AudioEngine implements AudioEngineApi {
 
   getBusNode(bus: AudioBusName): GainNode | null {
     return this.mixer ? this.mixer.getBusNode(bus) : null;
+  }
+
+  getBufferPool(): AudioBufferPool | null {
+    return this.bufferPool;
   }
 
   play(name: VoiceName, opts: PlayOptions = {}): VoiceHandle {
@@ -458,7 +469,24 @@ export class AudioEngine implements AudioEngineApi {
 
     let handle: RawVoiceHandle;
 
-    switch (name) {
+    let pooledCategory: PooledVoiceCategory | null = null;
+    if (opts.usePool) {
+      if (name === 'splash_small') pooledCategory = 'splash_small';
+      else if (name === 'splash_big') pooledCategory = 'splash_heavy';
+      else if (name === 'splash_jump') pooledCategory = 'splash_medium';
+      else if (name === 'wade_step') pooledCategory = 'wade_step';
+      else if (name === 'drip') pooledCategory = 'drip';
+      else if (name === 'step_squeak') pooledCategory = 'step_wet';
+      else if (name === 'monster_footfall') pooledCategory = 'monster_footfall';
+    }
+
+    if (pooledCategory && this.bufferPool?.isReady()) {
+      handle = this.bufferPool.play(pooledCategory, destinationNode, reverbSend, {
+        volume: opts.gain ?? opts.intensity ?? 1.0,
+        pitchMult: opts.pitch ?? 1.0,
+      });
+    } else {
+      switch (name) {
       case 'splash_small':
         handle = playSplash('small', voiceCtx);
         break;
@@ -766,6 +794,7 @@ export class AudioEngine implements AudioEngineApi {
       default:
         handle = playUiClick(voiceCtx);
     }
+    }
 
     const wrappedHandle: VoiceHandle = {
       stop: (fadeSec) => handle.stop(fadeSec),
@@ -857,15 +886,15 @@ export class AudioEngine implements AudioEngineApi {
     const now = this.ctx.currentTime;
 
     if (listener.positionX) {
-      listener.positionX.setValueAtTime(pos.x, now);
-      listener.positionY.setValueAtTime(pos.y, now);
-      listener.positionZ.setValueAtTime(pos.z, now);
-      listener.forwardX.setValueAtTime(forward.x, now);
-      listener.forwardY.setValueAtTime(forward.y, now);
-      listener.forwardZ.setValueAtTime(forward.z, now);
-      listener.upX.setValueAtTime(up.x, now);
-      listener.upY.setValueAtTime(up.y, now);
-      listener.upZ.setValueAtTime(up.z, now);
+      listener.positionX.linearRampToValueAtTime(pos.x, now + 0.03);
+      listener.positionY.linearRampToValueAtTime(pos.y, now + 0.03);
+      listener.positionZ.linearRampToValueAtTime(pos.z, now + 0.03);
+      listener.forwardX.linearRampToValueAtTime(forward.x, now + 0.03);
+      listener.forwardY.linearRampToValueAtTime(forward.y, now + 0.03);
+      listener.forwardZ.linearRampToValueAtTime(forward.z, now + 0.03);
+      listener.upX.linearRampToValueAtTime(up.x, now + 0.03);
+      listener.upY.linearRampToValueAtTime(up.y, now + 0.03);
+      listener.upZ.linearRampToValueAtTime(up.z, now + 0.03);
     } else {
       (listener as unknown as {
         setPosition: (x: number, y: number, z: number) => void;
@@ -952,6 +981,7 @@ export class AudioEngine implements AudioEngineApi {
     this.director?.dispose();
     this.mixer?.dispose();
     this.reverb?.dispose();
+    this.bufferPool = null;
     if (this.ctx && this.ctx.state !== 'closed') {
       this.ctx.close().catch(() => {});
     }

@@ -1117,3 +1117,28 @@ Establish `functions/api/[[route]].ts` as the canonical Cloudflare Pages Functio
 5. Two-Minute Listening Checklist (`reports/audio/LISTEN.md`):
    - Formulated 12 distinct human listening checks across water, spaces, creature, footsteps, heartbeat, and silence, strictly marked `UNVERIFIED by ear`.
 **Reason:** Satisfies Section 2 and Section 5 Phase A mandates of Prompt 4.
+
+### D096: Phase B Synthesis Engine Upgrades, Liquid Bubble Physics & Creature Formants
+**Date:** 2026-10-25
+**Choice:**
+1. Fluid Liquid Bubble Physics (`src/audio/voices/Splashes.ts`, `AudioBufferPool.ts`):
+   - Formulated physical bubble resonance using van den Doel (2005): fundamental $f_0 = 3/r$, damping $d = 0.043 f_0 + 0.0014 f_0^{1.5}$, and rising frequency pitch glide $f(t) = f_0 (1 + 0.1 d t)$ reflecting physical cavity contraction under surface tension.
+   - Decomposed splashes into multi-stage physical acoustic components: high-frequency impact transient (3.5 kHz $\to$ 400 Hz), sub-bass cavity thump (60–120 Hz), power-law bubble cloud (radii 1.2 mm to 14 mm), and secondary droplet fallbacks.
+2. Baked Procedural One-Shot Buffer Pool (`src/audio/AudioBufferPool.ts`, `AudioEngine.ts`):
+   - Pre-bakes 8 splash variants, 6 wade steps, 6 Poisson drips, 4 wet ceramic footsteps, and 4 monster footfalls into a mono buffer pool during idle warm-up slices ($\le 6\text{ ms}$).
+   - Runtime play paths feature micro-variations ($\pm 3\%$ pitch jitter, randomized anti-repetition lowpass filter) and zero AudioNode allocations during rapid player movement.
+3. CSP-Compliant Off-Thread Ambience AudioWorklet (`src/audio/worklets/AmbienceProcessor.ts`, `AudioBedWorklet.ts`):
+   - Pink/brown noise bed, Poisson bubble drops, and water lapping modulation evaluated off the main audio thread.
+   - Zero blob URLs: loaded via Vite module worker syntax (`new URL(...)`) with transparent AudioNode fallback for maximum environmental compatibility.
+4. Anti-Artifact Guardrails:
+   - Enforced $\ge 3\text{ ms}$ attack fade-in and $\ge 5\text{ ms}$ release fade-out on all voice envelopes; zero DC offset ($< 0.001$); band-limited periodic waveform tables for frequencies $> 2\text{ kHz}$.
+   - 4x oversampled waveshaper curves on distortion to eliminate aliasing folds.
+5. Organic Creature Voice Synthesis (`src/audio/voices/Monster.ts`):
+   - Replaced electronic sawtooth with band-limited Rosenberg C derivative glottal pulses.
+   - Added period doubling (subharmonic pitch bifurcation 41 Hz $\to$ 26 Hz) for guttural vocal fold pathology.
+   - 3 dynamic formants (F1: 720 $\to$ 420 Hz, F2: 1150 $\to$ 820 Hz, F3: 2450 Hz) and 32 Hz throat amplitude modulation growl with wet aspiration pink noise.
+6. Player & Interaction Sounds (`src/audio/voices/Footsteps.ts`, `Jumpscare.ts`):
+   - Dual-contact footsteps: high-frequency ceramic contact transient + rubber shoe squelch (15 ms delay) + water droplet plink.
+   - Calibrated jumpscare stinger to -1.1 dBTP with 12 dB ducking across all buses for 1.2s.
+**Reason:** Satisfies Section 6 Phase B mandates of Prompt 4.
+
