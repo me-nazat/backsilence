@@ -193,7 +193,7 @@ export function applyMapLevelArtPass(env: LevelArtEnv): void {
   switch (mapId) {
     case 'natatorium': {
       // 1. Vault ribs across ceiling (background silhouette in mist)
-      for (let z = -36; z <= 36; z += 18) {
+      for (let z = -24; z <= 24; z += 24) {
         placeMesh(buildVaultRibGeometry(44.0, 11.0), customMaterials.wallMat, new Vector3(0, 0, z));
       }
       placedPropTypes.add('vault_rib');

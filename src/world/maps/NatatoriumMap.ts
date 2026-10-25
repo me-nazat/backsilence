@@ -611,21 +611,22 @@ export const NatatoriumMap: MapDefinition = {
 
     // 2. Add barrel vault skylight light shafts and streaks
     const lightStreaks: LightStreak[] = [];
-    const skylightZ = [-24, -8, 8, 24];
-
-    for (let i = 0; i < skylightZ.length; i++) {
-      const z = skylightZ[i]!;
-      // Volumetric light shaft
+    const shaftZ = [-14, 14];
+    for (const z of shaftZ) {
       const shaft = createLightShaftMesh({
-        topRadius: 1.2,
-        bottomRadius: 4.5,
+        topRadius: 1.4,
+        bottomRadius: 5.2,
         height: 14.0,
         color: '#fff5d6',
-        intensity: 0.28,
+        intensity: 0.32,
       });
       shaft.position.set(0, 7.0, z);
       instance.root.add(shaft);
+    }
 
+    const skylightZ = [-24, -8, 8, 24];
+    for (let i = 0; i < skylightZ.length; i++) {
+      const z = skylightZ[i]!;
       // Area light streak proxy on rippling water
       lightStreaks.push({
         pos: new Vector3(0, 7.0, z),

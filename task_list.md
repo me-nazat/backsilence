@@ -43,15 +43,15 @@
   - [x] D.7 Light shafts and vertical dust motes at ceiling openings
   - [x] D.8 Record Decision D090 and commit Phase D
 
-- [ ] **Phase E: Camera Stack, Lens Effects & Shader VHS (Section 9)**
-  - [ ] E.1 Resolution scale & clean upsampling (0.75-0.90)
-  - [ ] E.2 Thresholded bloom pass on highlights and fog
-  - [ ] E.3 Camera motion blur (velocity from depth and previous VP matrix)
-  - [ ] E.4 Lens stack: chromatic aberration (0.0006-0.0031), vignette, film grain, barrel distortion (0-0.03)
-  - [ ] E.5 Replace static CSS scanlines with procedural shader VHS pass scaling with dread; remove CSS overlay when active
-  - [ ] E.6 Photosensitive safety verification (< 0.25 frame delta, <= 3 Hz flash)
-  - [ ] E.7 9:16 Portrait camera mode and golden framing
-  - [ ] E.8 Record Decision D090 and commit Phase E
+- [x] **Phase E: Camera Stack, Lens Effects & Shader VHS (Section 9)**
+  - [x] E.1 Resolution scale & clean upsampling (0.75-0.90)
+  - [x] E.2 Thresholded bloom pass on highlights and fog
+  - [x] E.3 Camera motion blur (velocity from depth and previous VP matrix)
+  - [x] E.4 Lens stack: chromatic aberration (0.0006-0.0031), vignette, film grain, barrel distortion (0-0.03)
+  - [x] E.5 Replace static CSS scanlines with procedural shader VHS pass scaling with dread; remove CSS overlay when active
+  - [x] E.6 Photosensitive safety verification (< 0.25 frame delta, <= 3 Hz flash)
+  - [x] E.7 9:16 Portrait camera mode and golden framing
+  - [x] E.8 Record Decision D091 and commit Phase E
 
 - [ ] **Phase F: Set Dressing & 10 Maps Elevation (Section 10)**
   - [ ] F.1 3 depth layers per view (foreground clutter, midground architecture, background silhouettes)

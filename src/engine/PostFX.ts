@@ -65,6 +65,7 @@ interface VHSUniforms {
   uGain: { value: Vector3 };
   uSaturation: { value: number };
   uTint: { value: Vector3 };
+  uVelocity?: { value: Vector2 };
   tDiffuse: { value: unknown };
 }
 
@@ -82,6 +83,11 @@ export class PostFX {
   private postGrade: PostGrade | null = null;
   private width = 1920;
   private height = 1080;
+
+  // Camera Motion Blur tracking
+  private prevCameraPos = new Vector3();
+  private prevCameraRot = new Vector3();
+  private hasPrevCamera = false;
 
   // Transient State
   private tension = 0; // 0..1
@@ -479,6 +485,25 @@ export class PostFX {
       this.renderer.render(scene, camera);
       return;
     }
+
+    // Camera Motion Blur: calculate velocity from camera position & rotation deltas
+    if (this.hasPrevCamera && dt > 0.0001) {
+      const deltaX = (camera.position.x - this.prevCameraPos.x) + (camera.rotation.y - this.prevCameraRot.y) * 2.5;
+      const deltaY = (camera.position.y - this.prevCameraPos.y) - (camera.rotation.x - this.prevCameraRot.x) * 2.5;
+      const speed = Math.hypot(deltaX, deltaY);
+      const u = this.getVhsUniforms();
+      if (u && u.uVelocity) {
+        if (this.isSafeMode() || speed < 0.001) {
+          u.uVelocity.value.set(0, 0);
+        } else {
+          const factor = Math.min(0.016, speed * 0.012);
+          u.uVelocity.value.set((deltaX / (speed || 1)) * factor, (deltaY / (speed || 1)) * factor);
+        }
+      }
+    }
+    this.prevCameraPos.copy(camera.position);
+    this.prevCameraRot.set(camera.rotation.x, camera.rotation.y, camera.rotation.z);
+    this.hasPrevCamera = true;
 
     if (this.renderPass) {
       this.renderPass.scene = scene;

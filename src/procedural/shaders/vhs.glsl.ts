@@ -35,6 +35,7 @@ export const VHSShader = {
     uTint: { value: new Vector3(1, 1, 1) },
     uRewind: { value: 0.0 },
     uSignalLost: { value: 0.0 },
+    uVelocity: { value: new Vector2(0, 0) },
   },
 
   vertexShader: /* glsl */ `
@@ -64,6 +65,7 @@ export const VHSShader = {
     uniform vec3 uTint;
     uniform float uRewind;
     uniform float uSignalLost;
+    uniform vec2 uVelocity;
 
     varying vec2 vUv;
 
@@ -159,6 +161,18 @@ export const VHSShader = {
       vec4 colB = texture2D(tDiffuse, uvB);
 
       vec3 color = vec3(colR.r, colG.g, colB.b);
+
+      // Camera motion blur: 6 directional samples along velocity vector
+      float velMag = length(uVelocity);
+      if (isSafe < 0.5 && velMag > 0.0005) {
+        vec2 velDir = clamp(uVelocity, vec2(-0.02), vec2(0.02));
+        vec3 accum = color;
+        for (int s = 1; s <= 6; s++) {
+          float stepFrac = float(s) / 6.0;
+          accum += texture2D(tDiffuse, clamp(uvG - velDir * stepFrac, 0.0, 1.0)).rgb;
+        }
+        color = accum / 7.0;
+      }
 
       // 5. Chroma Bleed (YIQ horizontal blur)
       if (isSafe < 0.5 && uIntensity > 0.1) {

@@ -1046,6 +1046,20 @@ Establish `functions/api/[[route]].ts` as the canonical Cloudflare Pages Functio
    - Preserved 4-frame luminance chain easing with a 1.2 s time constant and per-map clamps.
 **Reason:** Satisfies Section 8 Phase D mandates.
 
+### D091: Phase E Camera Motion Blur, Lens Optics and Shader VHS
+**Date:** 2026-10-25
+**Choice:**
+1. Camera Motion Blur (`src/procedural/shaders/vhs.glsl.ts`, `src/engine/PostFX.ts`):
+   - Implemented 6-sample directional blur along view-space velocity vector `uVelocity`, driven by camera delta position and rotational yaw/pitch rates. Automatically disabled in Safe Mode, Low quality tier, and when camera velocity is below threshold.
+2. Full Lens Optical Stack (`PostFX.ts`, `vhs.glsl.ts`):
+   - Verified subtle edge chromatic aberration (0.0006–0.0031 of screen width scaling with dread/tension), smooth radial vignette, high-frequency procedural film grain matched to the reference noise floor, and 0.02 barrel curvature.
+3. Shader-Based VHS vs DOM Scanlines:
+   - Replaced static CSS scanlines with unified shader VHS pass that responds to player dread and settings; deactivated DOM scanlines when active.
+4. Photosensitive Safety Guardrails (`tests/vhs-post.test.ts`):
+   - Verified that post-process intensity changes between frames never exceed 0.25 luminance delta and flash frequencies remain strictly below 3 Hz.
+**Reason:** Satisfies Section 9 Phase E mandates.
+
+
 
 
 
