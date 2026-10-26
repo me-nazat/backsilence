@@ -22,9 +22,15 @@ import {
   Mesh,
   PlaneGeometry,
   MeshBasicMaterial,
+  ShaderMaterial,
+  Texture,
+  type WebGLRenderTarget,
 } from 'three';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
+import { TexturePass } from 'three/examples/jsm/postprocessing/TexturePass.js';
+import { FullScreenQuad } from 'three/examples/jsm/postprocessing/Pass.js';
+import { CopyShader } from 'three/examples/jsm/shaders/CopyShader.js';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
@@ -72,6 +78,8 @@ interface VHSUniforms {
 export class PostFX {
   private composer: EffectComposer | null = null;
   private renderPass: RenderPass | null = null;
+  private texturePass: TexturePass | null = null;
+  private copyQuad: FullScreenQuad | null = null;
   private bloomPass: UnrealBloomPass | null = null;
   private tapeSmearPass: AfterimagePass | null = null;
   private vhsPass: ShaderPass | null = null;
@@ -155,9 +163,16 @@ export class PostFX {
       this.composer = new EffectComposer(this.renderer);
       this.composer.setSize(this.width, this.height);
 
-      // 1. RenderPass
+      // 1. TexturePass (single-pass texture input, does not render 3D scene)
+      this.texturePass = new TexturePass(new Texture());
+      this.texturePass.enabled = false;
+      this.composer.addPass(this.texturePass);
+
+      // 2. RenderPass (fallback for full 3D scene input)
       this.renderPass = new RenderPass(new Scene(), new Camera());
       this.composer.addPass(this.renderPass);
+
+      this.copyQuad = new FullScreenQuad(new ShaderMaterial(CopyShader));
 
       // 2. BloomLitePass (half-res, cheap)
       const bloomRes = new Vector2(Math.floor(this.width / 2), Math.floor(this.height / 2));
@@ -480,9 +495,29 @@ export class PostFX {
     }
   }
 
-  render(scene: Scene, camera: Camera, dt = 0.016): void {
+  copyTexture(src: Texture, dst: WebGLRenderTarget | null): void {
+    if (!this.copyQuad) {
+      this.copyQuad = new FullScreenQuad(new ShaderMaterial(CopyShader));
+    }
+    (this.copyQuad.material as ShaderMaterial).uniforms['tDiffuse']!.value = src;
+    const prevTarget = this.renderer.getRenderTarget();
+    this.renderer.setRenderTarget(dst);
+    this.copyQuad.render(this.renderer);
+    this.renderer.setRenderTarget(prevTarget);
+  }
+
+  render(scene: Scene, camera: Camera, dt = 0.016, inputTexture?: Texture | null): void {
     if (this.currentTier === 'low' || !this.composer) {
-      this.renderer.render(scene, camera);
+      if (inputTexture) {
+        if (!this.copyQuad) {
+          this.copyQuad = new FullScreenQuad(new ShaderMaterial(CopyShader));
+        }
+        (this.copyQuad.material as ShaderMaterial).uniforms['tDiffuse']!.value = inputTexture;
+        this.renderer.setRenderTarget(null);
+        this.copyQuad.render(this.renderer);
+      } else {
+        this.renderer.render(scene, camera);
+      }
       return;
     }
 
@@ -505,9 +540,17 @@ export class PostFX {
     this.prevCameraRot.set(camera.rotation.x, camera.rotation.y, camera.rotation.z);
     this.hasPrevCamera = true;
 
-    if (this.renderPass) {
-      this.renderPass.scene = scene;
-      this.renderPass.camera = camera;
+    if (inputTexture && this.texturePass) {
+      this.texturePass.enabled = true;
+      this.texturePass.map = inputTexture;
+      if (this.renderPass) this.renderPass.enabled = false;
+    } else {
+      if (this.texturePass) this.texturePass.enabled = false;
+      if (this.renderPass) {
+        this.renderPass.enabled = true;
+        this.renderPass.scene = scene;
+        this.renderPass.camera = camera;
+      }
     }
 
     this.composer.render(dt);
@@ -655,6 +698,14 @@ export class PostFX {
     if (this.bloomPass) {
       this.bloomPass.dispose();
       this.bloomPass = null;
+    }
+    if (this.texturePass) {
+      this.texturePass.dispose?.();
+      this.texturePass = null;
+    }
+    if (this.copyQuad) {
+      this.copyQuad.dispose();
+      this.copyQuad = null;
     }
     this.renderPass = null;
     this.tapeSmearPass = null;

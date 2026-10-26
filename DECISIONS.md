@@ -1449,3 +1449,14 @@ Establish `functions/api/[[route]].ts` as the canonical Cloudflare Pages Functio
 4. Repository Diagnostic Doctor: Added `scripts/doctor.mjs` checking git commit, Node version, reference frame count (>= 20), model presence, and last smoke test results.
 **Reason:** Satisfies Section 3 Phase A mandates. Fresh clones pass `npm ci && npm run verify`.
 
+### D112: Phase B Single Opaque Scene Render Pipeline (2026-10-26)
+**Context:** The reviewer measured that `GameSession.renderScene` executed redundant 3D scene renders per frame (one into `opaqueDepthTarget` and another in `postFX.render`, plus unthrottled planar reflection and cube map captures on every frame).
+**Choice:**
+1. Single Opaque Scene Render Pass: Rebuilt the frame loop in `GameSession.renderScene` to render the 3D scene once into `opaqueDepthTarget` with `water.mesh.visible = false`.
+2. Safe Water Sampling Target: Blitted the opaque color into `waterCompositeTarget` via `postFX.copyTexture()`, then rendered `waterScene` into `waterCompositeTarget` sampling `opaqueDepthTarget` depth and color (strictly never reading from the target being written to).
+3. PostFX Single-Pass Presentation: Passed `waterCompositeTarget.texture` into `postFX.render()`, which feeds `TexturePass` directly into Bloom, VHS, and screen presentation, completely eliminating the second full 3D scene render.
+4. Throttled Auxiliary Passes: Captured environment cube map once at map load during `warmupGpuPipeline()`. Throttled planar reflection to High tier only on alternate frames (`planarFrameCount++ % 2 === 0`). Low tier skips all targets and renders forward in a single pass directly to screen.
+5. Instrumented Metrics & Enforcement Test: Instrumented `Renderer.ts` with `beginFrame()`, `endFrame()`, `getSceneRenders()`, and `getFrameMetrics()` tracking draw calls, triangles, and non-auxiliary 3D scene renders per frame. Added `tests/render-pipeline.test.ts` verifying scene renders per frame equals 1 (or at most 2 on High tier with planar reflection).
+**Reason:** Satisfies Section 4 Phase B mandates. Eliminates redundant GPU workload and guarantees exactly 1 opaque scene render per frame.
+
+

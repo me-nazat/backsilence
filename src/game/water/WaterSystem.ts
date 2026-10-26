@@ -77,7 +77,7 @@ export class WaterSystem {
   private hasCapturedEnvCube = false;
 
   // Bioluminescent floating motes (Map 5)
-  private motesMesh: InstancedMesh | null = null;
+  public motesMesh: InstancedMesh | null = null;
   private motesData: Array<{ x: number; y: number; z: number; phase: number; speed: number }> = [];
   private readonly motesDummy = new Matrix4();
 
@@ -203,9 +203,11 @@ export class WaterSystem {
     }
   }
 
+  private planarFrameCount = 0;
+
   /** Capture 64px CubeCamera reflection once at map load (Medium & High) */
   captureEnvMap(renderer: WebGLRenderer, scene: Scene): void {
-    if (!this.cubeCamera || !this.cubeRenderTarget || this.hasCapturedEnvCube) return;
+    if (this.tier === 'low' || !this.cubeCamera || !this.cubeRenderTarget || this.hasCapturedEnvCube) return;
     this.mesh.visible = false;
     this.cubeCamera.update(renderer, scene);
     this.mesh.visible = true;
@@ -215,9 +217,10 @@ export class WaterSystem {
     }
   }
 
-  /** Update half-res planar reflection (High tier) */
+  /** Update half-res planar reflection (High tier only, every 2nd frame) */
   updatePlanarReflection(renderer: WebGLRenderer, scene: Scene, camera: Camera): void {
     if (this.tier !== 'high' || !this.planarRenderTarget || !this.planarCamera) return;
+    if (this.planarFrameCount++ % 2 !== 0) return;
     if (camera instanceof PerspectiveCamera) {
       this.planarCamera.fov = camera.fov;
       this.planarCamera.aspect = camera.aspect;

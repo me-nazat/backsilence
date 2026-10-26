@@ -105,6 +105,8 @@ export class GameSession {
   private weatherDirector!: WeatherDirector;
   private lensOverlay!: LensOverlay;
   private opaqueDepthTarget: WebGLRenderTarget | null = null;
+  private waterCompositeTarget: WebGLRenderTarget | null = null;
+  private waterScene: Scene | null = null;
   private wadeSplashTimer = 0;
 
   private playerInput!: PlayerInput;
@@ -277,7 +279,14 @@ export class GameSession {
       }
     });
 
-    // 2. Compile shaders asynchronously during loading
+    // 2. Capture environment cube map once at map load (Medium & High)
+    try {
+      this.water?.captureEnvMap(glRenderer, this.scene);
+    } catch (e) {
+      console.warn('[GameSession] captureEnvMap warning:', e);
+    }
+
+    // 3. Compile shaders asynchronously during loading
     try {
       if (typeof glRenderer.compileAsync === 'function') {
         await glRenderer.compileAsync(this.scene, this.camera);
@@ -488,6 +497,11 @@ export class GameSession {
           depthTexture,
           depthBuffer: true,
         });
+        this.waterCompositeTarget = new WebGLRenderTarget(w, h, {
+          depthBuffer: false,
+        });
+        this.waterScene = new Scene();
+        this.waterScene.userData.isAuxiliaryPass = true;
       }
 
       // 6. Monster Presentation & AI Setup (now uses fully built NavGrid)
@@ -1921,34 +1935,83 @@ export class GameSession {
   }
 
   private renderScene(dt: number): void {
+    this.renderer.beginFrame();
+
+    const glRenderer = this.renderer.renderer;
+    const isMediumOrHigh = this.settings.graphics.quality !== 'low';
+
     if (
       this.opaqueDepthTarget &&
-      this.renderer.renderer.capabilities?.isWebGL2
+      this.waterCompositeTarget &&
+      glRenderer.capabilities?.isWebGL2 &&
+      isMediumOrHigh
     ) {
-      // 1. Capture environment cube map once if not captured yet (Medium / High)
-      this.water.captureEnvMap(this.renderer.renderer, this.scene);
+      const w = this.container.clientWidth || 1280;
+      const h = this.container.clientHeight || 720;
+      if (this.opaqueDepthTarget.width !== w || this.opaqueDepthTarget.height !== h) {
+        this.opaqueDepthTarget.setSize(w, h);
+        this.waterCompositeTarget.setSize(w, h);
+      }
 
-      // 2. Update planar reflection (High tier)
-      this.water.updatePlanarReflection(this.renderer.renderer, this.scene, this.camera);
+      // 1. Update planar reflection (High tier only, every 2nd frame)
+      this.water.updatePlanarReflection(glRenderer, this.scene, this.camera);
 
-      // 3. Step & render GPU wave simulation (Medium & High)
-      this.water.renderWaveSim(this.renderer.renderer);
+      // 2. Step & render GPU wave simulation (Medium & High)
+      this.water.renderWaveSim(glRenderer);
 
-      // 4. Render opaque geometry pre-pass into depth + color target
+      // 3. Render opaque geometry pre-pass into depth + color target (Scene Render #1)
       this.water.mesh.visible = false;
-      this.renderer.renderer.setRenderTarget(this.opaqueDepthTarget);
+      glRenderer.setRenderTarget(this.opaqueDepthTarget);
       this.renderer.render(this.scene, this.camera);
-      this.renderer.renderer.setRenderTarget(null);
+      glRenderer.setRenderTarget(null);
       this.water.mesh.visible = true;
+
+      // 4. Draw water by sampling opaqueDepthTarget without sampling what we write to
+      // Blit opaque color to waterCompositeTarget
+      this.postFX.copyTexture(this.opaqueDepthTarget.texture, this.waterCompositeTarget);
 
       this.water.setDepthTextures(
         this.opaqueDepthTarget.depthTexture,
         this.opaqueDepthTarget.texture,
         this.camera.near,
         this.camera.far,
-        this.container.clientWidth || 1280,
-        this.container.clientHeight || 720,
+        w,
+        h,
       );
+
+      // Draw water mesh into waterCompositeTarget
+      if (!this.waterScene) {
+        this.waterScene = new Scene();
+        this.waterScene.userData.isAuxiliaryPass = true;
+      }
+      if (this.scene.fog) {
+        this.waterScene.fog = this.scene.fog;
+      }
+      this.waterScene.add(this.water.mesh);
+      if (this.water.motesMesh) {
+        this.waterScene.add(this.water.motesMesh);
+      }
+
+      const prevAutoClear = glRenderer.autoClear;
+      glRenderer.autoClear = false;
+      glRenderer.setRenderTarget(this.waterCompositeTarget);
+      glRenderer.render(this.waterScene, this.camera);
+      glRenderer.setRenderTarget(null);
+      glRenderer.autoClear = prevAutoClear;
+
+      // Re-parent water mesh back to main scene
+      this.scene.add(this.water.mesh);
+      if (this.water.motesMesh) {
+        this.scene.add(this.water.motesMesh);
+      }
+
+      // 5. Run post effects on the composite texture & present (no second 3D scene render)
+      this.postFX.render(this.scene, this.camera, dt, this.waterCompositeTarget.texture);
+    } else {
+      // Low tier: single render pass directly to screen, skipping targets and composer
+      this.water.mesh.visible = true;
+      glRenderer.setRenderTarget(null);
+      this.renderer.render(this.scene, this.camera);
     }
 
     // Auto exposure adaptation (1.2s time constant) & stable directional shadow texel snapping
@@ -1976,7 +2039,7 @@ export class GameSession {
       this.orientationDirector.update(dt);
     }
 
-    this.postFX.render(this.scene, this.camera, dt);
+    this.renderer.endFrame();
   }
 
   private stepSubsystems(dt: number): void {
@@ -3281,6 +3344,7 @@ export class GameSession {
     this.weatherDirector.dispose();
     this.lensOverlay.dispose();
     this.opaqueDepthTarget?.dispose();
+    this.waterCompositeTarget?.dispose();
     this.mapInstance.dispose();
     this.pingMarkers.dispose();
     if (this.orientationDirector) {

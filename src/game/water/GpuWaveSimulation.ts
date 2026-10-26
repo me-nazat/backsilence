@@ -153,6 +153,7 @@ export class GpuWaveSimulation {
 
       this.simCamera = new OrthographicCamera(-1, 1, 1, -1, 0, 1);
       this.simScene = new Scene();
+      this.simScene.userData.isAuxiliaryPass = true;
 
       // Ping-pong wave equation step shader
       this.simMaterial = new ShaderMaterial({

@@ -22,6 +22,10 @@ export class EngineRenderer {
   readonly canvas: HTMLCanvasElement;
   private resizeObserver: ResizeObserver | null = null;
   private settings: Settings;
+  private sceneRendersThisFrame = 0;
+  private lastFrameSceneRenders = 0;
+  private lastFrameCalls = 0;
+  private lastFrameTriangles = 0;
 
   get currentSettings(): Settings {
     return this.settings;
@@ -49,6 +53,17 @@ export class EngineRenderer {
       depth: true,
       stencil: false,
     });
+
+    // Wrap render to accurately count 3D scene renders per frame
+    const originalRender = this.renderer.render.bind(this.renderer);
+    this.renderer.render = (scene: Scene, camera: Camera): void => {
+      const isScene = Boolean((scene as unknown as { isScene?: boolean })?.isScene);
+      const isAuxiliary = Boolean(scene?.userData?.isAuxiliaryPass);
+      if (isScene && !isAuxiliary) {
+        this.sceneRendersThisFrame++;
+      }
+      originalRender(scene, camera);
+    };
 
     this.renderer.outputColorSpace = SRGBColorSpace;
     this.renderer.toneMapping = ACESFilmicToneMapping;
@@ -124,6 +139,49 @@ export class EngineRenderer {
       handleResize();
     });
     this.resizeObserver.observe(container);
+  }
+
+  beginFrame(): void {
+    this.sceneRendersThisFrame = 0;
+    this.renderer.info.autoReset = false;
+    this.renderer.info.reset();
+  }
+
+  endFrame(): { sceneRenders: number; calls: number; triangles: number } {
+    this.lastFrameSceneRenders = this.sceneRendersThisFrame;
+    this.lastFrameCalls = this.renderer.info.render.calls;
+    this.lastFrameTriangles = this.renderer.info.render.triangles;
+    this.sceneRendersThisFrame = 0;
+    this.renderer.info.reset();
+
+    const metrics = {
+      sceneRenders: this.lastFrameSceneRenders,
+      calls: this.lastFrameCalls,
+      triangles: this.lastFrameTriangles,
+    };
+
+    if (typeof window !== 'undefined') {
+      const g = window as unknown as {
+        __backsilence_renderer_info?: typeof metrics;
+        __poolrooms_renderer_info?: typeof metrics;
+      };
+      g.__backsilence_renderer_info = metrics;
+      g.__poolrooms_renderer_info = metrics;
+    }
+
+    return metrics;
+  }
+
+  getSceneRenders(): number {
+    return this.lastFrameSceneRenders;
+  }
+
+  getFrameMetrics(): { sceneRenders: number; calls: number; triangles: number } {
+    return {
+      sceneRenders: this.lastFrameSceneRenders,
+      calls: this.lastFrameCalls,
+      triangles: this.lastFrameTriangles,
+    };
   }
 
   render(scene: Scene, camera: Camera): void {
