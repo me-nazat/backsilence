@@ -279,28 +279,8 @@ async function boot(): Promise<void> {
     void QualityBenchmark.getInstance().runLoadingBenchmark(1500);
   });
 
-  // First-run safety flow (photosensitivity, headphones, content advisory, orientation)
-  const isNetMode = typeof location !== 'undefined' && location.search.includes('net=');
-  if (!route.debug && !route.lab && !route.room && !isNetMode) {
-    const { FirstRunSafetyFlow } = await import('./ui/safety/FirstRunSafetyFlow.js');
-    if (FirstRunSafetyFlow.isNeeded()) {
-      FirstRunSafetyFlow.start(document.body, (result) => {
-        if (result.photosensitiveSafe) {
-          void import('./ui/motion/Motion.js').then(({ MotionEngine }) => {
-            MotionEngine.getInstance().setPhotosensitiveSafe(true);
-          }).catch(() => {});
-        }
-        if (result.runOrientation) {
-          bus.emit('game:start', {
-            mode: 'single',
-            mapId: 'poolrooms',
-            difficulty: 0.5,
-            seed: 101,
-          });
-        }
-      });
-    }
-  }
+  // First-run safety flow (accessible via Settings panel, non-blocking on cold boot per D113)
+  // Clean boot goes straight to main menu without modals
 
   // 5. Check WebGL2 Availability
   const testCanvas = document.createElement('canvas');

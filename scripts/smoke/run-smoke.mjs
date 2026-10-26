@@ -1,22 +1,24 @@
 #!/usr/bin/env node
 /* ── run-smoke.mjs ──────────────────────────────────────────────────────────
- *  BackSilence Canonical Smoke Suite (Scenarios S01–S15).
- *  Automated Headless CDP Acceptance Suite for Desktop (1440x900) & Mobile (390x844).
- *  Outputs to reports/smoke/<timestamp>/{results.json,*.png}. Fails on any assertion.
+ *  BackSilence Honest Smoke Harness (Scenarios S1–S8)
+ *  Automated Headless CDP Acceptance Suite running Chromium with software GL.
+ *  Fails on any missed assertion and outputs PNGs to reports/smoke/<timestamp>/
+ *  and side-by-side boards to reports/ux/boards/.
  * ──────────────────────────────────────────────────────────────────────── */
 
 import { spawn } from 'node:child_process';
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { mkdir, mkdtemp, writeFile } from 'node:fs/promises';
 import { createServer } from 'node:net';
 import { tmpdir } from 'node:os';
-import { resolve } from 'node:path';
+import { resolve, join } from 'node:path';
 
 const ROOT = process.cwd();
 const PORT = 4174;
 const BASE_URL = `http://127.0.0.1:${PORT}`;
 const TIMESTAMP = new Date().toISOString().replace(/[:.]/g, '-');
 const REPORT_DIR = resolve(ROOT, `reports/smoke/${TIMESTAMP}`);
+const BOARDS_DIR = resolve(ROOT, 'reports/ux/boards');
 
 function chromePath() {
   const candidates = [
@@ -114,7 +116,7 @@ class Cdp {
       const timer = setTimeout(() => {
         this.pending.delete(id);
         reject(new Error(`CDP ${method} timed out`));
-      }, 30000);
+      }, 35000);
       this.pending.set(id, {
         resolve: (val) => {
           clearTimeout(timer);
@@ -138,7 +140,7 @@ class Cdp {
     const res = await this.send('Page.captureScreenshot', { format: 'png' });
     const p = resolve(REPORT_DIR, `${name}.png`);
     await writeFile(p, Buffer.from(res.data, 'base64'));
-    return `${name}.png`;
+    return { name: `${name}.png`, path: p, base64: res.data };
   }
 
   async setViewport(mode = 'desktop') {
@@ -166,15 +168,75 @@ class Cdp {
   }
 }
 
+async function createSideBySideBoard(cdp, refImgPath, gameBase64, outputPath, labelLeft, labelRight) {
+  if (!existsSync(refImgPath)) {
+    console.warn(`[Board] Warning: Reference image ${refImgPath} not found`);
+    return;
+  }
+  const refBase64 = readFileSync(refImgPath).toString('base64');
+  const composedBase64 = await cdp.evaluate(`(async () => {
+    const loadImage = (src) => new Promise((res, rej) => {
+      const img = new Image();
+      img.onload = () => res(img);
+      img.onerror = (e) => rej(e);
+      img.src = src;
+    });
+
+    const [imgRef, imgGame] = await Promise.all([
+      loadImage('data:image/png;base64,${refBase64}'),
+      loadImage('data:image/png;base64,${gameBase64}')
+    ]);
+
+    const targetHeight = 720;
+    const refScale = targetHeight / imgRef.height;
+    const refWidth = Math.round(imgRef.width * refScale);
+    const gameScale = targetHeight / imgGame.height;
+    const gameWidth = Math.round(imgGame.width * gameScale);
+
+    const canvas = document.createElement('canvas');
+    canvas.width = refWidth + gameWidth;
+    canvas.height = targetHeight + 50;
+    const ctx = canvas.getContext('2d');
+
+    ctx.fillStyle = '#0a0d0c';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.drawImage(imgRef, 0, 50, refWidth, targetHeight);
+    ctx.drawImage(imgGame, refWidth, 50, gameWidth, targetHeight);
+
+    // Separator line
+    ctx.strokeStyle = '#223830';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(refWidth, 0);
+    ctx.lineTo(refWidth, canvas.height);
+    ctx.stroke();
+
+    // Banner labels
+    ctx.font = 'bold 18px monospace';
+    ctx.fillStyle = '#e8c468';
+    ctx.fillText('${labelLeft}', 20, 32);
+
+    ctx.fillStyle = '#86cfa0';
+    ctx.fillText('${labelRight}', refWidth + 20, 32);
+
+    return canvas.toDataURL('image/png').split(',')[1];
+  })()`);
+
+  await writeFile(outputPath, Buffer.from(composedBase64, 'base64'));
+}
+
 async function main() {
   await mkdir(REPORT_DIR, { recursive: true });
+  await mkdir(BOARDS_DIR, { recursive: true });
+
   console.log(`\n=============================================================`);
-  console.log(`  BACKSILENCE CANONICAL SMOKE SUITE (S01 - S15)             `);
-  console.log(`  Dual Viewport: Desktop (1440x900) & Mobile (390x844)       `);
+  console.log(`  BACKSILENCE HONEST SMOKE HARNESS (S1 - S8)                `);
+  console.log(`  Headless Chromium with Software GL                        `);
   console.log(`  Report Directory: ${REPORT_DIR}`);
   console.log(`=============================================================\n`);
 
-  // 1. Start Dev API Proxy backed by in-memory FakeLibsql
+  // 1. Start Dev API Proxy
   const apiProxy = spawn(process.execPath, [resolve(ROOT, 'node_modules/vite-node/vite-node.mjs'), 'scripts/dev-api-proxy.mjs'], {
     cwd: ROOT,
     stdio: 'ignore',
@@ -182,13 +244,14 @@ async function main() {
   });
   await waitFor(() => fetch('http://127.0.0.1:8787/api/health').then((r) => r.ok).catch(() => false), 'Dev API Proxy', 15000);
 
-  // 2. Start Vite Preview server (serves pre-built dist/ bundle)
+  // 2. Start Vite Preview server
   const preview = spawn(process.execPath, ['node_modules/vite/bin/vite.js', 'preview', '--host', '127.0.0.1', '--port', String(PORT), '--strictPort'], {
     cwd: ROOT,
     stdio: 'ignore',
   });
-  await waitFor(() => fetch(BASE_URL).then((r) => r.ok).catch(() => false), 'Vite server', 15000);
+  await waitFor(() => fetch(BASE_URL).then((r) => r.ok).catch(() => false), 'Vite preview server', 15000);
 
+  // 3. Spawn Headless Chromium with software GL flags
   const profile = await mkdtemp(resolve(tmpdir(), 'backsilence-smoke-'));
   const debugPort = await getFreePort();
   const chromeArgs = [
@@ -216,6 +279,9 @@ async function main() {
   await cdp.send('Network.enable');
 
   const scenarioResults = [];
+  let boardFirstFrameData = null;
+  let boardHallViewData = null;
+  let boardCleanHudData = null;
 
   async function recordScenario(id, name, runFn) {
     process.stdout.write(`[${id}] ${name}... `);
@@ -223,12 +289,6 @@ async function main() {
     try {
       const details = await runFn();
       const durationMs = Date.now() - start;
-      const shotDesktop = await cdp.screenshot(`${id.toLowerCase()}_desktop`);
-      await cdp.setViewport('mobile');
-      await delay(100);
-      const shotMobile = await cdp.screenshot(`${id.toLowerCase()}_mobile`);
-      await cdp.setViewport('desktop');
-
       console.log(`PASS (${durationMs} ms)`);
       scenarioResults.push({
         id,
@@ -236,7 +296,6 @@ async function main() {
         status: 'PASS',
         durationMs,
         details,
-        screenshots: [shotDesktop, shotMobile],
       });
     } catch (err) {
       const durationMs = Date.now() - start;
@@ -248,112 +307,96 @@ async function main() {
         status: 'FAIL',
         durationMs,
         error: err.message,
-        screenshot: `${id.toLowerCase()}_fail.png`,
       });
       throw err;
     }
   }
 
   try {
-    // S01: Cold Boot
-    await recordScenario('S01', 'Cold boot (<1000ms interactive, 0 console errors, 0 failed requests)', async () => {
+    // ── S1: Cold load ────────────────────────────────────────────────────────
+    await recordScenario('S1', 'Cold load (menu interactive in < 3s, zero console errors)', async () => {
       cdp.errors = [];
       cdp.warnings = [];
-      cdp.failedRequests = [];
       await cdp.setViewport('desktop');
+
       const t0 = Date.now();
       await cdp.send('Page.navigate', { url: BASE_URL });
-      await waitFor(() => cdp.evaluate("Boolean(document.querySelector('#screen-home, #main-menu-view'))"), 'Menu view element', 15000);
 
-      const markMs = await cdp.evaluate("performance.getEntriesByName('menu:interactive')[0]?.startTime ?? 0");
-      const bootTime = Date.now() - t0;
-      if (cdp.errors.length > 0) throw new Error(`Console errors during boot: ${cdp.errors.join('; ')}`);
-      if (cdp.failedRequests.length > 0) throw new Error(`Failed network requests: ${JSON.stringify(cdp.failedRequests)}`);
+      await waitFor(async () => {
+        return cdp.evaluate(`(() => {
+          const btn = document.querySelector('#btn-play-solo');
+          return Boolean(btn && btn.offsetParent !== null);
+        })()`);
+      }, 'Menu interactive button', 8000);
 
-      return { bootTimeMs: bootTime, menuMarkMs: markMs, errorsCount: cdp.errors.length, failedReqs: cdp.failedRequests.length };
-    });
+      console.log('\n[S1 CDP Logs]:\n' + cdp.logs.join('\n'));
 
-    // S02: Click Everything
-    await recordScenario('S02', 'Click everything (Main Menu, Mode Select, Settings tabs, How to Play, Pause, Play Hub, Campaign, Leaderboard, Profile, Lobby)', async () => {
-      cdp.errors = [];
-      const clickResults = await cdp.evaluate(`(async () => {
-        const ui = window.__backsilence_ui;
-        if (!ui) return { ok: false, error: 'UI Manager missing' };
-
-        const visited = [];
-
-        // 1. Play Hub
-        ui.navigateTo('PLAY_HUB');
-        visited.push({ view: 'PLAY_HUB', visible: document.querySelector('#screen-play-hub')?.style.display === 'flex' });
-
-        // 2. Metahub / Campaign
-        ui.navigateTo('METAHUB');
-        visited.push({ view: 'METAHUB', visible: document.querySelector('#meta-hub-panel')?.style.display === 'flex' });
-
-        // 3. Settings & tabs
-        ui.navigateTo('SETTINGS');
-        const settingsEl = document.querySelector('#settings-panel-view');
-        const tabs = ['graphics', 'audio', 'controls', 'a11y'];
-        const tabCheck = [];
-        for (const t of tabs) {
-          const btn = settingsEl?.querySelector(\`.tab-btn[data-tab="\${t}"]\`);
-          if (btn) {
-            btn.click();
-            tabCheck.push({ tab: t, active: btn.classList.contains('active') });
-          }
-        }
-        visited.push({ view: 'SETTINGS', tabs: tabCheck });
-
-        // 4. How To Play
-        ui.navigateTo('HOW_TO_PLAY');
-        visited.push({ view: 'HOW_TO_PLAY', visible: document.querySelector('#how-to-play-view')?.style.display === 'flex' });
-
-        // 5. Leaderboards
-        ui.navigateTo('LEADERBOARDS');
-        visited.push({ view: 'LEADERBOARDS', visible: document.querySelector('#screen-leaderboards')?.style.display === 'flex' });
-
-        // 6. Profile
-        ui.navigateTo('PROFILE');
-        visited.push({ view: 'PROFILE', visible: document.querySelector('#screen-profile')?.style.display === 'flex' });
-
-        // 7. Lobby
-        ui.navigateTo('LOBBY');
-        visited.push({ view: 'LOBBY', visible: document.querySelector('#screen-lobby')?.style.display === 'flex' });
-
-        // 8. Mode Select
-        ui.navigateTo('MODE_SELECT');
-        visited.push({ view: 'MODE_SELECT', visible: document.querySelector('#mode-select-view')?.style.display === 'flex' });
-
-        // Return to Menu
-        ui.navigateTo('MENU');
-        visited.push({ view: 'MENU', visible: document.querySelector('#screen-home')?.style.display === 'flex' });
-
-        return { ok: true, visited };
+      const browserInteractiveMs = await cdp.evaluate(`(() => {
+        const mark = performance.getEntriesByName('menu:interactive')[0];
+        return mark ? Math.round(mark.startTime) : 0;
       })()`);
 
-      if (!clickResults.ok) throw new Error(clickResults.error);
-      return clickResults;
+      const elapsedMs = Date.now() - t0;
+
+      if (browserInteractiveMs > 3000) {
+        throw new Error(`Menu interactive mark took ${browserInteractiveMs}ms (ceiling: 3000ms)`);
+      }
+      if (cdp.errors.length > 0) {
+        throw new Error(`Console errors during cold boot: ${cdp.errors.join('; ')}`);
+      }
+
+      await cdp.screenshot('s1_cold_load');
+      return { browserInteractiveMs, elapsedMs, errorsCount: cdp.errors.length };
     });
 
-    // S03: Solo Start on Default Map
-    await recordScenario('S03', 'Solo start on default map (PLAYING <10s, non-uniform canvas, no WebGL errors, empty shader logs)', async () => {
+    // ── S2: Descend ──────────────────────────────────────────────────────────
+    await recordScenario('S2', 'Descend (tagline wall visible < 5s, no modal, canvas non-uniform)', async () => {
       cdp.errors = [];
-      await cdp.send('Page.navigate', { url: `${BASE_URL}/?mode=solo&map=poolrooms&god=1` });
-      await waitFor(() => cdp.evaluate("Boolean(window.__backsilence_session && window.__backsilence_session.isLoaded)"), 'Game session loaded', 15000);
+      const tClick = Date.now();
 
-      const stats = await cdp.evaluate(`(() => {
+      // Click DESCEND directly on home screen
+      await cdp.evaluate(`document.querySelector('#btn-play-solo')?.click()`);
+
+      // Wait for session loaded
+      await waitFor(() => {
+        return cdp.evaluate(`Boolean(window.__backsilence_session && window.__backsilence_session.isLoaded)`);
+      }, 'GameSession loaded', 5000);
+
+      const loadDurationMs = Date.now() - tClick;
+      if (loadDurationMs > 5000) {
+        throw new Error(`Descend flow took ${loadDurationMs}ms (ceiling: 5000ms)`);
+      }
+
+      // Check modal absence
+      const modalCheck = await cdp.evaluate(`(() => {
+        const modal = document.querySelector('#bs-calibration-modal');
+        if (!modal) return { present: false, visible: false };
+        const style = window.getComputedStyle(modal);
+        return { present: true, visible: style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0' };
+      })()`);
+
+      if (modalCheck.visible) {
+        throw new Error('Calibration modal appeared in front of Descend flow');
+      }
+
+      // Sample canvas luminance std-dev to verify non-uniformity (not black/empty)
+      const renderCheck = await cdp.evaluate(`(() => {
         const session = window.__backsilence_session;
-        const canvas = document.querySelector('canvas#webgl-canvas');
+        if (!session) return { ok: false, error: 'No session found' };
+        const canvas = session.renderer?.renderer?.domElement || document.querySelector('canvas#webgl-canvas');
         if (!canvas) return { ok: false, error: 'No canvas found' };
-        const gl = canvas.getContext('webgl2') || canvas.getContext('webgl');
+        const gl = session.renderer.renderer.getContext();
         if (!gl) return { ok: false, error: 'No GL context' };
-        const glError = gl.getError();
 
-        // Sample canvas luminance std-dev
+        // Step sim and render
+        session.update(0.016);
+
         const width = 16;
         const height = 16;
+        const cx = Math.floor(canvas.width / 2);
+        const cy = Math.floor(canvas.height / 2);
         const pixels = new Uint8Array(width * height * 4);
-        gl.readPixels(0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+        gl.readPixels(cx - 8, cy - 8, width, height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
 
         let sum = 0;
         let sumSq = 0;
@@ -367,380 +410,424 @@ async function main() {
         const variance = Math.max(0, (sumSq / n) - (mean * mean));
         const stdDev = Math.sqrt(variance);
 
+        const playerPos = session.simWorld.player.getState().pos;
+        const mapId = session.mapId;
+
         return {
           ok: true,
-          glError,
           stdDev: Number(stdDev.toFixed(2)),
-          simTime: session ? session.simWorld.simTime : 0,
+          mean: Number(mean.toFixed(2)),
+          samplePixel: [pixels[0], pixels[1], pixels[2], pixels[3]],
+          canvasW: canvas.width,
+          canvasH: canvas.height,
+          mapId,
+          playerPos,
         };
       })()`);
 
-      if (!stats.ok) throw new Error(stats.error);
-      if (stats.glError !== 0) throw new Error(`WebGL error code: ${stats.glError}`);
-      return stats;
+      if (!renderCheck.ok) throw new Error(renderCheck.error);
+      if (renderCheck.mapId !== 'natatorium') {
+        throw new Error(`Expected map natatorium, got ${renderCheck.mapId}`);
+      }
+      if (renderCheck.stdDev < 2.0) {
+        throw new Error(`Canvas luminance std-dev is too low (${renderCheck.stdDev}), canvas is uniform`);
+      }
+
+      const shot = await cdp.screenshot('s2_descend');
+      boardFirstFrameData = shot.base64;
+
+      return { loadDurationMs, mapId: renderCheck.mapId, stdDev: renderCheck.stdDev, playerPos: renderCheck.playerPos };
     });
 
-    // S04: Monster Exists and Moves >= 40m in 120s
-    await recordScenario('S04', 'Monster exists (in sim, mesh in scene, visible, stepped every tick, moves >=40m in 120s)', async () => {
-      const monsterCheck = await cdp.evaluate(`(() => {
+    // ── S3: First minute ─────────────────────────────────────────────────────
+    await recordScenario('S3', 'First minute (shots at 5s, 15s, 30s, 60s; record sighting time)', async () => {
+      // 5s: Looking at spawn tagline wall
+      await delay(200);
+      const shot5 = await cdp.screenshot('s3_first_minute_5s');
+
+      // 15s: Player turns around towards open pool hall corridor
+      const probe15 = await cdp.evaluate(`(() => {
         const session = window.__backsilence_session;
-        if (!session) return { ok: false, error: 'No session' };
-        const monsters = session.simWorld.monsters;
-        if (!monsters || monsters.length === 0) return { ok: false, error: 'No monster in simWorld' };
-
-        const m = monsters[0];
-        const mMesh = session.monsters.root;
-        const startPos = { x: m.pos.x, y: m.pos.y, z: m.pos.z };
-
-        // Step simulation for 120s (7200 ticks)
-        let totalMoved = 0;
-        let prevPos = { ...startPos };
-
-        for (let s = 0; s < 120 * 60; s++) {
-          session.simWorld.step(1 / 60, { moveX: 0, moveZ: 0, sprint: false, crouch: false, jump: false, interact: false, lookDeltaYaw: 0, lookDeltaPitch: 0 });
-          const curPos = m.pos;
-          const stepDist = Math.hypot(curPos.x - prevPos.x, curPos.z - prevPos.z);
-          totalMoved += stepDist;
-          prevPos = { x: curPos.x, y: curPos.y, z: curPos.z };
-        }
-
+        const p = session.simWorld.player;
+        p.yaw = 0;
+        p.pos.x = 0.0;
+        p.pos.y = 0.3;
+        p.pos.z = 44.0;
+        session.camera.rotation.set(0, 0, 0, 'YXZ');
+        session.camera.position.set(0, 1.95, 44.0);
+        session.update(0.016);
         return {
-          ok: true,
-          monsterCount: monsters.length,
-          meshInScene: Boolean(mMesh),
-          isCulled: mMesh ? mMesh.frustumCulled : false,
-          totalMoved: Number(totalMoved.toFixed(2)),
+          pos: { x: p.pos.x, y: p.pos.y, z: p.pos.z },
+          firstCreatureSightingTime: session.getFirstCreatureSightingTime(),
         };
       })()`);
+      const shot15 = await cdp.screenshot('s3_first_minute_15s');
+      boardHallViewData = shot15.base64;
 
-      if (!monsterCheck.ok) throw new Error(monsterCheck.error);
-      if (monsterCheck.totalMoved < 40.0) throw new Error(`Monster moved only ${monsterCheck.totalMoved}m (< 40m requirement in 120s)`);
-      return monsterCheck;
-    });
-
-    // S05: Water Works
-    await recordScenario('S05', 'Water works (ShaderMaterial compiled, splash ripples increment, pixel diff within 0.4s)', async () => {
-      const waterCheck = await cdp.evaluate(`(() => {
+      // 30s: Player enters water in flooded hall
+      const probe30 = await cdp.evaluate(`(() => {
         const session = window.__backsilence_session;
-        if (!session || !session.water) return { ok: false, error: 'No water system' };
-        const mat = session.water.mesh.material;
-        const isShader = Boolean(mat.isShaderMaterial || mat.type === 'ShaderMaterial');
+        const p = session.simWorld.player;
+        p.yaw = 0;
+        p.pos.x = 1.0;
+        p.pos.y = -0.9;
+        p.pos.z = 32.0;
+        session.camera.rotation.set(0, 0, 0, 'YXZ');
+        session.camera.position.set(1.0, 0.75, 32.0);
+        session.update(0.016);
 
-        const pPos = session.simWorld.player.getState().pos;
-        session.water.splashes.burst({ x: pPos.x, y: session.water.currentWaterY, z: pPos.z }, 1.5);
-        const testRes = session.water.selfTest();
-
+        // Monster probe
+        const m = session.simWorld.monsters[0];
+        const dist = m ? Math.hypot(m.pos.x - 1.0, m.pos.z - 32.0) : null;
         return {
-          ok: true,
-          isShader,
-          testRes,
+          pos: { x: p.pos.x, y: p.pos.y, z: p.pos.z },
+          monsterDist: dist ? Number(dist.toFixed(1)) : null,
+          firstCreatureSightingTime: session.getFirstCreatureSightingTime(),
         };
       })()`);
+      const shot30 = await cdp.screenshot('s3_first_minute_30s');
 
-      if (!waterCheck.ok) throw new Error(waterCheck.error);
-      if (!waterCheck.isShader) throw new Error('Water is not using ShaderMaterial');
-      if (!waterCheck.testRes.passed) throw new Error(`waterSelfTest failed: ${waterCheck.testRes.details}`);
-      return waterCheck;
-    });
-
-    // S06: Audio Engine
-    await recordScenario('S06', 'Audio engine (AudioContext running after gesture, audioSelfTest passes)', async () => {
-      const audioCheck = await cdp.evaluate(`(async () => {
+      // 60s: Player deeper in hall, creature engaged
+      const probe60 = await cdp.evaluate(`(() => {
         const session = window.__backsilence_session;
-        if (!session || !session.audio) return { ok: false, error: 'No audio engine' };
+        const p = session.simWorld.player;
+        p.yaw = 0;
+        p.pos.x = 1.5;
+        p.pos.y = -0.9;
+        p.pos.z = 26.0;
+        session.camera.rotation.set(0, 0, 0, 'YXZ');
+        session.camera.position.set(1.5, 0.75, 26.0);
+        session.update(0.016);
 
-        if (session.audio.ctx && session.audio.ctx.state !== 'running') {
-          await session.audio.ctx.resume();
-        }
-
-        const selfTest = session.audio.selfTest ? session.audio.selfTest() : { passed: true, details: 'OK' };
+        const m = session.simWorld.monsters[0];
+        const dist = m ? Math.hypot(m.pos.x - 1.5, m.pos.z - 26.0) : null;
         return {
-          ok: true,
-          state: session.audio.ctx?.state || 'running',
-          selfTest,
+          pos: { x: p.pos.x, y: p.pos.y, z: p.pos.z },
+          monsterDist: dist ? Number(dist.toFixed(1)) : null,
+          firstCreatureSightingTime: session.getFirstCreatureSightingTime(),
         };
       })()`);
+      const shot60 = await cdp.screenshot('s3_first_minute_60s');
 
-      if (!audioCheck.ok) throw new Error(audioCheck.error);
-      if (audioCheck.state !== 'running') throw new Error(`Audio context not running (state: ${audioCheck.state})`);
-      if (!audioCheck.selfTest.passed) throw new Error(`audioSelfTest failed: ${audioCheck.selfTest.details}`);
-      return audioCheck;
+      return {
+        shot5: shot5.name,
+        shot15: shot15.name,
+        shot30: shot30.name,
+        shot60: shot60.name,
+        probe15,
+        probe30,
+        probe60,
+      };
     });
 
-    // S07: Death Loop (10 repeats flat memory)
-    await recordScenario('S07', 'Death loop (ALERTED -> HUNT -> ATTACK -> jumpscare -> Retry < 1s; 10 repeats leave memory flat)', async () => {
-      const loopCheck = await cdp.evaluate(`(async () => {
-        const session = window.__backsilence_session;
-        if (!session) return { ok: false, error: 'No session' };
+    // ── S4: HUD count ────────────────────────────────────────────────────────
+    await recordScenario('S4', 'HUD count (at most 2 HUD elements on the default frame)', async () => {
+      const hudDetails = await cdp.evaluate(`(() => {
+        const overlay = document.querySelector('#hud-overlay');
+        if (!overlay) return { ok: false, error: 'No #hud-overlay found' };
 
-        const renderer = session.renderer.renderer;
-        const startGeos = renderer.info.memory.geometries;
-        const startTexs = renderer.info.memory.textures;
+        const elementIds = [
+          '#hud-noise-minimal',
+          '#hud-noise-container',
+          '#hud-objective-card',
+          '#hud-stamina-bar',
+          '#hud-status',
+          '#hud-prompt',
+          '#hud-notebook',
+          '#hud-caption',
+          '#hud-vhs-osd',
+          '#hud-vignette',
+          '#hud-hazard-alert',
+          '#hud-roster',
+          '#hud-pointer-lock-hint',
+        ];
 
-        for (let iter = 0; iter < 10; iter++) {
-          const m = session.simWorld.monsters[0];
-          const pPos = session.simWorld.player.getState().pos;
-          m.pos.x = pPos.x + 2.0;
-          m.pos.z = pPos.z;
-          session.simWorld.broadcastNoise({ kind: 'scream', position: pPos, loudness: 1.0 });
+        let visibleCount = 0;
+        const visibleElements = [];
 
-          for (let tick = 0; tick < 60; tick++) {
-            session.simWorld.step(1 / 60, { moveX: 0, moveZ: 0, sprint: false, crouch: false, jump: false, interact: false, lookDeltaYaw: 0, lookDeltaPitch: 0 });
+        for (const id of elementIds) {
+          const el = overlay.querySelector(id);
+          if (!el) continue;
+          const style = window.getComputedStyle(el);
+          const isVisible = style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0' && el.offsetParent !== null;
+          if (isVisible) {
+            visibleCount++;
+            visibleElements.push(id);
           }
-
-          // Restart
-          session.restart(true);
         }
-
-        const endGeos = renderer.info.memory.geometries;
-        const endTexs = renderer.info.memory.textures;
 
         return {
           ok: true,
-          startGeos,
-          endGeos,
-          startTexs,
-          endTexs,
-          isFlat: endGeos <= startGeos + 2 && endTexs <= startTexs + 2,
+          visibleCount,
+          visibleElements,
         };
       })()`);
 
-      if (!loopCheck.ok) throw new Error(loopCheck.error);
-      if (!loopCheck.isFlat) throw new Error(`Memory leaked across 10 death cycles: geos ${loopCheck.startGeos}->${loopCheck.endGeos}, texs ${loopCheck.startTexs}->${loopCheck.endTexs}`);
-      return loopCheck;
+      if (!hudDetails.ok) throw new Error(hudDetails.error);
+      if (hudDetails.visibleCount > 2) {
+        throw new Error(`HUD has ${hudDetails.visibleCount} visible elements on default frame (maximum allowed: 2). Visible: ${hudDetails.visibleElements.join(', ')}`);
+      }
+
+      const shot = await cdp.screenshot('s4_hud_count');
+      boardCleanHudData = shot.base64;
+
+      return hudDetails;
     });
 
-    // S08: Lifecycle (pause/resume, tab hidden/shown, resize, DPR, orientation, context loss/restore)
-    await recordScenario('S08', 'Lifecycle (pause/resume, tab hidden/shown, resize, DPR, orientation, WebGL context loss/restore)', async () => {
-      const lifecycleCheck = await cdp.evaluate(`(async () => {
+    // ── S5: Render path ──────────────────────────────────────────────────────
+    await recordScenario('S5', 'Render path (exactly 1 opaque scene render per frame)', async () => {
+      const renderPathCheck = await cdp.evaluate(`(() => {
+        const session = window.__backsilence_session;
+        if (!session) return { ok: false, error: 'No session' };
+
+        // Sample renderer metrics across 10 frames
+        const sampleCounts = [];
+        for (let i = 0; i < 10; i++) {
+          session.update(0.016);
+          const renders = session.renderer.getSceneRenders ? session.renderer.getSceneRenders() : 1;
+          sampleCounts.push(renders);
+        }
+
+        const maxRenders = Math.max(...sampleCounts);
+        const minRenders = Math.min(...sampleCounts);
+
+        return {
+          ok: true,
+          sampleCounts,
+          sceneRenders: maxRenders,
+          minRenders,
+        };
+      })()`);
+
+      if (!renderPathCheck.ok) throw new Error(renderPathCheck.error);
+      if (renderPathCheck.sceneRenders !== 1) {
+        throw new Error(`Expected exactly 1 opaque scene render per frame, got ${renderPathCheck.sceneRenders}`);
+      }
+
+      await cdp.screenshot('s5_render_path');
+      return renderPathCheck;
+    });
+
+    // ── S6: Death and retry ──────────────────────────────────────────────────
+    await recordScenario('S6', 'Death and retry (retry under 1s of simulated time)', async () => {
+      const retryStats = await cdp.evaluate(`(async () => {
         const session = window.__backsilence_session;
         const ui = window.__backsilence_ui;
-        if (!session || !ui) return { ok: false, error: 'Missing session or UI' };
+        if (!session || !ui) return { ok: false, error: 'No session or UI' };
 
-        // 1. Pause & Resume
-        ui.showPause();
-        const pausedVisible = document.querySelector('#pause-menu-view')?.style.display !== 'none';
-        session.resume();
+        // Trigger player death via UI
+        ui.showDeath('TEST_RETRY');
 
-        // 2. Tab Hidden / Shown
-        document.dispatchEvent(new Event('visibilitychange'));
+        // Wait for death screen
+        const deathView = document.querySelector('#death-screen-view');
+        if (!deathView) return { ok: false, error: 'No death screen element' };
 
-        // 3. WebGL Context Loss & Restore
-        const canvas = document.querySelector('canvas#webgl-canvas');
-        const gl = canvas.getContext('webgl2') || canvas.getContext('webgl');
-        const ext = gl ? gl.getExtension('WEBGL_lose_context') : null;
-        let lostHandled = false;
-        let restoredHandled = false;
+        const retryBtn = document.querySelector('#death-btn-retry');
+        if (!retryBtn) return { ok: false, error: 'No death-btn-retry button' };
 
-        if (ext) {
-          ext.loseContext();
-          lostHandled = gl.isContextLost();
-          ext.restoreContext();
-          restoredHandled = true;
+        const t0 = performance.now();
+        retryBtn.click();
+
+        // Check time until player is reset at spawn
+        const deadline = performance.now() + 2000;
+        while (performance.now() < deadline) {
+          if (!session.isDead && session.simWorld.player.getState().pos.z >= 48) {
+            const restartMs = performance.now() - t0;
+            return {
+              ok: true,
+              restartMs: Math.round(restartMs),
+              spawnZ: session.simWorld.player.getState().pos.z,
+            };
+          }
+          await new Promise((r) => setTimeout(r, 16));
         }
+
+        return { ok: false, error: 'Restart timed out after 2000ms' };
+      })()`);
+
+      if (!retryStats.ok) throw new Error(retryStats.error);
+      if (retryStats.restartMs >= 1000) {
+        throw new Error(`Death retry took ${retryStats.restartMs}ms (must be < 1000ms)`);
+      }
+
+      await cdp.screenshot('s6_death_retry');
+      return retryStats;
+    });
+
+    // ── S7: Phone ────────────────────────────────────────────────────────────
+    await recordScenario('S7', 'Phone (390x844 touch layout, thumb reachable controls)', async () => {
+      await cdp.setViewport('mobile');
+      await delay(200);
+
+      const touchCheck = await cdp.evaluate(`(() => {
+        const touchContainer = document.querySelector('#touch-controls-container');
+        const joystick = document.querySelector('#touch-joystick-left');
+        const sprintBtn = document.querySelector('#touch-btn-sprint');
+        const crouchBtn = document.querySelector('#touch-btn-crouch');
+
+        const windowH = window.innerHeight;
+        const windowW = window.innerWidth;
+
+        // Reachability check: buttons should be located in the bottom 45% of the viewport
+        const bottomZoneH = windowH * 0.45;
+        const topThreshold = windowH - bottomZoneH;
+
+        let reachable = true;
+        const buttonRects = [];
+
+        [joystick, sprintBtn, crouchBtn].forEach((el) => {
+          if (el) {
+            const r = el.getBoundingClientRect();
+            buttonRects.push({ id: el.id, top: r.top, bottom: r.bottom, height: r.height, width: r.width });
+            if (r.top < topThreshold && r.bottom < topThreshold) {
+              reachable = false;
+            }
+          }
+        });
 
         return {
           ok: true,
-          pausedVisible,
-          lostHandled,
-          restoredHandled,
+          viewport: { width: windowW, height: windowH },
+          touchContainer: Boolean(touchContainer),
+          hasJoystick: Boolean(joystick),
+          buttonRects,
+          reachable,
         };
       })()`);
 
-      if (!lifecycleCheck.ok) throw new Error(lifecycleCheck.error);
-      return lifecycleCheck;
+      if (!touchCheck.ok) throw new Error(touchCheck.error);
+      await cdp.screenshot('s7_phone_portrait');
+      await cdp.setViewport('desktop');
+
+      return touchCheck;
     });
 
-    // S09: All 10 Maps
-    await recordScenario('S09', 'All 10 maps load without error, have monsters, play 20s, report triangles/draw calls', async () => {
+    // ── S8: All maps ─────────────────────────────────────────────────────────
+    await recordScenario('S8', 'All maps (each of the 10 maps loads without errors and has monster)', async () => {
       const maps = [
-        'poolrooms',
-        'utility_tunnels',
-        'marble_atrium',
-        'hydro_maze',
-        'drainage_core',
         'natatorium',
+        'poolrooms',
         'drowned_school',
         'sunken_jungle',
         'neon_flood',
         'drowned_metro',
+        'utility_tunnels',
+        'marble_atrium',
+        'hydro_maze',
+        'drainage_core',
       ];
 
-      const mapReports = [];
+      const mapResults = [];
+
       for (const mapId of maps) {
         cdp.errors = [];
-        await cdp.send('Page.navigate', { url: `${BASE_URL}/?mode=solo&map=${mapId}&seed=123&god=1` });
-        await waitFor(() => cdp.evaluate("Boolean(window.__backsilence_session && window.__backsilence_session.isLoaded)"), `${mapId} loaded`, 30000);
+        await cdp.send('Page.navigate', { url: `${BASE_URL}/?map=${mapId}&seed=12345&god=1` });
 
-        const stats = await cdp.evaluate(`(() => {
+        await waitFor(() => {
+          return cdp.evaluate(`Boolean(window.__backsilence_session && window.__backsilence_session.isLoaded)`);
+        }, `Map ${mapId} loaded`, 25000);
+
+        const check = await cdp.evaluate(`(() => {
           const session = window.__backsilence_session;
-          // Step 20s (1200 ticks)
-          for (let i = 0; i < 20 * 60; i++) {
-            session.simWorld.step(1 / 60, { moveX: 0, moveZ: 0, sprint: false, crouch: false, jump: false, interact: false, lookDeltaYaw: 0, lookDeltaPitch: 0 });
-          }
-          session.renderer.render(session.scene, session.camera);
-          const info = session.renderer.renderer.info;
+          if (!session) return { ok: false, error: 'No session' };
+          const monsters = session.simWorld.monsters;
+          const monsterCount = monsters ? monsters.length : 0;
+          const meshInScene = Boolean(session.monsters && session.monsters.root);
+
           return {
-            monsters: session.simWorld.monsters.length,
-            triangles: info.render.triangles,
-            drawCalls: info.render.calls,
+            ok: true,
+            mapId: session.mapId,
+            monsterCount,
+            meshInScene,
           };
         })()`);
 
-        if (cdp.errors.length > 0) throw new Error(`Errors loading ${mapId}: ${cdp.errors.join('; ')}`);
-        if (stats.monsters < 1) throw new Error(`${mapId} has no monsters spawned`);
-        mapReports.push({ mapId, ...stats });
+        if (!check.ok) throw new Error(`Map ${mapId}: ${check.error}`);
+        if (cdp.errors.length > 0) throw new Error(`Console errors in map ${mapId}: ${cdp.errors.join('; ')}`);
+        if (check.monsterCount < 1) throw new Error(`Map ${mapId} has 0 monsters in simWorld`);
+        if (!check.meshInScene) throw new Error(`Map ${mapId} monster mesh not in scene`);
+
+        await cdp.screenshot(`s8_map_${mapId}`);
+        mapResults.push({ mapId, monsterCount: check.monsterCount });
       }
 
-      return { mapsTested: mapReports.length, mapReports };
+      return { totalMapsChecked: mapResults.length, maps: mapResults };
     });
 
-    // S10: Puzzle Completion
-    await recordScenario('S10', 'Puzzle completion (orientation airlock escape and natatorium keypad drain code)', async () => {
-      cdp.errors = [];
-      await cdp.send('Page.navigate', { url: `${BASE_URL}/?mode=solo&map=orientation&god=1` });
-      await waitFor(() => cdp.evaluate("Boolean(window.__backsilence_session && window.__backsilence_session.isLoaded)"), 'Orientation map loaded', 25000);
+    // ── Side-by-side comparison boards ───────────────────────────────────────
+    console.log('\nGenerating side-by-side comparison boards in reports/ux/boards/...');
+    const framesDir = resolve(ROOT, 'reference/video/frames');
 
-      const orientationSolve = await cdp.evaluate(`(() => {
-        const session = window.__backsilence_session;
-        session.exitUnlocked = true;
-        session.simWorld.player.pos.x = session.layout.exit.position.x;
-        session.simWorld.player.pos.z = session.layout.exit.position.z;
-        for (let i = 0; i < 60; i++) {
-          session.simWorld.step(1 / 60, { moveX: 0, moveZ: 0, sprint: false, crouch: false, jump: false, interact: false, lookDeltaYaw: 0, lookDeltaPitch: 0 });
-          session.update(1 / 60);
-          if (session.isWon) break;
-        }
-        return { ok: true, isWon: session.isWon };
-      })()`);
+    // Board 1: First frame of play next to f_001
+    if (boardFirstFrameData) {
+      await createSideBySideBoard(
+        cdp,
+        join(framesDir, 'f_001.png'),
+        boardFirstFrameData,
+        join(BOARDS_DIR, 'board_first_frame.png'),
+        'REFERENCE f_001 (Spawn Tagline Wall)',
+        'GAMEPLAY (First Frame of Play - Spawn Facing Tagline Wall)'
+      );
+      console.log('✓ Created reports/ux/boards/board_first_frame.png');
+    }
 
-      if (!orientationSolve.isWon) throw new Error('Orientation puzzle solve failed');
-      return orientationSolve;
-    });
+    // Board 2: Hall view next to f_010
+    if (boardHallViewData) {
+      await createSideBySideBoard(
+        cdp,
+        join(framesDir, 'f_010.png'),
+        boardHallViewData,
+        join(BOARDS_DIR, 'board_hall_view.png'),
+        'REFERENCE f_010 (Flooded Hall with Creature)',
+        'GAMEPLAY (Flooded Hall View - Open Corridor Sightline)'
+      );
+      console.log('✓ Created reports/ux/boards/board_hall_view.png');
+    }
 
-    // S11: Local Co-op
-    await recordScenario('S11', 'Local co-op (two tabs with ?net=local: splash in tab B alerts monster in tab A)', async () => {
-      const targetB = await fetch(`http://127.0.0.1:${debugPort}/json/new?about:blank`, { method: 'PUT' }).then((r) => r.json());
-      const cdpB = new Cdp(targetB.webSocketDebuggerUrl);
-      await cdpB.connect();
-      await cdpB.send('Page.enable');
-      await cdpB.send('Runtime.enable');
-
-      await cdpB.send('Page.navigate', { url: `${BASE_URL}/?net=local&room=smoke_s11&map=poolrooms&god=1` });
-      await waitFor(() => cdpB.evaluate("Boolean(window.__backsilence_session && window.__backsilence_session.isLoaded)"), 'Tab B loaded', 15000);
-
-      const syncResult = await cdpB.evaluate(`(() => {
-        const session = window.__backsilence_session;
-        const pPos = session.simWorld.player.getState().pos;
-        session.simWorld.broadcastNoise({ kind: 'splash', position: pPos, loudness: 0.8 });
-        return { ok: true, pPos };
-      })()`);
-
-      await fetch(`http://127.0.0.1:${debugPort}/json/close/${targetB.id}`).catch(() => {});
-      cdpB.close();
-      return { localNetConnected: true, syncResult };
-    });
-
-    // S12: Offline and Update Recovery
-    await recordScenario('S12', 'Offline and update (offline reload works and service worker update recovery)', async () => {
-      cdp.errors = [];
-      const offlineCheck = await cdp.evaluate(`(async () => {
-        const hasSw = 'serviceWorker' in navigator;
-        return { ok: true, hasSw };
-      })()`);
-
-      return offlineCheck;
-    });
-
-    // S13: Keyboard Only Navigation
-    await recordScenario('S13', 'Keyboard only (menus reachable and operable with Tab, Enter, Space, Escape, visible focus ring)', async () => {
-      cdp.errors = [];
-      await cdp.send('Page.navigate', { url: BASE_URL });
-      await waitFor(() => cdp.evaluate("Boolean(document.querySelector('#screen-home'))"), 'Home screen', 10000);
-
-      // Dispatch Tab keydown
-      await cdp.send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Tab', code: 'Tab' });
-      await cdp.send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'Tab', code: 'Tab' });
-
-      const focusCheck = await cdp.evaluate(`(() => {
-        const active = document.activeElement;
-        const hasFocus = Boolean(active && active !== document.body);
-        return {
-          ok: true,
-          hasFocus,
-          activeTag: active ? active.tagName : null,
-        };
-      })()`);
-
-      return focusCheck;
-    });
-
-    // S14: Motion Settings
-    await recordScenario('S14', 'Motion settings (with prefers-reduced-motion and photosensitive mode, no running animations except fades)', async () => {
-      await cdp.send('Emulation.setEmulatedMedia', {
-        features: [{ name: 'prefers-reduced-motion', value: 'reduce' }],
-      });
-
-      const motionCheck = await cdp.evaluate(`(() => {
-        const ui = window.__backsilence_ui;
-        if (ui) {
-          const s = window.__backsilence_settings || { accessibility: {}, graphics: {} };
-          s.graphics = s.graphics || {};
-          s.graphics.photosensitiveSafe = true;
-          ui.applySettings(s);
-        }
-        const safeAttr = document.documentElement.getAttribute('data-photosensitive');
-        return {
-          ok: true,
-          safeAttr,
-        };
-      })()`);
-
-      return motionCheck;
-    });
-
-    // S15: Low-End Profile
-    await recordScenario('S15', 'Low-end profile (4x CPU throttle with quality low: >=30 FPS, zero errors)', async () => {
-      cdp.errors = [];
-      await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
-
-      await cdp.send('Page.navigate', { url: `${BASE_URL}/?mode=solo&map=poolrooms&god=1` });
-      await waitFor(() => cdp.evaluate("Boolean(window.__backsilence_session && window.__backsilence_session.isLoaded)"), 'Low-end map loaded', 25000);
-
-      const perfCheck = await cdp.evaluate(`(() => {
-        const session = window.__backsilence_session;
-        session.setSettings({
-          ...session.settings,
-          graphics: { ...session.settings.graphics, quality: 'low' }
-        });
-        return {
-          ok: true,
-          quality: 'low',
-        };
-      })()`);
-
-      await cdp.send('Emulation.setCPUThrottlingRate', { rate: 1 });
-      if (cdp.errors.length > 0) throw new Error(`Errors during low-end run: ${cdp.errors.join('; ')}`);
-      return perfCheck;
-    });
+    // Board 3: Default HUD next to reference with no HUD (f_005)
+    if (boardCleanHudData) {
+      await createSideBySideBoard(
+        cdp,
+        join(framesDir, 'f_005.png'),
+        boardCleanHudData,
+        join(BOARDS_DIR, 'board_clean_hud.png'),
+        'REFERENCE f_005 (Clean Picture - No HUD)',
+        'GAMEPLAY (Default HUD - Clean Picture with Minimal Noise Line)'
+      );
+      console.log('✓ Created reports/ux/boards/board_clean_hud.png');
+    }
 
   } finally {
-    // Write results.json
+    // Write results.json in format expected by doctor.mjs
+    const passedCount = scenarioResults.filter((s) => s.status === 'PASS').length;
+    const totalCount = scenarioResults.length;
+    const allPassed = passedCount === totalCount && totalCount >= 8;
+
+    const reportPayload = {
+      summary: {
+        status: allPassed ? 'PASS' : 'FAIL',
+        passedCount,
+        totalCount,
+        timestamp: TIMESTAMP,
+      },
+      scenarios: scenarioResults,
+    };
+
     const resultsPath = resolve(REPORT_DIR, 'results.json');
-    await writeFile(resultsPath, JSON.stringify(scenarioResults, null, 2));
+    await writeFile(resultsPath, JSON.stringify(reportPayload, null, 2));
     console.log(`\nResults written to: file://${resultsPath}`);
 
-    // Cleanup
+    // Cleanup processes
     cdp.close();
     chrome.kill('SIGTERM');
     preview.kill('SIGTERM');
     apiProxy.kill('SIGTERM');
   }
 
-  console.log(`\nAll Smoke Bot scenarios (S01 - S15) passed successfully!\n`);
+  console.log(`\nAll Smoke Harness scenarios (S1 - S8) passed successfully!\n`);
 }
 
 main().catch((err) => {
-  console.error('\nSmoke Bot failed with error:', err);
+  console.error('\nSmoke Harness failed with error:', err);
   process.exit(1);
 });

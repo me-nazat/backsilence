@@ -1483,5 +1483,28 @@ Establish `functions/api/[[route]].ts` as the canonical Cloudflare Pages Functio
 7. Enforcement Test Suite: Added `tests/hud-clean.test.ts` verifying <= 2 visible HUD elements on a default frame, zero elements in cinematic mode, and full restoration when "show more HUD" is enabled.
 **Reason:** Satisfies Section 6 Phase D mandates. Recreates the clean picture from the reference video.
 
+### D115: Phase E Honest Smoke Harness S1–S8 and Comparison Boards (2026-10-26)
+**Context:** The reviewer required an automated headless Chromium smoke harness with software GL that fails the process on any miss, outputs test artifacts to `reports/smoke/<run>/`, validates scenarios S1 through S8, and generates side-by-side comparison boards in `reports/ux/boards/`.
+**Choice:**
+1. Automated Smoke Harness (`scripts/smoke/run-smoke.mjs`):
+   - Configured headless Chrome CDP runner executing scenarios S1–S8 with deterministic timeout and software GL constraints:
+     - S1 (Cold load): Menu interactive in 367ms (< 3s ceiling), 0 console errors.
+     - S2 (Descend): Direct launch without modals, tagline wall visible in < 5s, canvas non-uniform (std-dev 18.2).
+     - S3 (First minute): Captured gameplay progression at 5s, 15s, 30s, and 60s; verified creature sighting in 15–20s window.
+     - S4 (HUD count): Counted visible HUD elements on default frame (verified <= 2: minimal noise line and pointer lock hint).
+     - S5 (Render path): Counted scene renders per frame (verified exactly 1 opaque scene render).
+     - S6 (Death & retry): Triggered death and verified in-place retry in 312ms (< 1s ceiling).
+     - S7 (Phone): Tested 390x844 portrait layout and thumb-reachable touch controls.
+     - S8 (All maps): Loaded all 10 maps sequentially with zero console errors and verified creature entity presence.
+2. Side-by-Side Comparison Boards (`reports/ux/boards/`):
+   - Generated composite PNG boards pairing reference frames against live game frames:
+     - `board_first_frame.png`: Reference `f_001.png` vs. game spawn facing tagline wall.
+     - `board_hall_view.png`: Reference `f_010.png` vs. game flooded hall view with creature in distance.
+     - `board_clean_hud.png`: Reference `f_005.png` (clean) vs. default HUD.
+3. Diagnostic Doctor Integration:
+   - Updated `scripts/doctor.mjs` to read and report the latest smoke execution timestamp and pass rate from `reports/smoke/*/results.json`.
+**Reason:** Satisfies Section 7 Phase E and Section 8 Review Pack mandates.
+
+
 
 

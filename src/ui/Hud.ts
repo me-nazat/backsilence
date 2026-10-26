@@ -285,6 +285,7 @@ export class Hud {
         /* Clean picture: Default HUD is empty except thin noise line and interaction prompt */
         .bs-hud:not(.show-more-hud) #hud-vhs-osd,
         .bs-hud:not(.show-more-hud) #hud-notebook-container,
+        .bs-hud:not(.show-more-hud) #hud-notebook,
         .bs-hud:not(.show-more-hud) #hud-roster,
         .bs-hud:not(.show-more-hud) #hud-level-shift,
         .bs-hud:not(.show-more-hud) #hud-school-status,
@@ -293,6 +294,8 @@ export class Hud {
         .bs-hud:not(.show-more-hud) #hud-metro-status,
         .bs-hud:not(.show-more-hud) #hud-objective-container,
         .bs-hud:not(.show-more-hud) #hud-bottom-center,
+        .bs-hud:not(.show-more-hud) #hud-status,
+        .bs-hud:not(.show-more-hud) #hud-stamina-bar,
         .bs-hud:not(.show-more-hud) #hud-generator-status,
         .bs-hud:not(.show-more-hud) #hud-inventory-strip,
         .bs-hud:not(.show-more-hud) #hud-flashlight-meter {
