@@ -39,6 +39,31 @@ export interface CustomBuilderHook {
   onPostBuild?: (root: Group, simWorld: { ground: GroundGrid; colliders: ColliderSet }) => void;
 }
 
+export function scaleBoxUv(geom: BoxGeometry, w: number, h: number, d: number, unit = 2.4): void {
+  const uvAttr = geom.getAttribute('uv');
+  if (!uvAttr) return;
+  const uvArray = uvAttr.array as Float32Array;
+  const faces: [number, number][] = [
+    [d, h],
+    [d, h],
+    [w, d],
+    [w, d],
+    [w, h],
+    [w, h],
+  ];
+  for (let f = 0; f < 6; f++) {
+    const [fw, fh] = faces[f]!;
+    const scaleU = Math.max(0.5, fw / unit);
+    const scaleV = Math.max(0.5, fh / unit);
+    for (let v = 0; v < 4; v++) {
+      const idx = (f * 4 + v) * 2;
+      uvArray[idx] = uvArray[idx]! * scaleU;
+      uvArray[idx + 1] = uvArray[idx + 1]! * scaleV;
+    }
+  }
+  uvAttr.needsUpdate = true;
+}
+
 export function buildStandardMapInstance(
   layout: LayoutData,
   _env: BuildEnv,
@@ -112,8 +137,9 @@ export function buildStandardMapInstance(
       false,
     );
 
-    // Visual Mesh
+    // Visual Mesh with consistent 0.15m tile grid UV scaling
     const geom = new BoxGeometry(w, depth, d);
+    scaleBoxUv(geom, w, depth, d, 2.4);
     geometriesToDispose.push(geom);
     const mesh = new Mesh(geom, customMaterials.platformMat);
     mesh.position.set(cx, topY - depth * 0.5, cz);
@@ -139,6 +165,18 @@ export function buildStandardMapInstance(
     );
 
     const geom = new CylinderGeometry(pil.radius, pil.radius, pil.height, 16);
+    const cylUv = geom.getAttribute('uv');
+    if (cylUv) {
+      const arr = cylUv.array as Float32Array;
+      const circum = 2 * Math.PI * pil.radius;
+      const su = Math.max(1, Math.round((circum / 2.4) * 2));
+      const sv = Math.max(1, Math.round(pil.height / 2.4));
+      for (let i = 0; i < arr.length; i += 2) {
+        arr[i] = arr[i]! * su;
+        arr[i + 1] = arr[i + 1]! * sv;
+      }
+      cylUv.needsUpdate = true;
+    }
     geometriesToDispose.push(geom);
     const mesh = new Mesh(geom, customMaterials.wallMat);
     mesh.position.set(pil.x, -0.9 + pil.height * 0.5, pil.z);
@@ -194,6 +232,7 @@ export function buildStandardMapInstance(
       root.add(archMesh);
     } else {
       const geom = new BoxGeometry(w, h, d);
+      scaleBoxUv(geom, w, h, d, 2.4);
       geometriesToDispose.push(geom);
       const mesh = new Mesh(geom, customMaterials.wallMat);
       mesh.position.set(cx, cy, cz);

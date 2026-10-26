@@ -31,6 +31,7 @@ import {
   Matrix4,
   Object3D,
   Euler,
+  Color,
 } from 'three';
 import { runMonsterProbe, type MonsterProbeResult } from './monster/MonsterProbe.js';
 import { MonsterWatchdog } from './monster/MonsterWatchdog.js';
@@ -649,6 +650,8 @@ export class GameSession {
   private setupAtmosphere(def: MapDefinition): void {
     const fogColor = parseInt(def.atmosphere.fog.color.replace('#', '0x'), 16);
     this.scene.fog = new FogExp2(fogColor, def.atmosphere.fog.density);
+    this.scene.background = new Color(fogColor);
+    this.renderer.renderer.setClearColor(fogColor, 1.0);
     if (this.simWorld?.director) {
       this.simWorld.director.setFogDensity(def.atmosphere.fog.density);
     }
@@ -1036,9 +1039,12 @@ export class GameSession {
       }
 
       case 'natatorium': {
+        this.inventory = [{ kind: 'pebble', count: 5 }];
         this.hud.update({
           objective: 'Locate 4 ordinal pillars on the Ear mosaic. Restore power at Plant Room Drain Wheel, then enter keypad code.',
           notebookNumbers: ['#1: ?', '#2: ?', '#3: ?', '#4: ?'],
+          inventory: this.inventory,
+          selectedItemIndex: 0,
         });
 
         const wheelProp = this.layout.props.find((p) => p.kind === 'drain_wheel');

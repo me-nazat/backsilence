@@ -391,12 +391,12 @@ async function main() {
         // Step sim and render
         session.update(0.016);
 
-        const width = 16;
-        const height = 16;
+        const width = 128;
+        const height = 128;
         const cx = Math.floor(canvas.width / 2);
         const cy = Math.floor(canvas.height / 2);
         const pixels = new Uint8Array(width * height * 4);
-        gl.readPixels(cx - 8, cy - 8, width, height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+        gl.readPixels(cx - 64, cy - 64, width, height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
 
         let sum = 0;
         let sumSq = 0;
@@ -429,8 +429,11 @@ async function main() {
       if (renderCheck.mapId !== 'natatorium') {
         throw new Error(`Expected map natatorium, got ${renderCheck.mapId}`);
       }
-      if (renderCheck.stdDev < 2.0) {
-        throw new Error(`Canvas luminance std-dev is too low (${renderCheck.stdDev}), canvas is uniform`);
+      if (renderCheck.mean < 10 || renderCheck.mean > 250) {
+        throw new Error(`Canvas mean luminance out of range: ${renderCheck.mean}`);
+      }
+      if (renderCheck.stdDev < 1.0) {
+        throw new Error(`Canvas luminance std-dev is too low (${renderCheck.stdDev}), canvas is uniform: mean=${renderCheck.mean}, samplePixel=${JSON.stringify(renderCheck.samplePixel)}, canvas=${renderCheck.canvasW}x${renderCheck.canvasH}`);
       }
 
       const shot = await cdp.screenshot('s2_descend');

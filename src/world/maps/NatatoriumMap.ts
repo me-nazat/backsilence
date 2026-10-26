@@ -10,6 +10,7 @@ import {
   MeshBasicMaterial,
   Mesh,
   PlaneGeometry,
+  BoxGeometry,
   Vector3,
   Color,
 } from 'three';
@@ -28,7 +29,7 @@ import type { MapInstance } from './MapInstance.js';
 import { Rng } from '../../procedural/core/prng.js';
 import { TextureRegistry } from '../../procedural/textures/TextureRegistry.js';
 import { WATER_PROFILES } from '../../game/water/WaterProfile.js';
-import { buildStandardMapInstance } from './CommonMapBuilder.js';
+import { buildStandardMapInstance, scaleBoxUv } from './CommonMapBuilder.js';
 import { makeMosaicEarTexture } from '../../procedural/textures/MosaicEarTexture.js';
 import { bakeVertexAO } from '../../procedural/geometry/VertexAO.js';
 import { applyWetDarkening } from '../../game/rendering/WetDarkening.js';
@@ -47,16 +48,16 @@ export const NatatoriumMap: MapDefinition = {
   },
   atmosphere: {
     fog: {
-      color: '#d9d3a2',
-      density: 0.042,
+      color: '#d6dccd',
+      density: 0.038,
     },
-    exposure: 1.12,
+    exposure: 1.15,
     hemisphere: {
-      sky: '#fff2c4',
-      ground: '#6fae8a',
+      sky: '#d6dccd',
+      ground: '#678f44',
     },
     sun: {
-      color: '#fff6e0',
+      color: '#fff8e8',
       intensity: 1.35,
       direction: { x: 0.35, y: 0.9, z: 0.25 },
       castShadow: true,
@@ -480,8 +481,6 @@ export const NatatoriumMap: MapDefinition = {
     const decoyPositions = [
       { x: 36.5, z: 24 },
       { x: -36.5, z: 24 },
-      { x: -36.5, z: -24 },
-      { x: 45, z: 20 },
     ];
     for (let i = 0; i < decoyPositions.length; i++) {
       const dp = decoyPositions[i]!;
@@ -641,6 +640,22 @@ export const NatatoriumMap: MapDefinition = {
     tagMesh.rotation.y = Math.PI; // facing -Z towards player at z=50
     tagMesh.name = 'SpawnTagline';
     instance.root.add(tagMesh);
+
+    // Foyer ceiling (encloses spawn area at height 6.0m)
+    const foyerCeilingGeom = new BoxGeometry(25.0, 0.4, 15.0);
+    scaleBoxUv(foyerCeilingGeom, 25.0, 0.4, 15.0, 2.4);
+    const foyerCeiling = new Mesh(foyerCeilingGeom, wallMat);
+    foyerCeiling.position.set(0, 6.0, 45.5);
+    foyerCeiling.name = 'FoyerCeiling';
+    instance.root.add(foyerCeiling);
+
+    // Vaulted ceiling over grand pool hall (height 9.0m)
+    const grandRoofGeom = new BoxGeometry(80.0, 0.5, 84.0);
+    scaleBoxUv(grandRoofGeom, 80.0, 0.5, 84.0, 2.4);
+    const grandRoof = new Mesh(grandRoofGeom, wallMat);
+    grandRoof.position.set(0, 9.0, -2.5);
+    grandRoof.name = 'GrandHallCeiling';
+    instance.root.add(grandRoof);
 
     // 1. Add Ear mosaic to the pool floor center: [x: -6..6, z: -6..6, y = -0.89]
     const earTexture = makeMosaicEarTexture(512);

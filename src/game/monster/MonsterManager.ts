@@ -37,7 +37,7 @@ export class MonsterManager {
 
   addMonster(def: MonsterDef): MonsterBody {
     const scale = def.scale ?? (def.variant === 'elder' ? 1.15 : def.variant === 'juvenile' ? 0.8 : 1.0);
-    const tint = def.tint ?? (def.variant === 'elder' ? '#5c382b' : def.variant === 'juvenile' ? '#925845' : '#7a4a38');
+    const tint = def.tint ?? (def.variant === 'elder' ? '#443825' : def.variant === 'juvenile' ? '#6e5a3c' : '#5a5035');
 
     const body = new MonsterBody(def.id, scale, tint, this.water, this.audio);
     this.bodies.set(def.id, body);

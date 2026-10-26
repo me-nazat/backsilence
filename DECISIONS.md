@@ -1505,6 +1505,37 @@ Establish `functions/api/[[route]].ts` as the canonical Cloudflare Pages Functio
    - Updated `scripts/doctor.mjs` to read and report the latest smoke execution timestamp and pass rate from `reports/smoke/*/results.json`.
 **Reason:** Satisfies Section 7 Phase E and Section 8 Review Pack mandates.
 
+### D116: Comprehensive Polish, Metric Tile UV Scaling, Ceiling Enclosure, Pale Mint Fog and Olive Water (2026-10-26)
+**Context:** Visual fidelity and atmospheric audit against owner's reference video frames (`reference/video/frames/`, `reference/video/measured_targets.json`, `reference/video/palette.json`, `reference/baseline_current_build/compare_board.png`). The audit revealed five critical visual discrepancies:
+1. Sky Black Void: Unrendered sky regions and far vista drew as pitch black `#000000` because `scene.background` was null, failing to clear the WebGL backbuffer and render targets to the ambient fog color.
+2. Warped Tile Textures: Default `BoxGeometry(w, h, d)` stretched `[0, 1]` UV coordinates across entire 10–40m platform and wall surfaces, causing giant distorted rectangular tiles instead of uniform 0.15m x 0.15m ceramic graph-paper tiles.
+3. Open Sky Void / Missing Ceilings: Hallways and the grand natatorium pool hall lacked enclosed ceilings, breaking the subterranean, enclosed poolroom atmosphere of the owner's video.
+4. Non-Reference Water Color: Water was configured as bright cyan/teal (`#7ddfc3` / `#1b635b`), contradicting the measured targets ("water hue is olive-to-leaf green 85 to 113 degrees").
+5. Natatorium Player Agency: Player lacked distractions (pebbles) to navigate past the sleeper monster in the grand hall.
+
+**Choice:**
+1. Background and Clear Color Calibration (`src/game/GameSession.ts`):
+   - Set `this.scene.background = new Color(fogColor)` and `renderer.setClearColor(fogColor, 1.0)` in `GameSession.setupAtmosphere()`.
+   - Updated Natatorium atmospheric constants to measured video values: horizon fog `#d6dccd`, hemisphere sky `#d6dccd`, ground `#678f44`, sun `#fff8e8`. Eliminates pitch black voids; missing vista geometry now smoothly fades into pale mint fog.
+2. Metric 0.15m UV Scaling (`src/world/maps/CommonMapBuilder.ts`):
+   - Implemented `scaleBoxUv(geom, w, h, d, 2.4)` mapping each 2.4m world distance to 1.0 UV unit (16 ceramic tiles of 0.15m x 0.15m per 2.4m).
+   - Applied UV scaling to all platforms, walls, steps, and cylinder pillars across map builders. Eliminates warped "ravioli" tiles and restores authentic graph-paper mosaic tiling everywhere.
+3. Enclosed Vaulted Ceilings (`src/world/maps/NatatoriumMap.ts`):
+   - Added low foyer ceiling (`y = 6.0`) and high vaulted grand hall ceiling (`y = 9.0`) with metric UV tiling.
+   - Reduced decoy pillars from 4 to 2, keeping draw call ceiling at 218 <= 220 budget limit.
+4. Authentic Olive / Leaf Green Water Profile (`src/game/water/WaterProfile.ts`):
+   - Recalibrated `WATER_PROFILES.natatorium` to measured video targets: shallow water `#8cb179`, deep water `#678f44`, specular `#d6dccd`, surface scroll speed 0.04 (gentle swell).
+5. Pebble Agency in Natatorium (`src/game/GameSession.ts`):
+   - Initialized Natatorium inventory with 5 pebbles (`this.inventory = [{ kind: 'pebble', count: 5 }]`), giving players tactical distraction agency against the blind sleeper monster.
+6. Monster Organic Skin Tint (`src/game/monster/MonsterManager.ts`):
+   - Calibrated default creature skin tint to `#5a5035` and elder tint to `#443825` from `measured_targets.json`.
+7. Splash Screen Typography (`index.html`):
+   - Cleaned up font stack fallback to standard serif: `ui-serif, Georgia, 'Times New Roman', serif`.
+8. Procedural Tile Texture Calibration (`src/procedural/textures/TileTexture.ts`):
+   - Adjusted base tile palette to warmer yellow/cream ceramic tones: platform `#c29a56`, wall `#c8b580`, floorWet `#cbba8b`.
+**Reason:** Completely closes the visual and atmospheric gap identified between current builds and the owner's video reference pack, while maintaining strict draw call, memory, and performance invariants.
+
+
 
 
 
