@@ -60,56 +60,12 @@ export class LoadingScreen {
     `;
 
     el.innerHTML = `
-      <div style="width: min(520px, 90vw); display: flex; flex-direction: column; align-items: center; gap: 20px; text-align: center;">
-        <!-- Header -->
-        <div style="display: flex; flex-direction: column; gap: 6px;">
-          <div style="font-size: 11px; letter-spacing: 0.25em; color: var(--danger, #b3261e); font-weight: bold;">
-            INITIALIZING EXPEDITION
-          </div>
-          <h2 id="loading-map-title" style="font-size: clamp(1.4rem, 4vw, 2.0rem); color: var(--water, #86cfa0); margin: 0; letter-spacing: 0.05em;">
-            THE FLOODED POOLROOMS
-          </h2>
-          <div id="loading-map-tagline" style="font-size: 12px; opacity: 0.75; font-style: italic;">
-            Infinite warm water and damp ceramic tiles.
-          </div>
+      <div style="width: min(380px, 85vw); display: flex; flex-direction: column; align-items: center; gap: 16px; text-align: center;">
+        <div id="loading-map-title" style="font-family: var(--bs-font-mono, monospace); font-size: 13px; letter-spacing: 0.18em; color: #e8e4d9; opacity: 0.85;">
+          DESCENDING...
         </div>
-
-        <!-- Mini-Layout Preview Canvas -->
-        <div style="
-          position: relative;
-          width: 280px;
-          height: 180px;
-          border: 1px solid rgba(134,207,160,0.3);
-          background: #0d0b06;
-          box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
-          overflow: hidden;
-        ">
-          <canvas id="loading-preview-canvas" width="280" height="180" style="display: block; width: 100%; height: 100%;"></canvas>
-          <div style="
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(rgba(18,16,16,0) 50%, rgba(0,0,0,0.25) 50%);
-            background-size: 100% 4px;
-            pointer-events: none;
-          "></div>
-        </div>
-
-        <!-- Progress Bar -->
-        <div style="width: 100%; display: flex; flex-direction: column; gap: 6px;">
-          <div style="width: 100%; height: 6px; background: rgba(217,211,162,0.15); border-radius: 3px; overflow: hidden;">
-            <div id="loading-progress-bar" style="width: 10%; height: 100%; background: var(--water, #86cfa0); transition: width 0.15s ease-out;"></div>
-          </div>
-          <div id="loading-tip" style="font-size: 11px; opacity: 0.65; min-height: 28px; line-height: 1.4;">
-            "Crouching in deep water suppresses ripples and splashing."
-          </div>
-        </div>
-
-        <!-- 8s Timeout / Honest Progress Prompt -->
-        <div id="loading-timeout-prompt" style="display: none; flex-direction: column; align-items: center; gap: 10px; margin-top: 6px;">
-          <span style="font-size: 11px; color: var(--danger, #ff8a80); opacity: 0.9;">Still working... shader warmup or asset processing delayed.</span>
-          <button id="btn-loading-cancel" class="analog-btn danger" style="padding: 6px 14px; font-size: 11px;">
-            CANCEL TO MENU
-          </button>
+        <div style="width: 100%; height: 3px; background: rgba(255,255,255,0.08); border-radius: 2px; overflow: hidden;">
+          <div id="loading-progress-bar" style="width: 10%; height: 100%; background: #86cfa0; transition: width 0.15s ease-out;"></div>
         </div>
       </div>
     `;

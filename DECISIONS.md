@@ -1459,4 +1459,29 @@ Establish `functions/api/[[route]].ts` as the canonical Cloudflare Pages Functio
 5. Instrumented Metrics & Enforcement Test: Instrumented `Renderer.ts` with `beginFrame()`, `endFrame()`, `getSceneRenders()`, and `getFrameMetrics()` tracking draw calls, triangles, and non-auxiliary 3D scene renders per frame. Added `tests/render-pipeline.test.ts` verifying scene renders per frame equals 1 (or at most 2 on High tier with planar reflection).
 **Reason:** Satisfies Section 4 Phase B mandates. Eliminates redundant GPU workload and guarantees exactly 1 opaque scene render per frame.
 
+### D113: Phase C First Minute Reference Flow (2026-10-26)
+**Context:** The reviewer noted on commit `6fa06ea` that pressing DESCEND opened a "SENSOR CALIBRATION" modal followed by the "Orientation" training pool with a tethered creature 23m away, rather than the flooded hall from the owner's video. Furthermore, in Natatorium the camera started in a narrow channel facing away from the tagline wall.
+**Choice:**
+1. Direct Spawn Facing Tagline Wall: Set initial player yaw to `Math.PI` (+Z) at `{ x: 0, y: 0.3, z: 50 }` facing the spawn tagline wall at `z = 52.4..53.0` from 2.5m at eye height 1.65m. Placed authentic "IT CAN'T SEE YOU. IT HEARS THE WATER." decal on yellow/cream pool tiles matching reference frames `f_001.png`–`f_003.png`.
+2. Clear Sightline into Flooded Hall: Repositioned foyer colonnade pillars to `x = -6` and `x = 6` at `z = 46`, opened south hall wall entrance, and shifted floating pontoon 1 so the central path from spawn into the pool hall is unobstructed.
+3. Rapid Creature Encounter: Placed standard sleeper creature spawn at `{ x: 2, y: -0.9, z: 22 }` (12–15m from hall entrance), visible within 15–20 seconds of wading into the hall.
+4. Quiet In-World Teaching: Replaced blocking pop-ups with two brief, quiet lines in first 90s only: "Dry tiles are silent." and "Water is loud.", shown for 4 seconds on first dry step and first water wading.
+5. Instant Audio Unlock & Calm Loading: Combined audio unlock with DESCEND click, bypassing calibration modal and press-any-key gate. Reduced loading screen to a single calm line and progress bar.
+6. Optional Guided Practice & Calibration: Moved calibration to an optional button in Settings, and Orientation mode to a "Guided practice" button in Play Hub.
+7. Sub-1s Death Retry: Configured death screen retry to restart the session in-place via `game:retry` event in < 1 second.
+**Reason:** Satisfies Section 5 Phase C mandates. Matches owner's video first-minute flow.
+
+### D114: Phase D The Clean Picture HUD (2026-10-26)
+**Context:** The reviewer noted on commit `6fa06ea` that the default HUD was cluttered with an objective pill, notebook strip, status chip, acoustic panel, bulky mouse lock bar, recording OSD, and captions, whereas the owner's video shows a completely clean view. In addition, `#screen-home` had an opaque background obscuring the 3D hero scene.
+**Choice:**
+1. Minimal Default HUD: Hid recording OSD, scanlines, objective pill, status chip, and full acoustic panel by default via CSS. Default view displays only a thin horizontal noise meter near the bottom (`#hud-noise-minimal`) and interaction prompt when an object is usable.
+2. Objectives on Pause Menu: Moved objective description to the pause menu card.
+3. Single-Line Pointer Lock Hint: Replaced large mouse lock bar with a subtle centered line: `[ Click to lock mouse look ]`, visible only when pointer lock is released.
+4. Debug-Gated Overlays: Conditioned magenta monster marker, edge indicator, and debug statistics on `?debug=1`.
+5. Cinematic Mode & Show More HUD: Added "SHOW MORE HUD" and "CINEMATIC MODE" accessibility toggles in Settings. Cinematic mode hides all HUD elements including the noise indicator.
+6. Transparent Home Screen: Set `#screen-home { background: transparent !important; }` in CSS, allowing the 3D `LabScene` hero environment to render behind the menu.
+7. Enforcement Test Suite: Added `tests/hud-clean.test.ts` verifying <= 2 visible HUD elements on a default frame, zero elements in cinematic mode, and full restoration when "show more HUD" is enabled.
+**Reason:** Satisfies Section 6 Phase D mandates. Recreates the clean picture from the reference video.
+
+
 

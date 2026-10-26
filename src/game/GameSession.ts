@@ -220,6 +220,11 @@ export class GameSession {
   private autoExposureFrameCount = 0;
   private currentExposure = 1.1;
 
+  // First minute reference flow & quiet hints
+  private hasShownDryHint = false;
+  private hasShownWaterHint = false;
+  private firstCreatureSightingTime: number | null = null;
+
   // Debug visualizers
   private debugMode = false;
   private debugKeydownHandler: ((e: KeyboardEvent) => void) | null = null;
@@ -571,10 +576,10 @@ export class GameSession {
 
       this.setupNetSession();
 
-      // Orient player towards map center on spawn
+      // Orient player towards map center on spawn (or spawn tagline wall for natatorium)
       const pSpawn = this.layout.spawns.player[0] ?? { x: 0, y: 1.0, z: 0 };
       const centerZ = (this.layout.bounds.minZ + this.layout.bounds.maxZ) / 2;
-      const initialYaw = Math.atan2(-(0 - pSpawn.x), -(centerZ - pSpawn.z));
+      const initialYaw = this.mapId === 'natatorium' ? Math.PI : Math.atan2(-(0 - pSpawn.x), -(centerZ - pSpawn.z));
       this.simWorld.player.setYaw(initialYaw);
 
       // 7. Flashlight Setup (Map 5)
@@ -1533,9 +1538,13 @@ export class GameSession {
     this.isWon = false;
     this.isDead = false;
 
+    this.hasShownDryHint = false;
+    this.hasShownWaterHint = false;
+    this.firstCreatureSightingTime = null;
+
     const spawn = this.layout.spawns.player[0] ?? { x: 0, y: 1.0, z: 0 };
     const centerZ = (this.layout.bounds.minZ + this.layout.bounds.maxZ) / 2;
-    const initialYaw = Math.atan2(-(0 - spawn.x), -(centerZ - spawn.z));
+    const initialYaw = this.mapId === 'natatorium' ? Math.PI : Math.atan2(-(0 - spawn.x), -(centerZ - spawn.z));
     this.simWorld.player.teleport(spawn, initialYaw);
     this.simWorld.resetOnRetry(spawn);
     for (const m of this.simWorld.monsters) {
@@ -1707,6 +1716,34 @@ export class GameSession {
       this.scene,
       this.mapDef?.atmosphere?.fog?.density ?? 0.045,
     );
+
+    // 5c. Quiet in-world hints (first 90s only)
+    if (this.timeSurvived <= 90 && !this.isDead) {
+      if (!this.hasShownDryHint && !currSnap.wet && currSnap.onGround) {
+        this.hasShownDryHint = true;
+        this.hud.showQuietHint('Dry tiles are silent.', 4000);
+      } else if (!this.hasShownWaterHint && currSnap.wet) {
+        this.hasShownWaterHint = true;
+        this.hud.showQuietHint('Water is loud.', 4000);
+      }
+    }
+
+    // 5d. Creature sighting detection
+    if (this.firstCreatureSightingTime === null && this.simWorld.monsters.length > 0) {
+      for (const m of this.simWorld.monsters) {
+        const dx = m.pos.x - currSnap.pos.x;
+        const dz = m.pos.z - currSnap.pos.z;
+        const dist = Math.hypot(dx, dz);
+        if (dist <= 25.0) {
+          this.firstCreatureSightingTime = this.timeSurvived;
+          const g = (typeof window !== 'undefined' ? window : globalThis) as Record<string, unknown>;
+          if (g.__backsilence) {
+            (g.__backsilence as Record<string, unknown>).firstCreatureSightingTime = this.firstCreatureSightingTime;
+          }
+          break;
+        }
+      }
+    }
 
     this.simTicksTimer += dt;
     if (this.simTicksTimer >= 5.0) {
@@ -3203,7 +3240,8 @@ export class GameSession {
       }
     }
 
-    if (this.simWorld.monsters.length === 0) {
+    const isDebug = typeof window !== 'undefined' && (new URLSearchParams(window.location.search).get('debug') === '1' || (window as unknown as { __BACKSILENCE_DEBUG__?: boolean }).__BACKSILENCE_DEBUG__ === true);
+    if (!isDebug || this.simWorld.monsters.length === 0) {
       if (this.magentaMarker) this.magentaMarker.visible = false;
       if (this.locatorElement) this.locatorElement.style.display = 'none';
       return;
@@ -3410,6 +3448,10 @@ export class GameSession {
     if (!this.simWorld?.player?.pos) return null;
     const p = this.simWorld.player.pos;
     return { x: p.x, y: p.y, z: p.z };
+  }
+
+  getFirstCreatureSightingTime(): number | null {
+    return this.firstCreatureSightingTime;
   }
 }
 

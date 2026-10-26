@@ -7,6 +7,7 @@
 
 import {
   MeshStandardMaterial,
+  MeshBasicMaterial,
   Mesh,
   PlaneGeometry,
   Vector3,
@@ -87,12 +88,12 @@ export const NatatoriumMap: MapDefinition = {
       kind: 'marble',
     });
 
-    // Colonnade in foyer
-    for (let x = -8; x <= 8; x += 8) {
+    // Colonnade in foyer (x = -6 and 6, center x = 0 left open for unobstructed view and wading)
+    for (const x of [-6, 6]) {
       pillars.push({
         id: `pil_foyer_${x}`,
         x,
-        z: 48,
+        z: 46,
         radius: 0.55,
         height: 6.0,
         kind: 'marble',
@@ -201,7 +202,7 @@ export const NatatoriumMap: MapDefinition = {
     // 4. Floating pontoons (3 rafts 6x6 between deck and rotunda)
     platforms.push({
       id: 'pontoon_1',
-      rect: [-5, 20, 1, 26],
+      rect: [-14, 18, -8, 24],
       topY: 0.25,
       kind: 'metal',
     });
@@ -361,10 +362,43 @@ export const NatatoriumMap: MapDefinition = {
     });
 
     // 11. Grand Pool Hall Outer Enclosure Walls
+    // South Wall with archway opening [-4, 4] connecting foyer corridor
     walls.push({
-      id: 'wall_hall_south',
+      id: 'wall_hall_south_w',
       min: { x: -40, y: -0.9, z: 38 },
+      max: { x: -4, y: 9.0, z: 39 },
+      isWall: true,
+    });
+    walls.push({
+      id: 'wall_hall_south_e',
+      min: { x: 4, y: -0.9, z: 38 },
       max: { x: 40, y: 9.0, z: 39 },
+      isWall: true,
+    });
+    walls.push({
+      id: 'wall_hall_south_lintel',
+      min: { x: -4, y: 4.5, z: 38 },
+      max: { x: 4, y: 9.0, z: 39 },
+      isWall: true,
+    });
+
+    // Foyer Enclosure & Spawn Tagline Wall
+    walls.push({
+      id: 'wall_foyer_w',
+      min: { x: -12.5, y: -0.9, z: 38 },
+      max: { x: -12.0, y: 6.0, z: 53.0 },
+      isWall: true,
+    });
+    walls.push({
+      id: 'wall_foyer_e',
+      min: { x: 12.0, y: -0.9, z: 38 },
+      max: { x: 12.5, y: 6.0, z: 53.0 },
+      isWall: true,
+    });
+    walls.push({
+      id: 'wall_spawn_tagline',
+      min: { x: -12.5, y: -0.9, z: 52.4 },
+      max: { x: 12.5, y: 6.0, z: 53.0 },
       isWall: true,
     });
     walls.push({
@@ -442,14 +476,12 @@ export const NatatoriumMap: MapDefinition = {
       kind: 'tile',
     });
 
-    // 6 Decoy pillars (have digits but NO ordinal marker)
+    // Decoy pillars (have digits but NO ordinal marker)
     const decoyPositions = [
       { x: 36.5, z: 24 },
       { x: -36.5, z: 24 },
       { x: -36.5, z: -24 },
       { x: 45, z: 20 },
-      { x: -50, z: 12 },
-      { x: 0, z: -48 },
     ];
     for (let i = 0; i < decoyPositions.length; i++) {
       const dp = decoyPositions[i]!;
@@ -485,7 +517,7 @@ export const NatatoriumMap: MapDefinition = {
         id: 'monster_1',
         variant: 'standard',
         spawn: monsterSpawn,
-        sleeperSpawn: { x: 0, y: -0.9, z: 25 },
+        sleeperSpawn: { x: 2, y: -0.9, z: 22 },
         spawnGrace: 2.0,
       },
     ];
@@ -556,7 +588,6 @@ export const NatatoriumMap: MapDefinition = {
   async build(layout: LayoutData, env: BuildEnv): Promise<MapInstance> {
     const tex = TextureRegistry.getInstance();
     const poolTiles = tex.getTileSet('platform', layout.seed);
-    const marbleTex = tex.getMarbleSet(layout.seed);
 
     const platformMat = new MeshStandardMaterial({
       map: poolTiles.albedo,
@@ -570,9 +601,9 @@ export const NatatoriumMap: MapDefinition = {
     applyParallaxOcclusion(platformMat, { heightMap: poolTiles.height, scale: 0.025, maxDistance: 6.0 });
 
     const wallMat = new MeshStandardMaterial({
-      map: marbleTex.albedo,
-      roughnessMap: marbleTex.roughness,
-      normalMap: marbleTex.normal,
+      map: poolTiles.albedo,
+      roughnessMap: poolTiles.roughness,
+      normalMap: poolTiles.normal,
       roughness: 0.45,
       metalness: 0.05,
     });
@@ -593,6 +624,23 @@ export const NatatoriumMap: MapDefinition = {
       wallMat,
       floorMat,
     });
+
+    // 0. Spawn Wall Tagline Decal ("IT CAN'T SEE YOU. IT HEARS THE WATER.")
+    const tagTex = tex.getTagline(77, 1024, 512);
+    const tagMat = new MeshBasicMaterial({
+      map: tagTex,
+      transparent: true,
+      depthWrite: false,
+      polygonOffset: true,
+      polygonOffsetFactor: -1,
+      polygonOffsetUnits: -1,
+    });
+    const tagGeo = new PlaneGeometry(4.8, 2.4);
+    const tagMesh = new Mesh(tagGeo, tagMat);
+    tagMesh.position.set(0, 0.3 + 1.65, 52.38);
+    tagMesh.rotation.y = Math.PI; // facing -Z towards player at z=50
+    tagMesh.name = 'SpawnTagline';
+    instance.root.add(tagMesh);
 
     // 1. Add Ear mosaic to the pool floor center: [x: -6..6, z: -6..6, y = -0.89]
     const earTexture = makeMosaicEarTexture(512);

@@ -60,8 +60,8 @@ export const GAME_MODES: GameModeInfo[] = [
   },
   {
     id: 'training',
-    title: 'TRAINING POOL',
-    subtitle: 'Safe acoustic orientation room. Calibrate headphones, practice wading, and test noise radii.',
+    title: 'GUIDED PRACTICE',
+    subtitle: 'Optional non-lethal acoustic orientation in Sector 0. Practice wading, sound radii, and sensor calibration.',
     icon: 'shield',
     players: '1 Player',
     duration: 'Casual',
@@ -174,7 +174,7 @@ export class PlayHubScreen {
               SELECT RECONNAISSANCE PROTOCOL
             </div>
           </div>
-          <div id="btn-back-wrap"></div>
+          <div id="btn-back-wrap" style="display: flex; gap: 12px; align-items: center;"></div>
         </div>
 
         <!-- Mode Grid -->
@@ -184,12 +184,24 @@ export class PlayHubScreen {
       </div>
     `;
 
-    const backBtn = new Button({
-      text: '← RETURN HOME',
-      variant: 'ghost',
-      onClick: () => this.callbacks.onBack(),
-    });
-    this.element.querySelector('#btn-back-wrap')?.appendChild(backBtn.element);
+    const wrap = this.element.querySelector('#btn-back-wrap');
+    if (wrap) {
+      const practiceBtn = new Button({
+        text: 'GUIDED PRACTICE',
+        variant: 'ghost',
+        onClick: () => this.callbacks.onSelectMode('training'),
+      });
+      practiceBtn.element.id = 'btn-guided-practice';
+      practiceBtn.element.style.fontSize = '12px';
+      wrap.appendChild(practiceBtn.element);
+
+      const backBtn = new Button({
+        text: '← RETURN HOME',
+        variant: 'ghost',
+        onClick: () => this.callbacks.onBack(),
+      });
+      wrap.appendChild(backBtn.element);
+    }
 
     // Card hover and click handlers
     this.element.querySelectorAll<HTMLElement>('.mode-card').forEach((card) => {
