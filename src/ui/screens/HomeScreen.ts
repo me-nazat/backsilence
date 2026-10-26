@@ -76,7 +76,7 @@ export class HomeScreen {
 
         <!-- Center Hero Wordmark & Tagline -->
         <div style="text-align: center; max-width: 800px; display: flex; flex-direction: column; align-items: center; pointer-events: auto; margin: auto 0;">
-          <svg id="hero-logo-svg" viewBox="0 0 460 70" width="min(520px, 85vw)" height="auto" style="overflow: visible; filter: drop-shadow(0 0 16px rgba(134,207,160,0.3));">
+          <svg id="hero-logo-svg" viewBox="0 0 460 70" style="width: min(520px, 85vw); height: auto; overflow: visible; filter: drop-shadow(0 0 16px rgba(134,207,160,0.3));">
             <!-- Coded stroke-font wordmark for BACKSILENCE -->
             <text x="50%" y="54" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="52" fill="none" stroke="var(--bs-cream)" stroke-width="2.5" letter-spacing="8">
               BACKSILENCE

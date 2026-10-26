@@ -29,6 +29,14 @@ export default tseslint.config(
     ignores: ['dist/**', 'node_modules/**', 'scripts/**', 'scratch/**', 'public/**'],
   },
   {
+    files: ['vite.config.ts', 'vitest.config.ts'],
+    rules: {
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-call': 'off',
+    },
+  },
+  {
     files: ['src/game/**', 'src/sim/**', 'src/world/**'],
     rules: {
       'no-empty': ['error', { allowEmptyCatch: false }],

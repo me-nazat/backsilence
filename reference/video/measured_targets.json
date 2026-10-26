@@ -1,0 +1,88 @@
+{
+ "source": "owner video, game region only, 28 sampled frames",
+ "video_game_region": {
+  "mean_luminance": {
+   "min": 0.48,
+   "median": 0.63,
+   "max": 0.71
+  },
+  "p5_luminance": {
+   "min": 0.08,
+   "median": 0.4,
+   "max": 0.59,
+   "note": "no true blacks except the final jump-scare frame"
+  },
+  "p95_luminance": {
+   "min": 0.65,
+   "median": 0.82,
+   "max": 0.93
+  },
+  "mean_saturation": {
+   "min": 0.22,
+   "median": 0.33,
+   "max": 0.47
+  },
+  "fraction_pixels_above_0.9": {
+   "typical": 0.005,
+   "max": 0.12,
+   "note": "the horizon is pale mint-grey at about 0.86 value, not blown to white"
+  },
+  "fraction_pixels_below_0.1": {
+   "typical": 0.0
+  }
+ },
+ "current_build_screenshots": {
+  "mean_luminance": [
+   0.45,
+   0.48
+  ],
+  "p5_luminance": [
+   0.04,
+   0.05
+  ],
+  "p95_luminance": [
+   0.8,
+   0.87
+  ],
+  "fraction_pixels_below_0.1": [
+   0.09,
+   0.33
+  ],
+  "verdict": "too much pure black (the void above the walls), not enough lifted mid-tones"
+ },
+ "colour_targets_median_rgb": {
+  "water_deep_mid_hall": "#678f44",
+  "water_near_swell": "#6e8949",
+  "water_far": "#959e69",
+  "water_shallow_over_cracked_floor": "#8cb179",
+  "water_in_dense_fog_far": "#5f865a",
+  "water_in_dense_fog_near": "#3e5a2c",
+  "water_in_trench": "#7da46d",
+  "slab_top_near": "#c29a56",
+  "slab_top_far": "#c1b584",
+  "slab_in_trench_shot": "#bfaf7f",
+  "dry_floor": "#cbba8b",
+  "dry_tile_wall": "#c8b580",
+  "dry_plaster_wall": "#ae9e6c",
+  "ceiling_arch": "#b7a775",
+  "horizon_fog": "#d6dccd",
+  "dense_fog_sky": "#b8c0a6",
+  "creature_body": "#5a5035",
+  "creature_head": "#59462d"
+ },
+ "hue_notes": "Water hue is olive-to-leaf green (85 to 113 degrees), saturation 0.32 to 0.52, value 0.35 to 0.69. It is NOT teal or cyan. Slabs and walls hue 38 to 48 degrees (warm tan), saturation 0.32 to 0.56. Fog is nearly neutral pale mint (hue about 80, saturation 0.07 to 0.14).",
+ "audio": {
+  "duration_s": 73,
+  "peak_dbfs": -2.0,
+  "quiet_moments_rms_dbfs": [
+   -46,
+   -50
+  ],
+  "commentary_plus_game_rms_dbfs": [
+   -12,
+   -20
+  ],
+  "note": "A streamer's voice is mixed over the game audio, so absolute spectra include speech. The quiet seconds (about 7 to 9, 28, 52 to 55) show the game's own room tone at roughly -46 dBFS with a broad mid-weighted spectrum and no strong hum.",
+  "stereo_correlation_quiet": 0.81
+ }
+}

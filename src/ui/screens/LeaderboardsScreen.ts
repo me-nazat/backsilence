@@ -175,25 +175,35 @@ export class LeaderboardsScreen {
 
       const res = await fetch(`/api/leaderboard?${query.toString()}`);
       if (res.ok) {
-        const data = (await res.json()) as { rows: LeaderboardEntry[]; myRow?: LeaderboardEntry };
-        this.renderRows(data.rows, data.myRow, myPlayerId);
-        return;
+        const data = (await res.json()) as { rows?: LeaderboardEntry[]; myRow?: LeaderboardEntry; offline?: boolean };
+        if (!data.offline && Array.isArray(data.rows) && data.rows.length > 0) {
+          this.renderRows(data.rows, data.myRow, myPlayerId, false);
+          return;
+        }
       }
     } catch {
       // Offline fallback
     }
 
-    // Default or mock offline view
+    // Default or mock offline view (calm offline state)
     const offlineRows: LeaderboardEntry[] = [
       { rank: 1, playerId: 'p1', name: 'EchoStalker', tag: '0001', score: 94820, timeMs: 38200, noiseUnits: 12.4, status: 'verified', hasReplay: true, runId: 'run-champion' },
       { rank: 2, playerId: 'p2', name: 'WaveWhisperer', tag: '4210', score: 89400, timeMs: 41200, noiseUnits: 19.8, status: 'verified', hasReplay: true, runId: 'run-p2' },
       { rank: 3, playerId: 'p3', name: 'SubmergedSoul', tag: '7721', score: 84100, timeMs: 47800, noiseUnits: 24.1, status: 'pending', hasReplay: false, runId: 'run-p3' },
     ];
-    this.renderRows(offlineRows, undefined, myPlayerId);
+    this.renderRows(offlineRows, undefined, myPlayerId, true);
   }
 
-  private renderRows(rows: LeaderboardEntry[], myRow?: LeaderboardEntry, myPlayerId?: string): void {
+  private renderRows(rows: LeaderboardEntry[], myRow?: LeaderboardEntry, myPlayerId?: string, isOffline = false): void {
     this.listContainer.innerHTML = '';
+
+    if (isOffline) {
+      const banner = document.createElement('div');
+      banner.className = 'bs-offline-state';
+      banner.style.cssText = 'padding: 10px 14px; margin-bottom: 12px; background: rgba(216,179,106,0.08); border: 1px solid var(--bs-border); border-radius: var(--bs-radius-sm); font-family: var(--bs-font-mono); font-size: var(--bs-text-xs); color: var(--bs-tan); display: flex; align-items: center; justify-content: space-between;';
+      banner.innerHTML = `<span>ARCHIVE OFFLINE // LOCAL CACHED RECORDS</span><span style="opacity:0.6; font-size: 10px;">SOLO READY</span>`;
+      this.listContainer.appendChild(banner);
+    }
 
     rows.forEach((r) => {
       const isPinned = r.playerId === myPlayerId;

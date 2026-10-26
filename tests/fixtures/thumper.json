@@ -1,0 +1,12 @@
+{
+  "status": "UNVERIFIED",
+  "present": false,
+  "reason": "Binary glTF model (public/models/thumper.glb) absent in repository (Sketchfab requires authentication). Engine seamlessly operating on continuous SkinnedMesh procedural creature fallback.",
+  "fallbackActive": "ProceduralSkin",
+  "targetBounds": {
+    "hunchHeightMeters": 1.85,
+    "pivot": "feet"
+  },
+  "setupGuide": "MODELS_SETUP.md",
+  "attributions": "CREDITS.md"
+}

@@ -1440,3 +1440,12 @@ Establish `functions/api/[[route]].ts` as the canonical Cloudflare Pages Functio
    - Aligned `core.test.ts` expectation for `uiScale` upper clamp to 2.0 (200% text scale).
 **Reason:** Satisfies Section 11 Phase I mandates of Prompt 5 of 5.
 
+### D111: Phase A Make the Repo Honestly Green (2026-10-26)
+**Context:** The reviewer noted on commit `6fa06ea` that `tests/creatures-v2.test.ts` imported `../reports/models/thumper.json` which is git-ignored, breaking fresh clones. Furthermore, `<svg>` on `HomeScreen.ts` had invalid attribute `height="auto"`, and `/api/leaderboard` returned unhandled 500 when dev proxy backend was absent.
+**Choice:**
+1. Committed Test Fixture: Moved `thumper.json` into `tests/fixtures/thumper.json` and updated `tests/creatures-v2.test.ts` import.
+2. Valid SVG Dimensions: Replaced `height="auto"` attribute with CSS style properties `width: min(520px, 85vw); height: auto;` in `HomeScreen.ts`.
+3. Offline-Ready API & Dev Proxy: Updated `vite.config.ts` proxy to handle `ECONNREFUSED` by gracefully responding with 200 `{ offline: true, rows: [] }`. Updated `LeaderboardsScreen.ts` to display calm `ARCHIVE OFFLINE // LOCAL CACHED RECORDS` banner and fallback cached records without logging console errors.
+4. Repository Diagnostic Doctor: Added `scripts/doctor.mjs` checking git commit, Node version, reference frame count (>= 20), model presence, and last smoke test results.
+**Reason:** Satisfies Section 3 Phase A mandates. Fresh clones pass `npm ci && npm run verify`.
+

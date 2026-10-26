@@ -16,7 +16,7 @@ import { ProceduralSkin, GlbSkin } from '../src/game/creatures/MonsterSkin.js';
 import { FlockDirector } from '../src/game/creatures/FlockDirector.js';
 import { defaultSettings, clampSettings } from '../src/app/Settings.js';
 import type { WaterSystem } from '../src/game/water/WaterSystem.js';
-import thumperReport from '../reports/models/thumper.json';
+import thumperReport from './fixtures/thumper.json';
 
 describe('Phase F: Creatures & Animation Pipeline', () => {
   it('builds continuous seamless SkinnedMesh with 20 bones and valid normalized weights', () => {
