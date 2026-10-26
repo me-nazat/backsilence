@@ -139,28 +139,14 @@ export class UIManager {
         const engine = AudioEngine.getInstance();
         void engine.init().then(() => engine.startAmbience());
 
-        const isCalibrated = typeof localStorage !== 'undefined' && localStorage.getItem('backsilence_calibration_done') === 'true';
-
-        const startDescent = () => {
-          const lastTape = typeof localStorage !== 'undefined' ? (localStorage.getItem('backsilence_last_tape') as MapId | null) : null;
-          const targetMap = lastTape ?? 'orientation';
-          this.startGame({
-            mode: 'single',
-            mapId: targetMap,
-            difficulty: 1,
-            seed: Date.now(),
-          });
-        };
-
-        if (!isCalibrated) {
-          const modal = new CalibrationModal({
-            onComplete: () => startDescent(),
-            onSkip: () => startDescent(),
-          });
-          modal.mount(this.container);
-        } else {
-          startDescent();
-        }
+        const lastTape = typeof localStorage !== 'undefined' ? (localStorage.getItem('backsilence_last_tape') as MapId | null) : null;
+        const targetMap = lastTape ?? 'natatorium';
+        this.startGame({
+          mode: 'single',
+          mapId: targetMap,
+          difficulty: 1,
+          seed: Date.now(),
+        });
       },
       onDiveOnline: () => this.navigateTo('ROOM_LINK'),
       onDailyDescent: () => this.navigateTo('LEADERBOARDS'),
@@ -325,6 +311,13 @@ export class UIManager {
       onBack: () => this.goBack(),
       onApplySettings: (s) => this.applySettings(s),
       onOpenAudioTest: () => this.toggleAudioLab(),
+      onCalibrate: () => {
+        const modal = new CalibrationModal({
+          onComplete: () => modal.dispose(),
+          onSkip: () => modal.dispose(),
+        });
+        modal.mount(this.container);
+      },
     });
 
     this.howToPlay = new HowToPlay(() => this.goBack());
@@ -352,12 +345,8 @@ export class UIManager {
     this.deathScreen = new DeathScreen({
       onRetry: () => {
         this.deathScreen.hide();
-        if (this.lastConfig) {
-          this.startGame({ ...this.lastConfig, seed: Date.now() });
-        } else {
-          this.bus.emit('game:retry' as unknown as 'game:start', undefined as unknown as { mode: 'single'; mapId: 'poolrooms'; difficulty: number; seed: number });
-          this.resumeGame();
-        }
+        this.bus.emit('game:retry' as unknown as 'game:start', undefined as unknown as { mode: 'single'; mapId: 'poolrooms'; difficulty: number; seed: number });
+        this.resumeGame();
       },
       onMenu: () => this.quitToMenu(),
     });
@@ -415,6 +404,9 @@ export class UIManager {
     this.settingsPanel.mount(this.container);
     this.howToPlay.mount(this.container);
     this.hud.mount(this.container);
+    const curSettings = this.store.get().settings;
+    this.hud.setShowMoreHud(Boolean(curSettings.accessibility?.showMoreHud));
+    this.hud.setCinematic(Boolean(curSettings.accessibility?.cinematic));
     this.pauseMenu.mount(this.container);
     this.deathScreen.mount(this.container);
     this.loadingScreen.mount(this.container);
@@ -671,7 +663,7 @@ export class UIManager {
         this.hud.show();
         break;
       case 'PAUSE':
-        this.pauseMenu.show();
+        this.pauseMenu.show(this.hud.getObjective());
         this.hud.show();
         break;
       case 'DEATH':
@@ -853,6 +845,8 @@ export class UIManager {
     saveSettings(s);
     document.documentElement.style.setProperty('--ui-scale', String(s.accessibility.uiScale));
     this.hud.setMinimalHud(Boolean(s.accessibility.minimalHud));
+    this.hud.setShowMoreHud(Boolean(s.accessibility.showMoreHud));
+    this.hud.setCinematic(Boolean(s.accessibility.cinematic));
     this.hud.setUiScale(s.accessibility.uiScale ?? 1.0);
 
     if (s.accessibility.highContrast) {

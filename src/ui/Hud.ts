@@ -108,6 +108,11 @@ export class Hud {
   private vignetteEl: HTMLElement | null = null;
   private vhsOsdEl: HTMLElement | null = null;
   private pointerLockHintEl: HTMLElement | null = null;
+  private minimalNoiseFillEl: HTMLElement | null = null;
+  private quietHintEl: HTMLElement | null = null;
+  private quietHintTimeout: ReturnType<typeof setTimeout> | null = null;
+  private showMoreHud = false;
+  private cinematic = false;
   private nearMissEl: HTMLElement | null = null;
   private screenReaderLiveEl: HTMLElement | null = null;
   private nearMissTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -165,6 +170,58 @@ export class Hud {
     } else {
       this.el.classList.remove('minimal-hud');
     }
+  }
+
+  setShowMoreHud(show: boolean): void {
+    this.showMoreHud = show;
+    if (!this.el) return;
+    if (show) {
+      this.el.classList.add('show-more-hud');
+    } else {
+      this.el.classList.remove('show-more-hud');
+    }
+  }
+
+  getShowMoreHud(): boolean {
+    return this.showMoreHud;
+  }
+
+  setCinematic(cinematic: boolean): void {
+    this.cinematic = cinematic;
+    if (!this.el) return;
+    if (cinematic) {
+      this.el.classList.add('cinematic');
+    } else {
+      this.el.classList.remove('cinematic');
+    }
+  }
+
+  getCinematic(): boolean {
+    return this.cinematic;
+  }
+
+  showQuietHint(text: string, durationMs = 4000): void {
+    if (!this.quietHintEl) return;
+    this.quietHintEl.textContent = text;
+    this.quietHintEl.style.display = 'block';
+    this.quietHintEl.style.opacity = '1';
+
+    if (this.quietHintTimeout !== null) {
+      clearTimeout(this.quietHintTimeout);
+    }
+    this.quietHintTimeout = setTimeout(() => {
+      if (this.quietHintEl) {
+        this.quietHintEl.style.opacity = '0';
+        setTimeout(() => {
+          if (this.quietHintEl) this.quietHintEl.style.display = 'none';
+        }, 500);
+      }
+      this.quietHintTimeout = null;
+    }, durationMs);
+  }
+
+  getObjective(): string {
+    return this.currentData.objective || 'Find the numbered pillars. Avoid making splashes.';
   }
 
   setUiScale(scale: number): void {
@@ -225,6 +282,31 @@ export class Hud {
         .bs-hud {
           --hud-scale: 1.0;
         }
+        /* Clean picture: Default HUD is empty except thin noise line and interaction prompt */
+        .bs-hud:not(.show-more-hud) #hud-vhs-osd,
+        .bs-hud:not(.show-more-hud) #hud-notebook-container,
+        .bs-hud:not(.show-more-hud) #hud-roster,
+        .bs-hud:not(.show-more-hud) #hud-level-shift,
+        .bs-hud:not(.show-more-hud) #hud-school-status,
+        .bs-hud:not(.show-more-hud) #hud-jungle-status,
+        .bs-hud:not(.show-more-hud) #hud-neon-status,
+        .bs-hud:not(.show-more-hud) #hud-metro-status,
+        .bs-hud:not(.show-more-hud) #hud-objective-container,
+        .bs-hud:not(.show-more-hud) #hud-bottom-center,
+        .bs-hud:not(.show-more-hud) #hud-generator-status,
+        .bs-hud:not(.show-more-hud) #hud-inventory-strip,
+        .bs-hud:not(.show-more-hud) #hud-flashlight-meter {
+          display: none !important;
+        }
+
+        .bs-hud.show-more-hud #hud-noise-minimal {
+          display: none !important;
+        }
+
+        .bs-hud.cinematic #hud-noise-minimal {
+          display: none !important;
+        }
+
         .bs-hud.minimal-hud #hud-vhs-osd,
         .bs-hud.minimal-hud #hud-notebook-container,
         .bs-hud.minimal-hud #hud-roster,
@@ -232,7 +314,9 @@ export class Hud {
         .bs-hud.minimal-hud #hud-school-status,
         .bs-hud.minimal-hud #hud-jungle-status,
         .bs-hud.minimal-hud #hud-neon-status,
-        .bs-hud.minimal-hud #hud-metro-status {
+        .bs-hud.minimal-hud #hud-metro-status,
+        .bs-hud.minimal-hud #hud-objective-container,
+        .bs-hud.minimal-hud #hud-bottom-center {
           display: none !important;
         }
         @media (max-width: 480px) {
@@ -776,25 +860,65 @@ export class Hud {
         max-width: min(85vw, 360px);
       "></div>
 
-      <!-- Pointer Lock Hint -->
-      <div id="hud-pointer-lock-hint" style="
+      <!-- Minimal Noise Indicator (Thin horizontal line near bottom) -->
+      <div id="hud-noise-minimal" style="
         position: absolute;
-        bottom: max(24px, env(safe-area-inset-bottom, 24px));
+        bottom: max(16px, env(safe-area-inset-bottom, 16px));
         left: 50%;
         transform: translateX(-50%);
-        background: rgba(14, 18, 16, 0.78);
-        border: 1px solid rgba(217, 211, 162, 0.45);
-        border-radius: 4px;
-        padding: 6px 14px;
+        width: 140px;
+        height: 2px;
+        background: rgba(238, 222, 194, 0.15);
+        border-radius: 1px;
+        overflow: hidden;
+        pointer-events: none;
+        z-index: 60;
+      ">
+        <div id="hud-noise-minimal-fill" style="
+          width: 0%;
+          height: 100%;
+          background: #eedec2;
+          border-radius: 1px;
+          transition: width 0.08s ease-out, background-color 0.15s;
+        "></div>
+      </div>
+
+      <!-- Quiet In-World Hint (First 90s only) -->
+      <div id="hud-quiet-hint" style="
+        position: absolute;
+        bottom: max(32px, env(safe-area-inset-bottom, 32px));
+        left: 50%;
+        transform: translateX(-50%);
+        font-family: var(--bs-font-mono, monospace);
+        font-size: 13px;
+        color: rgba(232, 228, 217, 0.45);
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.5s ease;
+        text-align: center;
+        white-space: nowrap;
+        z-index: 50;
+      "></div>
+
+      <!-- Pointer Lock Hint: single small centered line shown only while pointer unlocked -->
+      <div id="hud-pointer-lock-hint" style="
+        position: absolute;
+        bottom: max(22px, env(safe-area-inset-bottom, 22px));
+        left: 50%;
+        transform: translateX(-50%);
+        font-family: var(--bs-font-mono, monospace);
         font-size: 11px;
-        letter-spacing: 0.08em;
-        color: #eedec2;
+        letter-spacing: 0.12em;
+        color: rgba(238, 222, 194, 0.65);
         pointer-events: none;
         opacity: 0;
         transition: opacity 0.25s ease;
         text-transform: uppercase;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
-      ">[ Click screen to lock mouse look ]</div>
+        white-space: nowrap;
+        z-index: 55;
+      ">[ Click to lock mouse look ]</div>
     `;
 
     container.appendChild(el);
@@ -803,6 +927,8 @@ export class Hud {
     this.screenReaderLiveEl = el.querySelector('#hud-screen-reader-live');
     this.nearMissEl = el.querySelector('#hud-near-miss');
     this.pointerLockHintEl = el.querySelector('#hud-pointer-lock-hint');
+    this.minimalNoiseFillEl = el.querySelector('#hud-noise-minimal-fill');
+    this.quietHintEl = el.querySelector('#hud-quiet-hint');
     this.noiseBarEl = el.querySelector('#hud-noise-bar');
     this.noiseIconEl = el.querySelector('#hud-noise-icon');
     this.noiseRadiusLabelEl = el.querySelector('#hud-noise-radius-label');
@@ -908,6 +1034,13 @@ export class Hud {
         : Math.round(data.noiseLoudness * 24);
       this.noiseRadiusLabelEl.textContent = `RADIUS ~${radiusM}m`;
       this.noiseRadiusLabelEl.style.color = noiseColor;
+    }
+
+    // 1b. Minimal Noise Indicator (thin horizontal line near bottom, cream -> amber -> red)
+    if (this.minimalNoiseFillEl) {
+      this.minimalNoiseFillEl.style.width = `${loudnessPct}%`;
+      const minColor = data.noiseLoudness < 0.35 ? '#eedec2' : data.noiseLoudness < 0.75 ? '#e5c158' : '#ff3b30';
+      this.minimalNoiseFillEl.style.backgroundColor = minColor;
     }
 
     // 2. Stamina Bar

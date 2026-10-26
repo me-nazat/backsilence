@@ -39,12 +39,12 @@ export function defaultSettings(): Settings {
       resolutionScale: 100, // Percentage 50-100%
       fov: 75,
       brightness: 1.0,
-      vhsIntensity: 0.5,
+      vhsIntensity: 0.0,
       headBob: true,
       reducedMotion: 'system',
       showFps: false,
       photosensitiveSafe: false,
-      vhsOsd: true,
+      vhsOsd: false,
       vhsLines: 240,
       fpsCap: 0,
     },
@@ -74,6 +74,8 @@ export function defaultSettings(): Settings {
       uiScale: 1.0,
       highContrast: false,
       minimalHud: false,
+      showMoreHud: false,
+      cinematic: false,
     },
     player: {
       name: '',
@@ -152,6 +154,8 @@ export function clampSettings(s: Settings): Settings {
       uiScale: clamp(typeof acc?.uiScale === 'number' ? acc.uiScale : 1.0, 0.75, 2.0),
       highContrast: Boolean(acc?.highContrast),
       minimalHud: Boolean(acc?.minimalHud),
+      showMoreHud: Boolean(acc?.showMoreHud),
+      cinematic: Boolean(acc?.cinematic),
     },
     player: {
       name: typeof p?.name === 'string' ? p.name.slice(0, 32) : '',

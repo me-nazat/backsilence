@@ -103,6 +103,8 @@ export interface Settings {
     uiScale: number;
     highContrast: boolean;
     minimalHud?: boolean | undefined;
+    showMoreHud?: boolean | undefined;
+    cinematic?: boolean | undefined;
     language?: string;
   };
   player: {

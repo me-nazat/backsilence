@@ -17,6 +17,11 @@
   pointer-events: auto;
 }
 
+#screen-home {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
 .bs-interactive {
   pointer-events: auto;
 }

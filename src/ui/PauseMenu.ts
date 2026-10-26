@@ -78,6 +78,26 @@ export class PauseMenu {
           RESUME (ESC)
         </button>
 
+        <!-- Mission Objective (Objectives live on the pause screen) -->
+        <div id="pause-objective-card" style="
+          width: 100%;
+          background: rgba(0,0,0,0.45);
+          border: 1px solid rgba(217, 211, 162, 0.25);
+          padding: 10px 14px;
+          border-radius: 4px;
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          box-sizing: border-box;
+        ">
+          <div style="font-size: 10px; color: var(--water, #86cfa0); letter-spacing: 0.15em; font-weight: bold;">
+            MISSION OBJECTIVE
+          </div>
+          <div id="pause-objective-text" style="font-size: 12px; color: var(--fog, #d9d3a2); line-height: 1.4;">
+            Find the numbered pillars. Avoid making splashes.
+          </div>
+        </div>
+
         <!-- 2. Inline Quick Settings Card -->
         <div style="
           width: 100%;
@@ -280,12 +300,23 @@ export class PauseMenu {
     });
   }
 
-  show(): void {
+  show(objective?: string): void {
     if (this.el) {
       this.el.style.display = 'flex';
       this.syncQuickSettings();
+      if (objective) {
+        const objText = this.el.querySelector('#pause-objective-text');
+        if (objText) objText.textContent = objective;
+      }
       const resumeBtn = this.el.querySelector<HTMLButtonElement>('#pause-btn-resume');
       resumeBtn?.focus();
+    }
+  }
+
+  setObjective(objective: string): void {
+    if (this.el) {
+      const objText = this.el.querySelector('#pause-objective-text');
+      if (objText) objText.textContent = objective;
     }
   }
 

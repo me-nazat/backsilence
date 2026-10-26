@@ -21,6 +21,7 @@ export interface SettingsPanelCallbacks {
   onBack: () => void;
   onApplySettings: (s: Settings) => void;
   onOpenAudioTest: () => void;
+  onCalibrate?: () => void;
 }
 
 export class SettingsPanel {
@@ -245,9 +246,12 @@ export class SettingsPanel {
             <input id="set-soundvis" type="checkbox" ${this.settings.audio.soundVisualizer ? 'checked' : ''} class="setting-toggle">
           </div>
 
-          <div style="margin-top: 8px;">
+          <div style="margin-top: 8px; display: flex; flex-direction: column; gap: 8px;">
             <button id="btn-open-audio-test" class="analog-btn" style="width: 100%; border-color: var(--water); color: var(--water); padding: 8px;">
               TEST ALL SYNTH SOUNDS (AUDIO LAB)
+            </button>
+            <button id="btn-open-calibration" class="analog-btn" style="width: 100%; border-color: rgba(134,207,160,0.5); color: #fff; padding: 8px;">
+              CALIBRATE SENSORS (OPTIONAL)
             </button>
           </div>
         `;
@@ -375,6 +379,22 @@ export class SettingsPanel {
               <div class="setting-sub">Hide auxiliary telemetry, secondary gauges, and OSD labels</div>
             </div>
             <input id="set-minimalhud" type="checkbox" ${this.settings.accessibility?.minimalHud ? 'checked' : ''} class="setting-toggle">
+          </div>
+
+          <div class="setting-row">
+            <div>
+              <div class="setting-label">SHOW MORE HUD</div>
+              <div class="setting-sub">Display full acoustic telemetry, status badges, and secondary indicators</div>
+            </div>
+            <input id="set-showmorehud" type="checkbox" ${this.settings.accessibility?.showMoreHud ? 'checked' : ''} class="setting-toggle">
+          </div>
+
+          <div class="setting-row">
+            <div>
+              <div class="setting-label">CINEMATIC MODE</div>
+              <div class="setting-sub">Hide all on-screen HUD elements, including the noise line</div>
+            </div>
+            <input id="set-cinematic" type="checkbox" ${this.settings.accessibility?.cinematic ? 'checked' : ''} class="setting-toggle">
           </div>
 
           <div class="setting-row">
@@ -579,6 +599,11 @@ export class SettingsPanel {
         engine.play('ui_click');
         this.callbacks.onOpenAudioTest();
       });
+
+      this.el.querySelector('#btn-open-calibration')?.addEventListener('click', () => {
+        engine.play('ui_click');
+        this.callbacks.onCalibrate?.();
+      });
     } else if (this.activeTab === 'controls') {
       const sens = this.el.querySelector('#set-sens') as HTMLInputElement;
       sens?.addEventListener('input', () => {
@@ -687,6 +712,24 @@ export class SettingsPanel {
           this.settings.accessibility = { reducedMotion: 'system', uiScale: 1.0, highContrast: false };
         }
         this.settings.accessibility.minimalHud = minimalHud.checked;
+        this.liveApply();
+      });
+
+      const showMoreHud = this.el.querySelector('#set-showmorehud') as HTMLInputElement;
+      showMoreHud?.addEventListener('change', () => {
+        if (!this.settings.accessibility) {
+          this.settings.accessibility = { reducedMotion: 'system', uiScale: 1.0, highContrast: false };
+        }
+        this.settings.accessibility.showMoreHud = showMoreHud.checked;
+        this.liveApply();
+      });
+
+      const cinematic = this.el.querySelector('#set-cinematic') as HTMLInputElement;
+      cinematic?.addEventListener('change', () => {
+        if (!this.settings.accessibility) {
+          this.settings.accessibility = { reducedMotion: 'system', uiScale: 1.0, highContrast: false };
+        }
+        this.settings.accessibility.cinematic = cinematic.checked;
         this.liveApply();
       });
 
