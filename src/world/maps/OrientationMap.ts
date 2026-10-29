@@ -4,7 +4,7 @@
  *  pebble lures, and perching with a demonstrative tethered entity.
  * ──────────────────────────────────────────────────────────────────────── */
 
-import { MeshStandardMaterial } from 'three';
+import { MeshStandardMaterial, BoxGeometry, Mesh } from 'three';
 import type {
   MapDefinition,
   LayoutData,
@@ -19,7 +19,7 @@ import type {
 import type { MapInstance } from './MapInstance.js';
 import { WATER_PROFILES } from '../../game/water/WaterProfile.js';
 import { TextureRegistry } from '../../procedural/textures/TextureRegistry.js';
-import { buildStandardMapInstance } from './CommonMapBuilder.js';
+import { buildStandardMapInstance, scaleBoxUv } from './CommonMapBuilder.js';
 import { applyWetDarkening } from '../../game/rendering/WetDarkening.js';
 
 export const OrientationMap: MapDefinition = {
@@ -33,19 +33,19 @@ export const OrientationMap: MapDefinition = {
   },
   atmosphere: {
     fog: {
-      color: '#d0ddd8',
-      density: 0.025,
+      color: '#b3bb9f',
+      density: 0.035,
     },
-    exposure: 1.15,
+    exposure: 1.22,
     hemisphere: {
-      sky: '#dbeef0',
-      ground: '#4a7062',
+      sky: '#b3bb9f',
+      ground: '#7c9e5b',
     },
     sun: {
       color: '#fffef0',
-      intensity: 1.4,
+      intensity: 1.2,
       direction: { x: 0.2, y: 0.9, z: 0.2 },
-      castShadow: true,
+      castShadow: false,
     },
   },
   waterProfile: WATER_PROFILES.natatorium,
@@ -195,40 +195,51 @@ export const OrientationMap: MapDefinition = {
 
   async build(layout: LayoutData, env: BuildEnv): Promise<MapInstance> {
     const tex = TextureRegistry.getInstance();
-    const poolTiles = tex.getTileSet('platform', layout.seed);
-    const marbleTex = tex.getMarbleSet(layout.seed);
+    const platformTiles = tex.getTileSet('platform', layout.seed);
+    const wallTiles = tex.getTileSet('wall', layout.seed);
+    const floorTiles = tex.getTileSet('floorWet', layout.seed);
 
     const platformMat = new MeshStandardMaterial({
-      map: poolTiles.albedo,
-      roughnessMap: poolTiles.roughness,
-      normalMap: poolTiles.normal,
+      map: platformTiles.albedo,
+      roughnessMap: platformTiles.roughness,
+      normalMap: platformTiles.normal,
       roughness: 0.35,
       metalness: 0.02,
     });
     applyWetDarkening(platformMat, { waterY: 0.0 });
 
     const wallMat = new MeshStandardMaterial({
-      map: marbleTex.albedo,
-      roughnessMap: marbleTex.roughness,
-      normalMap: marbleTex.normal,
+      map: wallTiles.albedo,
+      roughnessMap: wallTiles.roughness,
+      normalMap: wallTiles.normal,
       roughness: 0.45,
       metalness: 0.05,
     });
     applyWetDarkening(wallMat, { waterY: 0.0 });
 
     const floorMat = new MeshStandardMaterial({
-      map: poolTiles.albedo,
-      roughnessMap: poolTiles.roughness,
-      normalMap: poolTiles.normal,
+      map: floorTiles.albedo,
+      roughnessMap: floorTiles.roughness,
+      normalMap: floorTiles.normal,
       roughness: 0.25,
       metalness: 0.04,
     });
 
-    return buildStandardMapInstance(layout, env, {
+    const instance = buildStandardMapInstance(layout, env, {
       platformMat,
       wallMat,
       floorMat,
     });
+
+    // Ceiling enclosing the training pool (height 5.0m)
+    const ceilingGeom = new BoxGeometry(34.0, 0.4, 42.0);
+    scaleBoxUv(ceilingGeom, 34.0, 0.4, 42.0, 2.4);
+    const ceiling = new Mesh(ceilingGeom, wallMat);
+    ceiling.position.set(0, 5.0, 0);
+    ceiling.name = 'TrainingPoolCeiling';
+    instance.root.add(ceiling);
+
+    return instance;
   },
 
   drawThumbnail(g: CanvasRenderingContext2D, layout: LayoutData, w: number, h: number): void {

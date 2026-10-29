@@ -61,8 +61,8 @@ export class MonsterGaitGenerator {
       // Arms
       const armLift = phase > 0.4 && phase < 0.8 ? Math.sin((phase - 0.4) * Math.PI * 2.5) * stepHeight : 0;
       const armFwd = phase <= 0.4 ? 0.4 : -0.2;
-      this.updateLimb(this.handL, rootPos, fwdX, fwdZ, rightX, rightZ, 0.5, armFwd, armLift, ground);
-      this.updateLimb(this.handR, rootPos, fwdX, fwdZ, rightX, rightZ, -0.5, armFwd, armLift, ground);
+      this.updateLimb(this.handL, rootPos, fwdX, fwdZ, rightX, rightZ, 0.5, armFwd, armLift, ground, true);
+      this.updateLimb(this.handR, rootPos, fwdX, fwdZ, rightX, rightZ, -0.5, armFwd, armLift, ground, true);
 
       // Legs
       const legLift = phase < 0.5 ? Math.sin(phase * Math.PI * 2.0) * stepHeight : 0;
@@ -93,11 +93,11 @@ export class MonsterGaitGenerator {
 
       const liftHL = phaseL > 0.5 ? Math.sin((phaseL - 0.5) * Math.PI * 2) * stepHeight : 0;
       const fwdHL = Math.cos(phaseL * Math.PI * 2) * 0.45;
-      this.updateLimb(this.handL, rootPos, fwdX, fwdZ, rightX, rightZ, 0.55, 0.3 + fwdHL, liftHL, ground);
+      this.updateLimb(this.handL, rootPos, fwdX, fwdZ, rightX, rightZ, 0.55, 0.3 + fwdHL, liftHL, ground, true);
 
       const liftHR = phaseR > 0.5 ? Math.sin((phaseR - 0.5) * Math.PI * 2) * stepHeight : 0;
       const fwdHR = Math.cos(phaseR * Math.PI * 2) * 0.45;
-      this.updateLimb(this.handR, rootPos, fwdX, fwdZ, rightX, rightZ, -0.55, 0.3 + fwdHR, liftHR, ground);
+      this.updateLimb(this.handR, rootPos, fwdX, fwdZ, rightX, rightZ, -0.55, 0.3 + fwdHR, liftHR, ground, true);
 
       const liftFL = phaseR > 0.5 ? Math.sin((phaseR - 0.5) * Math.PI * 2) * stepHeight : 0;
       const fwdFL = Math.cos(phaseR * Math.PI * 2) * 0.35;
@@ -130,11 +130,17 @@ export class MonsterGaitGenerator {
     offsetFwd: number,
     lift: number,
     ground: GroundGrid,
+    isHand = false,
   ): void {
     const wx = rootPos.x + rightX * offsetRight + fwdX * offsetFwd;
     const wz = rootPos.z + rightZ * offsetRight + fwdZ * offsetFwd;
     const floorH = ground.heightAt(wx, wz);
-    const safeH = Number.isFinite(floorH) ? floorH : rootPos.y;
+    let safeH = Number.isFinite(floorH) ? floorH : rootPos.y;
+
+    if (isHand && safeH < 0.0) {
+      // In deep water pool, hands paddle in the water column naturally rather than locking elbows straight down to floor
+      safeH = Math.max(safeH, rootPos.y + 0.45);
+    }
 
     limb.pos.set(wx, safeH + lift, wz);
     limb.isPlanted = lift < 0.03;

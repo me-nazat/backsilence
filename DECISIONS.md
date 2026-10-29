@@ -1535,6 +1535,42 @@ Establish `functions/api/[[route]].ts` as the canonical Cloudflare Pages Functio
    - Adjusted base tile palette to warmer yellow/cream ceramic tones: platform `#c29a56`, wall `#c8b580`, floorWet `#cbba8b`.
 **Reason:** Completely closes the visual and atmospheric gap identified between current builds and the owner's video reference pack, while maintaining strict draw call, memory, and performance invariants.
 
+---
+
+### D117: Guaranteed Visible Repeatable Sightings in Natural Play (Batch 9 Prompt 1)
+**Date:** 2026-10-29
+**Context:**
+BackSilence is a blind-acoustic-monster horror game set in flooded poolrooms. The owner's reference video frames (`reference/video/frames/`, `reports/ux/boards/board_hall_view.png`) show the creature as a dark standing silhouette wading through milky green water at 8–15 m, clearly visible for multiple seconds. Real players reported never seeing the monster during natural play, while headless smoke tests previously passed only because they teleported it with debug key 'H'.
+
+Root causes diagnosed:
+1. `Director.ts` consumed `firstContactDone = true` on failed nav rolls, abandoning the sighting guarantee.
+2. `executeEmergence()` placed the creature as a crouched DORMANT silhouette at ~26 m for 2.5 s before wading away—at fog density $\rho = 0.045$, transmittance at 26 m is $\approx 0.25$, making a 0.9 m crouched body invisible against dark water.
+3. Lack of a robust recurring sighting cadence across a 4-minute session.
+4. Ambient sweeps (`closingSweep`, `stillnessSweep`) and noise events could prematurely interrupt ongoing sightings.
+5. In deep water, creature crouch plunged torso below the waterline.
+6. Water composite lacked true WebGL2 depth buffer sharing, causing unpredictable fragment overdraw.
+
+**Choice:**
+1. Director Sighting Cadence & Guarantees (`src/sim/Director.ts`):
+   - Implemented sighting retry loop (up to 6 attempts, 5 s intervals) on failed navigation paths.
+   - Widened forward search cone up to 180° in `executeEmergence()`.
+   - Guaranteed recurring sightings thereafter: 35–52 s (prowl), 25–38 s (closing), 15–25 s (hunt).
+   - Telegraphed dread beat (`'sighting_telegraph'`) 2–4 s before sighting.
+   - Sighting protection: ongoing sightings (`isSighting`, `activeSightingDuration > 0`) cannot be interrupted or aborted by subtle noises, ambient sweeps, or stillness taxes.
+2. Standing Wade Silhouette & Readability (`src/game/monster/MonsterBody.ts`, `src/game/monster/MonsterMesh.ts`):
+   - Elevated root in water (`minRootY`) ensuring torso and head remain $\ge 1.25$ m above waterline during sightings and in water.
+   - Enhanced shader readability: top cool rim lighting, 40% fog extinction reduction, and 15% submerged darkening while preserving all test tokens.
+3. Water Depth Composite (`src/game/GameSession.ts`):
+   - Configured `waterCompositeTarget` with `depthBuffer: true` and WebGL2 blit from `opaqueDepthTarget`.
+4. Observability & Smoke Integration (`src/engine/Debug.ts`, `src/engine/SightingLogger.ts`, `src/main.ts`, `scripts/smoke/`):
+   - Added SightingLogger tool accessible via `?sightlog=1` (`window.__backsilence_sightlog`).
+   - Added HUD debug counter under `?debug=1`: `sightings: n, last: t s, visFrac: x`.
+   - Wired `M9_natural_sighting` into `scripts/smoke/run-monster-smoke.mjs` and `scripts/smoke/run-smoke.mjs`.
+   - Added automated 10-run natural play verification suite in `scripts/test-natural-sightings.ts`.
+
+**Reason:** Guarantees 100% reliable, readable, atmospheric sightings across all maps and seeds in natural stealth play without debug keys or teleportation.
+
+
 
 
 

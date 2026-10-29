@@ -224,6 +224,7 @@ uniform vec4 uWakeParams[6];
 uniform vec3 uColorShallow;
 uniform vec3 uColorDeep;
 uniform vec3 uSunDir;
+uniform vec3 uMonsterPos;
 uniform float uOpacityMin;
 uniform float uOpacityMax;
 uniform float uUnderwater;
@@ -352,7 +353,8 @@ void main() {
     float rawSceneDepth = texture2D(uSceneDepth, screenUv).r;
     float sceneLinearDepth = -perspectiveDepthToLinearZ(rawSceneDepth, uCameraNear, uCameraFar);
     float diffZ = sceneLinearDepth - waterLinearDepth;
-    if (diffZ < -0.05) {
+    // Discard water fragment if opaque geometry is closer than the water surface (above water / in front)
+    if (diffZ < -0.005) {
       discard;
     }
     thickness = clamp(diffZ, 0.0, mapDepth * 1.5 + 0.1);
@@ -472,7 +474,7 @@ void main() {
   vec3 T = exp(-sigma * thickness);
   float lumT = dot(T, vec3(0.299, 0.587, 0.114));
   vec3 scatter = uColorShallow;
-  vec3 milkyVeil = vec3(0.85, 0.94, 0.88) * (0.28 * (1.0 - lumT));
+  vec3 milkyVeil = vec3(0.85, 0.94, 0.88) * (0.08 * (1.0 - lumT));
   vec3 absorbedWater = sceneSample * T + scatter * (1.0 - T) + milkyVeil;
 
   // 7. Schlick Fresnel reflection with F0 = 0.02 & reflection tiers (World Space)
@@ -481,7 +483,7 @@ void main() {
   float fresnel = 0.02 + 0.98 * pow(1.0 - NdotV, 5.0);
 
   vec3 reflectDir = reflect(-viewDir, normal);
-  vec3 skyHazeColor = vec3(0.96, 0.93, 0.86);
+  vec3 skyHazeColor = vec3(0.702, 0.733, 0.624);
   vec3 reflectColor = skyHazeColor;
 
   if (uReflectionTier > 1.5) {
@@ -489,7 +491,7 @@ void main() {
     vec2 planarUv = clamp(vec2(screenUv.x, 1.0 - screenUv.y) + normal.xz * 0.04, 0.001, 0.999);
     vec3 planarCol = texture2D(uPlanarReflection, planarUv).rgb;
     vec3 cubeCol = textureCube(uEnvCube, reflectDir).rgb;
-    reflectColor = mix(cubeCol, planarCol, 0.65);
+    reflectColor = mix(cubeCol, planarCol, 0.45);
   } else if (uReflectionTier > 0.5) {
     // Medium Tier: 64px Cube map
     reflectColor = textureCube(uEnvCube, reflectDir).rgb;
@@ -498,7 +500,7 @@ void main() {
     reflectColor = mix(skyHazeColor * 0.92, skyHazeColor * 1.08, max(0.0, reflectDir.y));
   }
 
-  vec3 waterColor = mix(absorbedWater, reflectColor, fresnel * 0.72);
+  vec3 waterColor = mix(absorbedWater, reflectColor, fresnel * 0.48);
 
   // 8. Animated Caustics on shallow floor and waterline walls
   if (thickness < 2.5) {
@@ -506,15 +508,15 @@ void main() {
     vec2 cUv2 = p * 1.15 + vec2(-uTime * 0.07, uTime * 0.09) + normal.zx * 0.08;
     float c1 = sin(cUv1.x * 7.0 + sin(cUv1.y * 5.0 + uTime * 0.6)) * 0.5 + 0.5;
     float c2 = cos(cUv2.x * 6.5 + cos(cUv2.y * 7.5 - uTime * 0.5)) * 0.5 + 0.5;
-    float caustic = pow(min(c1, c2), 1.6) * 2.4;
+    float caustic = pow(min(c1, c2), 1.6) * 1.8;
     float causticFade = smoothstep(2.5, 0.15, thickness) * (1.0 - fresnel * 0.75);
     vec3 causticCol = mix(vec3(0.9, 1.0, 0.95), vec3(1.0, 0.98, 0.9), 0.5);
-    waterColor += causticCol * caustic * causticFade * 0.42;
+    waterColor += causticCol * caustic * causticFade * 0.14;
   }
 
-  // 9. Sun GGX Specular Glint (HDR calibrated for ACESFilmic)
-  vec3 sunSpec = evalGGX(normal, viewDir, uSunDir, vec3(1.0, 0.98, 0.92), 14.0, roughness);
-  waterColor += sunSpec;
+  // 9. Sun GGX Specular Glint (balanced intensity for crisp wave glints without blowout)
+  vec3 sunSpec = evalGGX(normal, viewDir, uSunDir, vec3(1.0, 0.98, 0.92), 0.55, roughness);
+  waterColor += clamp(sunSpec, 0.0, 0.65);
 
   // 10. LightStreaks (up to 16 area/line light proxies) evaluated via GGX
   for (int i = 0; i < 16; i++) {
@@ -534,21 +536,21 @@ void main() {
     vec3 lDir = normalize(lightVec);
 
     float atten = 1.0 / (1.0 + 0.02 * distSq);
-    vec3 streakSpec = evalGGX(normal, viewDir, lDir, sCol, sInt * atten * 18.0, roughness);
-    waterColor += streakSpec;
+    vec3 streakSpec = evalGGX(normal, viewDir, lDir, sCol, sInt * atten * 0.65, roughness);
+    waterColor += clamp(streakSpec, 0.0, 0.5);
   }
 
   // 11. Soft Shoreline & Contact Foam (from depth difference or distToDry)
   float shoreFoam = 0.0;
   if (hasTrueDepth) {
-    if (thickness < 0.32) {
+    if (thickness < 0.08) {
       float foamNoise = sin(p.x * 16.0 + uTime * 2.2) * cos(p.y * 16.0 - uTime * 1.8) * 0.5 + 0.5;
-      shoreFoam = smoothstep(0.32, 0.02, thickness) * (0.65 + 0.35 * foamNoise);
+      shoreFoam = smoothstep(0.08, 0.015, thickness) * (0.45 + 0.35 * foamNoise);
     }
   } else {
-    if (distToDry < 0.42) {
+    if (distToDry < 0.12) {
       float foamNoise = sin(p.x * 14.0 + uTime * 2.2) * cos(p.y * 14.0 - uTime * 1.8) * 0.5 + 0.5;
-      shoreFoam = smoothstep(0.42, 0.04, distToDry) * (0.6 + 0.4 * foamNoise);
+      shoreFoam = smoothstep(0.12, 0.02, distToDry) * (0.40 + 0.35 * foamNoise);
     }
   }
 
@@ -564,6 +566,13 @@ void main() {
   float softEdge = clamp(thickness / 0.03, 0.0, 1.0);
   float alpha = hasTrueDepth ? softEdge : mix(uOpacityMin, uOpacityMax, 1.0 - exp(-thickness * 2.0));
   alpha = max(alpha, totalFoam * 0.92);
+
+  // Readability: never let water opacity exceed 0.6 within 3m of monster waterline
+  float distToMonster = length(vWorldPos.xz - uMonsterPos.xz);
+  if (distToMonster < 3.0 && abs(vWorldPos.y - uMonsterPos.y) < 2.5) {
+    float mProx = clamp(1.0 - distToMonster / 3.0, 0.0, 1.0);
+    alpha = min(alpha, mix(1.0, 0.60, mProx));
+  }
 
   // 12. Bioluminescence (Map 5: Abyssal Drainage Core)
   if (uBiolumRipple > 0.0) {
@@ -593,9 +602,8 @@ void main() {
     float hMist = exp(-hDist * 0.75) * 0.45;
     float finalFogFactor = clamp(baseFogFactor + hMist * (1.0 - baseFogFactor) * smoothstep(0.0, 5.0, vFogDepth), 0.0, 1.0);
 
-    // Fade to blown-out cream white at horizon (HDR for ACESFilmic)
-    vec3 blowoutFogColor = mix(fogColor, vec3(2.6, 2.45, 2.2), smoothstep(0.60, 1.0, finalFogFactor));
-    gl_FragColor.rgb = mix( waterColor, blowoutFogColor, finalFogFactor );
+    // Smooth dissolution into atmospheric horizon fog (pale grey-green, no blowout)
+    gl_FragColor.rgb = mix( waterColor, fogColor, finalFogFactor );
     gl_FragColor.a = mix( alpha, 1.0, finalFogFactor );
   #else
     gl_FragColor = vec4(waterColor, alpha);
@@ -643,6 +651,7 @@ export function createWaterMaterial(options: WaterMaterialOptions): ShaderMateri
       uColorShallow: { value: new Color(prof?.shallow ?? '#72bca5') },
       uColorDeep: { value: new Color(prof?.deep ?? '#2e6358') },
       uSunDir: { value: new Vector3(0.4, 0.8, 0.4).normalize() },
+      uMonsterPos: { value: new Vector3(0, -999, 0) },
       uOpacityMin: { value: prof?.opacityMin ?? 0.55 },
       uOpacityMax: { value: prof?.opacityMax ?? 0.93 },
       uUnderwater: { value: 0.0 },

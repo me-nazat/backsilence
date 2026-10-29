@@ -1,62 +1,62 @@
 [
   {
     "mapId": "natatorium",
-    "maskPixels": 7162,
-    "distance": 9.49,
+    "maskPixels": 14303,
+    "distance": 8.17,
     "pass": true
   },
   {
     "mapId": "poolrooms",
-    "maskPixels": 17085,
-    "distance": 6.01,
+    "maskPixels": 21038,
+    "distance": 5.98,
     "pass": true
   },
   {
     "mapId": "drowned_school",
-    "maskPixels": 7655,
-    "distance": 8.05,
+    "maskPixels": 18886,
+    "distance": 5.56,
     "pass": true
   },
   {
     "mapId": "utility_tunnels",
-    "maskPixels": 7286,
-    "distance": 8.31,
+    "maskPixels": 16869,
+    "distance": 5.91,
     "pass": true
   },
   {
     "mapId": "sunken_jungle",
-    "maskPixels": 3217,
-    "distance": 12.2,
+    "maskPixels": 3979,
+    "distance": 12.18,
     "pass": true
   },
   {
     "mapId": "marble_atrium",
-    "maskPixels": 6816,
-    "distance": 8.32,
+    "maskPixels": 22325,
+    "distance": 5.92,
     "pass": true
   },
   {
     "mapId": "neon_flood",
-    "maskPixels": 9510,
-    "distance": 8.27,
+    "maskPixels": 14484,
+    "distance": 7.76,
     "pass": true
   },
   {
     "mapId": "hydro_maze",
-    "maskPixels": 6955,
-    "distance": 8.32,
+    "maskPixels": 16285,
+    "distance": 5.92,
     "pass": true
   },
   {
     "mapId": "drowned_metro",
-    "maskPixels": 2254,
-    "distance": 16.24,
+    "maskPixels": 30032,
+    "distance": 5.04,
     "pass": true
   },
   {
     "mapId": "drainage_core",
-    "maskPixels": 9316,
-    "distance": 8.27,
+    "maskPixels": 19990,
+    "distance": 6.8,
     "pass": true
   }
 ]

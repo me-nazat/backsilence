@@ -163,7 +163,17 @@ export class PlayerCamera {
     const targetFov =
       (isSprinting ? this.baseFov + 6.0 : this.baseFov) + agitationBreath;
 
-    this.currentFov += (targetFov - this.currentFov) * Math.min(1.0, dt * 8.0);
+    // Hor+ FOV adaptation: if aspect < 1.0 (portrait / mobile view), scale vertical FOV so horizontal FOV does not collapse
+    let adaptedTargetFov = targetFov;
+    if (this.camera.aspect > 0 && this.camera.aspect < 1.0) {
+      // Ensure horizontal FOV is at least the base FOV (default 75 deg)
+      const radBase = (targetFov * Math.PI) / 180;
+      const targetHalfH = Math.tan(radBase / 2);
+      const adaptedRadV = 2.0 * Math.atan(targetHalfH / this.camera.aspect);
+      adaptedTargetFov = Math.min(125.0, (adaptedRadV * 180) / Math.PI);
+    }
+
+    this.currentFov += (adaptedTargetFov - this.currentFov) * Math.min(1.0, dt * 8.0);
     if (Math.abs(this.camera.fov - this.currentFov) > 0.01) {
       this.camera.fov = this.currentFov;
       this.camera.updateProjectionMatrix();

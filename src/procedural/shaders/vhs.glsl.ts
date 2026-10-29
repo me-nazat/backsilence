@@ -103,9 +103,21 @@ export const VHSShader = {
     }
 
     void main() {
-      // 0. Parity bypass: exact raw diffuse when intensity is 0
+      // 0. Parity bypass: exact raw diffuse when intensity is 0 and camera is stationary
       if (uIntensity <= 0.0001) {
-        gl_FragColor = texture2D(tDiffuse, vUv);
+        float velMag = length(uVelocity);
+        if (velMag <= 0.0005 || uSafeMode > 0.5) {
+          gl_FragColor = texture2D(tDiffuse, vUv);
+          return;
+        }
+        // Camera motion blur runs even when VHS tape effects are disabled (clean look + motion blur)
+        vec2 velDir = clamp(uVelocity, vec2(-0.06), vec2(0.06));
+        vec3 accum = texture2D(tDiffuse, vUv).rgb;
+        for (int s = 1; s <= 7; s++) {
+          float stepFrac = float(s) / 7.0;
+          accum += texture2D(tDiffuse, clamp(vUv - velDir * stepFrac, 0.0, 1.0)).rgb;
+        }
+        gl_FragColor = vec4(accum / 8.0, 1.0);
         return;
       }
 
@@ -162,16 +174,16 @@ export const VHSShader = {
 
       vec3 color = vec3(colR.r, colG.g, colB.b);
 
-      // Camera motion blur: 6 directional samples along velocity vector
+      // Camera motion blur: 8 directional samples along velocity vector
       float velMag = length(uVelocity);
       if (isSafe < 0.5 && velMag > 0.0005) {
-        vec2 velDir = clamp(uVelocity, vec2(-0.02), vec2(0.02));
+        vec2 velDir = clamp(uVelocity, vec2(-0.06), vec2(0.06));
         vec3 accum = color;
-        for (int s = 1; s <= 6; s++) {
-          float stepFrac = float(s) / 6.0;
+        for (int s = 1; s <= 7; s++) {
+          float stepFrac = float(s) / 7.0;
           accum += texture2D(tDiffuse, clamp(uvG - velDir * stepFrac, 0.0, 1.0)).rgb;
         }
-        color = accum / 7.0;
+        color = accum / 8.0;
       }
 
       // 5. Chroma Bleed (YIQ horizontal blur)

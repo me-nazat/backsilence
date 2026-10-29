@@ -583,6 +583,26 @@ async function main() {
       return outcomes;
     });
 
+    // ──────────────────────────────────────────────────────────────────────────
+    // M9_natural_sighting: Natural play sightings (10 seeded runs, first <= 45s, >=3 sightings, dur >= 5s, 0 attacks)
+    // ──────────────────────────────────────────────────────────────────────────
+    await runGate('M9_natural_sighting', 'Natural play sighting: natatorium & poolrooms, 10 seeded runs, first <= 45s, >=3 sightings >=5s, visFrac >= 0.15, 0 attacks', async () => {
+      const child = spawn(process.execPath, [resolve(ROOT, 'node_modules/vite-node/vite-node.mjs'), 'scripts/test-natural-sightings.ts'], {
+        cwd: ROOT,
+        stdio: 'pipe',
+        env: { ...process.env },
+      });
+      let out = '';
+      let errOut = '';
+      child.stdout.on('data', (d) => { out += d.toString(); });
+      child.stderr.on('data', (d) => { errOut += d.toString(); });
+      const exitCode = await new Promise((res) => child.on('close', res));
+      if (exitCode !== 0) {
+        throw new Error(`test-natural-sightings failed (exit ${exitCode}):\n${errOut || out}`);
+      }
+      return { summary: out.trim().split('\n').slice(-5).join('; ') };
+    });
+
   } finally {
     cdp.close();
     chromeProc.kill('SIGKILL');

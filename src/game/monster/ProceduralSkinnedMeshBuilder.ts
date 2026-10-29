@@ -360,7 +360,7 @@ export function buildProceduralSkinnedMonster(
     new Vector3(0, 1.48, -0.74),
   ];
   const trunkRadii: number[] = [
-    0.28, 0.32, 0.36, 0.38, 0.40, 0.42, 0.38, 0.26, 0.22, 0.24, 0.20, 0.12,
+    0.28, 0.32, 0.36, 0.40, 0.44, 0.44, 0.40, 0.28, 0.28, 0.29, 0.26, 0.18,
   ];
   addTube(trunkPath, trunkRadii, 16, 2.0, 3.0);
 
@@ -375,7 +375,7 @@ export function buildProceduralSkinnedMonster(
     new Vector3(0.67, 0.08, -0.42), // knuckling palm
     new Vector3(0.68, 0.02, -0.48), // claws
   ];
-  const armLRadii: number[] = [0.18, 0.16, 0.14, 0.12, 0.11, 0.13, 0.15, 0.08];
+  const armLRadii: number[] = [0.22, 0.20, 0.18, 0.16, 0.18, 0.20, 0.21, 0.13];
   addTube(armLPath, armLRadii, 12, 1.5, 2.0);
 
   // --- RIGHT ARM TUBE ---

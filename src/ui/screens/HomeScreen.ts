@@ -204,7 +204,8 @@ export class HomeScreen {
     const dailyWrap = this.element.querySelector('#btn-daily-descent-wrap')!;
 
     const lastTape = typeof localStorage !== 'undefined' ? localStorage.getItem('backsilence_last_tape') : null;
-    const descendText = lastTape ? 'CONTINUE TAPE // DESCEND' : 'DESCEND';
+    const tapeLabel = lastTape ? lastTape.replace(/_/g, ' ').toUpperCase() : 'NATATORIUM';
+    const descendText = lastTape ? `CONTINUE TAPE [${tapeLabel}] // DESCEND` : 'DESCEND // NATATORIUM';
 
     const descendBtn = new Button({
       text: descendText,

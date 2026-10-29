@@ -212,4 +212,101 @@ describe('Phase C: Experience, Pacing, and Fairness Verification', () => {
     // Trajectory hashes across seeds should be deterministic and distinct
     expect(new Set(hashes).size).toBe(5);
   });
+
+  it('exercises the natural Natatorium launch path with 15–20s glimpse and safe traversal', () => {
+    const layout = NatatoriumMap.generateLayout({ seed: 12345, difficulty: 'normal', playerCount: 1 });
+    const pSpawn = layout.spawns.player[0]!;
+    const mDef = layout.spawns.monsters[0]!;
+
+    const ground = new GroundGrid(layout.bounds, 0.5);
+    ground.fill(-0.9);
+    for (const p of layout.platforms) {
+      ground.setRectHeight(p.rect[0], p.rect[1], p.rect[2], p.rect[3], p.topY);
+    }
+    const colliders = new ColliderSet(4.0);
+    for (const w of layout.walls) {
+      colliders.addBox(w.id, w.min, w.max);
+    }
+
+    const world = new SimWorld({
+      seed: 12345,
+      bounds: layout.bounds,
+      playerSpawn: pSpawn,
+      waterY: 0.0,
+      difficulty: 'normal',
+      mapId: 'natatorium',
+      ground,
+      colliders,
+    });
+    world.finalizeTerrain();
+
+    const spawnPos = mDef.sleeperSpawn ?? mDef.spawn;
+    world.addMonster(
+      {
+        id: mDef.id,
+        variant: mDef.variant,
+        spawn: spawnPos,
+        ...(mDef.sleeperSpawn ? { sleeperSpawn: mDef.sleeperSpawn } : {}),
+        spawnGrace: mDef.spawnGrace ?? 20.0,
+      },
+      12345,
+    );
+
+    const monster = world.monsters[0]!;
+    expect(monster.pos.x).toBeCloseTo(24.0, 1);
+    expect(monster.pos.z).toBeCloseTo(30.0, 1);
+
+    // Initial check: first contact scheduled time for Natatorium is within 15..19s
+    const dirSnap = world.director.getSnapshot();
+    expect(dirSnap.firstContactScheduledTime).toBeGreaterThanOrEqual(12.0);
+    expect(dirSnap.firstContactScheduledTime).toBeLessThanOrEqual(16.0);
+
+    // Step simulation: player turns toward hall (yaw = 0) and moves forward
+    const dt = 1 / 60;
+    const walkIntent: PlayerIntent = {
+      moveX: 0,
+      moveZ: -1.0,
+      sprint: false,
+      crouch: false,
+      jump: false,
+      interact: false,
+      lookDeltaYaw: 0,
+      lookDeltaPitch: 0,
+    };
+    world.player.yaw = 0.0;
+
+    let sawCrossing = false;
+    let minCrossingDist = Infinity;
+    let maxCrossingDist = -Infinity;
+
+    for (let sec = 1; sec <= 25; sec++) {
+      for (let f = 0; f < 60; f++) {
+        // Stop walking at t = 8s (player is resting in hall water)
+        const intent = sec <= 8 ? walkIntent : { ...walkIntent, moveZ: 0 };
+        world.step(dt, intent);
+
+        const d = Math.hypot(monster.pos.x - world.player.pos.x, monster.pos.z - world.player.pos.z);
+        if (world.director.getSnapshot().firstContactDone) {
+          sawCrossing = true;
+          if (d < minCrossingDist) minCrossingDist = d;
+          if (d > maxCrossingDist) maxCrossingDist = d;
+        }
+      }
+    }
+
+    // Acceptance checks:
+    // 1. Crossing triggered within 20s
+    expect(sawCrossing).toBe(true);
+    // 2. Creature kept readable 10-15m distance (never lethal, never too far)
+    expect(minCrossingDist).toBeGreaterThanOrEqual(6.0); // Never within attack reach
+    expect(minCrossingDist).toBeLessThanOrEqual(15.5); // Readable encounter distance
+    // 3. Player never attacked
+    expect(monster.state).not.toBe('ATTACK');
+    let damageCount = 0;
+    for (let i = 0; i < world.events.length; i++) {
+      const ev = world.events.getAt(i);
+      if (ev && ev.type === 'damage') damageCount++;
+    }
+    expect(damageCount).toBe(0);
+  });
 });

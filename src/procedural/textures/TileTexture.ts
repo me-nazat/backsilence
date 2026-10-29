@@ -35,22 +35,22 @@ export interface TileSetResult {
 
 const PALETTE: Record<TileVariant, { base: string; grout: string; grid: number; crackRate: number }> = {
   platform: {
-    base: '#c29a56',
+    base: '#b7a87b',
     grout: '#5b4526',
     grid: 16,
     crackRate: 0.02,
   },
   wall: {
-    base: '#c8b580',
+    base: '#bea772',
     grout: '#5b4526',
     grid: 16,
-    crackRate: 0.02,
+    crackRate: 0.01,
   },
   floorWet: {
-    base: '#cbba8b',
-    grout: '#3d2f18',
+    base: '#889f63',
+    grout: '#3d3824',
     grid: 8,
-    crackRate: 0.08,
+    crackRate: 0.38,
   },
 };
 
@@ -65,8 +65,8 @@ export function makeTileSet(options: TileSetOptions): TileSetResult {
   const cfg = PALETTE[variant];
   const grid = cfg.grid;
   const tileSize = size / grid;
-  const groutWidth = Math.max(2.0, (size / 512) * 2.0);
-  const halfGrout = Math.max(1.0, groutWidth * 0.5);
+  const groutWidth = Math.max(1.5, (size / 512) * 1.5);
+  const halfGrout = Math.max(0.75, groutWidth * 0.5);
 
   const rng = new Rng(seed);
   const perm = createNoisePermutation(seed);
@@ -90,6 +90,10 @@ export function makeTileSet(options: TileSetOptions): TileSetResult {
     crackStartY: number;
     crackEndX: number;
     crackEndY: number;
+    branchStartX?: number | undefined;
+    branchStartY?: number | undefined;
+    branchEndX?: number | undefined;
+    branchEndY?: number | undefined;
   }
 
   const tiles: TileInfo[][] = [];
@@ -98,15 +102,36 @@ export function makeTileSet(options: TileSetOptions): TileSetResult {
     for (let gx = 0; gx < grid; gx++) {
       const tileRng = rng.fork(`tile:${gx}:${gy}`);
       const jitteredHex = jitterColor(tileRng.next.bind(tileRng), cfg.base, {
-        h: 2.0,
-        s: 0.05,
-        l: 0.04,
+        h: 1.0,
+        s: 0.015,
+        l: 0.015,
       });
       const rgb = hexToRgb(jitteredHex);
 
       const isDirty = tileRng.next() < 0.04;
       const hasCrack = tileRng.next() < cfg.crackRate;
       const hasChip = tileRng.next() < 0.01;
+
+      const cStartX = tileRng.range(0.15, 0.45);
+      const cStartY = tileRng.range(0.15, 0.45);
+      const cEndX = tileRng.range(0.55, 0.85);
+      const cEndY = tileRng.range(0.55, 0.85);
+
+      let branchStartX: number | undefined;
+      let branchStartY: number | undefined;
+      let branchEndX: number | undefined;
+      let branchEndY: number | undefined;
+
+      if (hasCrack && variant === 'floorWet') {
+        const midT = tileRng.range(0.35, 0.65);
+        branchStartX = cStartX + (cEndX - cStartX) * midT;
+        branchStartY = cStartY + (cEndY - cStartY) * midT;
+        const perpX = -(cEndY - cStartY);
+        const perpY = cEndX - cStartX;
+        const bLen = tileRng.range(0.2, 0.45);
+        branchEndX = branchStartX + perpX * bLen;
+        branchEndY = branchStartY + perpY * bLen;
+      }
 
       row.push({
         baseColorR: rgb.r,
@@ -115,10 +140,14 @@ export function makeTileSet(options: TileSetOptions): TileSetResult {
         isDirty,
         hasCrack,
         hasChip,
-        crackStartX: tileRng.range(0.2, 0.4),
-        crackStartY: tileRng.range(0.2, 0.4),
-        crackEndX: tileRng.range(0.6, 0.8),
-        crackEndY: tileRng.range(0.6, 0.8),
+        crackStartX: cStartX,
+        crackStartY: cStartY,
+        crackEndX: cEndX,
+        crackEndY: cEndY,
+        branchStartX,
+        branchStartY,
+        branchEndX,
+        branchEndY,
       });
     }
     tiles.push(row);
@@ -176,11 +205,11 @@ export function makeTileSet(options: TileSetOptions): TileSetResult {
         aoData[idx + 2] = 150;
         aoData[idx + 3] = 255;
       } else {
-        // Inside tile: 2-octave fBm mottling
-        const mottle = fbm2DTileable(x * 0.08, y * 0.08, size * 0.08, size * 0.08, 2, 2, 0.5, perm) * 12;
+        // Inside tile: very subtle ceramic mottling
+        const mottle = fbm2DTileable(x * 0.08, y * 0.08, size * 0.08, size * 0.08, 2, 2, 0.5, perm) * 2.0;
 
-        // Bevel lighting: bright top-left, darker bottom-right
-        const bevelShade = ((tileSize - localX - localY) / tileSize) * 16.0;
+        // Bevel lighting: flat ceramic face with minimal edge lip
+        const bevelShade = ((tileSize - localX - localY) / tileSize) * 1.5;
 
         let r = tile.baseColorR + mottle + bevelShade;
         let g = tile.baseColorG + mottle + bevelShade;
@@ -200,23 +229,53 @@ export function makeTileSet(options: TileSetOptions): TileSetResult {
           b = groutRgb.b;
         }
 
-        // Hairline crack check
+        // Spidery hairline crack check
         if (tile.hasCrack) {
           const u = localX / tileSize;
           const v = localY / tileSize;
+          const crackNoise = fbm2DTileable(u * 12, v * 12, 12, 12, 2, 2, 0.5, perm) * 0.008;
+
+          // Primary crack segment
           const du = u - tile.crackStartX;
           const dv = v - tile.crackStartY;
           const dirU = tile.crackEndX - tile.crackStartX;
           const dirV = tile.crackEndY - tile.crackStartY;
           const lenSq = dirU * dirU + dirV * dirV;
+          let isCracked = false;
           if (lenSq > 0.0001) {
             const proj = Math.max(0, Math.min(1, (du * dirU + dv * dirV) / lenSq));
-            const perpDist = Math.hypot(du - proj * dirU, dv - proj * dirV);
-            if (perpDist < 0.015) {
-              r = groutRgb.r;
-              g = groutRgb.g;
-              b = groutRgb.b;
+            const perpDist = Math.hypot(du - proj * dirU, dv - proj * dirV) + crackNoise;
+            if (perpDist < 0.014) {
+              isCracked = true;
             }
+          }
+
+          // Branch crack segment
+          if (
+            !isCracked &&
+            tile.branchStartX !== undefined &&
+            tile.branchStartY !== undefined &&
+            tile.branchEndX !== undefined &&
+            tile.branchEndY !== undefined
+          ) {
+            const bdu = u - tile.branchStartX;
+            const bdv = v - tile.branchStartY;
+            const bdirU = tile.branchEndX - tile.branchStartX;
+            const bdirV = tile.branchEndY - tile.branchStartY;
+            const blenSq = bdirU * bdirU + bdirV * bdirV;
+            if (blenSq > 0.0001) {
+              const bproj = Math.max(0, Math.min(1, (bdu * bdirU + bdv * bdirV) / blenSq));
+              const bperpDist = Math.hypot(bdu - bproj * bdirU, bdv - bproj * bdirV) + crackNoise;
+              if (bperpDist < 0.012) {
+                isCracked = true;
+              }
+            }
+          }
+
+          if (isCracked) {
+            r = groutRgb.r;
+            g = groutRgb.g;
+            b = groutRgb.b;
           }
         }
 
@@ -225,8 +284,8 @@ export function makeTileSet(options: TileSetOptions): TileSetResult {
         albedoData[idx + 2] = Math.max(0, Math.min(255, b));
         albedoData[idx + 3] = 255;
 
-        // Tile height: soft curved bevel up to 0.9
-        const h = 0.2 + 0.7 * Math.sqrt(bevelDist);
+        // Tile height: flat ceramic face with sharp grout drop
+        const h = 0.85 + 0.15 * Math.min(1.0, bevelDist * 2.5);
         rawHeights[y * size + x] = h;
 
         // Roughness: tile glossy (~0.25 -> 64), grime raises roughness
@@ -254,7 +313,7 @@ export function makeTileSet(options: TileSetOptions): TileSetResult {
   }
 
   // Step 2: Derive normal map via 3x3 Sobel filter with wrap-around
-  const normalStrength = 2.0;
+  const normalStrength = 0.75;
   for (let y = 0; y < size; y++) {
     const ym1 = (y - 1 + size) % size;
     const yp1 = (y + 1) % size;

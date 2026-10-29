@@ -31,10 +31,10 @@ export function generateFleshTextures(options: FleshTextureOptions = {}): FleshT
   const rng = new Rng(seed);
   const perm = createNoisePermutation(seed);
 
-  const baseLight = hexToRgb('#7a4a38'); // Brown-red base
-  const baseDark = hexToRgb('#5e3326');  // Deep red shadow
-  const veinColor = hexToRgb('#3d1814'); // Dark red-purple vein
-  const blotchColor = hexToRgb('#8c5945'); // Paler blotch
+  const baseLight = hexToRgb('#786455'); // Measured video skin colour RGB(120, 100, 85)
+  const baseDark = hexToRgb('#5a5035');  // Deep grey-brown shadow
+  const veinColor = hexToRgb('#3d1c16'); // Dark reddish-purple subsurface vein
+  const blotchColor = hexToRgb('#8a483a'); // Reddish blotch
 
   const albedoData = new Uint8ClampedArray(size * size * 4);
   const bumpData = new Uint8ClampedArray(size * size * 4);

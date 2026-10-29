@@ -42,6 +42,7 @@ export interface MonsterSnapshot {
   isListening: boolean;
   targetPos: Vec3 | null;
   path: readonly PathPoint[];
+  isSighting?: boolean;
 }
 
 export interface MonsterNetState {
@@ -96,6 +97,8 @@ export class MonsterBrain {
   private searchTimer = 0;
   private swipeCooldown = 0;
   private stuckTimer = 0;
+  isSighting = false;
+  private sightingTimer = 0;
 
   // Running trajectory hash for determinism testing
   private trajectoryHash = 0x811c9dc5;
@@ -138,7 +141,11 @@ export class MonsterBrain {
     this.patrolBias = { center: { ...center }, radius, strength };
   }
 
-  scheduleSweep(path: PathPoint[]): void {
+  scheduleSweep(path: PathPoint[], isSighting = false, duration = 10.0): void {
+    if (this.isSighting && !isSighting) {
+      // Do not abort an ongoing visible sighting for an ambient sweep
+      return;
+    }
     if (path.length > 0) {
       const fullPath: PathPoint[] = [];
       let curX = this.pos.x;
@@ -156,6 +163,8 @@ export class MonsterBrain {
       }
       this.currentPath = fullPath.length > 0 ? fullPath : [...path];
       this.currentPathIndex = 0;
+      this.isSighting = isSighting;
+      this.sightingTimer = isSighting ? duration : 0;
       if (this.state === 'DORMANT' || this.state === 'WANDER') {
         this.state = 'WANDER';
         this.isListening = false;
@@ -165,6 +174,7 @@ export class MonsterBrain {
   }
 
   scheduleListen(position: Vec3, seconds: number): void {
+    if (this.isSighting) return;
     const path = this.astar.findPath(this.pos.x, this.pos.z, position.x, position.z);
     if (path.length > 0) {
       this.currentPath = path;
@@ -198,6 +208,7 @@ export class MonsterBrain {
       isListening: this.isListening,
       targetPos: this.currentTarget ? { ...this.currentTarget } : null,
       path: this.currentPath,
+      isSighting: this.isSighting,
     };
   }
 
@@ -284,6 +295,12 @@ export class MonsterBrain {
 
     // 1. Agitation decay
     this.agitation = Math.max(0.0, this.agitation - 0.04 * dt);
+    if (this.sightingTimer > 0) {
+      this.sightingTimer -= dt;
+      if (this.sightingTimer <= 0) {
+        this.isSighting = false;
+      }
+    }
 
     // 2. Physical Touch & Attack Check
     const distToPlayer = dHypot(playerPos.x - this.pos.x, playerPos.z - this.pos.z);
@@ -306,8 +323,10 @@ export class MonsterBrain {
         }
         // Touch check: if player touches the monster (< 0.9m) in any active state
         if (distToPlayer <= MonsterBrain.TOUCH_RANGE && vertDistToPlayer <= 2.2) {
-          this.triggerAttack(events, simTime);
-          return;
+          if (!this.isSighting) {
+            this.triggerAttack(events, simTime);
+            return;
+          }
         }
         // Attack reach check: if alerted, hunting, investigating, or blocked (< 1.6m)
         if (
@@ -315,8 +334,10 @@ export class MonsterBrain {
           distToPlayer <= MonsterBrain.ATTACK_RANGE &&
           vertDistToPlayer <= 2.2
         ) {
-          this.triggerAttack(events, simTime);
-          return;
+          if (!this.isSighting) {
+            this.triggerAttack(events, simTime);
+            return;
+          }
         }
       }
     }
@@ -407,6 +428,11 @@ export class MonsterBrain {
     const dz = noise.position.z - this.pos.z;
     this.earAngle = dAtan2(dx, -dz);
 
+    // Sighting protection: do not interrupt choreographed sighting sweeps
+    if (this.isSighting) {
+      return false;
+    }
+
     const score = calculateNoiseScore(noise, this.pos);
 
     if (
@@ -450,6 +476,7 @@ export class MonsterBrain {
   }
 
   private triggerAttack(events: EventRingBuffer, simTime: number): void {
+    if (this.isSighting) return;
     this.state = 'ATTACK';
     this.stateTimer = 2.0;
     this.jawOpenT = 1.0;
@@ -519,9 +546,13 @@ export class MonsterBrain {
 
     this.reactionTimer -= dt;
     if (this.reactionTimer <= 0) {
-      // Emit monster roar
-      events.pushNoise(`noise_roar_${this.id}_${simTime}`, 'roar', this.pos.x, this.pos.y, this.pos.z, 0.9, this.id, simTime);
-      this.enterHunt(nav);
+      if (!this.isSighting) {
+        // Emit monster roar
+        events.pushNoise(`noise_roar_${this.id}_${simTime}`, 'roar', this.pos.x, this.pos.y, this.pos.z, 0.9, this.id, simTime);
+        this.enterHunt(nav);
+      } else {
+        this.enterWander(nav);
+      }
     }
   }
 

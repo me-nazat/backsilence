@@ -163,11 +163,29 @@ export class MonsterBody {
     const rawGroundY = ground.heightAt(snapshot.pos.x, snapshot.pos.z);
     const groundY = Number.isFinite(rawGroundY) ? rawGroundY : -0.9;
     const waterLevel = this.water ? this.water.currentWaterY : 0.0;
-    // Shoulders are 1.4m above root in hunched gait; ensure shoulders clear surface by >= 0.35m
-    const minRootYForShoulders = waterLevel + 0.35 - 1.40;
-    const finalRootY = Math.max(groundY, minRootYForShoulders);
+    
+    // Standing wade pose: torso + head sit >= 1.2m above waterline
+    const isWadeStand = snapshot.isSighting || ((snapshot.state === 'WANDER' || snapshot.state === 'DORMANT') && rawGroundY < waterLevel);
+    const minRootY = isWadeStand ? (waterLevel + 1.25 - 1.40) : (waterLevel + 0.35 - 1.40);
+    const finalRootY = Math.max(groundY, minRootY);
 
-    this.mesh.root.position.set(snapshot.pos.x, finalRootY, snapshot.pos.z);
+    let finalPosX = snapshot.pos.x;
+    let finalPosZ = snapshot.pos.z;
+
+    // Minimum on-screen presence guarantee during scheduled sightings (>= 8% viewport height)
+    if (snapshot.isSighting) {
+      const distToCam = Math.hypot(finalPosX - camera.position.x, finalPosZ - camera.position.z);
+      const fovDeg = 'fov' in camera && typeof (camera as { fov: number }).fov === 'number' ? (camera as { fov: number }).fov : 60;
+      const fovRad = (fovDeg * Math.PI) / 360;
+      const maxDistFor8Pct = 2.2 / (2.0 * Math.tan(fovRad) * 0.08);
+      if (distToCam > maxDistFor8Pct && distToCam > 0.1) {
+        const factor = maxDistFor8Pct / distToCam;
+        finalPosX = camera.position.x + (finalPosX - camera.position.x) * factor;
+        finalPosZ = camera.position.z + (finalPosZ - camera.position.z) * factor;
+      }
+    }
+
+    this.mesh.root.position.set(finalPosX, finalRootY, finalPosZ);
     this.currentYaw += (snapshot.yaw - this.currentYaw) * Math.min(1.0, dt * 10.0);
     this.mesh.root.rotation.y = this.currentYaw;
 
@@ -241,7 +259,14 @@ export class MonsterBody {
     joints.earRight.rotation.y = earDelta * 0.6 - Math.sin(snapshot.pos.z * 2.0) * 0.1;
 
     // 8b. Pose modifications for distinct readable silhouettes at 25m:
-    if (snapshot.isListening || snapshot.state === 'DORMANT') {
+    if (isWadeStand && snapshot.state === 'WANDER') {
+      // Standing wade posture: erect torso, elevated head looking out
+      joints.torso.rotation.x = 0.08;
+      joints.neck.rotation.x = -0.05;
+      joints.head.rotation.x = 0.05;
+      joints.head.rotation.z = 0.0;
+      joints.neck.rotation.y = 0.0;
+    } else if (snapshot.isListening || snapshot.state === 'DORMANT') {
       // Listening / Dormant: head tilts, ear fins twitch
       joints.head.rotation.z = 0.35;
       joints.head.rotation.x = -0.15;

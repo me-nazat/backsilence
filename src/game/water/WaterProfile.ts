@@ -25,14 +25,14 @@ export interface WaterProfile {
 
 export const WATER_PROFILES: Record<MapId, WaterProfile> = {
   poolrooms: {
-    shallow: '#72bca5',
-    deep: '#2e6358',
+    shallow: '#84a064',
+    deep: '#7c9e5b',
     opacityMin: 0.55,
     opacityMax: 0.93,
     foam: 0.25,
     normalStrength: 1.0,
     scroll: 0.04,
-    specular: '#f5edd6',
+    specular: '#b3bb9f',
     murk: 0.0,
   },
   utility_tunnels: {
@@ -86,14 +86,14 @@ export const WATER_PROFILES: Record<MapId, WaterProfile> = {
     },
   },
   natatorium: {
-    shallow: '#8cb179',
-    deep: '#678f44',
+    shallow: '#84a064',
+    deep: '#7c9e5b',
     opacityMin: 0.50,
     opacityMax: 0.92,
     foam: 0.20,
     normalStrength: 1.0,
     scroll: 0.04,
-    specular: '#d6dccd',
+    specular: '#b3bb9f',
     murk: 0.0,
   },
   drowned_school: {

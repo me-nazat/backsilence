@@ -9,6 +9,8 @@ import {
   MeshStandardMaterial,
   MeshBasicMaterial,
   Mesh,
+  InstancedMesh,
+  Matrix4,
   PlaneGeometry,
   BoxGeometry,
   Vector3,
@@ -35,6 +37,7 @@ import { bakeVertexAO } from '../../procedural/geometry/VertexAO.js';
 import { applyWetDarkening } from '../../game/rendering/WetDarkening.js';
 import { applyParallaxOcclusion } from '../../game/rendering/ParallaxOcclusion.js';
 import { createLightShaftMesh, createDustMotes } from '../../game/rendering/LightShafts.js';
+import { buildYFixtureGeometry, buildColorPanelGeometry } from '../levelart/LevelArtProps.js';
 import type { LightStreak } from '../../game/water/WaterMaterial.js';
 
 export const NatatoriumMap: MapDefinition = {
@@ -48,19 +51,19 @@ export const NatatoriumMap: MapDefinition = {
   },
   atmosphere: {
     fog: {
-      color: '#d6dccd',
-      density: 0.038,
+      color: '#b3bb9f',
+      density: 0.035,
     },
-    exposure: 1.15,
+    exposure: 1.28,
     hemisphere: {
-      sky: '#d6dccd',
-      ground: '#678f44',
+      sky: '#b3bb9f',
+      ground: '#7c9e5b',
     },
     sun: {
-      color: '#fff8e8',
-      intensity: 1.35,
+      color: '#fffbf0',
+      intensity: 1.1,
       direction: { x: 0.35, y: 0.9, z: 0.25 },
-      castShadow: true,
+      castShadow: false,
     },
   },
   waterProfile: WATER_PROFILES.natatorium,
@@ -516,8 +519,8 @@ export const NatatoriumMap: MapDefinition = {
         id: 'monster_1',
         variant: 'standard',
         spawn: monsterSpawn,
-        sleeperSpawn: { x: 2, y: -0.9, z: 22 },
-        spawnGrace: 2.0,
+        sleeperSpawn: { x: 24.0, y: -0.9, z: 30.0 },
+        spawnGrace: 20.0,
       },
     ];
 
@@ -586,37 +589,39 @@ export const NatatoriumMap: MapDefinition = {
 
   async build(layout: LayoutData, env: BuildEnv): Promise<MapInstance> {
     const tex = TextureRegistry.getInstance();
-    const poolTiles = tex.getTileSet('platform', layout.seed);
+    const platformTiles = tex.getTileSet('platform', layout.seed);
+    const wallTiles = tex.getTileSet('wall', layout.seed);
+    const floorTiles = tex.getTileSet('floorWet', layout.seed);
 
     const platformMat = new MeshStandardMaterial({
-      map: poolTiles.albedo,
-      roughnessMap: poolTiles.roughness,
-      normalMap: poolTiles.normal,
-      aoMap: poolTiles.ao,
+      map: platformTiles.albedo,
+      roughnessMap: platformTiles.roughness,
+      normalMap: platformTiles.normal,
+      aoMap: platformTiles.ao,
       roughness: 0.35,
       metalness: 0.02,
     });
     applyWetDarkening(platformMat, { waterY: 0.0 });
-    applyParallaxOcclusion(platformMat, { heightMap: poolTiles.height, scale: 0.025, maxDistance: 6.0 });
+    applyParallaxOcclusion(platformMat, { heightMap: platformTiles.height, scale: 0.015, maxDistance: 6.0 });
 
     const wallMat = new MeshStandardMaterial({
-      map: poolTiles.albedo,
-      roughnessMap: poolTiles.roughness,
-      normalMap: poolTiles.normal,
+      map: wallTiles.albedo,
+      roughnessMap: wallTiles.roughness,
+      normalMap: wallTiles.normal,
       roughness: 0.45,
       metalness: 0.05,
     });
     applyWetDarkening(wallMat, { waterY: 0.0 });
 
     const floorMat = new MeshStandardMaterial({
-      map: poolTiles.albedo,
-      roughnessMap: poolTiles.roughness,
-      normalMap: poolTiles.normal,
-      aoMap: poolTiles.ao,
+      map: floorTiles.albedo,
+      roughnessMap: floorTiles.roughness,
+      normalMap: floorTiles.normal,
+      aoMap: floorTiles.ao,
       roughness: 0.25,
       metalness: 0.04,
     });
-    applyParallaxOcclusion(floorMat, { heightMap: poolTiles.height, scale: 0.02, maxDistance: 6.0 });
+    applyParallaxOcclusion(floorMat, { heightMap: floorTiles.height, scale: 0.015, maxDistance: 6.0 });
 
     const instance = buildStandardMapInstance(layout, env, {
       platformMat,
@@ -649,11 +654,11 @@ export const NatatoriumMap: MapDefinition = {
     foyerCeiling.name = 'FoyerCeiling';
     instance.root.add(foyerCeiling);
 
-    // Vaulted ceiling over grand pool hall (height 9.0m)
-    const grandRoofGeom = new BoxGeometry(80.0, 0.5, 84.0);
-    scaleBoxUv(grandRoofGeom, 80.0, 0.5, 84.0, 2.4);
+    // Vaulted ceiling over grand pool hall (covers full map bounds, height 9.0m)
+    const grandRoofGeom = new BoxGeometry(140.0, 0.5, 120.0);
+    scaleBoxUv(grandRoofGeom, 140.0, 0.5, 120.0, 2.4);
     const grandRoof = new Mesh(grandRoofGeom, wallMat);
-    grandRoof.position.set(0, 9.0, -2.5);
+    grandRoof.position.set(0, 9.0, 0);
     grandRoof.name = 'GrandHallCeiling';
     instance.root.add(grandRoof);
 
@@ -674,18 +679,58 @@ export const NatatoriumMap: MapDefinition = {
 
     // 2. Add barrel vault skylight light shafts and streaks
     const lightStreaks: LightStreak[] = [];
-    const shaftZ = [-14, 14];
-    for (const z of shaftZ) {
-      const shaft = createLightShaftMesh({
-        topRadius: 1.4,
-        bottomRadius: 5.2,
-        height: 14.0,
-        color: '#fff5d6',
-        intensity: 0.32,
-      });
-      shaft.position.set(0, 7.0, z);
-      instance.root.add(shaft);
-    }
+    const shaft = createLightShaftMesh({
+      topRadius: 1.8,
+      bottomRadius: 6.5,
+      height: 14.0,
+      color: '#fff5d6',
+      intensity: 0.07, // Soft and gentle, preserving crystal clear corridor sightlines
+    });
+    shaft.position.set(0, 7.0, 0);
+    instance.root.add(shaft);
+
+    // Y-shaped antler standing fixtures on distant platform slabs (reference v_05s, v_12s)
+    const yFixtureGeom = buildYFixtureGeometry();
+    const fixtureMat = new MeshStandardMaterial({
+      color: new Color('#5a4d3a'),
+      roughness: 0.4,
+      metalness: 0.7,
+    });
+    const yFixtures = new InstancedMesh(yFixtureGeom, fixtureMat, 2);
+    yFixtures.name = 'YFixtures';
+    const m4 = new Matrix4();
+    m4.makeTranslation(12, 0.3, 10);
+    yFixtures.setMatrixAt(0, m4);
+    m4.makeRotationY(0.4);
+    m4.setPosition(18, 0.3, -5);
+    yFixtures.setMatrixAt(1, m4);
+    yFixtures.instanceMatrix.needsUpdate = true;
+    instance.root.add(yFixtures);
+
+    // Luminous rectangular window on west wall (reference v_05s, v_21s)
+    const winGeom = new PlaneGeometry(3.6, 2.2);
+    const winMat = new MeshBasicMaterial({
+      color: new Color('#fff3d6'),
+      transparent: true,
+      opacity: 0.88,
+    });
+    const winMesh = new Mesh(winGeom, winMat);
+    winMesh.position.set(-39.38, 5.2, 12.0);
+    winMesh.rotation.y = Math.PI * 0.5;
+    winMesh.name = 'WestWallWindow';
+    instance.root.add(winMesh);
+
+    // Tricolor wall panel on far gallery wall (reference v_12s, v_21s)
+    const panelGeom = buildColorPanelGeometry(3.6, 2.0);
+    const panelMat = new MeshStandardMaterial({
+      color: new Color('#e0d5be'),
+      roughness: 0.5,
+      metalness: 0.1,
+    });
+    const panelMesh = new Mesh(panelGeom, panelMat);
+    panelMesh.position.set(-14.0, 5.0, -41.8);
+    panelMesh.name = 'TricolorPanel';
+    instance.root.add(panelMesh);
 
     const skylightZ = [-24, -8, 8, 24];
     for (let i = 0; i < skylightZ.length; i++) {

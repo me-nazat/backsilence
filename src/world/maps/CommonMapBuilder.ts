@@ -53,8 +53,8 @@ export function scaleBoxUv(geom: BoxGeometry, w: number, h: number, d: number, u
   ];
   for (let f = 0; f < 6; f++) {
     const [fw, fh] = faces[f]!;
-    const scaleU = Math.max(0.5, fw / unit);
-    const scaleV = Math.max(0.5, fh / unit);
+    const scaleU = fw / unit;
+    const scaleV = fh / unit;
     for (let v = 0; v < 4; v++) {
       const idx = (f * 4 + v) * 2;
       uvArray[idx] = uvArray[idx]! * scaleU;
@@ -352,10 +352,11 @@ export function buildStandardMapInstance(
     geometriesToDispose,
   });
 
-  // 7. Atmospheric Far Silhouettes in Fog (1 to 3 instanced layers)
+  // 7. Atmospheric Far Silhouettes in Fog (1 to 3 instanced layers outside playable rooms)
   const farSilhouettes = createFarSilhouettes({
     tier: 'high',
     seed: layout.seed + 1234,
+    bounds: layout.bounds,
   });
   root.add(farSilhouettes);
 

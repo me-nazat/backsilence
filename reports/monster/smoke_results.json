@@ -1,7 +1,7 @@
 {
   "M1": {
     "pass": true,
-    "durationMs": 3369,
+    "durationMs": 3742,
     "details": {
       "probeVerdict": {
         "pass": true,
@@ -9,9 +9,9 @@
         "reason": "Monster is present, finite, rendered, and visible on screen",
         "fields": {
           "monsterCount": 1,
-          "distanceToCamera": 8.27,
-          "visibleFraction": 0.6049,
-          "pixelCount": 7216
+          "distanceToCamera": 5.85,
+          "visibleFraction": 0.6959,
+          "pixelCount": 26559
         }
       },
       "screenshot": "/Users/nazat/Desktop/Desktop/antigravity/BackSilence/poolrooms/reports/monster/screenshots/smoke/m1_cold_start.png"
@@ -19,10 +19,10 @@
   },
   "M2": {
     "pass": true,
-    "durationMs": 1599,
+    "durationMs": 1633,
     "details": {
-      "maskPixels": 7254,
-      "visibleFraction": 0.6209,
+      "maskPixels": 25424,
+      "visibleFraction": 0.6928,
       "screenshot": "/Users/nazat/Desktop/Desktop/antigravity/BackSilence/poolrooms/reports/monster/screenshots/smoke/m2_show_me.png"
     }
   },
@@ -78,77 +78,77 @@
   },
   "M4": {
     "pass": true,
-    "durationMs": 4557,
+    "durationMs": 5024,
     "details": {
-      "maskCoverage": 0.2654969135802469,
-      "retryDurationMs": 255,
+      "maskCoverage": 0.33904475308641974,
+      "retryDurationMs": 254,
       "monsterDistAfterRetry": 60.14
     }
   },
   "M5": {
     "pass": true,
-    "durationMs": 24112,
+    "durationMs": 31338,
     "details": {
       "mapCount": 10,
       "results": [
         {
           "mapId": "natatorium",
-          "maskPixels": 7162,
-          "distance": 9.49,
+          "maskPixels": 14303,
+          "distance": 8.17,
           "pass": true
         },
         {
           "mapId": "poolrooms",
-          "maskPixels": 17085,
-          "distance": 6.01,
+          "maskPixels": 21038,
+          "distance": 5.98,
           "pass": true
         },
         {
           "mapId": "drowned_school",
-          "maskPixels": 7655,
-          "distance": 8.05,
+          "maskPixels": 18886,
+          "distance": 5.56,
           "pass": true
         },
         {
           "mapId": "utility_tunnels",
-          "maskPixels": 7286,
-          "distance": 8.31,
+          "maskPixels": 16869,
+          "distance": 5.91,
           "pass": true
         },
         {
           "mapId": "sunken_jungle",
-          "maskPixels": 3217,
-          "distance": 12.2,
+          "maskPixels": 3979,
+          "distance": 12.18,
           "pass": true
         },
         {
           "mapId": "marble_atrium",
-          "maskPixels": 6816,
-          "distance": 8.32,
+          "maskPixels": 22325,
+          "distance": 5.92,
           "pass": true
         },
         {
           "mapId": "neon_flood",
-          "maskPixels": 9510,
-          "distance": 8.27,
+          "maskPixels": 14484,
+          "distance": 7.76,
           "pass": true
         },
         {
           "mapId": "hydro_maze",
-          "maskPixels": 6955,
-          "distance": 8.32,
+          "maskPixels": 16285,
+          "distance": 5.92,
           "pass": true
         },
         {
           "mapId": "drowned_metro",
-          "maskPixels": 2254,
-          "distance": 16.24,
+          "maskPixels": 30032,
+          "distance": 5.04,
           "pass": true
         },
         {
           "mapId": "drainage_core",
-          "maskPixels": 9316,
-          "distance": 8.27,
+          "maskPixels": 19990,
+          "distance": 6.8,
           "pass": true
         }
       ],
@@ -157,45 +157,45 @@
   },
   "M6": {
     "pass": true,
-    "durationMs": 12910,
+    "durationMs": 13576,
     "details": {
       "retriesCount": 10,
-      "initGeom": 131,
-      "finalGeom": 132
+      "initGeom": 137,
+      "finalGeom": 137
     }
   },
   "M7": {
     "pass": true,
-    "durationMs": 8550,
+    "durationMs": 12054,
     "details": [
       {
         "tier": "low",
-        "withWater": 17153,
-        "noWater": 17923
+        "withWater": 22173,
+        "noWater": 21014
       },
       {
         "tier": "medium",
-        "withWater": 17085,
-        "noWater": 17665
+        "withWater": 21039,
+        "noWater": 22003
       },
       {
         "tier": "high",
-        "withWater": 17439,
-        "noWater": 17527
+        "withWater": 21665,
+        "noWater": 21984
       }
     ]
   },
   "M8": {
     "pass": true,
-    "durationMs": 5175,
+    "durationMs": 7688,
     "details": {
-      "maskPixels": 15573,
+      "maskPixels": 4131,
       "screenshot": "/Users/nazat/Desktop/Desktop/antigravity/BackSilence/poolrooms/reports/monster/screenshots/smoke/m8_phone_view.png"
     }
   },
   "M9": {
     "pass": true,
-    "durationMs": 55,
+    "durationMs": 97,
     "details": [
       {
         "test": "missing",
@@ -213,5 +213,12 @@
         "hasMesh": true
       }
     ]
+  },
+  "M9_natural_sighting": {
+    "pass": true,
+    "durationMs": 28055,
+    "details": {
+      "summary": "   - Sighting #4: t=156.3s, dur=8s, dist=12-14.1m, height=14.6%, visFrac=0.701, attacks=0;    - Sighting #5: t=193.5s, dur=8s, dist=9.6-11.9m, height=17.7%, visFrac=0.743, attacks=0;    - Sighting #6: t=228.3s, dur=8s, dist=10.3-17.1m, height=13.9%, visFrac=0.69, attacks=0; ; Result: 10/10 runs passed."
+    }
   }
 }

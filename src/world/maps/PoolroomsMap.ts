@@ -23,17 +23,17 @@ export const PoolroomsMap: MapDefinition = {
   },
   atmosphere: {
     fog: {
-      color: '#d9d3a2',
+      color: '#b3bb9f',
       density: 0.045,
     },
     exposure: 1.1,
     hemisphere: {
-      sky: '#e8e2c0',
-      ground: '#7a8570',
+      sky: '#b3bb9f',
+      ground: '#7c9e5b',
     },
     sun: {
       color: '#fff8e7',
-      intensity: 1.2,
+      intensity: 1.1,
       direction: { x: 0.4, y: 1.0, z: 0.3 },
       castShadow: false,
     },

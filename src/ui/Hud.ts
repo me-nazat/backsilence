@@ -73,6 +73,9 @@ export interface HudData {
 
   uplinksRemaining?: number | null;
   stormWindow?: { active: boolean; timeRemaining: number; nextStormIn: number } | null;
+  sightings?: number;
+  lastSightingTime?: number;
+  visFrac?: number;
   droneLockWarning?: { locked: boolean; angleDeg: number } | null;
   empCount?: number | null;
 
@@ -115,6 +118,7 @@ export class Hud {
   private cinematic = false;
   private nearMissEl: HTMLElement | null = null;
   private screenReaderLiveEl: HTMLElement | null = null;
+  private debugSightingEl: HTMLElement | null = null;
   private nearMissTimeout: ReturnType<typeof setTimeout> | null = null;
   private lastAnnouncedStatus = '';
   private lastAnnouncedObjective = '';
@@ -218,6 +222,17 @@ export class Hud {
       }
       this.quietHintTimeout = null;
     }, durationMs);
+  }
+
+  hideQuietHint(): void {
+    if (this.quietHintTimeout !== null) {
+      clearTimeout(this.quietHintTimeout);
+      this.quietHintTimeout = null;
+    }
+    if (this.quietHintEl) {
+      this.quietHintEl.style.opacity = '0';
+      this.quietHintEl.style.display = 'none';
+    }
   }
 
   getObjective(): string {
@@ -905,6 +920,22 @@ export class Hud {
         z-index: 50;
       "></div>
 
+      <!-- Debug Sighting Line (only visible with ?debug=1) -->
+      <div id="hud-debug-sighting" style="
+        position: absolute;
+        bottom: 8px;
+        left: 8px;
+        font-family: monospace;
+        font-size: 11px;
+        color: #00e5ff;
+        background: rgba(0,0,0,0.6);
+        padding: 2px 6px;
+        border-radius: 3px;
+        pointer-events: none;
+        display: none;
+        z-index: 999;
+      "></div>
+
       <!-- Pointer Lock Hint: single small centered line shown only while pointer unlocked -->
       <div id="hud-pointer-lock-hint" style="
         position: absolute;
@@ -928,6 +959,7 @@ export class Hud {
     this.el = el;
 
     this.screenReaderLiveEl = el.querySelector('#hud-screen-reader-live');
+    this.debugSightingEl = el.querySelector('#hud-debug-sighting');
     this.nearMissEl = el.querySelector('#hud-near-miss');
     this.pointerLockHintEl = el.querySelector('#hud-pointer-lock-hint');
     this.minimalNoiseFillEl = el.querySelector('#hud-noise-minimal-fill');
@@ -1005,6 +1037,20 @@ export class Hud {
     if (!this.el) return;
     this.currentData = { ...this.currentData, ...incoming };
     const data = this.currentData;
+
+    // Debug sighting line (only visible with ?debug=1)
+    if (this.debugSightingEl) {
+      const isDebug = typeof location !== 'undefined' && (location.search.includes('debug=1') || location.search.includes('debug=true'));
+      if (isDebug) {
+        this.debugSightingEl.style.display = 'block';
+        const sCount = data.sightings ?? 0;
+        const lastT = data.lastSightingTime !== undefined && data.lastSightingTime > 0 ? `${data.lastSightingTime.toFixed(1)} s` : 'n/a';
+        const vf = (data.visFrac ?? 0).toFixed(2);
+        this.debugSightingEl.textContent = `sightings: ${sCount}, last: ${lastT}, visFrac: ${vf}`;
+      } else {
+        this.debugSightingEl.style.display = 'none';
+      }
+    }
 
     // 1. Noise Meter update (Color-blind safe palette + Numeric Ticks + Water Noise Radius)
     const loudnessPct = Math.min(100, Math.max(0, data.noiseLoudness * 100));

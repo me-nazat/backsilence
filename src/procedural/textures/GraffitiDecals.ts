@@ -54,29 +54,31 @@ export function makeTaglineDecal(options: TaglineDecalOptions = {}): CanvasTextu
     return { polylines: shifted, width: res.width };
   }
 
-  const allMarkerStrokes: Polyline[] = [];
+  const standardTextStrokes: Polyline[] = [];
+  const boldTextStrokes: Polyline[] = [];
+  const underlineStrokes: Polyline[] = [];
 
   // Line 1: "IT CAN'T SEE YOU."
   const startX1 = 60;
   const y1 = 45;
   const t_it1 = addText('IT', startX1, y1, 52);
-  allMarkerStrokes.push(...t_it1.polylines);
+  standardTextStrokes.push(...t_it1.polylines);
 
   // CAN'T is larger and bolder
   const cantX = startX1 + t_it1.width + 25;
   const t_cant = addText("CAN'T", cantX, y1 - 8, 68);
-  allMarkerStrokes.push(...t_cant.polylines);
+  boldTextStrokes.push(...t_cant.polylines);
 
   // Double rough underline under CAN'T
   const u1Y = y1 + 75;
   const u1Start = cantX - 10;
   const u1End = cantX + t_cant.width + 10;
-  allMarkerStrokes.push([
+  underlineStrokes.push([
     [u1Start, u1Y],
     [u1Start + (u1End - u1Start) * 0.4, u1Y + 3],
     [u1End, u1Y - 1],
   ]);
-  allMarkerStrokes.push([
+  underlineStrokes.push([
     [u1Start + 5, u1Y + 7],
     [u1Start + (u1End - u1Start) * 0.6, u1Y + 9],
     [u1End - 5, u1Y + 6],
@@ -84,33 +86,33 @@ export function makeTaglineDecal(options: TaglineDecalOptions = {}): CanvasTextu
 
   const seeX = cantX + t_cant.width + 30;
   const t_see = addText('SEE', seeX, y1, 52);
-  allMarkerStrokes.push(...t_see.polylines);
+  standardTextStrokes.push(...t_see.polylines);
 
   const youX = seeX + t_see.width + 25;
   const t_you = addText('YOU.', youX, y1, 52);
-  allMarkerStrokes.push(...t_you.polylines);
+  standardTextStrokes.push(...t_you.polylines);
 
   // Line 2: "IT HEARS THE WATER."
   const startX2 = 80;
   const y2 = 165;
   const t_it2 = addText('IT', startX2, y2, 52);
-  allMarkerStrokes.push(...t_it2.polylines);
+  standardTextStrokes.push(...t_it2.polylines);
 
   // HEARS is larger and bolder
   const hearsX = startX2 + t_it2.width + 25;
   const t_hears = addText('HEARS', hearsX, y2 - 8, 68);
-  allMarkerStrokes.push(...t_hears.polylines);
+  boldTextStrokes.push(...t_hears.polylines);
 
   // Double rough underline under HEARS
   const u2Y = y2 + 75;
   const u2Start = hearsX - 10;
   const u2End = hearsX + t_hears.width + 10;
-  allMarkerStrokes.push([
+  underlineStrokes.push([
     [u2Start, u2Y],
     [u2Start + (u2End - u2Start) * 0.5, u2Y + 4],
     [u2End, u2Y],
   ]);
-  allMarkerStrokes.push([
+  underlineStrokes.push([
     [u2Start + 8, u2Y + 8],
     [u2Start + (u2End - u2Start) * 0.55, u2Y + 10],
     [u2End - 4, u2Y + 7],
@@ -118,80 +120,95 @@ export function makeTaglineDecal(options: TaglineDecalOptions = {}): CanvasTextu
 
   const theX = hearsX + t_hears.width + 30;
   const t_the = addText('THE', theX, y2, 52);
-  allMarkerStrokes.push(...t_the.polylines);
+  standardTextStrokes.push(...t_the.polylines);
 
   const waterX = theX + t_the.width + 25;
   const t_water = addText('WATER.', waterX, y2, 52);
-  allMarkerStrokes.push(...t_water.polylines);
+  standardTextStrokes.push(...t_water.polylines);
 
-  // Render all marker text strokes
-  drawMarker(ctx, allMarkerStrokes, {
-    width: 6.5,
+  // Render text strokes with distinct authentic weights
+  drawMarker(ctx, standardTextStrokes, {
+    width: 9.5,
     color,
     seed: seed + 1,
+  });
+
+  drawMarker(ctx, boldTextStrokes, {
+    width: 14.5,
+    color,
+    seed: seed + 2,
+  });
+
+  drawMarker(ctx, underlineStrokes, {
+    width: 12.0,
+    color,
+    seed: seed + 3,
   });
 
   // Below text: Water drop art
   const dropCenterX = width * 0.5;
 
-  // 1. Single falling teardrop (y ~ 290 to 325)
+  // 1. Single falling teardrop (y ~ 278 to 320)
   ctx.save();
   ctx.fillStyle = color;
   ctx.beginPath();
-  const dropTopY = 285;
+  const dropTopY = 278;
   const dropBotY = 320;
   ctx.moveTo(dropCenterX, dropTopY);
   ctx.bezierCurveTo(
-    dropCenterX - 10,
-    dropTopY + 20,
-    dropCenterX - 12,
+    dropCenterX - 13,
+    dropTopY + 24,
+    dropCenterX - 15,
     dropBotY,
     dropCenterX,
     dropBotY,
   );
   ctx.bezierCurveTo(
-    dropCenterX + 12,
+    dropCenterX + 15,
     dropBotY,
-    dropCenterX + 10,
-    dropTopY + 20,
+    dropCenterX + 13,
+    dropTopY + 24,
     dropCenterX,
     dropTopY,
   );
   ctx.fill();
 
-  // 2. Splash "crown" at water contact point (y ~ 340) with 6 spikes
+  // 2. Splash "crown" at water contact point (y ~ 345) with 6 spikes and tip beads
   const crownY = 345;
   const spikeCount = 6;
-  const crownRadius = 36;
+  const crownRadius = 38;
   const crownStrokes: Polyline[] = [];
 
   for (let i = 0; i < spikeCount; i++) {
-    const angle = Math.PI + (i / (spikeCount - 1)) * Math.PI; // Upper semicircle
-    const spikeLen = rng.range(18, 30);
+    const angle = Math.PI * 1.05 + (i / (spikeCount - 1)) * (Math.PI * 0.9); // Upper semicircle
+    const spikeLen = rng.range(22, 34);
     const sx1 = dropCenterX + Math.cos(angle) * (crownRadius * 0.5);
     const sy1 = crownY + Math.sin(angle) * (crownRadius * 0.25);
     const sx2 = dropCenterX + Math.cos(angle) * (crownRadius * 0.5 + spikeLen);
     const sy2 = crownY + Math.sin(angle) * (crownRadius * 0.25 + spikeLen * 0.85);
 
     crownStrokes.push([[sx1, sy1], [sx2, sy2]]);
+    ctx.beginPath();
+    ctx.arc(sx2, sy2, rng.range(3.2, 4.6), 0, Math.PI * 2);
+    ctx.fill();
   }
-  drawMarker(ctx, crownStrokes, { width: 4.5, color, seed: seed + 10 });
+  drawMarker(ctx, crownStrokes, { width: 5.5, color, seed: seed + 10 });
 
   // 3. Three concentric broken ellipse ripple rings
   const ringRadii = [
-    { rx: 55, ry: 16, alpha: 0.9, width: 4.0 },
-    { rx: 110, ry: 30, alpha: 0.7, width: 3.5 },
-    { rx: 175, ry: 46, alpha: 0.45, width: 2.8 },
+    { rx: 65, ry: 18, width: 4.8 },
+    { rx: 125, ry: 34, width: 3.8 },
+    { rx: 190, ry: 50, width: 2.8 },
   ];
 
   for (const ring of ringRadii) {
     const ellipseStrokes: Polyline[] = [];
-    const segments = 16;
+    const segments = 18;
     for (let s = 0; s < segments; s++) {
       // Create broken dashed appearance
       if (s % 3 === 2) continue;
       const a1 = (s / segments) * Math.PI * 2.0;
-      const a2 = ((s + 0.8) / segments) * Math.PI * 2.0;
+      const a2 = ((s + 0.85) / segments) * Math.PI * 2.0;
 
       const px1 = dropCenterX + Math.cos(a1) * ring.rx;
       const py1 = crownY + Math.sin(a1) * ring.ry;
@@ -207,11 +224,13 @@ export function makeTaglineDecal(options: TaglineDecalOptions = {}): CanvasTextu
     });
   }
 
-  // A few drips from letter bottoms
+  // Drips from letter bottoms and underlines
   const dripPoints: Point2D[] = [
-    [cantX + 35, y1 + 65],
+    [cantX + 35, y1 + 75],
+    [cantX + 110, y1 + 78],
     [seeX + 40, y1 + 62],
-    [hearsX + 50, y2 + 65],
+    [hearsX + 45, y2 + 75],
+    [hearsX + 130, y2 + 78],
     [waterX + 45, y2 + 62],
   ];
 
@@ -219,13 +238,13 @@ export function makeTaglineDecal(options: TaglineDecalOptions = {}): CanvasTextu
   ctx.fillStyle = color;
   for (const [dx, dy] of dripPoints) {
     const len = rng.range(18, 38);
-    ctx.lineWidth = 2.0;
+    ctx.lineWidth = 2.5;
     ctx.beginPath();
     ctx.moveTo(dx, dy);
     ctx.lineTo(dx + (rng.next() - 0.5) * 2, dy + len);
     ctx.stroke();
     ctx.beginPath();
-    ctx.arc(dx, dy + len, 2.5, 0, Math.PI * 2.0);
+    ctx.arc(dx, dy + len, 3.0, 0, Math.PI * 2.0);
     ctx.fill();
   }
 

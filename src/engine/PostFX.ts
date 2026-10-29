@@ -531,7 +531,7 @@ export class PostFX {
         if (this.isSafeMode() || speed < 0.001) {
           u.uVelocity.value.set(0, 0);
         } else {
-          const factor = Math.min(0.016, speed * 0.012);
+          const factor = Math.min(0.055, speed * 0.032);
           u.uVelocity.value.set((deltaX / (speed || 1)) * factor, (deltaY / (speed || 1)) * factor);
         }
       }

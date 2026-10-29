@@ -85,7 +85,7 @@ export async function runComparison(options = {}) {
     natatorium_water_drip_ring: 'drip_ring',
     natatorium_water_horizon: 'horizon_haze',
     natatorium_water_underwater: 'underwater',
-    natatorium_water_monster_wake: 'wading_wake',
+    natatorium_water_monster_wake: 'monster_wake',
     neon_flood_water_rain: 'neon_flood_rain',
     classic_archipelago_hero: 'archipelago_calm',
     natatorium_hero: 'natatorium_hero',

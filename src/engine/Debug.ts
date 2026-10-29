@@ -944,6 +944,9 @@ export function updateDebugOverlay(stats: {
   activeVoices: number;
   timers?: number | undefined;
   listeners?: number | undefined;
+  sightings?: number | undefined;
+  lastSightingTime?: number | undefined;
+  visFrac?: number | undefined;
 }): void {
   const overlay = document.getElementById('debug-overlay');
   if (!overlay) return;
@@ -951,6 +954,9 @@ export function updateDebugOverlay(stats: {
   const menuMark = performance.getEntriesByName('menu:interactive')[0];
   const menuTime = menuMark ? `${Math.round(menuMark.startTime)}ms` : 'n/a';
   const regStats = TextureRegistry.getInstance().stats();
+  const sightingLine = stats.sightings !== undefined
+    ? `<div>sightings: <strong>${stats.sightings}</strong>, last: ${stats.lastSightingTime !== undefined && stats.lastSightingTime > 0 ? stats.lastSightingTime.toFixed(1) : 'n/a'} s, visFrac: ${(stats.visFrac ?? 0).toFixed(2)}</div>`
+    : '';
 
   overlay.style.display = 'block';
   overlay.innerHTML = `
@@ -960,6 +966,7 @@ export function updateDebugOverlay(stats: {
     <div>Geom: ${stats.geometries} / Tex: ${stats.textures}</div>
     <div>Proc VRAM: ~${regStats.memoryMB} (${regStats.count} cached)</div>
     <div>Audio Voices: ${stats.activeVoices}${stats.timers !== undefined ? ` | Timers: ${stats.timers}` : ''}${stats.listeners !== undefined ? ` | Listeners: ${stats.listeners}` : ''}</div>
+    ${sightingLine}
     <div>Menu Ready: ${menuTime}</div>
   `;
 }

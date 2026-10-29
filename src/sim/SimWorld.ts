@@ -41,6 +41,7 @@ export interface SimWorldConfig {
   weather?: WeatherSystem | undefined;
   ghostTrain?: GhostTrain | undefined;
   drones?: Drone[] | undefined;
+  mapId?: string | undefined;
 }
 
 export class SimWorld {
@@ -81,6 +82,9 @@ export class SimWorld {
     const diff = config.difficulty ?? 'normal';
     this.difficulty = diff;
     this.director = config.director ?? new EncounterDirector(config.seed, diff);
+    if (config.mapId) {
+      this.director.setMapId(config.mapId);
+    }
     this.baseWaterY = config.waterY;
     this.currentWaterY = config.waterY;
     this.worldProfile = config.worldProfile ?? DEFAULT_WORLD_PROFILE;

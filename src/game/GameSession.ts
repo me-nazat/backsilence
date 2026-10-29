@@ -68,6 +68,7 @@ import { RemotePlayerAvatar } from './player/RemotePlayerAvatar.js';
 import { PingMarkerManager } from './player/PingMarkerManager.js';
 import { SpectatorController } from './player/SpectatorController.js';
 import { ToastManager } from '../ui/ToastManager.js';
+import { ErrorBoundary } from '../engine/ErrorBoundary.js';
 import { OrientationDirector } from './OrientationDirector.js';
 import { GamepadManager } from '../engine/input/GamepadManager.js';
 
@@ -122,6 +123,7 @@ export class GameSession {
   private flashlightBattery = 1.0; // 0..1 (150 seconds total life)
   private readonly FLASHLIGHT_MAX_DURATION = 150.0;
   private crankNoiseTimer = 0;
+  private ambientDripTimer = 3.0;
 
   // Projectiles & Inventory
   private projectileSystem = new ProjectileSystem();
@@ -224,7 +226,11 @@ export class GameSession {
   // First minute reference flow & quiet hints
   private hasShownDryHint = false;
   private hasShownWaterHint = false;
+  private hasShownTurnHint = false;
+  private isShowingTurnHint = false;
   private firstCreatureSightingTime: number | null = null;
+  private readonly listenerForward = new Vector3();
+  private readonly listenerUp = new Vector3();
 
   // Debug visualizers
   private debugMode = false;
@@ -421,6 +427,7 @@ export class GameSession {
         ground: this.mapInstance.ground,
         colliders: this.mapInstance.colliders,
         mode: simMode,
+        mapId: this.mapId,
       });
       if (this.mapDef?.atmosphere?.fog?.density) {
         this.simWorld.director.setFogDensity(this.mapDef.atmosphere.fog.density);
@@ -504,7 +511,7 @@ export class GameSession {
           depthBuffer: true,
         });
         this.waterCompositeTarget = new WebGLRenderTarget(w, h, {
-          depthBuffer: false,
+          depthBuffer: true,
         });
         this.waterScene = new Scene();
         this.waterScene.userData.isAuxiliaryPass = true;
@@ -539,7 +546,7 @@ export class GameSession {
             variant: mDef.variant,
             spawn: spawnPos,
             ...(mDef.sleeperSpawn ? { sleeperSpawn: mDef.sleeperSpawn } : {}),
-            spawnGrace: this.difficulty === 'deafening' ? 4.0 : 8.0,
+            spawnGrace: mDef.spawnGrace ?? (this.difficulty === 'deafening' ? 4.0 : 8.0),
           },
           this.seed,
         );
@@ -644,6 +651,10 @@ export class GameSession {
       this.isLoaded = true;
     } catch (err: unknown) {
       console.error('[GameSession] Failed to initialize map session:', err);
+      const msg = err instanceof Error ? err.message : String(err);
+      ErrorBoundary.recordError('error', `GameSession.init: ${msg}`, 'GameSession');
+      ErrorBoundary.showTrackingLostScreen(`Session Initialization Failure: ${msg}`);
+      ToastManager.getInstance().show(`Initialization failed: ${msg}`, { type: 'warning' });
     }
   }
 
@@ -663,7 +674,7 @@ export class GameSession {
 
     const skyColor = parseInt(def.atmosphere.hemisphere.sky.replace('#', '0x'), 16);
     const groundColor = parseInt(def.atmosphere.hemisphere.ground.replace('#', '0x'), 16);
-    const hemi = new HemisphereLight(skyColor, groundColor, 0.75);
+    const hemi = new HemisphereLight(skyColor, groundColor, 0.95);
     this.scene.add(hemi);
 
     if (def.atmosphere.sun) {
@@ -1546,6 +1557,8 @@ export class GameSession {
 
     this.hasShownDryHint = false;
     this.hasShownWaterHint = false;
+    this.hasShownTurnHint = false;
+    this.isShowingTurnHint = false;
     this.firstCreatureSightingTime = null;
 
     const spawn = this.layout.spawns.player[0] ?? { x: 0, y: 1.0, z: 0 };
@@ -1612,9 +1625,9 @@ export class GameSession {
         isReducedMotion,
       );
 
-      const forwardVec = new Vector3(0, 0, -1).applyQuaternion(this.camera.quaternion);
-      const upVec = new Vector3(0, 1, 0).applyQuaternion(this.camera.quaternion);
-      this.audio.setListener(this.camera.position, forwardVec, upVec);
+      this.listenerForward.set(0, 0, -1).applyQuaternion(this.camera.quaternion);
+      this.listenerUp.set(0, 1, 0).applyQuaternion(this.camera.quaternion);
+      this.audio.setListener(this.camera.position, this.listenerForward, this.listenerUp);
       this.water.update(dt, this.simWorld.simTime, this.camera, this.scene.fog as FogExp2);
       this.mapInstance.update(dt);
       this.pingMarkers.update(this.camera, this.simWorld.simTime);
@@ -1685,6 +1698,10 @@ export class GameSession {
     this.playerCamera.update(dt, prevSnap, currSnap, renderAlpha);
     this.footsteps.update(currSnap, this.playerCamera.getBobPhase(), this.camera, this.simWorld.waterY);
 
+    this.listenerForward.set(0, 0, -1).applyQuaternion(this.camera.quaternion);
+    this.listenerUp.set(0, 1, 0).applyQuaternion(this.camera.quaternion);
+    this.audio.setListener(this.camera.position, this.listenerForward, this.listenerUp);
+
     // 4. Player Wake in Water
     const playerSpeed = Math.hypot(currSnap.vel.x, currSnap.vel.z);
     if (currSnap.wet && playerSpeed > 0.3) {
@@ -1731,6 +1748,28 @@ export class GameSession {
       } else if (!this.hasShownWaterHint && currSnap.wet) {
         this.hasShownWaterHint = true;
         this.hud.showQuietHint('Water is loud.', 4000);
+      }
+
+      // Natatorium opening: subtle hint to turn from the tagline wall towards the flooded hall
+      if (this.mapId === 'natatorium' && !this.hasShownTurnHint) {
+        const isFacingTaglineWall = Math.cos(currSnap.yaw) < -0.2 && currSnap.pos.z >= -0.5;
+        if (this.timeSurvived >= 1.5 && this.timeSurvived <= 12.0) {
+          if (isFacingTaglineWall) {
+            this.hasShownTurnHint = true;
+            this.isShowingTurnHint = true;
+            this.hud.showQuietHint('Turn around to enter the flooded hall.', 5000);
+          } else {
+            // Player already turned away naturally; skip the hint
+            this.hasShownTurnHint = true;
+          }
+        }
+      } else if (this.isShowingTurnHint) {
+        // Player rotated or stepped toward the hall: dismiss hint immediately
+        const turnedAway = Math.cos(currSnap.yaw) >= 0.2 || currSnap.pos.z < -0.8;
+        if (turnedAway) {
+          this.isShowingTurnHint = false;
+          this.hud.hideQuietHint();
+        }
       }
     }
 
@@ -1889,6 +1928,19 @@ export class GameSession {
         this.postFX.setTension(0.9);
       } else if (beat.kind === 'sweep') {
         this.water.wakes.addWake(beat.position.x, beat.position.z, 1.0, 0.0, 2.0, 0.5);
+      } else if (beat.kind === 'sighting_telegraph') {
+        // Telegraph V-wake and audio 2-4s before sighting
+        const dirX = Math.sin(currSnap.yaw || 0);
+        const dirZ = -Math.cos(currSnap.yaw || 0);
+        this.water.wakes.addWake(beat.position.x, beat.position.z, dirX, dirZ, 1.8, 0.85, 1.2, 8.0);
+        this.audio.play('monster_footfall', { position: beat.position, gain: 0.65 });
+        setTimeout(() => {
+          this.audio.play('monster_wade', { position: beat.position, gain: 0.60 });
+        }, 350);
+        setTimeout(() => {
+          this.audio.play('monster_footfall', { position: beat.position, gain: 0.65 });
+        }, 700);
+        this.audio.play('monster_sniff', { position: beat.position, gain: 0.65 });
       }
     }
     beats.length = 0;
@@ -1914,6 +1966,9 @@ export class GameSession {
     else if (currSnap.crouchT > 0.5) statusText = 'CROUCHED';
     else if (currSnap.wet) statusText = 'WET';
 
+    const dirSnap = this.simWorld.director.getSnapshot();
+    const visFrac = this.lastCachedL4Fraction ?? 0;
+
     this.hud.update({
       noiseLoudness: currSnap.agitation,
       stamina: currSnap.stamina / 100.0,
@@ -1921,6 +1976,9 @@ export class GameSession {
       interactionPrompt: promptState.visible ? promptState.label : null,
       vhsOsdState: this.postFX.getOsdState(),
       pointerLockHint: !this.playerInput.isPointerLocked(),
+      sightings: dirSnap.sightingsCount ?? 0,
+      lastSightingTime: dirSnap.lastSightingTime ?? 0,
+      visFrac,
     });
 
     // 12. Multiplayer Replication & Ping Markers
@@ -1991,6 +2049,11 @@ export class GameSession {
     ) {
       const w = this.container.clientWidth || 1280;
       const h = this.container.clientHeight || 720;
+      const targetAspect = w / h;
+      if (Math.abs(this.camera.aspect - targetAspect) > 0.001) {
+        this.camera.aspect = targetAspect;
+        this.camera.updateProjectionMatrix();
+      }
       if (this.opaqueDepthTarget.width !== w || this.opaqueDepthTarget.height !== h) {
         this.opaqueDepthTarget.setSize(w, h);
         this.waterCompositeTarget.setSize(w, h);
@@ -2012,6 +2075,29 @@ export class GameSession {
       // 4. Draw water by sampling opaqueDepthTarget without sampling what we write to
       // Blit opaque color to waterCompositeTarget
       this.postFX.copyTexture(this.opaqueDepthTarget.texture, this.waterCompositeTarget);
+
+      // Blit opaque depth into waterCompositeTarget depth buffer for correct depth testing
+      const _gl = glRenderer.getContext() as WebGL2RenderingContext;
+      if (_gl && _gl.blitFramebuffer) {
+        const readFbo = (glRenderer.properties.get(this.opaqueDepthTarget) as { __webglFramebuffer?: WebGLFramebuffer })?.__webglFramebuffer;
+        const drawFbo = (glRenderer.properties.get(this.waterCompositeTarget) as { __webglFramebuffer?: WebGLFramebuffer })?.__webglFramebuffer;
+        if (readFbo && drawFbo) {
+          _gl.bindFramebuffer(_gl.READ_FRAMEBUFFER, readFbo);
+          _gl.bindFramebuffer(_gl.DRAW_FRAMEBUFFER, drawFbo);
+          _gl.blitFramebuffer(0, 0, w, h, 0, 0, w, h, _gl.DEPTH_BUFFER_BIT, _gl.NEAREST);
+          _gl.bindFramebuffer(_gl.READ_FRAMEBUFFER, null);
+          _gl.bindFramebuffer(_gl.DRAW_FRAMEBUFFER, null);
+        }
+      }
+
+      const primaryMonster = this.simWorld.monsters[0];
+      if (primaryMonster && this.water?.material?.uniforms['uMonsterPos']) {
+        (this.water.material.uniforms['uMonsterPos'].value as Vector3).set(
+          primaryMonster.pos.x,
+          this.water.currentWaterY,
+          primaryMonster.pos.z,
+        );
+      }
 
       this.water.setDepthTextures(
         this.opaqueDepthTarget.depthTexture,
@@ -2052,6 +2138,13 @@ export class GameSession {
       this.postFX.render(this.scene, this.camera, dt, this.waterCompositeTarget.texture);
     } else {
       // Low tier: single render pass directly to screen, skipping targets and composer
+      const w = this.container.clientWidth || 1280;
+      const h = this.container.clientHeight || 720;
+      const targetAspect = w / h;
+      if (Math.abs(this.camera.aspect - targetAspect) > 0.001) {
+        this.camera.aspect = targetAspect;
+        this.camera.updateProjectionMatrix();
+      }
       this.water.mesh.visible = true;
       glRenderer.setRenderTarget(null);
       this.renderer.render(this.scene, this.camera);
@@ -2061,7 +2154,8 @@ export class GameSession {
     if (++this.autoExposureFrameCount % 4 === 0) {
       const pSnap = this.simWorld.player.getState();
       const inWater = pSnap.pos.y < (this.water?.currentWaterY ?? 0) + 0.1;
-      const targetExposure = inWater ? 1.25 : 1.05;
+      const baseExposure = this.mapDef?.atmosphere?.exposure ?? 1.15;
+      const targetExposure = inWater ? baseExposure * 1.08 : baseExposure;
       const blend = 1.0 - Math.exp(-(dt * 4) / 1.2);
       this.currentExposure += (targetExposure - this.currentExposure) * blend;
       const totalExposure = this.currentExposure + this.weatherDirector.getExposureBoost();
@@ -2140,6 +2234,30 @@ export class GameSession {
         this.handleProjectileImpact(impact);
       } else if (!proj.active) {
         this.activeProjectiles.splice(i, 1);
+      }
+    }
+
+    // 3. Ambient ceiling drips in water-rich maps (Natatorium, etc.)
+    if (this.water && (this.mapId === 'natatorium' || this.mapId === 'poolrooms' || this.mapId === 'marble_atrium')) {
+      this.ambientDripTimer -= dt;
+      if (this.ambientDripTimer <= 0) {
+        this.ambientDripTimer = 4.0 + Math.random() * 3.5;
+        const pState = this.simWorld.player.getState();
+        const angle = Math.random() * Math.PI * 2;
+        const dist = 5.0 + Math.random() * 12.0;
+        const dx = pState.pos.x + Math.sin(angle) * dist;
+        const dz = pState.pos.z + Math.cos(angle) * dist;
+        const gH = this.simWorld.ground.heightAt(dx, dz);
+        if (gH < this.water.currentWaterY) {
+          const dripPos = { x: dx, y: this.water.currentWaterY, z: dz };
+          this.audio.play('drip', { position: dripPos, gain: 0.35 });
+          this.water.onRipple({
+            position: dripPos,
+            strength: 0.22,
+            t: this.simWorld.simTime,
+            sourcePlayerId: 'world',
+          });
+        }
       }
     }
 
@@ -3007,19 +3125,21 @@ export class GameSession {
           const camZ = this.camera.position.z;
           const bounds = this.layout.bounds;
 
-          let bestX = camX + forward.x * 14.0;
-          let bestZ = camZ + forward.z * 14.0;
+          let bestX = camX + forward.x * 6.0;
+          let bestZ = camZ + forward.z * 6.0;
           let foundClear = false;
 
           const waterLevel = this.water.currentWaterY;
-          const shoulderMinY = waterLevel + 1.25 - 1.40;
+          const shoulderMinY = waterLevel + 1.35 - 1.40;
 
           // Helper to check 3D line-of-sight clearance against elevated terrain/platforms
           const hasClearSight3D = (tx: number, tz: number): boolean => {
             if (this.simWorld.colliders.segmentHits(camX, camZ, tx, tz) !== 0) return false;
             if (!this.simWorld.nav.isWalkableWorld(tx, tz)) return false;
 
-            const targetY = Math.max(this.mapInstance.ground.heightAt(tx, tz), shoulderMinY);
+            const rawTargetY = this.mapInstance.ground.heightAt(tx, tz);
+            const groundH = Number.isFinite(rawTargetY) ? rawTargetY : -0.9;
+            const targetY = Math.max(groundH, shoulderMinY);
             const waistY = targetY + 0.5;
             const steps = 14;
             for (let s = 1; s < steps; s++) {
@@ -3028,16 +3148,16 @@ export class GameSession {
               const iz = camZ + (tz - camZ) * t;
               const rayY = camY + (waistY - camY) * t;
               const gY = this.simWorld.ground.heightAt(ix, iz);
-              if (gY > rayY - 0.10) {
+              if (Number.isFinite(gY) && gY > rayY - 0.10) {
                 return false; // occluded by intermediate platform slab / elevated terrain
               }
             }
             return true;
           };
 
-          // Search candidate rays within forward cone (4m to 20m), 8m optimal framing first with close fallback
+          // Search candidate rays within forward cone (4m to 14m), 5.5-6.5m optimal framing first
           const angleOffsets = [0, 0.15, -0.15, 0.3, -0.3, 0.45, -0.45, 0.6, -0.6];
-          const distSteps = [8.0, 10.0, 7.0, 6.0, 5.0, 12.0, 14.0, 16.0, 4.0];
+          const distSteps = [5.5, 6.5, 7.5, 5.0, 8.5, 10.0, 12.0, 4.0];
 
           for (const d of distSteps) {
             for (const angle of angleOffsets) {
@@ -3070,7 +3190,7 @@ export class GameSession {
                 if (this.simWorld.nav.walkable[gz * this.simWorld.nav.width + gx] === 1) {
                   const world = this.simWorld.nav.gridToWorld(gx, gz);
                   const dSq = (world.x - camX) ** 2 + (world.z - camZ) ** 2;
-                  if (dSq < closestDistSq && dSq >= 16.0 && dSq <= 1200.0) {
+                  if (dSq < closestDistSq && dSq >= 9.0 && dSq <= 1200.0) {
                     if (hasClearSight3D(world.x, world.z)) {
                       closestDistSq = dSq;
                       bestX = world.x;
@@ -3083,8 +3203,30 @@ export class GameSession {
             }
           }
 
-          // Depth placement: shoulders clear water surface by >= 1.25m so almost full body is above water level
-          const groundY = this.mapInstance.ground.heightAt(bestX, bestZ);
+          // Fallback if still blocked: find any walkable nav cell nearest to camera
+          if (!foundClear) {
+            let closestDistSq = Infinity;
+            for (let gz = 0; gz < this.simWorld.nav.depth; gz++) {
+              for (let gx = 0; gx < this.simWorld.nav.width; gx++) {
+                if (this.simWorld.nav.walkable[gz * this.simWorld.nav.width + gx] === 1) {
+                  const world = this.simWorld.nav.gridToWorld(gx, gz);
+                  const dSq = (world.x - camX) ** 2 + (world.z - camZ) ** 2;
+                  if (dSq < closestDistSq && dSq >= 4.0) {
+                    closestDistSq = dSq;
+                    bestX = world.x;
+                    bestZ = world.z;
+                    foundClear = true;
+                  }
+                }
+              }
+            }
+          }
+
+          // Guarantee finite coordinates and valid depth placement inside map bounds
+          bestX = Math.max(bounds.minX + 2.0, Math.min(bounds.maxX - 2.0, bestX));
+          bestZ = Math.max(bounds.minZ + 2.0, Math.min(bounds.maxZ - 2.0, bestZ));
+          const rawGroundY = this.mapInstance.ground.heightAt(bestX, bestZ);
+          const groundY = Number.isFinite(rawGroundY) ? rawGroundY : -0.9;
           const targetY = Math.max(groundY, shoulderMinY);
 
           // Monster faces player
@@ -3100,6 +3242,7 @@ export class GameSession {
             m.vel.z = 0;
             m.yaw = monsterYaw;
             m.forceState('DORMANT', { stateTimer: 4.0 });
+            m.isSighting = true;
             const body = this.monsters.getBody(m.id);
             if (body) {
               body.fogDensity = this.mapDef.atmosphere.fog.density;
@@ -3115,6 +3258,7 @@ export class GameSession {
             body.mesh.root.rotation.y = monsterYaw;
             const newM = this.simWorld.addMonster({ id, variant: 'standard', spawn: spawnPos, spawnGrace: 0.0 }, 12345);
             newM.forceState('DORMANT', { stateTimer: 4.0 });
+            newM.isSighting = true;
           }
 
           // Aim player and camera directly at the placed monster
@@ -3458,6 +3602,15 @@ export class GameSession {
 
   getFirstCreatureSightingTime(): number | null {
     return this.firstCreatureSightingTime;
+  }
+
+  getSightingStats(): { count: number; lastTime: number; visFrac: number } {
+    const dirSnap = this.simWorld?.director?.getSnapshot();
+    return {
+      count: dirSnap?.sightingsCount ?? 0,
+      lastTime: dirSnap?.lastSightingTime ?? 0,
+      visFrac: this.lastCachedL4Fraction ?? 0,
+    };
   }
 }
 

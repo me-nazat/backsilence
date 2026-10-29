@@ -398,7 +398,9 @@ export function runMonsterProbe(session: GameSession): MonsterProbeResult {
   const prevColor = new Color();
   renderer.getClearColor(prevColor);
   const prevAlpha = renderer.getClearAlpha();
+  const prevBg = scene.background;
 
+  scene.background = null;
   scene.overrideMaterial = unlitOverrideMat;
   renderer.setRenderTarget(sharedMaskTarget);
   renderer.setClearColor(0x000000, 0.0);
@@ -429,6 +431,7 @@ export function runMonsterProbe(session: GameSession): MonsterProbeResult {
 
   // Restore scene visibility and materials
   scene.overrideMaterial = prevOverride;
+  scene.background = prevBg;
   for (const [child, vis] of prevVisibility.entries()) {
     child.visible = vis;
   }

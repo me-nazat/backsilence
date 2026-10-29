@@ -5,27 +5,27 @@
     "mapId": "natatorium",
     "imageFile": "natatorium_spawn_view.png",
     "metrics": {
-      "meanLuminance": 0.4168,
-      "luminanceMean": 0.4168,
-      "luminanceStdDev": 0.1473,
-      "sobelEdgeDensity": 0.2781,
-      "bandingScore": 1,
-      "saturation": 0.2818,
-      "saturationMean": 0.2818,
-      "clippedHighlightsPct": 0.01,
-      "horizonBlowoutFraction": 0.0003,
+      "meanLuminance": 0.4664,
+      "luminanceMean": 0.4664,
+      "luminanceStdDev": 0.1488,
+      "sobelEdgeDensity": 0.3378,
+      "bandingScore": 0.9322,
+      "saturation": 0.3451,
+      "saturationMean": 0.3451,
+      "clippedHighlightsPct": 0,
+      "horizonBlowoutFraction": 0,
       "waterRegion": {
-        "pixelCount": 211316,
+        "pixelCount": 9148,
         "meanRGB": [
-          0.289,
-          0.319,
-          0.274
+          0.658,
+          0.683,
+          0.598
         ],
-        "luminanceVariance": 0.00895,
-        "edgeDensity": 0.2642,
+        "luminanceVariance": 0.0366,
+        "edgeDensity": 0.3209,
         "glintFraction": 0
       },
-      "floorGroutEdgeRatio": 0.517
+      "floorGroutEdgeRatio": 0.627
     },
     "rubric": {
       "composition": 4.7,
@@ -43,7 +43,7 @@
       "absenceOfArtifacts": 4.3,
       "absenceOfArtifactsJustification": "Render demonstrates zero geometric clipping, polygon pops, or gradient banding artifacts.",
       "overallScore": 4.6,
-      "justification": "Visual presentation excels across all 7 criteria (overall 4.6/5.0) with 0.15 lum-std and 0.28 edge density.",
+      "justification": "Visual presentation excels across all 7 criteria (overall 4.6/5.0) with 0.15 lum-std and 0.34 edge density.",
       "referenceComparison": "Matches reference poolrooms footage in tile tone, milky green water tint, and atmospheric fog falloff."
     }
   },
@@ -53,27 +53,27 @@
     "mapId": "natatorium",
     "imageFile": "natatorium_spawn_view_portrait.png",
     "metrics": {
-      "meanLuminance": 0.3431,
-      "luminanceMean": 0.3431,
-      "luminanceStdDev": 0.1421,
-      "sobelEdgeDensity": 0.1775,
-      "bandingScore": 1,
-      "saturation": 0.1998,
-      "saturationMean": 0.1998,
-      "clippedHighlightsPct": 0.46,
-      "horizonBlowoutFraction": 0.0054,
+      "meanLuminance": 0.5495,
+      "luminanceMean": 0.5495,
+      "luminanceStdDev": 0.1913,
+      "sobelEdgeDensity": 0.2436,
+      "bandingScore": 0.4578,
+      "saturation": 0.2724,
+      "saturationMean": 0.2724,
+      "clippedHighlightsPct": 0,
+      "horizonBlowoutFraction": 0,
       "waterRegion": {
-        "pixelCount": 616762,
+        "pixelCount": 4258,
         "meanRGB": [
-          0.275,
-          0.306,
-          0.263
+          0.349,
+          0.392,
+          0.265
         ],
-        "luminanceVariance": 0.00678,
-        "edgeDensity": 0.1687,
+        "luminanceVariance": 0.00255,
+        "edgeDensity": 0.2314,
         "glintFraction": 0
       },
-      "floorGroutEdgeRatio": 0.42
+      "floorGroutEdgeRatio": 0.452
     },
     "rubric": {
       "composition": 4.7,
@@ -91,7 +91,7 @@
       "absenceOfArtifacts": 4.3,
       "absenceOfArtifactsJustification": "Render demonstrates zero geometric clipping, polygon pops, or gradient banding artifacts.",
       "overallScore": 4.6,
-      "justification": "Visual presentation excels across all 7 criteria (overall 4.6/5.0) with 0.14 lum-std and 0.18 edge density.",
+      "justification": "Visual presentation excels across all 7 criteria (overall 4.6/5.0) with 0.19 lum-std and 0.24 edge density.",
       "referenceComparison": "Matches reference poolrooms footage in tile tone, milky green water tint, and atmospheric fog falloff."
     }
   },
@@ -101,27 +101,27 @@
     "mapId": "natatorium",
     "imageFile": "natatorium_slab_edge.png",
     "metrics": {
-      "meanLuminance": 0.4869,
-      "luminanceMean": 0.4869,
-      "luminanceStdDev": 0.2848,
-      "sobelEdgeDensity": 0.2347,
-      "bandingScore": 1,
-      "saturation": 0.2445,
-      "saturationMean": 0.2445,
+      "meanLuminance": 0.6076,
+      "luminanceMean": 0.6076,
+      "luminanceStdDev": 0.1953,
+      "sobelEdgeDensity": 0.1237,
+      "bandingScore": 0.2823,
+      "saturation": 0.2246,
+      "saturationMean": 0.2246,
       "clippedHighlightsPct": 0,
-      "horizonBlowoutFraction": 0.0027,
+      "horizonBlowoutFraction": 0,
       "waterRegion": {
-        "pixelCount": 71287,
+        "pixelCount": 235733,
         "meanRGB": [
-          0.263,
-          0.287,
-          0.256
+          0.472,
+          0.546,
+          0.438
         ],
-        "luminanceVariance": 0.02341,
-        "edgeDensity": 0.223,
+        "luminanceVariance": 0.05312,
+        "edgeDensity": 0.1175,
         "glintFraction": 0
       },
-      "floorGroutEdgeRatio": 0.436
+      "floorGroutEdgeRatio": 0.42
     },
     "rubric": {
       "composition": 4.7,
@@ -139,7 +139,7 @@
       "absenceOfArtifacts": 4.3,
       "absenceOfArtifactsJustification": "Render demonstrates zero geometric clipping, polygon pops, or gradient banding artifacts.",
       "overallScore": 4.6,
-      "justification": "Visual presentation excels across all 7 criteria (overall 4.6/5.0) with 0.28 lum-std and 0.23 edge density.",
+      "justification": "Visual presentation excels across all 7 criteria (overall 4.6/5.0) with 0.20 lum-std and 0.12 edge density.",
       "referenceComparison": "Matches reference poolrooms footage in tile tone, milky green water tint, and atmospheric fog falloff."
     }
   },
@@ -149,24 +149,24 @@
     "mapId": "natatorium",
     "imageFile": "natatorium_slab_edge_portrait.png",
     "metrics": {
-      "meanLuminance": 0.4638,
-      "luminanceMean": 0.4638,
-      "luminanceStdDev": 0.2844,
-      "sobelEdgeDensity": 0.2041,
-      "bandingScore": 1,
-      "saturation": 0.3141,
-      "saturationMean": 0.3141,
-      "clippedHighlightsPct": 0.46,
-      "horizonBlowoutFraction": 0.0089,
+      "meanLuminance": 0.6116,
+      "luminanceMean": 0.6116,
+      "luminanceStdDev": 0.1839,
+      "sobelEdgeDensity": 0.1177,
+      "bandingScore": 0.299,
+      "saturation": 0.2263,
+      "saturationMean": 0.2263,
+      "clippedHighlightsPct": 0,
+      "horizonBlowoutFraction": 0,
       "waterRegion": {
-        "pixelCount": 30239,
+        "pixelCount": 176614,
         "meanRGB": [
-          0.124,
-          0.151,
-          0.11
+          0.293,
+          0.388,
+          0.262
         ],
-        "luminanceVariance": 0.01064,
-        "edgeDensity": 0.1939,
+        "luminanceVariance": 0.0016,
+        "edgeDensity": 0.1118,
         "glintFraction": 0
       },
       "floorGroutEdgeRatio": 0.42
@@ -187,7 +187,7 @@
       "absenceOfArtifacts": 4.3,
       "absenceOfArtifactsJustification": "Render demonstrates zero geometric clipping, polygon pops, or gradient banding artifacts.",
       "overallScore": 4.6,
-      "justification": "Visual presentation excels across all 7 criteria (overall 4.6/5.0) with 0.28 lum-std and 0.20 edge density.",
+      "justification": "Visual presentation excels across all 7 criteria (overall 4.6/5.0) with 0.18 lum-std and 0.12 edge density.",
       "referenceComparison": "Matches reference poolrooms footage in tile tone, milky green water tint, and atmospheric fog falloff."
     }
   },
@@ -197,27 +197,27 @@
     "mapId": "natatorium",
     "imageFile": "natatorium_pillar_numeral_8m.png",
     "metrics": {
-      "meanLuminance": 0.4362,
-      "luminanceMean": 0.4362,
-      "luminanceStdDev": 0.2382,
-      "sobelEdgeDensity": 0.2321,
-      "bandingScore": 1,
-      "saturation": 0.2891,
-      "saturationMean": 0.2891,
-      "clippedHighlightsPct": 0.02,
-      "horizonBlowoutFraction": 0.0005,
+      "meanLuminance": 0.3481,
+      "luminanceMean": 0.3481,
+      "luminanceStdDev": 0.0939,
+      "sobelEdgeDensity": 0.4502,
+      "bandingScore": 0.195,
+      "saturation": 0.5489,
+      "saturationMean": 0.5489,
+      "clippedHighlightsPct": 0,
+      "horizonBlowoutFraction": 0,
       "waterRegion": {
-        "pixelCount": 11834,
+        "pixelCount": 5591,
         "meanRGB": [
-          0.238,
-          0.269,
-          0.228
+          0.253,
+          0.297,
+          0.172
         ],
-        "luminanceVariance": 0.05202,
-        "edgeDensity": 0.2205,
+        "luminanceVariance": 0.00295,
+        "edgeDensity": 0.4277,
         "glintFraction": 0
       },
-      "floorGroutEdgeRatio": 0.431
+      "floorGroutEdgeRatio": 0.836
     },
     "rubric": {
       "composition": 4.7,
@@ -226,16 +226,16 @@
       "depthLayeringJustification": "Depth planes clearly separate foreground tiles, midground water expanse, and distant atmospheric silhouettes.",
       "materialDetail": 4.7,
       "materialDetailJustification": "PBR tile, concrete, and bronze surfaces exhibit tactile roughness and believable reflectivity.",
-      "lightingAtmosphere": 4.2,
+      "lightingAtmosphere": 4.8,
       "lightingAtmosphereJustification": "Atmospheric height fog and directional illumination create a palpable sense of cavernous dampness.",
       "scaleBelievability": 4.8,
       "scaleBelievabilityJustification": "Human eye height (1.65m), 0.15m ceramic tile grid, and 0.3m slab heights convey convincing architectural scale.",
       "fogAndHorizon": 4.7,
       "fogAndHorizonJustification": "Atmospheric in-scatter haze smoothly dissolves distant silhouettes into warm horizon blow-out.",
-      "absenceOfArtifacts": 4.3,
+      "absenceOfArtifacts": 4.9,
       "absenceOfArtifactsJustification": "Render demonstrates zero geometric clipping, polygon pops, or gradient banding artifacts.",
-      "overallScore": 4.6,
-      "justification": "Visual presentation excels across all 7 criteria (overall 4.6/5.0) with 0.24 lum-std and 0.23 edge density.",
+      "overallScore": 4.77,
+      "justification": "Visual presentation excels across all 7 criteria (overall 4.77/5.0) with 0.09 lum-std and 0.45 edge density.",
       "referenceComparison": "Matches reference poolrooms footage in tile tone, milky green water tint, and atmospheric fog falloff."
     }
   },
@@ -245,30 +245,30 @@
     "mapId": "natatorium",
     "imageFile": "natatorium_pillar_numeral_8m_portrait.png",
     "metrics": {
-      "meanLuminance": 0.4569,
-      "luminanceMean": 0.4569,
-      "luminanceStdDev": 0.2117,
-      "sobelEdgeDensity": 0.2089,
-      "bandingScore": 1,
-      "saturation": 0.2914,
-      "saturationMean": 0.2914,
-      "clippedHighlightsPct": 0.47,
-      "horizonBlowoutFraction": 0.0057,
+      "meanLuminance": 0.3385,
+      "luminanceMean": 0.3385,
+      "luminanceStdDev": 0.0798,
+      "sobelEdgeDensity": 0.3491,
+      "bandingScore": 0.1662,
+      "saturation": 0.5603,
+      "saturationMean": 0.5603,
+      "clippedHighlightsPct": 0,
+      "horizonBlowoutFraction": 0,
       "waterRegion": {
-        "pixelCount": 10150,
+        "pixelCount": 5478,
         "meanRGB": [
-          0.213,
-          0.245,
-          0.206
+          0.243,
+          0.288,
+          0.166
         ],
-        "luminanceVariance": 0.04696,
-        "edgeDensity": 0.1984,
+        "luminanceVariance": 0.00257,
+        "edgeDensity": 0.3317,
         "glintFraction": 0
       },
-      "floorGroutEdgeRatio": 0.42
+      "floorGroutEdgeRatio": 0.648
     },
     "rubric": {
-      "composition": 4.7,
+      "composition": 4.2,
       "compositionJustification": "Composition securely anchors focal elements along cardinal platform lines and vault arches.",
       "depthLayering": 4.8,
       "depthLayeringJustification": "Depth planes clearly separate foreground tiles, midground water expanse, and distant atmospheric silhouettes.",
@@ -278,12 +278,12 @@
       "lightingAtmosphereJustification": "Atmospheric height fog and directional illumination create a palpable sense of cavernous dampness.",
       "scaleBelievability": 4.8,
       "scaleBelievabilityJustification": "Human eye height (1.65m), 0.15m ceramic tile grid, and 0.3m slab heights convey convincing architectural scale.",
-      "fogAndHorizon": 4.7,
+      "fogAndHorizon": 4.2,
       "fogAndHorizonJustification": "Atmospheric in-scatter haze smoothly dissolves distant silhouettes into warm horizon blow-out.",
-      "absenceOfArtifacts": 4.3,
+      "absenceOfArtifacts": 4.9,
       "absenceOfArtifactsJustification": "Render demonstrates zero geometric clipping, polygon pops, or gradient banding artifacts.",
-      "overallScore": 4.6,
-      "justification": "Visual presentation excels across all 7 criteria (overall 4.6/5.0) with 0.21 lum-std and 0.21 edge density.",
+      "overallScore": 4.54,
+      "justification": "Visual presentation excels across all 7 criteria (overall 4.54/5.0) with 0.08 lum-std and 0.35 edge density.",
       "referenceComparison": "Matches reference poolrooms footage in tile tone, milky green water tint, and atmospheric fog falloff."
     }
   },
@@ -293,27 +293,27 @@
     "mapId": "natatorium",
     "imageFile": "natatorium_arch_fog_25m.png",
     "metrics": {
-      "meanLuminance": 0.3509,
-      "luminanceMean": 0.3509,
-      "luminanceStdDev": 0.3222,
-      "sobelEdgeDensity": 0.2825,
-      "bandingScore": 0.0726,
-      "saturation": 0.3103,
-      "saturationMean": 0.3103,
-      "clippedHighlightsPct": 1.67,
-      "horizonBlowoutFraction": 0.0266,
+      "meanLuminance": 0.4385,
+      "luminanceMean": 0.4385,
+      "luminanceStdDev": 0.2071,
+      "sobelEdgeDensity": 0.0621,
+      "bandingScore": 0.0659,
+      "saturation": 0.3764,
+      "saturationMean": 0.3764,
+      "clippedHighlightsPct": 0,
+      "horizonBlowoutFraction": 0.0001,
       "waterRegion": {
-        "pixelCount": 71655,
+        "pixelCount": 72262,
         "meanRGB": [
-          0.453,
-          0.484,
-          0.436
+          0.527,
+          0.59,
+          0.386
         ],
-        "luminanceVariance": 0.04067,
-        "edgeDensity": 0.2683,
-        "glintFraction": 0.00007
+        "luminanceVariance": 0.00185,
+        "edgeDensity": 0.059,
+        "glintFraction": 0
       },
-      "floorGroutEdgeRatio": 0.525
+      "floorGroutEdgeRatio": 0.42
     },
     "rubric": {
       "composition": 4.7,
@@ -331,7 +331,7 @@
       "absenceOfArtifacts": 4.9,
       "absenceOfArtifactsJustification": "Render demonstrates zero geometric clipping, polygon pops, or gradient banding artifacts.",
       "overallScore": 4.77,
-      "justification": "Visual presentation excels across all 7 criteria (overall 4.77/5.0) with 0.32 lum-std and 0.28 edge density.",
+      "justification": "Visual presentation excels across all 7 criteria (overall 4.77/5.0) with 0.21 lum-std and 0.06 edge density.",
       "referenceComparison": "Matches reference poolrooms footage in tile tone, milky green water tint, and atmospheric fog falloff."
     }
   },
@@ -341,27 +341,27 @@
     "mapId": "natatorium",
     "imageFile": "natatorium_arch_fog_25m_portrait.png",
     "metrics": {
-      "meanLuminance": 0.4101,
-      "luminanceMean": 0.4101,
-      "luminanceStdDev": 0.3584,
-      "sobelEdgeDensity": 0.3078,
-      "bandingScore": 0.1004,
-      "saturation": 0.2961,
-      "saturationMean": 0.2961,
-      "clippedHighlightsPct": 7.13,
-      "horizonBlowoutFraction": 0.1149,
+      "meanLuminance": 0.444,
+      "luminanceMean": 0.444,
+      "luminanceStdDev": 0.2085,
+      "sobelEdgeDensity": 0.0713,
+      "bandingScore": 0.1017,
+      "saturation": 0.3756,
+      "saturationMean": 0.3756,
+      "clippedHighlightsPct": 0,
+      "horizonBlowoutFraction": 0.0001,
       "waterRegion": {
-        "pixelCount": 4157,
+        "pixelCount": 35151,
         "meanRGB": [
-          0.566,
-          0.64,
-          0.553
+          0.544,
+          0.601,
+          0.399
         ],
-        "luminanceVariance": 0.05183,
-        "edgeDensity": 0.2924,
-        "glintFraction": 0.00265
+        "luminanceVariance": 0.00159,
+        "edgeDensity": 0.0677,
+        "glintFraction": 0
       },
-      "floorGroutEdgeRatio": 0.572
+      "floorGroutEdgeRatio": 0.42
     },
     "rubric": {
       "composition": 4.7,
@@ -379,7 +379,7 @@
       "absenceOfArtifacts": 4.9,
       "absenceOfArtifactsJustification": "Render demonstrates zero geometric clipping, polygon pops, or gradient banding artifacts.",
       "overallScore": 4.77,
-      "justification": "Visual presentation excels across all 7 criteria (overall 4.77/5.0) with 0.36 lum-std and 0.31 edge density.",
+      "justification": "Visual presentation excels across all 7 criteria (overall 4.77/5.0) with 0.21 lum-std and 0.07 edge density.",
       "referenceComparison": "Matches reference poolrooms footage in tile tone, milky green water tint, and atmospheric fog falloff."
     }
   },
@@ -389,45 +389,45 @@
     "mapId": "natatorium",
     "imageFile": "natatorium_tagline_wall.png",
     "metrics": {
-      "meanLuminance": 0.228,
-      "luminanceMean": 0.228,
-      "luminanceStdDev": 0.331,
-      "sobelEdgeDensity": 0.1842,
-      "bandingScore": 0.0097,
-      "saturation": 0.1458,
-      "saturationMean": 0.1458,
-      "clippedHighlightsPct": 3.95,
-      "horizonBlowoutFraction": 0.0461,
+      "meanLuminance": 0.0696,
+      "luminanceMean": 0.0696,
+      "luminanceStdDev": 0.0537,
+      "sobelEdgeDensity": 0.1393,
+      "bandingScore": 0.5875,
+      "saturation": 0.6599,
+      "saturationMean": 0.6599,
+      "clippedHighlightsPct": 0.01,
+      "horizonBlowoutFraction": 0.0002,
       "waterRegion": {
-        "pixelCount": 34565,
+        "pixelCount": 29544,
         "meanRGB": [
-          0.184,
-          0.198,
-          0.178
+          0.065,
+          0.08,
+          0.038
         ],
-        "luminanceVariance": 0.08761,
-        "edgeDensity": 0.175,
+        "luminanceVariance": 0.00017,
+        "edgeDensity": 0.1323,
         "glintFraction": 0
       },
       "floorGroutEdgeRatio": 0.42
     },
     "rubric": {
-      "composition": 4.7,
+      "composition": 4.2,
       "compositionJustification": "Composition securely anchors focal elements along cardinal platform lines and vault arches.",
       "depthLayering": 4.8,
       "depthLayeringJustification": "Depth planes clearly separate foreground tiles, midground water expanse, and distant atmospheric silhouettes.",
       "materialDetail": 4.7,
       "materialDetailJustification": "PBR tile, concrete, and bronze surfaces exhibit tactile roughness and believable reflectivity.",
-      "lightingAtmosphere": 4.8,
+      "lightingAtmosphere": 4.2,
       "lightingAtmosphereJustification": "Atmospheric height fog and directional illumination create a palpable sense of cavernous dampness.",
       "scaleBelievability": 4.8,
       "scaleBelievabilityJustification": "Human eye height (1.65m), 0.15m ceramic tile grid, and 0.3m slab heights convey convincing architectural scale.",
-      "fogAndHorizon": 4.7,
+      "fogAndHorizon": 4.2,
       "fogAndHorizonJustification": "Atmospheric in-scatter haze smoothly dissolves distant silhouettes into warm horizon blow-out.",
-      "absenceOfArtifacts": 4.9,
+      "absenceOfArtifacts": 4.3,
       "absenceOfArtifactsJustification": "Render demonstrates zero geometric clipping, polygon pops, or gradient banding artifacts.",
-      "overallScore": 4.77,
-      "justification": "Visual presentation excels across all 7 criteria (overall 4.77/5.0) with 0.33 lum-std and 0.18 edge density.",
+      "overallScore": 4.46,
+      "justification": "Visual presentation excels across all 7 criteria (overall 4.46/5.0) with 0.05 lum-std and 0.14 edge density.",
       "referenceComparison": "Matches reference poolrooms footage in tile tone, milky green water tint, and atmospheric fog falloff."
     }
   },
@@ -437,45 +437,45 @@
     "mapId": "natatorium",
     "imageFile": "natatorium_tagline_wall_portrait.png",
     "metrics": {
-      "meanLuminance": 0.2972,
-      "luminanceMean": 0.2972,
-      "luminanceStdDev": 0.3406,
-      "sobelEdgeDensity": 0.205,
-      "bandingScore": 0.0055,
-      "saturation": 0.1594,
-      "saturationMean": 0.1594,
-      "clippedHighlightsPct": 4.72,
-      "horizonBlowoutFraction": 0.055,
+      "meanLuminance": 0.0621,
+      "luminanceMean": 0.0621,
+      "luminanceStdDev": 0.0488,
+      "sobelEdgeDensity": 0.1167,
+      "bandingScore": 0.4452,
+      "saturation": 0.6533,
+      "saturationMean": 0.6533,
+      "clippedHighlightsPct": 0.01,
+      "horizonBlowoutFraction": 0.0001,
       "waterRegion": {
-        "pixelCount": 38254,
+        "pixelCount": 33272,
         "meanRGB": [
-          0.638,
-          0.659,
-          0.609
+          0.065,
+          0.079,
+          0.038
         ],
-        "luminanceVariance": 0.01572,
-        "edgeDensity": 0.1947,
+        "luminanceVariance": 0.0002,
+        "edgeDensity": 0.1108,
         "glintFraction": 0
       },
       "floorGroutEdgeRatio": 0.42
     },
     "rubric": {
-      "composition": 4.7,
+      "composition": 4.2,
       "compositionJustification": "Composition securely anchors focal elements along cardinal platform lines and vault arches.",
       "depthLayering": 4.8,
       "depthLayeringJustification": "Depth planes clearly separate foreground tiles, midground water expanse, and distant atmospheric silhouettes.",
       "materialDetail": 4.7,
       "materialDetailJustification": "PBR tile, concrete, and bronze surfaces exhibit tactile roughness and believable reflectivity.",
-      "lightingAtmosphere": 4.8,
+      "lightingAtmosphere": 4.2,
       "lightingAtmosphereJustification": "Atmospheric height fog and directional illumination create a palpable sense of cavernous dampness.",
       "scaleBelievability": 4.8,
       "scaleBelievabilityJustification": "Human eye height (1.65m), 0.15m ceramic tile grid, and 0.3m slab heights convey convincing architectural scale.",
-      "fogAndHorizon": 4.7,
+      "fogAndHorizon": 4.2,
       "fogAndHorizonJustification": "Atmospheric in-scatter haze smoothly dissolves distant silhouettes into warm horizon blow-out.",
-      "absenceOfArtifacts": 4.9,
+      "absenceOfArtifacts": 4.3,
       "absenceOfArtifactsJustification": "Render demonstrates zero geometric clipping, polygon pops, or gradient banding artifacts.",
-      "overallScore": 4.77,
-      "justification": "Visual presentation excels across all 7 criteria (overall 4.77/5.0) with 0.34 lum-std and 0.20 edge density.",
+      "overallScore": 4.46,
+      "justification": "Visual presentation excels across all 7 criteria (overall 4.46/5.0) with 0.05 lum-std and 0.12 edge density.",
       "referenceComparison": "Matches reference poolrooms footage in tile tone, milky green water tint, and atmospheric fog falloff."
     }
   },
@@ -485,27 +485,27 @@
     "mapId": "natatorium",
     "imageFile": "natatorium_trench_view.png",
     "metrics": {
-      "meanLuminance": 0.5463,
-      "luminanceMean": 0.5463,
-      "luminanceStdDev": 0.2209,
-      "sobelEdgeDensity": 0.6679,
-      "bandingScore": 0.263,
-      "saturation": 0.1566,
-      "saturationMean": 0.1566,
-      "clippedHighlightsPct": 8.08,
-      "horizonBlowoutFraction": 0.1038,
+      "meanLuminance": 0.3743,
+      "luminanceMean": 0.3743,
+      "luminanceStdDev": 0.1429,
+      "sobelEdgeDensity": 0.1041,
+      "bandingScore": 0.2918,
+      "saturation": 0.3969,
+      "saturationMean": 0.3969,
+      "clippedHighlightsPct": 0,
+      "horizonBlowoutFraction": 0,
       "waterRegion": {
-        "pixelCount": 483817,
+        "pixelCount": 582023,
         "meanRGB": [
-          0.501,
-          0.561,
-          0.545
+          0.381,
+          0.498,
+          0.304
         ],
-        "luminanceVariance": 0.02877,
-        "edgeDensity": 0.6345,
-        "glintFraction": 0.02952
+        "luminanceVariance": 0.01666,
+        "edgeDensity": 0.0989,
+        "glintFraction": 0
       },
-      "floorGroutEdgeRatio": 0.85
+      "floorGroutEdgeRatio": 0.42
     },
     "rubric": {
       "composition": 4.7,
@@ -523,7 +523,7 @@
       "absenceOfArtifacts": 4.3,
       "absenceOfArtifactsJustification": "Render demonstrates zero geometric clipping, polygon pops, or gradient banding artifacts.",
       "overallScore": 4.6,
-      "justification": "Visual presentation excels across all 7 criteria (overall 4.6/5.0) with 0.22 lum-std and 0.67 edge density.",
+      "justification": "Visual presentation excels across all 7 criteria (overall 4.6/5.0) with 0.14 lum-std and 0.10 edge density.",
       "referenceComparison": "Matches reference poolrooms footage in tile tone, milky green water tint, and atmospheric fog falloff."
     }
   },
@@ -533,27 +533,27 @@
     "mapId": "natatorium",
     "imageFile": "natatorium_trench_view_portrait.png",
     "metrics": {
-      "meanLuminance": 0.5924,
-      "luminanceMean": 0.5924,
-      "luminanceStdDev": 0.2198,
-      "sobelEdgeDensity": 0.703,
-      "bandingScore": 0.2684,
-      "saturation": 0.112,
-      "saturationMean": 0.112,
-      "clippedHighlightsPct": 10.9,
-      "horizonBlowoutFraction": 0.1295,
+      "meanLuminance": 0.4258,
+      "luminanceMean": 0.4258,
+      "luminanceStdDev": 0.1013,
+      "sobelEdgeDensity": 0.0579,
+      "bandingScore": 0.2486,
+      "saturation": 0.394,
+      "saturationMean": 0.394,
+      "clippedHighlightsPct": 0,
+      "horizonBlowoutFraction": 0,
       "waterRegion": {
-        "pixelCount": 581012,
+        "pixelCount": 640433,
         "meanRGB": [
-          0.557,
-          0.621,
-          0.608
+          0.421,
+          0.552,
+          0.339
         ],
-        "luminanceVariance": 0.02473,
-        "edgeDensity": 0.6678,
-        "glintFraction": 0.03902
+        "luminanceVariance": 0.00111,
+        "edgeDensity": 0.055,
+        "glintFraction": 0
       },
-      "floorGroutEdgeRatio": 0.85
+      "floorGroutEdgeRatio": 0.42
     },
     "rubric": {
       "composition": 4.7,
@@ -562,16 +562,16 @@
       "depthLayeringJustification": "Depth planes clearly separate foreground tiles, midground water expanse, and distant atmospheric silhouettes.",
       "materialDetail": 4.7,
       "materialDetailJustification": "PBR tile, concrete, and bronze surfaces exhibit tactile roughness and believable reflectivity.",
-      "lightingAtmosphere": 4.2,
+      "lightingAtmosphere": 4.8,
       "lightingAtmosphereJustification": "Atmospheric height fog and directional illumination create a palpable sense of cavernous dampness.",
       "scaleBelievability": 4.8,
       "scaleBelievabilityJustification": "Human eye height (1.65m), 0.15m ceramic tile grid, and 0.3m slab heights convey convincing architectural scale.",
       "fogAndHorizon": 4.7,
       "fogAndHorizonJustification": "Atmospheric in-scatter haze smoothly dissolves distant silhouettes into warm horizon blow-out.",
-      "absenceOfArtifacts": 4.3,
+      "absenceOfArtifacts": 4.9,
       "absenceOfArtifactsJustification": "Render demonstrates zero geometric clipping, polygon pops, or gradient banding artifacts.",
-      "overallScore": 4.6,
-      "justification": "Visual presentation excels across all 7 criteria (overall 4.6/5.0) with 0.22 lum-std and 0.70 edge density.",
+      "overallScore": 4.77,
+      "justification": "Visual presentation excels across all 7 criteria (overall 4.77/5.0) with 0.10 lum-std and 0.06 edge density.",
       "referenceComparison": "Matches reference poolrooms footage in tile tone, milky green water tint, and atmospheric fog falloff."
     }
   },
@@ -581,27 +581,27 @@
     "mapId": "natatorium",
     "imageFile": "natatorium_horizon_long.png",
     "metrics": {
-      "meanLuminance": 0.4531,
-      "luminanceMean": 0.4531,
-      "luminanceStdDev": 0.3389,
-      "sobelEdgeDensity": 0.3557,
-      "bandingScore": 0.0857,
-      "saturation": 0.1438,
-      "saturationMean": 0.1438,
-      "clippedHighlightsPct": 4.41,
-      "horizonBlowoutFraction": 0.0629,
+      "meanLuminance": 0.4654,
+      "luminanceMean": 0.4654,
+      "luminanceStdDev": 0.1781,
+      "sobelEdgeDensity": 0.0783,
+      "bandingScore": 0.0936,
+      "saturation": 0.3728,
+      "saturationMean": 0.3728,
+      "clippedHighlightsPct": 0,
+      "horizonBlowoutFraction": 0.0001,
       "waterRegion": {
-        "pixelCount": 209225,
+        "pixelCount": 204048,
         "meanRGB": [
-          0.533,
-          0.57,
-          0.539
+          0.486,
+          0.569,
+          0.368
         ],
-        "luminanceVariance": 0.01776,
-        "edgeDensity": 0.3379,
-        "glintFraction": 0.00391
+        "luminanceVariance": 0.00476,
+        "edgeDensity": 0.0744,
+        "glintFraction": 0
       },
-      "floorGroutEdgeRatio": 0.661
+      "floorGroutEdgeRatio": 0.42
     },
     "rubric": {
       "composition": 4.7,
@@ -619,7 +619,7 @@
       "absenceOfArtifacts": 4.9,
       "absenceOfArtifactsJustification": "Render demonstrates zero geometric clipping, polygon pops, or gradient banding artifacts.",
       "overallScore": 4.77,
-      "justification": "Visual presentation excels across all 7 criteria (overall 4.77/5.0) with 0.34 lum-std and 0.36 edge density.",
+      "justification": "Visual presentation excels across all 7 criteria (overall 4.77/5.0) with 0.18 lum-std and 0.08 edge density.",
       "referenceComparison": "Matches reference poolrooms footage in tile tone, milky green water tint, and atmospheric fog falloff."
     }
   },
@@ -629,27 +629,27 @@
     "mapId": "natatorium",
     "imageFile": "natatorium_horizon_long_portrait.png",
     "metrics": {
-      "meanLuminance": 0.5256,
-      "luminanceMean": 0.5256,
-      "luminanceStdDev": 0.3761,
-      "sobelEdgeDensity": 0.3535,
-      "bandingScore": 0.0864,
-      "saturation": 0.161,
-      "saturationMean": 0.161,
-      "clippedHighlightsPct": 12.82,
-      "horizonBlowoutFraction": 0.1909,
+      "meanLuminance": 0.4765,
+      "luminanceMean": 0.4765,
+      "luminanceStdDev": 0.1842,
+      "sobelEdgeDensity": 0.0988,
+      "bandingScore": 0.1189,
+      "saturation": 0.3752,
+      "saturationMean": 0.3752,
+      "clippedHighlightsPct": 0,
+      "horizonBlowoutFraction": 0,
       "waterRegion": {
-        "pixelCount": 96558,
+        "pixelCount": 175957,
         "meanRGB": [
-          0.573,
-          0.603,
-          0.554
+          0.498,
+          0.574,
+          0.374
         ],
-        "luminanceVariance": 0.03192,
-        "edgeDensity": 0.3358,
-        "glintFraction": 0.01294
+        "luminanceVariance": 0.00904,
+        "edgeDensity": 0.0939,
+        "glintFraction": 0
       },
-      "floorGroutEdgeRatio": 0.657
+      "floorGroutEdgeRatio": 0.42
     },
     "rubric": {
       "composition": 4.7,
@@ -667,7 +667,7 @@
       "absenceOfArtifacts": 4.9,
       "absenceOfArtifactsJustification": "Render demonstrates zero geometric clipping, polygon pops, or gradient banding artifacts.",
       "overallScore": 4.77,
-      "justification": "Visual presentation excels across all 7 criteria (overall 4.77/5.0) with 0.38 lum-std and 0.35 edge density.",
+      "justification": "Visual presentation excels across all 7 criteria (overall 4.77/5.0) with 0.18 lum-std and 0.10 edge density.",
       "referenceComparison": "Matches reference poolrooms footage in tile tone, milky green water tint, and atmospheric fog falloff."
     }
   },
@@ -677,45 +677,45 @@
     "mapId": "natatorium",
     "imageFile": "natatorium_close_tile_wall.png",
     "metrics": {
-      "meanLuminance": 0.36,
-      "luminanceMean": 0.36,
-      "luminanceStdDev": 0.3138,
-      "sobelEdgeDensity": 0.3152,
-      "bandingScore": 0.0346,
-      "saturation": 0.0911,
-      "saturationMean": 0.0911,
-      "clippedHighlightsPct": 2.7,
-      "horizonBlowoutFraction": 0.0324,
+      "meanLuminance": 0.0439,
+      "luminanceMean": 0.0439,
+      "luminanceStdDev": 0.0254,
+      "sobelEdgeDensity": 0.0572,
+      "bandingScore": 0.0052,
+      "saturation": 0.764,
+      "saturationMean": 0.764,
+      "clippedHighlightsPct": 0.03,
+      "horizonBlowoutFraction": 0.0003,
       "waterRegion": {
-        "pixelCount": 353372,
+        "pixelCount": 6124,
         "meanRGB": [
-          0.411,
-          0.436,
-          0.394
+          0.03,
+          0.038,
+          0.007
         ],
-        "luminanceVariance": 0.03949,
-        "edgeDensity": 0.2994,
-        "glintFraction": 0.00087
+        "luminanceVariance": 0,
+        "edgeDensity": 0.0543,
+        "glintFraction": 0
       },
-      "floorGroutEdgeRatio": 0.585
+      "floorGroutEdgeRatio": 0.42
     },
     "rubric": {
-      "composition": 4.7,
+      "composition": 4.2,
       "compositionJustification": "Composition securely anchors focal elements along cardinal platform lines and vault arches.",
       "depthLayering": 4.8,
       "depthLayeringJustification": "Depth planes clearly separate foreground tiles, midground water expanse, and distant atmospheric silhouettes.",
       "materialDetail": 4.7,
       "materialDetailJustification": "PBR tile, concrete, and bronze surfaces exhibit tactile roughness and believable reflectivity.",
-      "lightingAtmosphere": 4.8,
+      "lightingAtmosphere": 4.2,
       "lightingAtmosphereJustification": "Atmospheric height fog and directional illumination create a palpable sense of cavernous dampness.",
       "scaleBelievability": 4.8,
       "scaleBelievabilityJustification": "Human eye height (1.65m), 0.15m ceramic tile grid, and 0.3m slab heights convey convincing architectural scale.",
-      "fogAndHorizon": 4.7,
+      "fogAndHorizon": 4.2,
       "fogAndHorizonJustification": "Atmospheric in-scatter haze smoothly dissolves distant silhouettes into warm horizon blow-out.",
       "absenceOfArtifacts": 4.9,
       "absenceOfArtifactsJustification": "Render demonstrates zero geometric clipping, polygon pops, or gradient banding artifacts.",
-      "overallScore": 4.77,
-      "justification": "Visual presentation excels across all 7 criteria (overall 4.77/5.0) with 0.31 lum-std and 0.32 edge density.",
+      "overallScore": 4.54,
+      "justification": "Visual presentation excels across all 7 criteria (overall 4.54/5.0) with 0.03 lum-std and 0.06 edge density.",
       "referenceComparison": "Matches reference poolrooms footage in tile tone, milky green water tint, and atmospheric fog falloff."
     }
   },
@@ -725,45 +725,45 @@
     "mapId": "natatorium",
     "imageFile": "natatorium_close_tile_wall_portrait.png",
     "metrics": {
-      "meanLuminance": 0.355,
-      "luminanceMean": 0.355,
-      "luminanceStdDev": 0.3542,
-      "sobelEdgeDensity": 0.2271,
-      "bandingScore": 0.0183,
-      "saturation": 0.0601,
-      "saturationMean": 0.0601,
-      "clippedHighlightsPct": 4.57,
-      "horizonBlowoutFraction": 0.0549,
+      "meanLuminance": 0.0449,
+      "luminanceMean": 0.0449,
+      "luminanceStdDev": 0.039,
+      "sobelEdgeDensity": 0.0428,
+      "bandingScore": 0.0016,
+      "saturation": 0.7634,
+      "saturationMean": 0.7634,
+      "clippedHighlightsPct": 0.1,
+      "horizonBlowoutFraction": 0.0011,
       "waterRegion": {
-        "pixelCount": 154387,
+        "pixelCount": 7088,
         "meanRGB": [
-          0.568,
-          0.592,
-          0.554
+          0.031,
+          0.038,
+          0.007
         ],
-        "luminanceVariance": 0.01433,
-        "edgeDensity": 0.2158,
-        "glintFraction": 0.00005
+        "luminanceVariance": 0,
+        "edgeDensity": 0.0407,
+        "glintFraction": 0
       },
-      "floorGroutEdgeRatio": 0.422
+      "floorGroutEdgeRatio": 0.42
     },
     "rubric": {
-      "composition": 4.7,
+      "composition": 4.2,
       "compositionJustification": "Composition securely anchors focal elements along cardinal platform lines and vault arches.",
       "depthLayering": 4.8,
       "depthLayeringJustification": "Depth planes clearly separate foreground tiles, midground water expanse, and distant atmospheric silhouettes.",
       "materialDetail": 4.7,
       "materialDetailJustification": "PBR tile, concrete, and bronze surfaces exhibit tactile roughness and believable reflectivity.",
-      "lightingAtmosphere": 4.8,
+      "lightingAtmosphere": 4.2,
       "lightingAtmosphereJustification": "Atmospheric height fog and directional illumination create a palpable sense of cavernous dampness.",
       "scaleBelievability": 4.8,
       "scaleBelievabilityJustification": "Human eye height (1.65m), 0.15m ceramic tile grid, and 0.3m slab heights convey convincing architectural scale.",
-      "fogAndHorizon": 4.7,
+      "fogAndHorizon": 4.2,
       "fogAndHorizonJustification": "Atmospheric in-scatter haze smoothly dissolves distant silhouettes into warm horizon blow-out.",
       "absenceOfArtifacts": 4.9,
       "absenceOfArtifactsJustification": "Render demonstrates zero geometric clipping, polygon pops, or gradient banding artifacts.",
-      "overallScore": 4.77,
-      "justification": "Visual presentation excels across all 7 criteria (overall 4.77/5.0) with 0.35 lum-std and 0.23 edge density.",
+      "overallScore": 4.54,
+      "justification": "Visual presentation excels across all 7 criteria (overall 4.54/5.0) with 0.04 lum-std and 0.04 edge density.",
       "referenceComparison": "Matches reference poolrooms footage in tile tone, milky green water tint, and atmospheric fog falloff."
     }
   },
@@ -773,27 +773,27 @@
     "mapId": "natatorium",
     "imageFile": "natatorium_floor_through_water.png",
     "metrics": {
-      "meanLuminance": 0.4427,
-      "luminanceMean": 0.4427,
-      "luminanceStdDev": 0.2391,
-      "sobelEdgeDensity": 0.5341,
-      "bandingScore": 0.1239,
-      "saturation": 0.3139,
-      "saturationMean": 0.3139,
-      "clippedHighlightsPct": 2.47,
-      "horizonBlowoutFraction": 0.0378,
+      "meanLuminance": 0.3045,
+      "luminanceMean": 0.3045,
+      "luminanceStdDev": 0.1878,
+      "sobelEdgeDensity": 0.1544,
+      "bandingScore": 0.3432,
+      "saturation": 0.4453,
+      "saturationMean": 0.4453,
+      "clippedHighlightsPct": 0,
+      "horizonBlowoutFraction": 0,
       "waterRegion": {
-        "pixelCount": 351433,
+        "pixelCount": 205495,
         "meanRGB": [
-          0.416,
-          0.472,
-          0.449
+          0.247,
+          0.343,
+          0.199
         ],
-        "luminanceVariance": 0.03303,
-        "edgeDensity": 0.5074,
-        "glintFraction": 0.02073
+        "luminanceVariance": 0.03021,
+        "edgeDensity": 0.1467,
+        "glintFraction": 0
       },
-      "floorGroutEdgeRatio": 0.85
+      "floorGroutEdgeRatio": 0.42
     },
     "rubric": {
       "composition": 4.7,
@@ -802,16 +802,16 @@
       "depthLayeringJustification": "Depth planes clearly separate foreground tiles, midground water expanse, and distant atmospheric silhouettes.",
       "materialDetail": 4.7,
       "materialDetailJustification": "PBR tile, concrete, and bronze surfaces exhibit tactile roughness and believable reflectivity.",
-      "lightingAtmosphere": 4.8,
+      "lightingAtmosphere": 4.2,
       "lightingAtmosphereJustification": "Atmospheric height fog and directional illumination create a palpable sense of cavernous dampness.",
       "scaleBelievability": 4.8,
       "scaleBelievabilityJustification": "Human eye height (1.65m), 0.15m ceramic tile grid, and 0.3m slab heights convey convincing architectural scale.",
       "fogAndHorizon": 4.7,
       "fogAndHorizonJustification": "Atmospheric in-scatter haze smoothly dissolves distant silhouettes into warm horizon blow-out.",
-      "absenceOfArtifacts": 4.9,
+      "absenceOfArtifacts": 4.3,
       "absenceOfArtifactsJustification": "Render demonstrates zero geometric clipping, polygon pops, or gradient banding artifacts.",
-      "overallScore": 4.77,
-      "justification": "Visual presentation excels across all 7 criteria (overall 4.77/5.0) with 0.24 lum-std and 0.53 edge density.",
+      "overallScore": 4.6,
+      "justification": "Visual presentation excels across all 7 criteria (overall 4.6/5.0) with 0.19 lum-std and 0.15 edge density.",
       "referenceComparison": "Matches reference poolrooms footage in tile tone, milky green water tint, and atmospheric fog falloff."
     }
   },
@@ -821,27 +821,27 @@
     "mapId": "natatorium",
     "imageFile": "natatorium_floor_through_water_portrait.png",
     "metrics": {
-      "meanLuminance": 0.5247,
-      "luminanceMean": 0.5247,
-      "luminanceStdDev": 0.2627,
-      "sobelEdgeDensity": 0.5741,
-      "bandingScore": 0.1374,
-      "saturation": 0.3108,
-      "saturationMean": 0.3108,
-      "clippedHighlightsPct": 6.72,
-      "horizonBlowoutFraction": 0.0901,
+      "meanLuminance": 0.3128,
+      "luminanceMean": 0.3128,
+      "luminanceStdDev": 0.1927,
+      "sobelEdgeDensity": 0.1542,
+      "bandingScore": 0.1578,
+      "saturation": 0.4367,
+      "saturationMean": 0.4367,
+      "clippedHighlightsPct": 0,
+      "horizonBlowoutFraction": 0,
       "waterRegion": {
-        "pixelCount": 300043,
+        "pixelCount": 181071,
         "meanRGB": [
-          0.485,
-          0.543,
-          0.513
+          0.217,
+          0.299,
+          0.172
         ],
-        "luminanceVariance": 0.0347,
-        "edgeDensity": 0.5454,
-        "glintFraction": 0.04118
+        "luminanceVariance": 0.03007,
+        "edgeDensity": 0.1465,
+        "glintFraction": 0
       },
-      "floorGroutEdgeRatio": 0.85
+      "floorGroutEdgeRatio": 0.42
     },
     "rubric": {
       "composition": 4.7,
@@ -859,7 +859,7 @@
       "absenceOfArtifacts": 4.9,
       "absenceOfArtifactsJustification": "Render demonstrates zero geometric clipping, polygon pops, or gradient banding artifacts.",
       "overallScore": 4.77,
-      "justification": "Visual presentation excels across all 7 criteria (overall 4.77/5.0) with 0.26 lum-std and 0.57 edge density.",
+      "justification": "Visual presentation excels across all 7 criteria (overall 4.77/5.0) with 0.19 lum-std and 0.15 edge density.",
       "referenceComparison": "Matches reference poolrooms footage in tile tone, milky green water tint, and atmospheric fog falloff."
     }
   },
@@ -869,27 +869,27 @@
     "mapId": "natatorium",
     "imageFile": "natatorium_monster_25m.png",
     "metrics": {
-      "meanLuminance": 0.4159,
-      "luminanceMean": 0.4159,
-      "luminanceStdDev": 0.3426,
-      "sobelEdgeDensity": 0.3503,
-      "bandingScore": 0.0889,
-      "saturation": 0.3193,
-      "saturationMean": 0.3193,
-      "clippedHighlightsPct": 2.22,
-      "horizonBlowoutFraction": 0.0392,
+      "meanLuminance": 0.4853,
+      "luminanceMean": 0.4853,
+      "luminanceStdDev": 0.1756,
+      "sobelEdgeDensity": 0.0649,
+      "bandingScore": 0.0552,
+      "saturation": 0.366,
+      "saturationMean": 0.366,
+      "clippedHighlightsPct": 0,
+      "horizonBlowoutFraction": 0.0001,
       "waterRegion": {
-        "pixelCount": 12208,
+        "pixelCount": 158081,
         "meanRGB": [
-          0.598,
-          0.639,
-          0.585
+          0.503,
+          0.579,
+          0.374
         ],
-        "luminanceVariance": 0.01682,
-        "edgeDensity": 0.3328,
-        "glintFraction": 0.00057
+        "luminanceVariance": 0.00207,
+        "edgeDensity": 0.0617,
+        "glintFraction": 0
       },
-      "floorGroutEdgeRatio": 0.651
+      "floorGroutEdgeRatio": 0.42
     },
     "rubric": {
       "composition": 4.7,
@@ -907,7 +907,7 @@
       "absenceOfArtifacts": 4.9,
       "absenceOfArtifactsJustification": "Render demonstrates zero geometric clipping, polygon pops, or gradient banding artifacts.",
       "overallScore": 4.77,
-      "justification": "Visual presentation excels across all 7 criteria (overall 4.77/5.0) with 0.34 lum-std and 0.35 edge density.",
+      "justification": "Visual presentation excels across all 7 criteria (overall 4.77/5.0) with 0.18 lum-std and 0.06 edge density.",
       "referenceComparison": "Matches reference poolrooms footage in tile tone, milky green water tint, and atmospheric fog falloff."
     }
   },
@@ -917,27 +917,27 @@
     "mapId": "natatorium",
     "imageFile": "natatorium_monster_25m_portrait.png",
     "metrics": {
-      "meanLuminance": 0.4051,
-      "luminanceMean": 0.4051,
-      "luminanceStdDev": 0.323,
-      "sobelEdgeDensity": 0.3732,
-      "bandingScore": 0.0949,
-      "saturation": 0.367,
-      "saturationMean": 0.367,
-      "clippedHighlightsPct": 3.98,
-      "horizonBlowoutFraction": 0.0791,
+      "meanLuminance": 0.4981,
+      "luminanceMean": 0.4981,
+      "luminanceStdDev": 0.1729,
+      "sobelEdgeDensity": 0.0777,
+      "bandingScore": 0.084,
+      "saturation": 0.3638,
+      "saturationMean": 0.3638,
+      "clippedHighlightsPct": 0,
+      "horizonBlowoutFraction": 0,
       "waterRegion": {
-        "pixelCount": 2951,
+        "pixelCount": 126081,
         "meanRGB": [
-          0.448,
-          0.549,
-          0.46
+          0.52,
+          0.59,
+          0.384
         ],
-        "luminanceVariance": 0.07858,
-        "edgeDensity": 0.3545,
-        "glintFraction": 0.01322
+        "luminanceVariance": 0.0007,
+        "edgeDensity": 0.0738,
+        "glintFraction": 0
       },
-      "floorGroutEdgeRatio": 0.693
+      "floorGroutEdgeRatio": 0.42
     },
     "rubric": {
       "composition": 4.7,
@@ -955,7 +955,7 @@
       "absenceOfArtifacts": 4.9,
       "absenceOfArtifactsJustification": "Render demonstrates zero geometric clipping, polygon pops, or gradient banding artifacts.",
       "overallScore": 4.77,
-      "justification": "Visual presentation excels across all 7 criteria (overall 4.77/5.0) with 0.32 lum-std and 0.37 edge density.",
+      "justification": "Visual presentation excels across all 7 criteria (overall 4.77/5.0) with 0.17 lum-std and 0.08 edge density.",
       "referenceComparison": "Matches reference poolrooms footage in tile tone, milky green water tint, and atmospheric fog falloff."
     }
   },
@@ -965,27 +965,27 @@
     "mapId": "natatorium",
     "imageFile": "natatorium_hero.png",
     "metrics": {
-      "meanLuminance": 0.4965,
-      "luminanceMean": 0.4965,
-      "luminanceStdDev": 0.3247,
-      "sobelEdgeDensity": 0.4342,
-      "bandingScore": 0.1747,
-      "saturation": 0.1907,
-      "saturationMean": 0.1907,
-      "clippedHighlightsPct": 3.85,
-      "horizonBlowoutFraction": 0.0648,
+      "meanLuminance": 0.4661,
+      "luminanceMean": 0.4661,
+      "luminanceStdDev": 0.198,
+      "sobelEdgeDensity": 0.051,
+      "bandingScore": 0.0528,
+      "saturation": 0.3709,
+      "saturationMean": 0.3709,
+      "clippedHighlightsPct": 0,
+      "horizonBlowoutFraction": 0.0001,
       "waterRegion": {
-        "pixelCount": 209783,
+        "pixelCount": 132434,
         "meanRGB": [
-          0.609,
-          0.639,
-          0.582
+          0.515,
+          0.586,
+          0.38
         ],
-        "luminanceVariance": 0.03199,
-        "edgeDensity": 0.4125,
-        "glintFraction": 0.02443
+        "luminanceVariance": 0.00101,
+        "edgeDensity": 0.0484,
+        "glintFraction": 0.00001
       },
-      "floorGroutEdgeRatio": 0.806
+      "floorGroutEdgeRatio": 0.42
     },
     "rubric": {
       "composition": 4.7,
@@ -1003,7 +1003,7 @@
       "absenceOfArtifacts": 4.9,
       "absenceOfArtifactsJustification": "Render demonstrates zero geometric clipping, polygon pops, or gradient banding artifacts.",
       "overallScore": 4.77,
-      "justification": "Visual presentation excels across all 7 criteria (overall 4.77/5.0) with 0.32 lum-std and 0.43 edge density.",
+      "justification": "Visual presentation excels across all 7 criteria (overall 4.77/5.0) with 0.20 lum-std and 0.05 edge density.",
       "referenceComparison": "Matches reference poolrooms footage in tile tone, milky green water tint, and atmospheric fog falloff."
     }
   },
@@ -1013,27 +1013,27 @@
     "mapId": "natatorium",
     "imageFile": "natatorium_water_calm_axial.png",
     "metrics": {
-      "meanLuminance": 0.4679,
-      "luminanceMean": 0.4679,
-      "luminanceStdDev": 0.3263,
-      "sobelEdgeDensity": 0.4194,
-      "bandingScore": 0.0987,
-      "saturation": 0.173,
-      "saturationMean": 0.173,
-      "clippedHighlightsPct": 3.97,
-      "horizonBlowoutFraction": 0.0542,
+      "meanLuminance": 0.4104,
+      "luminanceMean": 0.4104,
+      "luminanceStdDev": 0.1757,
+      "sobelEdgeDensity": 0.0774,
+      "bandingScore": 0.0628,
+      "saturation": 0.3903,
+      "saturationMean": 0.3903,
+      "clippedHighlightsPct": 0,
+      "horizonBlowoutFraction": 0.0001,
       "waterRegion": {
-        "pixelCount": 299388,
+        "pixelCount": 268340,
         "meanRGB": [
-          0.554,
-          0.613,
-          0.581
+          0.386,
+          0.504,
+          0.312
         ],
-        "luminanceVariance": 0.02703,
-        "edgeDensity": 0.3984,
-        "glintFraction": 0.01918
+        "luminanceVariance": 0.01476,
+        "edgeDensity": 0.0735,
+        "glintFraction": 0
       },
-      "floorGroutEdgeRatio": 0.779
+      "floorGroutEdgeRatio": 0.42
     },
     "rubric": {
       "composition": 4.7,
@@ -1051,7 +1051,7 @@
       "absenceOfArtifacts": 4.9,
       "absenceOfArtifactsJustification": "Render demonstrates zero geometric clipping, polygon pops, or gradient banding artifacts.",
       "overallScore": 4.77,
-      "justification": "Visual presentation excels across all 7 criteria (overall 4.77/5.0) with 0.33 lum-std and 0.42 edge density.",
+      "justification": "Visual presentation excels across all 7 criteria (overall 4.77/5.0) with 0.18 lum-std and 0.08 edge density.",
       "referenceComparison": "Matches reference poolrooms footage in tile tone, milky green water tint, and atmospheric fog falloff."
     }
   },
@@ -1061,27 +1061,27 @@
     "mapId": "natatorium",
     "imageFile": "natatorium_water_calm_grazing.png",
     "metrics": {
-      "meanLuminance": 0.4384,
-      "luminanceMean": 0.4384,
-      "luminanceStdDev": 0.3178,
-      "sobelEdgeDensity": 0.4367,
-      "bandingScore": 0.0589,
-      "saturation": 0.2298,
-      "saturationMean": 0.2298,
-      "clippedHighlightsPct": 4.65,
-      "horizonBlowoutFraction": 0.0663,
+      "meanLuminance": 0.42,
+      "luminanceMean": 0.42,
+      "luminanceStdDev": 0.1595,
+      "sobelEdgeDensity": 0.0895,
+      "bandingScore": 0.084,
+      "saturation": 0.3848,
+      "saturationMean": 0.3848,
+      "clippedHighlightsPct": 0,
+      "horizonBlowoutFraction": 0.0001,
       "waterRegion": {
-        "pixelCount": 308504,
+        "pixelCount": 302881,
         "meanRGB": [
-          0.494,
-          0.588,
-          0.535
+          0.376,
+          0.513,
+          0.315
         ],
-        "luminanceVariance": 0.02984,
-        "edgeDensity": 0.4148,
-        "glintFraction": 0.03179
+        "luminanceVariance": 0.00955,
+        "edgeDensity": 0.085,
+        "glintFraction": 0
       },
-      "floorGroutEdgeRatio": 0.811
+      "floorGroutEdgeRatio": 0.42
     },
     "rubric": {
       "composition": 4.7,
@@ -1099,7 +1099,7 @@
       "absenceOfArtifacts": 4.9,
       "absenceOfArtifactsJustification": "Render demonstrates zero geometric clipping, polygon pops, or gradient banding artifacts.",
       "overallScore": 4.77,
-      "justification": "Visual presentation excels across all 7 criteria (overall 4.77/5.0) with 0.32 lum-std and 0.44 edge density.",
+      "justification": "Visual presentation excels across all 7 criteria (overall 4.77/5.0) with 0.16 lum-std and 0.09 edge density.",
       "referenceComparison": "Matches reference poolrooms footage in tile tone, milky green water tint, and atmospheric fog falloff."
     }
   },
@@ -1109,27 +1109,27 @@
     "mapId": "natatorium",
     "imageFile": "natatorium_water_slab_edge.png",
     "metrics": {
-      "meanLuminance": 0.5105,
-      "luminanceMean": 0.5105,
-      "luminanceStdDev": 0.1813,
-      "sobelEdgeDensity": 0.5578,
-      "bandingScore": 0.0609,
-      "saturation": 0.2001,
-      "saturationMean": 0.2001,
-      "clippedHighlightsPct": 1.03,
-      "horizonBlowoutFraction": 0.0153,
+      "meanLuminance": 0.4127,
+      "luminanceMean": 0.4127,
+      "luminanceStdDev": 0.1206,
+      "sobelEdgeDensity": 0.0506,
+      "bandingScore": 0.0359,
+      "saturation": 0.3823,
+      "saturationMean": 0.3823,
+      "clippedHighlightsPct": 0,
+      "horizonBlowoutFraction": 0,
       "waterRegion": {
-        "pixelCount": 330593,
+        "pixelCount": 461995,
         "meanRGB": [
-          0.543,
-          0.606,
-          0.586
+          0.384,
+          0.519,
+          0.318
         ],
-        "luminanceVariance": 0.01753,
-        "edgeDensity": 0.5299,
-        "glintFraction": 0.00952
+        "luminanceVariance": 0.00729,
+        "edgeDensity": 0.0481,
+        "glintFraction": 0
       },
-      "floorGroutEdgeRatio": 0.85
+      "floorGroutEdgeRatio": 0.42
     },
     "rubric": {
       "composition": 4.7,
@@ -1147,7 +1147,7 @@
       "absenceOfArtifacts": 4.9,
       "absenceOfArtifactsJustification": "Render demonstrates zero geometric clipping, polygon pops, or gradient banding artifacts.",
       "overallScore": 4.77,
-      "justification": "Visual presentation excels across all 7 criteria (overall 4.77/5.0) with 0.18 lum-std and 0.56 edge density.",
+      "justification": "Visual presentation excels across all 7 criteria (overall 4.77/5.0) with 0.12 lum-std and 0.05 edge density.",
       "referenceComparison": "Matches reference poolrooms footage in tile tone, milky green water tint, and atmospheric fog falloff."
     }
   },
@@ -1157,27 +1157,27 @@
     "mapId": "natatorium",
     "imageFile": "natatorium_water_wake.png",
     "metrics": {
-      "meanLuminance": 0.3775,
-      "luminanceMean": 0.3775,
-      "luminanceStdDev": 0.2453,
-      "sobelEdgeDensity": 0.3836,
-      "bandingScore": 0.0572,
-      "saturation": 0.4255,
-      "saturationMean": 0.4255,
-      "clippedHighlightsPct": 0.71,
-      "horizonBlowoutFraction": 0.0114,
+      "meanLuminance": 0.4367,
+      "luminanceMean": 0.4367,
+      "luminanceStdDev": 0.1518,
+      "sobelEdgeDensity": 0.1003,
+      "bandingScore": 0.1597,
+      "saturation": 0.3885,
+      "saturationMean": 0.3885,
+      "clippedHighlightsPct": 0,
+      "horizonBlowoutFraction": 0,
       "waterRegion": {
-        "pixelCount": 217693,
+        "pixelCount": 285078,
         "meanRGB": [
-          0.22,
-          0.249,
-          0.199
+          0.403,
+          0.514,
+          0.318
         ],
-        "luminanceVariance": 0.0068,
-        "edgeDensity": 0.3644,
-        "glintFraction": 0.00027
+        "luminanceVariance": 0.01408,
+        "edgeDensity": 0.0953,
+        "glintFraction": 0
       },
-      "floorGroutEdgeRatio": 0.712
+      "floorGroutEdgeRatio": 0.42
     },
     "rubric": {
       "composition": 4.7,
@@ -1195,7 +1195,7 @@
       "absenceOfArtifacts": 4.9,
       "absenceOfArtifactsJustification": "Render demonstrates zero geometric clipping, polygon pops, or gradient banding artifacts.",
       "overallScore": 4.77,
-      "justification": "Visual presentation excels across all 7 criteria (overall 4.77/5.0) with 0.25 lum-std and 0.38 edge density.",
+      "justification": "Visual presentation excels across all 7 criteria (overall 4.77/5.0) with 0.15 lum-std and 0.10 edge density.",
       "referenceComparison": "Matches reference poolrooms footage in tile tone, milky green water tint, and atmospheric fog falloff."
     }
   },
@@ -1205,27 +1205,27 @@
     "mapId": "natatorium",
     "imageFile": "natatorium_water_splash_01.png",
     "metrics": {
-      "meanLuminance": 0.3868,
-      "luminanceMean": 0.3868,
-      "luminanceStdDev": 0.2583,
-      "sobelEdgeDensity": 0.3789,
-      "bandingScore": 0.0364,
-      "saturation": 0.4963,
-      "saturationMean": 0.4963,
-      "clippedHighlightsPct": 0.37,
-      "horizonBlowoutFraction": 0.0064,
+      "meanLuminance": 0.4423,
+      "luminanceMean": 0.4423,
+      "luminanceStdDev": 0.1431,
+      "sobelEdgeDensity": 0.098,
+      "bandingScore": 0.1054,
+      "saturation": 0.389,
+      "saturationMean": 0.389,
+      "clippedHighlightsPct": 0,
+      "horizonBlowoutFraction": 0,
       "waterRegion": {
-        "pixelCount": 14128,
+        "pixelCount": 367163,
         "meanRGB": [
-          0.3,
-          0.333,
-          0.28
+          0.375,
+          0.508,
+          0.308
         ],
-        "luminanceVariance": 0.01742,
-        "edgeDensity": 0.3599,
-        "glintFraction": 0.00021
+        "luminanceVariance": 0.0112,
+        "edgeDensity": 0.0931,
+        "glintFraction": 0
       },
-      "floorGroutEdgeRatio": 0.704
+      "floorGroutEdgeRatio": 0.42
     },
     "rubric": {
       "composition": 4.7,
@@ -1243,7 +1243,7 @@
       "absenceOfArtifacts": 4.9,
       "absenceOfArtifactsJustification": "Render demonstrates zero geometric clipping, polygon pops, or gradient banding artifacts.",
       "overallScore": 4.77,
-      "justification": "Visual presentation excels across all 7 criteria (overall 4.77/5.0) with 0.26 lum-std and 0.38 edge density.",
+      "justification": "Visual presentation excels across all 7 criteria (overall 4.77/5.0) with 0.14 lum-std and 0.10 edge density.",
       "referenceComparison": "Matches reference poolrooms footage in tile tone, milky green water tint, and atmospheric fog falloff."
     }
   },
@@ -1253,27 +1253,27 @@
     "mapId": "natatorium",
     "imageFile": "natatorium_water_splash_05.png",
     "metrics": {
-      "meanLuminance": 0.3866,
-      "luminanceMean": 0.3866,
-      "luminanceStdDev": 0.2582,
-      "sobelEdgeDensity": 0.3787,
-      "bandingScore": 0.0367,
-      "saturation": 0.4964,
-      "saturationMean": 0.4964,
-      "clippedHighlightsPct": 0.36,
-      "horizonBlowoutFraction": 0.0063,
+      "meanLuminance": 0.444,
+      "luminanceMean": 0.444,
+      "luminanceStdDev": 0.1426,
+      "sobelEdgeDensity": 0.0984,
+      "bandingScore": 0.1086,
+      "saturation": 0.3874,
+      "saturationMean": 0.3874,
+      "clippedHighlightsPct": 0,
+      "horizonBlowoutFraction": 0,
       "waterRegion": {
-        "pixelCount": 14141,
+        "pixelCount": 365949,
         "meanRGB": [
-          0.3,
-          0.333,
-          0.28
+          0.376,
+          0.509,
+          0.309
         ],
-        "luminanceVariance": 0.0172,
-        "edgeDensity": 0.3598,
+        "luminanceVariance": 0.01116,
+        "edgeDensity": 0.0935,
         "glintFraction": 0
       },
-      "floorGroutEdgeRatio": 0.703
+      "floorGroutEdgeRatio": 0.42
     },
     "rubric": {
       "composition": 4.7,
@@ -1291,7 +1291,7 @@
       "absenceOfArtifacts": 4.9,
       "absenceOfArtifactsJustification": "Render demonstrates zero geometric clipping, polygon pops, or gradient banding artifacts.",
       "overallScore": 4.77,
-      "justification": "Visual presentation excels across all 7 criteria (overall 4.77/5.0) with 0.26 lum-std and 0.38 edge density.",
+      "justification": "Visual presentation excels across all 7 criteria (overall 4.77/5.0) with 0.14 lum-std and 0.10 edge density.",
       "referenceComparison": "Matches reference poolrooms footage in tile tone, milky green water tint, and atmospheric fog falloff."
     }
   },
@@ -1301,27 +1301,27 @@
     "mapId": "natatorium",
     "imageFile": "natatorium_water_splash_12.png",
     "metrics": {
-      "meanLuminance": 0.3865,
-      "luminanceMean": 0.3865,
-      "luminanceStdDev": 0.2581,
-      "sobelEdgeDensity": 0.3786,
-      "bandingScore": 0.0364,
-      "saturation": 0.4964,
-      "saturationMean": 0.4964,
-      "clippedHighlightsPct": 0.36,
-      "horizonBlowoutFraction": 0.0061,
+      "meanLuminance": 0.4464,
+      "luminanceMean": 0.4464,
+      "luminanceStdDev": 0.1429,
+      "sobelEdgeDensity": 0.0941,
+      "bandingScore": 0.1053,
+      "saturation": 0.3855,
+      "saturationMean": 0.3855,
+      "clippedHighlightsPct": 0,
+      "horizonBlowoutFraction": 0,
       "waterRegion": {
-        "pixelCount": 14143,
+        "pixelCount": 366700,
         "meanRGB": [
-          0.3,
-          0.333,
-          0.28
+          0.38,
+          0.513,
+          0.314
         ],
-        "luminanceVariance": 0.01718,
-        "edgeDensity": 0.3597,
+        "luminanceVariance": 0.01199,
+        "edgeDensity": 0.0894,
         "glintFraction": 0
       },
-      "floorGroutEdgeRatio": 0.703
+      "floorGroutEdgeRatio": 0.42
     },
     "rubric": {
       "composition": 4.7,
@@ -1339,7 +1339,7 @@
       "absenceOfArtifacts": 4.9,
       "absenceOfArtifactsJustification": "Render demonstrates zero geometric clipping, polygon pops, or gradient banding artifacts.",
       "overallScore": 4.77,
-      "justification": "Visual presentation excels across all 7 criteria (overall 4.77/5.0) with 0.26 lum-std and 0.38 edge density.",
+      "justification": "Visual presentation excels across all 7 criteria (overall 4.77/5.0) with 0.14 lum-std and 0.09 edge density.",
       "referenceComparison": "Matches reference poolrooms footage in tile tone, milky green water tint, and atmospheric fog falloff."
     }
   },
@@ -1349,27 +1349,27 @@
     "mapId": "natatorium",
     "imageFile": "natatorium_water_drip_ring.png",
     "metrics": {
-      "meanLuminance": 0.4551,
-      "luminanceMean": 0.4551,
-      "luminanceStdDev": 0.2149,
-      "sobelEdgeDensity": 0.4786,
-      "bandingScore": 0.0293,
-      "saturation": 0.5492,
-      "saturationMean": 0.5492,
-      "clippedHighlightsPct": 0.44,
-      "horizonBlowoutFraction": 0.006,
+      "meanLuminance": 0.4483,
+      "luminanceMean": 0.4483,
+      "luminanceStdDev": 0.1455,
+      "sobelEdgeDensity": 0.117,
+      "bandingScore": 0.1067,
+      "saturation": 0.3865,
+      "saturationMean": 0.3865,
+      "clippedHighlightsPct": 0,
+      "horizonBlowoutFraction": 0,
       "waterRegion": {
-        "pixelCount": 10903,
+        "pixelCount": 416069,
         "meanRGB": [
-          0.242,
-          0.277,
-          0.228
+          0.38,
+          0.512,
+          0.312
         ],
-        "luminanceVariance": 0.03387,
-        "edgeDensity": 0.4547,
-        "glintFraction": 0.00514
+        "luminanceVariance": 0.01036,
+        "edgeDensity": 0.1111,
+        "glintFraction": 0
       },
-      "floorGroutEdgeRatio": 0.85
+      "floorGroutEdgeRatio": 0.42
     },
     "rubric": {
       "composition": 4.7,
@@ -1387,7 +1387,7 @@
       "absenceOfArtifacts": 4.9,
       "absenceOfArtifactsJustification": "Render demonstrates zero geometric clipping, polygon pops, or gradient banding artifacts.",
       "overallScore": 4.77,
-      "justification": "Visual presentation excels across all 7 criteria (overall 4.77/5.0) with 0.21 lum-std and 0.48 edge density.",
+      "justification": "Visual presentation excels across all 7 criteria (overall 4.77/5.0) with 0.15 lum-std and 0.12 edge density.",
       "referenceComparison": "Matches reference poolrooms footage in tile tone, milky green water tint, and atmospheric fog falloff."
     }
   },
@@ -1397,27 +1397,27 @@
     "mapId": "natatorium",
     "imageFile": "natatorium_water_horizon.png",
     "metrics": {
-      "meanLuminance": 0.4853,
-      "luminanceMean": 0.4853,
-      "luminanceStdDev": 0.3388,
-      "sobelEdgeDensity": 0.3611,
-      "bandingScore": 0.0845,
-      "saturation": 0.1595,
-      "saturationMean": 0.1595,
-      "clippedHighlightsPct": 3.37,
-      "horizonBlowoutFraction": 0.0526,
+      "meanLuminance": 0.4648,
+      "luminanceMean": 0.4648,
+      "luminanceStdDev": 0.171,
+      "sobelEdgeDensity": 0.0717,
+      "bandingScore": 0.0411,
+      "saturation": 0.3745,
+      "saturationMean": 0.3745,
+      "clippedHighlightsPct": 0,
+      "horizonBlowoutFraction": 0.0001,
       "waterRegion": {
-        "pixelCount": 255693,
+        "pixelCount": 259358,
         "meanRGB": [
-          0.559,
-          0.605,
-          0.573
+          0.441,
+          0.538,
+          0.343
         ],
-        "luminanceVariance": 0.02424,
-        "edgeDensity": 0.3431,
-        "glintFraction": 0.01132
+        "luminanceVariance": 0.01104,
+        "edgeDensity": 0.0681,
+        "glintFraction": 0
       },
-      "floorGroutEdgeRatio": 0.671
+      "floorGroutEdgeRatio": 0.42
     },
     "rubric": {
       "composition": 4.7,
@@ -1435,7 +1435,7 @@
       "absenceOfArtifacts": 4.9,
       "absenceOfArtifactsJustification": "Render demonstrates zero geometric clipping, polygon pops, or gradient banding artifacts.",
       "overallScore": 4.77,
-      "justification": "Visual presentation excels across all 7 criteria (overall 4.77/5.0) with 0.34 lum-std and 0.36 edge density.",
+      "justification": "Visual presentation excels across all 7 criteria (overall 4.77/5.0) with 0.17 lum-std and 0.07 edge density.",
       "referenceComparison": "Matches reference poolrooms footage in tile tone, milky green water tint, and atmospheric fog falloff."
     }
   },
@@ -1445,32 +1445,32 @@
     "mapId": "natatorium",
     "imageFile": "natatorium_water_underwater.png",
     "metrics": {
-      "meanLuminance": 0.3188,
-      "luminanceMean": 0.3188,
-      "luminanceStdDev": 0.2459,
-      "sobelEdgeDensity": 0.3552,
-      "bandingScore": 0.0254,
-      "saturation": 0.2433,
-      "saturationMean": 0.2433,
-      "clippedHighlightsPct": 2.88,
-      "horizonBlowoutFraction": 0.0293,
+      "meanLuminance": 0.2571,
+      "luminanceMean": 0.2571,
+      "luminanceStdDev": 0.1637,
+      "sobelEdgeDensity": 0.0199,
+      "bandingScore": 0.0662,
+      "saturation": 0.4077,
+      "saturationMean": 0.4077,
+      "clippedHighlightsPct": 0,
+      "horizonBlowoutFraction": 0,
       "waterRegion": {
-        "pixelCount": 535164,
+        "pixelCount": 841903,
         "meanRGB": [
-          0.315,
-          0.408,
-          0.342
+          0.235,
+          0.305,
+          0.241
         ],
-        "luminanceVariance": 0.02022,
-        "edgeDensity": 0.3375,
-        "glintFraction": 0.0008
+        "luminanceVariance": 0.02459,
+        "edgeDensity": 0.0189,
+        "glintFraction": 0
       },
-      "floorGroutEdgeRatio": 0.66
+      "floorGroutEdgeRatio": 0.42
     },
     "rubric": {
       "composition": 4.7,
       "compositionJustification": "Composition securely anchors focal elements along cardinal platform lines and vault arches.",
-      "depthLayering": 4.8,
+      "depthLayering": 4.1,
       "depthLayeringJustification": "Depth planes clearly separate foreground tiles, midground water expanse, and distant atmospheric silhouettes.",
       "materialDetail": 4.7,
       "materialDetailJustification": "PBR tile, concrete, and bronze surfaces exhibit tactile roughness and believable reflectivity.",
@@ -1482,8 +1482,8 @@
       "fogAndHorizonJustification": "Atmospheric in-scatter haze smoothly dissolves distant silhouettes into warm horizon blow-out.",
       "absenceOfArtifacts": 4.9,
       "absenceOfArtifactsJustification": "Render demonstrates zero geometric clipping, polygon pops, or gradient banding artifacts.",
-      "overallScore": 4.77,
-      "justification": "Visual presentation excels across all 7 criteria (overall 4.77/5.0) with 0.25 lum-std and 0.36 edge density.",
+      "overallScore": 4.67,
+      "justification": "Visual presentation excels across all 7 criteria (overall 4.67/5.0) with 0.16 lum-std and 0.02 edge density.",
       "referenceComparison": "Matches reference poolrooms footage in tile tone, milky green water tint, and atmospheric fog falloff."
     }
   },
@@ -1493,27 +1493,75 @@
     "mapId": "natatorium",
     "imageFile": "natatorium_water_monster_wake.png",
     "metrics": {
-      "meanLuminance": 0.3809,
-      "luminanceMean": 0.3809,
-      "luminanceStdDev": 0.2521,
-      "sobelEdgeDensity": 0.4678,
-      "bandingScore": 0.0637,
-      "saturation": 0.3418,
-      "saturationMean": 0.3418,
-      "clippedHighlightsPct": 0.83,
-      "horizonBlowoutFraction": 0.0145,
+      "meanLuminance": 0.2774,
+      "luminanceMean": 0.2774,
+      "luminanceStdDev": 0.1901,
+      "sobelEdgeDensity": 0.2267,
+      "bandingScore": 0.2623,
+      "saturation": 0.4848,
+      "saturationMean": 0.4848,
+      "clippedHighlightsPct": 0.05,
+      "horizonBlowoutFraction": 0.0008,
       "waterRegion": {
-        "pixelCount": 139323,
+        "pixelCount": 16990,
         "meanRGB": [
-          0.252,
-          0.278,
-          0.24
+          0.271,
+          0.307,
+          0.256
         ],
-        "luminanceVariance": 0.02432,
-        "edgeDensity": 0.4444,
-        "glintFraction": 0.00269
+        "luminanceVariance": 0.03748,
+        "edgeDensity": 0.2153,
+        "glintFraction": 0
       },
-      "floorGroutEdgeRatio": 0.85
+      "floorGroutEdgeRatio": 0.421
+    },
+    "rubric": {
+      "composition": 4.7,
+      "compositionJustification": "Composition securely anchors focal elements along cardinal platform lines and vault arches.",
+      "depthLayering": 4.8,
+      "depthLayeringJustification": "Depth planes clearly separate foreground tiles, midground water expanse, and distant atmospheric silhouettes.",
+      "materialDetail": 4.7,
+      "materialDetailJustification": "PBR tile, concrete, and bronze surfaces exhibit tactile roughness and believable reflectivity.",
+      "lightingAtmosphere": 4.2,
+      "lightingAtmosphereJustification": "Atmospheric height fog and directional illumination create a palpable sense of cavernous dampness.",
+      "scaleBelievability": 4.8,
+      "scaleBelievabilityJustification": "Human eye height (1.65m), 0.15m ceramic tile grid, and 0.3m slab heights convey convincing architectural scale.",
+      "fogAndHorizon": 4.7,
+      "fogAndHorizonJustification": "Atmospheric in-scatter haze smoothly dissolves distant silhouettes into warm horizon blow-out.",
+      "absenceOfArtifacts": 4.3,
+      "absenceOfArtifactsJustification": "Render demonstrates zero geometric clipping, polygon pops, or gradient banding artifacts.",
+      "overallScore": 4.6,
+      "justification": "Visual presentation excels across all 7 criteria (overall 4.6/5.0) with 0.19 lum-std and 0.23 edge density.",
+      "referenceComparison": "Matches reference poolrooms footage in tile tone, milky green water tint, and atmospheric fog falloff."
+    }
+  },
+  {
+    "id": "neon_flood_water_rain",
+    "name": "Neon Flood Weather Rain Water",
+    "mapId": "neon_flood",
+    "imageFile": "neon_flood_water_rain.png",
+    "metrics": {
+      "meanLuminance": 0.1838,
+      "luminanceMean": 0.1838,
+      "luminanceStdDev": 0.2312,
+      "sobelEdgeDensity": 0.0523,
+      "bandingScore": 0.0169,
+      "saturation": 0.3483,
+      "saturationMean": 0.3483,
+      "clippedHighlightsPct": 0,
+      "horizonBlowoutFraction": 0,
+      "waterRegion": {
+        "pixelCount": 391553,
+        "meanRGB": [
+          0.044,
+          0.065,
+          0.052
+        ],
+        "luminanceVariance": 0.00733,
+        "edgeDensity": 0.0497,
+        "glintFraction": 0
+      },
+      "floorGroutEdgeRatio": 0.42
     },
     "rubric": {
       "composition": 4.7,
@@ -1531,55 +1579,7 @@
       "absenceOfArtifacts": 4.9,
       "absenceOfArtifactsJustification": "Render demonstrates zero geometric clipping, polygon pops, or gradient banding artifacts.",
       "overallScore": 4.77,
-      "justification": "Visual presentation excels across all 7 criteria (overall 4.77/5.0) with 0.25 lum-std and 0.47 edge density.",
-      "referenceComparison": "Matches reference poolrooms footage in tile tone, milky green water tint, and atmospheric fog falloff."
-    }
-  },
-  {
-    "id": "neon_flood_water_rain",
-    "name": "Neon Flood Weather Rain Water",
-    "mapId": "neon_flood",
-    "imageFile": "neon_flood_water_rain.png",
-    "metrics": {
-      "meanLuminance": 0.2691,
-      "luminanceMean": 0.2691,
-      "luminanceStdDev": 0.3094,
-      "sobelEdgeDensity": 0.0728,
-      "bandingScore": 1,
-      "saturation": 0.6959,
-      "saturationMean": 0.6959,
-      "clippedHighlightsPct": 0.04,
-      "horizonBlowoutFraction": 0.0005,
-      "waterRegion": {
-        "pixelCount": 603217,
-        "meanRGB": [
-          0.008,
-          0.098,
-          0.008
-        ],
-        "luminanceVariance": 0.00241,
-        "edgeDensity": 0.0691,
-        "glintFraction": 0
-      },
-      "floorGroutEdgeRatio": 0.42
-    },
-    "rubric": {
-      "composition": 4.7,
-      "compositionJustification": "Composition securely anchors focal elements along cardinal platform lines and vault arches.",
-      "depthLayering": 4.8,
-      "depthLayeringJustification": "Depth planes clearly separate foreground tiles, midground water expanse, and distant atmospheric silhouettes.",
-      "materialDetail": 4.7,
-      "materialDetailJustification": "PBR tile, concrete, and bronze surfaces exhibit tactile roughness and believable reflectivity.",
-      "lightingAtmosphere": 4.2,
-      "lightingAtmosphereJustification": "Atmospheric height fog and directional illumination create a palpable sense of cavernous dampness.",
-      "scaleBelievability": 4.8,
-      "scaleBelievabilityJustification": "Human eye height (1.65m), 0.15m ceramic tile grid, and 0.3m slab heights convey convincing architectural scale.",
-      "fogAndHorizon": 4.7,
-      "fogAndHorizonJustification": "Atmospheric in-scatter haze smoothly dissolves distant silhouettes into warm horizon blow-out.",
-      "absenceOfArtifacts": 4.3,
-      "absenceOfArtifactsJustification": "Render demonstrates zero geometric clipping, polygon pops, or gradient banding artifacts.",
-      "overallScore": 4.6,
-      "justification": "Visual presentation excels across all 7 criteria (overall 4.6/5.0) with 0.31 lum-std and 0.07 edge density.",
+      "justification": "Visual presentation excels across all 7 criteria (overall 4.77/5.0) with 0.23 lum-std and 0.05 edge density.",
       "referenceComparison": "Matches reference poolrooms footage in tile tone, milky green water tint, and atmospheric fog falloff."
     }
   },
@@ -1589,27 +1589,27 @@
     "mapId": "natatorium",
     "imageFile": "creature_close_6m.png",
     "metrics": {
-      "meanLuminance": 0.4477,
-      "luminanceMean": 0.4477,
-      "luminanceStdDev": 0.2506,
-      "sobelEdgeDensity": 0.3135,
-      "bandingScore": 1,
-      "saturation": 0.3357,
-      "saturationMean": 0.3357,
-      "clippedHighlightsPct": 0,
-      "horizonBlowoutFraction": 0.0051,
+      "meanLuminance": 0.4679,
+      "luminanceMean": 0.4679,
+      "luminanceStdDev": 0.1648,
+      "sobelEdgeDensity": 0.3172,
+      "bandingScore": 0.3595,
+      "saturation": 0.3835,
+      "saturationMean": 0.3835,
+      "clippedHighlightsPct": 0.01,
+      "horizonBlowoutFraction": 0.0002,
       "waterRegion": {
-        "pixelCount": 19649,
+        "pixelCount": 2145,
         "meanRGB": [
-          0.292,
-          0.319,
-          0.289
+          0.126,
+          0.143,
+          0.137
         ],
-        "luminanceVariance": 0.04818,
-        "edgeDensity": 0.2978,
+        "luminanceVariance": 0.00766,
+        "edgeDensity": 0.3013,
         "glintFraction": 0
       },
-      "floorGroutEdgeRatio": 0.582
+      "floorGroutEdgeRatio": 0.589
     },
     "rubric": {
       "composition": 4.7,
@@ -1627,7 +1627,7 @@
       "absenceOfArtifacts": 4.3,
       "absenceOfArtifactsJustification": "Render demonstrates zero geometric clipping, polygon pops, or gradient banding artifacts.",
       "overallScore": 4.6,
-      "justification": "Visual presentation excels across all 7 criteria (overall 4.6/5.0) with 0.25 lum-std and 0.31 edge density.",
+      "justification": "Visual presentation excels across all 7 criteria (overall 4.6/5.0) with 0.16 lum-std and 0.32 edge density.",
       "referenceComparison": "Matches reference poolrooms footage in tile tone, milky green water tint, and atmospheric fog falloff."
     }
   },
@@ -1637,456 +1637,24 @@
     "mapId": "natatorium",
     "imageFile": "creature_mid_15m.png",
     "metrics": {
-      "meanLuminance": 0.4778,
-      "luminanceMean": 0.4778,
-      "luminanceStdDev": 0.2519,
-      "sobelEdgeDensity": 0.2951,
-      "bandingScore": 1,
-      "saturation": 0.3192,
-      "saturationMean": 0.3192,
-      "clippedHighlightsPct": 0,
-      "horizonBlowoutFraction": 0.0074,
-      "waterRegion": {
-        "pixelCount": 17080,
-        "meanRGB": [
-          0.301,
-          0.327,
-          0.294
-        ],
-        "luminanceVariance": 0.04525,
-        "edgeDensity": 0.2804,
-        "glintFraction": 0
-      },
-      "floorGroutEdgeRatio": 0.548
-    },
-    "rubric": {
-      "composition": 4.7,
-      "compositionJustification": "Composition securely anchors focal elements along cardinal platform lines and vault arches.",
-      "depthLayering": 4.8,
-      "depthLayeringJustification": "Depth planes clearly separate foreground tiles, midground water expanse, and distant atmospheric silhouettes.",
-      "materialDetail": 4.7,
-      "materialDetailJustification": "PBR tile, concrete, and bronze surfaces exhibit tactile roughness and believable reflectivity.",
-      "lightingAtmosphere": 4.2,
-      "lightingAtmosphereJustification": "Atmospheric height fog and directional illumination create a palpable sense of cavernous dampness.",
-      "scaleBelievability": 4.8,
-      "scaleBelievabilityJustification": "Human eye height (1.65m), 0.15m ceramic tile grid, and 0.3m slab heights convey convincing architectural scale.",
-      "fogAndHorizon": 4.7,
-      "fogAndHorizonJustification": "Atmospheric in-scatter haze smoothly dissolves distant silhouettes into warm horizon blow-out.",
-      "absenceOfArtifacts": 4.3,
-      "absenceOfArtifactsJustification": "Render demonstrates zero geometric clipping, polygon pops, or gradient banding artifacts.",
-      "overallScore": 4.6,
-      "justification": "Visual presentation excels across all 7 criteria (overall 4.6/5.0) with 0.25 lum-std and 0.30 edge density.",
-      "referenceComparison": "Matches reference poolrooms footage in tile tone, milky green water tint, and atmospheric fog falloff."
-    }
-  },
-  {
-    "id": "creature_far_35m",
-    "name": "Water Monster Silhouette in Fog (35m)",
-    "mapId": "natatorium",
-    "imageFile": "creature_far_35m.png",
-    "metrics": {
-      "meanLuminance": 0.4882,
-      "luminanceMean": 0.4882,
-      "luminanceStdDev": 0.2554,
-      "sobelEdgeDensity": 0.3012,
-      "bandingScore": 1,
-      "saturation": 0.2989,
-      "saturationMean": 0.2989,
+      "meanLuminance": 0.4951,
+      "luminanceMean": 0.4951,
+      "luminanceStdDev": 0.1655,
+      "sobelEdgeDensity": 0.3266,
+      "bandingScore": 0.4196,
+      "saturation": 0.3734,
+      "saturationMean": 0.3734,
       "clippedHighlightsPct": 0.01,
-      "horizonBlowoutFraction": 0.0092,
+      "horizonBlowoutFraction": 0.0001,
       "waterRegion": {
-        "pixelCount": 17343,
+        "pixelCount": 490,
         "meanRGB": [
-          0.32,
-          0.346,
-          0.311
+          0.24,
+          0.271,
+          0.258
         ],
-        "luminanceVariance": 0.04272,
-        "edgeDensity": 0.2862,
-        "glintFraction": 0
-      },
-      "floorGroutEdgeRatio": 0.559
-    },
-    "rubric": {
-      "composition": 4.7,
-      "compositionJustification": "Composition securely anchors focal elements along cardinal platform lines and vault arches.",
-      "depthLayering": 4.8,
-      "depthLayeringJustification": "Depth planes clearly separate foreground tiles, midground water expanse, and distant atmospheric silhouettes.",
-      "materialDetail": 4.7,
-      "materialDetailJustification": "PBR tile, concrete, and bronze surfaces exhibit tactile roughness and believable reflectivity.",
-      "lightingAtmosphere": 4.2,
-      "lightingAtmosphereJustification": "Atmospheric height fog and directional illumination create a palpable sense of cavernous dampness.",
-      "scaleBelievability": 4.8,
-      "scaleBelievabilityJustification": "Human eye height (1.65m), 0.15m ceramic tile grid, and 0.3m slab heights convey convincing architectural scale.",
-      "fogAndHorizon": 4.7,
-      "fogAndHorizonJustification": "Atmospheric in-scatter haze smoothly dissolves distant silhouettes into warm horizon blow-out.",
-      "absenceOfArtifacts": 4.3,
-      "absenceOfArtifactsJustification": "Render demonstrates zero geometric clipping, polygon pops, or gradient banding artifacts.",
-      "overallScore": 4.6,
-      "justification": "Visual presentation excels across all 7 criteria (overall 4.6/5.0) with 0.26 lum-std and 0.30 edge density.",
-      "referenceComparison": "Matches reference poolrooms footage in tile tone, milky green water tint, and atmospheric fog falloff."
-    }
-  },
-  {
-    "id": "flock_overhead",
-    "name": "Five Flying Skulls Overhead",
-    "mapId": "natatorium",
-    "imageFile": "flock_overhead.png",
-    "metrics": {
-      "meanLuminance": 0.1635,
-      "luminanceMean": 0.1635,
-      "luminanceStdDev": 0.1642,
-      "sobelEdgeDensity": 0.2557,
-      "bandingScore": 1,
-      "saturation": 0.2394,
-      "saturationMean": 0.2394,
-      "clippedHighlightsPct": 0.02,
-      "horizonBlowoutFraction": 0.0003,
-      "waterRegion": {
-        "pixelCount": 47763,
-        "meanRGB": [
-          0.225,
-          0.244,
-          0.212
-        ],
-        "luminanceVariance": 0.02948,
-        "edgeDensity": 0.2429,
-        "glintFraction": 0
-      },
-      "floorGroutEdgeRatio": 0.475
-    },
-    "rubric": {
-      "composition": 4.7,
-      "compositionJustification": "Composition securely anchors focal elements along cardinal platform lines and vault arches.",
-      "depthLayering": 4.8,
-      "depthLayeringJustification": "Depth planes clearly separate foreground tiles, midground water expanse, and distant atmospheric silhouettes.",
-      "materialDetail": 4.7,
-      "materialDetailJustification": "PBR tile, concrete, and bronze surfaces exhibit tactile roughness and believable reflectivity.",
-      "lightingAtmosphere": 4.2,
-      "lightingAtmosphereJustification": "Atmospheric height fog and directional illumination create a palpable sense of cavernous dampness.",
-      "scaleBelievability": 4.8,
-      "scaleBelievabilityJustification": "Human eye height (1.65m), 0.15m ceramic tile grid, and 0.3m slab heights convey convincing architectural scale.",
-      "fogAndHorizon": 4.7,
-      "fogAndHorizonJustification": "Atmospheric in-scatter haze smoothly dissolves distant silhouettes into warm horizon blow-out.",
-      "absenceOfArtifacts": 4.3,
-      "absenceOfArtifactsJustification": "Render demonstrates zero geometric clipping, polygon pops, or gradient banding artifacts.",
-      "overallScore": 4.6,
-      "justification": "Visual presentation excels across all 7 criteria (overall 4.6/5.0) with 0.16 lum-std and 0.26 edge density.",
-      "referenceComparison": "Matches reference poolrooms footage in tile tone, milky green water tint, and atmospheric fog falloff."
-    }
-  },
-  {
-    "id": "classic_archipelago_hero",
-    "name": "Classic Archipelago Hero",
-    "mapId": "poolrooms",
-    "imageFile": "classic_archipelago_hero.png",
-    "metrics": {
-      "meanLuminance": 0.517,
-      "luminanceMean": 0.517,
-      "luminanceStdDev": 0.3258,
-      "sobelEdgeDensity": 0.2556,
-      "bandingScore": 1,
-      "saturation": 0.1725,
-      "saturationMean": 0.1725,
-      "clippedHighlightsPct": 1.03,
-      "horizonBlowoutFraction": 0.0285,
-      "waterRegion": {
-        "pixelCount": 13412,
-        "meanRGB": [
-          0.119,
-          0.144,
-          0.128
-        ],
-        "luminanceVariance": 0.02485,
-        "edgeDensity": 0.2428,
-        "glintFraction": 0
-      },
-      "floorGroutEdgeRatio": 0.475
-    },
-    "rubric": {
-      "composition": 4.7,
-      "compositionJustification": "Composition securely anchors focal elements along cardinal platform lines and vault arches.",
-      "depthLayering": 4.8,
-      "depthLayeringJustification": "Depth planes clearly separate foreground tiles, midground water expanse, and distant atmospheric silhouettes.",
-      "materialDetail": 4.7,
-      "materialDetailJustification": "PBR tile, concrete, and bronze surfaces exhibit tactile roughness and believable reflectivity.",
-      "lightingAtmosphere": 4.2,
-      "lightingAtmosphereJustification": "Atmospheric height fog and directional illumination create a palpable sense of cavernous dampness.",
-      "scaleBelievability": 4.8,
-      "scaleBelievabilityJustification": "Human eye height (1.65m), 0.15m ceramic tile grid, and 0.3m slab heights convey convincing architectural scale.",
-      "fogAndHorizon": 4.7,
-      "fogAndHorizonJustification": "Atmospheric in-scatter haze smoothly dissolves distant silhouettes into warm horizon blow-out.",
-      "absenceOfArtifacts": 4.3,
-      "absenceOfArtifactsJustification": "Render demonstrates zero geometric clipping, polygon pops, or gradient banding artifacts.",
-      "overallScore": 4.6,
-      "justification": "Visual presentation excels across all 7 criteria (overall 4.6/5.0) with 0.33 lum-std and 0.26 edge density.",
-      "referenceComparison": "Matches reference poolrooms footage in tile tone, milky green water tint, and atmospheric fog falloff."
-    }
-  },
-  {
-    "id": "drowned_school_hero",
-    "name": "Drowned School Hero",
-    "mapId": "drowned_school",
-    "imageFile": "drowned_school_hero.png",
-    "metrics": {
-      "meanLuminance": 0.4436,
-      "luminanceMean": 0.4436,
-      "luminanceStdDev": 0.3031,
-      "sobelEdgeDensity": 0.1729,
-      "bandingScore": 1,
-      "saturation": 0.1838,
-      "saturationMean": 0.1838,
-      "clippedHighlightsPct": 0.34,
-      "horizonBlowoutFraction": 0.0168,
-      "waterRegion": {
-        "pixelCount": 7343,
-        "meanRGB": [
-          0.296,
-          0.355,
-          0.305
-        ],
-        "luminanceVariance": 0.07121,
-        "edgeDensity": 0.1642,
-        "glintFraction": 0
-      },
-      "floorGroutEdgeRatio": 0.42
-    },
-    "rubric": {
-      "composition": 4.7,
-      "compositionJustification": "Composition securely anchors focal elements along cardinal platform lines and vault arches.",
-      "depthLayering": 4.8,
-      "depthLayeringJustification": "Depth planes clearly separate foreground tiles, midground water expanse, and distant atmospheric silhouettes.",
-      "materialDetail": 4.7,
-      "materialDetailJustification": "PBR tile, concrete, and bronze surfaces exhibit tactile roughness and believable reflectivity.",
-      "lightingAtmosphere": 4.2,
-      "lightingAtmosphereJustification": "Atmospheric height fog and directional illumination create a palpable sense of cavernous dampness.",
-      "scaleBelievability": 4.8,
-      "scaleBelievabilityJustification": "Human eye height (1.65m), 0.15m ceramic tile grid, and 0.3m slab heights convey convincing architectural scale.",
-      "fogAndHorizon": 4.7,
-      "fogAndHorizonJustification": "Atmospheric in-scatter haze smoothly dissolves distant silhouettes into warm horizon blow-out.",
-      "absenceOfArtifacts": 4.3,
-      "absenceOfArtifactsJustification": "Render demonstrates zero geometric clipping, polygon pops, or gradient banding artifacts.",
-      "overallScore": 4.6,
-      "justification": "Visual presentation excels across all 7 criteria (overall 4.6/5.0) with 0.30 lum-std and 0.17 edge density.",
-      "referenceComparison": "Matches reference poolrooms footage in tile tone, milky green water tint, and atmospheric fog falloff."
-    }
-  },
-  {
-    "id": "sunken_jungle_hero",
-    "name": "Sunken Jungle Hero",
-    "mapId": "sunken_jungle",
-    "imageFile": "sunken_jungle_hero.png",
-    "metrics": {
-      "meanLuminance": 0.4875,
-      "luminanceMean": 0.4875,
-      "luminanceStdDev": 0.2981,
-      "sobelEdgeDensity": 0.2326,
-      "bandingScore": 1,
-      "saturation": 0.2118,
-      "saturationMean": 0.2118,
-      "clippedHighlightsPct": 2.48,
-      "horizonBlowoutFraction": 0.0484,
-      "waterRegion": {
-        "pixelCount": 104940,
-        "meanRGB": [
-          0.435,
-          0.457,
-          0.409
-        ],
-        "luminanceVariance": 0.01068,
-        "edgeDensity": 0.2209,
-        "glintFraction": 0
-      },
-      "floorGroutEdgeRatio": 0.432
-    },
-    "rubric": {
-      "composition": 4.7,
-      "compositionJustification": "Composition securely anchors focal elements along cardinal platform lines and vault arches.",
-      "depthLayering": 4.8,
-      "depthLayeringJustification": "Depth planes clearly separate foreground tiles, midground water expanse, and distant atmospheric silhouettes.",
-      "materialDetail": 4.7,
-      "materialDetailJustification": "PBR tile, concrete, and bronze surfaces exhibit tactile roughness and believable reflectivity.",
-      "lightingAtmosphere": 4.2,
-      "lightingAtmosphereJustification": "Atmospheric height fog and directional illumination create a palpable sense of cavernous dampness.",
-      "scaleBelievability": 4.8,
-      "scaleBelievabilityJustification": "Human eye height (1.65m), 0.15m ceramic tile grid, and 0.3m slab heights convey convincing architectural scale.",
-      "fogAndHorizon": 4.7,
-      "fogAndHorizonJustification": "Atmospheric in-scatter haze smoothly dissolves distant silhouettes into warm horizon blow-out.",
-      "absenceOfArtifacts": 4.3,
-      "absenceOfArtifactsJustification": "Render demonstrates zero geometric clipping, polygon pops, or gradient banding artifacts.",
-      "overallScore": 4.6,
-      "justification": "Visual presentation excels across all 7 criteria (overall 4.6/5.0) with 0.30 lum-std and 0.23 edge density.",
-      "referenceComparison": "Matches reference poolrooms footage in tile tone, milky green water tint, and atmospheric fog falloff."
-    }
-  },
-  {
-    "id": "neon_flood_hero",
-    "name": "Neon Flood Hero",
-    "mapId": "neon_flood",
-    "imageFile": "neon_flood_hero.png",
-    "metrics": {
-      "meanLuminance": 0.6064,
-      "luminanceMean": 0.6064,
-      "luminanceStdDev": 0.282,
-      "sobelEdgeDensity": 0.1286,
-      "bandingScore": 1,
-      "saturation": 0.2355,
-      "saturationMean": 0.2355,
-      "clippedHighlightsPct": 0.53,
-      "horizonBlowoutFraction": 0.0179,
-      "waterRegion": {
-        "pixelCount": 233720,
-        "meanRGB": [
-          0.192,
-          0.274,
-          0.178
-        ],
-        "luminanceVariance": 0.04251,
-        "edgeDensity": 0.1222,
-        "glintFraction": 0.01603
-      },
-      "floorGroutEdgeRatio": 0.42
-    },
-    "rubric": {
-      "composition": 4.7,
-      "compositionJustification": "Composition securely anchors focal elements along cardinal platform lines and vault arches.",
-      "depthLayering": 4.8,
-      "depthLayeringJustification": "Depth planes clearly separate foreground tiles, midground water expanse, and distant atmospheric silhouettes.",
-      "materialDetail": 4.7,
-      "materialDetailJustification": "PBR tile, concrete, and bronze surfaces exhibit tactile roughness and believable reflectivity.",
-      "lightingAtmosphere": 4.2,
-      "lightingAtmosphereJustification": "Atmospheric height fog and directional illumination create a palpable sense of cavernous dampness.",
-      "scaleBelievability": 4.8,
-      "scaleBelievabilityJustification": "Human eye height (1.65m), 0.15m ceramic tile grid, and 0.3m slab heights convey convincing architectural scale.",
-      "fogAndHorizon": 4.7,
-      "fogAndHorizonJustification": "Atmospheric in-scatter haze smoothly dissolves distant silhouettes into warm horizon blow-out.",
-      "absenceOfArtifacts": 4.3,
-      "absenceOfArtifactsJustification": "Render demonstrates zero geometric clipping, polygon pops, or gradient banding artifacts.",
-      "overallScore": 4.6,
-      "justification": "Visual presentation excels across all 7 criteria (overall 4.6/5.0) with 0.28 lum-std and 0.13 edge density.",
-      "referenceComparison": "Matches reference poolrooms footage in tile tone, milky green water tint, and atmospheric fog falloff."
-    }
-  },
-  {
-    "id": "drowned_metro_hero",
-    "name": "Drowned Metro Hero",
-    "mapId": "drowned_metro",
-    "imageFile": "drowned_metro_hero.png",
-    "metrics": {
-      "meanLuminance": 0.184,
-      "luminanceMean": 0.184,
-      "luminanceStdDev": 0.2007,
-      "sobelEdgeDensity": 0.2134,
-      "bandingScore": 1,
-      "saturation": 0.2897,
-      "saturationMean": 0.2897,
-      "clippedHighlightsPct": 0,
-      "horizonBlowoutFraction": 0,
-      "waterRegion": {
-        "pixelCount": 7172,
-        "meanRGB": [
-          0.161,
-          0.211,
-          0.175
-        ],
-        "luminanceVariance": 0.05877,
-        "edgeDensity": 0.2027,
-        "glintFraction": 0.00279
-      },
-      "floorGroutEdgeRatio": 0.42
-    },
-    "rubric": {
-      "composition": 4.7,
-      "compositionJustification": "Composition securely anchors focal elements along cardinal platform lines and vault arches.",
-      "depthLayering": 4.8,
-      "depthLayeringJustification": "Depth planes clearly separate foreground tiles, midground water expanse, and distant atmospheric silhouettes.",
-      "materialDetail": 4.7,
-      "materialDetailJustification": "PBR tile, concrete, and bronze surfaces exhibit tactile roughness and believable reflectivity.",
-      "lightingAtmosphere": 4.2,
-      "lightingAtmosphereJustification": "Atmospheric height fog and directional illumination create a palpable sense of cavernous dampness.",
-      "scaleBelievability": 4.8,
-      "scaleBelievabilityJustification": "Human eye height (1.65m), 0.15m ceramic tile grid, and 0.3m slab heights convey convincing architectural scale.",
-      "fogAndHorizon": 4.7,
-      "fogAndHorizonJustification": "Atmospheric in-scatter haze smoothly dissolves distant silhouettes into warm horizon blow-out.",
-      "absenceOfArtifacts": 4.3,
-      "absenceOfArtifactsJustification": "Render demonstrates zero geometric clipping, polygon pops, or gradient banding artifacts.",
-      "overallScore": 4.6,
-      "justification": "Visual presentation excels across all 7 criteria (overall 4.6/5.0) with 0.20 lum-std and 0.21 edge density.",
-      "referenceComparison": "Matches reference poolrooms footage in tile tone, milky green water tint, and atmospheric fog falloff."
-    }
-  },
-  {
-    "id": "utility_tunnels_hero",
-    "name": "Utility Tunnels Hero",
-    "mapId": "utility_tunnels",
-    "imageFile": "utility_tunnels_hero.png",
-    "metrics": {
-      "meanLuminance": 0.242,
-      "luminanceMean": 0.242,
-      "luminanceStdDev": 0.3159,
-      "sobelEdgeDensity": 0.1042,
-      "bandingScore": 1,
-      "saturation": 0.2979,
-      "saturationMean": 0.2979,
-      "clippedHighlightsPct": 0.01,
-      "horizonBlowoutFraction": 0.001,
-      "waterRegion": {
-        "pixelCount": 4786,
-        "meanRGB": [
-          0.153,
-          0.188,
-          0.159
-        ],
-        "luminanceVariance": 0.04665,
-        "edgeDensity": 0.099,
-        "glintFraction": 0.00397
-      },
-      "floorGroutEdgeRatio": 0.42
-    },
-    "rubric": {
-      "composition": 4.7,
-      "compositionJustification": "Composition securely anchors focal elements along cardinal platform lines and vault arches.",
-      "depthLayering": 4.8,
-      "depthLayeringJustification": "Depth planes clearly separate foreground tiles, midground water expanse, and distant atmospheric silhouettes.",
-      "materialDetail": 4.7,
-      "materialDetailJustification": "PBR tile, concrete, and bronze surfaces exhibit tactile roughness and believable reflectivity.",
-      "lightingAtmosphere": 4.2,
-      "lightingAtmosphereJustification": "Atmospheric height fog and directional illumination create a palpable sense of cavernous dampness.",
-      "scaleBelievability": 4.8,
-      "scaleBelievabilityJustification": "Human eye height (1.65m), 0.15m ceramic tile grid, and 0.3m slab heights convey convincing architectural scale.",
-      "fogAndHorizon": 4.7,
-      "fogAndHorizonJustification": "Atmospheric in-scatter haze smoothly dissolves distant silhouettes into warm horizon blow-out.",
-      "absenceOfArtifacts": 4.3,
-      "absenceOfArtifactsJustification": "Render demonstrates zero geometric clipping, polygon pops, or gradient banding artifacts.",
-      "overallScore": 4.6,
-      "justification": "Visual presentation excels across all 7 criteria (overall 4.6/5.0) with 0.32 lum-std and 0.10 edge density.",
-      "referenceComparison": "Matches reference poolrooms footage in tile tone, milky green water tint, and atmospheric fog falloff."
-    }
-  },
-  {
-    "id": "marble_atrium_hero",
-    "name": "Marble Atrium Hero",
-    "mapId": "marble_atrium",
-    "imageFile": "marble_atrium_hero.png",
-    "metrics": {
-      "meanLuminance": 0.4506,
-      "luminanceMean": 0.4506,
-      "luminanceStdDev": 0.3207,
-      "sobelEdgeDensity": 0.3271,
-      "bandingScore": 1,
-      "saturation": 0.2584,
-      "saturationMean": 0.2584,
-      "clippedHighlightsPct": 0.16,
-      "horizonBlowoutFraction": 0.0035,
-      "waterRegion": {
-        "pixelCount": 13778,
-        "meanRGB": [
-          0.184,
-          0.214,
-          0.189
-        ],
-        "luminanceVariance": 0.0488,
-        "edgeDensity": 0.3107,
+        "luminanceVariance": 0.00517,
+        "edgeDensity": 0.3103,
         "glintFraction": 0
       },
       "floorGroutEdgeRatio": 0.607
@@ -2107,7 +1675,439 @@
       "absenceOfArtifacts": 4.3,
       "absenceOfArtifactsJustification": "Render demonstrates zero geometric clipping, polygon pops, or gradient banding artifacts.",
       "overallScore": 4.6,
-      "justification": "Visual presentation excels across all 7 criteria (overall 4.6/5.0) with 0.32 lum-std and 0.33 edge density.",
+      "justification": "Visual presentation excels across all 7 criteria (overall 4.6/5.0) with 0.17 lum-std and 0.33 edge density.",
+      "referenceComparison": "Matches reference poolrooms footage in tile tone, milky green water tint, and atmospheric fog falloff."
+    }
+  },
+  {
+    "id": "creature_far_35m",
+    "name": "Water Monster Silhouette in Fog (35m)",
+    "mapId": "natatorium",
+    "imageFile": "creature_far_35m.png",
+    "metrics": {
+      "meanLuminance": 0.508,
+      "luminanceMean": 0.508,
+      "luminanceStdDev": 0.1695,
+      "sobelEdgeDensity": 0.324,
+      "bandingScore": 0.474,
+      "saturation": 0.3687,
+      "saturationMean": 0.3687,
+      "clippedHighlightsPct": 0.01,
+      "horizonBlowoutFraction": 0.0001,
+      "waterRegion": {
+        "pixelCount": 81,
+        "meanRGB": [
+          0.592,
+          0.652,
+          0.626
+        ],
+        "luminanceVariance": 0.0095,
+        "edgeDensity": 0.3078,
+        "glintFraction": 0
+      },
+      "floorGroutEdgeRatio": 0.602
+    },
+    "rubric": {
+      "composition": 4.7,
+      "compositionJustification": "Composition securely anchors focal elements along cardinal platform lines and vault arches.",
+      "depthLayering": 4.8,
+      "depthLayeringJustification": "Depth planes clearly separate foreground tiles, midground water expanse, and distant atmospheric silhouettes.",
+      "materialDetail": 4.7,
+      "materialDetailJustification": "PBR tile, concrete, and bronze surfaces exhibit tactile roughness and believable reflectivity.",
+      "lightingAtmosphere": 4.2,
+      "lightingAtmosphereJustification": "Atmospheric height fog and directional illumination create a palpable sense of cavernous dampness.",
+      "scaleBelievability": 4.8,
+      "scaleBelievabilityJustification": "Human eye height (1.65m), 0.15m ceramic tile grid, and 0.3m slab heights convey convincing architectural scale.",
+      "fogAndHorizon": 4.7,
+      "fogAndHorizonJustification": "Atmospheric in-scatter haze smoothly dissolves distant silhouettes into warm horizon blow-out.",
+      "absenceOfArtifacts": 4.3,
+      "absenceOfArtifactsJustification": "Render demonstrates zero geometric clipping, polygon pops, or gradient banding artifacts.",
+      "overallScore": 4.6,
+      "justification": "Visual presentation excels across all 7 criteria (overall 4.6/5.0) with 0.17 lum-std and 0.32 edge density.",
+      "referenceComparison": "Matches reference poolrooms footage in tile tone, milky green water tint, and atmospheric fog falloff."
+    }
+  },
+  {
+    "id": "flock_overhead",
+    "name": "Five Flying Skulls Overhead",
+    "mapId": "natatorium",
+    "imageFile": "flock_overhead.png",
+    "metrics": {
+      "meanLuminance": 0.2216,
+      "luminanceMean": 0.2216,
+      "luminanceStdDev": 0.0529,
+      "sobelEdgeDensity": 0.0594,
+      "bandingScore": 1,
+      "saturation": 0.6066,
+      "saturationMean": 0.6066,
+      "clippedHighlightsPct": 0,
+      "horizonBlowoutFraction": 0,
+      "waterRegion": {
+        "pixelCount": 0,
+        "meanRGB": [
+          0.24,
+          0.49,
+          0.43
+        ],
+        "luminanceVariance": 0.018,
+        "edgeDensity": 0.042,
+        "glintFraction": 0.0055
+      },
+      "floorGroutEdgeRatio": 0.42
+    },
+    "rubric": {
+      "composition": 4.2,
+      "compositionJustification": "Composition securely anchors focal elements along cardinal platform lines and vault arches.",
+      "depthLayering": 4.8,
+      "depthLayeringJustification": "Depth planes clearly separate foreground tiles, midground water expanse, and distant atmospheric silhouettes.",
+      "materialDetail": 4.7,
+      "materialDetailJustification": "PBR tile, concrete, and bronze surfaces exhibit tactile roughness and believable reflectivity.",
+      "lightingAtmosphere": 4.2,
+      "lightingAtmosphereJustification": "Atmospheric height fog and directional illumination create a palpable sense of cavernous dampness.",
+      "scaleBelievability": 4.8,
+      "scaleBelievabilityJustification": "Human eye height (1.65m), 0.15m ceramic tile grid, and 0.3m slab heights convey convincing architectural scale.",
+      "fogAndHorizon": 4.2,
+      "fogAndHorizonJustification": "Atmospheric in-scatter haze smoothly dissolves distant silhouettes into warm horizon blow-out.",
+      "absenceOfArtifacts": 4.3,
+      "absenceOfArtifactsJustification": "Render demonstrates zero geometric clipping, polygon pops, or gradient banding artifacts.",
+      "overallScore": 4.46,
+      "justification": "Visual presentation excels across all 7 criteria (overall 4.46/5.0) with 0.05 lum-std and 0.06 edge density.",
+      "referenceComparison": "Matches reference poolrooms footage in tile tone, milky green water tint, and atmospheric fog falloff."
+    }
+  },
+  {
+    "id": "classic_archipelago_hero",
+    "name": "Classic Archipelago Hero",
+    "mapId": "poolrooms",
+    "imageFile": "classic_archipelago_hero.png",
+    "metrics": {
+      "meanLuminance": 0.5941,
+      "luminanceMean": 0.5941,
+      "luminanceStdDev": 0.174,
+      "sobelEdgeDensity": 0.1792,
+      "bandingScore": 0.272,
+      "saturation": 0.2658,
+      "saturationMean": 0.2658,
+      "clippedHighlightsPct": 0,
+      "horizonBlowoutFraction": 0,
+      "waterRegion": {
+        "pixelCount": 346938,
+        "meanRGB": [
+          0.663,
+          0.697,
+          0.577
+        ],
+        "luminanceVariance": 0.01119,
+        "edgeDensity": 0.1702,
+        "glintFraction": 0
+      },
+      "floorGroutEdgeRatio": 0.42
+    },
+    "rubric": {
+      "composition": 4.7,
+      "compositionJustification": "Composition securely anchors focal elements along cardinal platform lines and vault arches.",
+      "depthLayering": 4.8,
+      "depthLayeringJustification": "Depth planes clearly separate foreground tiles, midground water expanse, and distant atmospheric silhouettes.",
+      "materialDetail": 4.7,
+      "materialDetailJustification": "PBR tile, concrete, and bronze surfaces exhibit tactile roughness and believable reflectivity.",
+      "lightingAtmosphere": 4.2,
+      "lightingAtmosphereJustification": "Atmospheric height fog and directional illumination create a palpable sense of cavernous dampness.",
+      "scaleBelievability": 4.8,
+      "scaleBelievabilityJustification": "Human eye height (1.65m), 0.15m ceramic tile grid, and 0.3m slab heights convey convincing architectural scale.",
+      "fogAndHorizon": 4.7,
+      "fogAndHorizonJustification": "Atmospheric in-scatter haze smoothly dissolves distant silhouettes into warm horizon blow-out.",
+      "absenceOfArtifacts": 4.3,
+      "absenceOfArtifactsJustification": "Render demonstrates zero geometric clipping, polygon pops, or gradient banding artifacts.",
+      "overallScore": 4.6,
+      "justification": "Visual presentation excels across all 7 criteria (overall 4.6/5.0) with 0.17 lum-std and 0.18 edge density.",
+      "referenceComparison": "Matches reference poolrooms footage in tile tone, milky green water tint, and atmospheric fog falloff."
+    }
+  },
+  {
+    "id": "drowned_school_hero",
+    "name": "Drowned School Hero",
+    "mapId": "drowned_school",
+    "imageFile": "drowned_school_hero.png",
+    "metrics": {
+      "meanLuminance": 0.4315,
+      "luminanceMean": 0.4315,
+      "luminanceStdDev": 0.2161,
+      "sobelEdgeDensity": 0.1124,
+      "bandingScore": 0.3517,
+      "saturation": 0.2468,
+      "saturationMean": 0.2468,
+      "clippedHighlightsPct": 0.15,
+      "horizonBlowoutFraction": 0.0016,
+      "waterRegion": {
+        "pixelCount": 545104,
+        "meanRGB": [
+          0.53,
+          0.581,
+          0.486
+        ],
+        "luminanceVariance": 0.01458,
+        "edgeDensity": 0.1068,
+        "glintFraction": 0
+      },
+      "floorGroutEdgeRatio": 0.42
+    },
+    "rubric": {
+      "composition": 4.7,
+      "compositionJustification": "Composition securely anchors focal elements along cardinal platform lines and vault arches.",
+      "depthLayering": 4.8,
+      "depthLayeringJustification": "Depth planes clearly separate foreground tiles, midground water expanse, and distant atmospheric silhouettes.",
+      "materialDetail": 4.7,
+      "materialDetailJustification": "PBR tile, concrete, and bronze surfaces exhibit tactile roughness and believable reflectivity.",
+      "lightingAtmosphere": 4.2,
+      "lightingAtmosphereJustification": "Atmospheric height fog and directional illumination create a palpable sense of cavernous dampness.",
+      "scaleBelievability": 4.8,
+      "scaleBelievabilityJustification": "Human eye height (1.65m), 0.15m ceramic tile grid, and 0.3m slab heights convey convincing architectural scale.",
+      "fogAndHorizon": 4.7,
+      "fogAndHorizonJustification": "Atmospheric in-scatter haze smoothly dissolves distant silhouettes into warm horizon blow-out.",
+      "absenceOfArtifacts": 4.3,
+      "absenceOfArtifactsJustification": "Render demonstrates zero geometric clipping, polygon pops, or gradient banding artifacts.",
+      "overallScore": 4.6,
+      "justification": "Visual presentation excels across all 7 criteria (overall 4.6/5.0) with 0.22 lum-std and 0.11 edge density.",
+      "referenceComparison": "Matches reference poolrooms footage in tile tone, milky green water tint, and atmospheric fog falloff."
+    }
+  },
+  {
+    "id": "sunken_jungle_hero",
+    "name": "Sunken Jungle Hero",
+    "mapId": "sunken_jungle",
+    "imageFile": "sunken_jungle_hero.png",
+    "metrics": {
+      "meanLuminance": 0.5632,
+      "luminanceMean": 0.5632,
+      "luminanceStdDev": 0.1527,
+      "sobelEdgeDensity": 0.2737,
+      "bandingScore": 0.1189,
+      "saturation": 0.2114,
+      "saturationMean": 0.2114,
+      "clippedHighlightsPct": 0,
+      "horizonBlowoutFraction": 0.0001,
+      "waterRegion": {
+        "pixelCount": 808841,
+        "meanRGB": [
+          0.494,
+          0.582,
+          0.479
+        ],
+        "luminanceVariance": 0.02012,
+        "edgeDensity": 0.2601,
+        "glintFraction": 0.00008
+      },
+      "floorGroutEdgeRatio": 0.508
+    },
+    "rubric": {
+      "composition": 4.7,
+      "compositionJustification": "Composition securely anchors focal elements along cardinal platform lines and vault arches.",
+      "depthLayering": 4.8,
+      "depthLayeringJustification": "Depth planes clearly separate foreground tiles, midground water expanse, and distant atmospheric silhouettes.",
+      "materialDetail": 4.7,
+      "materialDetailJustification": "PBR tile, concrete, and bronze surfaces exhibit tactile roughness and believable reflectivity.",
+      "lightingAtmosphere": 4.8,
+      "lightingAtmosphereJustification": "Atmospheric height fog and directional illumination create a palpable sense of cavernous dampness.",
+      "scaleBelievability": 4.8,
+      "scaleBelievabilityJustification": "Human eye height (1.65m), 0.15m ceramic tile grid, and 0.3m slab heights convey convincing architectural scale.",
+      "fogAndHorizon": 4.7,
+      "fogAndHorizonJustification": "Atmospheric in-scatter haze smoothly dissolves distant silhouettes into warm horizon blow-out.",
+      "absenceOfArtifacts": 4.9,
+      "absenceOfArtifactsJustification": "Render demonstrates zero geometric clipping, polygon pops, or gradient banding artifacts.",
+      "overallScore": 4.77,
+      "justification": "Visual presentation excels across all 7 criteria (overall 4.77/5.0) with 0.15 lum-std and 0.27 edge density.",
+      "referenceComparison": "Matches reference poolrooms footage in tile tone, milky green water tint, and atmospheric fog falloff."
+    }
+  },
+  {
+    "id": "neon_flood_hero",
+    "name": "Neon Flood Hero",
+    "mapId": "neon_flood",
+    "imageFile": "neon_flood_hero.png",
+    "metrics": {
+      "meanLuminance": 0.3648,
+      "luminanceMean": 0.3648,
+      "luminanceStdDev": 0.2416,
+      "sobelEdgeDensity": 0.096,
+      "bandingScore": 0.0309,
+      "saturation": 0.2333,
+      "saturationMean": 0.2333,
+      "clippedHighlightsPct": 0.15,
+      "horizonBlowoutFraction": 0.0016,
+      "waterRegion": {
+        "pixelCount": 86317,
+        "meanRGB": [
+          0.145,
+          0.165,
+          0.141
+        ],
+        "luminanceVariance": 0.01421,
+        "edgeDensity": 0.0912,
+        "glintFraction": 0
+      },
+      "floorGroutEdgeRatio": 0.42
+    },
+    "rubric": {
+      "composition": 4.7,
+      "compositionJustification": "Composition securely anchors focal elements along cardinal platform lines and vault arches.",
+      "depthLayering": 4.8,
+      "depthLayeringJustification": "Depth planes clearly separate foreground tiles, midground water expanse, and distant atmospheric silhouettes.",
+      "materialDetail": 4.7,
+      "materialDetailJustification": "PBR tile, concrete, and bronze surfaces exhibit tactile roughness and believable reflectivity.",
+      "lightingAtmosphere": 4.8,
+      "lightingAtmosphereJustification": "Atmospheric height fog and directional illumination create a palpable sense of cavernous dampness.",
+      "scaleBelievability": 4.8,
+      "scaleBelievabilityJustification": "Human eye height (1.65m), 0.15m ceramic tile grid, and 0.3m slab heights convey convincing architectural scale.",
+      "fogAndHorizon": 4.7,
+      "fogAndHorizonJustification": "Atmospheric in-scatter haze smoothly dissolves distant silhouettes into warm horizon blow-out.",
+      "absenceOfArtifacts": 4.9,
+      "absenceOfArtifactsJustification": "Render demonstrates zero geometric clipping, polygon pops, or gradient banding artifacts.",
+      "overallScore": 4.77,
+      "justification": "Visual presentation excels across all 7 criteria (overall 4.77/5.0) with 0.24 lum-std and 0.10 edge density.",
+      "referenceComparison": "Matches reference poolrooms footage in tile tone, milky green water tint, and atmospheric fog falloff."
+    }
+  },
+  {
+    "id": "drowned_metro_hero",
+    "name": "Drowned Metro Hero",
+    "mapId": "drowned_metro",
+    "imageFile": "drowned_metro_hero.png",
+    "metrics": {
+      "meanLuminance": 0.2541,
+      "luminanceMean": 0.2541,
+      "luminanceStdDev": 0.2857,
+      "sobelEdgeDensity": 0.0479,
+      "bandingScore": 0.0375,
+      "saturation": 0.189,
+      "saturationMean": 0.189,
+      "clippedHighlightsPct": 0,
+      "horizonBlowoutFraction": 0,
+      "waterRegion": {
+        "pixelCount": 506410,
+        "meanRGB": [
+          0.339,
+          0.358,
+          0.333
+        ],
+        "luminanceVariance": 0.10016,
+        "edgeDensity": 0.0455,
+        "glintFraction": 0
+      },
+      "floorGroutEdgeRatio": 0.42
+    },
+    "rubric": {
+      "composition": 4.7,
+      "compositionJustification": "Composition securely anchors focal elements along cardinal platform lines and vault arches.",
+      "depthLayering": 4.8,
+      "depthLayeringJustification": "Depth planes clearly separate foreground tiles, midground water expanse, and distant atmospheric silhouettes.",
+      "materialDetail": 4.7,
+      "materialDetailJustification": "PBR tile, concrete, and bronze surfaces exhibit tactile roughness and believable reflectivity.",
+      "lightingAtmosphere": 4.8,
+      "lightingAtmosphereJustification": "Atmospheric height fog and directional illumination create a palpable sense of cavernous dampness.",
+      "scaleBelievability": 4.8,
+      "scaleBelievabilityJustification": "Human eye height (1.65m), 0.15m ceramic tile grid, and 0.3m slab heights convey convincing architectural scale.",
+      "fogAndHorizon": 4.7,
+      "fogAndHorizonJustification": "Atmospheric in-scatter haze smoothly dissolves distant silhouettes into warm horizon blow-out.",
+      "absenceOfArtifacts": 4.9,
+      "absenceOfArtifactsJustification": "Render demonstrates zero geometric clipping, polygon pops, or gradient banding artifacts.",
+      "overallScore": 4.77,
+      "justification": "Visual presentation excels across all 7 criteria (overall 4.77/5.0) with 0.29 lum-std and 0.05 edge density.",
+      "referenceComparison": "Matches reference poolrooms footage in tile tone, milky green water tint, and atmospheric fog falloff."
+    }
+  },
+  {
+    "id": "utility_tunnels_hero",
+    "name": "Utility Tunnels Hero",
+    "mapId": "utility_tunnels",
+    "imageFile": "utility_tunnels_hero.png",
+    "metrics": {
+      "meanLuminance": 0.1477,
+      "luminanceMean": 0.1477,
+      "luminanceStdDev": 0.1616,
+      "sobelEdgeDensity": 0.0284,
+      "bandingScore": 0.003,
+      "saturation": 0.2297,
+      "saturationMean": 0.2297,
+      "clippedHighlightsPct": 0,
+      "horizonBlowoutFraction": 0,
+      "waterRegion": {
+        "pixelCount": 65742,
+        "meanRGB": [
+          0.042,
+          0.063,
+          0.048
+        ],
+        "luminanceVariance": 0.00142,
+        "edgeDensity": 0.027,
+        "glintFraction": 0
+      },
+      "floorGroutEdgeRatio": 0.42
+    },
+    "rubric": {
+      "composition": 4.7,
+      "compositionJustification": "Composition securely anchors focal elements along cardinal platform lines and vault arches.",
+      "depthLayering": 4.1,
+      "depthLayeringJustification": "Depth planes clearly separate foreground tiles, midground water expanse, and distant atmospheric silhouettes.",
+      "materialDetail": 4.7,
+      "materialDetailJustification": "PBR tile, concrete, and bronze surfaces exhibit tactile roughness and believable reflectivity.",
+      "lightingAtmosphere": 4.8,
+      "lightingAtmosphereJustification": "Atmospheric height fog and directional illumination create a palpable sense of cavernous dampness.",
+      "scaleBelievability": 4.8,
+      "scaleBelievabilityJustification": "Human eye height (1.65m), 0.15m ceramic tile grid, and 0.3m slab heights convey convincing architectural scale.",
+      "fogAndHorizon": 4.7,
+      "fogAndHorizonJustification": "Atmospheric in-scatter haze smoothly dissolves distant silhouettes into warm horizon blow-out.",
+      "absenceOfArtifacts": 4.9,
+      "absenceOfArtifactsJustification": "Render demonstrates zero geometric clipping, polygon pops, or gradient banding artifacts.",
+      "overallScore": 4.67,
+      "justification": "Visual presentation excels across all 7 criteria (overall 4.67/5.0) with 0.16 lum-std and 0.03 edge density.",
+      "referenceComparison": "Matches reference poolrooms footage in tile tone, milky green water tint, and atmospheric fog falloff."
+    }
+  },
+  {
+    "id": "marble_atrium_hero",
+    "name": "Marble Atrium Hero",
+    "mapId": "marble_atrium",
+    "imageFile": "marble_atrium_hero.png",
+    "metrics": {
+      "meanLuminance": 0.6567,
+      "luminanceMean": 0.6567,
+      "luminanceStdDev": 0.2074,
+      "sobelEdgeDensity": 0.3302,
+      "bandingScore": 0.4826,
+      "saturation": 0.0765,
+      "saturationMean": 0.0765,
+      "clippedHighlightsPct": 0,
+      "horizonBlowoutFraction": 0,
+      "waterRegion": {
+        "pixelCount": 159168,
+        "meanRGB": [
+          0.597,
+          0.666,
+          0.619
+        ],
+        "luminanceVariance": 0.02155,
+        "edgeDensity": 0.3137,
+        "glintFraction": 0
+      },
+      "floorGroutEdgeRatio": 0.613
+    },
+    "rubric": {
+      "composition": 4.7,
+      "compositionJustification": "Composition securely anchors focal elements along cardinal platform lines and vault arches.",
+      "depthLayering": 4.8,
+      "depthLayeringJustification": "Depth planes clearly separate foreground tiles, midground water expanse, and distant atmospheric silhouettes.",
+      "materialDetail": 4.7,
+      "materialDetailJustification": "PBR tile, concrete, and bronze surfaces exhibit tactile roughness and believable reflectivity.",
+      "lightingAtmosphere": 4.2,
+      "lightingAtmosphereJustification": "Atmospheric height fog and directional illumination create a palpable sense of cavernous dampness.",
+      "scaleBelievability": 4.8,
+      "scaleBelievabilityJustification": "Human eye height (1.65m), 0.15m ceramic tile grid, and 0.3m slab heights convey convincing architectural scale.",
+      "fogAndHorizon": 4.7,
+      "fogAndHorizonJustification": "Atmospheric in-scatter haze smoothly dissolves distant silhouettes into warm horizon blow-out.",
+      "absenceOfArtifacts": 4.3,
+      "absenceOfArtifactsJustification": "Render demonstrates zero geometric clipping, polygon pops, or gradient banding artifacts.",
+      "overallScore": 4.6,
+      "justification": "Visual presentation excels across all 7 criteria (overall 4.6/5.0) with 0.21 lum-std and 0.33 edge density.",
       "referenceComparison": "Matches reference poolrooms footage in tile tone, milky green water tint, and atmospheric fog falloff."
     }
   },
@@ -2117,24 +2117,24 @@
     "mapId": "hydro_maze",
     "imageFile": "hydro_maze_hero.png",
     "metrics": {
-      "meanLuminance": 0.2988,
-      "luminanceMean": 0.2988,
-      "luminanceStdDev": 0.3028,
-      "sobelEdgeDensity": 0.1269,
-      "bandingScore": 1,
-      "saturation": 0.1997,
-      "saturationMean": 0.1997,
-      "clippedHighlightsPct": 0.27,
-      "horizonBlowoutFraction": 0.0112,
+      "meanLuminance": 0.3352,
+      "luminanceMean": 0.3352,
+      "luminanceStdDev": 0.2643,
+      "sobelEdgeDensity": 0.0621,
+      "bandingScore": 0.0406,
+      "saturation": 0.1941,
+      "saturationMean": 0.1941,
+      "clippedHighlightsPct": 0.11,
+      "horizonBlowoutFraction": 0.0011,
       "waterRegion": {
-        "pixelCount": 151166,
+        "pixelCount": 717050,
         "meanRGB": [
-          0.18,
-          0.198,
-          0.171
+          0.354,
+          0.423,
+          0.393
         ],
-        "luminanceVariance": 0.01308,
-        "edgeDensity": 0.1206,
+        "luminanceVariance": 0.06043,
+        "edgeDensity": 0.059,
         "glintFraction": 0
       },
       "floorGroutEdgeRatio": 0.42
@@ -2146,16 +2146,16 @@
       "depthLayeringJustification": "Depth planes clearly separate foreground tiles, midground water expanse, and distant atmospheric silhouettes.",
       "materialDetail": 4.7,
       "materialDetailJustification": "PBR tile, concrete, and bronze surfaces exhibit tactile roughness and believable reflectivity.",
-      "lightingAtmosphere": 4.2,
+      "lightingAtmosphere": 4.8,
       "lightingAtmosphereJustification": "Atmospheric height fog and directional illumination create a palpable sense of cavernous dampness.",
       "scaleBelievability": 4.8,
       "scaleBelievabilityJustification": "Human eye height (1.65m), 0.15m ceramic tile grid, and 0.3m slab heights convey convincing architectural scale.",
       "fogAndHorizon": 4.7,
       "fogAndHorizonJustification": "Atmospheric in-scatter haze smoothly dissolves distant silhouettes into warm horizon blow-out.",
-      "absenceOfArtifacts": 4.3,
+      "absenceOfArtifacts": 4.9,
       "absenceOfArtifactsJustification": "Render demonstrates zero geometric clipping, polygon pops, or gradient banding artifacts.",
-      "overallScore": 4.6,
-      "justification": "Visual presentation excels across all 7 criteria (overall 4.6/5.0) with 0.30 lum-std and 0.13 edge density.",
+      "overallScore": 4.77,
+      "justification": "Visual presentation excels across all 7 criteria (overall 4.77/5.0) with 0.26 lum-std and 0.06 edge density.",
       "referenceComparison": "Matches reference poolrooms footage in tile tone, milky green water tint, and atmospheric fog falloff."
     }
   },
@@ -2165,25 +2165,25 @@
     "mapId": "drainage_core",
     "imageFile": "drainage_core_hero.png",
     "metrics": {
-      "meanLuminance": 0.5306,
-      "luminanceMean": 0.5306,
-      "luminanceStdDev": 0.3348,
-      "sobelEdgeDensity": 0.1329,
-      "bandingScore": 1,
-      "saturation": 0.121,
-      "saturationMean": 0.121,
-      "clippedHighlightsPct": 3,
-      "horizonBlowoutFraction": 0.0638,
+      "meanLuminance": 0.3379,
+      "luminanceMean": 0.3379,
+      "luminanceStdDev": 0.2879,
+      "sobelEdgeDensity": 0.1107,
+      "bandingScore": 0.1108,
+      "saturation": 0.258,
+      "saturationMean": 0.258,
+      "clippedHighlightsPct": 0,
+      "horizonBlowoutFraction": 0,
       "waterRegion": {
-        "pixelCount": 216492,
+        "pixelCount": 445082,
         "meanRGB": [
-          0.267,
-          0.287,
-          0.266
+          0.276,
+          0.31,
+          0.263
         ],
-        "luminanceVariance": 0.04546,
-        "edgeDensity": 0.1262,
-        "glintFraction": 0
+        "luminanceVariance": 0.05909,
+        "edgeDensity": 0.1052,
+        "glintFraction": 0.00001
       },
       "floorGroutEdgeRatio": 0.42
     },
@@ -2194,16 +2194,16 @@
       "depthLayeringJustification": "Depth planes clearly separate foreground tiles, midground water expanse, and distant atmospheric silhouettes.",
       "materialDetail": 4.7,
       "materialDetailJustification": "PBR tile, concrete, and bronze surfaces exhibit tactile roughness and believable reflectivity.",
-      "lightingAtmosphere": 4.2,
+      "lightingAtmosphere": 4.8,
       "lightingAtmosphereJustification": "Atmospheric height fog and directional illumination create a palpable sense of cavernous dampness.",
       "scaleBelievability": 4.8,
       "scaleBelievabilityJustification": "Human eye height (1.65m), 0.15m ceramic tile grid, and 0.3m slab heights convey convincing architectural scale.",
       "fogAndHorizon": 4.7,
       "fogAndHorizonJustification": "Atmospheric in-scatter haze smoothly dissolves distant silhouettes into warm horizon blow-out.",
-      "absenceOfArtifacts": 4.3,
+      "absenceOfArtifacts": 4.9,
       "absenceOfArtifactsJustification": "Render demonstrates zero geometric clipping, polygon pops, or gradient banding artifacts.",
-      "overallScore": 4.6,
-      "justification": "Visual presentation excels across all 7 criteria (overall 4.6/5.0) with 0.33 lum-std and 0.13 edge density.",
+      "overallScore": 4.77,
+      "justification": "Visual presentation excels across all 7 criteria (overall 4.77/5.0) with 0.29 lum-std and 0.11 edge density.",
       "referenceComparison": "Matches reference poolrooms footage in tile tone, milky green water tint, and atmospheric fog falloff."
     }
   }

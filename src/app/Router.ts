@@ -21,6 +21,8 @@ export interface ParsedRoute {
   map?: MapId | null | undefined;
   /** Seed from ?seed=<n> */
   seed?: number | null | undefined;
+  /** Whether ?sightlog=1 was set to monitor monster sightings. */
+  sightlog?: boolean | undefined;
 }
 
 /**
@@ -65,8 +67,9 @@ export function parseRoute(search?: string): ParsedRoute {
   const mapRaw = params.get('map') as MapId | null;
   const seedRaw = params.get('seed');
   const seed = seedRaw !== null ? parseInt(seedRaw, 10) : null;
+  const sightlog = params.get('sightlog') === '1';
 
-  return { room, lab, labMode, debug, view, map: mapRaw, seed };
+  return { room, lab, labMode, debug, view, map: mapRaw, seed, sightlog };
 }
 
 /**

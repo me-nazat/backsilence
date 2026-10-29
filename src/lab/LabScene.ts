@@ -144,12 +144,12 @@ export class LabScene {
   }
 
   private setupAtmosphere(): void {
-    const fogColor = new Color('#d9d3a2');
+    const fogColor = new Color('#b3bb9f');
     this.scene.background = fogColor;
     this.scene.fog = new FogExp2(fogColor, 0.045);
 
     // Warm-cream hemisphere light with subtle green bounce from water
-    this.hemiLight = new HemisphereLight('#fff2c4', '#6fae8a', 0.85);
+    this.hemiLight = new HemisphereLight('#b3bb9f', '#7c9e5b', 0.95);
     this.scene.add(this.hemiLight);
 
     // Directional light casting soft PCF shadows
@@ -164,7 +164,7 @@ export class LabScene {
     this.scene.add(this.dirLight);
 
     // Faint atmospheric point light
-    this.pointLight = new PointLight('#d9d3a2', 0.6, 25);
+    this.pointLight = new PointLight('#b3bb9f', 0.6, 25);
     this.pointLight.position.set(0, 3.2, 0);
     this.scene.add(this.pointLight);
   }
@@ -313,7 +313,7 @@ export class LabScene {
 
     // 6. Water Plane
     const waterMat = new MeshStandardMaterial({
-      color: new Color('#86cfa0'),
+      color: new Color('#7c9e5b'),
       normalMap: this.waterNormalTex,
       transparent: true,
       opacity: 0.82,

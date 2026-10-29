@@ -89,7 +89,7 @@ class Cdp {
       const timer = setTimeout(() => {
         this.pending.delete(id);
         reject(new Error(`CDP ${method} timed out`));
-      }, 30000);
+      }, 60000);
       this.pending.set(id, {
         resolve: (val) => {
           clearTimeout(timer);

@@ -208,7 +208,7 @@ export function applyMapLevelArtPass(env: LevelArtEnv): void {
       placedPropTypes.add('lifeguard_chair');
 
       // 4. Balustrades & brass rails on foyer steps & perimeter
-      for (let z = -15; z <= 15; z += 15) {
+      for (const z of [-12, 12]) {
         placeMesh(buildBalustradeGeometry(8.0), brassMat, new Vector3(-18.5, 0.3, z), Math.PI * 0.5);
         placeMesh(buildBalustradeGeometry(8.0), brassMat, new Vector3(18.5, 0.3, z), Math.PI * 0.5);
       }

@@ -8,7 +8,7 @@ import type { Vec3, PlayerId, NoiseEvent } from '../types/contracts.js';
 import type { MonsterBrain } from './MonsterBrain.js';
 import type { NavGrid } from './NavGrid.js';
 import { Rng } from './rng.js';
-import { dHypot, dSin, dCos, dAtan2, dLog, D_PI } from './dmath.js';
+import { dHypot, dSin, dCos, dAtan2, D_PI } from './dmath.js';
 import balanceData from './balance.json';
 
 export type DirectorDifficulty = 'whisper' | 'normal' | 'deafening' | 'nightmare';
@@ -24,6 +24,7 @@ export type BeatKind =
   | 'false_lead'
   | 'flock_pass'
   | 'map_surge'
+  | 'sighting_telegraph'
   // Backward compatibility aliases
   | 'first_contact'
   | 'listening'
@@ -66,6 +67,10 @@ export interface DirectorSnapshot {
   activeSweepTimer: number;
   currentPhase: 'prowl' | 'closing' | 'hunt';
   fogDensity?: number;
+  firstContactAttempts?: number;
+  sightingsCount?: number;
+  lastSightingTime?: number;
+  nextSightingTargetTime?: number;
 }
 
 export class EncounterDirector {
@@ -81,6 +86,13 @@ export class EncounterDirector {
 
   private firstContactDone = false;
   private firstContactScheduledTime: number;
+  private firstContactAttempts = 0;
+  private firstContactRetryTimer = 0;
+  private sightingCount = 0;
+  private lastSightingTime = 0;
+  private nextSightingTargetTime = 0;
+  private sightingTelegraphTriggered = false;
+  private activeSightingDuration = 0;
   private lastThreatBeatTime = 0;
   private breatherTimer = 0;
   private deathTimestamps: number[] = [];
@@ -89,6 +101,7 @@ export class EncounterDirector {
   private listeningActive = false;
   private closeCallActive = false;
   fogDensity = 0.045;
+  mapId?: string;
   patrolLanes: { id: string; points: Vec3[] }[] = [];
 
   readonly dreadBeats: DreadBeat[] = [];
@@ -102,11 +115,21 @@ export class EncounterDirector {
 
     const diffCfg = balanceData.difficulty[difficulty] ?? balanceData.difficulty.normal;
     this.firstContactScheduledTime = this.rng.range(diffCfg.firstContactMin, diffCfg.firstContactMax);
+    this.nextSightingTargetTime = this.firstContactScheduledTime;
   }
 
   setFogDensity(density: number): void {
     if (Number.isFinite(density) && density > 0) {
       this.fogDensity = density;
+    }
+  }
+
+  setMapId(mapId: string): void {
+    this.mapId = mapId;
+    const mapCfg = (balanceData.maps as Record<string, Record<string, number>>)[mapId];
+    if (mapCfg?.firstContactMin !== undefined && mapCfg?.firstContactMax !== undefined && !this.firstContactDone && this.simTime === 0) {
+      this.firstContactScheduledTime = this.rng.range(mapCfg.firstContactMin, mapCfg.firstContactMax);
+      this.nextSightingTargetTime = this.firstContactScheduledTime;
     }
   }
 
@@ -120,6 +143,14 @@ export class EncounterDirector {
 
   get phase(): DreadPhase {
     return this.currentDreadPhase;
+  }
+
+  get sightings(): number {
+    return this.sightingCount;
+  }
+
+  get lastSighting(): number {
+    return this.lastSightingTime;
   }
 
   getSnapshot(): DirectorSnapshot {
@@ -137,6 +168,11 @@ export class EncounterDirector {
       assistOfferPending: this.assistOfferPending,
       activeSweepTimer: this.activeSweepTimer,
       currentPhase: this.getCurrentPhase(0),
+      fogDensity: this.fogDensity,
+      firstContactAttempts: this.firstContactAttempts,
+      sightingsCount: this.sightingCount,
+      lastSightingTime: this.lastSightingTime,
+      nextSightingTargetTime: this.nextSightingTargetTime,
     };
   }
 
@@ -153,6 +189,10 @@ export class EncounterDirector {
     this.deathTimestamps = [...snap.deathTimestamps];
     this.assistOfferPending = snap.assistOfferPending;
     this.activeSweepTimer = snap.activeSweepTimer;
+    if (snap.firstContactAttempts !== undefined) this.firstContactAttempts = snap.firstContactAttempts;
+    if (snap.sightingsCount !== undefined) this.sightingCount = snap.sightingsCount;
+    if (snap.lastSightingTime !== undefined) this.lastSightingTime = snap.lastSightingTime;
+    if (snap.nextSightingTargetTime !== undefined) this.nextSightingTargetTime = snap.nextSightingTargetTime;
   }
 
   getCurrentPhase(objectivesDone = 0): 'prowl' | 'closing' | 'hunt' {
@@ -164,8 +204,15 @@ export class EncounterDirector {
   resetOnRetry(simTime = 0): void {
     this.simTime = simTime;
     this.firstContactDone = false;
+    this.firstContactAttempts = 0;
+    this.firstContactRetryTimer = 0;
+    this.sightingCount = 0;
+    this.lastSightingTime = 0;
+    this.sightingTelegraphTriggered = false;
+    this.activeSightingDuration = 0;
     const diffCfg = balanceData.difficulty[this.difficulty] ?? balanceData.difficulty.normal;
     this.firstContactScheduledTime = simTime + this.rng.range(diffCfg.firstContactMin, diffCfg.firstContactMax);
+    this.nextSightingTargetTime = this.firstContactScheduledTime;
     this.lastThreatBeatTime = simTime;
     this.breatherTimer = 0;
     this.currentDreadPhase = 'CALM';
@@ -327,28 +374,84 @@ export class EncounterDirector {
       this.triggerBreather(diffCfg.breatherMin ?? 25.0, diffCfg.breatherMax ?? 40.0);
     }
 
-    // 4. First Sight Guarantee (within 35s on Normal)
+    // Update sighting timers
+    if (this.firstContactRetryTimer > 0) {
+      this.firstContactRetryTimer -= dt;
+    }
+    if (this.activeSightingDuration > 0) {
+      this.activeSightingDuration -= dt;
+    }
+
+    // 4. First Sight Guarantee & Sighting Cadence
+    const phase = this.getCurrentPhase(objectivesDone);
+
     if (!this.firstContactDone && this.simTime >= this.firstContactScheduledTime) {
-      this.executeCrossing(monster, primaryTarget, nav);
-      this.firstContactDone = true;
+      if (this.firstContactRetryTimer <= 0) {
+        const success = this.executeCrossing(monster, primaryTarget, nav, this.firstContactAttempts);
+        if (success) {
+          this.firstContactDone = true;
+          this.lastSightingTime = this.simTime;
+          this.sightingCount++;
+          this.activeSightingDuration = 10.0;
+          this.scheduleNextSighting(phase);
+        } else {
+          this.firstContactAttempts++;
+          if (this.firstContactAttempts >= 6) {
+            this.firstContactDone = true;
+            this.scheduleNextSighting(phase);
+          } else {
+            this.firstContactRetryTimer = 5.0; // retry every 5 s
+          }
+        }
+      }
       return;
+    }
+
+    // Sighting telegraph (2-4s before scheduled sighting)
+    if (!this.sightingTelegraphTriggered && this.simTime >= this.nextSightingTargetTime - 3.0) {
+      this.sightingTelegraphTriggered = true;
+      const yaw = primaryTarget.yaw ?? 0;
+      const side = this.rng.next() < 0.5 ? 1 : -1;
+      const telAngle = yaw + side * 0.55;
+      const telX = pPos.x - dSin(telAngle) * 12.0;
+      const telZ = pPos.z - dCos(telAngle) * 12.0;
+      this.emitDreadBeat('sighting_telegraph', { x: telX, y: pPos.y, z: telZ });
+    }
+
+    // Guaranteed recurring sightings thereafter
+    if (this.firstContactDone && this.simTime >= this.nextSightingTargetTime) {
+      if (monster.state !== 'ATTACK' && monster.state !== 'HUNT') {
+        const success = this.executeCrossing(monster, primaryTarget, nav, 0);
+        if (success) {
+          this.lastSightingTime = this.simTime;
+          this.sightingCount++;
+          this.activeSightingDuration = 10.0;
+          this.scheduleNextSighting(phase);
+          return;
+        } else {
+          this.nextSightingTargetTime = this.simTime + 5.0; // retry in 5s
+        }
+      } else {
+        this.nextSightingTargetTime = this.simTime + 10.0;
+      }
     }
 
     // 5. Stillness Tax Check
-    if (primaryTarget.stillnessTime >= diffCfg.stillnessListenDelay && !primaryTarget.stillnessListenDone) {
-      // 75s stillness: trigger a 10s Listening Event (12-20m away)
-      this.executeListeningEvent(monster, regionPos, nav, diffCfg.listenDuration);
-      primaryTarget.stillnessListenDone = true;
-      return;
-    } else if (primaryTarget.stillnessTime >= diffCfg.stillnessSweepDelay && !primaryTarget.stillnessSweepDone) {
-      // 40s stillness: escalate to a sweep (6-10m from platform)
-      this.executeSweep(monster, regionPos, nav, 6.0, 10.0, pPos);
-      primaryTarget.stillnessSweepDone = true;
-      return;
+    if (this.activeSightingDuration <= 0) {
+      if (primaryTarget.stillnessTime >= diffCfg.stillnessListenDelay && !primaryTarget.stillnessListenDone) {
+        // 75s stillness: trigger a 10s Listening Event (12-20m away)
+        this.executeListeningEvent(monster, regionPos, nav, diffCfg.listenDuration);
+        primaryTarget.stillnessListenDone = true;
+        return;
+      } else if (primaryTarget.stillnessTime >= diffCfg.stillnessSweepDelay && !primaryTarget.stillnessSweepDone) {
+        // 40s stillness: escalate to a sweep (6-10m from platform)
+        this.executeSweep(monster, regionPos, nav, 6.0, 10.0, pPos);
+        primaryTarget.stillnessSweepDone = true;
+        return;
+      }
     }
 
     // 6. Pressure Clock Execution (Prowl 35%, Closing 60%, Hunt 80% on 8m region cells)
-    const phase = this.getCurrentPhase(objectivesDone);
     const biasBonus = diffCfg.biasBonus ?? 0.0;
     let bias = diffCfg.prowlBias + biasBonus;
     let radius = 25.0;
@@ -358,7 +461,7 @@ export class EncounterDirector {
       radius = 16.0;
       this.activeSweepTimer -= dt;
       if (this.activeSweepTimer <= 0) {
-        if (!primaryTarget.isWading) {
+        if (!primaryTarget.isWading && this.activeSightingDuration <= 0) {
           this.executeSweep(
             monster,
             regionPos,
@@ -440,21 +543,49 @@ export class EncounterDirector {
     }
   }
 
+  private scheduleNextSighting(phase: string): void {
+    let interval = 45.0;
+    if (phase === 'prowl') {
+      interval = this.rng.range(35.0, 52.0);
+    } else if (phase === 'closing') {
+      interval = this.rng.range(25.0, 38.0);
+    } else if (phase === 'hunt') {
+      interval = this.rng.range(15.0, 25.0);
+    }
+    this.nextSightingTargetTime = this.simTime + interval;
+    this.sightingTelegraphTriggered = false;
+  }
+
   private executeCrossing(
     monster: MonsterBrain,
     playerTrack: PlayerTrack,
     nav: NavGrid,
+    attempt = 0,
   ): boolean {
-    const density = this.fogDensity > 0 ? this.fogDensity : 0.045;
-    // d = sqrt(ln(1 / 0.25)) / density clamped to 18..38 m (at 0.045, d ≈ 26.2m)
-    const d = Math.min(38.0, Math.max(18.0, Math.sqrt(dLog(4.0)) / density));
+    const mapCfg = this.mapId ? (balanceData.maps as Record<string, Record<string, number>>)[this.mapId] : undefined;
+    const diffCfg = balanceData.difficulty[this.difficulty] ?? balanceData.difficulty.normal;
+
+    let d: number;
+    let coneAngles: number[];
+
+    if (attempt === 0) {
+      // Primary sighting target: 8-16m crossing across view cone
+      const distMin = mapCfg?.firstContactDistMin ?? 9.0;
+      const distMax = mapCfg?.firstContactDistMax ?? 15.0;
+      d = this.rng.range(Math.max(8.0, distMin), Math.min(16.0, distMax));
+      // View cone: half-angle 45° (0.785 rad)
+      coneAngles = [0.785398];
+    } else {
+      // Relaxed retry attempt: widen cone to 140° (half-angle 70° = 1.22 rad), distance 14-30m
+      const distMin = Math.max(14.0, diffCfg.firstContactDistMin ?? 14.0);
+      const distMax = Math.min(30.0, diffCfg.firstContactDistMax ?? 30.0);
+      d = this.rng.range(distMin, distMax);
+      coneAngles = [0.785398, 1.0472, 1.22173];
+    }
+
     const pPos = playerTrack.pos;
     const yaw = playerTrack.yaw ?? 0;
     const myComp = nav.getComponentWorld(monster.pos.x, monster.pos.z);
-
-    // Forward direction from player yaw: (-sin(yaw), -cos(yaw))
-    // Try forward 70° cone (half-angle 35° = 0.61 rad), then widen to 100° cone (half-angle 50° = 0.87 rad)
-    const coneAngles = [0.610865, 0.87266];
 
     for (const halfAngle of coneAngles) {
       // Try both left-to-right and right-to-left crossings
@@ -470,8 +601,8 @@ export class EncounterDirector {
         const mx = pPos.x - dSin(midAngle) * d;
         const mz = pPos.z - dCos(midAngle) * d;
 
-        const ex = pPos.x - dSin(endAngle) * (d + 4.0);
-        const ez = pPos.z - dCos(endAngle) * (d + 4.0);
+        const ex = pPos.x - dSin(endAngle) * (d + 2.0);
+        const ez = pPos.z - dCos(endAngle) * (d + 2.0);
 
         // Verify start, mid, and end are walkable water cells in the monster's component
         if (
@@ -482,16 +613,18 @@ export class EncounterDirector {
           nav.getComponentWorld(mx, mz) === myComp &&
           nav.getComponentWorld(ex, ez) === myComp
         ) {
-          // Verify end is at least 14m away and no point comes within 6m of player
           const endDist = dHypot(ex - pPos.x, ez - pPos.z);
           const midDist = dHypot(mx - pPos.x, mz - pPos.z);
           const startDist = dHypot(sx - pPos.x, sz - pPos.z);
-          if (endDist >= 14.0 && midDist >= 6.0 && startDist >= 6.0) {
+          if (endDist >= 6.0 && midDist >= 6.0 && startDist >= 6.0) {
+            monster.pos.x = sx;
+            monster.pos.z = sz;
+            monster.yaw = dAtan2(mx - sx, -(mz - sz));
+            monster.forceState('WANDER', { stateTimer: 0 });
             monster.scheduleSweep([
-              { x: sx, z: sz },
               { x: mx, z: mz },
               { x: ex, z: ez },
-            ]);
+            ], true, 10.0);
             this.emitDreadBeat('glimpse', { x: mx, y: pPos.y, z: mz });
             return true;
           }
@@ -499,8 +632,8 @@ export class EncounterDirector {
       }
     }
 
-    // If crossing is impossible, use emergence rule:
-    return this.executeEmergence(monster, playerTrack, nav, d);
+    // If crossing is impossible, use emergence fallback
+    return this.executeEmergence(monster, playerTrack, nav, d, attempt);
   }
 
   private executeEmergence(
@@ -508,15 +641,16 @@ export class EncounterDirector {
     playerTrack: PlayerTrack,
     nav: NavGrid,
     d: number,
+    attempt = 0,
   ): boolean {
     const pPos = playerTrack.pos;
     const yaw = playerTrack.yaw ?? 0;
     const myComp = nav.getComponentWorld(monster.pos.x, monster.pos.z);
 
-    // Search for a walkable water cell at distance d within forward 100° cone
+    const maxCone = attempt === 0 ? 0.785 : 1.22;
     let bestCell: { x: number; z: number } | null = null;
 
-    for (let a = -0.87; a <= 0.87; a += 0.15) {
+    for (let a = -maxCone; a <= maxCone; a += 0.15) {
       const angle = yaw + a;
       const cx = pPos.x - dSin(angle) * d;
       const cz = pPos.z - dCos(angle) * d;
@@ -528,11 +662,26 @@ export class EncounterDirector {
     }
 
     if (!bestCell) {
-      // Fallback: search around distance d
-      for (let dist = d; dist >= 16.0; dist -= 2.0) {
-        for (let a = -D_PI; a <= D_PI; a += 0.3) {
-          const cx = pPos.x - dSin(a) * dist;
-          const cz = pPos.z - dCos(a) * dist;
+      // Search inward down to 8m
+      for (let dist = d; dist >= 8.0; dist -= 1.5) {
+        for (let a = -maxCone; a <= maxCone; a += 0.2) {
+          const cx = pPos.x - dSin(yaw + a) * dist;
+          const cz = pPos.z - dCos(yaw + a) * dist;
+          if (nav.isWalkableWorld(cx, cz) && nav.getComponentWorld(cx, cz) === myComp) {
+            bestCell = { x: cx, z: cz };
+            break;
+          }
+        }
+        if (bestCell) break;
+      }
+    }
+
+    // Secondary wide search: widen to full forward hemisphere if blocked by pillars/walls
+    if (!bestCell) {
+      for (let dist = Math.min(16.0, Math.max(8.0, d)); dist >= 8.0; dist -= 2.0) {
+        for (let a = -1.57; a <= 1.57; a += 0.25) {
+          const cx = pPos.x - dSin(yaw + a) * dist;
+          const cz = pPos.z - dCos(yaw + a) * dist;
           if (nav.isWalkableWorld(cx, cz) && nav.getComponentWorld(cx, cz) === myComp) {
             bestCell = { x: cx, z: cz };
             break;
@@ -543,24 +692,49 @@ export class EncounterDirector {
     }
 
     if (bestCell) {
-      // Emergence rule: rises from dormant crouch at distance d in clear water,
-      // turns head to player's side, then wades away. Rise is visible, slow (2.5 s) and never lethal.
+      // Emergence rule: appears standing in clear water at readable distance,
+      // wades across player's view cone over 6-10s. Never dormant crouch at 26m!
       monster.pos.x = bestCell.x;
       monster.pos.z = bestCell.z;
       const toPlayerYaw = dAtan2(pPos.x - bestCell.x, -(pPos.z - bestCell.z));
-      monster.yaw = toPlayerYaw + 0.5; // turned slightly to player's side
-      monster.forceState('DORMANT', { stateTimer: 2.5 });
-      const awayAngle = toPlayerYaw + D_PI;
-      const awayX = bestCell.x - dSin(awayAngle) * 16.0;
-      const awayZ = bestCell.z - dCos(awayAngle) * 16.0;
-      if (nav.isWalkableWorld(awayX, awayZ) && nav.getComponentWorld(awayX, awayZ) === myComp) {
-        monster.scheduleSweep([{ x: awayX, z: awayZ }]);
+      const crossDir = this.rng.next() < 0.5 ? 1 : -1;
+      monster.yaw = toPlayerYaw + crossDir * 1.2;
+      monster.forceState('WANDER', { stateTimer: 0 });
+      const awayAngle = toPlayerYaw + crossDir * 1.2;
+
+      let sweepTarget: { x: number; z: number } | null = null;
+      for (let sDist = 14.0; sDist >= 6.0; sDist -= 1.0) {
+        const ax = bestCell.x - dSin(awayAngle) * sDist;
+        const az = bestCell.z - dCos(awayAngle) * sDist;
+        if (nav.isWalkableWorld(ax, az) && nav.getComponentWorld(ax, az) === myComp) {
+          sweepTarget = { x: ax, z: az };
+          break;
+        }
+      }
+      if (!sweepTarget) {
+        // Fallback: search opposite direction
+        for (let sDist = 12.0; sDist >= 6.0; sDist -= 1.0) {
+          const ax = bestCell.x + dSin(awayAngle) * sDist;
+          const az = bestCell.z + dCos(awayAngle) * sDist;
+          if (nav.isWalkableWorld(ax, az) && nav.getComponentWorld(ax, az) === myComp) {
+            sweepTarget = { x: ax, z: az };
+            break;
+          }
+        }
+      }
+      if (!sweepTarget) {
+        sweepTarget = nav.findNearestCellInComponent(bestCell.x + 8.0, bestCell.z + 8.0, myComp);
+      }
+
+      if (sweepTarget) {
+        monster.scheduleSweep([{ x: sweepTarget.x, z: sweepTarget.z }], true, 8.0);
+      } else {
+        monster.scheduleSweep([{ x: bestCell.x, z: bestCell.z }], true, 8.0);
       }
       this.emitDreadBeat('glimpse', { x: bestCell.x, y: pPos.y, z: bestCell.z });
       return true;
     }
 
-    this.executeFarCall(monster, pPos);
     return false;
   }
 

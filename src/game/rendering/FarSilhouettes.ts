@@ -26,13 +26,17 @@ export interface FarSilhouettesOptions {
   fogColor?: string | number;
   seed?: number;
   baseRadius?: number; // default: 46m
+  bounds?: { minX: number; minZ: number; maxX: number; maxZ: number };
+  safeRadiusFromOrigin?: number;
 }
 
 export function createFarSilhouettes(options: FarSilhouettesOptions = {}): Group {
   const tier = options.tier ?? 'high';
   const fogHex = options.fogColor ?? '#d9d3a2';
   const seed = options.seed ?? 777;
-  const baseR = options.baseRadius ?? 46.0;
+  const bounds = options.bounds;
+  const safeR = options.safeRadiusFromOrigin ?? (bounds ? Math.hypot(Math.max(Math.abs(bounds.maxX), Math.abs(bounds.minX)), Math.max(Math.abs(bounds.maxZ), Math.abs(bounds.minZ))) + 12.0 : 0);
+  const baseR = Math.max(options.baseRadius ?? 46.0, safeR > 0 ? safeR : 46.0);
 
   const numLayers = tier === 'high' ? 3 : tier === 'medium' ? 2 : 1;
   const root = new Group();
@@ -99,8 +103,14 @@ export function createFarSilhouettes(options: FarSilhouettesOptions = {}): Group
       const z = Math.sin(angle) * r;
 
       // Position slab
-      dummyPos.set(x, 0.15, z);
-      dummyScale.set(rng.range(0.8, 1.4), 1.0, rng.range(0.8, 1.3));
+      const isInsideBounds = bounds && (x >= bounds.minX - 5 && x <= bounds.maxX + 5 && z >= bounds.minZ - 5 && z <= bounds.maxZ + 5);
+      if (isInsideBounds) {
+        dummyPos.set(0, -999, 0);
+        dummyScale.set(0, 0, 0);
+      } else {
+        dummyPos.set(x, 0.15, z);
+        dummyScale.set(rng.range(0.8, 1.4), 1.0, rng.range(0.8, 1.3));
+      }
       dummyMatrix.makeRotationY(angle + Math.PI * 0.5);
       dummyMatrix.scale(dummyScale);
       dummyMatrix.setPosition(dummyPos);
@@ -111,8 +121,14 @@ export function createFarSilhouettes(options: FarSilhouettesOptions = {}): Group
       // Position pillar
       const px = x + Math.cos(angle + 0.05) * 5.0;
       const pz = z + Math.sin(angle + 0.05) * 5.0;
-      dummyPos.set(px, 3.8, pz);
-      dummyScale.set(1.0, rng.range(0.9, 1.3), 1.0);
+      const isPillarInside = bounds && (px >= bounds.minX - 5 && px <= bounds.maxX + 5 && pz >= bounds.minZ - 5 && pz <= bounds.maxZ + 5);
+      if (isPillarInside) {
+        dummyPos.set(0, -999, 0);
+        dummyScale.set(0, 0, 0);
+      } else {
+        dummyPos.set(px, 3.8, pz);
+        dummyScale.set(1.0, rng.range(0.9, 1.3), 1.0);
+      }
       dummyMatrix.identity();
       dummyMatrix.scale(dummyScale);
       dummyMatrix.setPosition(dummyPos);
@@ -122,8 +138,15 @@ export function createFarSilhouettes(options: FarSilhouettesOptions = {}): Group
 
       // Position arch on alternating instances
       if (i % 2 === 0 && archIdx < totalArches) {
-        dummyPos.set(px, 7.8, pz);
+        if (isPillarInside) {
+          dummyPos.set(0, -999, 0);
+          dummyScale.set(0, 0, 0);
+        } else {
+          dummyPos.set(px, 7.8, pz);
+          dummyScale.set(1.0, 1.0, 1.0);
+        }
         dummyMatrix.makeRotationY(angle);
+        dummyMatrix.scale(dummyScale);
         dummyMatrix.setPosition(dummyPos);
         archMesh.setMatrixAt(archIdx, dummyMatrix);
         archMesh.setColorAt(archIdx, layerColor);

@@ -799,3 +799,57 @@ export function buildLaneLineGeometry(length = 24.0): BufferGeometry {
   buoy.dispose();
   return mergeGeometries(parts);
 }
+
+/** 25. Y-shaped fixture (antler / wishbone standing post seen in reference hall) */
+export function buildYFixtureGeometry(): BufferGeometry {
+  const parts: { geom: BufferGeometry; matrix: Matrix4 }[] = [];
+  const m = new Matrix4();
+
+  // Central stem
+  const stem = new CylinderGeometry(0.08, 0.08, 2.0, 10);
+  m.makeTranslation(0, 1.0, 0);
+  parts.push({ geom: stem, matrix: m.clone() });
+
+  // Left angled arm
+  const armL = new CylinderGeometry(0.06, 0.07, 1.2, 8);
+  const rotL = new Matrix4().makeRotationZ(0.65);
+  const transL = new Matrix4().makeTranslation(-0.35, 2.35, 0);
+  m.multiplyMatrices(transL, rotL);
+  parts.push({ geom: armL, matrix: m.clone() });
+
+  // Right angled arm
+  const armR = new CylinderGeometry(0.06, 0.07, 1.2, 8);
+  const rotR = new Matrix4().makeRotationZ(-0.65);
+  const transR = new Matrix4().makeTranslation(0.35, 2.35, 0);
+  m.multiplyMatrices(transR, rotR);
+  parts.push({ geom: armR, matrix: m.clone() });
+
+  // Flanged foot base
+  const foot = new CylinderGeometry(0.22, 0.25, 0.15, 12);
+  m.makeTranslation(0, 0.075, 0);
+  parts.push({ geom: foot, matrix: m.clone() });
+
+  return mergeGeometries(parts);
+}
+
+/** 26. Color Panel (tricolor decorative panel with blue, yellow, and green sections) */
+export function buildColorPanelGeometry(width = 3.6, height = 2.0): BufferGeometry {
+  const parts: { geom: BufferGeometry; matrix: Matrix4 }[] = [];
+  const m = new Matrix4();
+
+  const secW = width / 3;
+  // Frame border
+  const frame = new BoxGeometry(width + 0.1, height + 0.1, 0.04);
+  m.makeTranslation(0, height * 0.5, 0);
+  parts.push({ geom: frame, matrix: m.clone() });
+
+  // 3 panel slices
+  for (let i = 0; i < 3; i++) {
+    const sec = new BoxGeometry(secW - 0.04, height - 0.04, 0.06);
+    const x = -width * 0.5 + secW * (i + 0.5);
+    m.makeTranslation(x, height * 0.5, 0.02);
+    parts.push({ geom: sec, matrix: m.clone() });
+  }
+
+  return mergeGeometries(parts);
+}

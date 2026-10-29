@@ -367,6 +367,7 @@ async function boot(): Promise<void> {
     __backsilence_identity?: unknown;
     __backsilence_proxy?: unknown;
     __backsilence_offline_queue?: unknown;
+    __backsilence_sightlog?: unknown;
   };
   const g = window as unknown as GlobalRefs;
   g.__backsilence_bus = bus;
@@ -377,7 +378,9 @@ async function boot(): Promise<void> {
 
   // Active playable game session
   const { GameSession } = await import('./game/GameSession.js');
+  const { SightingLogger } = await import('./engine/SightingLogger.js');
   let activeGameSession: InstanceType<typeof GameSession> | null = null;
+  let activeSightingLogger: InstanceType<typeof SightingLogger> | null = null;
 
   bus.on('game:start', (cfg) => {
     store.set('session', {
@@ -386,6 +389,11 @@ async function boot(): Promise<void> {
       seed: cfg.seed,
       room: null,
     });
+    if (activeSightingLogger) {
+      activeSightingLogger.stop();
+      activeSightingLogger = null;
+      g.__backsilence_sightlog = undefined;
+    }
     if (activeGameSession) {
       activeGameSession.dispose();
       activeGameSession = null;
@@ -418,6 +426,11 @@ async function boot(): Promise<void> {
       ui.getKeypadModal(),
     );
     g.__backsilence_session = activeGameSession;
+    if (route.sightlog || (typeof location !== 'undefined' && location.search.includes('sightlog=1'))) {
+      activeSightingLogger = new SightingLogger(activeGameSession);
+      activeSightingLogger.start();
+      g.__backsilence_sightlog = activeSightingLogger;
+    }
     stateMachine.goTo('PLAYING');
     ui.navigateTo('GAME');
     ui.getHud().show();
@@ -425,6 +438,11 @@ async function boot(): Promise<void> {
 
   bus.on('game:start:net' as unknown as 'game:start', (rawCfg: unknown) => {
     const netCfg = rawCfg as { session: NetSession; mapId: 'poolrooms'; difficulty: 'whisper' | 'normal' | 'deafening'; seed: number };
+    if (activeSightingLogger) {
+      activeSightingLogger.stop();
+      activeSightingLogger = null;
+      g.__backsilence_sightlog = undefined;
+    }
     if (activeGameSession) {
       activeGameSession.dispose();
       activeGameSession = null;
@@ -463,6 +481,11 @@ async function boot(): Promise<void> {
       netCfg.session,
     );
     g.__backsilence_session = activeGameSession;
+    if (route.sightlog || (typeof location !== 'undefined' && location.search.includes('sightlog=1'))) {
+      activeSightingLogger = new SightingLogger(activeGameSession);
+      activeSightingLogger.start();
+      g.__backsilence_sightlog = activeSightingLogger;
+    }
     stateMachine.goTo('PLAYING');
     ui.navigateTo('GAME');
     ui.getHud().show();
@@ -483,6 +506,11 @@ async function boot(): Promise<void> {
   });
 
   bus.on('game:leave', () => {
+    if (activeSightingLogger) {
+      activeSightingLogger.stop();
+      activeSightingLogger = null;
+      g.__backsilence_sightlog = undefined;
+    }
     if (activeGameSession) {
       activeGameSession.dispose();
       activeGameSession = null;
@@ -525,7 +553,18 @@ async function boot(): Promise<void> {
     geometries: 0,
     textures: 0,
   };
-  const cachedDebugOverlayStats = {
+  const cachedDebugOverlayStats: {
+    fps: number;
+    frameTimeMs: number;
+    drawCalls: number;
+    triangles: number;
+    geometries: number;
+    textures: number;
+    activeVoices: number;
+    sightings?: number;
+    lastSightingTime?: number;
+    visFrac?: number;
+  } = {
     fps: 0,
     frameTimeMs: 0,
     drawCalls: 0,
@@ -582,6 +621,12 @@ async function boot(): Promise<void> {
       cachedDebugOverlayStats.geometries = snap.geometries;
       cachedDebugOverlayStats.textures = snap.textures;
       cachedDebugOverlayStats.activeVoices = AudioEngine.getInstance().stats().activeVoices;
+      if (activeGameSession) {
+        const sighting = activeGameSession.getSightingStats();
+        cachedDebugOverlayStats.sightings = sighting.count;
+        cachedDebugOverlayStats.lastSightingTime = sighting.lastTime;
+        cachedDebugOverlayStats.visFrac = sighting.visFrac;
+      }
       debugModule.updateDebugOverlay(cachedDebugOverlayStats);
     }
   }

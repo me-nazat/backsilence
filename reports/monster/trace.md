@@ -114,3 +114,34 @@
 - Full acceptance gate JSON: `reports/monster/smoke_results.json`
 - Guardrail test suite: `tests/monster-guardrails.test.ts`
 - Simulation determinism: Replaying same seed and map yields bit-for-bit identical `simHashes` and checkpoints across all ticks.
+
+---
+
+## 6. Batch 9 Prompt 1: Guaranteed Visible Repeatable Sightings in Natural Play (D117)
+
+**Protocol:** 10 seeded natural-play runs (5 seeds `[101, 202, 303, 404, 505]` × 2 maps: `natatorium` and `poolrooms`) with NO debug keys, NO teleport, and NO Key H. Simulates real player entering hall in first 7s and exploring quietly without reckless noise for 240 seconds (4 minutes).
+
+### Acceptance Criteria:
+1. First visible sighting $\le 45\text{ s}$.
+2. $\ge 3$ sightings per 4 minutes ($240\text{ s}$).
+3. Each sighting $\ge 5\text{ s}$ continuous duration.
+4. Creature apparent on-screen height $\ge 8\%$ at 60° FOV.
+5. Creature `visFrac` $\ge 0.15$ through water and fog.
+6. Zero attacks during prowl/closing sightings (fairness guarantee).
+
+### Verification Results (10 / 10 PASS):
+
+| Map | Seed | First Sighting | Total Sightings | Min/Max Duration | Apparent Height Range | VisFrac Range | Attacks During Sightings | Total Attacks | Verdict |
+|---|---|---|---|---|---|---|---|---|---|
+| `natatorium` | 101 | **14.3 s** | 7 | 8.0 s – 10.0 s | 9.2% – 17.9% | 0.641 – 0.784 | 0 | 0 | **PASS** |
+| `natatorium` | 202 | **15.0 s** | 7 | 8.0 s – 10.0 s | 10.2% – 22.0% | 0.673 – 0.805 | 0 | 0 | **PASS** |
+| `natatorium` | 303 | **15.9 s** | 6 | 8.0 s – 10.0 s | 13.3% – 22.2% | 0.736 – 0.806 | 0 | 0 | **PASS** |
+| `natatorium` | 404 | **15.6 s** | 8 | 8.0 s – 10.0 s | 13.5% – 22.0% | 0.739 – 0.805 | 0 | 0 | **PASS** |
+| `natatorium` | 505 | **13.6 s** | 6 | 8.0 s – 10.0 s | 10.2% – 22.7% | 0.672 – 0.808 | 0 | 0 | **PASS** |
+| `poolrooms` | 101 | **24.5 s** | 7 | 8.0 s – 8.0 s | 11.8% – 20.1% | 0.642 – 0.765 | 0 | 0 | **PASS** |
+| `poolrooms` | 202 | **25.9 s** | 6 | 8.0 s – 8.0 s | 11.5% – 20.1% | 0.634 – 0.765 | 0 | 0 | **PASS** |
+| `poolrooms` | 303 | **27.9 s** | 6 | 8.0 s – 8.0 s | 10.9% – 18.0% | 0.615 – 0.746 | 0 | 0 | **PASS** |
+| `poolrooms` | 404 | **27.2 s** | 7 | 8.0 s – 8.0 s | 10.0% – 18.6% | 0.586 – 0.752 | 0 | 0 | **PASS** |
+| `poolrooms` | 505 | **23.1 s** | 6 | 8.0 s – 8.0 s | 10.7% – 17.7% | 0.607 – 0.743 | 0 | 0 | **PASS** |
+
+**Summary:** 10/10 runs met all criteria. Sighting cadence reliably surfaces standing wading crossings at 8–16m with high contrast silhouette readability and zero lethal disruption during stealth play.
