@@ -11,6 +11,7 @@
 import { describe, it, expect } from 'vitest';
 import { Mesh, BufferGeometry, Object3D } from 'three';
 import type { MapId } from '../src/types/contracts.js';
+import { getSurfaceY } from '../src/world/levelart/MapLevelArtPass.js';
 import { PoolroomsMap } from '../src/world/maps/PoolroomsMap.js';
 import { UtilityTunnelsMap } from '../src/world/maps/UtilityTunnelsMap.js';
 import { MarbleAtriumMap } from '../src/world/maps/MarbleAtriumMap.js';
@@ -81,6 +82,40 @@ describe('Phase E: Level Art Density Pass for All 10 Maps', () => {
       // Distinct prop types >= 12
       const propTypes = (instance.root.userData['levelArtPropTypes'] as string[]) ?? [];
       expect(propTypes.length).toBeGreaterThanOrEqual(12);
+
+      // Verify zero cross-map prop pollution
+      if (mapId === 'drowned_school') {
+        expect(propTypes).not.toContain('turnstile');
+        expect(propTypes).not.toContain('weir_gate');
+        expect(propTypes).not.toContain('tank_panel');
+        expect(propTypes).not.toContain('stalactite');
+        expect(propTypes).toContain('chalkboard');
+        expect(propTypes).toContain('locker_bank');
+        expect(propTypes).toContain('bookshelf');
+      } else if (mapId === 'drowned_metro') {
+        expect(propTypes).not.toContain('trophy_case');
+        expect(propTypes).not.toContain('stalactite');
+        expect(propTypes).not.toContain('tank_panel');
+        expect(propTypes).toContain('rail_track');
+        expect(propTypes).toContain('station_sign');
+        expect(propTypes).toContain('ticket_machine');
+        expect(propTypes).toContain('departure_board');
+        expect(getSurfaceY(layout, 10, -11)).toBeCloseTo(1.0, 2);
+        expect(getSurfaceY(layout, 0, -11)).toBeCloseTo(3.0, 2);
+        expect(getSurfaceY(layout, 0, 20)).toBeCloseTo(4.2, 2);
+      } else if (mapId === 'sunken_jungle') {
+        expect(propTypes).not.toContain('trophy_case');
+        expect(propTypes).not.toContain('tank_panel');
+        expect(propTypes).toContain('stone_totem');
+        expect(propTypes).toContain('jungle_tree');
+        expect(propTypes).toContain('hanging_vines');
+      } else if (mapId === 'neon_flood') {
+        expect(propTypes).not.toContain('subway_car');
+        expect(propTypes).not.toContain('tank_panel');
+        expect(propTypes).toContain('neon_sign');
+        expect(propTypes).toContain('cyber_vending');
+        expect(propTypes).toContain('street_lamp');
+      }
 
       // Decals placed >= 40 per 1,000 m²
       const decalsPlaced = (instance.root.userData['levelArtDecalsPlaced'] as number) ?? 0;

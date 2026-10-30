@@ -365,10 +365,8 @@ export class GameSession {
     this.renderer = new EngineRenderer(container, settings);
     this.postFX = new PostFX(this.renderer.renderer, container, settings, {
       onDegraded: (status) => {
-        if (status.reason === 'composer-failed') {
+        if (status.reason === 'composer-failed' && !this.renderer.renderer.capabilities?.isWebGL2) {
           ToastManager.getInstance().show('Visual effects reduced because post-processing is unavailable.', { type: 'warning' });
-        } else if (status.reason === 'low-quality') {
-          ToastManager.getInstance().show('Visual effects are using the low-quality CSS fallback.', { type: 'info' });
         }
       },
     });
@@ -2099,6 +2097,7 @@ export class GameSession {
             soundRadius,
           },
           isReducedMotion,
+          body?.mesh.joints,
         );
         break;
       }

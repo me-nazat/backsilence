@@ -166,7 +166,7 @@ export class AStarPathfinder {
     rawPath.reverse();
 
     // Line-of-walkability string pulling
-    const smoothedPath = this.smoothPath(rawPath);
+    const smoothedPath = this.smoothPath(rawPath, this.nav);
 
     this.lastStartX = startX;
     this.lastStartZ = startZ;
@@ -233,7 +233,7 @@ export class AStarPathfinder {
     return top;
   }
 
-  private smoothPath(raw: PathPoint[]): PathPoint[] {
+  smoothPath(raw: PathPoint[], nav: NavGrid = this.nav): PathPoint[] {
     if (raw.length <= 2) return raw;
 
     const smoothed: PathPoint[] = [raw[0]!];
@@ -241,10 +241,9 @@ export class AStarPathfinder {
 
     while (anchor < raw.length - 1) {
       let furthest = anchor + 1;
-      for (let test = anchor + 2; test < raw.length; test++) {
-        if (this.isLineOfWalkability(raw[anchor]!, raw[test]!)) {
+      for (let test = raw.length - 1; test > anchor + 1; test--) {
+        if (this.hasWalkableLineOfSight(raw[anchor]!, raw[test]!, nav)) {
           furthest = test;
-        } else {
           break;
         }
       }
@@ -256,40 +255,51 @@ export class AStarPathfinder {
   }
 
   /**
-   * Raycast along nav grid to verify entire line segment stays inside walkable cells.
+   * Samples along the segment from p1 to p2 every 0.4 * nav.cellSize with a
+   * clearance margin (0.35m) to verify an unobstructed walkable line of sight.
    */
-  isLineOfWalkability(p1: PathPoint, p2: PathPoint): boolean {
-    const g1 = this.nav.worldToGrid(p1.x, p1.z);
-    const g2 = this.nav.worldToGrid(p2.x, p2.z);
+  hasWalkableLineOfSight(
+    p1: PathPoint,
+    p2: PathPoint,
+    nav: NavGrid = this.nav,
+    clearanceMargin = 0.35,
+  ): boolean {
+    const dx = p2.x - p1.x;
+    const dz = p2.z - p1.z;
+    const dist = dHypot(dx, dz);
+    if (dist < 1e-4) {
+      return nav.isWalkableWorld(p1.x, p1.z);
+    }
 
-    let x0 = g1.gx;
-    let z0 = g1.gz;
-    const x1 = g2.gx;
-    const z1 = g2.gz;
+    const stepSize = Math.max(0.1, 0.4 * nav.cellSize);
+    const steps = Math.max(1, Math.ceil(dist / stepSize));
+    const invDist = 1.0 / dist;
+    const perpX = -dz * invDist * clearanceMargin;
+    const perpZ = dx * invDist * clearanceMargin;
 
-    const dx = Math.abs(x1 - x0);
-    const dz = Math.abs(z1 - z0);
-    const sx = x0 < x1 ? 1 : -1;
-    const sz = z0 < z1 ? 1 : -1;
-    let err = dx - dz;
-
-    while (true) {
-      if (!this.nav.isWalkable(x0, z0)) {
+    for (let i = 0; i <= steps; i++) {
+      const t = i / steps;
+      const sx = p1.x + dx * t;
+      const sz = p1.z + dz * t;
+      if (!nav.isWalkableWorld(sx, sz)) {
         return false;
       }
-      if (x0 === x1 && z0 === z1) break;
-      const e2 = 2 * err;
-      if (e2 > -dz) {
-        err -= dz;
-        x0 += sx;
-      }
-      if (e2 < dx) {
-        err += dx;
-        z0 += sz;
+      // Check perpendicular clearance margin on interior samples so diagonal string-pulling never clips corners
+      if (i > 0 && i < steps && clearanceMargin > 0) {
+        if (!nav.isWalkableWorld(sx + perpX, sz + perpZ) || !nav.isWalkableWorld(sx - perpX, sz - perpZ)) {
+          return false;
+        }
       }
     }
 
     return true;
+  }
+
+  /**
+   * Raycast along nav grid to verify entire line segment stays inside walkable cells.
+   */
+  isLineOfWalkability(p1: PathPoint, p2: PathPoint): boolean {
+    return this.hasWalkableLineOfSight(p1, p2, this.nav, 0.25);
   }
 
   private findNearestWalkable(gx: number, gz: number, maxRadius: number): { gx: number; gz: number } | null {

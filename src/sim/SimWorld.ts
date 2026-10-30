@@ -367,6 +367,9 @@ export class SimWorld {
     for (let i = 0; i < evCount; i++) {
       const ev = this.events.getAt(i);
       if (ev && ev.type === 'noise' && ev.data.t >= this.simTime - dt * 1.1) {
+        if (this.mode !== 'replica' && ev.data.sourcePlayerId === this.player.playerId) {
+          this.director.recordNoise(ev.data);
+        }
         for (let m = 0; m < this.monsters.length; m++) {
           this.monsters[m]!.onNoiseEvent(
             ev.data,

@@ -1,6 +1,8 @@
 /* ── FleshTexture.ts ───────────────────────────────────────────────────────
- *  Procedural organic skin texture for the Blind Monster.
- *  Produces wet, fleshy, veined albedo, bump, and roughness maps with zero external assets.
+ *  High-Resolution Visceral Body-Horror PBR Texture Suite for the Blind Monster.
+ *  Produces 1024x1024 (512x512 in headless test) necrotic dermis, dark venous
+ *  networks, exposed crimson-black muscle striations, wet mucus roughness, and
+ *  subsurface acoustic membrane masks.
  * ──────────────────────────────────────────────────────────────────────── */
 
 import {
@@ -23,51 +25,64 @@ export interface FleshTextureResult {
   albedo: CanvasTexture;
   bump: CanvasTexture;
   roughness: CanvasTexture;
+  subsurface?: CanvasTexture;
 }
 
 export function generateFleshTextures(options: FleshTextureOptions = {}): FleshTextureResult {
-  const size = options.size ?? 256;
+  const defaultSize = typeof window !== 'undefined' ? 1024 : 512;
+  const size = options.size ?? defaultSize;
   const seed = options.seed ?? 65432;
   const rng = new Rng(seed);
   const perm = createNoisePermutation(seed);
 
-  const baseLight = hexToRgb('#786455'); // Measured video skin colour RGB(120, 100, 85)
-  const baseDark = hexToRgb('#5a5035');  // Deep grey-brown shadow
-  const veinColor = hexToRgb('#3d1c16'); // Dark reddish-purple subsurface vein
-  const blotchColor = hexToRgb('#8a483a'); // Reddish blotch
+  // Necrotic Body-Horror Palette
+  const pallorLight = hexToRgb('#484d44'); // Necrotic waterlogged pale grey-green
+  const pallorDark = hexToRgb('#2a2d28');  // Deep corpse grey
+  const lividity = hexToRgb('#1d1522');    // Deep bruised venous lividity
+  const rawFascia = hexToRgb('#3d1012');   // Exposed crimson-black muscle fascia
+  const veinColor = hexToRgb('#240d28');   // Branching dark-violet subcutaneous veins
+  const oralBlood = hexToRgb('#520e14');   // Deep mucosal crimson
 
   const albedoData = new Uint8ClampedArray(size * size * 4);
   const bumpData = new Uint8ClampedArray(size * size * 4);
   const roughData = new Uint8ClampedArray(size * size * 4);
+  const subData = new Uint8ClampedArray(size * size * 4);
 
-  // Pre-generate feature points for cellular Voronoi vein network
-  const numVoronoiCells = 24;
+  // Pre-generate feature points for toroidal cellular Worley vein & pore network
+  const numVoronoiCells = 32;
   const voronoiPoints: [number, number][] = [];
   for (let i = 0; i < numVoronoiCells; i++) {
     voronoiPoints.push([rng.next(), rng.next()]);
   }
 
+  // Domain warp lookup or scaling factors
+  const invSize = 1.0 / size;
+
   for (let y = 0; y < size; y++) {
-    const ny = y / size;
+    const ny = y * invSize;
     const row = y * size;
 
     for (let x = 0; x < size; x++) {
-      const nx = x / size;
+      const nx = x * invSize;
       const idx = (row + x) * 4;
 
-      // 1. Multi-octave organic skin grain
-      const grain = fbm2DTileable(nx, ny, 16, 16, 4, 0.5, 2.0, perm);
+      // 1. Multi-octave organic skin grain & tendon striations
+      const fineGrain = fbm2DTileable(nx, ny, 16, 16, 4, 0.5, 2.0, perm);
+      const muscleStriation = Math.sin((nx * 32.0 + ny * 12.0) + fineGrain * 3.0) * 0.5 + 0.5;
       const largeBlotch = fbm2DTileable(nx, ny, 4, 4, 3, 0.5, 2.0, perm);
+      const slimeWarp = fbm2DTileable(nx + 0.35, ny + 0.65, 6, 6, 3, 0.5, 2.0, perm);
 
-      // 2. Toroidal cellular distance for branching vein network
+      // 2. Domain-warped cellular distance for branching subcutaneous vein network
+      const warpX = nx + (slimeWarp - 0.5) * 0.08;
+      const warpY = ny + (fineGrain - 0.5) * 0.08;
+
       let d1 = 1.0;
       let d2 = 1.0;
       for (let i = 0; i < numVoronoiCells; i++) {
         const [vx, vy] = voronoiPoints[i]!;
-        // Wrap toroidal distance
-        let dx = Math.abs(nx - vx);
+        let dx = Math.abs(warpX - vx);
         if (dx > 0.5) dx = 1.0 - dx;
-        let dy = Math.abs(ny - vy);
+        let dy = Math.abs(warpY - vy);
         if (dy > 0.5) dy = 1.0 - dy;
         const d = Math.hypot(dx, dy);
         if (d < d1) {
@@ -78,48 +93,67 @@ export function generateFleshTextures(options: FleshTextureOptions = {}): FleshT
         }
       }
 
-      // Vein ridges along Voronoi cell boundaries (d2 - d1)
-      const veinFactor = Math.max(0, 1.0 - Math.abs(d2 - d1) * 35.0);
-      const veinIntensity = Math.pow(veinFactor, 2.2);
+      // Sharp vein ridges along cell boundaries (d2 - d1)
+      const veinFactor = Math.max(0, 1.0 - Math.abs(d2 - d1) * 38.0);
+      const veinIntensity = Math.pow(veinFactor, 2.4);
 
-      // 3. Composite Albedo
-      const baseT = Math.max(0, Math.min(1, grain * 0.5 + 0.5));
-      let r = baseDark.r + (baseLight.r - baseDark.r) * baseT;
-      let g = baseDark.g + (baseLight.g - baseDark.g) * baseT;
-      let b = baseDark.b + (baseLight.b - baseDark.b) * baseT;
+      // 3. Composite Necrotic Albedo
+      const baseT = Math.max(0, Math.min(1, fineGrain * 0.5 + 0.5));
+      let r = pallorDark.r + (pallorLight.r - pallorDark.r) * baseT;
+      let g = pallorDark.g + (pallorLight.g - pallorDark.g) * baseT;
+      let b = pallorDark.b + (pallorLight.b - pallorDark.b) * baseT;
 
-      // Apply blotches
-      if (largeBlotch > 0.2) {
-        const bt = Math.min(1.0, (largeBlotch - 0.2) * 1.5);
-        r = r * (1 - bt) + blotchColor.r * bt;
-        g = g * (1 - bt) + blotchColor.g * bt;
-        b = b * (1 - bt) + blotchColor.b * bt;
+      // Bruised lividity mottling
+      if (largeBlotch > 0.15) {
+        const lt = Math.min(1.0, (largeBlotch - 0.15) * 1.8);
+        r = r * (1.0 - lt) + lividity.r * lt;
+        g = g * (1.0 - lt) + lividity.g * lt;
+        b = b * (1.0 - lt) + lividity.b * lt;
       }
 
-      // Apply veins
-      r = r * (1 - veinIntensity) + veinColor.r * veinIntensity;
-      g = g * (1 - veinIntensity) + veinColor.g * veinIntensity;
-      b = b * (1 - veinIntensity) + veinColor.b * veinIntensity;
+      // Raw muscle fascia along striated channels
+      if (muscleStriation > 0.65 && largeBlotch < 0.45) {
+        const mt = (muscleStriation - 0.65) * 2.0;
+        r = r * (1.0 - mt) + rawFascia.r * mt;
+        g = g * (1.0 - mt) + rawFascia.g * mt;
+        b = b * (1.0 - mt) + rawFascia.b * mt;
+      }
+
+      // Branching dark-violet subcutaneous veins
+      if (veinIntensity > 0.05) {
+        r = r * (1.0 - veinIntensity) + veinColor.r * veinIntensity;
+        g = g * (1.0 - veinIntensity) + veinColor.g * veinIntensity;
+        b = b * (1.0 - veinIntensity) + veinColor.b * veinIntensity;
+      }
 
       albedoData[idx] = Math.round(r);
       albedoData[idx + 1] = Math.round(g);
       albedoData[idx + 2] = Math.round(b);
       albedoData[idx + 3] = 255;
 
-      // 4. Bump map (pores + raised vein ridges)
-      const bumpVal = Math.round(Math.max(0, Math.min(255, (grain * 0.3 + veinIntensity * 0.7) * 255)));
+      // 4. Normal / Bump map (sharp pores + muscle striations + raised vein relief)
+      const poreVal = (fineGrain * 0.35 + muscleStriation * 0.25 + veinIntensity * 0.40);
+      const bumpVal = Math.round(Math.max(0, Math.min(255, poreVal * 255)));
       bumpData[idx] = bumpVal;
       bumpData[idx + 1] = bumpVal;
       bumpData[idx + 2] = bumpVal;
       bumpData[idx + 3] = 255;
 
-      // 5. Roughness map (base 0.4, slick wet spots lower roughness down to 0.15)
-      const wetSpots = Math.max(0, Math.min(1, fbm2DTileable(nx + 0.3, ny + 0.7, 8, 8, 3, 0.5, 2.0, perm)));
-      const roughVal = Math.round(Math.max(38, Math.min(128, (0.4 - wetSpots * 0.25 + veinIntensity * 0.1) * 255)));
+      // 5. Roughness map (0.14-0.28 in wet mucus channels, 0.45 on scarred calluses)
+      const mucusChannel = Math.max(0, Math.min(1, slimeWarp * 0.6 + veinIntensity * 0.4));
+      const roughFloat = 0.45 - mucusChannel * 0.28 + (1.0 - baseT) * 0.08;
+      const roughVal = Math.round(Math.max(35, Math.min(130, roughFloat * 255)));
       roughData[idx] = roughVal;
       roughData[idx + 1] = roughVal;
       roughData[idx + 2] = roughVal;
       roughData[idx + 3] = 255;
+
+      // 6. Subsurface / Acoustic membrane glow mask
+      const subFloat = Math.max(0, Math.min(1, (largeBlotch * 0.5 + veinIntensity * 0.5)));
+      subData[idx] = Math.round(oralBlood.r * subFloat);
+      subData[idx + 1] = Math.round(oralBlood.g * subFloat);
+      subData[idx + 2] = Math.round(oralBlood.b * subFloat);
+      subData[idx + 3] = 255;
     }
   }
 
@@ -153,9 +187,18 @@ export function generateFleshTextures(options: FleshTextureOptions = {}): FleshT
   roughTex.colorSpace = NoColorSpace;
   roughTex.needsUpdate = true;
 
+  const subCanvas = acquireCanvas(size, size);
+  subCanvas.ctx.putImageData(makeImg(subData), 0, 0);
+  const subTex = new CanvasTexture(subCanvas.canvas as HTMLCanvasElement);
+  subTex.wrapS = RepeatWrapping;
+  subTex.wrapT = RepeatWrapping;
+  subTex.colorSpace = SRGBColorSpace;
+  subTex.needsUpdate = true;
+
   return {
     albedo: albedoTex,
     bump: bumpTex,
     roughness: roughTex,
+    subsurface: subTex,
   };
 }

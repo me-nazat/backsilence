@@ -38,9 +38,10 @@ export class MonsterGaitGenerator {
     onPlant?: (pos: Vector3, force: number) => void,
   ): void {
     const isSprint = speed > 4.0;
-    const strideLength = isSprint ? 3.0 : 1.1;
-    const stepHeight = isSprint ? 0.45 : 0.22;
-    const gaitFreq = Math.max(0.5, speed / strideLength);
+    const clampedSpeed = Math.min(14.0, speed);
+    const strideLength = isSprint ? 2.6 + (clampedSpeed / 14.0) * 0.8 : 1.1;
+    const stepHeight = isSprint ? 0.45 + (clampedSpeed / 14.0) * 0.12 : 0.22;
+    const gaitFreq = Math.max(0.5, clampedSpeed / strideLength);
 
     this.cycleTime += dt * gaitFreq * Math.PI * 2;
 
@@ -49,40 +50,41 @@ export class MonsterGaitGenerator {
     const rightX = Math.cos(rootYaw);
     const rightZ = Math.sin(rootYaw);
 
-    // Spine lean and sway
-    this.spinePitch = isSprint ? 0.35 : 0.12;
+    // Spine lean and sway (pitch = +0.28 rad forward lean during high-speed pursuit)
+    this.spinePitch = isSprint ? 0.28 : 0.12;
     this.spineRoll = isSprint ? 0.0 : Math.sin(this.cycleTime) * 0.08;
-    this.headDip = Math.sin(this.cycleTime * 2.0) * 0.06;
+    this.headDip = Math.sin(this.cycleTime * 2.0) * (isSprint ? 0.09 : 0.06);
 
     if (isSprint) {
       // Bounding gait: arms strike together (phase 0..0.4), flight phase (0.4..0.6), legs strike together (0.6..1.0)
       const phase = (this.cycleTime / (Math.PI * 2)) % 1.0;
+      const splashForce = Math.min(1.0, 0.85 + (clampedSpeed / 14.0) * 0.15);
 
       // Arms
       const armLift = phase > 0.4 && phase < 0.8 ? Math.sin((phase - 0.4) * Math.PI * 2.5) * stepHeight : 0;
-      const armFwd = phase <= 0.4 ? 0.4 : -0.2;
+      const armFwd = phase <= 0.4 ? 0.45 : -0.22;
       this.updateLimb(this.handL, rootPos, fwdX, fwdZ, rightX, rightZ, 0.5, armFwd, armLift, ground, true);
       this.updateLimb(this.handR, rootPos, fwdX, fwdZ, rightX, rightZ, -0.5, armFwd, armLift, ground, true);
 
       // Legs
       const legLift = phase < 0.5 ? Math.sin(phase * Math.PI * 2.0) * stepHeight : 0;
-      const legFwd = phase >= 0.6 ? 0.3 : -0.3;
+      const legFwd = phase >= 0.6 ? 0.35 : -0.32;
       this.updateLimb(this.footL, rootPos, fwdX, fwdZ, rightX, rightZ, 0.35, -0.6 + legFwd, legLift, ground);
       this.updateLimb(this.footR, rootPos, fwdX, fwdZ, rightX, rightZ, -0.35, -0.6 + legFwd, legLift, ground);
 
-      // Check plants
+      // Check plants (heavy splash plumes on every high-speed claw plant)
       const armPlanted = armLift < 0.04;
       if (armPlanted && !this.wasPlantedHL && onPlant) {
-        onPlant(this.handL.pos, 0.9);
-        onPlant(this.handR.pos, 0.9);
+        onPlant(this.handL.pos, splashForce);
+        onPlant(this.handR.pos, splashForce);
       }
       this.wasPlantedHL = armPlanted;
       this.wasPlantedHR = armPlanted;
 
       const legPlanted = legLift < 0.04;
       if (legPlanted && !this.wasPlantedFL && onPlant) {
-        onPlant(this.footL.pos, 0.85);
-        onPlant(this.footR.pos, 0.85);
+        onPlant(this.footL.pos, splashForce);
+        onPlant(this.footR.pos, splashForce);
       }
       this.wasPlantedFL = legPlanted;
       this.wasPlantedFR = legPlanted;

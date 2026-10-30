@@ -100,6 +100,7 @@ export class EncounterDirector {
   private activeSweepTimer = 25.0;
   private listeningActive = false;
   private closeCallActive = false;
+  private pendingAmbushNoise: NoiseEvent | null = null;
   fogDensity = 0.045;
   mapId?: string;
   patrolLanes: { id: string; points: Vec3[] }[] = [];
@@ -274,7 +275,97 @@ export class EncounterDirector {
       if (track) {
         track.noiseAcc += noise.loudness;
       }
+      if (noise.loudness >= 0.45) {
+        this.pendingAmbushNoise = noise;
+      }
     }
+  }
+
+  /**
+   * When the player emits a loud noise (loudness >= 0.45, e.g. jumping/splashing in water)
+   * and the monster is > 32m away in WANDER/DORMANT/ALERTED, relocate the monster to the
+   * nearest valid occluded water spawn/channel node between 16m and 24m from the player
+   * (outside the player's narrow 60° view cone) and immediately enter HUNT.
+   */
+  tryAcousticAmbushRelocation(
+    monster: MonsterBrain,
+    noisePos: Vec3,
+    playerYaw: number,
+    nav: NavGrid,
+  ): boolean {
+    if (monster.isSighting) return false;
+    if (
+      monster.state !== 'WANDER' &&
+      monster.state !== 'DORMANT' &&
+      monster.state !== 'ALERTED'
+    ) {
+      return false;
+    }
+
+    const distToNoise = dHypot(monster.pos.x - noisePos.x, monster.pos.z - noisePos.z);
+    if (distToNoise <= 32.0) {
+      return false;
+    }
+
+    const myComp = nav.getComponentWorld(monster.pos.x, monster.pos.z);
+    const isOutsideViewCone = (wx: number, wz: number): boolean => {
+      const toCellYaw = dAtan2(wx - noisePos.x, -(wz - noisePos.z));
+      let diff = (toCellYaw - playerYaw) % (D_PI * 2);
+      if (diff < -D_PI) diff += D_PI * 2;
+      if (diff > D_PI) diff -= D_PI * 2;
+      return Math.abs(diff) > D_PI / 6; // outside narrow 60° cone (30° half-angle)
+    };
+
+    let ambushCell: { x: number; z: number } | null = null;
+
+    // 1. Check patrol lane nodes first
+    for (const lane of this.patrolLanes) {
+      for (const pt of lane.points) {
+        const d = dHypot(pt.x - noisePos.x, pt.z - noisePos.z);
+        if (
+          d >= 16.0 &&
+          d <= 24.0 &&
+          isOutsideViewCone(pt.x, pt.z) &&
+          nav.isWalkableWorld(pt.x, pt.z) &&
+          nav.getComponentWorld(pt.x, pt.z) === myComp
+        ) {
+          ambushCell = { x: pt.x, z: pt.z };
+          break;
+        }
+      }
+      if (ambushCell) break;
+    }
+
+    // 2. Sample ring between 16m and 24m outside the 60° forward view cone
+    if (!ambushCell) {
+      const candidateDists = [18.0, 20.0, 16.5, 22.0, 23.5];
+      const angleOffsets = [1.2, -1.2, 1.8, -1.8, 2.4, -2.4, 3.14159, 0.75, -0.75];
+      for (const d of candidateDists) {
+        for (const off of angleOffsets) {
+          const a = playerYaw + off;
+          const cx = noisePos.x + dSin(a) * d;
+          const cz = noisePos.z - dCos(a) * d;
+          if (nav.isWalkableWorld(cx, cz) && nav.getComponentWorld(cx, cz) === myComp) {
+            ambushCell = { x: cx, z: cz };
+            break;
+          }
+        }
+        if (ambushCell) break;
+      }
+    }
+
+    if (!ambushCell) {
+      return false;
+    }
+
+    monster.pos.x = ambushCell.x;
+    monster.pos.z = ambushCell.z;
+    monster.yaw = dAtan2(noisePos.x - ambushCell.x, -(noisePos.z - ambushCell.z));
+    monster.agitation = 1.0;
+    monster.state = 'HUNT';
+    monster.updateHuntTargetInPlace(noisePos, 1.0, nav, this.simTime);
+    this.emitDreadBeat('map_surge', { x: ambushCell.x, y: noisePos.y, z: ambushCell.z });
+    return true;
   }
 
   recordPlayerDeath(monster: MonsterBrain, nav: NavGrid): void {
@@ -351,6 +442,12 @@ export class EncounterDirector {
     // Pick target player (prioritize higher recent noise or closer distance)
     const primaryTarget = this.getPrimaryTarget();
     if (!primaryTarget) return;
+
+    if (this.pendingAmbushNoise) {
+      const ambushNoise = this.pendingAmbushNoise;
+      this.pendingAmbushNoise = null;
+      this.tryAcousticAmbushRelocation(monster, ambushNoise.position, primaryTarget.yaw ?? 0, nav);
+    }
 
     const pPos = primaryTarget.pos;
     const regionPos = this.getRegionPosition(pPos);

@@ -74,51 +74,34 @@ export function applyWetDarkening(
         `,
       );
 
-      // 3. Modulate roughness factor below waterline for wet specular gloss
+      // 3. Modulate roughness factor strictly within capillary waterline meniscus [waterY - 0.15, waterY + 0.35]
       shader.fragmentShader = shader.fragmentShader.replace(
         '#include <roughnessmap_fragment>',
         /* glsl */ `
         #include <roughnessmap_fragment>
-        if (vWorldPositionForWet.y < uWetLimit) {
-          float wetFade = clamp((uWetLimit - vWorldPositionForWet.y) / 0.35, 0.0, 1.0);
+        if (vWorldPositionForWet.y >= uWaterY_Wet - 0.15 && vWorldPositionForWet.y <= min(uWetLimit, uWaterY_Wet + 0.35)) {
+          float wetFade = clamp((min(uWetLimit, uWaterY_Wet + 0.35) - vWorldPositionForWet.y) / 0.35, 0.0, 1.0);
           roughnessFactor = max(0.04, roughnessFactor * mix(1.0, 1.0 - uGlossBoost, wetFade));
         }
         `,
       );
 
-      // 4. Modulate outgoing fragment color and roughness
+      // 4. Modulate outgoing fragment color strictly within [waterY - 0.15, waterY + 0.35]
+      // Preserves 100% of the material's base PBR albedo, normal map, and roughness above waterY + 0.35m.
       shader.fragmentShader = shader.fragmentShader.replace(
         '#include <dithering_fragment>',
         /* glsl */ `
         #include <dithering_fragment>
 
-        // Noisy tidemark sine ripple
-        float tidemarkNoise = sin(vWorldPositionForWet.x * 14.0) * cos(vWorldPositionForWet.z * 14.0) * 0.035;
-        float wetThreshold = uWetLimit + tidemarkNoise;
+        // Noisy tidemark sine ripple clamped strictly to waterY + 0.35m
+        float tidemarkNoise = sin(vWorldPositionForWet.x * 14.0) * cos(vWorldPositionForWet.z * 14.0) * 0.025;
+        float wetThreshold = min(uWaterY_Wet + 0.35, uWetLimit + tidemarkNoise);
 
-        if (vWorldPositionForWet.y < wetThreshold) {
+        if (vWorldPositionForWet.y >= uWaterY_Wet - 0.15 && vWorldPositionForWet.y <= wetThreshold) {
           float depthBelowLimit = wetThreshold - vWorldPositionForWet.y;
-          float wetGradient = clamp(depthBelowLimit / 0.45, 0.0, 1.0);
-          // Darken diffuse color by up to (1.0 - uDarkenFactor)
+          float wetGradient = clamp(depthBelowLimit / 0.35, 0.0, 1.0);
+          // Darken diffuse color by up to (1.0 - uDarkenFactor) in capillary meniscus
           gl_FragColor.rgb *= mix(1.0, uDarkenFactor, wetGradient);
-        } else {
-          // Damp streaks that fade upward above tidemark (up to 0.6m)
-          float aboveDist = vWorldPositionForWet.y - wetThreshold;
-          if (aboveDist < 0.6) {
-            float streakNoise = sin(vWorldPositionForWet.x * 24.0 + sin(vWorldPositionForWet.z * 18.0)) * 0.5 + 0.5;
-            float streakFade = (1.0 - aboveDist / 0.6) * pow(streakNoise, 3.0) * 0.35;
-            gl_FragColor.rgb *= (1.0 - streakFade);
-          }
-        }
-
-        // Green water bounce term on surfaces near the water line
-        float bounceDist = vWorldPositionForWet.y - uWaterY_Wet;
-        if (bounceDist >= -0.3 && bounceDist <= 0.8) {
-          float bounceFactor = (1.0 - abs(bounceDist - 0.15) / 0.65);
-          if (bounceFactor > 0.0) {
-            vec3 waterBounce = vec3(0.035, 0.075, 0.052) * (bounceFactor * bounceFactor);
-            gl_FragColor.rgb += waterBounce;
-          }
         }
         `,
       );

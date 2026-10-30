@@ -10,9 +10,11 @@ import {
   MeshBasicMaterial,
   PlaneGeometry,
   BoxGeometry,
+  CylinderGeometry,
   BufferGeometry,
+  Color,
 } from 'three';
-import type { LayoutData, BuildEnv } from '../MapTypes.js';
+import type { LayoutData, BuildEnv, StairDef, PlatformDef } from '../MapTypes.js';
 import type { MapInstance } from './MapInstance.js';
 import { GroundGrid } from '../../sim/GroundGrid.js';
 import { ColliderSet } from '../../sim/Colliders.js';
@@ -69,6 +71,124 @@ export function scaleBoxUv(geom: BoxGeometry, w: number, h: number, d: number, u
   uvAttr.needsUpdate = true;
 }
 
+export function buildWalkableSubwayCarAssembly(
+  plat: PlatformDef,
+  metalGeoms: BufferGeometry[],
+  accentGeoms: BufferGeometry[],
+  trimGeoms: BufferGeometry[],
+  platformGeoms: BufferGeometry[],
+): void {
+  const [minX, minZ, maxX, maxZ] = plat.rect;
+  const w = maxX - minX;
+  const d = maxZ - minZ;
+  const cx = (minX + maxX) * 0.5;
+  const cz = (minZ + maxZ) * 0.5;
+  const topY = plat.topY; // 1.3m walkable roof/deck level
+  const chassisBottomY = -0.35;
+  const floorDeckY = topY; // Walkable deck surface at topY = 1.3m
+  const roofY = topY + 2.35;
+  const wallH = roofY - floorDeckY;
+
+  // 1. Undercarriage chassis frame & bogie wheel trucks in water
+  const underFrame = new BoxGeometry(w * 0.96, 0.45, d * 0.86);
+  underFrame.translate(cx, chassisBottomY + 0.225, cz);
+  trimGeoms.push(underFrame);
+
+  for (const bxOff of [-w * 0.32, w * 0.32]) {
+    const bogie = new BoxGeometry(2.2, 0.55, d * 0.92);
+    bogie.translate(cx + bxOff, -0.55, cz);
+    trimGeoms.push(bogie);
+  }
+
+  // 2. Walkable ribbed car deck slab (at topY so player stands on it cleanly)
+  const deckSlab = createTiledBoxGeometry({
+    w,
+    h: Math.max(0.35, topY - chassisBottomY),
+    d,
+    uvOffsetSeed: plat.id.charCodeAt(0),
+  });
+  deckSlab.translate(cx, (topY + chassisBottomY) * 0.5, cz);
+  platformGeoms.push(deckSlab);
+
+  // 3. Corrugated stainless-steel exterior side panels with open sliding doorways & window cutouts
+  const panelThick = 0.14;
+  const lowerSkirtH = 0.82;
+  const upperHeaderH = 0.38;
+  // Leave two 1.8m wide sliding doorway openings along each side at -w*0.24 and +w*0.24
+  const segLengths = [w * 0.18, w * 0.26, w * 0.18];
+  const segCenters = [-w * 0.41, 0, w * 0.41];
+
+  for (const sideZ of [minZ + panelThick * 0.5, maxZ - panelThick * 0.5]) {
+    for (let s = 0; s < segLengths.length; s++) {
+      const segW = segLengths[s]!;
+      const segX = cx + segCenters[s]!;
+
+      // Lower corrugated waist panel
+      const waist = new BoxGeometry(segW, lowerSkirtH, panelThick);
+      waist.translate(segX, floorDeckY + lowerSkirtH * 0.5, sideZ);
+      metalGeoms.push(waist);
+
+      // Crimson/amber transit livery stripe along the waist
+      const stripe = new BoxGeometry(segW + 0.02, 0.18, panelThick + 0.03);
+      stripe.translate(segX, floorDeckY + lowerSkirtH * 0.68, sideZ);
+      accentGeoms.push(stripe);
+
+      // Window mullions (vertical posts framing recessed window cutouts)
+      for (const postOff of [-segW * 0.42, 0, segW * 0.42]) {
+        const mullion = new BoxGeometry(0.16, wallH - lowerSkirtH - upperHeaderH, panelThick * 0.9);
+        mullion.translate(segX + postOff, floorDeckY + lowerSkirtH + (wallH - lowerSkirtH - upperHeaderH) * 0.5, sideZ);
+        metalGeoms.push(mullion);
+      }
+    }
+
+    // Continuous upper roof header fascia over windows and doors
+    const header = new BoxGeometry(w, upperHeaderH, panelThick);
+    header.translate(cx, roofY - upperHeaderH * 0.5, sideZ);
+    metalGeoms.push(header);
+  }
+
+  // 4. End bulkheads with central inter-car gangway doorway gap (1.4m wide)
+  const endPillarW = Math.max(0.45, (d - 1.4) * 0.5);
+  for (const endX of [minX + panelThick * 0.5, maxX - panelThick * 0.5]) {
+    const leftBulk = new BoxGeometry(panelThick, wallH, endPillarW);
+    leftBulk.translate(endX, floorDeckY + wallH * 0.5, minZ + endPillarW * 0.5);
+    metalGeoms.push(leftBulk);
+
+    const rightBulk = new BoxGeometry(panelThick, wallH, endPillarW);
+    rightBulk.translate(endX, floorDeckY + wallH * 0.5, maxZ - endPillarW * 0.5);
+    metalGeoms.push(rightBulk);
+
+    // End gangway lintel
+    const endLintel = new BoxGeometry(panelThick, 0.4, d);
+    endLintel.translate(endX, roofY - 0.2, cz);
+    metalGeoms.push(endLintel);
+  }
+
+  // 5. Interior stanchion poles, longitudinal bench seats, and overhead grab rails
+  for (const poleOffX of [-w * 0.3, -w * 0.1, w * 0.1, w * 0.3]) {
+    const pole = new CylinderGeometry(0.035, 0.035, wallH - 0.2, 8);
+    pole.translate(cx + poleOffX, floorDeckY + (wallH - 0.2) * 0.5, cz);
+    metalGeoms.push(pole);
+  }
+  for (const railZ of [cz - d * 0.24, cz + d * 0.24]) {
+    const grabRail = new BoxGeometry(w * 0.88, 0.04, 0.04);
+    grabRail.translate(cx, roofY - 0.32, railZ);
+    accentGeoms.push(grabRail);
+  }
+
+  // 6. Arched roof ribs & twin rooftop HVAC units
+  for (let rx = -w * 0.42; rx <= w * 0.42; rx += w * 0.21) {
+    const rib = new BoxGeometry(0.28, 0.16, d + 0.06);
+    rib.translate(cx + rx, roofY + 0.08, cz);
+    metalGeoms.push(rib);
+  }
+  for (const hvacOff of [-w * 0.25, w * 0.25]) {
+    const hvac = new BoxGeometry(2.4, 0.32, d * 0.58);
+    hvac.translate(cx + hvacOff, roofY + 0.22, cz);
+    trimGeoms.push(hvac);
+  }
+}
+
 export function buildStandardMapInstance(
   layout: LayoutData,
   _env: BuildEnv,
@@ -77,6 +197,9 @@ export function buildStandardMapInstance(
     wallMat: MeshStandardMaterial;
     floorMat: MeshStandardMaterial;
     ceilingMat?: MeshStandardMaterial;
+    trimMat?: MeshStandardMaterial;
+    metalMat?: MeshStandardMaterial;
+    accentMat?: MeshStandardMaterial;
   },
   hooks?: CustomBuilderHook,
 ): MapInstance {
@@ -96,6 +219,57 @@ export function buildStandardMapInstance(
     vertexColors: true,
   });
 
+  // Distinct 6-material thematic palette per map (platformMat, wallMat, floorMat, trimMat, metalMat, accentMat)
+  const metalTex = reg.getRustMetalSet(layout.seed + 7);
+  const woodPbr = reg.getPbrSet('wood', layout.seed + 13, 128);
+  const marbleSet = reg.getMarbleSet(layout.seed + 19);
+
+  const themePalette: Record<string, { trimColor: string; metalColor: string; accentColor: string; accentEmissive?: string; useWoodTrim?: boolean; useMarbleTrim?: boolean }> = {
+    drowned_school: { trimColor: '#5b7863', metalColor: '#6d7b74', accentColor: '#4e3524', useWoodTrim: true },
+    drowned_metro: { trimColor: '#2c353d', metalColor: '#98a4ae', accentColor: '#d99b16', accentEmissive: '#3d2800' },
+    sunken_jungle: { trimColor: '#4a5d3f', metalColor: '#5c5346', accentColor: '#b59449', useWoodTrim: true },
+    neon_flood: { trimColor: '#1b2234', metalColor: '#48546a', accentColor: '#00e5ff', accentEmissive: '#006b7d' },
+    marble_atrium: { trimColor: '#d8cfc0', metalColor: '#b59449', accentColor: '#8c6d32', useMarbleTrim: true },
+    natatorium: { trimColor: '#8a6f3e', metalColor: '#b59449', accentColor: '#3d6b5e', useMarbleTrim: true },
+    poolrooms: { trimColor: '#9c8b65', metalColor: '#a89058', accentColor: '#527a68' },
+    orientation: { trimColor: '#7a8f7d', metalColor: '#98a69a', accentColor: '#d4a843' },
+    utility_tunnels: { trimColor: '#4a3c31', metalColor: '#735c4d', accentColor: '#c85a32' },
+    hydro_maze: { trimColor: '#3a524e', metalColor: '#69807c', accentColor: '#d4882a' },
+    drainage_core: { trimColor: '#193833', metalColor: '#385954', accentColor: '#2ee6b8', accentEmissive: '#0b4f3e' },
+  };
+  const pal = themePalette[layout.mapId] ?? { trimColor: '#6e6a5e', metalColor: '#7c8285', accentColor: '#b58d3d' };
+
+  const trimMat = customMaterials.trimMat ?? new MeshStandardMaterial({
+    map: pal.useWoodTrim ? woodPbr.albedo : pal.useMarbleTrim ? marbleSet.albedo : customMaterials.wallMat.map,
+    normalMap: pal.useWoodTrim ? woodPbr.normal : pal.useMarbleTrim ? marbleSet.normal : customMaterials.wallMat.normalMap,
+    roughnessMap: pal.useWoodTrim ? woodPbr.roughness : pal.useMarbleTrim ? marbleSet.roughness : customMaterials.wallMat.roughnessMap,
+    color: new Color(pal.trimColor),
+    roughness: 0.42,
+    metalness: 0.08,
+    envMapIntensity: 0.4,
+  });
+
+  const metalMat = customMaterials.metalMat ?? new MeshStandardMaterial({
+    map: metalTex.albedo,
+    normalMap: metalTex.normal,
+    roughnessMap: metalTex.roughness,
+    metalnessMap: metalTex.metalness,
+    color: new Color(pal.metalColor),
+    roughness: 0.35,
+    metalness: 0.82,
+    envMapIntensity: 0.55,
+  });
+
+  const accentMat = customMaterials.accentMat ?? new MeshStandardMaterial({
+    map: pal.useWoodTrim ? woodPbr.albedo : metalTex.albedo,
+    normalMap: pal.useWoodTrim ? woodPbr.normal : metalTex.normal,
+    color: new Color(pal.accentColor),
+    ...(pal.accentEmissive ? { emissive: new Color(pal.accentEmissive), emissiveIntensity: 0.65 } : {}),
+    roughness: 0.32,
+    metalness: pal.useWoodTrim ? 0.1 : 0.45,
+    envMapIntensity: 0.45,
+  });
+
   const ground = new GroundGrid(layout.bounds, 0.25);
   const colliders = new ColliderSet(4.0);
 
@@ -104,18 +278,26 @@ export function buildStandardMapInstance(
     customMaterials.wallMat,
     customMaterials.floorMat,
     ceilingMat,
+    trimMat,
+    metalMat,
+    accentMat,
   ];
 
-  // Apply wet darkening and tidemark gloss below waterline
+  // Apply wet darkening and tidemark gloss strictly within waterline meniscus
   applyWetDarkening(customMaterials.platformMat, { waterY: 0.0 });
   applyWetDarkening(customMaterials.wallMat, { waterY: 0.0 });
   applyWetDarkening(customMaterials.floorMat, { waterY: 0.0 });
+  applyWetDarkening(trimMat, { waterY: 0.0 });
+  applyWetDarkening(metalMat, { waterY: 0.0 });
 
   // Apply height fog to floor, wall, platform, and ceiling materials (Prompt 5.7)
   applyHeightFog(customMaterials.platformMat, { height: 0.0, falloff: 0.85, density: 0.32, color: '#d6dccd' });
   applyHeightFog(customMaterials.wallMat, { height: 0.0, falloff: 0.85, density: 0.32, color: '#d6dccd' });
   applyHeightFog(customMaterials.floorMat, { height: 0.0, falloff: 0.85, density: 0.32, color: '#d6dccd' });
   applyHeightFog(ceilingMat, { height: 0.0, falloff: 0.85, density: 0.32, color: '#d6dccd' });
+  applyHeightFog(trimMat, { height: 0.0, falloff: 0.85, density: 0.32, color: '#d6dccd' });
+  applyHeightFog(metalMat, { height: 0.0, falloff: 0.85, density: 0.32, color: '#d6dccd' });
+  applyHeightFog(accentMat, { height: 0.0, falloff: 0.85, density: 0.32, color: '#d6dccd' });
 
   // Apply parallax occlusion mapping for grout depth within 6m
   const defaultTileSet = reg.getTileSet('platform', layout.seed);
@@ -127,9 +309,14 @@ export function buildStandardMapInstance(
   // Default water floor: if map has defined waterBodies, keep outer bounds dry (0.3m); otherwise default floor (-0.9m)
   ground.fill(layout.waterBodies.length > 0 ? 0.3 : -0.9);
 
-  // 1. Build Platforms
+  // 1. Build Platforms & Architectural Assemblies
   const mergePlatforms = layout.mapId === 'hydro_maze';
   const hydroPlatformGeoms: BufferGeometry[] = [];
+  const trimGeoms: BufferGeometry[] = [];
+  const metalGeoms: BufferGeometry[] = [];
+  const accentGeoms: BufferGeometry[] = [];
+  const autoGeneratedStairs: StairDef[] = [];
+  const boardingRampRects: Array<{ rect: [number, number, number, number]; topY: number }> = [];
 
   for (const plat of layout.platforms) {
     const [minX, minZ, maxX, maxZ] = plat.rect;
@@ -166,6 +353,132 @@ export function buildStandardMapInstance(
       false,
     );
 
+    const isSubwayCar = plat.style === 'subway_car' || plat.id.startsWith('stalled_train_car');
+    const isBridgeTruss = plat.style === 'bridge_truss' || plat.id.startsWith('footbridge');
+
+    if (isSubwayCar) {
+      // Hollow Walkable Subway Car Assembly
+      buildWalkableSubwayCarAssembly(plat, metalGeoms, accentGeoms, trimGeoms, hydroPlatformGeoms);
+
+      // Automatic boarding ramp connecting adjacent P1 platform (z = -16, topY = 1.0) to car (minZ = -15, topY = 1.3)
+      if (minZ >= -15.5 && minZ <= -14.0) {
+        const rampMinX = cx - 1.3;
+        const rampMaxX = cx + 1.3;
+        const rampMinZ = -16.2;
+        const rampMaxZ = minZ + 0.1;
+        const rampMidY = (1.0 + topY) * 0.5;
+        boardingRampRects.push({ rect: [rampMinX, rampMinZ, rampMaxX, rampMaxZ], topY: rampMidY });
+        colliders.addBox(
+          `ramp_${plat.id}`,
+          { x: rampMinX, y: 0.8, z: rampMinZ },
+          { x: rampMaxX, y: rampMidY, z: rampMaxZ },
+          false,
+        );
+        const rampGeom = new BoxGeometry(rampMaxX - rampMinX, 0.16, rampMaxZ - rampMinZ);
+        rampGeom.rotateX(-0.22);
+        rampGeom.translate(cx, rampMidY, (rampMinZ + rampMaxZ) * 0.5);
+        metalGeoms.push(rampGeom);
+      }
+      continue;
+    }
+
+    if (isBridgeTruss) {
+      // Open-web steel girder footbridge with vertical I-beam piers, grated metal decking, and handrails
+      const deckThick = 0.28;
+      const deckGeom = createTiledBoxGeometry({ w, h: deckThick, d, uvOffsetSeed: plat.id.charCodeAt(0) });
+      deckGeom.translate(cx, topY - deckThick * 0.5, cz);
+      metalGeoms.push(deckGeom);
+
+      // Longitudinal side trusses & safety handrails (leave gap near z=0 on +X side for P2 island stair)
+      const railH = 1.05;
+      for (const sideX of [minX + 0.1, maxX - 0.1]) {
+        const isEastSide = sideX > cx;
+        // Bottom chord girder
+        const chord = new BoxGeometry(0.18, 0.36, d);
+        chord.translate(sideX, topY - deckThick - 0.18, cz);
+        trimGeoms.push(chord);
+
+        if (isEastSide) {
+          // Split handrail around z = [-1.6, 1.6] so P2 island stair can board at z = 0
+          const southLen = Math.max(1.0, (-1.6) - minZ);
+          const northLen = Math.max(1.0, maxZ - 1.6);
+          const topRailS = new BoxGeometry(0.08, 0.08, southLen);
+          topRailS.translate(sideX, topY + railH, minZ + southLen * 0.5);
+          accentGeoms.push(topRailS);
+          const topRailN = new BoxGeometry(0.08, 0.08, northLen);
+          topRailN.translate(sideX, topY + railH, 1.6 + northLen * 0.5);
+          accentGeoms.push(topRailN);
+        } else {
+          const topRail = new BoxGeometry(0.08, 0.08, d);
+          topRail.translate(sideX, topY + railH, cz);
+          accentGeoms.push(topRail);
+        }
+
+        // Vertical truss posts & diagonal web members every 4m
+        for (let zPost = minZ + 0.5; zPost <= maxZ - 0.5; zPost += 4.0) {
+          if (isEastSide && Math.abs(zPost) < 1.8) continue;
+          const post = new BoxGeometry(0.1, railH, 0.1);
+          post.translate(sideX, topY + railH * 0.5, zPost);
+          metalGeoms.push(post);
+        }
+      }
+
+      // Vertical I-beam support piers down to the floor (-0.9m)
+      const pierH = topY - (-0.9);
+      for (const pierZ of [minZ + 2.0, -7.5, 7.5, maxZ - 2.0]) {
+        for (const pierX of [minX + 0.25, maxX - 0.25]) {
+          const pier = new BoxGeometry(0.32, pierH, 0.32);
+          pier.translate(pierX, -0.9 + pierH * 0.5, pierZ);
+          trimGeoms.push(pier);
+        }
+      }
+
+      // Automatically generate walkable access stairs connecting P1 (south), P3 (north), and P2 (island) at topY=1.0m up to footbridge (topY=3.0m)
+      if (topY > 1.5 && d >= 30) {
+        const stepsCount = 10;
+        const riser = (topY - 1.0) / stepsCount;
+        const run = 0.42;
+        const stairLen = stepsCount * run; // 4.2m
+        // South stair on P1 climbing z+ into minZ
+        autoGeneratedStairs.push({
+          id: `${plat.id}_stair_p1`,
+          x: cx,
+          z: minZ - stairLen,
+          width: Math.min(2.6, w * 0.75),
+          riser,
+          run,
+          steps: stepsCount,
+          baseY: 1.0,
+          direction: 'z+',
+        });
+        // North stair on P3 climbing z- into maxZ
+        autoGeneratedStairs.push({
+          id: `${plat.id}_stair_p3`,
+          x: cx,
+          z: maxZ + stairLen,
+          width: Math.min(2.6, w * 0.75),
+          riser,
+          run,
+          steps: stepsCount,
+          baseY: 1.0,
+          direction: 'z-',
+        });
+        // Island stair on P2 climbing x- into maxX at z = 0
+        autoGeneratedStairs.push({
+          id: `${plat.id}_stair_p2`,
+          x: maxX + stairLen,
+          z: 0,
+          width: 2.6,
+          riser,
+          run,
+          steps: stepsCount,
+          baseY: 1.0,
+          direction: 'x-',
+        });
+      }
+      continue;
+    }
+
     if (mergePlatforms && !plat.dynamic && !hooks?.onPlatformMesh) {
       const geom = createTiledBoxGeometry({ w, h: depth, d, uvOffsetSeed: plat.id.charCodeAt(0) });
       geom.translate(cx, topY - depth * 0.5, cz);
@@ -174,13 +487,42 @@ export function buildStandardMapInstance(
       // Visual Mesh with consistent 0.15m tile grid UV scaling
       const geom = createTiledBoxGeometry({ w, h: depth, d, uvOffsetSeed: plat.id.charCodeAt(0) });
       geometriesToDispose.push(geom);
-      const mesh = new Mesh(geom, customMaterials.platformMat);
+      const platMaterial = plat.kind === 'metal' ? metalMat : customMaterials.platformMat;
+      const mesh = new Mesh(geom, platMaterial);
       mesh.position.set(cx, topY - depth * 0.5, cz);
       mesh.castShadow = true;
       mesh.receiveShadow = true;
       mesh.matrixAutoUpdate = false;
       mesh.updateMatrix();
       root.add(mesh);
+
+      // Architectural coping / edge trim based on platform style or map theme
+      if (!plat.dynamic && w >= 2.5 && d >= 2.5) {
+        if (layout.mapId === 'drowned_metro' && (plat.id.startsWith('plat_p') || plat.id === 'plat_mezzanine')) {
+          // Yellow tactile safety edge strips along metro passenger platforms
+          const northStrip = new BoxGeometry(w, 0.04, 0.38);
+          northStrip.translate(cx, topY + 0.02, maxZ - 0.22);
+          accentGeoms.push(northStrip);
+          const southStrip = new BoxGeometry(w, 0.04, 0.38);
+          southStrip.translate(cx, topY + 0.02, minZ + 0.22);
+          accentGeoms.push(southStrip);
+        } else if (plat.style === 'stepped_ruin' || layout.mapId === 'sunken_jungle') {
+          // Stepped temple plinth tier molding around jungle ruins
+          const subTier = new BoxGeometry(w + 0.35, 0.24, d + 0.35);
+          subTier.translate(cx, topY - 0.14, cz);
+          trimGeoms.push(subTier);
+        } else if (plat.style === 'classroom_stage' || layout.mapId === 'drowned_school') {
+          // Dark hardwood edge nosing around school platforms/stages
+          const nosing = new BoxGeometry(w + 0.08, 0.08, d + 0.08);
+          nosing.translate(cx, topY - 0.04, cz);
+          trimGeoms.push(nosing);
+        } else if (layout.mapId === 'neon_flood') {
+          // Glowing neon curb trim on street platforms
+          const curb = new BoxGeometry(w + 0.06, 0.06, d + 0.06);
+          curb.translate(cx, topY - 0.03, cz);
+          accentGeoms.push(curb);
+        }
+      }
 
       if (hooks?.onPlatformMesh) {
         hooks.onPlatformMesh(mesh, plat);
@@ -328,6 +670,28 @@ export function buildStandardMapInstance(
       const geom = createTiledBoxGeometry({ w, h, d, uvOffsetSeed: wall.id.charCodeAt(0) });
       geom.translate(cx, cy, cz);
       standardWallGeoms.push(geom);
+
+      // Add recessed baseboard/wainscoting trim and ceiling cornice moldings along walls
+      if (h >= 2.2 && Math.max(w, d) >= 2.0) {
+        const wainscotH = Math.min(1.4, h * 0.38);
+        const wainscotBaseY = Math.max(0.0, wall.min.y);
+        if (wall.max.y > wainscotBaseY + wainscotH + 0.5) {
+          // Lower wainscoting panel band
+          const wainscot = new BoxGeometry(w + 0.05, wainscotH, d + 0.05);
+          wainscot.translate(cx, wainscotBaseY + wainscotH * 0.5, cz);
+          trimGeoms.push(wainscot);
+
+          // Chair-rail molding cap at top of wainscoting
+          const chairRail = new BoxGeometry(w + 0.09, 0.08, d + 0.09);
+          chairRail.translate(cx, wainscotBaseY + wainscotH + 0.04, cz);
+          accentGeoms.push(chairRail);
+
+          // Upper ceiling cornice molding
+          const cornice = new BoxGeometry(w + 0.12, 0.18, d + 0.12);
+          cornice.translate(cx, wall.max.y - 0.09, cz);
+          trimGeoms.push(cornice);
+        }
+      }
     }
   }
 
@@ -397,6 +761,9 @@ export function buildStandardMapInstance(
       ground.setRectHeight(plat.rect[0], plat.rect[1], plat.rect[2], plat.rect[3], plat.topY);
     }
   }
+  for (const ramp of boardingRampRects) {
+    ground.setRectHeight(ramp.rect[0], ramp.rect[1], ramp.rect[2], ramp.rect[3], ramp.topY);
+  }
 
   // 3c. Build Ceiling Mesh & Skylight Shafts for Enclosed Atmosphere (Prompt 4.7 & 5.6)
   if (layout.mapId !== 'natatorium' && layout.mapId !== 'orientation') {
@@ -438,8 +805,9 @@ export function buildStandardMapInstance(
     }
   }
 
-  // 4. Build Stairs
-  for (const st of layout.stairs) {
+  // 4. Build Stairs (including auto-generated footbridge stairs)
+  const allStairs = [...layout.stairs, ...autoGeneratedStairs];
+  for (const st of allStairs) {
     rasterizeStairsToGround(ground, st);
     const riser = st.riser || 0.18;
     const run = st.run || 0.28;
@@ -480,11 +848,40 @@ export function buildStandardMapInstance(
     }
     const geom = buildStairGeometry(st);
     geometriesToDispose.push(geom);
-    const mesh = new Mesh(geom, customMaterials.platformMat);
+    const mesh = new Mesh(geom, st.id.startsWith('footbridge') ? metalMat : customMaterials.platformMat);
     mesh.castShadow = true;
     mesh.receiveShadow = true;
     root.add(mesh);
   }
+
+  // Merge batched architectural trim, metal, and accent geometries to preserve low draw calls
+  const mergeAndAddBatch = (geoms: BufferGeometry[], mat: MeshStandardMaterial, label: string): void => {
+    if (geoms.length === 0) return;
+    const BATCH = 60;
+    for (let i = 0; i < geoms.length; i += BATCH) {
+      const chunk = geoms.slice(i, i + BATCH);
+      for (const g of chunk) {
+        if (g.hasAttribute('color')) {
+          g.deleteAttribute('color');
+        }
+      }
+      const merged = mergeGeometries(chunk);
+      chunk.forEach((g) => g.dispose());
+      if (merged) {
+        geometriesToDispose.push(merged);
+        const m = new Mesh(merged, mat);
+        m.name = `${label}_${i}`;
+        m.castShadow = true;
+        m.receiveShadow = true;
+        m.matrixAutoUpdate = false;
+        m.updateMatrix();
+        root.add(m);
+      }
+    }
+  };
+  mergeAndAddBatch(trimGeoms, trimMat, 'ArchTrimBatch');
+  mergeAndAddBatch(metalGeoms, metalMat, 'ArchMetalBatch');
+  mergeAndAddBatch(accentGeoms, accentMat, 'ArchAccentBatch');
 
   // 5. Build Props
   for (const prop of layout.props) {

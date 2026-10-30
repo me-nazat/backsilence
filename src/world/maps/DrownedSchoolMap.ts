@@ -107,6 +107,7 @@ export const DrownedSchoolMap: MapDefinition = {
       rect: [-46, -6, -38, 6],
       topY: 0.6,
       kind: 'marble',
+      style: 'classroom_stage',
     });
 
     // Principal's Office: [-48, 14, -30, 28] with Principal's Desk (+0.46m perch)
@@ -131,6 +132,32 @@ export const DrownedSchoolMap: MapDefinition = {
       isWall: true,
     });
 
+    // Classroom & Library partition walls with wide doorway openings
+    walls.push({
+      id: 'wall_cr1_corridor',
+      min: { x: -25, y: -0.50, z: 5.2 },
+      max: { x: -12, y: 3.5, z: 5.8 },
+      isWall: true,
+    });
+    walls.push({
+      id: 'wall_library_corridor',
+      min: { x: 4, y: -0.50, z: 5.2 },
+      max: { x: 18, y: 3.5, z: 5.8 },
+      isWall: true,
+    });
+    walls.push({
+      id: 'wall_cr1_library_div',
+      min: { x: -1.3, y: -0.50, z: 8.0 },
+      max: { x: -0.7, y: 3.5, z: 27.5 },
+      isWall: true,
+    });
+    walls.push({
+      id: 'wall_cafe_corridor',
+      min: { x: 4, y: -0.50, z: -5.8 },
+      max: { x: 18, y: 3.5, z: -5.2 },
+      isWall: true,
+    });
+
     // 3. East Wing: Gymnasium & Auditorium
     // Stage (+0.9m permanent safe zone) in Auditorium: [28, 12, 46, 26]
     platforms.push({
@@ -138,6 +165,7 @@ export const DrownedSchoolMap: MapDefinition = {
       rect: [28, 12, 46, 26],
       topY: 0.9,
       kind: 'tile',
+      style: 'classroom_stage',
     });
 
     // Gymnasium Bleachers: [42, -26, 47, -4] (steps from +0.5m to +2.0m)

@@ -214,7 +214,7 @@ async function boot(): Promise<void> {
     winAny.__backsilence_identity = IdentityManager;
     winAny.__backsilence_proxy = new TursoProxyAdapter();
     winAny.__backsilence_offline_queue = OfflineQueue;
-  }).catch(() => {});
+  }).catch(() => { });
 
   // 3. Dynamic-import UI Module (< 1s budget)
   console.log('[boot] 3. importing UIManager');

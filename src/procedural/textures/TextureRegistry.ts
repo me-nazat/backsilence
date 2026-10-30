@@ -42,6 +42,8 @@ export class TextureRegistry {
   private bronzeSets = new Map<string, BronzeSetResult>();
   private algaeGlowMap = new Map<string, Texture>();
   private labelMap = new Map<string, Texture>();
+  private pbrSets = new Map<string, PbrSetResult>();
+  private isWarmedUp = false;
 
   private registeredTextures = new Set<Texture>();
 
@@ -242,11 +244,16 @@ export class TextureRegistry {
   }
 
   getPbrSet(kind: PbrMaterialKind, seed = 42, size = 256, anisotropy = 4): PbrSetResult {
-    const res = makePbrMaterialSet({ kind, seed, size, anisotropy });
-    this.trackTexture(res.albedo, size, size);
-    this.trackTexture(res.normal, size, size);
-    this.trackTexture(res.roughness, size, size);
-    this.trackTexture(res.ao, size, size);
+    const key = `pbr:${kind}:${seed}:${size}:${anisotropy}`;
+    let res = this.pbrSets.get(key);
+    if (!res) {
+      res = makePbrMaterialSet({ kind, seed, size, anisotropy });
+      this.trackTexture(res.albedo, size, size);
+      this.trackTexture(res.normal, size, size);
+      this.trackTexture(res.roughness, size, size);
+      this.trackTexture(res.ao, size, size);
+      this.pbrSets.set(key, res);
+    }
     return res;
   }
 
@@ -257,6 +264,10 @@ export class TextureRegistry {
     progressCb?: (pct: number) => void,
     renderer?: WebGLRenderer,
   ): Promise<void> {
+    if (this.isWarmedUp) {
+      progressCb?.(1.0);
+      return;
+    }
     const jobs: Array<CooperativeJob<void>> = [
       {
         name: 'tiles_platform',
@@ -318,6 +329,7 @@ export class TextureRegistry {
       sliceBudgetMs: 6.0,
       onProgress: progressCb,
     });
+    this.isWarmedUp = true;
   }
 
   stats(): TextureStats {
@@ -352,5 +364,7 @@ export class TextureRegistry {
     this.bronzeSets.clear();
     this.algaeGlowMap.clear();
     this.labelMap.clear();
+    this.pbrSets.clear();
+    this.isWarmedUp = false;
   }
 }

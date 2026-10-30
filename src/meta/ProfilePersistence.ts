@@ -7,6 +7,7 @@
 
 import type { PlayerLoadout } from './Loadout.js';
 import type { MapId } from '../types/contracts.js';
+import { IdentityManager } from './Identity.js';
 
 export const PROFILE_STORAGE_KEY = 'backsilence.profile.v1';
 export const PROFILE_SCHEMA_VERSION = 1;
@@ -113,6 +114,28 @@ export function createDefaultProfile(): PlayerProfileData {
 
 // In-memory fallback if localStorage is unavailable
 let memoryProfileCache: PlayerProfileData | null = null;
+let cloudSyncDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+
+function scheduleCloudProfileSync(profile: PlayerProfileData): void {
+  try {
+    if (!IdentityManager || typeof IdentityManager.isAuthenticated !== 'function') return;
+    if (!IdentityManager.isAuthenticated()) return;
+
+    IdentityManager.updateLocalAccountMirror(profile);
+
+    if (cloudSyncDebounceTimer !== null) {
+      clearTimeout(cloudSyncDebounceTimer);
+    }
+    cloudSyncDebounceTimer = setTimeout(() => {
+      cloudSyncDebounceTimer = null;
+      void IdentityManager.syncProfileNow(profile).catch(() => {
+        // Non-blocking background sync
+      });
+    }, 1500);
+  } catch {
+    // Ignore if IdentityManager is not yet initialized
+  }
+}
 
 export const ProfileStore = {
   /**
@@ -164,15 +187,18 @@ export const ProfileStore = {
 
     if (typeof localStorage === 'undefined') {
       memoryProfileCache = profile;
+      scheduleCloudProfileSync(profile);
       return true;
     }
 
     try {
       localStorage.setItem(PROFILE_STORAGE_KEY, serialized);
+      scheduleCloudProfileSync(profile);
       return true;
     } catch (err) {
       console.error('[ProfileStore] Failed to write profile to localStorage', err);
       memoryProfileCache = profile;
+      scheduleCloudProfileSync(profile);
       return false;
     }
   },

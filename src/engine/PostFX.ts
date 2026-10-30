@@ -508,7 +508,7 @@ export class PostFX {
     if (this.currentTier === 'high') {
       this.currentTier = 'medium';
       if (this.tapeSmearPass) this.tapeSmearPass.enabled = false;
-    } else if (this.currentTier === 'medium') {
+    } else if (this.currentTier === 'medium' && !this.renderer.capabilities?.isWebGL2) {
       this.currentTier = 'low';
       this.disposeComposer();
       this.updateCssOverlayVisibility();

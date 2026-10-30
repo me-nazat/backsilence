@@ -80,9 +80,13 @@ export function applyHeightFog(material: Material, options: HeightFogOptions = {
         #endif
 
         // Height mist hugging the water surface
+        // Reduce near-field fog opacity within 0m - 18m of the camera by 55% (multiplier 0.45)
+        // while keeping full atmospheric depth at 25m - 75m.
         float hDist = max(0.0, abs(vWorldPosForHeightFog.y - uHeightFogBaseY));
         float hMist = exp(-hDist * uHeightFogFalloff) * uHeightFogDensity;
-        float finalFogFactor = clamp(baseFogFactor + hMist * (1.0 - baseFogFactor) * smoothstep(0.0, 5.0, vFogDepth), 0.0, 1.0);
+        float rawFogFactor = clamp(baseFogFactor + hMist * (1.0 - baseFogFactor) * smoothstep(0.0, 5.0, vFogDepth), 0.0, 1.0);
+        float nearFieldSuppression = mix(0.45, 1.0, smoothstep(18.0, 25.0, vFogDepth));
+        float finalFogFactor = clamp(rawFogFactor * nearFieldSuppression, 0.0, 1.0);
 
         vec3 activeFogColor = mix(fogColor, uHeightFogColor, uUseCustomHeightFogColor);
         gl_FragColor.rgb = mix( gl_FragColor.rgb, activeFogColor, finalFogFactor );

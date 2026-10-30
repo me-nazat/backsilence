@@ -98,3 +98,24 @@ export interface NonceRecord {
   nonce: string;
   expires_at: number;
 }
+
+export interface AccountRecord {
+  account_id: string;
+  email: string;
+  password_hash: string; // PBKDF2-SHA256 hex (100,000 iterations)
+  password_salt: string; // 16-byte random salt hex
+  player_id: string;
+  pubkey: string;
+  encrypted_vault: string; // AES-GCM encrypted JSON containing privateKeyJwk + publicKeyJwk
+  profile_json: string;    // Serialized PlayerProfileData JSON
+  created_at: number;
+  updated_at: number;
+}
+
+export interface SessionTokenPayload {
+  accountId: string;
+  playerId: string;
+  email: string;
+  exp: number;
+}
+

@@ -23,12 +23,17 @@ export const RATE_LIMIT_CONFIGS: Record<string, RateLimitConfig> = {
     maxRequests: 15,
     windowSeconds: 60, // 1 min
   },
+  auth_login: {
+    bucket: 'auth_login',
+    maxRequests: 10,
+    windowSeconds: 60, // 1 min
+  },
 };
 
 export const RateLimiter = {
   async checkLimit(
     playerId: string,
-    action: 'run_submit' | 'room_action',
+    action: 'run_submit' | 'room_action' | 'auth_login',
     env: ServerEnv = {},
   ): Promise<{ allowed: boolean; remaining: number; retryAfterSec?: number }> {
     const config = RATE_LIMIT_CONFIGS[action];

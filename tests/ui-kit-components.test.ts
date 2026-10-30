@@ -483,4 +483,21 @@ describe('Prompt 4 Phase B: Complete Component Kit & Lab Page', () => {
     // Underlying base layer should no longer be inert
     expect(baseScreen.hasAttribute('inert')).toBe(false);
   });
+
+  it('ProfileScreen renders official Email/Password CTA buttons and preserves legacy DOM hooks', async () => {
+    const { ProfileScreen } = await import('../src/ui/screens/ProfileScreen.js');
+    const { IdentityManager } = await import('../src/meta/Identity.js');
+    await IdentityManager.clearIdentity();
+
+    const screen = new ProfileScreen({ onBack: () => {} });
+    // Wait for async render() to complete
+    await new Promise((r) => setTimeout(r, 30));
+
+    expect(screen.element.innerHTML).toContain('btn-rename-wrap');
+    expect(screen.element.innerHTML).toContain('btn-export-wrap');
+    expect(screen.element.innerHTML).toContain('btn-import-wrap');
+    expect(screen.element.innerHTML).toContain('btn-create-account');
+    expect(screen.element.innerHTML).toContain('btn-sign-in');
+    expect(screen.element.innerHTML).toContain('UNREGISTERED FIELD OPERATOR (LOCAL ONLY)');
+  });
 });

@@ -130,6 +130,7 @@ export const DrownedMetroMap: MapDefinition = {
         rect: [xCar - 9, -21, xCar + 9, -17],
         topY: 1.3,
         kind: 'metal',
+        style: 'subway_car',
       });
     }
 
@@ -142,6 +143,7 @@ export const DrownedMetroMap: MapDefinition = {
         rect: [bx - 1.5, -14, bx + 1.5, 18],
         topY: 3.0,
         kind: 'metal',
+        style: 'bridge_truss',
       });
     }
 
@@ -152,6 +154,69 @@ export const DrownedMetroMap: MapDefinition = {
       topY: 4.2,
       kind: 'marble',
     });
+
+    const pillars: Array<{ id: string; x: number; z: number; radius: number; height: number; kind?: 'tile' | 'marble' | 'concrete' }> = [];
+    for (let x = -48; x <= 48; x += 16) {
+      pillars.push({
+        id: `col_p1_${x}`,
+        x,
+        z: -11,
+        radius: 0.42,
+        height: 6.0,
+        kind: 'tile',
+      });
+      pillars.push({
+        id: `col_p2_${x}`,
+        x,
+        z: -4,
+        radius: 0.42,
+        height: 6.0,
+        kind: 'tile',
+      });
+      pillars.push({
+        id: `col_p3_${x}`,
+        x,
+        z: 14,
+        radius: 0.42,
+        height: 6.0,
+        kind: 'tile',
+      });
+    }
+
+    const stairs: Array<{
+      id: string;
+      x: number;
+      z: number;
+      width: number;
+      riser: number;
+      run: number;
+      steps: number;
+      baseY: number;
+      direction: 'x+' | 'x-' | 'z+' | 'z-';
+    }> = [
+      {
+        id: 'stairs_p3_to_mezz_west',
+        x: -18,
+        z: 14.5,
+        width: 2.2,
+        riser: 0.228,
+        run: 0.28,
+        steps: 14,
+        baseY: 1.0,
+        direction: 'z+',
+      },
+      {
+        id: 'stairs_p3_to_mezz_east',
+        x: 18,
+        z: 14.5,
+        width: 2.2,
+        riser: 0.228,
+        run: 0.28,
+        steps: 14,
+        baseY: 1.0,
+        direction: 'z+',
+      },
+    ];
 
     // 6. Conductor's Cabin at East end of P1 [50, -14, 60, -8]
     platforms.push({
@@ -242,8 +307,8 @@ export const DrownedMetroMap: MapDefinition = {
       bounds,
       platforms,
       walls,
-      pillars: [],
-      stairs: [],
+      pillars,
+      stairs,
       waterBodies: [
         {
           id: 'metro_track_beds',

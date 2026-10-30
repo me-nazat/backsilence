@@ -82,8 +82,8 @@
     }
   },
   "ranges": {
-    "touch": 0.9,
-    "attack": 1.6,
+    "touch": 1.15,
+    "attack": 2.35,
     "closingSweepMin": 6.0,
     "closingSweepMax": 10.0,
     "listenDistMin": 12.0,

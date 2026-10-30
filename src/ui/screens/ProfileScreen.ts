@@ -64,6 +64,22 @@ export class ProfileScreen {
     else if (tier.includes('Depth')) emblemName = 'depth';
     else if (tier.includes('Phantom')) emblemName = 'phantom';
 
+    const isAuthenticated = Boolean(identity.email);
+    const statusBadgeHtml = isAuthenticated
+      ? `<span id="account-status-badge" style="display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 3px; background: rgba(74, 222, 128, 0.12); border: 1px solid rgba(74, 222, 128, 0.4); color: #4ade80; font-family: var(--bs-font-mono); font-size: 11px; letter-spacing: 0.05em;">
+           <span style="width: 7px; height: 7px; border-radius: 50%; background: #4ade80; display: inline-block; box-shadow: 0 0 6px #4ade80;"></span>
+           VERIFIED ACCOUNT // ${identity.email}
+         </span>`
+      : `<span id="account-status-badge" style="display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 3px; background: rgba(217, 155, 38, 0.12); border: 1px solid rgba(217, 155, 38, 0.4); color: var(--bs-amber, #d99b26); font-family: var(--bs-font-mono); font-size: 11px; letter-spacing: 0.05em;">
+           UNREGISTERED FIELD OPERATOR (LOCAL ONLY)
+         </span>`;
+
+    const primaryAccountActionsHtml = isAuthenticated
+      ? `<button id="btn-sync-now" class="bs-btn bs-btn-primary">SYNC NOW</button>
+         <button id="btn-sign-out" class="bs-btn bs-btn-ghost">SIGN OUT</button>`
+      : `<button id="btn-create-account" class="bs-btn bs-btn-primary">CREATE ACCOUNT (EMAIL)</button>
+         <button id="btn-sign-in" class="bs-btn bs-btn-ghost" style="border-color: var(--bs-border);">SIGN IN</button>`;
+
     this.element.innerHTML = `
       <div style="width: min(1000px, 95vw); display: flex; flex-direction: column; gap: 32px;">
         <!-- Header -->
@@ -80,28 +96,49 @@ export class ProfileScreen {
         </div>
 
         <!-- Identity & Rank Card -->
-        <div style="background: var(--bs-surface-2); border: 1px solid var(--bs-border); border-radius: var(--bs-radius-md); padding: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 24px;">
-          <div style="display: flex; gap: 20px; align-items: center;">
-            <div>${renderRankEmblem(emblemName, 64)}</div>
-            <div>
-              <div style="display: flex; align-items: baseline; gap: 8px;">
-                <h2 style="font-family: var(--bs-font-mono); font-size: var(--bs-text-xl); color: var(--bs-cream); margin: 0;">
-                  ${identity.name}<span style="opacity: 0.5;">#${identity.tag}</span>
-                </h2>
-                <button id="btn-claim-name" class="bs-btn bs-btn-ghost" style="padding: 2px 8px; min-height: 24px; font-size: 11px;">RENAME</button>
-              </div>
-              <div style="font-family: var(--bs-font-mono); font-size: var(--bs-text-xs); color: var(--bs-tan); margin-top: 4px;">
-                LEVEL ${levelInfo.level} // TIER: ${tier} (${profile.silenceRating} SR)
-              </div>
-              <!-- XP progress -->
-              <div style="width: 220px; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; margin-top: 8px; overflow: hidden;">
-                <div style="width: ${Math.round(levelInfo.progressPercent)}%; height: 100%; background: var(--bs-water);"></div>
+        <div style="background: var(--bs-surface-2); border: 1px solid var(--bs-border); border-radius: var(--bs-radius-md); padding: 24px; display: flex; flex-direction: column; gap: 20px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 24px;">
+            <div style="display: flex; gap: 20px; align-items: center;">
+              <div>${renderRankEmblem(emblemName, 64)}</div>
+              <div>
+                <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                  <h2 style="font-family: var(--bs-font-mono); font-size: var(--bs-text-xl); color: var(--bs-cream); margin: 0;">
+                    ${identity.name}<span style="opacity: 0.5;">#${identity.tag}</span>
+                  </h2>
+                  <span id="btn-rename-wrap">
+                    <button id="btn-claim-name" class="bs-btn bs-btn-ghost" style="padding: 2px 8px; min-height: 24px; font-size: 11px;">RENAME</button>
+                  </span>
+                  ${statusBadgeHtml}
+                </div>
+                <div style="font-family: var(--bs-font-mono); font-size: var(--bs-text-xs); color: var(--bs-tan); margin-top: 6px;">
+                  LEVEL ${levelInfo.level} // TIER: ${tier} (${profile.silenceRating} SR)
+                </div>
+                <!-- XP progress -->
+                <div style="width: 220px; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; margin-top: 8px; overflow: hidden;">
+                  <div style="width: ${Math.round(levelInfo.progressPercent)}%; height: 100%; background: var(--bs-water);"></div>
+                </div>
               </div>
             </div>
+            <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
+              ${primaryAccountActionsHtml}
+            </div>
           </div>
-          <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-            <button id="btn-export-recovery" class="bs-btn bs-btn-primary">EXPORT RECOVERY CODE</button>
-            <button id="btn-import-recovery" class="bs-btn bs-btn-ghost">IMPORT IDENTITY</button>
+
+          <!-- Advanced / Offline Backup -->
+          <div style="border-top: 1px solid rgba(255,255,255,0.06); padding-top: 14px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+            <span style="font-family: var(--bs-font-mono); font-size: 11px; color: var(--bs-tan); opacity: 0.75; letter-spacing: 0.05em;">
+              ADVANCED / OFFLINE KEYPAIR BACKUP
+            </span>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+              <div id="btn-export-wrap">
+                <span id="btn-export-Wrap">
+                  <button id="btn-export-recovery" class="bs-btn bs-btn-ghost" style="font-size: 11px; padding: 4px 10px; min-height: 28px;">EXPORT RECOVERY CODE</button>
+                </span>
+              </div>
+              <div id="btn-import-wrap">
+                <button id="btn-import-recovery" class="bs-btn bs-btn-ghost" style="font-size: 11px; padding: 4px 10px; min-height: 28px;">IMPORT IDENTITY</button>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -183,6 +220,36 @@ export class ProfileScreen {
         unlocked: isUnlocked,
       });
       achGrid.appendChild(card.element);
+    });
+
+    // Official Email & Password Account Handlers
+    this.element.querySelector('#btn-create-account')?.addEventListener('click', () => {
+      this.openCreateAccountModal(identity.name);
+    });
+
+    this.element.querySelector('#btn-sign-in')?.addEventListener('click', () => {
+      this.openSignInModal();
+    });
+
+    this.element.querySelector('#btn-sync-now')?.addEventListener('click', () => {
+      void (async () => {
+        try {
+          const currentProfile = ProfileStore.load();
+          ProfileStore.save(currentProfile);
+          await IdentityManager.syncProfileNow(currentProfile);
+          Toast.show('Service record synced to cloud.', 'success');
+        } catch {
+          Toast.show('Could not reach cloud sync server; saved locally.', 'warning');
+        }
+      })();
+    });
+
+    this.element.querySelector('#btn-sign-out')?.addEventListener('click', () => {
+      void (async () => {
+        await IdentityManager.logoutAccount();
+        Toast.show('Signed out. Switched to local field operator profile.', 'info');
+        void this.render();
+      })();
     });
 
     // Recovery Export / Import Handlers
@@ -267,6 +334,173 @@ export class ProfileScreen {
           } catch {
             Toast.show('Could not update name on remote registry.', 'warning');
           }
+        }
+      })();
+    });
+  }
+
+  private openCreateAccountModal(defaultCallsign: string): void {
+    const modal = new Modal({
+      title: 'CREATE OPERATOR ACCOUNT',
+      content: `
+        <form id="form-create-account" style="display: flex; flex-direction: column; gap: 14px;" novalidate>
+          <p style="font-size: 12px; color: var(--bs-tan); opacity: 0.9; margin: 0; line-height: 1.5;">
+            Register an official Email &amp; Password to back up your cryptographic identity vault and automatically sync your service record across devices.
+          </p>
+          <div id="reg-error-banner" style="display: none; padding: 8px 12px; border-radius: 3px; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.5); color: #f87171; font-family: var(--bs-font-mono); font-size: 12px;"></div>
+          <label style="display: flex; flex-direction: column; gap: 4px; font-family: var(--bs-font-mono); font-size: 11px; color: var(--bs-tan);">
+            OPERATOR CALLSIGN (3–16 CHARS)
+            <input type="text" id="reg-callsign" value="${defaultCallsign}" minlength="3" maxlength="16" required style="padding: 9px 10px; background: #080705; border: 1px solid var(--bs-border); color: var(--bs-cream); font-family: var(--bs-font-mono); font-size: 13px; border-radius: 3px;" />
+          </label>
+          <label style="display: flex; flex-direction: column; gap: 4px; font-family: var(--bs-font-mono); font-size: 11px; color: var(--bs-tan);">
+            EMAIL ADDRESS
+            <input type="email" id="reg-email" placeholder="operator@facility.org" required style="padding: 9px 10px; background: #080705; border: 1px solid var(--bs-border); color: var(--bs-cream); font-family: var(--bs-font-mono); font-size: 13px; border-radius: 3px;" />
+          </label>
+          <label style="display: flex; flex-direction: column; gap: 4px; font-family: var(--bs-font-mono); font-size: 11px; color: var(--bs-tan);">
+            PASSWORD
+            <div style="display: flex; gap: 6px;">
+              <input type="password" id="reg-password" placeholder="Minimum 8 characters" required style="flex: 1; padding: 9px 10px; background: #080705; border: 1px solid var(--bs-border); color: var(--bs-cream); font-family: var(--bs-font-mono); font-size: 13px; border-radius: 3px;" />
+              <button type="button" id="btn-toggle-reg-pw" class="bs-btn bs-btn-ghost" style="padding: 0 10px; font-size: 11px; min-height: 36px;">SHOW</button>
+            </div>
+          </label>
+          <label style="display: flex; flex-direction: column; gap: 4px; font-family: var(--bs-font-mono); font-size: 11px; color: var(--bs-tan);">
+            CONFIRM PASSWORD
+            <input type="password" id="reg-confirm-password" placeholder="Re-enter password" required style="padding: 9px 10px; background: #080705; border: 1px solid var(--bs-border); color: var(--bs-cream); font-family: var(--bs-font-mono); font-size: 13px; border-radius: 3px;" />
+          </label>
+          <button type="submit" id="btn-submit-register" class="bs-btn bs-btn-primary" style="margin-top: 6px;">CREATE ACCOUNT &amp; SYNC</button>
+        </form>
+      `,
+    });
+    modal.open();
+
+    const pwInput = modal.panel.querySelector<HTMLInputElement>('#reg-password');
+    const confirmInput = modal.panel.querySelector<HTMLInputElement>('#reg-confirm-password');
+    const toggleBtn = modal.panel.querySelector<HTMLButtonElement>('#btn-toggle-reg-pw');
+    const errBanner = modal.panel.querySelector<HTMLElement>('#reg-error-banner');
+    const form = modal.panel.querySelector<HTMLFormElement>('#form-create-account');
+
+    toggleBtn?.addEventListener('click', () => {
+      if (!pwInput) return;
+      const isHidden = pwInput.type === 'password';
+      pwInput.type = isHidden ? 'text' : 'password';
+      if (confirmInput) confirmInput.type = isHidden ? 'text' : 'password';
+      toggleBtn.textContent = isHidden ? 'HIDE' : 'SHOW';
+    });
+
+    const showError = (msg: string) => {
+      if (!errBanner) return;
+      errBanner.textContent = msg;
+      errBanner.style.display = 'block';
+    };
+
+    form?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      void (async () => {
+        const callsign = (modal.panel.querySelector<HTMLInputElement>('#reg-callsign')?.value || '').trim();
+        const email = (modal.panel.querySelector<HTMLInputElement>('#reg-email')?.value || '').trim();
+        const password = pwInput?.value || '';
+        const confirmPw = confirmInput?.value || '';
+
+        if (callsign.length < 3 || callsign.length > 16) {
+          showError('Operator Callsign must be between 3 and 16 characters.');
+          return;
+        }
+        const emailRegex = /^[a-z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)+$/i;
+        if (!email || !emailRegex.test(email)) {
+          showError('Please enter a valid email address.');
+          return;
+        }
+        if (password.length < 8) {
+          showError('Password must be at least 8 characters.');
+          return;
+        }
+        if (password !== confirmPw) {
+          showError('Passwords do not match.');
+          return;
+        }
+
+        try {
+          await IdentityManager.registerWithEmail(email, password, callsign);
+          const currentProfile = ProfileStore.load();
+          ProfileStore.save(currentProfile);
+          await IdentityManager.syncProfileNow(currentProfile);
+          Toast.show('Official Operator Account created & synced.', 'success');
+          modal.close();
+          void this.render();
+        } catch (err: unknown) {
+          const msg = err instanceof Error ? err.message : 'Failed to create account.';
+          showError(msg);
+        }
+      })();
+    });
+  }
+
+  private openSignInModal(): void {
+    const modal = new Modal({
+      title: 'OPERATOR SIGN IN',
+      content: `
+        <form id="form-sign-in" style="display: flex; flex-direction: column; gap: 14px;" novalidate>
+          <p style="font-size: 12px; color: var(--bs-tan); opacity: 0.9; margin: 0; line-height: 1.5;">
+            Sign in with your registered Email &amp; Password to unlock your cryptographic keypair and restore your cloud service record.
+          </p>
+          <div id="login-error-banner" style="display: none; padding: 8px 12px; border-radius: 3px; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.5); color: #f87171; font-family: var(--bs-font-mono); font-size: 12px;"></div>
+          <label style="display: flex; flex-direction: column; gap: 4px; font-family: var(--bs-font-mono); font-size: 11px; color: var(--bs-tan);">
+            EMAIL ADDRESS
+            <input type="email" id="login-email" placeholder="operator@facility.org" required style="padding: 9px 10px; background: #080705; border: 1px solid var(--bs-border); color: var(--bs-cream); font-family: var(--bs-font-mono); font-size: 13px; border-radius: 3px;" />
+          </label>
+          <label style="display: flex; flex-direction: column; gap: 4px; font-family: var(--bs-font-mono); font-size: 11px; color: var(--bs-tan);">
+            PASSWORD
+            <div style="display: flex; gap: 6px;">
+              <input type="password" id="login-password" placeholder="Enter your password" required style="flex: 1; padding: 9px 10px; background: #080705; border: 1px solid var(--bs-border); color: var(--bs-cream); font-family: var(--bs-font-mono); font-size: 13px; border-radius: 3px;" />
+              <button type="button" id="btn-toggle-login-pw" class="bs-btn bs-btn-ghost" style="padding: 0 10px; font-size: 11px; min-height: 36px;">SHOW</button>
+            </div>
+          </label>
+          <button type="submit" id="btn-submit-login" class="bs-btn bs-btn-primary" style="margin-top: 6px;">SIGN IN &amp; RESTORE DOSSIER</button>
+        </form>
+      `,
+    });
+    modal.open();
+
+    const pwInput = modal.panel.querySelector<HTMLInputElement>('#login-password');
+    const toggleBtn = modal.panel.querySelector<HTMLButtonElement>('#btn-toggle-login-pw');
+    const errBanner = modal.panel.querySelector<HTMLElement>('#login-error-banner');
+    const form = modal.panel.querySelector<HTMLFormElement>('#form-sign-in');
+
+    toggleBtn?.addEventListener('click', () => {
+      if (!pwInput) return;
+      const isHidden = pwInput.type === 'password';
+      pwInput.type = isHidden ? 'text' : 'password';
+      toggleBtn.textContent = isHidden ? 'HIDE' : 'SHOW';
+    });
+
+    const showError = (msg: string) => {
+      if (!errBanner) return;
+      errBanner.textContent = msg;
+      errBanner.style.display = 'block';
+    };
+
+    form?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      void (async () => {
+        const email = (modal.panel.querySelector<HTMLInputElement>('#login-email')?.value || '').trim();
+        const password = pwInput?.value || '';
+
+        if (!email || !password) {
+          showError('Please enter your email and password.');
+          return;
+        }
+
+        try {
+          const { identity: restoredIdentity, profile: restoredProfile } = await IdentityManager.loginWithEmail(email, password);
+          if (restoredProfile) {
+            ProfileStore.save(restoredProfile);
+          }
+          Toast.show(`Welcome back, ${restoredIdentity.name}. Service record restored.`, 'success');
+          modal.close();
+          void this.render();
+        } catch (err: unknown) {
+          const msg = err instanceof Error ? err.message : 'Invalid email or password';
+          showError(msg);
         }
       })();
     });

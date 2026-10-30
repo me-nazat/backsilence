@@ -26,6 +26,7 @@ import { ModeRulesEngine } from '../src/meta/ModeRules.js';
 import { RunRecorder } from '../src/meta/RunRecorder.js';
 import { Replay } from '../src/meta/Replay.js';
 import { ProfileStore, createDefaultProfile } from '../src/meta/ProfilePersistence.js';
+import { IdentityManager } from '../src/meta/Identity.js';
 import { OrientationMap } from '../src/world/maps/OrientationMap.js';
 import type { RunEvent, NoiseMadeEvent, JumpCleanEvent, LurkSurvivedEvent } from '../src/meta/RunEvents.js';
 import type { PlayerIntent } from '../src/sim/PlayerMotor.js';
@@ -378,5 +379,43 @@ describe('Batch 7 Meta: ProfileStore Persistence & Recovery', () => {
     expect(restored.xp).toBe(1250);
     expect(restored.level).toBe(4);
     expect(restored.staticBalance).toBe(420);
+  });
+
+  it('registers with Email + Password, logs out to guest, and logs back in to restore keypair & profile', async () => {
+    await IdentityManager.clearIdentity();
+    const initialGuest = await IdentityManager.getOrGenerateIdentity();
+    const originalPlayerId = initialGuest.playerId;
+
+    const customProfile = createDefaultProfile();
+    customProfile.xp = 4200;
+    customProfile.level = 9;
+    customProfile.silenceRating = 1550;
+    ProfileStore.save(customProfile);
+
+    const uniqueEmail = `operator_${Date.now()}@facility.org`;
+    const registered = await IdentityManager.registerWithEmail(uniqueEmail, 'VaultPass#2026', 'Vanguard');
+    expect(registered.email).toBe(uniqueEmail);
+    expect(registered.name).toBe('Vanguard');
+    expect(registered.playerId).toBe(originalPlayerId);
+    expect(IdentityManager.isAuthenticated()).toBe(true);
+
+    // Log out -> creates a new local guest operator
+    const newGuest = await IdentityManager.logoutAccount();
+    expect(IdentityManager.isAuthenticated()).toBe(false);
+    expect(newGuest.email).toBeUndefined();
+    expect(newGuest.playerId).not.toBe(originalPlayerId);
+
+    // Overwrite local profile while logged out
+    const wipedProfile = createDefaultProfile();
+    wipedProfile.xp = 0;
+    ProfileStore.save(wipedProfile);
+
+    // Log back in with Email + Password -> restores original playerId, callsign, and profile
+    const loginResult = await IdentityManager.loginWithEmail(uniqueEmail, 'VaultPass#2026');
+    expect(loginResult.identity.playerId).toBe(originalPlayerId);
+    expect(loginResult.identity.name).toBe('Vanguard');
+    expect(loginResult.identity.email).toBe(uniqueEmail);
+    expect(loginResult.profile?.xp).toBe(4200);
+    expect(ProfileStore.load().xp).toBe(4200);
   });
 });

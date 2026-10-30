@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { createProvingGroundsSim, WATER_FLOOR_Y } from '../src/sim/ProvingGroundsData.js';
 import { SimBot } from '../src/sim/SimBot.js';
+import { MonsterBrain } from '../src/sim/MonsterBrain.js';
 import type { SimEvent } from '../src/sim/Events.js';
 import type { PlayerIntent } from '../src/sim/PlayerMotor.js';
 import { Rng } from '../src/sim/rng.js';
@@ -142,7 +143,8 @@ describe('Headless Scenario Bot & Vitest Scenarios', () => {
         huntTime = t;
       }
       const distToSplash = Math.hypot(monster.pos.x - 0, monster.pos.z - 21);
-      if (arrivalTime === null && distToSplash < 1.8) {
+      // Monster now strikes from ATTACK_RANGE (2.35m) and stops there
+      if (arrivalTime === null && distToSplash < MonsterBrain.ATTACK_RANGE + 0.3) {
         arrivalTime = t;
         break;
       }
@@ -155,8 +157,8 @@ describe('Headless Scenario Bot & Vitest Scenarios', () => {
     expect(huntTime!).toBeLessThanOrEqual(1.5);
 
     expect(arrivalTime).not.toBeNull();
-    // Theoretical max time = 30m / 7.2m/s + 2s = 4.16s + 2s = 6.16s
-    const maxAllowedTime = 30.0 / 7.2 + 2.0;
+    // Theoretical max time = 30m / 10.4m/s + 2s = 2.88s + 2s = 4.88s
+    const maxAllowedTime = 30.0 / MonsterBrain.SPEED_HUNT + 2.0;
     expect(arrivalTime!).toBeLessThanOrEqual(maxAllowedTime);
   });
 

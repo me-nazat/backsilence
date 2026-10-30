@@ -150,12 +150,14 @@ export const NeonFloodMap: MapDefinition = {
       rect: [-1.2, 8, 1.2, 38],
       topY: 4.5,
       kind: 'metal',
+      style: 'industrial_catwalk',
     });
     platforms.push({
       id: 'skyway_market_cross',
       rect: [-25, 20, 25, 22.4],
       topY: 4.5,
       kind: 'metal',
+      style: 'industrial_catwalk',
     });
     // Server Tower Service Balcony (+4.5m)
     platforms.push({
@@ -163,7 +165,43 @@ export const NeonFloodMap: MapDefinition = {
       rect: [22, 16, 26, 26],
       topY: 4.5,
       kind: 'metal',
+      style: 'industrial_catwalk',
     });
+
+    const stairs: Array<{
+      id: string;
+      x: number;
+      z: number;
+      width: number;
+      riser: number;
+      run: number;
+      steps: number;
+      baseY: number;
+      direction: 'x+' | 'x-' | 'z+' | 'z-';
+    }> = [
+      {
+        id: 'stairs_sidewalk_w_to_skyway',
+        x: -20,
+        z: 14.5,
+        width: 2.0,
+        riser: 0.2625,
+        run: 0.32,
+        steps: 16,
+        baseY: 0.3,
+        direction: 'z+',
+      },
+      {
+        id: 'stairs_sidewalk_e_to_skyway',
+        x: 20,
+        z: 14.5,
+        width: 2.0,
+        riser: 0.2625,
+        run: 0.32,
+        steps: 16,
+        baseY: 0.3,
+        direction: 'z+',
+      },
+    ];
 
     // 6. Flooded Subway Entrance Kiosk (Street level [-4, 0, 4, 8])
     platforms.push({
@@ -241,7 +279,7 @@ export const NeonFloodMap: MapDefinition = {
       platforms,
       walls,
       pillars: [],
-      stairs: [],
+      stairs,
       waterBodies: [
         {
           id: 'street_flood',

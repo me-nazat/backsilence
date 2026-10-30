@@ -27,12 +27,26 @@ export interface DynamicDef {
   submergedTime?: number;
 }
 
+export type PlatformStyle =
+  | 'solid_slab'
+  | 'subway_car'
+  | 'bridge_truss'
+  | 'classroom_stage'
+  | 'stepped_ruin'
+  | 'industrial_catwalk'
+  | 'marble_plinth'
+  | 'locker_bank';
+
 export interface PlatformDef {
   id: string;
   rect: [number, number, number, number]; // [minX, minZ, maxX, maxZ]
   topY: number;
   kind: PlatformKind;
-  dynamic?: DynamicDef;
+  dynamic?: DynamicDef | undefined;
+  style?: PlatformStyle | undefined;
+  trimColor?: string | undefined;
+  railing?: 'none' | 'brass' | 'industrial' | 'stone_balustrade' | undefined;
+  hasAccessRamp?: boolean | undefined;
 }
 
 export interface BoxDef {

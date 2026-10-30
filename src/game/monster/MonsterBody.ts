@@ -247,6 +247,7 @@ export class MonsterBody {
     this.mesh.root.position.set(finalPosX, finalRootY, finalPosZ);
     this.currentYaw += (snapshot.yaw - this.currentYaw) * Math.min(1.0, dt * 10.0);
     this.mesh.root.rotation.y = this.currentYaw;
+    this.mesh.setAgitation(snapshot.agitation ?? 0.0);
 
     this.lastGoodPos.copy(this.mesh.root.position);
     this.lastGoodYaw = this.currentYaw;

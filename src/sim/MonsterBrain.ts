@@ -65,14 +65,16 @@ export class MonsterBrain {
   agitation = 0; // 0..1
 
   // Speeds
-  static readonly SPEED_WANDER = 2.2;
-  static readonly SPEED_HUNT = 7.2;
-  static readonly TURN_RATE_WANDER = 6.0; // rad/s
-  static readonly TURN_RATE_HUNT = 10.0; // rad/s
+  static readonly SPEED_WANDER = 3.2;
+  static readonly SPEED_HUNT = 10.4;
+  static readonly SPEED_APEX_SPRINT = 13.8;
+  static readonly TURN_RATE_WANDER = 7.5; // rad/s
+  static readonly TURN_RATE_HUNT = 16.0; // rad/s
 
   // Ranges
-  static readonly TOUCH_RANGE = 0.9; // physical body contact
-  static readonly ATTACK_RANGE = 1.6; // strike reach
+  static readonly TOUCH_RANGE = 1.15; // physical body contact
+  static readonly ATTACK_RANGE = 2.35; // strike reach
+  static readonly LUNGE_RANGE = 3.8; // high-speed hydro-lunge pounce range
 
   readonly hearingMul: number;
   readonly speedMul: number;
@@ -92,11 +94,13 @@ export class MonsterBrain {
   private reactionTimer = 0;
   private listenTimer = 0;
   private isListening = false;
-  private lastRetargetTime = 0;
+  lastRetargetTime = 0;
   private investigatePhase: 'sniff' | 'search' = 'sniff';
   private searchTimer = 0;
   private swipeCooldown = 0;
   private stuckTimer = 0;
+  consecutiveSplashes = 0;
+  lastSplashTime = -999;
   isSighting = false;
   private sightingTimer = 0;
 
@@ -352,12 +356,12 @@ export class MonsterBrain {
       this.agitation = 1.0;
       if (this.state === 'DORMANT' || this.state === 'WANDER' || this.state === 'INVESTIGATE' || this.state === 'LURK') {
         this.enterAlerted(playerPos, 1.0, simTime);
+      } else if (this.state === 'ALERTED') {
+        this.currentTarget = { ...playerPos };
       } else if (this.state === 'HUNT') {
         const targetDist = this.currentTarget ? dHypot(playerPos.x - this.currentTarget.x, playerPos.z - this.currentTarget.z) : 999;
         if (targetDist > 1.2 || this.currentPathIndex >= this.currentPath.length) {
-          this.currentTarget = { ...playerPos };
-          this.currentPath = this.astar.findPath(this.pos.x, this.pos.z, playerPos.x, playerPos.z);
-          this.currentPathIndex = 0;
+          this.updateHuntTargetInPlace(playerPos, 1.0, nav, simTime);
         }
       }
     }
@@ -405,7 +409,7 @@ export class MonsterBrain {
         this.stepAlerted(dt, nav, events, simTime);
         break;
       case 'HUNT':
-        this.stepHunt(dt, nav, hearingCtx, events, simTime, playerPos, isPlayerInWater);
+        this.stepHunt(dt, nav, hearingCtx, events, simTime, playerPos, isPlayerInWater, isPlayerPerched);
         break;
       case 'INVESTIGATE':
         this.stepInvestigate(dt, nav, events, simTime);
@@ -440,8 +444,16 @@ export class MonsterBrain {
       return false;
     }
 
-    // Increase agitation
-    this.agitation = Math.min(1.0, this.agitation + 0.25);
+    // Track consecutive loud splashes/noises within 4.0s window
+    if (simTime - this.lastSplashTime < 4.0) {
+      this.consecutiveSplashes = Math.min(5, this.consecutiveSplashes + 1);
+    } else {
+      this.consecutiveSplashes = 1;
+    }
+    this.lastSplashTime = simTime;
+
+    // Boost agitation faster on consecutive noises
+    this.agitation = Math.min(1.0, this.agitation + 0.35 + this.consecutiveSplashes * 0.15);
 
     // Aim ear-fins toward noise direction
     const dx = noise.position.x - this.pos.x;
@@ -466,21 +478,39 @@ export class MonsterBrain {
       return true;
     }
 
+    if (this.state === 'ALERTED') {
+      this.currentTarget = { ...noise.position };
+      this.currentTargetScore = Math.max(this.currentTargetScore, score);
+      this.lastRetargetTime = simTime;
+      this.reactionTimer = Math.min(this.reactionTimer, 0.08);
+      return true;
+    }
+
     if (this.state === 'HUNT') {
-      // Ignore noises coming from the current target location
-      if (this.currentTarget && dHypot(noise.position.x - this.currentTarget.x, noise.position.z - this.currentTarget.z) < 2.0) {
-        return false;
-      }
-      // Retarget only if noise is louder than current target * 1.15 and reaction delay passed
-      if (simTime - this.lastRetargetTime > 0.3 && score > this.currentTargetScore * 1.15) {
-        if (noise.loudness >= 0.3) {
-          this.enterAlerted(noise.position, score, simTime);
-          return true;
-        }
-      }
+      // NEVER transition back to ALERTED during HUNT (which would zero velocity and stall the chase)!
+      // Instead, retarget in-place while maintaining full hunt momentum.
+      this.updateHuntTargetInPlace(noise.position, score, this.astar.nav, simTime);
+      return true;
     }
 
     return false;
+  }
+
+  public updateHuntTargetInPlace(pos: Vec3, score: number, nav: NavGrid, simTime: number): void {
+    this.currentTarget = { ...pos };
+    this.currentTargetScore = Math.max(this.currentTargetScore, score);
+    this.lastRetargetTime = simTime;
+    this.isListening = false;
+    this.rearingT = 0;
+
+    const path = this.astar.findPath(this.pos.x, this.pos.z, pos.x, pos.z);
+    if (path.length > 0) {
+      this.currentPath = path;
+      this.currentPathIndex = 0;
+    } else if (nav.isWalkableWorld(pos.x, pos.z)) {
+      this.currentPath = [{ x: pos.x, z: pos.z }];
+      this.currentPathIndex = 0;
+    }
   }
 
   private enterAlerted(pos: Vec3, score: number, simTime: number): void {
@@ -489,8 +519,8 @@ export class MonsterBrain {
     this.currentTargetScore = score;
     this.lastRetargetTime = simTime;
 
-    // Reaction delay: 0.35–0.7s, shortened by agitation
-    this.reactionTimer = 0.35 + (1.0 - this.agitation) * 0.35;
+    // Fast reaction delay: 0.12–0.27s, shortened by agitation
+    this.reactionTimer = 0.12 + (1.0 - this.agitation) * 0.15;
     this.rearingT = 1.0; // rear up
     this.jawOpenT = 1.0; // roar
   }
@@ -613,23 +643,63 @@ export class MonsterBrain {
     simTime: number,
     playerPos?: Vec3,
     isPlayerInWater = false,
+    isPlayerPerched = false,
   ): void {
-    const speed = MonsterBrain.SPEED_HUNT * this.speedMul;
+    const sprintBonus =
+      this.agitation >= 0.7 || this.consecutiveSplashes >= 2
+        ? (MonsterBrain.SPEED_APEX_SPRINT - MonsterBrain.SPEED_HUNT) *
+          Math.min(1, Math.max(0, (this.consecutiveSplashes - 1) * 0.5) + this.agitation * 0.5)
+        : 0;
+    const speed = (MonsterBrain.SPEED_HUNT + sprintBonus) * this.speedMul;
+    this.jawOpenT = 0.85;
 
-    // Direct surge pursuit if player is in water and within acoustic striking distance
-    if (isPlayerInWater && playerPos) {
+    if (playerPos && !isPlayerPerched && !this.isSighting) {
       const dx = playerPos.x - this.pos.x;
       const dz = playerPos.z - this.pos.z;
-      const dist = dHypot(dx, dz);
-      if (dist < 10.0 && nav.isWalkableWorld(this.pos.x, this.pos.z)) {
+      const distToPlayer = dHypot(dx, dz);
+      const vertDistToPlayer = Math.abs(playerPos.y - this.pos.y);
+
+      // Hydro-Lunge Pounce within LUNGE_RANGE (3.8m)
+      if (distToPlayer <= MonsterBrain.LUNGE_RANGE && vertDistToPlayer <= 2.2) {
+        this.yaw = dAtan2(dx, -dz);
+        const lungeSpeed = 18.0 * this.speedMul;
+        const stepDist = Math.min(distToPlayer, lungeSpeed * dt);
+        const nextX = this.pos.x + dSin(this.yaw) * stepDist;
+        const nextZ = this.pos.z - dCos(this.yaw) * stepDist;
+        if (nav.isWalkableWorld(nextX, nextZ) || isPlayerInWater) {
+          this.pos.x = nextX;
+          this.pos.z = nextZ;
+          this.vel.x = dSin(this.yaw) * lungeSpeed;
+          this.vel.z = -dCos(this.yaw) * lungeSpeed;
+        }
+        this.jawOpenT = 1.0;
+        const postLungeDist = dHypot(playerPos.x - this.pos.x, playerPos.z - this.pos.z);
+        if (postLungeDist <= MonsterBrain.ATTACK_RANGE) {
+          this.triggerAttack(events, simTime);
+          return;
+        }
+        events.pushFootfall(this.id, this.pos.x, this.pos.y, this.pos.z, 1.35, true, simTime);
+        return;
+      }
+
+      // Direct Line-of-Sight Water Charge within 28.0m
+      if (
+        isPlayerInWater &&
+        distToPlayer < 28.0 &&
+        (distToPlayer < 10.0 || this.astar.hasWalkableLineOfSight(this.pos, playerPos, nav, 0.25))
+      ) {
         const targetYaw = dAtan2(dx, -dz);
         this.yaw = this.steerTowards(this.yaw, targetYaw, MonsterBrain.TURN_RATE_HUNT * dt);
-        this.pos.x += dSin(this.yaw) * speed * dt;
-        this.pos.z -= dCos(this.yaw) * speed * dt;
-        this.vel.x = dSin(this.yaw) * speed;
-        this.vel.z = -dCos(this.yaw) * speed;
-        events.pushFootfall(this.id, this.pos.x, this.pos.y, this.pos.z, 1.0, true, simTime);
-        return;
+        const nextX = this.pos.x + dSin(this.yaw) * speed * dt;
+        const nextZ = this.pos.z - dCos(this.yaw) * speed * dt;
+        if (nav.isWalkableWorld(nextX, nextZ)) {
+          this.pos.x = nextX;
+          this.pos.z = nextZ;
+          this.vel.x = dSin(this.yaw) * speed;
+          this.vel.z = -dCos(this.yaw) * speed;
+          events.pushFootfall(this.id, this.pos.x, this.pos.y, this.pos.z, speed / MonsterBrain.SPEED_HUNT, true, simTime);
+          return;
+        }
       }
     }
 
@@ -736,12 +806,13 @@ export class MonsterBrain {
       return;
     }
 
+    const passRadius = this.state === 'HUNT' ? 1.1 : 0.6;
     let waypoint = this.currentPath[this.currentPathIndex]!;
     let dx = waypoint.x - this.pos.x;
     let dz = waypoint.z - this.pos.z;
-    const dist = dHypot(dx, dz);
+    let dist = dHypot(dx, dz);
 
-    if (dist < 0.6) {
+    while (dist < passRadius) {
       this.currentPathIndex++;
       if (this.currentPathIndex >= this.currentPath.length) {
         this.vel.x = 0;
@@ -751,6 +822,7 @@ export class MonsterBrain {
       waypoint = this.currentPath[this.currentPathIndex]!;
       dx = waypoint.x - this.pos.x;
       dz = waypoint.z - this.pos.z;
+      dist = dHypot(dx, dz);
     }
 
     const targetYaw = dAtan2(dx, -dz);
@@ -799,15 +871,43 @@ export class MonsterBrain {
       this.vel.z = dirZ * targetSpeed;
       this.stuckTimer = 0;
     } else {
-      // Minor sliding along tangent
-      this.vel.x *= 0.5;
-      this.vel.z *= 0.5;
-      this.stuckTimer += dt;
-      if (this.stuckTimer > 0.4) {
+      // Tangential wall-sliding along X-only or Z-only at 90% of targetSpeed (zero 50% velocity stall!)
+      const slideSpeed = targetSpeed * 0.9;
+      const stepDirX = Math.abs(dirX) >= 0.15 ? Math.sign(dirX) : fwdX;
+      const stepDirZ = Math.abs(dirZ) >= 0.15 ? Math.sign(dirZ) : fwdZ;
+      const slideX = this.pos.x + stepDirX * slideSpeed * dt;
+      const slideZ = this.pos.z + stepDirZ * slideSpeed * dt;
+
+      const xWalkable =
+        nav.isWalkableWorld(slideX, this.pos.z) &&
+        !(playerPos && (this.state === 'WANDER' || this.state === 'DORMANT') && dHypot(slideX - playerPos.x, this.pos.z - playerPos.z) < 6.0);
+      const zWalkable =
+        nav.isWalkableWorld(this.pos.x, slideZ) &&
+        !(playerPos && (this.state === 'WANDER' || this.state === 'DORMANT') && dHypot(this.pos.x - playerPos.x, slideZ - playerPos.z) < 6.0);
+
+      if (xWalkable && (!zWalkable || Math.abs(dx) >= Math.abs(dz))) {
+        this.pos.x = slideX;
+        this.vel.x = stepDirX * slideSpeed;
+        this.vel.z = 0;
         this.stuckTimer = 0;
-        this.currentPathIndex++;
-        if (this.currentPathIndex >= this.currentPath.length) {
-          this.pickNextWanderWaypoint(nav, playerPos);
+      } else if (zWalkable) {
+        this.pos.z = slideZ;
+        this.vel.x = 0;
+        this.vel.z = stepDirZ * slideSpeed;
+        this.stuckTimer = 0;
+      } else {
+        this.stuckTimer += dt;
+        if (this.stuckTimer > 0.12) {
+          this.stuckTimer = 0;
+          this.currentPathIndex++;
+          if (this.currentPathIndex >= this.currentPath.length) {
+            if (this.state === 'HUNT' && this.currentTarget) {
+              this.currentPath = this.astar.findPath(this.pos.x, this.pos.z, this.currentTarget.x, this.currentTarget.z);
+              this.currentPathIndex = 0;
+            } else {
+              this.pickNextWanderWaypoint(nav, playerPos);
+            }
+          }
         }
       }
     }

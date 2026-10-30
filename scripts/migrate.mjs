@@ -119,6 +119,23 @@ const DDL_STATEMENTS = [
     death_cause TEXT,
     created_at INTEGER NOT NULL
   );`,
+
+  `CREATE TABLE IF NOT EXISTS accounts (
+    account_id TEXT PRIMARY KEY,
+    email TEXT UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL,
+    password_salt TEXT NOT NULL,
+    player_id TEXT NOT NULL,
+    pubkey TEXT NOT NULL,
+    encrypted_vault TEXT NOT NULL,
+    profile_json TEXT NOT NULL DEFAULT '{}',
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL
+  );`,
+
+  `CREATE INDEX IF NOT EXISTS idx_accounts_email ON accounts(email);`,
+
+  `CREATE INDEX IF NOT EXISTS idx_accounts_player_id ON accounts(player_id);`,
 ];
 
 async function run() {

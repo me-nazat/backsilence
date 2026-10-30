@@ -140,15 +140,15 @@ export class ProceduralSkin implements MonsterSkin {
       if (this.listenTimer <= 0) this.isListening = false;
     }
 
-    // Effective speed (paused if listening or anticipating lunge)
-    let effectiveSpeed = locomotion.speed * this.strideRateMultiplier;
+    // Effective speed (paused if listening or anticipating lunge), scaled smoothly up to 14.0 m/s
+    let effectiveSpeed = Math.min(14.0, locomotion.speed) * this.strideRateMultiplier;
     if (this.isListening) effectiveSpeed = 0.0;
     if (this.lungeTimer > 0) {
       this.lungeTimer -= dt;
       effectiveSpeed = 0.0;
     }
 
-    const strideFreq = Math.max(0.6, effectiveSpeed * 1.4);
+    const strideFreq = Math.max(0.6, Math.min(14.0, effectiveSpeed) * 1.4);
     const phase = this.animTimer * strideFreq * Math.PI * 2;
 
     const j = this.hierarchy.joints;
@@ -159,11 +159,11 @@ export class ProceduralSkin implements MonsterSkin {
     j.spine[1]!.rotation.y = spineWave;
     j.spine[2]!.rotation.y = spineWave * 1.4;
 
-    // Lunge anticipation: rear back 150ms before forward attack snap
+    // Lunge anticipation: rear back 150ms before forward attack snap; forward lean (+0.28 rad) during HUNT/ATTACK
     if (this.lungeTimer > 0) {
       const rearProgress = 1.0 - this.lungeTimer / 0.150;
       j.torso.rotation.x = -0.22 * Math.sin(rearProgress * Math.PI);
-    } else if (this.mode === 'ATTACK') {
+    } else if (this.mode === 'ATTACK' || this.mode === 'HUNT' || effectiveSpeed > 6.0) {
       j.torso.rotation.x = 0.28; // aggressive forward lean
     } else {
       j.torso.rotation.x = 0.0;
@@ -201,9 +201,13 @@ export class ProceduralSkin implements MonsterSkin {
       j.shoulderR.rotation.x = armR * 0.36 * Math.min(1.0, effectiveSpeed);
     }
 
-    // 4. Jaw opening with anticipation on attack/roar
+    // 4. Jaw opening with anticipation on attack/roar/hunt (unhinges up to 0.95 rad with predatory tremor)
     if (this.mode === 'ATTACK' || this.mode === 'ALERTED' || this.mode === 'ROAR') {
-      j.jaw.rotation.x = 0.60 + Math.sin(this.animTimer * 14.0) * 0.14;
+      const jawTremor = Math.sin(this.animTimer * 38.0) * 0.04;
+      j.jaw.rotation.x = 0.88 + jawTremor + (this.mode === 'ATTACK' ? 0.07 : 0.0);
+    } else if (this.mode === 'HUNT' || effectiveSpeed > 6.0) {
+      const jawTremor = Math.sin(this.animTimer * 38.0) * 0.04;
+      j.jaw.rotation.x = 0.72 + Math.min(0.20, (effectiveSpeed / 14.0) * 0.20) + jawTremor;
     } else {
       j.jaw.rotation.x = 0.06;
     }
@@ -232,10 +236,25 @@ export class ProceduralSkin implements MonsterSkin {
       j.head.rotation.y = this.headAngleY;
     }
 
-    // 6. Ear-fin twitch
+    // 6. Acoustic tympanic gill-fan flare and flutter (flares outward by 0.55 rad with acoustic flutter)
     const earTwitch = Math.sin(this.earTwitchTimer * 18.0) * Math.exp(-this.earTwitchTimer * 3.5) * 0.35;
-    j.earLeft.rotation.y = earTwitch;
-    j.earRight.rotation.y = -earTwitch;
+    if (this.mode === 'ALERTED' || this.mode === 'HUNT') {
+      const earFlutter = Math.sin(this.animTimer * 28.0) * 0.08;
+      const flare = 0.55 + earFlutter + earTwitch;
+      j.earLeft.rotation.y = flare;
+      j.earRight.rotation.y = -flare;
+    } else {
+      j.earLeft.rotation.y = earTwitch;
+      j.earRight.rotation.y = -earTwitch;
+    }
+
+    // Raking talon strike posture when close or in ATTACK
+    if (this.mode === 'ATTACK' || (this.mode === 'HUNT' && effectiveSpeed > 8.0)) {
+      j.handL.rotation.x = -0.45;
+      j.handR.rotation.x = -0.45;
+      j.handL.rotation.z = 0.22;
+      j.handR.rotation.z = -0.22;
+    }
 
     // 7. Update foot contacts and enforce zero foot-slide during planted phase
     j.footL.getWorldPosition(this.footLPos);

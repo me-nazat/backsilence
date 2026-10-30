@@ -53,9 +53,12 @@ export class QualityBenchmark {
     if (isMobile) score -= 15;
 
     // Check WebGL renderer
+    let hasWebGL2 = false;
     try {
       const canvas = document.createElement('canvas');
-      const gl = canvas.getContext('webgl2') || canvas.getContext('webgl');
+      const gl2 = canvas.getContext('webgl2');
+      if (gl2) hasWebGL2 = true;
+      const gl = gl2 || canvas.getContext('webgl');
       if (gl) {
         const ext = gl.getExtension('WEBGL_debug_renderer_info') as { UNMASKED_RENDERER_WEBGL: number } | null;
         if (ext) {
@@ -63,7 +66,7 @@ export class QualityBenchmark {
           const renderer = typeof raw === 'string' ? raw : '';
           const lower = renderer.toLowerCase();
           if (lower.includes('swiftshader') || lower.includes('software') || lower.includes('llvmpipe')) {
-            score -= 40;
+            score -= 20;
           } else if (lower.includes('apple m') || lower.includes('rtx') || lower.includes('radeon rx') || lower.includes('gtx 1080') || lower.includes('geforce')) {
             score += 25;
           }
@@ -73,7 +76,9 @@ export class QualityBenchmark {
       /* ignore */
     }
 
-    if (score < 30) {
+    if (hasWebGL2 && !isMobile) {
+      this.effectiveTier = score >= 50 ? 'high' : 'medium';
+    } else if (score < 20 && !hasWebGL2) {
       this.effectiveTier = 'low';
     } else if (score > 65) {
       this.effectiveTier = 'high';
@@ -105,10 +110,8 @@ export class QualityBenchmark {
           requestAnimationFrame(loop);
         } else {
           const avgFrameMs = count > 0 ? totalMs / count : 16.6;
-          // If frame time is worse than 33ms (under 30fps), downgrade
-          if (avgFrameMs > 30) {
-            this.effectiveTier = 'low';
-          } else if (avgFrameMs > 19 && this.effectiveTier === 'high') {
+          // Do not downgrade to 'low' CSS fallback during CPU-heavy loading on WebGL2 desktops
+          if (avgFrameMs > 28 && this.effectiveTier === 'high') {
             this.effectiveTier = 'medium';
           }
           this.choiceReason = `Loading benchmark avgFrameMs=${avgFrameMs.toFixed(1)}ms (${this.choiceReason})`;

@@ -541,13 +541,97 @@ describe('MonsterBrain State Machine & Determinism', () => {
     // Set to WANDER state
     brain.state = 'WANDER';
 
-    // Player standing still at distance 1.2m: no attack (touch range is 0.9m)
-    brain.step(1 / 60, { x: 0, y: WATER_FLOOR_Y, z: 1.2 }, world.nav, world.colliders, events, ctx, 1.0);
+    // Player standing still at distance 1.25m: no attack (touch range is 1.15m)
+    brain.step(1 / 60, { x: 0, y: WATER_FLOOR_Y, z: 1.25 }, world.nav, world.colliders, events, ctx, 1.0);
     expect(brain.state).toBe('WANDER');
 
-    // Player steps within touch range 0.85m: triggers ATTACK
-    brain.step(1 / 60, { x: 0, y: WATER_FLOOR_Y, z: 0.85 }, world.nav, world.colliders, events, ctx, 1.05);
+    // Player steps within touch range 1.10m (<= 1.15m): triggers ATTACK
+    brain.step(1 / 60, { x: 0, y: WATER_FLOOR_Y, z: 1.10 }, world.nav, world.colliders, events, ctx, 1.05);
     expect(brain.state).toBe('ATTACK');
+  });
+
+  it('never stalls during HUNT on consecutive water splashes and kills player within <= 2.0s from 22m', () => {
+    const world = createProvingGroundsSim();
+    const def: MonsterDef = {
+      id: 'm_apex_sprint',
+      variant: 'standard',
+      spawn: { x: -30, y: WATER_FLOOR_Y, z: -28 },
+      hearingMul: 1.0,
+      speedMul: 1.0,
+      scale: 1.0,
+      spawnGrace: 0,
+    };
+    const brain = new MonsterBrain(def, world.nav, 321);
+    const events = world.events;
+    const ctx: HearingContext = { difficultyHearing: 1.0 };
+
+    expect(MonsterBrain.SPEED_WANDER).toBe(3.2);
+    expect(MonsterBrain.SPEED_HUNT).toBe(10.4);
+    expect(MonsterBrain.SPEED_APEX_SPRINT).toBe(13.8);
+    expect(MonsterBrain.TOUCH_RANGE).toBe(1.15);
+    expect(MonsterBrain.ATTACK_RANGE).toBe(2.35);
+    expect(MonsterBrain.LUNGE_RANGE).toBe(3.8);
+
+    const playerWaterPos = { x: -12, y: WATER_FLOOR_Y, z: -28 }; // 18m away in open water
+    brain.onNoiseEvent(
+      {
+        id: 'jump_1',
+        kind: 'jump_in',
+        position: playerWaterPos,
+        loudness: 0.95,
+        sourcePlayerId: 'player1',
+        t: 0.1,
+      },
+      world.colliders,
+      ctx,
+      0.1,
+    );
+
+    expect(brain.state).toBe('ALERTED');
+
+    // Transitions to HUNT within <= 0.25s (15 ticks)
+    let enteredHuntAt = -1;
+    let t = 0.1;
+    for (let i = 1; i <= 15; i++) {
+      t += 1 / 60;
+      brain.step(1 / 60, playerWaterPos, world.nav, world.colliders, events, ctx, t, false, true);
+      if (brain.state === 'HUNT' && enteredHuntAt < 0) {
+        enteredHuntAt = t - 0.1;
+      }
+    }
+    expect(enteredHuntAt).toBeGreaterThan(0);
+    expect(enteredHuntAt).toBeLessThanOrEqual(0.25);
+
+    // Emit second jump splash while already in HUNT: must NEVER revert to ALERTED or zero velocity!
+    brain.onNoiseEvent(
+      {
+        id: 'jump_2',
+        kind: 'splash',
+        position: playerWaterPos,
+        loudness: 0.95,
+        sourcePlayerId: 'player1',
+        t,
+      },
+      world.colliders,
+      ctx,
+      t,
+    );
+    expect(brain.state).toBe('HUNT');
+    expect(brain.consecutiveSplashes).toBeGreaterThanOrEqual(2);
+
+    // Step up to 1.8s total: monster accelerates to Apex Water-Sprint + Hydro-Lunge and kills player
+    let killedAt = -1;
+    for (let i = 0; i < 110; i++) {
+      t += 1 / 60;
+      brain.step(1 / 60, playerWaterPos, world.nav, world.colliders, events, ctx, t, false, true);
+      if (brain.state === 'ATTACK') {
+        killedAt = t - 0.1;
+        break;
+      }
+    }
+    expect(brain.state).toBe('ATTACK');
+    expect(killedAt).toBeGreaterThan(0);
+    expect(killedAt).toBeLessThanOrEqual(1.85);
   });
 });
 

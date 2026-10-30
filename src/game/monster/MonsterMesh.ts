@@ -1,10 +1,10 @@
 /* ── MonsterMesh.ts ────────────────────────────────────────────────────────
- *  Procedural seamless 3D body for the Blind Acoustic Monster.
+ *  Procedural seamless 3D body for the Blind Acoustic Horror Predator.
  *  Uses continuous SkinnedMesh with distance-to-segment weighting:
- *  - Zero gaps/cracks/pops at elbows, knees, shoulders, neck at any acute angle
- *  - Organic flesh material with procedural bump, veins, and wetness logic
- *  - Fog extinction reduction by 40% and faint cool rim light for readability
- *  - Vertebra spikes along spine, teeth in jaw, blind sockets, veined ear-fins
+ *  - 24 jagged dorsal osteoderm bone-blade processes bursting through flesh
+ *  - 42 recurved abyssal needle-fangs in multi-row maxillary/mandibular layout
+ *  - Multi-ribbed acoustic tympanic gill-fans with 5 radiating cartilaginous spines
+ *  - Visceral PBR necrotic flesh with bump relief, wet mucus micro-sheen, and cold abyssal rim
  *  - Zero external .glb dependencies required
  * ──────────────────────────────────────────────────────────────────────── */
 
@@ -14,9 +14,10 @@ import {
   InstancedMesh,
   CapsuleGeometry,
   SphereGeometry,
-  ConeGeometry,
   CylinderGeometry,
-  PlaneGeometry,
+  BufferGeometry,
+  Float32BufferAttribute,
+  Uint16BufferAttribute,
   MeshStandardMaterial,
   Color,
   Matrix4,
@@ -54,6 +55,169 @@ export interface MonsterJoints {
   footR: Object3D;
 }
 
+/**
+ * Builds a curved, backward-hooked serrated bone-blade osteoderm geometry
+ * with longitudinal grooves and sharp keels.
+ */
+export function buildOsteodermBladeGeometry(): BufferGeometry {
+  const geom = new BufferGeometry();
+  const positions: number[] = [];
+  const indices: number[] = [];
+
+  const rings = 8;
+  const segments = 8;
+
+  for (let r = 0; r <= rings; r++) {
+    const v = r / rings;
+    // Backward arc camber (curves backward by 0.07m at apex)
+    const arcZ = Math.pow(v, 1.8) * 0.07;
+    const y = v * 0.17;
+
+    // Tapering blade cross-section (narrow width, deeper keel)
+    const w = Math.max(0.002, 0.024 * Math.pow(1.0 - v * 0.95, 0.7));
+    const d = Math.max(0.004, 0.055 * (1.0 - v * 0.92));
+
+    for (let s = 0; s <= segments; s++) {
+      const u = s / segments;
+      const angle = u * Math.PI * 2;
+      const cosA = Math.cos(angle);
+      const sinA = Math.sin(angle);
+
+      // Serrated notches along posterior keel (sinA > 0.5)
+      const serration = sinA > 0.4 ? Math.sin(v * 28.0) * 0.004 : 0;
+      // Longitudinal groove on lateral flanks (high |cosA|)
+      const groove = Math.abs(cosA) > 0.6 ? -0.003 * Math.sin(v * Math.PI) : 0;
+
+      const px = cosA * w + (cosA > 0 ? groove : -groove);
+      const py = y;
+      const pz = sinA * d + arcZ + serration;
+
+      positions.push(px, py, pz);
+    }
+  }
+
+  const stride = segments + 1;
+  for (let r = 0; r < rings; r++) {
+    for (let s = 0; s < segments; s++) {
+      const a = r * stride + s;
+      const b = (r + 1) * stride + s;
+      const c = (r + 1) * stride + (s + 1);
+      const d = r * stride + (s + 1);
+      indices.push(a, b, d);
+      indices.push(b, c, d);
+    }
+  }
+
+  geom.setAttribute('position', new Float32BufferAttribute(positions, 3));
+  geom.setIndex(new Uint16BufferAttribute(indices, 1));
+  geom.computeVertexNormals();
+  return geom;
+}
+
+/**
+ * Builds a recurved needle-fang geometry with a sharp inward predatory hook.
+ */
+export function buildRecurvedFangGeometry(): BufferGeometry {
+  const geom = new BufferGeometry();
+  const positions: number[] = [];
+  const indices: number[] = [];
+
+  const rings = 7;
+  const segments = 8;
+
+  for (let r = 0; r <= rings; r++) {
+    const v = r / rings;
+    const y = v * 0.09;
+    // Inward/backward hook curve
+    const arcZ = Math.pow(v, 2.2) * 0.032;
+    const rad = Math.max(0.0015, 0.016 * Math.pow(1.0 - v, 0.85));
+
+    for (let s = 0; s <= segments; s++) {
+      const u = s / segments;
+      const angle = u * Math.PI * 2;
+      const px = Math.cos(angle) * rad * 0.85;
+      const py = y;
+      const pz = Math.sin(angle) * rad + arcZ;
+      positions.push(px, py, pz);
+    }
+  }
+
+  const stride = segments + 1;
+  for (let r = 0; r < rings; r++) {
+    for (let s = 0; s < segments; s++) {
+      const a = r * stride + s;
+      const b = (r + 1) * stride + s;
+      const c = (r + 1) * stride + (s + 1);
+      const d = r * stride + (s + 1);
+      indices.push(a, b, d);
+      indices.push(b, c, d);
+    }
+  }
+
+  geom.setAttribute('position', new Float32BufferAttribute(positions, 3));
+  geom.setIndex(new Uint16BufferAttribute(indices, 1));
+  geom.computeVertexNormals();
+  return geom;
+}
+
+/**
+ * Builds an acoustic tympanic fan membrane supported by 5 radiating cartilaginous spines
+ * with tattered, serrated trailing edges.
+ */
+export function buildTympanicFanGeometry(): BufferGeometry {
+  const geom = new BufferGeometry();
+  const positions: number[] = [];
+  const uvs: number[] = [];
+  const indices: number[] = [];
+
+  const numSpines = 5;
+  const radialSegments = 16;
+  const lengthRings = 8;
+
+  for (let r = 0; r <= lengthRings; r++) {
+    const v = r / lengthRings;
+    const length = 0.04 + v * 0.22;
+
+    for (let s = 0; s <= radialSegments; s++) {
+      const u = s / radialSegments;
+      // Spread across fan angle
+      const fanAngle = -0.55 + u * 1.10;
+
+      // 5 undulating spines causing radial folds
+      const spinePhase = u * (numSpines - 1) * Math.PI * 2.0;
+      const foldZ = Math.sin(spinePhase) * 0.018 * v;
+
+      // Tattered/serrated trailing edge at v = 1.0
+      const serration = v > 0.8 ? Math.sin(u * 36.0) * 0.012 * ((v - 0.8) / 0.2) : 0;
+
+      const px = Math.sin(fanAngle) * (length + serration);
+      const py = Math.cos(fanAngle) * (length + serration) * 0.65;
+      const pz = foldZ - v * 0.06;
+
+      positions.push(px, py, pz);
+      uvs.push(u, v);
+    }
+  }
+
+  const stride = radialSegments + 1;
+  for (let r = 0; r < lengthRings; r++) {
+    for (let s = 0; s < radialSegments; s++) {
+      const a = r * stride + s;
+      const b = (r + 1) * stride + s;
+      const c = (r + 1) * stride + (s + 1);
+      const d = r * stride + (s + 1);
+      indices.push(a, b, d);
+      indices.push(b, c, d);
+    }
+  }
+
+  geom.setAttribute('position', new Float32BufferAttribute(positions, 3));
+  geom.setAttribute('uv', new Float32BufferAttribute(uvs, 2));
+  geom.setIndex(new Uint16BufferAttribute(indices, 1));
+  geom.computeVertexNormals();
+  return geom;
+}
+
 export class MonsterMeshHierarchy {
   readonly root = new Group();
   readonly lod0 = new Group();
@@ -67,6 +231,7 @@ export class MonsterMeshHierarchy {
   private readonly textures: Texture[] = [];
   private readonly dummyMat = new Matrix4();
   private readonly waterLevelUniform = { value: 0.0 };
+  private readonly agitationUniform = { value: 0.0 };
 
   constructor(scale = 1.0, tintHex = '#6b5f40', seed = 54321) {
     this.root.name = 'MonsterRoot';
@@ -75,12 +240,18 @@ export class MonsterMeshHierarchy {
     this.root.add(this.lod1);
     this.lod1.visible = false; // LOD0 active by default
 
-    // 1. Generate procedural organic textures & skin material
-    const flesh = generateFleshTextures({ size: 256, seed });
+    // 1. Generate high-resolution procedural horror PBR textures
+    const flesh = generateFleshTextures({ seed });
     this.textures.push(flesh.albedo, flesh.bump, flesh.roughness);
+    if (flesh.subsurface) this.textures.push(flesh.subsurface);
 
-    const applyCreatureShaderHooks = (shader: { vertexShader: string; fragmentShader: string; uniforms: Record<string, { value: unknown }> }) => {
+    const applyCreatureShaderHooks = (shader: {
+      vertexShader: string;
+      fragmentShader: string;
+      uniforms: Record<string, { value: unknown }>;
+    }) => {
       shader.uniforms.uWaterLevel = this.waterLevelUniform;
+      shader.uniforms.uAgitation = this.agitationUniform;
 
       shader.vertexShader = shader.vertexShader.replace(
         '#include <common>',
@@ -102,6 +273,7 @@ export class MonsterMeshHierarchy {
         /* glsl */ `
         #include <common>
         uniform float uWaterLevel;
+        uniform float uAgitation;
         varying vec3 vWorldPositionForWet;
         `,
       );
@@ -142,19 +314,28 @@ export class MonsterMeshHierarchy {
         vec3 coolRim = vec3(0.16, 0.20, 0.22) * pow(rim, 2.2) * 0.35;
         vec3 wetSheen = vec3(0.04, 0.045, 0.04) * pow(rim, 3.0);
         vec3 subsurfaceLift = vec3(0.065, 0.045, 0.038);
+
+        // Cold razor-sharp abyssal silhouette rim intensifying as agitation approaches 1.0
+        vec3 abyssalRim = mix(vec3(0.18, 0.28, 0.25), vec3(0.45, 0.06, 0.04), clamp(uAgitation, 0.0, 1.0)) * pow(rim, 2.2) * (0.50 + uAgitation * 0.50);
+
+        // Wet Mucus Specular Micro-Sheen term
+        vec3 normal = vNormal;
+        float mucusSheen = pow(max(0.0, dot(reflect(-viewDir, normal), viewDir)), 24.0) * 0.35;
+
         // Dark wet abyssal chitin with subtle bio-acoustic acoustic vein pulse
         float veinNoise = sin(vWorldPositionForWet.x * 12.0 + vWorldPositionForWet.z * 12.0) * cos(vWorldPositionForWet.y * 18.0);
         vec3 acousticVein = vec3(0.02, 0.12, 0.09) * smoothstep(0.75, 0.98, veinNoise);
-        gl_FragColor.rgb += coolTopRim + coolRim + wetSheen + subsurfaceLift + acousticVein;
+
+        gl_FragColor.rgb += coolTopRim + coolRim + wetSheen + subsurfaceLift + abyssalRim + vec3(mucusSheen) + acousticVein;
         `,
       );
     };
 
-    // Body skin material: #6b5f40 standard tint (Prompt 7.4)
+    // Body skin material
     const skinMat = new MeshStandardMaterial({
       map: flesh.albedo,
       bumpMap: flesh.bump,
-      bumpScale: 0.04,
+      bumpScale: 0.085,
       roughnessMap: flesh.roughness,
       roughness: 0.52,
       metalness: 0.03,
@@ -164,11 +345,11 @@ export class MonsterMeshHierarchy {
     skinMat.onBeforeCompile = applyCreatureShaderHooks;
     this.materials.push(skinMat);
 
-    // Head skin material: separate material tinted #59462d (Prompt 7.2)
+    // Head skin material: tinted #59462d
     const headMat = new MeshStandardMaterial({
       map: flesh.albedo,
       bumpMap: flesh.bump,
-      bumpScale: 0.04,
+      bumpScale: 0.085,
       roughnessMap: flesh.roughness,
       roughness: 0.52,
       metalness: 0.03,
@@ -178,18 +359,19 @@ export class MonsterMeshHierarchy {
     headMat.onBeforeCompile = applyCreatureShaderHooks;
     this.materials.push(headMat);
 
+    // Glistening dark-ivory bone/cartilage material (#c8bfa8, roughness: 0.25)
     const boneMat = new MeshStandardMaterial({
-      color: new Color('#ded4b8'),
-      roughness: 0.7,
-      metalness: 0.05,
+      color: new Color('#c8bfa8'),
+      roughness: 0.25,
+      metalness: 0.06,
     });
     this.materials.push(boneMat);
 
-    // Ear-fins: rebuilt with vein texture, #59462d tint, zero emissive, opacity 0.72 (Prompt 7.1)
+    // Acoustic tympanic gill-fan material
     const earMat = new MeshStandardMaterial({
       map: flesh.albedo,
       bumpMap: flesh.bump,
-      bumpScale: 0.02,
+      bumpScale: 0.03,
       color: new Color('#59462d'),
       emissive: new Color('#000000'),
       emissiveIntensity: 0.0,
@@ -231,7 +413,7 @@ export class MonsterMeshHierarchy {
     };
 
     // 3. Attach articulated accessories to skeleton bones
-    // Acoustic sensory pits: eyeless creature with 28 dark pitted sensory pores parented to head
+    // Acoustic sensory pits: 28 dark pitted sensory pores parented to head
     const pitGeom = new SphereGeometry(0.024, 6, 6);
     const pitMat = new MeshStandardMaterial({ color: new Color('#220c0a'), roughness: 0.95 });
     this.materials.push(pitMat);
@@ -240,17 +422,13 @@ export class MonsterMeshHierarchy {
     pitMesh.instanceMatrix.setUsage(DynamicDrawUsage);
 
     const pitCoords: [number, number, number][] = [
-      // Forehead / dome apex
       [0.0, 0.16, -0.06], [0.06, 0.15, -0.08], [-0.06, 0.15, -0.08],
       [0.11, 0.14, -0.10], [-0.11, 0.14, -0.10], [0.04, 0.15, 0.02], [-0.04, 0.15, 0.02],
-      // Mid-face sensory cluster (eyeless, acoustic detection pits)
       [0.08, 0.09, -0.18], [-0.08, 0.09, -0.18], [0.14, 0.08, -0.15], [-0.14, 0.08, -0.15],
       [0.03, 0.10, -0.19], [-0.03, 0.10, -0.19], [0.09, 0.05, -0.21], [-0.09, 0.05, -0.21],
       [0.15, 0.03, -0.18], [-0.15, 0.03, -0.18], [0.0, 0.05, -0.22],
-      // Upper snout / lateral sensory line
       [0.06, 0.01, -0.23], [-0.06, 0.01, -0.23], [0.11, 0.0, -0.20], [-0.11, 0.0, -0.20],
       [0.0, 0.02, -0.24], [0.04, -0.03, -0.22], [-0.04, -0.03, -0.22],
-      // Temples
       [0.17, 0.10, -0.08], [-0.17, 0.10, -0.08], [0.0, 0.12, -0.13],
     ];
     for (let i = 0; i < pitCoords.length; i++) {
@@ -261,10 +439,10 @@ export class MonsterMeshHierarchy {
     pitMesh.instanceMatrix.needsUpdate = true;
     bm.head.add(pitMesh);
 
-    // Skull: wide and low (approx 2:1 width to height), flat top, broad downturned muzzle (Prompt 7.2)
+    // Predatory Skull: elongated, skull-like cranium with flared zygomatic bone arches
     const skullGeom = new CylinderGeometry(0.22, 0.19, 0.44, 14);
     skullGeom.rotateX(Math.PI / 2);
-    skullGeom.scale(1.05, 0.50, 1.05); // ~0.44m wide, ~0.22m high (2:1 ratio)
+    skullGeom.scale(1.05, 0.50, 1.05);
     const posAttr = skullGeom.attributes.position;
     if (posAttr) {
       for (let i = 0; i < posAttr.count; i++) {
@@ -284,7 +462,20 @@ export class MonsterMeshHierarchy {
     skullMesh.position.set(0, 0.04, -0.08);
     bm.head.add(skullMesh);
 
-    // Blind, sealed, slightly sunken eye socket discs with dull wet membrane material (Prompt 7.2)
+    // Deep oral cavity & crimson throat gradient (#4a0707)
+    const throatGeom = new SphereGeometry(0.13, 8, 8);
+    const throatMat = new MeshStandardMaterial({
+      color: new Color('#4a0707'),
+      roughness: 0.18,
+      metalness: 0.05,
+    });
+    this.materials.push(throatMat);
+    const throatMesh = new Mesh(throatGeom, throatMat);
+    throatMesh.scale.set(0.9, 0.5, 1.3);
+    throatMesh.position.set(0, -0.02, -0.12);
+    bm.head.add(throatMesh);
+
+    // Blind, sealed, sunken eye socket discs with scarred dermal ridge (#635240)
     const socketMat = new MeshStandardMaterial({
       color: new Color('#635240'),
       roughness: 0.40,
@@ -295,18 +486,20 @@ export class MonsterMeshHierarchy {
     this.materials.push(socketMat);
     const socketGeom = new CylinderGeometry(0.045, 0.045, 0.012, 12);
     socketGeom.rotateX(Math.PI / 2);
+
     const socketL = new Mesh(socketGeom, socketMat);
     socketL.name = 'EyeSocket_L';
     socketL.position.set(0.18, 0.05, -0.16);
     socketL.rotation.y = 0.35;
     bm.head.add(socketL);
+
     const socketR = new Mesh(socketGeom, socketMat);
     socketR.name = 'EyeSocket_R';
     socketR.position.set(-0.18, 0.05, -0.16);
     socketR.rotation.y = -0.35;
     bm.head.add(socketR);
 
-    // Massive lower jaw (Prompt 7.2)
+    // Massive hinged split lower mandible
     const jawGeom = new CylinderGeometry(0.20, 0.17, 0.40, 12);
     jawGeom.rotateX(Math.PI / 2);
     jawGeom.scale(0.98, 0.38, 1.0);
@@ -314,41 +507,118 @@ export class MonsterMeshHierarchy {
     jawMesh.position.set(0, -0.04, -0.05);
     bm.jaw.add(jawMesh);
 
-    // Teeth: 24 sharp bone cones along the jaw perimeter (Prompt 7.2)
-    const toothGeom = new ConeGeometry(0.016, 0.045, 5);
-    this.teethMesh = new InstancedMesh(toothGeom, boneMat, 24);
+    // Multi-Row Abyssal Needle Dentition (42 recurved needle-fangs in double-row arrangement)
+    const fangGeom = buildRecurvedFangGeometry();
+    this.teethMesh = new InstancedMesh(fangGeom, boneMat, 42);
     this.teethMesh.instanceMatrix.setUsage(DynamicDrawUsage);
+
+    const m = new Matrix4();
+    const rotM = new Matrix4();
+    const scaleM = new Matrix4();
+
+    // 24 Mandibular tearing & grasping fangs along lower jaw (outer & inner rows)
     for (let i = 0; i < 24; i++) {
-      const angle = (i / 23) * Math.PI - Math.PI / 2;
-      const tx = Math.sin(angle) * 0.18;
-      const tz = Math.cos(angle) * 0.22 - 0.18;
-      this.dummyMat.makeTranslation(tx, 0.02, tz);
-      this.teethMesh.setMatrixAt(i, this.dummyMat);
+      const isInner = i >= 16;
+      const rowIdx = isInner ? i - 16 : i;
+      const rowCount = isInner ? 8 : 16;
+      const angle = (rowIdx / (rowCount - 1)) * Math.PI - Math.PI / 2;
+      const radiusX = isInner ? 0.12 : 0.18;
+      const radiusZ = isInner ? 0.16 : 0.22;
+      const tx = Math.sin(angle) * radiusX;
+      const tz = Math.cos(angle) * radiusZ - 0.18;
+      const ty = isInner ? 0.025 : 0.018;
+
+      // Randomized lengths (0.05m–0.14m)
+      const fangScale = (0.06 + Math.abs(Math.sin(i * 1.7)) * 0.08) * (isInner ? 0.75 : 1.0);
+      m.makeTranslation(tx, ty, tz);
+      // Rake angle: angled slightly inward/forward
+      rotM.makeRotationX(0.20 + (isInner ? 0.15 : 0.0));
+      m.multiply(rotM);
+      scaleM.makeScale(1.0, fangScale / 0.09, 1.0);
+      m.multiply(scaleM);
+
+      this.teethMesh.setMatrixAt(i, m);
+    }
+
+    // 18 Maxillary tearing & pharyngeal grasping fangs along upper skull rim
+    for (let i = 24; i < 42; i++) {
+      const idx = i - 24;
+      const isInner = idx >= 12;
+      const rowIdx = isInner ? idx - 12 : idx;
+      const rowCount = isInner ? 6 : 12;
+      const angle = (rowIdx / (rowCount - 1)) * Math.PI - Math.PI / 2;
+      const radiusX = isInner ? 0.11 : 0.17;
+      const radiusZ = isInner ? 0.15 : 0.21;
+      const tx = Math.sin(angle) * radiusX;
+      const tz = Math.cos(angle) * radiusZ - 0.20;
+      const ty = isInner ? -0.015 : -0.022;
+
+      const fangScale = (0.06 + Math.abs(Math.cos(i * 2.1)) * 0.07) * (isInner ? 0.75 : 1.0);
+      m.makeTranslation(tx, ty, tz);
+      // Invert Y for upper fangs pointing downward
+      rotM.makeRotationZ(Math.PI);
+      m.multiply(rotM);
+      scaleM.makeScale(1.0, fangScale / 0.09, 1.0);
+      m.multiply(scaleM);
+
+      this.teethMesh.setMatrixAt(i, m);
     }
     this.teethMesh.instanceMatrix.needsUpdate = true;
     bm.jaw.add(this.teethMesh);
 
-    // Ear-fins: 0.16 x 0.22 m veined membranes, folded back and down behind skull (Prompt 7.1)
-    const earGeom = new PlaneGeometry(0.16, 0.22);
-    earGeom.translate(0.08, 0.06, -0.04);
-    const earMeshL = new Mesh(earGeom, earMat);
+    // Multi-ribbed acoustic tympanic fan membranes with 5 radiating cartilaginous spines
+    const tympanicGeomL = buildTympanicFanGeometry();
+    const earMeshL = new Mesh(tympanicGeomL, earMat);
+    earMeshL.name = 'TympanicFan_L';
     bm.earLeft.add(earMeshL);
 
-    const earGeomR = earGeom.clone();
-    earGeomR.scale(-1, 1, 1);
-    const earMeshR = new Mesh(earGeomR, earMat);
+    const tympanicGeomR = tympanicGeomL.clone();
+    tympanicGeomR.scale(-1, 1, 1);
+    const earMeshR = new Mesh(tympanicGeomR, earMat);
+    earMeshR.name = 'TympanicFan_R';
     bm.earRight.add(earMeshR);
 
-    // Spine Ridge: 14 vertebra bone spikes along torso and pelvis
-    const vertebraGeom = new ConeGeometry(0.035, 0.16, 5);
-    this.vertebraMesh = new InstancedMesh(vertebraGeom, boneMat, 14);
+    // 24 Curved Dorsal Spine Processes (asymmetrical osteoderm blades bursting through skin)
+    const bladeGeom = buildOsteodermBladeGeometry();
+    this.vertebraMesh = new InstancedMesh(bladeGeom, boneMat, 24);
     this.vertebraMesh.instanceMatrix.setUsage(DynamicDrawUsage);
+
+    // Central primary ridge: 14 blades angled backward at 35°–50°
     for (let i = 0; i < 14; i++) {
       const progress = i / 14;
-      const vz = -0.3 + progress * 0.75;
-      const vy = 0.25 + Math.sin(progress * Math.PI) * 0.15;
-      this.dummyMat.makeTranslation(0, vy, vz);
-      this.vertebraMesh.setMatrixAt(i, this.dummyMat);
+      const vz = -0.36 + progress * 0.85;
+      const vy = 0.22 + Math.sin(progress * Math.PI) * 0.18;
+      const bladeScale = 0.8 + Math.sin(progress * Math.PI) * 0.45;
+      const rakeAngle = -0.65 - (progress * 0.22); // 37° to 50° backward rake
+
+      m.makeTranslation(0, vy, vz);
+      rotM.makeRotationX(rakeAngle);
+      m.multiply(rotM);
+      scaleM.makeScale(bladeScale, bladeScale, bladeScale);
+      m.multiply(scaleM);
+
+      this.vertebraMesh.setMatrixAt(i, m);
+    }
+
+    // Flanking paravertebral rows: 10 smaller jutting bone spurs (5 left, 5 right)
+    for (let i = 0; i < 10; i++) {
+      const side = i % 2 === 0 ? 1 : -1;
+      const pairIdx = Math.floor(i / 2);
+      const progress = 0.25 + pairIdx * 0.12;
+      const vx = side * 0.085;
+      const vz = -0.28 + progress * 0.65;
+      const vy = 0.18 + Math.sin(progress * Math.PI) * 0.14;
+      const spurScale = 0.55 + Math.sin(progress * Math.PI) * 0.25;
+
+      m.makeTranslation(vx, vy, vz);
+      rotM.makeRotationX(-0.60);
+      m.multiply(rotM);
+      const sideRot = new Matrix4().makeRotationZ(side * 0.28);
+      m.multiply(sideRot);
+      scaleM.makeScale(spurScale, spurScale, spurScale);
+      m.multiply(scaleM);
+
+      this.vertebraMesh.setMatrixAt(14 + i, m);
     }
     this.vertebraMesh.instanceMatrix.needsUpdate = true;
     bm.spine2.add(this.vertebraMesh);
@@ -374,7 +644,7 @@ export class MonsterMeshHierarchy {
     // 4. Build LOD1 simplified merged mesh (for distance > 35m, <= 2000 tris)
     this.buildLod1Mesh(skinMat);
 
-    // Disable frustum culling on all child meshes so dynamic IK limb motions are never clipped
+    // Disable frustum culling on all child meshes
     this.root.traverse((obj) => {
       if ((obj as Mesh).isMesh) {
         (obj as Mesh).frustumCulled = false;
@@ -386,9 +656,11 @@ export class MonsterMeshHierarchy {
     this.waterLevelUniform.value = y;
   }
 
+  setAgitation(agitation: number): void {
+    this.agitationUniform.value = agitation;
+  }
+
   private buildLod1Mesh(mat: Material): void {
-    // Simplified composite silhouette mesh for LOD1 (<= 600 tris total)
-    // Preserves hunched quadruped silhouette, broad wet back, lowered head, and long wading arms
     const lod1Group = new Group();
     lod1Group.name = 'LOD1_CompositeSilhouette';
 
@@ -405,9 +677,9 @@ export class MonsterMeshHierarchy {
     humpMesh.position.set(0, 0.70, -0.05);
     lod1Group.add(humpMesh);
 
-    // Wide, lowered head at shoulder level
+    // Wide lowered skull at shoulder level
     const headGeom = new SphereGeometry(0.24, 6, 6);
-    headGeom.scale(1.25, 0.65, 1.15); // Wide 2:1
+    headGeom.scale(1.25, 0.65, 1.15);
     const headMesh = new Mesh(headGeom, mat);
     headMesh.position.set(0, 0.52, -0.55);
     lod1Group.add(headMesh);

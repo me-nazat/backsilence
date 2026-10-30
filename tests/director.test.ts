@@ -218,4 +218,33 @@ describe('Prompt 3 Section 4: Encounter Director & Dread Rhythm', () => {
     expect(region.x).toBe(-20);
     expect(region.z).toBe(-20);
   });
+
+  it('triggers Acoustic Ambush Relocation to 16m-24m outside 60° view cone when loud splash occurs > 32m away', () => {
+    const director = new EncounterDirector(4321, 'normal');
+    const sim = createProvingGroundsSim('normal');
+    const monster = sim.addMonster({
+      id: 'm_ambush',
+      variant: 'standard',
+      spawn: { x: -30, y: -0.9, z: -30 },
+      spawnGrace: 0.0,
+    });
+
+    const playerWaterPos = { x: 20, y: -0.9, z: 20 }; // ~70.7m away (> 32m)
+    director.updatePlayer('p1', playerWaterPos, true, false, true, 0);
+    director.recordNoise({
+      id: 'loud_jump_splash',
+      kind: 'jump_in',
+      position: playerWaterPos,
+      loudness: 0.9,
+      sourcePlayerId: 'p1',
+      t: 5.0,
+    });
+
+    director.step(1 / 60, [monster], sim.nav, 0);
+
+    const newDist = Math.hypot(monster.pos.x - playerWaterPos.x, monster.pos.z - playerWaterPos.z);
+    expect(newDist).toBeGreaterThanOrEqual(16.0);
+    expect(newDist).toBeLessThanOrEqual(24.5);
+    expect(monster.state).toBe('HUNT');
+  });
 });

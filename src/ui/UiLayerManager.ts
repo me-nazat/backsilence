@@ -57,6 +57,18 @@ export class UiLayerManager {
       }
       const canvasContainer = document.getElementById('canvas-container');
       if (canvasContainer) canvasContainer.setAttribute('inert', '');
+      element.removeAttribute('inert');
+    } else {
+      element.removeAttribute('inert');
+      element.style.pointerEvents = 'auto';
+      const hasModal = this.stack.some((l) => l.isModal);
+      if (!hasModal) {
+        for (const layer of this.stack) {
+          layer.element.removeAttribute('inert');
+        }
+        const canvasContainer = document.getElementById('canvas-container');
+        if (canvasContainer) canvasContainer.removeAttribute('inert');
+      }
     }
 
     this.stack.push(entry);
@@ -125,6 +137,20 @@ export class UiLayerManager {
   public clear(): void {
     while (this.stack.length > 0) {
       this.popLayer();
+    }
+    if (typeof document !== 'undefined') {
+      const canvasContainer = document.getElementById('canvas-container');
+      if (canvasContainer) canvasContainer.removeAttribute('inert');
+      const uiLayer = document.getElementById('ui-layer');
+      if (uiLayer) {
+        uiLayer.removeAttribute('inert');
+        uiLayer.style.pointerEvents = 'auto';
+      }
+      const homeScreen = document.getElementById('screen-home');
+      if (homeScreen) {
+        homeScreen.removeAttribute('inert');
+        homeScreen.style.pointerEvents = 'auto';
+      }
     }
   }
 

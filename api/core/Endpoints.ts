@@ -5,7 +5,16 @@
 
 import type { ServerEnv } from './Types.js';
 import { TursoClient } from './TursoClient.js';
-import { verifyRequestSignature, derivePlayerId } from './Auth.js';
+import {
+  verifyRequestSignature,
+  derivePlayerId,
+  hashPasswordPbkdf2,
+  verifyPasswordPbkdf2,
+  issueSessionToken,
+  verifySessionToken,
+  isValidEmail,
+  isValidPassword,
+} from './Auth.js';
 import { RateLimiter } from './RateLimiter.js';
 
 function json(data: unknown, status = 200, extraHeaders: Record<string, string> = {}): Response {
@@ -30,7 +39,7 @@ function getCorsHeaders(req: Request, env: ServerEnv): Record<string, string> {
   return {
     'Access-Control-Allow-Origin': allowOrigin,
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, X-BS-Player, X-BS-Ts, X-BS-Nonce, X-BS-Sig',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-BS-Player, X-BS-Ts, X-BS-Nonce, X-BS-Sig',
     'Access-Control-Max-Age': '86400',
   };
 }
@@ -95,6 +104,331 @@ export async function handleApiRequest(req: Request, env: ServerEnv): Promise<Re
         secondsRemaining,
         serverTime: Math.floor(now.getTime() / 1000),
       }, 200, corsHeaders);
+    }
+
+    // ── OFFICIAL EMAIL & PASSWORD AUTHENTICATION ────────────────────────────
+    if (pathname === '/auth/register' && req.method === 'POST') {
+      const bodyText = await req.text();
+      if (bodyText.length > 300 * 1024) {
+        return errorJson('Request payload too large', 400, corsHeaders);
+      }
+      const body = JSON.parse(bodyText) as {
+        email?: string;
+        password?: string;
+        name?: string;
+        playerId?: string;
+        pubkey?: string;
+        encryptedVault?: string;
+        profile?: unknown;
+      };
+
+      if (!body.email || !isValidEmail(body.email)) {
+        return errorJson('Invalid email address format', 400, corsHeaders);
+      }
+
+      const pwCheck = isValidPassword(body.password ?? '');
+      if (!pwCheck.valid) {
+        return errorJson(pwCheck.reason || 'Password must be at least 8 characters', 400, corsHeaders);
+      }
+
+      if (!body.pubkey || !body.encryptedVault) {
+        return errorJson('Missing pubkey or encryptedVault in registration request', 400, corsHeaders);
+      }
+
+      const sigVerify = await verifyRequestSignature(req.method, pathname, bodyText, req.headers, body.pubkey);
+      if (!sigVerify.valid) {
+        return errorJson(`Signature verification rejected: ${sigVerify.reason}`, 401, corsHeaders);
+      }
+
+      const normEmail = body.email.trim().toLowerCase();
+      const existingAcc = await TursoClient.query(
+        'SELECT account_id FROM accounts WHERE LOWER(email) = ?',
+        [normEmail],
+        env,
+      );
+      if (existingAcc.rows.length > 0) {
+        return errorJson('An account with this email already exists', 409, corsHeaders);
+      }
+
+      const derivedId = await derivePlayerId(body.pubkey);
+      const playerId = body.playerId || derivedId;
+      const now = Math.floor(Date.now() / 1000);
+      const name = sanitizeName(body.name || 'Operator');
+      let tag = Math.floor(1000 + Math.random() * 9000).toString();
+
+      const existingPlayer = await TursoClient.query(
+        'SELECT player_id, name, tag, sr, ranked_matches, banned FROM players WHERE player_id = ?',
+        [playerId],
+        env,
+      );
+
+      let finalName = name;
+      if (existingPlayer.rows.length > 0) {
+        const pRow = existingPlayer.rows[0]!;
+        tag = String(pRow['tag'] || tag);
+        if (body.name && body.name.trim()) {
+          finalName = sanitizeName(body.name);
+          await TursoClient.query('UPDATE players SET name = ? WHERE player_id = ?', [finalName, playerId], env);
+        } else {
+          finalName = String(pRow['name'] || name);
+        }
+      } else {
+        await TursoClient.query(
+          'INSERT INTO players (player_id, pubkey, name, tag, created_at, last_seen, sr, ranked_matches, banned) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+          [playerId, body.pubkey, finalName, tag, now, now, 1000, 0, 0],
+          env,
+        );
+      }
+
+      const { hashHex, saltHex } = await hashPasswordPbkdf2(body.password!);
+      const accountId = 'acc_' + Math.random().toString(36).substring(2, 10) + Date.now().toString(36);
+      const profileJson = body.profile
+        ? typeof body.profile === 'string'
+          ? body.profile
+          : JSON.stringify(body.profile)
+        : '{}';
+
+      if (profileJson.length > 256 * 1024) {
+        return errorJson('Profile JSON exceeds 256 KB limit', 400, corsHeaders);
+      }
+
+      await TursoClient.query(
+        'INSERT INTO accounts (account_id, email, password_hash, password_salt, player_id, pubkey, encrypted_vault, profile_json, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [accountId, normEmail, hashHex, saltHex, playerId, body.pubkey, body.encryptedVault, profileJson, now, now],
+        env,
+      );
+
+      const secret = env.SESSION_SECRET || 'backsilence-default-session-secret';
+      const token = await issueSessionToken(
+        {
+          accountId,
+          playerId,
+          email: normEmail,
+          exp: now + 30 * 86400,
+        },
+        secret,
+      );
+
+      return json(
+        {
+          success: true,
+          accountId,
+          playerId,
+          email: normEmail,
+          name: finalName,
+          tag,
+          token,
+        },
+        201,
+        corsHeaders,
+      );
+    }
+
+    if (pathname === '/auth/login' && req.method === 'POST') {
+      const clientIp =
+        req.headers.get('CF-Connecting-IP') ||
+        req.headers.get('X-Forwarded-For') ||
+        'local-client-ip';
+      const limit = await RateLimiter.checkLimit(clientIp, 'auth_login', env);
+      if (!limit.allowed) {
+        return errorJson(`Too many login attempts. Retry after ${limit.retryAfterSec}s`, 429, corsHeaders);
+      }
+
+      const bodyText = await req.text();
+      const body = JSON.parse(bodyText || '{}') as { email?: string; password?: string };
+      if (!body.email || !body.password) {
+        return errorJson('Invalid email or password', 401, corsHeaders);
+      }
+
+      const normEmail = body.email.trim().toLowerCase();
+      const accRes = await TursoClient.query(
+        'SELECT * FROM accounts WHERE LOWER(email) = ?',
+        [normEmail],
+        env,
+      );
+      if (accRes.rows.length === 0) {
+        return errorJson('Invalid email or password', 401, corsHeaders);
+      }
+
+      const account = accRes.rows[0]!;
+      const pwValid = await verifyPasswordPbkdf2(
+        body.password,
+        String(account['password_salt'] || ''),
+        String(account['password_hash'] || ''),
+      );
+      if (!pwValid) {
+        return errorJson('Invalid email or password', 401, corsHeaders);
+      }
+
+      const accountId = String(account['account_id']);
+      const playerId = String(account['player_id']);
+      const pubkey = String(account['pubkey']);
+      const encryptedVault = String(account['encrypted_vault']);
+
+      const pRes = await TursoClient.query(
+        'SELECT player_id, name, tag, sr, ranked_matches, banned FROM players WHERE player_id = ?',
+        [playerId],
+        env,
+      );
+      const pRow = pRes.rows[0];
+      const name = String(pRow?.['name'] || 'Operator');
+      const tag = String(pRow?.['tag'] || '0001');
+      const sr = Number(pRow?.['sr'] ?? 1000);
+
+      let parsedProfile: Record<string, unknown> = {};
+      try {
+        parsedProfile = JSON.parse(String(account['profile_json'] || '{}')) as Record<string, unknown>;
+      } catch {
+        parsedProfile = {};
+      }
+
+      const now = Math.floor(Date.now() / 1000);
+      const secret = env.SESSION_SECRET || 'backsilence-default-session-secret';
+      const token = await issueSessionToken(
+        {
+          accountId,
+          playerId,
+          email: normEmail,
+          exp: now + 30 * 86400,
+        },
+        secret,
+      );
+
+      return json(
+        {
+          success: true,
+          accountId,
+          playerId,
+          email: normEmail,
+          name,
+          tag,
+          sr,
+          pubkey,
+          encryptedVault,
+          profile: parsedProfile,
+          token,
+        },
+        200,
+        corsHeaders,
+      );
+    }
+
+    if (pathname === '/profile/sync' && req.method === 'POST') {
+      const bodyText = await req.text();
+      if (bodyText.length > 256 * 1024) {
+        return errorJson('Profile payload exceeds 256 KB limit', 400, corsHeaders);
+      }
+
+      const body = JSON.parse(bodyText || '{}') as { profile?: unknown; player_id?: string };
+      const secret = env.SESSION_SECRET || 'backsilence-default-session-secret';
+
+      let authenticatedPlayerId: string | null = null;
+      const authHeader = req.headers.get('Authorization') || req.headers.get('authorization');
+
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        const token = authHeader.slice(7).trim();
+        const tokenPayload = await verifySessionToken(token, secret);
+        if (tokenPayload) {
+          authenticatedPlayerId = tokenPayload.playerId;
+        }
+      }
+
+      if (!authenticatedPlayerId && (req.headers.has('X-BS-Sig') || req.headers.has('x-bs-sig'))) {
+        const candidatePlayerId = req.headers.get('X-BS-Player') || req.headers.get('x-bs-player') || body.player_id;
+        if (candidatePlayerId) {
+          const accRes = await TursoClient.query(
+            'SELECT pubkey FROM accounts WHERE player_id = ?',
+            [candidatePlayerId],
+            env,
+          );
+          let pubkey = accRes.rows[0]?.['pubkey'] ? String(accRes.rows[0]['pubkey']) : '';
+          if (!pubkey) {
+            const pRes = await TursoClient.query(
+              'SELECT pubkey FROM players WHERE player_id = ?',
+              [candidatePlayerId],
+              env,
+            );
+            pubkey = pRes.rows[0]?.['pubkey'] ? String(pRes.rows[0]['pubkey']) : '';
+          }
+          if (pubkey) {
+            const sigVerify = await verifyRequestSignature(req.method, pathname, bodyText, req.headers, pubkey);
+            if (sigVerify.valid) {
+              authenticatedPlayerId = candidatePlayerId;
+            }
+          }
+        }
+      }
+
+      if (!authenticatedPlayerId) {
+        return errorJson('Unauthorized profile sync request', 401, corsHeaders);
+      }
+
+      const profileJson =
+        typeof body.profile === 'string' ? body.profile : JSON.stringify(body.profile ?? {});
+      if (profileJson.length > 256 * 1024) {
+        return errorJson('Serialized profile exceeds 256 KB limit', 400, corsHeaders);
+      }
+
+      const now = Math.floor(Date.now() / 1000);
+      await TursoClient.query(
+        'UPDATE accounts SET profile_json = ?, updated_at = ? WHERE player_id = ?',
+        [profileJson, now, authenticatedPlayerId],
+        env,
+      );
+
+      return json({ success: true, updatedAt: now }, 200, corsHeaders);
+    }
+
+    if (pathname === '/auth/me' && req.method === 'GET') {
+      const authHeader = req.headers.get('Authorization') || req.headers.get('authorization');
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return errorJson('Missing Authorization Bearer token', 401, corsHeaders);
+      }
+
+      const token = authHeader.slice(7).trim();
+      const secret = env.SESSION_SECRET || 'backsilence-default-session-secret';
+      const tokenPayload = await verifySessionToken(token, secret);
+      if (!tokenPayload) {
+        return errorJson('Invalid or expired session token', 401, corsHeaders);
+      }
+
+      const accRes = await TursoClient.query(
+        'SELECT * FROM accounts WHERE player_id = ?',
+        [tokenPayload.playerId],
+        env,
+      );
+      if (accRes.rows.length === 0) {
+        return errorJson('Account not found', 404, corsHeaders);
+      }
+
+      const acc = accRes.rows[0]!;
+      const pRes = await TursoClient.query(
+        'SELECT player_id, name, tag, sr FROM players WHERE player_id = ?',
+        [tokenPayload.playerId],
+        env,
+      );
+      const pRow = pRes.rows[0];
+
+      let parsedProfile: Record<string, unknown> = {};
+      try {
+        parsedProfile = JSON.parse(String(acc['profile_json'] || '{}')) as Record<string, unknown>;
+      } catch {
+        parsedProfile = {};
+      }
+
+      return json(
+        {
+          authenticated: true,
+          accountId: tokenPayload.accountId,
+          email: String(acc['email']),
+          playerId: tokenPayload.playerId,
+          name: String(pRow?.['name'] || 'Operator'),
+          tag: String(pRow?.['tag'] || '0001'),
+          profile: parsedProfile,
+        },
+        200,
+        corsHeaders,
+      );
     }
 
     // ── PLAYER REGISTRATION ─────────────────────────────────────────────────

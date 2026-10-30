@@ -251,7 +251,7 @@ export class UIManager {
     const routeRoom = this.store.get().session.room;
     this.lobbyScreen = new LobbyScreen(
       {
-        onReadyToggle: (_ready) => {},
+        onReadyToggle: (_ready) => { },
         onStartGame: () => {
           this.startGame({
             mode: 'multi',
@@ -386,8 +386,8 @@ export class UIManager {
 
     this.keypadModal = new KeypadModal({
       onSubmit: () => false,
-      onCancel: () => {},
-      onLockout: () => {},
+      onCancel: () => { },
+      onLockout: () => { },
     });
 
     this.mountAll();
@@ -761,7 +761,14 @@ export class UIManager {
     const activeEl = this.getActiveScreenElement();
     if (activeEl) {
       const isModal = ['PAUSE', 'SETTINGS'].includes(this.currentView);
+      if (!isModal) {
+        UiLayerManager.getInstance().clear();
+        activeEl.removeAttribute('inert');
+        activeEl.style.pointerEvents = 'auto';
+      }
       UiLayerManager.getInstance().pushLayer(activeEl, isModal);
+    } else if (this.currentView === 'GAME') {
+      UiLayerManager.getInstance().clear();
     }
   }
 
@@ -893,12 +900,40 @@ export class UIManager {
 
   quitToMenu(): void {
     safeExitPointerLock();
+    if (typeof document !== 'undefined') {
+      if (document.pointerLockElement && typeof document.exitPointerLock === 'function') {
+        try {
+          document.exitPointerLock();
+        } catch {
+          /* ignore */
+        }
+      }
+      document.querySelectorAll('#bs-confirmation-modal, .bs-modal-backdrop').forEach((el) => {
+        if (el.parentElement) el.parentElement.removeChild(el);
+      });
+    }
+    UiLayerManager.getInstance().clear();
+    this.container.removeAttribute('inert');
+    this.container.style.pointerEvents = 'auto';
+    this.homeScreen.element.removeAttribute('inert');
+    this.homeScreen.element.style.pointerEvents = 'auto';
+    this.playHubScreen.element.removeAttribute('inert');
+    this.playHubScreen.element.style.pointerEvents = 'auto';
+
     this.currentView = 'MENU';
     this.viewStack = ['MENU'];
     this.updateViewVisibility();
     this.stateMachine.goTo('MENU');
     setMenuRoute();
     this.bus.emit('game:leave', undefined);
+  }
+
+  abortExpedition(): void {
+    this.quitToMenu();
+  }
+
+  exitToMenu(): void {
+    this.quitToMenu();
   }
 
   showKeypad(correctCode: string, onSolved: () => void, onLockout?: () => void): void {

@@ -224,17 +224,17 @@ export const DrainageCoreMap: MapDefinition = {
       tint?: string;
       spawnGrace?: number;
     }> = [
-      {
-        id: 'monster_elder',
-        variant: 'elder' as const,
-        spawn: { x: 30, y: -0.9, z: 42 },
-        sleeperSpawn: { x: -30.0, y: -0.9, z: -30.0 },
-        hearingMul: 1.35,
-        speedMul: 1.10,
-        scale: 1.15,
-        spawnGrace: 4.0,
-      },
-    ];
+        {
+          id: 'monster_elder',
+          variant: 'elder' as const,
+          spawn: { x: 30, y: -0.9, z: 42 },
+          sleeperSpawn: { x: -30.0, y: -0.9, z: -30.0 },
+          hearingMul: 1.35,
+          speedMul: 1.10,
+          scale: 1.15,
+          spawnGrace: 4.0,
+        },
+      ];
 
     if (ctx.difficulty === 'deafening' || ctx.playerCount >= 3) {
       monsters.push({

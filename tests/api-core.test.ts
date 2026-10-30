@@ -300,5 +300,131 @@ describe('Serverless API Proxy Core (FakeLibsql)', () => {
     );
     expect(res21.status).toBe(429);
   });
+
+  it('handles official Email & Password registration, duplicate email (409), login, /api/auth/me, and /api/profile/sync', async () => {
+    await Identity.clearIdentity();
+    const profile = await Identity.init();
+    const pubkey = await Identity.exportPublicKeyJwk();
+    const encryptedVault = await Identity.exportEncryptedRecoveryCode('MyStrongPass123!');
+
+    const regBody = JSON.stringify({
+      email: 'AgentZero@Facility.org',
+      password: 'MyStrongPass123!',
+      name: 'AgentZero',
+      playerId: profile.playerId,
+      pubkey,
+      encryptedVault,
+      profile: { xp: 1500, level: 5, silenceRating: 1320 },
+    });
+
+    const regSig = await Identity.signRequest('POST', '/auth/register', regBody);
+    const regRes = await handleApiRequest(
+      new Request('http://localhost/api/auth/register', {
+        method: 'POST',
+        headers: { ...regSig },
+        body: regBody,
+      }),
+      env,
+    );
+
+    expect(regRes.status).toBe(201);
+    const regData = (await regRes.json()) as {
+      success: boolean;
+      accountId: string;
+      playerId: string;
+      email: string;
+      name: string;
+      tag: string;
+      token: string;
+    };
+    expect(regData.success).toBe(true);
+    expect(regData.email).toBe('agentzero@facility.org');
+    expect(regData.name).toBe('AgentZero');
+    expect(regData.playerId).toBe(profile.playerId);
+    expect(regData.token).toBeTruthy();
+
+    // Duplicate email registration must return 409 Conflict
+    const dupSig = await Identity.signRequest('POST', '/auth/register', regBody);
+    const dupRes = await handleApiRequest(
+      new Request('http://localhost/api/auth/register', {
+        method: 'POST',
+        headers: { ...dupSig },
+        body: regBody,
+      }),
+      env,
+    );
+    expect(dupRes.status).toBe(409);
+
+    // Login with invalid password must return 401
+    const badLoginRes = await handleApiRequest(
+      new Request('http://localhost/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: 'agentzero@facility.org', password: 'WrongPassword999' }),
+      }),
+      env,
+    );
+    expect(badLoginRes.status).toBe(401);
+
+    // Login with valid credentials must return 200 + encryptedVault + profile + token
+    const loginRes = await handleApiRequest(
+      new Request('http://localhost/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: 'AGENTZERO@facility.org', password: 'MyStrongPass123!' }),
+      }),
+      env,
+    );
+    expect(loginRes.status).toBe(200);
+    const loginData = (await loginRes.json()) as {
+      success: boolean;
+      accountId: string;
+      playerId: string;
+      email: string;
+      encryptedVault: string;
+      profile: { xp: number; level: number };
+      token: string;
+    };
+    expect(loginData.success).toBe(true);
+    expect(loginData.encryptedVault).toBe(encryptedVault);
+    expect(loginData.profile.xp).toBe(1500);
+
+    // Sync updated profile via Bearer token
+    const syncRes = await handleApiRequest(
+      new Request('http://localhost/api/profile/sync', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${loginData.token}`,
+        },
+        body: JSON.stringify({
+          profile: { xp: 3400, level: 8, silenceRating: 1480 },
+        }),
+      }),
+      env,
+    );
+    expect(syncRes.status).toBe(200);
+
+    // Verify GET /api/auth/me returns updated profile
+    const meRes = await handleApiRequest(
+      new Request('http://localhost/api/auth/me', {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${loginData.token}`,
+        },
+      }),
+      env,
+    );
+    expect(meRes.status).toBe(200);
+    const meData = (await meRes.json()) as {
+      authenticated: boolean;
+      email: string;
+      profile: { xp: number; level: number; silenceRating: number };
+    };
+    expect(meData.authenticated).toBe(true);
+    expect(meData.email).toBe('agentzero@facility.org');
+    expect(meData.profile.xp).toBe(3400);
+    expect(meData.profile.level).toBe(8);
+  });
 });
 

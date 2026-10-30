@@ -74,6 +74,7 @@ export const SunkenJungleMap: MapDefinition = {
       rect: [-65, -65, -45, -45],
       topY: 0.4,
       kind: 'marble',
+      style: 'stepped_ruin',
     });
 
     // 2. Ruined Temple Gate at South-East dry ground
@@ -82,6 +83,7 @@ export const SunkenJungleMap: MapDefinition = {
       rect: [45, 45, 65, 65],
       topY: 0.5,
       kind: 'marble',
+      style: 'stepped_ruin',
     });
 
     // 3. Submerged Causeway to Temple Gate: top at -0.25m (exposed only after 3 sluices opened to -0.30m)

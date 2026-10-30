@@ -253,6 +253,12 @@ export class HomeScreen {
     this.playLogoAnimation();
   }
 
+  refresh(): void {
+    this.element.removeAttribute('inert');
+    this.element.style.pointerEvents = 'auto';
+    this.render();
+  }
+
   private mountButtons(): void {
     const descendWrap = this.element.querySelector('#btn-descend-wrap')!;
     const playhubWrap = this.element.querySelector('#btn-playhub-wrap')!;
@@ -333,7 +339,7 @@ export class HomeScreen {
           qm.cycleTier();
           updateText();
         });
-      }).catch(() => {});
+      }).catch(() => { });
     }
 
     this.element.querySelector('#nav-btn-play')?.addEventListener('click', () => this.callbacks.onOpenPlayHub());

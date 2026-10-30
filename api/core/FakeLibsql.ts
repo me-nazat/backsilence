@@ -5,7 +5,7 @@
  *  2. Local dev proxy (npm run dev:api) when running without live Turso secrets
  * ──────────────────────────────────────────────────────────────────────── */
 
-import type { PlayerRecord, RunRecord, ChampionRecord, RoomRecord, SignalRecord, ReportRecord } from './Types.js';
+import type { PlayerRecord, RunRecord, ChampionRecord, RoomRecord, SignalRecord, ReportRecord, AccountRecord } from './Types.js';
 
 export class FakeLibsql {
   private static defaultInstance: FakeLibsql | null = null;
@@ -22,6 +22,7 @@ export class FakeLibsql {
   }
 
   readonly players = new Map<string, PlayerRecord>();
+  readonly accounts = new Map<string, AccountRecord>();
   readonly runs = new Map<string, RunRecord>();
   readonly champions = new Map<string, ChampionRecord>();
   readonly rateLimits = new Map<string, { count: number; window: number }>();
@@ -34,6 +35,7 @@ export class FakeLibsql {
 
   reset(): void {
     this.players.clear();
+    this.accounts.clear();
     this.runs.clear();
     this.champions.clear();
     this.rateLimits.clear();
@@ -51,6 +53,25 @@ export class FakeLibsql {
 
     // ── SELECT ──────────────────────────────────────────────────────────────
     if (upper.startsWith('SELECT')) {
+      if (upper.includes('FROM ACCOUNTS')) {
+        if (upper.includes('EMAIL = ?') || upper.includes('LOWER(EMAIL) = ?')) {
+          const email = String(params[0] ?? '').toLowerCase().trim();
+          const found = Array.from(this.accounts.values()).find((a) => a.email.toLowerCase() === email);
+          return { rows: found ? [{ ...found }] : [], rowsAffected: 0 };
+        }
+        if (upper.includes('WHERE PLAYER_ID = ?')) {
+          const pid = String(params[0] ?? '');
+          const found = Array.from(this.accounts.values()).find((a) => a.player_id === pid);
+          return { rows: found ? [{ ...found }] : [], rowsAffected: 0 };
+        }
+        if (upper.includes('WHERE ACCOUNT_ID = ?')) {
+          const aid = String(params[0] ?? '');
+          const found = this.accounts.get(aid);
+          return { rows: found ? [{ ...found }] : [], rowsAffected: 0 };
+        }
+        return { rows: Array.from(this.accounts.values()).map((a) => ({ ...a })), rowsAffected: 0 };
+      }
+
       if (upper.includes('FROM PLAYERS') && upper.includes('WHERE PLAYER_ID = ?')) {
         const id = String(params[0]);
         const p = this.players.get(id);
@@ -205,6 +226,23 @@ export class FakeLibsql {
 
     // ── INSERT / UPSERT ─────────────────────────────────────────────────────
     if (upper.startsWith('INSERT') || upper.startsWith('REPLACE')) {
+      if (upper.includes('INTO ACCOUNTS')) {
+        const acc: AccountRecord = {
+          account_id: String(params[0]),
+          email: String(params[1]).toLowerCase().trim(),
+          password_hash: String(params[2]),
+          password_salt: String(params[3]),
+          player_id: String(params[4]),
+          pubkey: String(params[5]),
+          encrypted_vault: String(params[6]),
+          profile_json: String(params[7] ?? '{}'),
+          created_at: Number(params[8] ?? Math.floor(Date.now() / 1000)),
+          updated_at: Number(params[9] ?? Math.floor(Date.now() / 1000)),
+        };
+        this.accounts.set(acc.account_id, acc);
+        return { rows: [], rowsAffected: 1 };
+      }
+
       if (upper.includes('INTO NONCES')) {
         this.nonces.set(String(params[0]), Number(params[1]));
         return { rows: [], rowsAffected: 1 };
@@ -340,6 +378,30 @@ export class FakeLibsql {
 
     // ── UPDATE ──────────────────────────────────────────────────────────────
     if (upper.startsWith('UPDATE')) {
+      if (upper.includes('ACCOUNTS SET')) {
+        const profileJson = String(params[0]);
+        const updatedAt = Number(params[1] ?? Math.floor(Date.now() / 1000));
+        const targetId = String(params[2] ?? params[1]);
+        let acc: AccountRecord | undefined;
+        if (upper.includes('WHERE ACCOUNT_ID = ?')) {
+          acc = this.accounts.get(targetId);
+        } else if (upper.includes('WHERE PLAYER_ID = ?')) {
+          acc = Array.from(this.accounts.values()).find((a) => a.player_id === targetId);
+        } else if (upper.includes('WHERE EMAIL = ?') || upper.includes('WHERE LOWER(EMAIL) = ?')) {
+          acc = Array.from(this.accounts.values()).find((a) => a.email.toLowerCase() === targetId.toLowerCase());
+        }
+        if (acc) {
+          if (upper.includes('PROFILE_JSON = ?')) {
+            acc.profile_json = profileJson;
+          }
+          if (upper.includes('UPDATED_AT = ?')) {
+            acc.updated_at = updatedAt;
+          }
+          return { rows: [], rowsAffected: 1 };
+        }
+        return { rows: [], rowsAffected: 0 };
+      }
+
       if (upper.includes('PLAYERS SET NAME = ?') && upper.includes('WHERE PLAYER_ID = ?')) {
         const name = String(params[0]);
         const id = String(params[1]);
@@ -415,6 +477,18 @@ export class FakeLibsql {
 
     // ── DELETE ──────────────────────────────────────────────────────────────
     if (upper.startsWith('DELETE')) {
+      if (upper.includes('FROM ACCOUNTS WHERE PLAYER_ID = ?')) {
+        const pid = String(params[0]);
+        let count = 0;
+        for (const [id, acc] of this.accounts.entries()) {
+          if (acc.player_id === pid) {
+            this.accounts.delete(id);
+            count++;
+          }
+        }
+        return { rows: [], rowsAffected: count };
+      }
+
       if (upper.includes('FROM PLAYERS WHERE PLAYER_ID = ?')) {
         const id = String(params[0]);
         const deleted = this.players.delete(id);
