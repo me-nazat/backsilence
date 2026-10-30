@@ -301,6 +301,8 @@ async function main() {
       const durationMs = Date.now() - start;
       try { await cdp.screenshot(`${id.toLowerCase()}_fail`); } catch {}
       console.log(`FAIL: ${err.message}`);
+      if (cdp.errors?.length) console.log('CDP errors:', cdp.errors);
+      if (cdp.logs?.length) console.log('CDP logs:', cdp.logs.slice(-15));
       scenarioResults.push({
         id,
         name,
@@ -548,10 +550,12 @@ async function main() {
         let visibleCount = 0;
         const visibleElements = [];
 
+        const debugStyles = {};
         for (const id of elementIds) {
           const el = overlay.querySelector(id);
           if (!el) continue;
           const style = window.getComputedStyle(el);
+          debugStyles[id] = { display: style.display, visibility: style.visibility, opacity: style.opacity, offsetParent: Boolean(el.offsetParent) };
           const isVisible = style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0' && el.offsetParent !== null;
           if (isVisible) {
             visibleCount++;
@@ -563,11 +567,13 @@ async function main() {
           ok: true,
           visibleCount,
           visibleElements,
+          debugStyles,
         };
       })()`);
 
       if (!hudDetails.ok) throw new Error(hudDetails.error);
       if (hudDetails.visibleCount > 2) {
+        console.log('HUD debugStyles:', hudDetails.debugStyles);
         throw new Error(`HUD has ${hudDetails.visibleCount} visible elements on default frame (maximum allowed: 2). Visible: ${hudDetails.visibleElements.join(', ')}`);
       }
 

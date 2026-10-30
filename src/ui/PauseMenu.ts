@@ -189,7 +189,10 @@ export class PauseMenu {
       const canvas = document.querySelector('canvas');
       if (canvas && typeof canvas.requestPointerLock === 'function') {
         try {
-          void canvas.requestPointerLock();
+          const res = canvas.requestPointerLock();
+          if (res instanceof Promise) {
+            res.catch(() => {});
+          }
         } catch {
           /* ignore */
         }

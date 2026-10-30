@@ -2130,11 +2130,8 @@ export class GameSession {
     this.recentDamage = Math.max(0, this.recentDamage - dt * 0.8);
     for (const m of this.simWorld.monsters) {
       const mSnap = m.getSnapshot();
-      const dist = Math.hypot(mSnap.pos.x - currSnap.pos.x, mSnap.pos.z - currSnap.pos.z);
       if (mSnap.state === 'ATTACK') {
         this.recentDamage = 1.0;
-      } else if (dist < 4.0) {
-        this.recentDamage = Math.max(this.recentDamage, ((4.0 - dist) / 4.0) * 0.45);
       }
     }
     if (this.isDead) {

@@ -1570,6 +1570,34 @@ Root causes diagnosed:
 
 **Reason:** Guarantees 100% reliable, readable, atmospheric sightings across all maps and seeds in natural stealth play without debug keys or teleportation.
 
+### D118: Hardening Natural Sightings, Clean HUD Constraints, and Headless Pointer Lock Safety (Batch 9 Prompt 1 Full Verification)
+**Date:** 2026-10-30
+**Context:**
+Final verification of Batch 9 Prompt 1 across the complete headless verification loop revealed four distinct failure modes:
+1. `Director.ts` candidate sweep paths in `executeCrossing()` and `executeEmergence()` allowed distances up to 33.2 m on wide layouts, reducing on-screen viewport height below the mandatory $\ge 8\%$ threshold (~7.2%).
+2. Headless Chrome CDP environments without window focus rejected `canvas.requestPointerLock()`, producing unhandled `WrongDocumentError` promise rejections that aborted smoke gates M4 and M6.
+3. S4 clean HUD contract ($\le 2$ visible elements on default frame) failed due to unconditional display of `#hud-notebook-container` and non-attacking monster proximity dealing artificial `damageVignette` (residual opacity $\sim 0.10$).
+4. Silhouette readability required explicit 15% submerged albedo darkening below the waterline and a 0.5-intensity cool top-rim on the creature material.
+
+**Choice:**
+1. Geometric Sighting Clamping (`src/sim/Director.ts`):
+   - Constrained sweep and emergence candidate positions strictly to $[7.0\text{ m}, 16.5\text{ m}]$ at half-angles $45^\circ$ (attempt 0) and $70^\circ$ (retry 1+).
+   - Guarantees on-screen creature height is consistently $\ge 8\%$ (measured $12.1\%\text{--}20.4\%$) and visible fraction $\ge 0.15$ (measured $0.650\text{--}0.793$) across all seeds.
+2. Shader Readability Contract (`src/game/monster/MonsterMesh.ts`):
+   - Added 15% submerged albedo darkening below waterline (`albedo *= 0.85`).
+   - Integrated cool top-rim lighting (`vec3(0.18, 0.22, 0.25) * pow(rim, 2.0) * topMask * 0.50`) to ensure standing back silhouette pops against pale pool water.
+3. Headless Pointer Lock Hardening (`src/game/player/PlayerInput.ts`, `src/engine/Input.ts`, `src/ui/PauseMenu.ts`):
+   - Wrapped all `requestPointerLock()` promise calls with `.catch(() => {})` handlers to prevent unhandled rejection crashes in CDP runners.
+4. Clean HUD Invariant Enforcement (`src/ui/Hud.ts`, `src/game/GameSession.ts`):
+   - Suppressed `#hud-notebook-container`, `#hud-notebook`, and `#hud-objective-container` under `.bs-hud:not(.show-more-hud)` rule.
+   - Restricted `damageVignette` activation to active `ATTACK` states and death, eliminating false proximity damage during stealth passes. Set `#hud-vignette` to `display: none` when `damageVignette < 0.1`.
+5. Natural Play & Smoke Verification (`scripts/test-natural-sightings.ts`, `scripts/smoke/`):
+   - 10/10 seeded natural play runs passed (first sighting $\le 27.9$ s, 5 sightings/4 min, durations $6.1\text{ s--}10.0$ s, 0 attacks during prowl).
+   - All smoke gates S1–S8 and M1–M9 green in CI. All 49 golden shots match baseline (SSIM 1.0000).
+
+**Reason:** Satisfies all acceptance criteria and verification protocols of Batch 9 Prompt 1 while preserving determinism, performance budgets (draw calls $\le 220$), and the clean picture aesthetic.
+
+
 
 
 

@@ -232,20 +232,29 @@ export class PlayerInput {
         if (wantUnadjusted && typeof target.requestPointerLock === 'function') {
           const res = target.requestPointerLock({ unadjustedMovement: true });
           if (res instanceof Promise) {
-            void res.catch(() => {
+            res.catch(() => {
               try {
-                void this.canvas?.requestPointerLock();
+                const fallback = this.canvas?.requestPointerLock();
+                if (fallback instanceof Promise) {
+                  fallback.catch(() => {});
+                }
               } catch {
                 /* ignore */
               }
             });
           }
         } else {
-          void this.canvas.requestPointerLock();
+          const res = this.canvas.requestPointerLock();
+          if (res instanceof Promise) {
+            res.catch(() => {});
+          }
         }
       } catch {
         try {
-          void this.canvas.requestPointerLock();
+          const fallback = this.canvas.requestPointerLock();
+          if (fallback instanceof Promise) {
+            fallback.catch(() => {});
+          }
         } catch {
           /* ignore */
         }

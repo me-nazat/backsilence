@@ -114,6 +114,9 @@ export class MonsterMeshHierarchy {
         float wetT = clamp((uWaterLevel + 0.30 - vWorldPositionForWet.y) / 0.30, 0.0, 1.0);
         roughnessFactor = mix(roughnessFactor, 0.10, wetT * 0.9);
         diffuseColor.rgb *= mix(1.0, 0.72, wetT);
+        // Submerged albedo darkening 15% (Prompt 1 C)
+        float submergedT = clamp((uWaterLevel - vWorldPositionForWet.y) / 0.15, 0.0, 1.0);
+        diffuseColor.rgb *= mix(1.0, 0.85, submergedT);
         `,
       );
 
@@ -131,13 +134,15 @@ export class MonsterMeshHierarchy {
           gl_FragColor.rgb = mix( gl_FragColor.rgb, fogColor, fogFactor );
         #endif
 
-        // Neutral cool grey rim + wet sheen + subsurface lift (Prompt 7.4)
+        // Cool top rim for readability against pale water (Prompt 1 C) + neutral rim + wet sheen
         vec3 viewDir = normalize(vViewPosition);
         float rim = 1.0 - max(0.0, dot(vNormal, viewDir));
+        float topMask = max(0.0, vNormal.y);
+        vec3 coolTopRim = vec3(0.18, 0.22, 0.25) * pow(rim, 2.0) * topMask * 0.50;
         vec3 coolRim = vec3(0.16, 0.20, 0.22) * pow(rim, 2.2) * 0.35;
         vec3 wetSheen = vec3(0.04, 0.045, 0.04) * pow(rim, 3.0);
         vec3 subsurfaceLift = vec3(0.065, 0.045, 0.038);
-        gl_FragColor.rgb += coolRim + wetSheen + subsurfaceLift;
+        gl_FragColor.rgb += coolTopRim + coolRim + wetSheen + subsurfaceLift;
         `,
       );
     };

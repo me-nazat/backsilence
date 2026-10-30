@@ -8,7 +8,7 @@ import type { Vec3, PlayerId, NoiseEvent } from '../types/contracts.js';
 import type { MonsterBrain } from './MonsterBrain.js';
 import type { NavGrid } from './NavGrid.js';
 import { Rng } from './rng.js';
-import { dHypot, dSin, dCos, dAtan2, dLog, D_PI } from './dmath.js';
+import { dHypot, dSin, dCos, dAtan2, D_PI } from './dmath.js';
 import balanceData from './balance.json';
 
 export type DirectorDifficulty = 'whisper' | 'normal' | 'deafening' | 'nightmare';
@@ -546,9 +546,9 @@ export class EncounterDirector {
   private scheduleNextSighting(phase: string): void {
     let interval = 45.0;
     if (phase === 'prowl') {
-      interval = this.rng.range(35.0, 52.0);
+      interval = this.rng.range(45.0, 70.0);
     } else if (phase === 'closing') {
-      interval = this.rng.range(25.0, 38.0);
+      interval = this.rng.range(30.0, 45.0);
     } else if (phase === 'hunt') {
       interval = this.rng.range(15.0, 25.0);
     }
@@ -562,87 +562,88 @@ export class EncounterDirector {
     nav: NavGrid,
     attempt = 0,
   ): boolean {
-    const fogDensity = this.fogDensity > 0 ? this.fogDensity : 0.045;
-    // Ensure the monster's FIRST appearance is at a distance where fog transmittance is between 0.30 and 0.70:
-    // d = sqrt( ln(1/0.45) ) / fogDensity, clamped to [14, 30] metres
-    const optimalFogDist = Math.sqrt(dLog(1.0 / 0.45)) / fogDensity;
-    let d = Math.max(14.0, Math.min(30.0, optimalFogDist));
-
-    // Never spawn a monster at a distance where transmittance < 0.12
-    const maxTransmittanceDist = Math.sqrt(dLog(1.0 / 0.12)) / fogDensity;
-    if (d > maxTransmittanceDist) {
-      d = Math.max(10.0, maxTransmittanceDist - 1.0);
-    }
-
-    let coneAngles: number[];
-
-    if (attempt === 0) {
-      // 70° view cone (half-angle 35° = 0.61 rad)
-      coneAngles = [0.610865, 0.785398];
-    } else {
-      // Relaxed retry attempt: widen cone to 140° (half-angle 70° = 1.22 rad)
-      coneAngles = [0.785398, 1.0472, 1.22173];
-    }
-
     const pPos = playerTrack.pos;
     const yaw = playerTrack.yaw ?? 0;
     const myComp = nav.getComponentWorld(monster.pos.x, monster.pos.z);
 
-    for (const halfAngle of coneAngles) {
-      // Try both left-to-right and right-to-left crossings
-      const directions = [1, -1];
-      for (const dir of directions) {
-        const startAngle = yaw - dir * halfAngle;
-        const midAngle = yaw;
-        const endAngle = yaw + dir * halfAngle;
+    // Prompt 1 B: a "sighting" crosses player's current view cone (half-angle 45°) at 8-16 m
+    const candidateDistances = attempt === 0
+      ? [11.0, 13.0, 9.5, 14.0, 8.5]
+      : [11.0, 13.0, 9.5, 14.0, 8.5, 15.5];
 
-        const sx = pPos.x - dSin(startAngle) * d;
-        const sz = pPos.z - dCos(startAngle) * d;
+    const coneAngles = attempt === 0
+      ? [0.785398, 0.65]
+      : [0.785398, 0.95, 1.22173];
 
-        const mx = pPos.x - dSin(midAngle) * d;
-        const mz = pPos.z - dCos(midAngle) * d;
+    for (const d of candidateDistances) {
+      for (const halfAngle of coneAngles) {
+        const directions = [1, -1];
+        for (const dir of directions) {
+          const startAngle = yaw - dir * halfAngle;
+          const midAngle = yaw;
+          const endAngle = yaw + dir * halfAngle;
 
-        const ex = pPos.x - dSin(endAngle) * (d + 2.0);
-        const ez = pPos.z - dCos(endAngle) * (d + 2.0);
+          const sx = pPos.x - dSin(startAngle) * d;
+          const sz = pPos.z - dCos(startAngle) * d;
 
-        // Verify start, mid, and end are walkable water cells in the monster's component
-        if (
-          nav.isWalkableWorld(sx, sz) &&
-          nav.isWalkableWorld(mx, mz) &&
-          nav.isWalkableWorld(ex, ez) &&
-          nav.getComponentWorld(sx, sz) === myComp &&
-          nav.getComponentWorld(mx, mz) === myComp &&
-          nav.getComponentWorld(ex, ez) === myComp
-        ) {
-          const endDist = dHypot(ex - pPos.x, ez - pPos.z);
-          const midDist = dHypot(mx - pPos.x, mz - pPos.z);
-          const startDist = dHypot(sx - pPos.x, sz - pPos.z);
-          if (endDist >= 6.0 && midDist >= 6.0 && startDist >= 6.0) {
-            monster.pos.x = sx;
-            monster.pos.z = sz;
-            monster.yaw = dAtan2(mx - sx, -(mz - sz));
-            monster.forceState('WANDER', { stateTimer: 0 });
-            monster.scheduleSweep([
-              { x: mx, z: mz },
-              { x: ex, z: ez },
-            ], true, 10.0);
-            this.emitDreadBeat('first_contact', { x: sx, y: pPos.y, z: sz });
-            this.emitDreadBeat('glimpse', { x: mx, y: pPos.y, z: mz });
-            return true;
+          const mx = pPos.x - dSin(midAngle) * (d * 0.92);
+          const mz = pPos.z - dCos(midAngle) * (d * 0.92);
+
+          const ex = pPos.x - dSin(endAngle) * d;
+          const ez = pPos.z - dCos(endAngle) * d;
+
+          const sCell = nav.isWalkableWorld(sx, sz) && nav.getComponentWorld(sx, sz) === myComp
+            ? { x: sx, z: sz }
+            : nav.findNearestWalkable(sx, sz, 1.8);
+          const mCell = nav.isWalkableWorld(mx, mz) && nav.getComponentWorld(mx, mz) === myComp
+            ? { x: mx, z: mz }
+            : nav.findNearestWalkable(mx, mz, 1.8);
+          const eCell = nav.isWalkableWorld(ex, ez) && nav.getComponentWorld(ex, ez) === myComp
+            ? { x: ex, z: ez }
+            : nav.findNearestWalkable(ex, ez, 1.8);
+
+          if (
+            sCell && mCell && eCell &&
+            nav.getComponentWorld(sCell.x, sCell.z) === myComp &&
+            nav.getComponentWorld(mCell.x, mCell.z) === myComp &&
+            nav.getComponentWorld(eCell.x, eCell.z) === myComp
+          ) {
+            const sDist = dHypot(sCell.x - pPos.x, sCell.z - pPos.z);
+            const mDist = dHypot(mCell.x - pPos.x, mCell.z - pPos.z);
+            const eDist = dHypot(eCell.x - pPos.x, eCell.z - pPos.z);
+
+            if (
+              sDist >= 7.0 && sDist <= 16.5 &&
+              mDist >= 7.0 && mDist <= 16.5 &&
+              eDist >= 7.0 && eDist <= 16.5
+            ) {
+              monster.pos.x = sCell.x;
+              monster.pos.z = sCell.z;
+              monster.yaw = dAtan2(mCell.x - sCell.x, -(mCell.z - sCell.z));
+              monster.forceState('WANDER', { stateTimer: 0 });
+              const sweepDur = this.rng.range(6.0, 10.0);
+              monster.scheduleSweep([
+                { x: mCell.x, z: mCell.z },
+                { x: eCell.x, z: eCell.z },
+              ], true, sweepDur);
+              this.emitDreadBeat('first_contact', { x: sCell.x, y: pPos.y, z: sCell.z });
+              this.emitDreadBeat('glimpse', { x: mCell.x, y: pPos.y, z: mCell.z });
+              return true;
+            }
           }
         }
       }
     }
 
     // If crossing is impossible, use emergence fallback
-    return this.executeEmergence(monster, playerTrack, nav, d, attempt);
+    return this.executeEmergence(monster, playerTrack, nav, 12.0, attempt);
   }
 
   private executeEmergence(
     monster: MonsterBrain,
     playerTrack: PlayerTrack,
     nav: NavGrid,
-    d: number,
+    _d: number,
     attempt = 0,
   ): boolean {
     const pPos = playerTrack.pos;
@@ -652,35 +653,24 @@ export class EncounterDirector {
     const maxCone = attempt === 0 ? 0.785 : 1.22;
     let bestCell: { x: number; z: number } | null = null;
 
-    for (let a = -maxCone; a <= maxCone; a += 0.15) {
-      const angle = yaw + a;
-      const cx = pPos.x - dSin(angle) * d;
-      const cz = pPos.z - dCos(angle) * d;
+    const testDistances = [11.0, 13.0, 9.5, 14.0, 8.5];
+    for (const dist of testDistances) {
+      for (let a = -maxCone; a <= maxCone; a += 0.15) {
+        const angle = yaw + a;
+        const cx = pPos.x - dSin(angle) * dist;
+        const cz = pPos.z - dCos(angle) * dist;
 
-      if (nav.isWalkableWorld(cx, cz) && nav.getComponentWorld(cx, cz) === myComp) {
-        bestCell = { x: cx, z: cz };
-        break;
-      }
-    }
-
-    if (!bestCell) {
-      // Search inward down to 8m
-      for (let dist = d; dist >= 8.0; dist -= 1.5) {
-        for (let a = -maxCone; a <= maxCone; a += 0.2) {
-          const cx = pPos.x - dSin(yaw + a) * dist;
-          const cz = pPos.z - dCos(yaw + a) * dist;
-          if (nav.isWalkableWorld(cx, cz) && nav.getComponentWorld(cx, cz) === myComp) {
-            bestCell = { x: cx, z: cz };
-            break;
-          }
+        if (nav.isWalkableWorld(cx, cz) && nav.getComponentWorld(cx, cz) === myComp) {
+          bestCell = { x: cx, z: cz };
+          break;
         }
-        if (bestCell) break;
       }
+      if (bestCell) break;
     }
 
-    // Secondary wide search: widen to full forward hemisphere if blocked by pillars/walls
     if (!bestCell) {
-      for (let dist = Math.min(16.0, Math.max(8.0, d)); dist >= 8.0; dist -= 2.0) {
+      // Secondary wide search: widen to full forward hemisphere if blocked by pillars/walls
+      for (const dist of testDistances) {
         for (let a = -1.57; a <= 1.57; a += 0.25) {
           const cx = pPos.x - dSin(yaw + a) * dist;
           const cz = pPos.z - dCos(yaw + a) * dist;
@@ -694,45 +684,48 @@ export class EncounterDirector {
     }
 
     if (bestCell) {
-      // Emergence rule: appears standing in clear water at readable distance,
-      // wades across player's view cone over 6-10s. Never dormant crouch at 26m!
       monster.pos.x = bestCell.x;
       monster.pos.z = bestCell.z;
       const toPlayerYaw = dAtan2(pPos.x - bestCell.x, -(pPos.z - bestCell.z));
       const crossDir = this.rng.next() < 0.5 ? 1 : -1;
-      monster.yaw = toPlayerYaw + crossDir * 1.2;
+      const crossAngle = toPlayerYaw + (crossDir * Math.PI) / 2;
+      monster.yaw = crossAngle;
       monster.forceState('WANDER', { stateTimer: 0 });
-      const awayAngle = toPlayerYaw + crossDir * 1.2;
 
       let sweepTarget: { x: number; z: number } | null = null;
-      for (let sDist = 14.0; sDist >= 6.0; sDist -= 1.0) {
-        const ax = bestCell.x - dSin(awayAngle) * sDist;
-        const az = bestCell.z - dCos(awayAngle) * sDist;
-        if (nav.isWalkableWorld(ax, az) && nav.getComponentWorld(ax, az) === myComp) {
+      for (let sDist = 8.0; sDist >= 4.0; sDist -= 1.0) {
+        const ax = bestCell.x - dSin(crossAngle) * sDist;
+        const az = bestCell.z - dCos(crossAngle) * sDist;
+        const distFromPlayer = dHypot(ax - pPos.x, az - pPos.z);
+        if (
+          distFromPlayer >= 7.0 && distFromPlayer <= 16.5 &&
+          nav.isWalkableWorld(ax, az) &&
+          nav.getComponentWorld(ax, az) === myComp
+        ) {
           sweepTarget = { x: ax, z: az };
           break;
         }
       }
       if (!sweepTarget) {
-        // Fallback: search opposite direction
-        for (let sDist = 12.0; sDist >= 6.0; sDist -= 1.0) {
-          const ax = bestCell.x + dSin(awayAngle) * sDist;
-          const az = bestCell.z + dCos(awayAngle) * sDist;
-          if (nav.isWalkableWorld(ax, az) && nav.getComponentWorld(ax, az) === myComp) {
+        const oppCrossAngle = toPlayerYaw - (crossDir * Math.PI) / 2;
+        for (let sDist = 8.0; sDist >= 4.0; sDist -= 1.0) {
+          const ax = bestCell.x - dSin(oppCrossAngle) * sDist;
+          const az = bestCell.z - dCos(oppCrossAngle) * sDist;
+          const distFromPlayer = dHypot(ax - pPos.x, az - pPos.z);
+          if (
+            distFromPlayer >= 7.0 && distFromPlayer <= 16.5 &&
+            nav.isWalkableWorld(ax, az) &&
+            nav.getComponentWorld(ax, az) === myComp
+          ) {
             sweepTarget = { x: ax, z: az };
             break;
           }
         }
       }
-      if (!sweepTarget) {
-        sweepTarget = nav.findNearestCellInComponent(bestCell.x + 8.0, bestCell.z + 8.0, myComp);
-      }
 
-      if (sweepTarget) {
-        monster.scheduleSweep([{ x: sweepTarget.x, z: sweepTarget.z }], true, 8.0);
-      } else {
-        monster.scheduleSweep([{ x: bestCell.x, z: bestCell.z }], true, 8.0);
-      }
+      const targetPos = sweepTarget ?? bestCell;
+      const sweepDur = this.rng.range(6.0, 10.0);
+      monster.scheduleSweep([{ x: targetPos.x, z: targetPos.z }], true, sweepDur);
       this.emitDreadBeat('first_contact', { x: bestCell.x, y: pPos.y, z: bestCell.z });
       this.emitDreadBeat('glimpse', { x: bestCell.x, y: pPos.y, z: bestCell.z });
       return true;

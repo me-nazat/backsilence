@@ -98,7 +98,7 @@
       "noiseBudget": 8.0,
       "firstContactMin": 12.0,
       "firstContactMax": 16.0,
-      "firstContactDistMin": 11.0,
+      "firstContactDistMin": 10.0,
       "firstContactDistMax": 14.0
     },
     "poolrooms": {

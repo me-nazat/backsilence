@@ -339,15 +339,18 @@ export class Hud {
         .bs-hud {
           --hud-scale: 1.0;
         }
-        /* Clean picture: Default HUD shows objective and code notebook */
+        /* Clean picture: Default HUD is empty except thin noise line and interaction prompt */
         .bs-hud:not(.show-more-hud) #hud-risk-tag,
         .bs-hud:not(.show-more-hud) #hud-vhs-osd,
+        .bs-hud:not(.show-more-hud) #hud-notebook-container,
+        .bs-hud:not(.show-more-hud) #hud-notebook,
         .bs-hud:not(.show-more-hud) #hud-roster,
         .bs-hud:not(.show-more-hud) #hud-level-shift,
         .bs-hud:not(.show-more-hud) #hud-school-status,
         .bs-hud:not(.show-more-hud) #hud-jungle-status,
         .bs-hud:not(.show-more-hud) #hud-neon-status,
         .bs-hud:not(.show-more-hud) #hud-metro-status,
+        .bs-hud:not(.show-more-hud) #hud-objective-container,
         .bs-hud:not(.show-more-hud) #hud-bottom-center,
         .bs-hud:not(.show-more-hud) #hud-status,
         .bs-hud:not(.show-more-hud) #hud-stamina-bar,
@@ -457,6 +460,7 @@ export class Hud {
         inset: 0;
         background: radial-gradient(circle, transparent 50%, rgba(179,38,30,0.8) 100%);
         opacity: 0;
+        display: none;
         transition: opacity 0.15s ease-out;
       "></div>
 
@@ -1153,6 +1157,7 @@ export class Hud {
         color: rgba(238, 222, 194, 0.65);
         pointer-events: none;
         opacity: 0;
+        display: none;
         transition: opacity 0.25s ease;
         text-transform: uppercase;
         white-space: nowrap;
@@ -1406,9 +1411,10 @@ export class Hud {
     // 4b. Pointer Lock Hint
     if (this.pointerLockHintEl) {
       this.pointerLockHintEl.style.opacity = data.pointerLockHint ? '0.85' : '0';
+      this.pointerLockHintEl.style.display = data.pointerLockHint ? 'block' : 'none';
     }
 
-    // 5. Notebook sequence strip (ALWAYS visible in the HUD)
+    // 5. Notebook sequence strip
     const notebookContainer = this.el.querySelector<HTMLElement>('#hud-notebook-container');
     if (notebookContainer) {
       notebookContainer.style.display = 'flex';
@@ -1450,7 +1456,14 @@ export class Hud {
 
     // 7. Damage Vignette
     if (this.vignetteEl) {
-      this.vignetteEl.style.opacity = String(data.damageVignette);
+      const dmg = typeof data.damageVignette === 'number' && Number.isFinite(data.damageVignette) ? data.damageVignette : 0;
+      if (dmg >= 0.1) {
+        this.vignetteEl.style.display = 'block';
+        this.vignetteEl.style.opacity = String(dmg);
+      } else {
+        this.vignetteEl.style.display = 'none';
+        this.vignetteEl.style.opacity = '0';
+      }
     }
 
     // 8. VHS OSD

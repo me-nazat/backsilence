@@ -1,7 +1,7 @@
 {
   "M1": {
     "pass": true,
-    "durationMs": 3199,
+    "durationMs": 3407,
     "details": {
       "probeVerdict": {
         "pass": true,
@@ -9,22 +9,26 @@
         "reason": "Monster is present, finite, rendered, and visible on screen",
         "fields": {
           "monsterCount": 1,
-          "distanceToCamera": 5.52,
-          "visibleFraction": 0.2709,
-          "pixelCount": 31265
+          "distanceToCamera": 5.85,
+          "visibleFraction": 0.7314,
+          "pixelCount": 25268
         }
       },
       "screenshot": "/Users/nazat/Desktop/Desktop/antigravity/BackSilence/poolrooms/reports/monster/screenshots/smoke/m1_cold_start.png"
     }
   },
   "M2": {
-    "pass": false,
-    "durationMs": 1516,
-    "error": "Visible fraction: 0.2639 (expected >= 0.6)"
+    "pass": true,
+    "durationMs": 1592,
+    "details": {
+      "maskPixels": 26492,
+      "visibleFraction": 0.717,
+      "screenshot": "/Users/nazat/Desktop/Desktop/antigravity/BackSilence/poolrooms/reports/monster/screenshots/smoke/m2_show_me.png"
+    }
   },
   "M3": {
     "pass": true,
-    "durationMs": 4,
+    "durationMs": 1,
     "details": {
       "sightCount": 10,
       "attacksCount": 0,
@@ -74,77 +78,77 @@
   },
   "M4": {
     "pass": true,
-    "durationMs": 4982,
+    "durationMs": 4699,
     "details": {
-      "maskCoverage": 0.3319776234567901,
-      "retryDurationMs": 256,
-      "monsterDistAfterRetry": 59.52
+      "maskCoverage": 0.6050385802469136,
+      "retryDurationMs": 255,
+      "monsterDistAfterRetry": 60.15
     }
   },
   "M5": {
     "pass": true,
-    "durationMs": 30524,
+    "durationMs": 28513,
     "details": {
       "mapCount": 10,
       "results": [
         {
           "mapId": "natatorium",
-          "maskPixels": 1765,
+          "maskPixels": 1781,
           "distance": 28.14,
           "pass": true
         },
         {
           "mapId": "poolrooms",
-          "maskPixels": 18841,
-          "distance": 5.56,
+          "maskPixels": 12510,
+          "distance": 6.77,
           "pass": true
         },
         {
           "mapId": "drowned_school",
-          "maskPixels": 16045,
+          "maskPixels": 15508,
           "distance": 5.63,
           "pass": true
         },
         {
           "mapId": "utility_tunnels",
-          "maskPixels": 17794,
-          "distance": 5.56,
+          "maskPixels": 16447,
+          "distance": 5.91,
           "pass": true
         },
         {
           "mapId": "sunken_jungle",
-          "maskPixels": 17680,
-          "distance": 5.57,
+          "maskPixels": 4794,
+          "distance": 12.18,
           "pass": true
         },
         {
           "mapId": "marble_atrium",
-          "maskPixels": 16978,
+          "maskPixels": 18572,
           "distance": 5.92,
           "pass": true
         },
         {
           "mapId": "neon_flood",
-          "maskPixels": 26482,
-          "distance": 5.56,
+          "maskPixels": 13414,
+          "distance": 7.76,
           "pass": true
         },
         {
           "mapId": "hydro_maze",
-          "maskPixels": 1436,
-          "distance": 25.38,
+          "maskPixels": 17515,
+          "distance": 5.92,
           "pass": true
         },
         {
           "mapId": "drowned_metro",
-          "maskPixels": 18062,
-          "distance": 5.56,
+          "maskPixels": 11800,
+          "distance": 6.92,
           "pass": true
         },
         {
           "mapId": "drainage_core",
-          "maskPixels": 23454,
-          "distance": 5.56,
+          "maskPixels": 19742,
+          "distance": 6.8,
           "pass": true
         }
       ],
@@ -153,45 +157,45 @@
   },
   "M6": {
     "pass": true,
-    "durationMs": 13351,
+    "durationMs": 13234,
     "details": {
       "retriesCount": 10,
-      "initGeom": 194,
-      "finalGeom": 192
+      "initGeom": 146,
+      "finalGeom": 146
     }
   },
   "M7": {
     "pass": true,
-    "durationMs": 9414,
+    "durationMs": 9399,
     "details": [
       {
         "tier": "low",
-        "withWater": 18896,
-        "noWater": 19034
+        "withWater": 12518,
+        "noWater": 13009
       },
       {
         "tier": "medium",
-        "withWater": 18959,
-        "noWater": 19206
+        "withWater": 12552,
+        "noWater": 13043
       },
       {
         "tier": "high",
-        "withWater": 18824,
-        "noWater": 18939
+        "withWater": 12529,
+        "noWater": 13009
       }
     ]
   },
   "M8": {
     "pass": true,
-    "durationMs": 5848,
+    "durationMs": 5871,
     "details": {
-      "maskPixels": 3570,
+      "maskPixels": 2435,
       "screenshot": "/Users/nazat/Desktop/Desktop/antigravity/BackSilence/poolrooms/reports/monster/screenshots/smoke/m8_phone_view.png"
     }
   },
   "M9": {
     "pass": true,
-    "durationMs": 45,
+    "durationMs": 112,
     "details": [
       {
         "test": "missing",
@@ -211,8 +215,10 @@
     ]
   },
   "M9_natural_sighting": {
-    "pass": false,
-    "durationMs": 21408,
-    "error": "test-natural-sightings failed (exit 1):\n=== Running 10 Natural Play Sighting Verification Runs (5 Seeds x 2 Maps) ===\n\n[PASS] Map: natatorium | Seed: 101 | First Sight: 14.3s | Sightings: 6 | Attacks: 0\n   - Sighting #1: t=14.3s, dur=10s, dist=19-20.4m, height=9.7%, visFrac=0.657, attacks=0\n   - Sighting #2: t=65.7s, dur=10s, dist=19-19.8m, height=9.8%, visFrac=0.661, attacks=0\n   - Sighting #3: t=101.4s, dur=10s, dist=19-19.8m, height=9.8%, visFrac=0.661, attacks=0\n   - Sighting #4: t=142.9s, dur=10s, dist=19-20.3m, height=9.7%, visFrac=0.658, attacks=0\n   - Sighting #5: t=175.9s, dur=10s, dist=19-19.8m, height=9.8%, visFrac=0.661, attacks=0\n   - Sighting #6: t=212.2s, dur=10s, dist=19-19.8m, height=9.8%, visFrac=0.661, attacks=0\n[PASS] Map: natatorium | Seed: 202 | First Sight: 15s | Sightings: 6 | Attacks: 0\n   - Sighting #1: t=15s, dur=10s, dist=19-20.4m, height=9.7%, visFrac=0.657, attacks=0\n   - Sighting #2: t=65.2s, dur=10s, dist=19-19.8m, height=9.8%, visFrac=0.661, attacks=0\n   - Sighting #3: t=102.7s, dur=10s, dist=19-19.8m, height=9.8%, visFrac=0.661, attacks=0\n   - Sighting #4: t=153.9s, dur=10s, dist=19-20.8m, height=9.6%, visFrac=0.654, attacks=0\n   - Sighting #5: t=182.8s, dur=10s, dist=19-19.8m, height=9.8%, visFrac=0.661, attacks=0\n   - Sighting #6: t=210.6s, dur=10s, dist=19-19.8m, height=9.8%, visFrac=0.661, attacks=0\n[PASS] Map: natatorium | Seed: 303 | First Sight: 15.9s | Sightings: 7 | Attacks: 0\n   - Sighting #1: t=15.9s, dur=10s, dist=19-19.9m, height=9.8%, visFrac=0.661, attacks=0\n   - Sighting #2: t=51.7s, dur=10s, dist=19-19.8m, height=9.8%, visFrac=0.661, attacks=0\n   - Sighting #3: t=89.5s, dur=10s, dist=19-19.8m, height=9.8%, visFrac=0.661, attacks=0\n   - Sighting #4: t=130.2s, dur=10s, dist=19-20.5m, height=9.6%, visFrac=0.656, attacks=0\n   - Sighting #5: t=160.3s, dur=10s, dist=19-19.8m, height=9.8%, visFrac=0.661, attacks=0\n   - Sighting #6: t=189.4s, dur=10s, dist=19-19.9m, height=9.8%, visFrac=0.661, attacks=0\n   - Sighting #7: t=227.3s, dur=10s, dist=19-20.2m, height=9.7%, visFrac=0.658, attacks=0\n[PASS] Map: natatorium | Seed: 404 | First Sight: 15.6s | Sightings: 7 | Attacks: 0\n   - Sighting #1: t=15.6s, dur=10s, dist=19-20.1m, height=9.7%, visFrac=0.659, attacks=0\n   - Sighting #2: t=56.3s, dur=10s, dist=19-19.8m, height=9.8%, visFrac=0.661, attacks=0\n   - Sighting #3: t=107.4s, dur=10s, dist=19-19.8m, height=9.8%, visFrac=0.661, attacks=0\n   - Sighting #4: t=144.1s, dur=10s, dist=19-19.8m, height=9.8%, visFrac=0.661, attacks=0\n   - Sighting #5: t=170.7s, dur=10s, dist=19-20.8m, height=9.6%, visFrac=0.654, attacks=0\n   - Sighting #6: t=196.9s, dur=10s, dist=19-20.8m, height=9.6%, visFrac=0.654, attacks=0\n   - Sighting #7: t=233.3s, dur=6.7s, dist=19-19.8m, height=9.8%, visFrac=0.661, attacks=0\n[PASS] Map: natatorium | Seed: 505 | First Sight: 13.6s | Sightings: 7 | Attacks: 0\n   - Sighting #1: t=13.6s, dur=10s, dist=19-20.5m, height=9.6%, visFrac=0.656, attacks=0\n   - Sighting #2: t=55.5s, dur=10s, dist=19-19.8m, height=9.8%, visFrac=0.661, attacks=0\n   - Sighting #3: t=102.3s, dur=10s, dist=19-19.8m, height=9.8%, visFrac=0.661, attacks=0\n   - Sighting #4: t=140.6s, dur=10s, dist=19-19.8m, height=9.8%, visFrac=0.661, attacks=0\n   - Sighting #5: t=172.5s, dur=10s, dist=19-20.8m, height=9.6%, visFrac=0.654, attacks=0\n   - Sighting #6: t=209.3s, dur=10s, dist=19-19.8m, height=9.8%, visFrac=0.661, attacks=0\n   - Sighting #7: t=237.8s, dur=2.2s, dist=19-19.8m, height=9.8%, visFrac=0.661, attacks=0\n[PASS] Map: poolrooms  | Seed: 101 | First Sight: 24.5s | Sightings: 6 | Attacks: 0\n   - Sighting #1: t=24.5s, dur=8s, dist=13.8-19.9m, height=11.3%, visFrac=0.627, attacks=0\n   - Sighting #2: t=68.7s, dur=8s, dist=19.8-22.2m, height=9.1%, visFrac=0.549, attacks=0\n   - Sighting #3: t=118.3s, dur=8s, dist=17.3-19.8m, height=10.3%, visFrac=0.594, attacks=0\n   - Sighting #4: t=162.6s, dur=8s, dist=17.3-19.8m, height=10.3%, visFrac=0.594, attacks=0\n   - Sighting #5: t=192s, dur=8s, dist=16-24.5m, height=9.4%, visFrac=0.562, attacks=0\n   - Sighting #6: t=222.5s, dur=8s, dist=15.3-20m, height=10.8%, visFrac=0.611, attacks=0\n[PASS] Map: poolrooms  | Seed: 202 | First Sight: 25.9s | Sightings: 6 | Attacks: 0\n   - Sighting #1: t=25.9s, dur=8s, dist=19.8-22.3m, height=9.1%, visFrac=0.548, attacks=0\n   - Sighting #2: t=73.6s, dur=8s, dist=18.5-22.2m, height=9.4%, visFrac=0.56, attacks=0\n   - Sighting #3: t=124.9s, dur=8s, dist=19.8-22.4m, height=9%, visFrac=0.547, attacks=0\n   - Sighting #4: t=156.8s, dur=8s, dist=11.5-16.8m, height=13.5%, visFrac=0.681, attacks=0\n   - Sighting #5: t=191.2s, dur=8s, dist=19.8-22m, height=9.1%, visFrac=0.551, attacks=0\n   - Sighting #6: t=222.4s, dur=8s, dist=19.8-23.2m, height=8.9%, visFrac=0.54, attacks=0\n[FAIL] Map: poolrooms  | Seed: 303 | First Sight: 45.3s | Sightings: 5 | Attacks: 0\n   - Sighting #1: t=45.3s, dur=8s, dist=13.7-19.8m, height=11.4%, visFrac=0.629, attacks=0\n   - Sighting #2: t=92.7s, dur=8s, dist=18.5-22.3m, height=9.3%, visFrac=0.56, attacks=0\n   - Sighting #3: t=130.5s, dur=8s, dist=19.8-22.3m, height=9%, visFrac=0.548, attacks=0\n   - Sighting #4: t=167.6s, dur=8s, dist=17.2-19.8m, height=10.3%, visFrac=0.595, attacks=0\n   - Sighting #5: t=205.5s, dur=8s, dist=17.2-19.8m, height=10.3%, visFrac=0.594, attacks=0\n[PASS] Map: poolrooms  | Seed: 404 | First Sight: 27.2s | Sightings: 6 | Attacks: 0\n   - Sighting #1: t=27.2s, dur=8s, dist=13.8-19.9m, height=11.3%, visFrac=0.628, attacks=0\n   - Sighting #2: t=64.6s, dur=8s, dist=19.8-22m, height=9.1%, visFrac=0.551, attacks=0\n   - Sighting #3: t=103.1s, dur=8s, dist=19.8-22m, height=9.1%, visFrac=0.55, attacks=0\n   - Sighting #4: t=148.9s, dur=8s, dist=19.8-22.3m, height=9%, visFrac=0.548, attacks=0\n   - Sighting #5: t=186s, dur=8s, dist=19.8-25.9m, height=8.3%, visFrac=0.517, attacks=0\n   - Sighting #6: t=219.4s, dur=8s, dist=15.6-19.8m, height=10.8%, visFrac=0.61, attacks=0\n[PASS] Map: poolrooms  | Seed: 505 | First Sight: 37.3s | Sightings: 6 | Attacks: 0\n   - Sighting #1: t=37.3s, dur=8s, dist=14-19.8m, height=11.3%, visFrac=0.626, attacks=0\n   - Sighting #2: t=79.9s, dur=8s, dist=18.4-22.3m, height=9.4%, visFrac=0.56, attacks=0\n   - Sighting #3: t=118.2s, dur=8s, dist=17.2-19.8m, height=10.3%, visFrac=0.595, attacks=0\n   - Sighting #4: t=166.1s, dur=8s, dist=16.2-19.8m, height=10.6%, visFrac=0.604, attacks=0\n   - Sighting #5: t=201.1s, dur=8s, dist=17.3-19.8m, height=10.3%, visFrac=0.594, attacks=0\n   - Sighting #6: t=238s, dur=2s, dist=15.3-16m, height=12.2%, visFrac=0.651, attacks=0\n\nResult: 9/10 runs passed.\n"
+    "pass": true,
+    "durationMs": 20019,
+    "details": {
+      "summary": "   - Sighting #3: t=142.8s, dur=8.1s, dist=10.2-12.7m, height=16.6%, visFrac=0.731, attacks=0;    - Sighting #4: t=176.8s, dur=9.7s, dist=10.2-13.3m, height=16.2%, visFrac=0.726, attacks=0;    - Sighting #5: t=211.6s, dur=7.7s, dist=10.8-12.4m, height=16.4%, visFrac=0.728, attacks=0; ; Result: 10/10 runs passed."
+    }
   }
 }

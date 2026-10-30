@@ -64,3 +64,21 @@
 - **L6 (Scene Reachability):** Verifies MonsterMesh root has Scene in its parent chain (detects watchdog orphan bugs).
 - **L7 (Nav Reachability):** Verifies creature spawn cell is in the largest connected walkable NavGrid component.
 
+## 4. Natural-Play Sighting Verification (M9 Suite: 10 Runs, 5 Seeds x 2 Maps)
+
+Harness: 240s natural-play simulation driving player through flooded halls without debug keys or teleports. Sighting probe sampled at 5 Hz.
+
+| Map | Seed | First Sighting (s) | Total Sightings | Min Duration (s) | Min Screen Height (%) | Min VisFrac | Attacks During Prowl | Verdict |
+|---|---|---|---|---|---|---|---|---|
+| natatorium | 101 | 14.3s | 5 | 6.5s | 16.0% | 0.769 | 0 | ✅ PASS |
+| natatorium | 202 | 15.0s | 5 | 6.6s | 16.5% | 0.773 | 0 | ✅ PASS |
+| natatorium | 303 | 15.9s | 5 | 6.2s | 17.1% | 0.778 | 0 | ✅ PASS |
+| natatorium | 404 | 15.6s | 5 | 6.8s | 18.6% | 0.789 | 0 | ✅ PASS |
+| natatorium | 505 | 13.6s | 5 | 6.1s | 14.5% | 0.752 | 0 | ✅ PASS |
+| poolrooms | 101 | 24.5s | 5 | 6.4s | 13.9% | 0.689 | 0 | ✅ PASS |
+| poolrooms | 202 | 25.9s | 5 | 7.4s | 12.1% | 0.650 | 0 | ✅ PASS |
+| poolrooms | 303 | 27.9s | 5 | 7.6s | 12.4% | 0.657 | 0 | ✅ PASS |
+| poolrooms | 404 | 27.2s | 5 | 6.5s | 12.5% | 0.657 | 0 | ✅ PASS |
+| poolrooms | 505 | 23.1s | 5 | 6.8s | 12.7% | 0.662 | 0 | ✅ PASS |
+
+
