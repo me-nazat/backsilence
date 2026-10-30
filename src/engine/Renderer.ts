@@ -10,6 +10,7 @@ import {
   AgXToneMapping,
   NeutralToneMapping,
   SRGBColorSpace,
+  PCFShadowMap,
   PCFSoftShadowMap,
   type Scene,
   type Camera,
@@ -69,29 +70,36 @@ export class EngineRenderer {
     this.setToneMapping(settings.graphics.toneMapping ?? 'agx');
     this.applySettings(settings);
 
-    if (quality.shadowType === 'pcfsoft') {
-      this.renderer.shadowMap.enabled = true;
-      this.renderer.shadowMap.type = PCFSoftShadowMap;
-    } else {
-      this.renderer.shadowMap.enabled = false;
-    }
-
     this.setupContextHandlers();
     this.setupResize(container);
   }
 
   applySettings(s: Settings): void {
     this.settings = s;
+    const tier = resolveQualityTier(s.graphics.quality);
     const quality = resolveQuality(s.graphics.quality);
 
     // Brightness maps to exposure 0.8–1.4 (default ~1.1 at brightness 1.0)
     const exposure = 0.8 + (s.graphics.brightness / 2.0) * 0.6;
     this.renderer.toneMappingExposure = exposure;
 
-    // Adaptive DPR
-    const rawDpr = window.devicePixelRatio ?? 1.0;
-    const effectiveDpr = Math.min(rawDpr, quality.dprCap) * (s.graphics.resolutionScale / 100.0);
+    // Adaptive DPR based on resolution scale and quality cap
+    const rawDpr = typeof window !== 'undefined' ? (window.devicePixelRatio ?? 1.0) : 1.0;
+    const clampedDpr = tier === 'low' ? Math.min(rawDpr, 1.0) : Math.min(rawDpr, quality.dprCap);
+    const effectiveDpr = clampedDpr * (s.graphics.resolutionScale / 100.0);
     this.renderer.setPixelRatio(Math.max(0.5, effectiveDpr));
+
+    // Dynamic Shadow Map configuration by Quality Tier
+    if (tier === 'low') {
+      this.renderer.shadowMap.enabled = false;
+    } else if (tier === 'medium') {
+      this.renderer.shadowMap.enabled = true;
+      this.renderer.shadowMap.type = PCFShadowMap;
+    } else {
+      this.renderer.shadowMap.enabled = true;
+      this.renderer.shadowMap.type = PCFSoftShadowMap;
+    }
+    this.renderer.shadowMap.needsUpdate = true;
 
     this.setToneMapping(s.graphics.toneMapping ?? 'agx');
   }

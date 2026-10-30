@@ -79,6 +79,10 @@ import { ErrorBoundary } from '../engine/ErrorBoundary.js';
 import { OrientationDirector } from './OrientationDirector.js';
 import { GamepadManager } from '../engine/input/GamepadManager.js';
 
+const _scratchEuler = new Euler();
+const _scratchVecA = new Vector3();
+const _scratchVecB = new Vector3();
+
 export interface GameSessionCallbacks {
   onPause: () => void;
   onDeath: (stats: JumpscareStats) => void;
@@ -96,6 +100,9 @@ export class GameSession {
   private menuMusic: MenuMusic | null = null;
   private readonly hud: Hud;
   private readonly callbacks: GameSessionCallbacks;
+
+  private readonly nearWallCandidates: import('../sim/Colliders.js').Collider[] = [];
+  private readonly frameNoises: NoiseEvent[] = [];
 
   private settings: Settings;
   private difficulty: 'whisper' | 'normal' | 'deafening';
@@ -1658,6 +1665,7 @@ export class GameSession {
 
   setSettings(newSettings: Settings): void {
     this.settings = newSettings;
+    const tier = resolveQualityTier(newSettings.graphics.quality);
     this.audio.applySettings(newSettings.audio);
     this.renderer.applySettings(newSettings);
     this.postFX.applySettings(newSettings);
@@ -1665,6 +1673,40 @@ export class GameSession {
     this.playerCamera.setSettings(newSettings);
     this.playerInput.setSettings(newSettings);
     this.acoustics.setSettings(newSettings);
+
+    if (this.water) {
+      this.water.setQuality(tier);
+    }
+
+    if (this.sunLight) {
+      if (tier === 'low') {
+        this.sunLight.castShadow = false;
+      } else {
+        this.sunLight.castShadow = true;
+        const res = tier === 'high' ? 1024 : 512;
+        this.sunLight.shadow.mapSize.width = res;
+        this.sunLight.shadow.mapSize.height = res;
+        if (this.sunLight.shadow.map) {
+          this.sunLight.shadow.map.dispose();
+          this.sunLight.shadow.map = null as any;
+        }
+      }
+    }
+
+    if (this.flashlightLight) {
+      if (tier === 'low') {
+        this.flashlightLight.castShadow = false;
+      } else {
+        this.flashlightLight.castShadow = true;
+        const res = tier === 'high' ? 512 : 256;
+        this.flashlightLight.shadow.mapSize.width = res;
+        this.flashlightLight.shadow.mapSize.height = res;
+        if (this.flashlightLight.shadow.map) {
+          this.flashlightLight.shadow.map.dispose();
+          this.flashlightLight.shadow.map = null as any;
+        }
+      }
+    }
   }
 
   restart(sameSeed = true): void {
@@ -1804,14 +1846,14 @@ export class GameSession {
 
     if (hasPlayerInput && this.openingTurn?.active) {
       if (this.openingTurn.t > 2.2) {
-        const curEuler = new Euler().setFromQuaternion(this.camera.quaternion, 'YXZ');
-        this.simWorld.player.setYaw(curEuler.y);
+        _scratchEuler.setFromQuaternion(this.camera.quaternion, 'YXZ');
+        this.simWorld.player.setYaw(_scratchEuler.y);
       }
       this.openingTurn.active = false;
     }
 
     // 2. Fixed Timestep Physics Simulation
-    const recentNoises: NoiseEvent[] = [];
+    this.frameNoises.length = 0;
 
     while (this.accumulator >= this.FIXED_DT) {
       // Dynamic Water Level Step (Map 4)
@@ -1834,7 +1876,7 @@ export class GameSession {
       // Drain emitted events
       this.simWorld.events.drain((ev) => {
         if (ev.type === 'noise') {
-          recentNoises.push(ev.data);
+          this.frameNoises.push(ev.data);
           if (ev.data.sourcePlayerId !== 'world') {
             this.noisesMade++;
           }
@@ -1864,16 +1906,16 @@ export class GameSession {
     if (this.openingTurn?.active) {
       this.openingTurn.t += dt;
       if (this.openingTurn.t < 2.2) {
-        const curEuler = new Euler().setFromQuaternion(this.camera.quaternion, 'YXZ');
-        curEuler.y = this.openingTurn.from;
-        this.camera.quaternion.setFromEuler(curEuler);
+        _scratchEuler.setFromQuaternion(this.camera.quaternion, 'YXZ');
+        _scratchEuler.y = this.openingTurn.from;
+        this.camera.quaternion.setFromEuler(_scratchEuler);
       } else if (this.openingTurn.t <= 4.0) {
         const p = Math.min(1.0, (this.openingTurn.t - 2.2) / 1.8);
         const smoothP = p * p * (3.0 - 2.0 * p);
         const curYaw = this.openingTurn.from + (this.openingTurn.to - this.openingTurn.from) * smoothP;
-        const curEuler = new Euler().setFromQuaternion(this.camera.quaternion, 'YXZ');
-        curEuler.y = curYaw;
-        this.camera.quaternion.setFromEuler(curEuler);
+        _scratchEuler.setFromQuaternion(this.camera.quaternion, 'YXZ');
+        _scratchEuler.y = curYaw;
+        this.camera.quaternion.setFromEuler(_scratchEuler);
         if (p >= 1.0) {
           this.simWorld.player.setYaw(this.openingTurn.to);
           this.openingTurn = null;
@@ -1890,9 +1932,9 @@ export class GameSession {
     this.audio.setListener(this.camera.position, this.listenerForward, this.listenerUp);
     const nearWall = (() => {
       if (!this.simWorld?.colliders) return false;
-      const candidates: import('../sim/Colliders.js').Collider[] = [];
-      this.simWorld.colliders.queryCircle(currSnap.pos.x, currSnap.pos.z, 1.0, candidates);
-      if (candidates.length === 0) return false;
+      this.nearWallCandidates.length = 0;
+      this.simWorld.colliders.queryCircle(currSnap.pos.x, currSnap.pos.z, 1.0, this.nearWallCandidates);
+      if (this.nearWallCandidates.length === 0) return false;
       const out = { x: currSnap.pos.x, z: currSnap.pos.z };
       return this.simWorld.colliders.resolveCirclePushout(
         currSnap.pos.x,
@@ -1900,7 +1942,7 @@ export class GameSession {
         1.0,
         currSnap.pos.y,
         1.8,
-        candidates,
+        this.nearWallCandidates,
         out,
       );
     })();
@@ -2065,8 +2107,8 @@ export class GameSession {
       if (mSnap.state === 'ATTACK' && !this.godMode && !this.isDead && !this.jumpscare.isActive()) {
         const body = this.monsters.getBody(m.id);
         const headWorld = body
-          ? body.mesh.joints.head.getWorldPosition(new Vector3())
-          : new Vector3(mSnap.pos.x, mSnap.pos.y + 1.6, mSnap.pos.z);
+          ? body.mesh.joints.head.getWorldPosition(_scratchVecA)
+          : _scratchVecA.set(mSnap.pos.x, mSnap.pos.y + 1.6, mSnap.pos.z);
 
         const isReducedMotion =
           this.settings.accessibility.reducedMotion === 'on' ||
@@ -2170,7 +2212,7 @@ export class GameSession {
       currSnap.pos,
       currSnap.yaw,
       this.simWorld.monsters,
-      recentNoises,
+      this.frameNoises,
     );
 
     // HUD Update
@@ -2196,7 +2238,7 @@ export class GameSession {
 
     // Noise cause tracking from recent noises
     const horizSpeed = Math.hypot(currSnap.vel.x, currSnap.vel.z);
-    for (const noise of recentNoises) {
+    for (const noise of this.frameNoises) {
       if (noise.sourcePlayerId !== 'world') {
         if (currSnap.exhausted || horizSpeed > PlayerMotor.SPEED_WALK + 0.2) {
           this.lastNoiseCause = 'Sprint-wade';
@@ -2873,7 +2915,7 @@ export class GameSession {
       (this.settings.accessibility.reducedMotion === 'system' &&
         typeof window !== 'undefined' &&
         window.matchMedia('(prefers-reduced-motion: reduce)').matches);
-    const fakeHead = new Vector3(this.camera.position.x, this.camera.position.y, this.camera.position.z + 1.0);
+    const fakeHead = _scratchVecA.set(this.camera.position.x, this.camera.position.y, this.camera.position.z + 1.0);
     this.jumpscare?.trigger(
       this.camera,
       fakeHead,
@@ -3744,7 +3786,7 @@ export class GameSession {
     }
 
     const primary = this.simWorld.monsters[0]!;
-    const mPos = new Vector3(primary.pos.x, primary.pos.y, primary.pos.z);
+    _scratchVecA.set(primary.pos.x, primary.pos.y, primary.pos.z);
 
     // 1. Magenta Marker mesh at monster's sim position (depthTest: false)
     if (!this.magentaMarker) {
@@ -3759,7 +3801,7 @@ export class GameSession {
       this.magentaMarker.renderOrder = 9999;
       this.scene.add(this.magentaMarker);
     }
-    this.magentaMarker.position.set(mPos.x, mPos.y + 0.8, mPos.z);
+    this.magentaMarker.position.set(_scratchVecA.x, _scratchVecA.y + 0.8, _scratchVecA.z);
     this.magentaMarker.visible = true;
 
     // 2. Edge locator arrow in DOM
@@ -3782,7 +3824,10 @@ export class GameSession {
         this.locatorElement = el;
       }
 
-      const proj = mPos.clone().add(new Vector3(0, 1.0, 0)).project(this.camera);
+      _scratchVecB.copy(_scratchVecA);
+      _scratchVecB.y += 1.0;
+      _scratchVecB.project(this.camera);
+      const proj = _scratchVecB;
       const w = window.innerWidth;
       const h = window.innerHeight;
       let sx = (proj.x * 0.5 + 0.5) * w;
@@ -3795,7 +3840,7 @@ export class GameSession {
       const clampedX = Math.max(pad, Math.min(w - pad, sx));
       const clampedY = Math.max(pad, Math.min(h - pad, sy));
       const angle = Math.atan2(sy - h / 2, sx - w / 2);
-      const dist = this.camera.position.distanceTo(mPos).toFixed(1);
+      const dist = this.camera.position.distanceTo(_scratchVecA).toFixed(1);
       const state = primary.state;
       const l4Frac = this.lastCachedL4Fraction.toFixed(2);
 

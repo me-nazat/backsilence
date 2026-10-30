@@ -44,7 +44,8 @@ export class ToastManager {
         flex-direction: column;
         gap: 10px;
         z-index: 20000;
-        pointer-events: none;
+        pointer-events: none !important;
+        width: auto;
         max-width: min(420px, calc(100vw - 32px));
       `;
       document.body.appendChild(el);

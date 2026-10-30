@@ -816,11 +816,22 @@ export class SettingsPanel {
   }
 
   show(): void {
-    if (this.el) this.el.style.display = 'flex';
+    if (this.el) {
+      this.el.style.display = 'flex';
+      this.el.style.visibility = 'visible';
+      this.el.style.pointerEvents = 'auto';
+      this.el.removeAttribute('aria-hidden');
+      this.el.removeAttribute('inert');
+    }
   }
 
   hide(): void {
-    if (this.el) this.el.style.display = 'none';
+    if (this.el) {
+      this.el.style.display = 'none';
+      this.el.style.visibility = 'hidden';
+      this.el.style.pointerEvents = 'none';
+      this.el.setAttribute('aria-hidden', 'true');
+    }
   }
 
   dispose(): void {

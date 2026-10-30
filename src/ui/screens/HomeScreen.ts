@@ -255,7 +255,10 @@ export class HomeScreen {
 
   refresh(): void {
     this.element.removeAttribute('inert');
+    this.element.removeAttribute('aria-hidden');
     this.element.style.pointerEvents = 'auto';
+    this.element.style.visibility = 'visible';
+    this.element.style.display = 'flex';
     this.render();
   }
 
@@ -385,6 +388,56 @@ export class HomeScreen {
           beta.style.display = I18nEngine.getInstance().isBeta(chosen) ? 'inline-block' : 'none';
         }
       });
+    });
+
+    // Delegated click handler on the persistent screen root to ensure 100% click durability
+    this.element.addEventListener('click', (e) => {
+      const target = e.target as HTMLElement | null;
+      if (!target) return;
+
+      const trigger = target.closest<HTMLElement>(
+        '#btn-play-solo, #btn-descend-wrap, #btn-hero-playhub, #nav-btn-play, #btn-playhub-wrap, #btn-open-play-hub-bottom, #btn-play-online, #btn-dive-online-wrap, #btn-daily-descent, #btn-daily-action, #btn-daily-descent-wrap, #nav-btn-settings, #nav-btn-leaderboards, #nav-btn-bestiary, #nav-btn-champions, #nav-btn-profile, #btn-race-ghost, .btn-launch-mode'
+      );
+      if (!trigger) return;
+
+      if (trigger.id === 'btn-play-solo' || trigger.id === 'btn-descend-wrap' || trigger.closest('#btn-descend-wrap')) {
+        this.callbacks.onDescend();
+      } else if (
+        trigger.id === 'btn-hero-playhub' ||
+        trigger.id === 'nav-btn-play' ||
+        trigger.id === 'btn-open-play-hub-bottom' ||
+        trigger.closest('#btn-playhub-wrap')
+      ) {
+        this.callbacks.onOpenPlayHub();
+      } else if (trigger.id === 'btn-play-online' || trigger.id === 'btn-dive-online-wrap' || trigger.closest('#btn-dive-online-wrap')) {
+        this.callbacks.onDiveOnline();
+      } else if (
+        trigger.id === 'btn-daily-descent' ||
+        trigger.id === 'btn-daily-action' ||
+        trigger.id === 'btn-daily-descent-wrap' ||
+        trigger.closest('#btn-daily-descent-wrap')
+      ) {
+        this.callbacks.onDailyDescent();
+      } else if (trigger.id === 'nav-btn-settings') {
+        this.callbacks.onOpenSettings();
+      } else if (trigger.id === 'nav-btn-leaderboards') {
+        this.callbacks.onOpenLeaderboards();
+      } else if (trigger.id === 'nav-btn-bestiary') {
+        this.callbacks.onOpenBestiary();
+      } else if (trigger.id === 'nav-btn-champions' || trigger.id === 'btn-race-ghost') {
+        this.callbacks.onOpenChampions();
+      } else if (trigger.id === 'nav-btn-profile') {
+        this.callbacks.onOpenProfile();
+      } else if (trigger.classList.contains('btn-launch-mode')) {
+        const mode = trigger.getAttribute('data-mode');
+        if (mode) {
+          if (this.callbacks.onSelectMode) {
+            this.callbacks.onSelectMode(mode);
+          } else {
+            this.callbacks.onOpenPlayHub();
+          }
+        }
+      }
     });
   }
 

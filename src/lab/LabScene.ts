@@ -37,6 +37,7 @@ import { AudioLabPanel } from './AudioLabPanel.js';
 import { AnimationLabPanel } from './AnimationLabPanel.js';
 import { ScaleLab } from './ScaleLab.js';
 import { causticsChunk } from '../procedural/shaders/caustics.glsl.js';
+import { resolveQualityTier } from '../engine/Quality.js';
 
 export interface LabSceneOptions {
   isMenuMode?: boolean;
@@ -65,6 +66,30 @@ export class LabScene {
 
   get currentSettings(): Settings {
     return this.settings;
+  }
+
+  setSettings(newSettings: Settings): void {
+    this.settings = newSettings;
+    const tier = resolveQualityTier(newSettings.graphics.quality);
+    this.renderer.applySettings(newSettings);
+    if (this.camera) {
+      this.camera.fov = newSettings.graphics.fov;
+      this.camera.updateProjectionMatrix();
+    }
+    if (this.dirLight) {
+      if (tier === 'low') {
+        this.dirLight.castShadow = false;
+      } else {
+        this.dirLight.castShadow = true;
+        const res = tier === 'high' ? 1024 : 512;
+        this.dirLight.shadow.mapSize.width = res;
+        this.dirLight.shadow.mapSize.height = res;
+        if (this.dirLight.shadow.map) {
+          this.dirLight.shadow.map.dispose();
+          this.dirLight.shadow.map = null as any;
+        }
+      }
+    }
   }
 
   private hemiLight!: HemisphereLight;

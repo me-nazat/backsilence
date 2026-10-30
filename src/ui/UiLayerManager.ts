@@ -89,11 +89,17 @@ export class UiLayerManager {
     const popped = this.stack.pop();
     if (!popped) return null;
     popped.element.removeAttribute('inert');
+    if (popped.isModal) {
+      popped.element.style.pointerEvents = 'none';
+      popped.element.setAttribute('aria-hidden', 'true');
+    }
 
     // If popped was modal, restore inertness of the new top layer
     const newTop = this.getTopLayer();
     if (newTop) {
       newTop.element.removeAttribute('inert');
+      newTop.element.style.pointerEvents = 'auto';
+      newTop.element.removeAttribute('aria-hidden');
     } else {
       const canvasContainer = document.getElementById('canvas-container');
       if (canvasContainer) canvasContainer.removeAttribute('inert');
@@ -115,8 +121,16 @@ export class UiLayerManager {
       const popped = this.stack.splice(idx, 1)[0];
       if (popped) {
         popped.element.removeAttribute('inert');
+        if (popped.isModal) {
+          popped.element.style.pointerEvents = 'none';
+          popped.element.setAttribute('aria-hidden', 'true');
+        }
         const top = this.getTopLayer();
-        if (top) top.element.removeAttribute('inert');
+        if (top) {
+          top.element.removeAttribute('inert');
+          top.element.style.pointerEvents = 'auto';
+          top.element.removeAttribute('aria-hidden');
+        }
         if (popped.opener && typeof popped.opener.focus === 'function') {
           popped.opener.focus();
         }
@@ -140,17 +154,31 @@ export class UiLayerManager {
     }
     if (typeof document !== 'undefined') {
       const canvasContainer = document.getElementById('canvas-container');
-      if (canvasContainer) canvasContainer.removeAttribute('inert');
+      if (canvasContainer) {
+        canvasContainer.removeAttribute('inert');
+        canvasContainer.style.pointerEvents = 'none';
+      }
       const uiLayer = document.getElementById('ui-layer');
       if (uiLayer) {
         uiLayer.removeAttribute('inert');
         uiLayer.style.pointerEvents = 'auto';
       }
+      const app = document.getElementById('app');
+      if (app) {
+        app.removeAttribute('inert');
+      }
       const homeScreen = document.getElementById('screen-home');
       if (homeScreen) {
         homeScreen.removeAttribute('inert');
+        homeScreen.removeAttribute('aria-hidden');
         homeScreen.style.pointerEvents = 'auto';
+        homeScreen.style.visibility = 'visible';
+        homeScreen.style.display = 'flex';
       }
+      // Remove any leftover modal backdrops
+      document.querySelectorAll('#bs-confirmation-modal, .bs-modal-backdrop, #bs-calibration-modal').forEach((el) => {
+        if (el.parentElement) el.parentElement.removeChild(el);
+      });
     }
   }
 

@@ -41,6 +41,28 @@ export class PerfTracker {
   private rollingFrameTime = 16.6;
 
   private menuInteractiveTime = 0;
+  private lastHeavyStatsTime = 0;
+  private cachedTexStatsMB = '0.0';
+  private cachedJsHeap = 'N/A';
+  private cachedSnapshot: PerfSnapshot = {
+    fps: 60,
+    frameTimeMs: 16.6,
+    drawCalls: 0,
+    triangles: 0,
+    geometries: 0,
+    textures: 0,
+    programs: 0,
+    textureMemoryMB: '0.0',
+    jsHeapMB: 'N/A',
+    menuInteractiveMs: 0,
+    budgetExceeded: {
+      drawCalls: false,
+      triangles: false,
+      programs: false,
+      textures: false,
+      frameTime: false,
+    },
+  };
 
   constructor() {
     this.recordMenuInteractive();
@@ -68,17 +90,19 @@ export class PerfTracker {
   }
 
   getSnapshot(renderer?: WebGLRenderer): PerfSnapshot {
-    const texStats = TextureRegistry.getInstance().stats();
-
-    let jsHeap = 'N/A';
-    if (
-      typeof performance !== 'undefined' &&
-      (performance as unknown as { memory?: { usedJSHeapSize: number } }).memory
-    ) {
-      const used = (
-        performance as unknown as { memory: { usedJSHeapSize: number } }
-      ).memory.usedJSHeapSize;
-      jsHeap = (used / (1024 * 1024)).toFixed(1) + ' MB';
+    const now = performance.now();
+    if (now - this.lastHeavyStatsTime >= 500) {
+      this.lastHeavyStatsTime = now;
+      this.cachedTexStatsMB = TextureRegistry.getInstance().stats().memoryMB;
+      if (
+        typeof performance !== 'undefined' &&
+        (performance as unknown as { memory?: { usedJSHeapSize: number } }).memory
+      ) {
+        const used = (
+          performance as unknown as { memory: { usedJSHeapSize: number } }
+        ).memory.usedJSHeapSize;
+        this.cachedJsHeap = (used / (1024 * 1024)).toFixed(1) + ' MB';
+      }
     }
 
     const calls = (renderer as unknown as { lastFrameCalls?: number })?.lastFrameCalls ?? renderer?.info.render.calls ?? 0;
@@ -87,24 +111,25 @@ export class PerfTracker {
     const textures = renderer?.info.memory.textures ?? 0;
     const programs = renderer?.info.programs?.length ?? 0;
 
-    return {
-      fps: Math.round(this.rollingFps),
-      frameTimeMs: parseFloat(this.rollingFrameTime.toFixed(1)),
-      drawCalls: calls,
-      triangles,
-      geometries,
-      textures,
-      programs,
-      textureMemoryMB: texStats.memoryMB,
-      jsHeapMB: jsHeap,
-      menuInteractiveMs: this.menuInteractiveTime,
-      budgetExceeded: {
-        drawCalls: calls > PERF_BUDGET.drawCalls,
-        triangles: triangles > PERF_BUDGET.triangles,
-        programs: programs > PERF_BUDGET.programs,
-        textures: textures > PERF_BUDGET.textures,
-        frameTime: this.rollingFrameTime > PERF_BUDGET.frameTimeLowMs,
-      },
-    };
+    const s = this.cachedSnapshot;
+    s.fps = Math.round(this.rollingFps);
+    s.frameTimeMs = parseFloat(this.rollingFrameTime.toFixed(1));
+    s.drawCalls = calls;
+    s.triangles = triangles;
+    s.geometries = geometries;
+    s.textures = textures;
+    s.programs = programs;
+    s.textureMemoryMB = this.cachedTexStatsMB;
+    s.jsHeapMB = this.cachedJsHeap;
+    s.menuInteractiveMs = this.menuInteractiveTime;
+    if (s.budgetExceeded) {
+      s.budgetExceeded.drawCalls = calls > PERF_BUDGET.drawCalls;
+      s.budgetExceeded.triangles = triangles > PERF_BUDGET.triangles;
+      s.budgetExceeded.programs = programs > PERF_BUDGET.programs;
+      s.budgetExceeded.textures = textures > PERF_BUDGET.textures;
+      s.budgetExceeded.frameTime = this.rollingFrameTime > PERF_BUDGET.frameTimeLowMs;
+    }
+
+    return s;
   }
 }

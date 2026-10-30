@@ -43,6 +43,9 @@ import { GpuWaveSimulation } from './GpuWaveSimulation.js';
 import { makeWaterNormalMap } from '../../procedural/textures/WaterNormal.js';
 import type { AudioEngine } from '../../audio/AudioEngine.js';
 
+const _scratchForward = new Vector3();
+const _scratchLookTarget = new Vector3();
+
 export interface WaterSystemOptions {
   scene: Scene;
   ground: GroundGrid;
@@ -64,6 +67,7 @@ export class WaterSystem {
   readonly waveSim: GpuWaveSimulation;
   readonly mapData: WaterMapResult;
   readonly tier: GraphicsTier;
+  public currentTier: GraphicsTier;
 
   currentWaterY: number;
   private readonly planeSize = 192.0;
@@ -96,6 +100,7 @@ export class WaterSystem {
     this.audio = options.audio;
     const tier = options.tier ?? 'high';
     this.tier = tier;
+    this.currentTier = tier;
 
     // Segments: 192 (high), 160 (medium), 96 (low) (Prompt 8.8)
     const segments = tier === 'low' ? 96 : tier === 'medium' ? 160 : 192;
@@ -208,9 +213,19 @@ export class WaterSystem {
 
   private planarFrameCount = 0;
 
+  setQuality(tier: GraphicsTier): void {
+    this.currentTier = tier;
+    if (this.material.uniforms['uTier']) {
+      this.material.uniforms['uTier'].value = tier === 'low' ? 0.0 : tier === 'medium' ? 1.0 : 2.0;
+    }
+    if (this.motesMesh) {
+      this.motesMesh.visible = tier !== 'low';
+    }
+  }
+
   /** Capture 64px CubeCamera reflection once at map load (Medium & High) */
   captureEnvMap(renderer: WebGLRenderer, scene: Scene): void {
-    if (this.tier === 'low' || !this.cubeCamera || !this.cubeRenderTarget || this.hasCapturedEnvCube) return;
+    if (this.currentTier === 'low' || !this.cubeCamera || !this.cubeRenderTarget || this.hasCapturedEnvCube) return;
     this.mesh.visible = false;
     this.cubeCamera.update(renderer, scene);
     this.mesh.visible = true;
@@ -222,7 +237,7 @@ export class WaterSystem {
 
   /** Update half-res planar reflection (High tier only, every 2nd frame) */
   updatePlanarReflection(renderer: WebGLRenderer, scene: Scene, camera: Camera): void {
-    if (this.tier !== 'high' || !this.planarRenderTarget || !this.planarCamera) return;
+    if (this.currentTier !== 'high' || !this.planarRenderTarget || !this.planarCamera) return;
     if (this.planarFrameCount++ % 2 !== 0) return;
     if (camera instanceof PerspectiveCamera) {
       this.planarCamera.fov = camera.fov;
@@ -234,10 +249,10 @@ export class WaterSystem {
       const d = 2.0 * (camera.position.y - this.currentWaterY);
       this.planarCamera.position.set(camera.position.x, camera.position.y - d, camera.position.z);
 
-      const forward = new Vector3();
-      camera.getWorldDirection(forward);
-      forward.y = -forward.y;
-      this.planarCamera.lookAt(this.planarCamera.position.clone().add(forward));
+      camera.getWorldDirection(_scratchForward);
+      _scratchForward.y = -_scratchForward.y;
+      _scratchLookTarget.copy(this.planarCamera.position).add(_scratchForward);
+      this.planarCamera.lookAt(_scratchLookTarget);
       this.planarCamera.updateMatrixWorld();
 
       this.mesh.visible = false;
@@ -255,7 +270,7 @@ export class WaterSystem {
 
   /** Step and render GPU wave simulation (Medium & High) */
   renderWaveSim(renderer: WebGLRenderer): void {
-    if (this.tier === 'low') return;
+    if (this.currentTier === 'low') return;
     if (!this.waveSim.isReady) {
       this.waveSim.initGpu(renderer);
     }

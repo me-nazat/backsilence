@@ -931,6 +931,8 @@ export function installDebugApi(options: DebugApiOptions = {}): void {
   console.log('[BackSilence] Debug API installed: window.__backsilence = { audioSelfTest, textureSelfTest, perfReport, sim }');
 }
 
+let lastOverlayUpdate = 0;
+
 /**
  * Update on-screen debug overlay (?debug=1 or ?lab=1)
  */
@@ -951,6 +953,10 @@ export function updateDebugOverlay(stats: {
 }): void {
   const overlay = document.getElementById('debug-overlay');
   if (!overlay) return;
+
+  const now = performance.now();
+  if (now - lastOverlayUpdate < 150) return;
+  lastOverlayUpdate = now;
 
   const menuMark = performance.getEntriesByName('menu:interactive')[0];
   const menuTime = menuMark ? `${Math.round(menuMark.startTime)}ms` : 'n/a';

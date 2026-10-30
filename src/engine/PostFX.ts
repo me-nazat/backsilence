@@ -267,7 +267,7 @@ export class PostFX {
 
     const baseIntensity = s.graphics.vhsIntensity;
     if (baseIntensity > 0) {
-      const dynamicGrade = 0.20 + 0.35 * this.tension;
+      const dynamicGrade = baseIntensity * (0.6 + 0.4 * this.tension);
       u.uIntensity.value = isSafe ? Math.min(0.25, dynamicGrade) : dynamicGrade;
     } else {
       u.uIntensity.value = 0.0;
@@ -340,7 +340,7 @@ export class PostFX {
       u.uTension.value = this.tension;
       const baseIntensity = this.settings.graphics.vhsIntensity;
       if (baseIntensity > 0) {
-        const dynamicGrade = 0.20 + 0.35 * this.tension;
+        const dynamicGrade = baseIntensity * (0.6 + 0.4 * this.tension);
         u.uIntensity.value = this.isSafeMode() ? Math.min(0.25, dynamicGrade) : dynamicGrade;
       }
     }

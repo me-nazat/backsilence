@@ -300,6 +300,10 @@ export class PauseMenu {
   show(objective?: string): void {
     if (this.el) {
       this.el.style.display = 'flex';
+      this.el.style.visibility = 'visible';
+      this.el.style.pointerEvents = 'auto';
+      this.el.removeAttribute('aria-hidden');
+      this.el.removeAttribute('inert');
       this.syncQuickSettings();
       if (objective) {
         const objText = this.el.querySelector('#pause-objective-text');
@@ -357,7 +361,12 @@ export class PauseMenu {
   }
 
   hide(): void {
-    if (this.el) this.el.style.display = 'none';
+    if (this.el) {
+      this.el.style.display = 'none';
+      this.el.style.visibility = 'hidden';
+      this.el.style.pointerEvents = 'none';
+      this.el.setAttribute('aria-hidden', 'true');
+    }
   }
 
   dispose(): void {

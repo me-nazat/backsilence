@@ -32,7 +32,19 @@
       position:fixed;inset:0;z-index:1;overflow:hidden;background:var(--ink);pointer-events:none;
     }
     #canvas-container canvas{
-      display:block;width:100%!important;height:100%!important;pointer-events:auto;
+      display:block;width:100%!important;height:100%!important;pointer-events:none;
+    }
+
+    /* Enforce click-through on full-screen HUD, toast containers & overlays */
+    #toast-container,
+    .bs-toast-container,
+    #vhs-overlay,
+    #vhs-css-fallback,
+    #hud-overlay,
+    .bs-hud,
+    #debug-overlay,
+    .bs-scanlines {
+      pointer-events: none !important;
     }
 
     /* Splash Screen */

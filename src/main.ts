@@ -180,7 +180,7 @@ async function boot(): Promise<void> {
   const route = parseRoute();
   setBootProgress(15);
 
-  const settings = loadSettings();
+  let settings = loadSettings();
   setBootProgress(30);
 
   // 2. Initialize Core Systems
@@ -534,8 +534,14 @@ async function boot(): Promise<void> {
 
   bus.on('settings:applied' as unknown as 'game:start', (rawSettings: unknown) => {
     const s = rawSettings as Settings;
+    settings = s;
     if (activeGameSession) {
       activeGameSession.setSettings(s);
+    }
+    labScene.setSettings(s);
+    if (!s.graphics.showFps && !route.debug && !route.lab) {
+      const dbg = document.getElementById('debug-overlay');
+      if (dbg) dbg.style.display = 'none';
     }
   });
 
@@ -602,8 +608,11 @@ async function boot(): Promise<void> {
       return;
     }
 
-    // Optional 30fps cap for battery saver & low-tier mobile devices
+    // Optional 30fps or 60fps cap for battery saver & stable frame pacing
     if (settings.graphics.fpsCap === 30 && now - lastRenderTime < 32.5) {
+      return;
+    }
+    if (settings.graphics.fpsCap === 60 && now - lastRenderTime < 16.0) {
       return;
     }
     lastRenderTime = now;
@@ -645,6 +654,11 @@ async function boot(): Promise<void> {
         cachedDebugOverlayStats.visFrac = sighting.visFrac;
       }
       debugModule.updateDebugOverlay(cachedDebugOverlayStats);
+    } else {
+      const dbg = document.getElementById('debug-overlay');
+      if (dbg && dbg.style.display !== 'none') {
+        dbg.style.display = 'none';
+      }
     }
   }
 

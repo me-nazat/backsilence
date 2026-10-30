@@ -608,8 +608,15 @@ export class UIManager {
   }
 
   goBack(): void {
+    safeExitPointerLock();
+    if (typeof document !== 'undefined' && document.exitPointerLock && document.pointerLockElement) {
+      try {
+        document.exitPointerLock();
+      } catch {
+        /* ignore */
+      }
+    }
     if (this.currentView === 'GAME') {
-      safeExitPointerLock();
       this.bus.emit('game:leave', undefined);
     }
     if (this.viewStack.length > 1) {
@@ -634,18 +641,27 @@ export class UIManager {
   }
 
   private hideAllScreens(): void {
-    this.homeScreen.element.style.display = 'none';
-    this.playHubScreen.element.style.display = 'none';
-    this.mapsScreen.element.style.display = 'none';
-    this.bestiaryScreen.element.style.display = 'none';
-    this.leaderboardsScreen.element.style.display = 'none';
-    this.championsScreen.element.style.display = 'none';
-    this.profileScreen.element.style.display = 'none';
-    this.lobbyScreen.element.style.display = 'none';
-    this.creditsScreen.element.style.display = 'none';
-    this.aboutPrivacyScreen.element.style.display = 'none';
-    this.changelogScreen.element.style.display = 'none';
-    this.uiLabPage.element.style.display = 'none';
+    const screens = [
+      this.homeScreen.element,
+      this.playHubScreen.element,
+      this.mapsScreen.element,
+      this.bestiaryScreen.element,
+      this.leaderboardsScreen.element,
+      this.championsScreen.element,
+      this.profileScreen.element,
+      this.lobbyScreen.element,
+      this.creditsScreen.element,
+      this.aboutPrivacyScreen.element,
+      this.changelogScreen.element,
+      this.uiLabPage.element,
+    ];
+
+    screens.forEach((el) => {
+      el.style.display = 'none';
+      el.style.visibility = 'hidden';
+      el.style.pointerEvents = 'none';
+      el.setAttribute('aria-hidden', 'true');
+    });
 
     this.modeSelect.hide();
     this.roomLinkPanel.hide();
@@ -661,54 +677,62 @@ export class UIManager {
   private updateViewVisibility(): void {
     this.hideAllScreens();
 
+    const showScreen = (el: HTMLElement, displayMode: 'flex' | 'block' = 'flex') => {
+      el.style.display = displayMode;
+      el.style.visibility = 'visible';
+      el.style.pointerEvents = 'auto';
+      el.removeAttribute('aria-hidden');
+      el.removeAttribute('inert');
+    };
+
     switch (this.currentView) {
       case 'MENU':
-        this.homeScreen.element.style.display = 'flex';
+        showScreen(this.homeScreen.element, 'flex');
         this.hud.hide();
         break;
       case 'PLAY_HUB':
-        this.playHubScreen.element.style.display = 'flex';
+        showScreen(this.playHubScreen.element, 'flex');
         this.hud.hide();
         break;
       case 'MAPS':
-        this.mapsScreen.element.style.display = 'flex';
+        showScreen(this.mapsScreen.element, 'flex');
         this.hud.hide();
         break;
       case 'BESTIARY':
-        this.bestiaryScreen.element.style.display = 'flex';
+        showScreen(this.bestiaryScreen.element, 'flex');
         this.bestiaryScreen.resume();
         this.hud.hide();
         break;
       case 'LEADERBOARDS':
-        this.leaderboardsScreen.element.style.display = 'flex';
+        showScreen(this.leaderboardsScreen.element, 'flex');
         this.hud.hide();
         break;
       case 'CHAMPIONS':
-        this.championsScreen.element.style.display = 'flex';
+        showScreen(this.championsScreen.element, 'flex');
         this.hud.hide();
         break;
       case 'PROFILE':
-        this.profileScreen.element.style.display = 'flex';
+        showScreen(this.profileScreen.element, 'flex');
         this.hud.hide();
         break;
       case 'LOBBY':
-        this.lobbyScreen.element.style.display = 'flex';
+        showScreen(this.lobbyScreen.element, 'flex');
         this.hud.hide();
         break;
       case 'CREDITS':
-        this.creditsScreen.element.style.display = 'flex';
+        showScreen(this.creditsScreen.element, 'flex');
         this.hud.hide();
         break;
       case 'ABOUT':
-        this.aboutPrivacyScreen.element.style.display = 'flex';
+        showScreen(this.aboutPrivacyScreen.element, 'flex');
         this.hud.hide();
         break;
       case 'CHANGELOG':
-        this.changelogScreen.element.style.display = 'flex';
+        showScreen(this.changelogScreen.element, 'flex');
         this.hud.hide();
         break;
       case 'UI_LAB':
-        this.uiLabPage.element.style.display = 'block';
+        showScreen(this.uiLabPage.element, 'block');
         this.hud.hide();
         break;
       case 'METAHUB':
@@ -756,6 +780,24 @@ export class UIManager {
         }
         this.hud.hide();
         break;
+    }
+
+    const isInGameplay = this.currentView === 'GAME';
+    if (!isInGameplay) {
+      safeExitPointerLock();
+      if (typeof document !== 'undefined' && document.exitPointerLock && document.pointerLockElement) {
+        try {
+          document.exitPointerLock();
+        } catch {
+          /* ignore */
+        }
+      }
+    }
+    if (typeof document !== 'undefined') {
+      const canvases = document.querySelectorAll<HTMLCanvasElement>('canvas');
+      canvases.forEach((c) => {
+        c.style.pointerEvents = isInGameplay ? 'auto' : 'none';
+      });
     }
 
     const activeEl = this.getActiveScreenElement();
