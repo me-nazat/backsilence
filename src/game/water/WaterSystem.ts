@@ -51,6 +51,7 @@ export interface WaterSystemOptions {
   audio?: AudioEngine | undefined;
   profile?: WaterProfile;
   streaks?: LightStreak[];
+  sunDir?: Vector3 | undefined;
 }
 
 export class WaterSystem {
@@ -84,9 +85,10 @@ export class WaterSystem {
   // Underwater state tracking
   private isUnderwater = false;
   private underwaterT = 0;
+  private fogInitialized = false;
   private defaultFogDensity = 0.035;
   private defaultFogColor = new Color('#eedec2');
-  private underwaterFogColor = new Color('#123b3a');
+  private underwaterFogColor = new Color('#163f33');
 
   constructor(parent: Object3D, options: WaterSystemOptions) {
     this.root = parent;
@@ -95,14 +97,14 @@ export class WaterSystem {
     const tier = options.tier ?? 'high';
     this.tier = tier;
 
-    // Segments: 192 (high), 160 (medium), 128 (low)
-    const segments = tier === 'low' ? 128 : tier === 'medium' ? 160 : 192;
+    // Segments: 192 (high), 160 (medium), 96 (low) (Prompt 8.8)
+    const segments = tier === 'low' ? 96 : tier === 'medium' ? 160 : 192;
     this.segStep = this.planeSize / segments;
 
     // 1. Buffers & Subsystems
     this.ripples = new RippleBuffer(tier);
     this.wakes = new WakeEmitters();
-    this.splashes = new SplashSystem(parent);
+    this.splashes = new SplashSystem(parent, this.currentWaterY);
     this.mapData = buildWaterMapData(options.ground, tier);
     this.waveSim = new GpuWaveSimulation({
       tier,
@@ -147,6 +149,7 @@ export class WaterSystem {
       waterY: this.currentWaterY,
       profile: options.profile,
       streaks: options.streaks,
+      sunDir: options.sunDir,
       envCube: this.cubeRenderTarget?.texture ?? null,
       planarReflection: this.planarRenderTarget?.texture ?? null,
     });
@@ -364,11 +367,16 @@ export class WaterSystem {
 
     // 8. Smooth underwater fog transition if scene has fog
     if (sceneFog) {
+      if (!this.fogInitialized) {
+        this.defaultFogDensity = sceneFog.density;
+        this.defaultFogColor.copy(sceneFog.color);
+        this.fogInitialized = true;
+      }
       const targetT = this.isUnderwater ? 1.0 : 0.0;
       this.underwaterT += (targetT - this.underwaterT) * Math.min(1.0, dt * 5.0);
 
       if (this.underwaterT > 0.01) {
-        sceneFog.density = this.defaultFogDensity * (1.0 - this.underwaterT) + 0.16 * this.underwaterT;
+        sceneFog.density = this.defaultFogDensity * (1.0 - this.underwaterT) + 0.11 * this.underwaterT;
         sceneFog.color.copy(this.defaultFogColor).lerp(this.underwaterFogColor, this.underwaterT);
       } else {
         sceneFog.density = this.defaultFogDensity;

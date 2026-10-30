@@ -8,7 +8,7 @@ import type { Vec3, PlayerId, NoiseEvent } from '../types/contracts.js';
 import type { MonsterBrain } from './MonsterBrain.js';
 import type { NavGrid } from './NavGrid.js';
 import { Rng } from './rng.js';
-import { dHypot, dSin, dCos, dAtan2, D_PI } from './dmath.js';
+import { dHypot, dSin, dCos, dAtan2, dLog, D_PI } from './dmath.js';
 import balanceData from './balance.json';
 
 export type DirectorDifficulty = 'whisper' | 'normal' | 'deafening' | 'nightmare';
@@ -562,24 +562,25 @@ export class EncounterDirector {
     nav: NavGrid,
     attempt = 0,
   ): boolean {
-    const mapCfg = this.mapId ? (balanceData.maps as Record<string, Record<string, number>>)[this.mapId] : undefined;
-    const diffCfg = balanceData.difficulty[this.difficulty] ?? balanceData.difficulty.normal;
+    const fogDensity = this.fogDensity > 0 ? this.fogDensity : 0.045;
+    // Ensure the monster's FIRST appearance is at a distance where fog transmittance is between 0.30 and 0.70:
+    // d = sqrt( ln(1/0.45) ) / fogDensity, clamped to [14, 30] metres
+    const optimalFogDist = Math.sqrt(dLog(1.0 / 0.45)) / fogDensity;
+    let d = Math.max(14.0, Math.min(30.0, optimalFogDist));
 
-    let d: number;
+    // Never spawn a monster at a distance where transmittance < 0.12
+    const maxTransmittanceDist = Math.sqrt(dLog(1.0 / 0.12)) / fogDensity;
+    if (d > maxTransmittanceDist) {
+      d = Math.max(10.0, maxTransmittanceDist - 1.0);
+    }
+
     let coneAngles: number[];
 
     if (attempt === 0) {
-      // Primary sighting target: 8-16m crossing across view cone
-      const distMin = mapCfg?.firstContactDistMin ?? 9.0;
-      const distMax = mapCfg?.firstContactDistMax ?? 15.0;
-      d = this.rng.range(Math.max(8.0, distMin), Math.min(16.0, distMax));
-      // View cone: half-angle 45° (0.785 rad)
-      coneAngles = [0.785398];
+      // 70° view cone (half-angle 35° = 0.61 rad)
+      coneAngles = [0.610865, 0.785398];
     } else {
-      // Relaxed retry attempt: widen cone to 140° (half-angle 70° = 1.22 rad), distance 14-30m
-      const distMin = Math.max(14.0, diffCfg.firstContactDistMin ?? 14.0);
-      const distMax = Math.min(30.0, diffCfg.firstContactDistMax ?? 30.0);
-      d = this.rng.range(distMin, distMax);
+      // Relaxed retry attempt: widen cone to 140° (half-angle 70° = 1.22 rad)
       coneAngles = [0.785398, 1.0472, 1.22173];
     }
 
@@ -625,6 +626,7 @@ export class EncounterDirector {
               { x: mx, z: mz },
               { x: ex, z: ez },
             ], true, 10.0);
+            this.emitDreadBeat('first_contact', { x: sx, y: pPos.y, z: sz });
             this.emitDreadBeat('glimpse', { x: mx, y: pPos.y, z: mz });
             return true;
           }
@@ -731,6 +733,7 @@ export class EncounterDirector {
       } else {
         monster.scheduleSweep([{ x: bestCell.x, z: bestCell.z }], true, 8.0);
       }
+      this.emitDreadBeat('first_contact', { x: bestCell.x, y: pPos.y, z: bestCell.z });
       this.emitDreadBeat('glimpse', { x: bestCell.x, y: pPos.y, z: bestCell.z });
       return true;
     }
@@ -738,12 +741,11 @@ export class EncounterDirector {
     return false;
   }
 
-  private executeFarCall(_monster: MonsterBrain, playerPos: Vec3): void {
-    const angle = this.rng.range(-D_PI, D_PI);
+  private executeFarCall(monster: MonsterBrain, _playerPos: Vec3): void {
     const callPos = {
-      x: playerPos.x + dSin(angle) * 35.0,
-      y: playerPos.y,
-      z: playerPos.z - dCos(angle) * 35.0,
+      x: monster.pos.x,
+      y: monster.pos.y,
+      z: monster.pos.z,
     };
     this.emitDreadBeat('far_call', callPos);
   }

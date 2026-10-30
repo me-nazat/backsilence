@@ -70,6 +70,7 @@ export class SimWorld {
 
   readonly director: EncounterDirector;
   readonly difficulty: DirectorDifficulty;
+  readonly mapId?: string | undefined;
   objectivesDone = 0;
 
   hearingCtx: HearingContext;
@@ -81,6 +82,7 @@ export class SimWorld {
     this.rng = new Rng(config.seed);
     const diff = config.difficulty ?? 'normal';
     this.difficulty = diff;
+    this.mapId = config.mapId;
     this.director = config.director ?? new EncounterDirector(config.seed, diff);
     if (config.mapId) {
       this.director.setMapId(config.mapId);
@@ -226,12 +228,47 @@ export class SimWorld {
   }
 
   addMonster(def: MonsterDef, seed?: number): MonsterBrain {
-    const finalSpawn =
-      (this.difficulty === 'normal' || this.difficulty === 'whisper') && def.sleeperSpawn
-        ? def.sleeperSpawn
-        : def.spawn;
-    const finalDef: MonsterDef = { ...def, spawn: finalSpawn };
+    let spawnPos = def.spawn;
+    if ((this.difficulty === 'normal' || this.difficulty === 'whisper') && def.sleeperSpawn) {
+      if (this.nav.isWalkableWorld(def.sleeperSpawn.x, def.sleeperSpawn.z)) {
+        spawnPos = def.sleeperSpawn;
+      } else {
+        console.warn(`[SpawnRepair] ${def.id} sleeperSpawn (${def.sleeperSpawn.x}, ${def.sleeperSpawn.z}) not walkable, falling back to spawn`);
+        if (this.nav.isWalkableWorld(def.spawn.x, def.spawn.z)) {
+          spawnPos = def.spawn;
+        } else {
+          const fixed = this.nav.findNearestWalkable(def.sleeperSpawn.x, def.sleeperSpawn.z, 18.0) ??
+                        this.nav.findNearestWalkable(def.spawn.x, def.spawn.z, 18.0);
+          if (fixed) {
+            spawnPos = { x: fixed.x, y: def.spawn.y, z: fixed.z };
+            console.warn(`[SpawnRepair] ${def.id} spawn repaired to (${fixed.x.toFixed(1)}, ${fixed.z.toFixed(1)})`);
+          } else {
+            console.error(`[SpawnRepair] ${def.id} has no walkable water within 18m`);
+          }
+        }
+      }
+    } else if (this.mapId && !this.nav.isWalkableWorld(spawnPos.x, spawnPos.z)) {
+      const fixed = this.nav.findNearestWalkable(spawnPos.x, spawnPos.z, 18.0);
+      if (fixed) {
+        spawnPos = { x: fixed.x, y: spawnPos.y, z: fixed.z };
+        console.warn(`[SpawnRepair] ${def.id} spawn repaired to (${fixed.x.toFixed(1)}, ${fixed.z.toFixed(1)})`);
+      } else {
+        console.error(`[SpawnRepair] ${def.id} has no walkable water within 18m`);
+      }
+    }
+
+    const finalDef: MonsterDef = { ...def, spawn: spawnPos };
     const brain = new MonsterBrain(finalDef, this.nav, seed ?? 42);
+    if (this.mapId && !this.nav.isWalkableWorld(brain.pos.x, brain.pos.z)) {
+      const fixed = this.nav.findNearestWalkable(brain.pos.x, brain.pos.z, 18.0);
+      if (fixed) {
+        brain.pos.x = fixed.x;
+        brain.pos.z = fixed.z;
+        console.warn(`[SpawnRepair] ${brain.id} spawn was not walkable; moved to ${fixed.x.toFixed(1)},${fixed.z.toFixed(1)}`);
+      } else {
+        console.error(`[SpawnRepair] ${brain.id} has no walkable water within 18m — map layout is invalid`);
+      }
+    }
     this.monsters.push(brain);
     return brain;
   }

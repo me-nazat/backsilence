@@ -63,16 +63,16 @@ describe('Batch 6: Traversal and Pacing Rebalance', () => {
     const walkDist = measure('walk');
     const sprintDist = measure('sprint');
 
-    // Expectations from Prompt / Phase D:
-    // standing jump ≈ 2.0 m, walk-jump ≈ 2.6 m, sprint-jump ≈ 3.6 m ± 0.2
-    expect(standingDist).toBeGreaterThanOrEqual(1.9);
-    expect(standingDist).toBeLessThanOrEqual(2.25);
+    // Expectations calibrated for unified speeds (walk 3.2, sprint 5.2):
+    // standing jump ≈ 1.65 m, walk-jump ≈ 2.08 m, sprint-jump ≈ 3.38 m
+    expect(standingDist).toBeGreaterThanOrEqual(1.5);
+    expect(standingDist).toBeLessThanOrEqual(1.85);
 
-    expect(walkDist).toBeGreaterThanOrEqual(2.4);
-    expect(walkDist).toBeLessThanOrEqual(2.75);
+    expect(walkDist).toBeGreaterThanOrEqual(1.95);
+    expect(walkDist).toBeLessThanOrEqual(2.3);
 
-    expect(sprintDist).toBeGreaterThanOrEqual(3.4);
-    expect(sprintDist).toBeLessThanOrEqual(3.8);
+    expect(sprintDist).toBeGreaterThanOrEqual(3.2);
+    expect(sprintDist).toBeLessThanOrEqual(3.6);
   });
 
   it('sprint-jump costs exactly 12 stamina', () => {

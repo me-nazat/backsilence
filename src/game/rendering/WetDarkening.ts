@@ -7,8 +7,8 @@ import type { MeshStandardMaterial } from 'three';
 
 export interface WetDarkeningOptions {
   waterY?: number;
-  tidemarkHeight?: number; // default 0.35m above water
-  darkeningFactor?: number; // default 0.60 (40% darker)
+  tidemarkHeight?: number; // default 0.22m above water
+  darkeningFactor?: number; // default 0.48 (stronger waterline contrast)
   glossBoost?: number;     // default 0.5 (smoother/shinier)
 }
 
@@ -21,8 +21,8 @@ export function applyWetDarkening(
   options: WetDarkeningOptions = {},
 ): void {
   const waterY = options.waterY ?? 0.0;
-  const tidemarkHeight = options.tidemarkHeight ?? 0.35;
-  const darkeningFactor = options.darkeningFactor ?? 0.60;
+  const tidemarkHeight = options.tidemarkHeight ?? 0.22;
+  const darkeningFactor = options.darkeningFactor ?? 0.48;
   const glossBoost = options.glossBoost ?? 0.5;
 
   if ((material as unknown as { __wetDarkeningApplied?: boolean }).__wetDarkeningApplied) {
@@ -74,7 +74,19 @@ export function applyWetDarkening(
         `,
       );
 
-      // 3. Modulate outgoing fragment color and roughness
+      // 3. Modulate roughness factor below waterline for wet specular gloss
+      shader.fragmentShader = shader.fragmentShader.replace(
+        '#include <roughnessmap_fragment>',
+        /* glsl */ `
+        #include <roughnessmap_fragment>
+        if (vWorldPositionForWet.y < uWetLimit) {
+          float wetFade = clamp((uWetLimit - vWorldPositionForWet.y) / 0.35, 0.0, 1.0);
+          roughnessFactor = max(0.04, roughnessFactor * mix(1.0, 1.0 - uGlossBoost, wetFade));
+        }
+        `,
+      );
+
+      // 4. Modulate outgoing fragment color and roughness
       shader.fragmentShader = shader.fragmentShader.replace(
         '#include <dithering_fragment>',
         /* glsl */ `

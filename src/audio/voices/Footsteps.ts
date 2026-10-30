@@ -30,7 +30,7 @@ export function playStepDry(cx: FootstepVoiceContext): RawVoiceHandle {
   if (cx.usePool !== false) {
     const pool = AudioBufferPool.getInstance(ctx);
     if (pool.isReady()) {
-      return pool.play('step_wet', cx.destination, cx.reverbSend, {
+      return pool.play('step_dry', cx.destination, cx.reverbSend, {
         volume: 0.55 * (cx.intensity ?? 1.0),
         pitchMult: cx.pitch ?? 1.0,
         reverbGain: 0.25,

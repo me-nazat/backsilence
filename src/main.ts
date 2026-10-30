@@ -411,6 +411,9 @@ async function boot(): Promise<void> {
           const dist = Math.max(1.2, stats.closestCall < 999 ? stats.closestCall : 6.2);
           const reason = `You splashed ${dist.toFixed(1)} m from it.`;
           ui.showDeath(reason);
+          const cause = stats.cause ?? 'Sprint-wade';
+          const carryDist = stats.soundRadius ?? Math.round(dist * 2);
+          ui.getDeathScreen().setCause(cause, carryDist);
           ui.getDeathScreen().setStats(stats.timeSurvived, stats.noisesMade, stats.closestCall);
         },
         onWin: (results) => {
@@ -465,6 +468,9 @@ async function boot(): Promise<void> {
           const dist = Math.max(1.2, stats.closestCall < 999 ? stats.closestCall : 5.8);
           const reason = `You splashed ${dist.toFixed(1)} m from it.`;
           ui.showDeath(reason);
+          const cause = stats.cause ?? 'Sprint-wade';
+          const carryDist = stats.soundRadius ?? Math.round(dist * 2);
+          ui.getDeathScreen().setCause(cause, carryDist);
           ui.getDeathScreen().setStats(stats.timeSurvived, stats.noisesMade, stats.closestCall);
         },
         onWin: (results) => {

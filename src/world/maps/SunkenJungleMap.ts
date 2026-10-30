@@ -301,22 +301,36 @@ export const SunkenJungleMap: MapDefinition = {
 
     const platformMat = new MeshStandardMaterial({
       map: stoneTex.albedo,
+      roughnessMap: stoneTex.roughness,
+      normalMap: stoneTex.normal,
       roughness: 0.75,
       metalness: 0.02,
+      envMapIntensity: 0.35,
+      vertexColors: true,
     });
     applyWetDarkening(platformMat, { waterY: 0.0 });
 
     const wallMat = new MeshStandardMaterial({
       map: mossTex.albedo,
+      roughnessMap: mossTex.roughness,
+      normalMap: mossTex.normal,
+      aoMap: mossTex.ao,
+      aoMapIntensity: 0.85,
       roughness: 0.8,
       metalness: 0.01,
+      envMapIntensity: 0.35,
+      vertexColors: true,
     });
     applyWetDarkening(wallMat, { waterY: 0.0 });
 
     const floorMat = new MeshStandardMaterial({
       map: stoneTex.albedo,
+      roughnessMap: stoneTex.roughness,
+      normalMap: stoneTex.normal,
       roughness: 0.6,
       metalness: 0.02,
+      envMapIntensity: 0.35,
+      vertexColors: true,
     });
 
     const instance = buildStandardMapInstance(layout, env, {

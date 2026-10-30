@@ -85,11 +85,17 @@ export interface HudData {
   pointerLockHint?: boolean | undefined;
 
   // Phase E Clarity of the Screen
-  riskTag?: 'QUIET' | 'LOUD' | 'TIMED' | 'ESCAPE' | null;
+  riskTag?: 'QUIET' | 'AUDIBLE' | 'LOUD' | 'CLOSE' | 'HUNTED' | 'TIMED' | 'ESCAPE' | null;
   promptHoldProgress?: number | null; // 0..1
   waterNoiseRadius?: number | null;
   minimalHud?: boolean;
   uiScale?: number;
+  objectiveIndicator?: {
+    visible: boolean;
+    angleRad: number;
+    distanceMeters: number;
+    label: string;
+  } | null;
 }
 
 export class Hud {
@@ -97,6 +103,10 @@ export class Hud {
   private noiseBarEl: HTMLElement | null = null;
   private noiseIconEl: HTMLElement | null = null;
   private noiseRadiusLabelEl: HTMLElement | null = null;
+  private minimalNoiseRadiusEl: HTMLElement | null = null;
+  private compassArcEl: HTMLElement | null = null;
+  private compassNotchEl: SVGElement | null = null;
+  private compassTextEl: HTMLElement | null = null;
   private waterRadiusRingEl: SVGElement | null = null;
   private staminaBarEl: HTMLElement | null = null;
   private statusChipEl: HTMLElement | null = null;
@@ -204,24 +214,56 @@ export class Hud {
     return this.cinematic;
   }
 
-  showQuietHint(text: string, durationMs = 4000): void {
+  showQuietHint(text: string, durationMs = 3000): void {
     if (!this.quietHintEl) return;
     this.quietHintEl.textContent = text;
     this.quietHintEl.style.display = 'block';
-    this.quietHintEl.style.opacity = '1';
+    // 1.5s fade-in
+    setTimeout(() => {
+      if (this.quietHintEl) this.quietHintEl.style.opacity = '1';
+    }, 10);
 
     if (this.quietHintTimeout !== null) {
       clearTimeout(this.quietHintTimeout);
     }
+    // Hold for durationMs (default 3s), then fade out
     this.quietHintTimeout = setTimeout(() => {
       if (this.quietHintEl) {
         this.quietHintEl.style.opacity = '0';
         setTimeout(() => {
           if (this.quietHintEl) this.quietHintEl.style.display = 'none';
-        }, 500);
+        }, 1500);
       }
       this.quietHintTimeout = null;
-    }, durationMs);
+    }, durationMs + 1500);
+  }
+
+  showFirstWaterNotice(): void {
+    if (!this.el) return;
+    if (typeof localStorage !== 'undefined' && localStorage.getItem('backsilence_first_water_notice')) {
+      return;
+    }
+    const modal = this.el.querySelector<HTMLElement>('#hud-first-water-modal');
+    if (!modal) return;
+    modal.style.display = 'block';
+
+    const dismiss = () => {
+      modal.style.display = 'none';
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem('backsilence_first_water_notice', 'true');
+      }
+      window.removeEventListener('keydown', onKey);
+    };
+
+    const onKey = (e: KeyboardEvent) => {
+      if (e.code === 'Space' || e.code === 'Escape' || e.code === 'Enter') {
+        dismiss();
+      }
+    };
+
+    window.addEventListener('keydown', onKey, { once: true });
+    const btn = modal.querySelector('#btn-dismiss-first-water');
+    btn?.addEventListener('click', dismiss, { once: true });
   }
 
   hideQuietHint(): void {
@@ -297,17 +339,15 @@ export class Hud {
         .bs-hud {
           --hud-scale: 1.0;
         }
-        /* Clean picture: Default HUD is empty except thin noise line and interaction prompt */
+        /* Clean picture: Default HUD shows objective and code notebook */
+        .bs-hud:not(.show-more-hud) #hud-risk-tag,
         .bs-hud:not(.show-more-hud) #hud-vhs-osd,
-        .bs-hud:not(.show-more-hud) #hud-notebook-container,
-        .bs-hud:not(.show-more-hud) #hud-notebook,
         .bs-hud:not(.show-more-hud) #hud-roster,
         .bs-hud:not(.show-more-hud) #hud-level-shift,
         .bs-hud:not(.show-more-hud) #hud-school-status,
         .bs-hud:not(.show-more-hud) #hud-jungle-status,
         .bs-hud:not(.show-more-hud) #hud-neon-status,
         .bs-hud:not(.show-more-hud) #hud-metro-status,
-        .bs-hud:not(.show-more-hud) #hud-objective-container,
         .bs-hud:not(.show-more-hud) #hud-bottom-center,
         .bs-hud:not(.show-more-hud) #hud-status,
         .bs-hud:not(.show-more-hud) #hud-stamina-bar,
@@ -315,6 +355,59 @@ export class Hud {
         .bs-hud:not(.show-more-hud) #hud-inventory-strip,
         .bs-hud:not(.show-more-hud) #hud-flashlight-meter {
           display: none !important;
+        }
+
+        @keyframes pulse-hunted {
+          0%, 100% { opacity: 1; transform: scale(1); }
+          50% { opacity: 0.7; transform: scale(1.06); }
+        }
+        .hud-risk-quiet {
+          border-color: #86cfa0 !important;
+          color: #86cfa0 !important;
+          background: rgba(134,207,160,0.18) !important;
+        }
+        .hud-risk-audible {
+          border-color: #ffb300 !important;
+          color: #ffb300 !important;
+          background: rgba(255,179,0,0.18) !important;
+        }
+        .hud-risk-loud {
+          border-color: #ff9100 !important;
+          color: #ff9100 !important;
+          background: rgba(255,145,0,0.22) !important;
+        }
+        .hud-risk-close {
+          border-color: #ff1744 !important;
+          color: #ff1744 !important;
+          background: rgba(255,23,68,0.25) !important;
+        }
+        .hud-risk-hunted {
+          border-color: #ff0033 !important;
+          color: #ff0033 !important;
+          background: rgba(255,0,51,0.35) !important;
+          animation: pulse-hunted 0.8s infinite ease-in-out;
+        }
+        .hud-risk-escape {
+          border-color: #86cfa0 !important;
+          color: #86cfa0 !important;
+          background: rgba(134,207,160,0.18) !important;
+        }
+        .hud-risk-timed {
+          border-color: #ffd54f !important;
+          color: #ffd54f !important;
+          background: rgba(255,213,79,0.18) !important;
+        }
+
+        .bs-hud.minimal-hud #hud-compass-arc,
+        .bs-hud.minimal-hud #hud-ping-hint {
+          display: none !important;
+        }
+
+        .bs-hud.high-contrast #hud-compass-notch polygon {
+          fill: #ffeb3b !important;
+        }
+        .bs-hud.high-contrast #hud-compass-text {
+          color: #ffeb3b !important;
         }
 
         .bs-hud.show-more-hud #hud-noise-minimal {
@@ -326,14 +419,12 @@ export class Hud {
         }
 
         .bs-hud.minimal-hud #hud-vhs-osd,
-        .bs-hud.minimal-hud #hud-notebook-container,
         .bs-hud.minimal-hud #hud-roster,
         .bs-hud.minimal-hud #hud-level-shift,
         .bs-hud.minimal-hud #hud-school-status,
         .bs-hud.minimal-hud #hud-jungle-status,
         .bs-hud.minimal-hud #hud-neon-status,
         .bs-hud.minimal-hud #hud-metro-status,
-        .bs-hud.minimal-hud #hud-objective-container,
         .bs-hud.minimal-hud #hud-bottom-center {
           display: none !important;
         }
@@ -462,7 +553,7 @@ export class Hud {
           <span id="vhs-rec-label">REC</span>
           <span id="vhs-timestamp" style="margin-left: 8px; opacity: 0.85;">AUG 14 1998  00:12:44</span>
         </div>
-        <div style="position: absolute; top: max(20px, env(safe-area-inset-top, 20px)); right: max(20px, env(safe-area-inset-right, 20px)); font-size: 12px; opacity: 0.85; letter-spacing: 0.1em; background: rgba(8,6,3,0.7); padding: 3px 8px; border-radius: 3px;">
+        <div style="position: absolute; top: max(64px, calc(env(safe-area-inset-top, 20px) + 44px)); right: max(20px, env(safe-area-inset-right, 20px)); font-size: 12px; opacity: 0.85; letter-spacing: 0.1em; background: rgba(8,6,3,0.7); padding: 3px 8px; border-radius: 3px;">
           SP [■■■□] · BACKSILENCE
         </div>
         <div id="vhs-play-mode" style="position: absolute; bottom: max(24px, env(safe-area-inset-bottom, 24px)); left: max(20px, env(safe-area-inset-left, 20px)); font-size: 12px; opacity: 0.85; letter-spacing: 0.1em; background: rgba(8,6,3,0.7); padding: 3px 8px; border-radius: 3px;">
@@ -473,12 +564,13 @@ export class Hud {
       <!-- Top-Right Notebook Sequence Strip -->
       <div id="hud-notebook-container" style="
         position: absolute;
-        top: max(56px, calc(env(safe-area-inset-top, 20px) + 36px));
+        top: max(20px, env(safe-area-inset-top, 20px));
         right: max(20px, env(safe-area-inset-right, 20px));
-        display: none;
+        display: flex;
         flex-direction: column;
         align-items: flex-end;
         gap: 4px;
+        z-index: 10;
       ">
         <div style="font-size: 10px; opacity: 0.6; letter-spacing: 0.1em;">PILLAR SEQUENCE</div>
         <div id="hud-notebook" style="
@@ -496,7 +588,7 @@ export class Hud {
       <!-- Top-Right Level Shift Timer (Map 4) -->
       <div id="hud-level-shift" style="
         position: absolute;
-        top: max(56px, calc(env(safe-area-inset-top, 20px) + 36px));
+        top: max(72px, calc(env(safe-area-inset-top, 20px) + 52px));
         right: max(20px, env(safe-area-inset-right, 20px));
         display: none;
         flex-direction: column;
@@ -637,12 +729,11 @@ export class Hud {
         </div>
       </div>
 
-      <!-- Top-Center Objective Line with Risk Tag -->
+      <!-- Top-Left Objective Line with Risk Tag -->
       <div id="hud-objective-container" style="
         position: absolute;
         top: max(20px, env(safe-area-inset-top, 20px));
-        left: 50%;
-        transform: translateX(-50%);
+        left: max(20px, env(safe-area-inset-left, 20px));
         display: flex;
         align-items: center;
         gap: 8px;
@@ -651,28 +742,56 @@ export class Hud {
         padding: 6px 14px;
         border-radius: 16px;
         box-shadow: 0 4px 16px rgba(0,0,0,0.7);
-        max-width: min(92vw, 480px);
+        max-width: min(92vw, 560px);
         box-sizing: border-box;
+        z-index: 10;
       ">
-        <span id="hud-risk-tag" style="
+        <span id="hud-risk-tag" class="hud-risk-quiet" style="
           font-size: 10px;
           font-weight: bold;
           padding: 2px 6px;
           border-radius: 3px;
-          background: rgba(0, 229, 255, 0.15);
-          border: 1px solid #00e5ff;
-          color: #00e5ff;
           letter-spacing: 0.1em;
           flex-shrink: 0;
         ">[QUIET]</span>
         <span id="hud-objective" style="
-          font-size: 13px;
+          font-size: 12px;
           color: var(--fog, #d9d3a2);
           letter-spacing: 0.05em;
-          white-space: nowrap;
-          text-overflow: ellipsis;
+          white-space: normal;
+          line-height: 1.35;
+          max-width: 560px;
           overflow: hidden;
         ">Find the numbered pillars. Avoid making splashes.</span>
+      </div>
+
+      <!-- Top-Center Diegetic Direction Finder / Compass Arc -->
+      <div id="hud-compass-arc" style="
+        position: absolute;
+        top: max(16px, env(safe-area-inset-top, 16px));
+        left: 50%;
+        transform: translateX(-50%);
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        gap: 2px;
+        pointer-events: none;
+        z-index: 15;
+      ">
+        <svg width="120" height="20" viewBox="0 0 120 20" style="overflow: visible;">
+          <path d="M 10 14 Q 60 4 110 14" fill="none" stroke="rgba(217, 211, 162, 0.25)" stroke-width="1.5" />
+          <g id="hud-compass-notch" transform="translate(60, 9)">
+            <polygon points="-5,-4 5,-4 0,3" fill="#00e5ff" />
+          </g>
+        </svg>
+        <span id="hud-compass-text" style="
+          font-size: 10px;
+          font-weight: bold;
+          letter-spacing: 0.1em;
+          color: #00e5ff;
+          text-shadow: 0 1px 4px rgba(0,0,0,0.8);
+          font-family: monospace;
+        ">PILLAR #2 · 28m</span>
       </div>
 
       <!-- Hazard / Mask Alert Icon (Map 2 steam / Map 3 sinking) -->
@@ -878,30 +997,46 @@ export class Hud {
         max-width: min(85vw, 360px);
       "></div>
 
-      <!-- Minimal Noise Indicator (Thin horizontal line near bottom) -->
+      <!-- Minimal Noise Indicator (220x6 px with numeric radius readout) -->
       <div id="hud-noise-minimal" style="
         position: absolute;
         bottom: max(16px, env(safe-area-inset-bottom, 16px));
         left: 50%;
         transform: translateX(-50%);
-        width: 140px;
-        height: 2px;
-        background: rgba(238, 222, 194, 0.15);
-        border-radius: 1px;
-        overflow: hidden;
+        display: flex;
+        align-items: center;
+        gap: 10px;
         pointer-events: none;
         z-index: 60;
       ">
-        <div id="hud-noise-minimal-fill" style="
-          width: 0%;
-          height: 100%;
-          background: #eedec2;
-          border-radius: 1px;
-          transition: width 0.08s ease-out, background-color 0.15s;
-        "></div>
+        <div style="
+          width: 220px;
+          height: 6px;
+          background: rgba(238, 222, 194, 0.18);
+          border-radius: 3px;
+          overflow: hidden;
+          box-shadow: 0 1px 4px rgba(0,0,0,0.5);
+        ">
+          <div id="hud-noise-minimal-fill" style="
+            width: 0%;
+            height: 100%;
+            background: #eedec2;
+            border-radius: 3px;
+            transition: width 0.08s ease-out, background-color 0.15s;
+          "></div>
+        </div>
+        <span id="hud-noise-minimal-radius" style="
+          font-size: 11px;
+          font-weight: bold;
+          font-family: monospace;
+          color: rgba(238, 222, 194, 0.9);
+          letter-spacing: 0.05em;
+          white-space: nowrap;
+          text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+        ">RADIUS ~0m</span>
       </div>
 
-      <!-- Quiet In-World Hint (First 90s only) -->
+      <!-- Quiet In-World Hint -->
       <div id="hud-quiet-hint" style="
         position: absolute;
         bottom: max(32px, env(safe-area-inset-bottom, 32px));
@@ -909,16 +1044,86 @@ export class Hud {
         transform: translateX(-50%);
         font-family: var(--bs-font-mono, monospace);
         font-size: 13px;
-        color: rgba(232, 228, 217, 0.45);
+        color: rgba(242, 236, 220, 0.92);
         letter-spacing: 0.12em;
         text-transform: uppercase;
         pointer-events: none;
         opacity: 0;
-        transition: opacity 0.5s ease;
+        transition: opacity 1.5s ease;
         text-align: center;
         white-space: nowrap;
+        text-shadow: 0 2px 8px rgba(0,0,0,0.85);
         z-index: 50;
       "></div>
+
+      <!-- Persistent Ping Control Hint -->
+      <div id="hud-ping-hint" style="
+        position: absolute;
+        bottom: max(20px, env(safe-area-inset-bottom, 20px));
+        right: max(20px, env(safe-area-inset-right, 20px));
+        font-size: 11px;
+        color: var(--fog, #d9d3a2);
+        opacity: 0.75;
+        letter-spacing: 0.08em;
+        background: rgba(8, 6, 3, 0.7);
+        padding: 4px 8px;
+        border-radius: 3px;
+        border: 1px solid rgba(217, 211, 162, 0.2);
+        pointer-events: none;
+        z-index: 20;
+      ">[V] MARK LOCATION</div>
+
+      <!-- First-Run Water Mechanics Overlay -->
+      <div id="hud-first-water-modal" style="
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(13, 11, 6, 0.96);
+        border: 2px solid #5b4526;
+        border-radius: 6px;
+        padding: 20px 28px;
+        max-width: 440px;
+        text-align: center;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.85);
+        display: none;
+        z-index: 500;
+        pointer-events: auto;
+      ">
+        <div style="font-size: 11px; letter-spacing: 0.15em; color: var(--danger, #b3261e); font-weight: bold; margin-bottom: 8px;">
+          CRITICAL ACOUSTIC ADVISORY
+        </div>
+        <div style="font-size: 15px; font-weight: bold; color: var(--fog, #d9d3a2); letter-spacing: 0.08em; line-height: 1.4; margin-bottom: 14px;">
+          THE CREATURE IS BLIND.<br/>IT HUNTS BY SOUND.<br/><span style="color: var(--water, #86cfa0);">MOVE ON DRY TILE.</span>
+        </div>
+        <svg width="280" height="60" viewBox="0 0 280 60" style="margin: 0 auto 12px; display: block;">
+          <rect x="10" y="25" width="80" height="20" fill="#3d2f18" stroke="#86cfa0" stroke-width="1.5" rx="2"/>
+          <text x="50" y="39" fill="#86cfa0" font-size="10" font-family="monospace" text-anchor="middle" font-weight="bold">DRY TILE</text>
+          <text x="50" y="55" fill="#86cfa0" font-size="9" font-family="monospace" text-anchor="middle">SILENT</text>
+
+          <rect x="110" y="25" width="80" height="20" fill="#1b2a22" stroke="#00e5ff" stroke-width="1.5" rx="2"/>
+          <text x="150" y="39" fill="#00e5ff" font-size="10" font-family="monospace" text-anchor="middle" font-weight="bold">WATER</text>
+          <path d="M195 28 Q205 35 195 42 M202 24 Q215 35 202 46 M209 20 Q225 35 209 50" fill="none" stroke="#ff1744" stroke-width="1.5"/>
+          <text x="150" y="55" fill="#ff5252" font-size="9" font-family="monospace" text-anchor="middle">LOUD SPLASH</text>
+
+          <circle cx="250" cy="35" r="14" fill="#200" stroke="#ff1744" stroke-width="1.5"/>
+          <path d="M246 27 C254 27 256 35 250 42" fill="none" stroke="#ff5252" stroke-width="2"/>
+          <text x="250" y="55" fill="#ff5252" font-size="9" font-family="monospace" text-anchor="middle">HUNTS</text>
+        </svg>
+        <div style="font-size: 11px; color: var(--fog, #d9d3a2); opacity: 0.7; margin-bottom: 14px;">
+          Press [SPACE] or click below to dismiss
+        </div>
+        <button id="btn-dismiss-first-water" class="analog-btn" style="
+          background: #3d2f18;
+          border: 1px solid #86cfa0;
+          color: #86cfa0;
+          padding: 6px 20px;
+          font-family: monospace;
+          font-size: 12px;
+          cursor: pointer;
+          border-radius: 2px;
+        ">UNDERSTOOD</button>
+      </div>
 
       <!-- Debug Sighting Line (only visible with ?debug=1) -->
       <div id="hud-debug-sighting" style="
@@ -963,6 +1168,10 @@ export class Hud {
     this.nearMissEl = el.querySelector('#hud-near-miss');
     this.pointerLockHintEl = el.querySelector('#hud-pointer-lock-hint');
     this.minimalNoiseFillEl = el.querySelector('#hud-noise-minimal-fill');
+    this.minimalNoiseRadiusEl = el.querySelector('#hud-noise-minimal-radius');
+    this.compassArcEl = el.querySelector('#hud-compass-arc');
+    this.compassNotchEl = el.querySelector('#hud-compass-notch');
+    this.compassTextEl = el.querySelector('#hud-compass-text');
     this.quietHintEl = el.querySelector('#hud-quiet-hint');
     this.noiseBarEl = el.querySelector('#hud-noise-bar');
     this.noiseIconEl = el.querySelector('#hud-noise-icon');
@@ -1080,16 +1289,24 @@ export class Hud {
     if (this.noiseRadiusLabelEl) {
       const radiusM = data.waterNoiseRadius !== undefined && data.waterNoiseRadius !== null
         ? Math.round(data.waterNoiseRadius)
-        : Math.round(data.noiseLoudness * 24);
+        : Math.round(data.noiseLoudness * 40);
       this.noiseRadiusLabelEl.textContent = `RADIUS ~${radiusM}m`;
       this.noiseRadiusLabelEl.style.color = noiseColor;
     }
 
-    // 1b. Minimal Noise Indicator (thin horizontal line near bottom, cream -> amber -> red)
+    // 1b. Minimal Noise Indicator (220x6 px, cream -> amber -> red)
     if (this.minimalNoiseFillEl) {
       this.minimalNoiseFillEl.style.width = `${loudnessPct}%`;
       const minColor = data.noiseLoudness < 0.35 ? '#eedec2' : data.noiseLoudness < 0.75 ? '#e5c158' : '#ff3b30';
       this.minimalNoiseFillEl.style.backgroundColor = minColor;
+    }
+    if (this.minimalNoiseRadiusEl) {
+      const radiusM = data.waterNoiseRadius !== undefined && data.waterNoiseRadius !== null
+        ? Math.round(data.waterNoiseRadius)
+        : Math.round(data.noiseLoudness * 40);
+      const minColor = data.noiseLoudness < 0.35 ? '#eedec2' : data.noiseLoudness < 0.75 ? '#e5c158' : '#ff3b30';
+      this.minimalNoiseRadiusEl.textContent = `RADIUS ~${radiusM}m`;
+      this.minimalNoiseRadiusEl.style.color = minColor;
     }
 
     // 2. Stamina Bar
@@ -1148,23 +1365,7 @@ export class Hud {
         }
 
         this.riskTagEl.textContent = `[${tag}]`;
-        if (tag === 'ESCAPE') {
-          this.riskTagEl.style.borderColor = '#86cfa0';
-          this.riskTagEl.style.color = '#86cfa0';
-          this.riskTagEl.style.background = 'rgba(134,207,160,0.18)';
-        } else if (tag === 'TIMED') {
-          this.riskTagEl.style.borderColor = '#ffd54f';
-          this.riskTagEl.style.color = '#ffd54f';
-          this.riskTagEl.style.background = 'rgba(255,213,79,0.18)';
-        } else if (tag === 'LOUD') {
-          this.riskTagEl.style.borderColor = '#ff1744';
-          this.riskTagEl.style.color = '#ff1744';
-          this.riskTagEl.style.background = 'rgba(255,23,68,0.18)';
-        } else {
-          this.riskTagEl.style.borderColor = '#00e5ff';
-          this.riskTagEl.style.color = '#00e5ff';
-          this.riskTagEl.style.background = 'rgba(0,229,255,0.18)';
-        }
+        this.riskTagEl.className = `hud-risk-${tag.toLowerCase()}`;
       }
 
       if (data.objective !== this.lastAnnouncedObjective) {
@@ -1183,14 +1384,15 @@ export class Hud {
           this.promptEl.textContent = data.interactionPrompt;
         }
 
-        const isHolding = (data.promptHoldProgress !== undefined && data.promptHoldProgress !== null && data.promptHoldProgress > 0);
+        const hasProgress = data.promptHoldProgress !== undefined && data.promptHoldProgress !== null;
+        const isHolding = hasProgress && data.promptHoldProgress! >= 0;
         const requiresHold = data.interactionPrompt.toUpperCase().includes('HOLD') || data.interactionPrompt.toUpperCase().includes('CRANK');
 
         if (this.promptRingSvgEl && (isHolding || requiresHold)) {
           this.promptRingSvgEl.style.display = 'block';
           if (this.promptRingFillEl) {
             const circ = 62.83; // 2 * pi * 10
-            const progress = isHolding ? Math.max(0, Math.min(1, data.promptHoldProgress!)) : 0;
+            const progress = hasProgress ? Math.max(0, Math.min(1, data.promptHoldProgress!)) : 0;
             this.promptRingFillEl.style.strokeDashoffset = String(circ * (1 - progress));
           }
         } else if (this.promptRingSvgEl) {
@@ -1206,16 +1408,33 @@ export class Hud {
       this.pointerLockHintEl.style.opacity = data.pointerLockHint ? '0.85' : '0';
     }
 
-    // 5. Notebook sequence strip
+    // 5. Notebook sequence strip (ALWAYS visible in the HUD)
     const notebookContainer = this.el.querySelector<HTMLElement>('#hud-notebook-container');
     if (notebookContainer) {
-      if (data.notebookNumbers && data.notebookNumbers.length > 0) {
-        notebookContainer.style.display = 'flex';
-        if (this.notebookEl) {
+      notebookContainer.style.display = 'flex';
+      if (this.notebookEl) {
+        if (data.notebookNumbers && data.notebookNumbers.length > 0) {
           this.notebookEl.textContent = data.notebookNumbers.join(' · ');
+        } else {
+          this.notebookEl.textContent = '#1: ? · #2: ? · #3: ? · #4: ?';
+        }
+      }
+    }
+
+    // 5b. Diegetic Objective Indicator (Compass Arc)
+    if (this.compassArcEl) {
+      if (data.objectiveIndicator && data.objectiveIndicator.visible && !data.minimalHud) {
+        this.compassArcEl.style.display = 'flex';
+        if (this.compassNotchEl) {
+          const clampedAngle = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, data.objectiveIndicator.angleRad));
+          const notchX = 60 + (clampedAngle / (Math.PI / 2)) * 45;
+          this.compassNotchEl.setAttribute('transform', `translate(${notchX.toFixed(1)}, 9)`);
+        }
+        if (this.compassTextEl) {
+          this.compassTextEl.textContent = `${data.objectiveIndicator.label} · ${data.objectiveIndicator.distanceMeters}m`;
         }
       } else {
-        notebookContainer.style.display = 'none';
+        this.compassArcEl.style.display = 'none';
       }
     }
 

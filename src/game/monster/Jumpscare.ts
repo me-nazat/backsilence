@@ -11,6 +11,8 @@ export interface JumpscareStats {
   timeSurvived: number;
   noisesMade: number;
   closestCall: number;
+  cause?: string;
+  soundRadius?: number;
 }
 
 export interface JumpscareCallbacks {

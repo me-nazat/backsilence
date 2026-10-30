@@ -10,6 +10,7 @@ import { ReverbUnit, type ReverbPreset } from './Reverb.js';
 import { Mixer, type AudioBusName, type OutputProfile, BUS_PRIORITIES } from './Mixer.js';
 import { AudioDirector } from './AudioDirector.js';
 import { AudioBufferPool, type PooledVoiceCategory } from './AudioBufferPool.js';
+import ambienceWorkletUrl from './worklets/AmbienceProcessor.ts?worker&url';
 
 import {
   playSplash,
@@ -271,6 +272,8 @@ export interface PlayOptions {
   pitch?: number;
   usePool?: boolean;
   occlusionWalls?: number;
+  rank?: string;
+  monsterDistance?: number;
 }
 
 export interface RawVoiceHandle {
@@ -390,6 +393,15 @@ export class AudioEngine implements AudioEngineApi {
 
     this.isInitialized = true;
 
+    // AudioWorklet loading with fallback logging (Prompt 3.2 c)
+    if (this.ctx.audioWorklet && typeof this.ctx.audioWorklet.addModule === 'function') {
+      try {
+        await this.ctx.audioWorklet.addModule(ambienceWorkletUrl);
+      } catch (err) {
+        console.warn('[AudioEngine] AudioWorklet module load failed; using oscillator AmbienceBeds fallback:', err);
+      }
+    }
+
     // Tape Hiss Bed (high-passed pink noise)
     if (this.noiseBuffers && this.ctx) {
       try {
@@ -464,9 +476,9 @@ export class AudioEngine implements AudioEngineApi {
       panner = this.ctx.createPanner();
       panner.panningModel = 'HRTF';
       panner.distanceModel = 'inverse';
-      panner.refDistance = 2.0;
-      panner.maxDistance = 60.0;
-      panner.rolloffFactor = 1.0;
+      panner.refDistance = 4.0;
+      panner.maxDistance = 80.0;
+      panner.rolloffFactor = 0.55;
 
       if (panner.positionX) {
         panner.positionX.setValueAtTime(opts.position.x, now);
@@ -492,12 +504,12 @@ export class AudioEngine implements AudioEngineApi {
         walls = Math.max(0, Math.min(2, walls));
       }
 
-      // Air absorption: 18 kHz down to 2.2 kHz at 40m
-      const airCutoff = Math.max(2200, Math.min(18000, 18000 * Math.exp(-0.05 * Math.max(0, dist - 2.0))));
-      // Wall occlusion lowpass: 1 wall -> <= 2500 Hz, 2 walls -> <= 1200 Hz
-      const finalCutoff = walls === 0 ? airCutoff : walls === 1 ? Math.min(airCutoff, 2500) : Math.min(airCutoff, 1200);
-      // Wall occlusion level: -6 dB (0.50x) per wall
-      const directAtten = Math.pow(0.5, walls);
+      // Air absorption: 18 kHz down to 1.2 kHz at distance (Prompt 3.6: 18000*exp(-0.035*(d-4)) with 1200 Hz floor)
+      const airCutoff = Math.max(1200, Math.min(18000, 18000 * Math.exp(-0.035 * Math.max(0, dist - 4.0))));
+      // Wall occlusion lowpass: 1 wall -> <= 3200 Hz, 2 walls -> <= 1800 Hz
+      const finalCutoff = walls === 0 ? airCutoff : walls === 1 ? Math.min(airCutoff, 3200) : Math.min(airCutoff, 1800);
+      // Wall occlusion level: 0.6^walls (Prompt 3.6)
+      const directAtten = Math.pow(0.6, walls);
 
       // Distance-dependent reverb send ratio (0.25 near -> 0.90 far)
       const baseSend = Math.max(0.25, Math.min(0.90, 0.25 + 0.65 * (1.0 - Math.exp(-Math.max(0, dist - 2.0) / 14.0))));
@@ -532,6 +544,8 @@ export class AudioEngine implements AudioEngineApi {
         : {}),
       ...(opts.pitch !== undefined ? { pitch: opts.pitch } : {}),
       ...(opts.seed !== undefined ? { seed: opts.seed } : {}),
+      ...(opts.rank !== undefined ? { rank: opts.rank } : {}),
+      ...(opts.monsterDistance !== undefined ? { monsterDistance: opts.monsterDistance } : {}),
       mixer: this.mixer,
     };
 
@@ -1063,7 +1077,15 @@ export class AudioEngine implements AudioEngineApi {
       sfx: s.sfx,
       ambient: s.ambient,
       monster: s.monster,
+      ...(s.musicVolume !== undefined ? { music: s.musicVolume } : {}),
+      ...(s.ui !== undefined ? { ui: s.ui } : {}),
     });
+    if (s.duckingEnabled !== undefined) {
+      this.mixer?.setDuckingEnabled(s.duckingEnabled);
+    }
+    if (s.reverbWet !== undefined) {
+      this.reverb?.setWetGain(s.reverbWet);
+    }
     if (s.outputProfile) {
       this.mixer?.setOutputProfile(s.outputProfile);
     }

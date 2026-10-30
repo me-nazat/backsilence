@@ -91,117 +91,118 @@ export function buildProceduralSkinnedMonster(
   seed: number,
   skinMat: Material,
 ): SkinnedMonsterBuildResult {
-  // 1. Construct 20-bone hierarchy
+  // 1. Construct 20-bone hierarchy (Quadrupedal & low posture - Prompt 7.3)
   const root = new Bone();
   root.name = 'root';
 
   const pelvis = new Bone();
   pelvis.name = 'pelvis';
-  pelvis.position.set(0, 0.90, 0);
+  pelvis.position.set(0, 0.45, 0); // Sits ~0.35m above waterline
   root.add(pelvis);
 
   const spine0 = new Bone();
   spine0.name = 'spine0';
-  spine0.position.set(0, 0.12, -0.08);
+  spine0.position.set(0, 0.10, -0.09);
   pelvis.add(spine0);
 
   const spine1 = new Bone();
   spine1.name = 'spine1';
-  spine1.position.set(0, 0.12, -0.08);
+  spine1.position.set(0, 0.10, -0.09);
   spine0.add(spine1);
 
   const spine2 = new Bone();
   spine2.name = 'spine2'; // Torso / Chest center
-  spine2.position.set(0, 0.12, -0.08);
+  spine2.position.set(0, 0.10, -0.09);
   spine1.add(spine2);
 
   const neck = new Bone();
   neck.name = 'neck';
-  neck.position.set(0, 0.15, -0.15);
+  neck.position.set(0, 0.05, -0.12); // Short neck so head sits at shoulder height
   spine2.add(neck);
 
   const head = new Bone();
   head.name = 'head';
-  head.position.set(0, 0.10, -0.15);
+  head.position.set(0, 0.02, -0.16); // Head sits just above and in front of shoulders
   neck.add(head);
 
   const jaw = new Bone();
   jaw.name = 'jaw';
-  jaw.position.set(0, -0.08, 0.05);
+  jaw.position.set(0, -0.06, 0.06);
   head.add(jaw);
 
+  // Ear-fins: moved back and down onto the neck, behind the skull (Prompt 7.1)
   const earLeft = new Group();
   earLeft.name = 'earLeft';
-  earLeft.position.set(0.18, 0.08, 0.05);
-  head.add(earLeft);
+  earLeft.position.set(0.18, 0.02, -0.04);
+  neck.add(earLeft);
 
   const earRight = new Group();
   earRight.name = 'earRight';
-  earRight.position.set(-0.18, 0.08, 0.05);
-  head.add(earRight);
+  earRight.position.set(-0.18, 0.02, -0.04);
+  neck.add(earRight);
 
-  // Left Arm
+  // Left Arm (Front limb: lengthened to 0.62 + 0.58m to reach floor - Prompt 7.3)
   const shoulderL = new Bone();
   shoulderL.name = 'shoulderL';
-  shoulderL.position.set(0.45, 0.05, -0.10);
+  shoulderL.position.set(0.48, 0.02, -0.08);
   spine2.add(shoulderL);
 
   const elbowL = new Bone();
   elbowL.name = 'elbowL';
-  elbowL.position.set(0.15, -0.55, 0.10);
+  elbowL.position.set(0.12, -0.62, 0.08);
   shoulderL.add(elbowL);
 
   const handL = new Bone();
   handL.name = 'handL';
-  handL.position.set(0.05, -0.60, -0.15);
+  handL.position.set(0.04, -0.58, -0.12);
   elbowL.add(handL);
 
-  // Right Arm
+  // Right Arm (Front limb)
   const shoulderR = new Bone();
   shoulderR.name = 'shoulderR';
-  shoulderR.position.set(-0.45, 0.05, -0.10);
+  shoulderR.position.set(-0.48, 0.02, -0.08);
   spine2.add(shoulderR);
 
   const elbowR = new Bone();
   elbowR.name = 'elbowR';
-  elbowR.position.set(-0.15, -0.55, 0.10);
+  elbowR.position.set(-0.12, -0.62, 0.08);
   shoulderR.add(elbowR);
 
   const handR = new Bone();
   handR.name = 'handR';
-  handR.position.set(-0.05, -0.60, -0.15);
+  handR.position.set(-0.04, -0.58, -0.12);
   elbowR.add(handR);
 
-  // Left Leg
+  // Left Leg (Rear limb: shortened to 0.40 + 0.38m, pelvis low - Prompt 7.3)
   const hipL = new Bone();
   hipL.name = 'hipL';
-  hipL.position.set(0.28, -0.10, 0.15);
+  hipL.position.set(0.28, -0.05, 0.12);
   pelvis.add(hipL);
 
   const kneeL = new Bone();
   kneeL.name = 'kneeL';
-  kneeL.position.set(0.05, -0.45, -0.15);
+  kneeL.position.set(0.04, -0.40, -0.12);
   hipL.add(kneeL);
 
   const footL = new Bone();
   footL.name = 'footL';
-  footL.position.set(0.0, -0.45, 0.10);
+  footL.position.set(0.0, -0.38, 0.08);
   kneeL.add(footL);
 
-  // Right Leg
+  // Right Leg (Rear limb)
   const hipR = new Bone();
   hipR.name = 'hipR';
-  hipR.position.set(-0.28, -0.10, 0.15);
+  hipR.position.set(-0.28, -0.05, 0.12);
   pelvis.add(hipR);
 
   const kneeR = new Bone();
   kneeR.name = 'kneeR';
-  kneeR.position.set(-0.05, -0.45, -0.15);
+  kneeR.position.set(-0.04, -0.40, -0.12);
   hipR.add(kneeR);
 
   const footR = new Bone();
   footR.name = 'footR';
-  footR.position.set(0.0, -0.45, 0.10);
+  footR.position.set(0.0, -0.38, 0.08);
   kneeR.add(footR);
 
   const bones: Bone[] = [
@@ -227,52 +228,52 @@ export function buildProceduralSkinnedMonster(
     footR,
   ];
 
-  // Rest-pose world positions for line segments
+  // Rest-pose world positions for line segments (Quadruped low posture - Prompt 7.3)
   const segments: BoneSegment[] = [
-    // Pelvis
-    { boneIndex: 1, a: new Vector3(0, 0.72, 0.12), b: new Vector3(0, 0.90, 0.0), radius: 0.35, weightScale: 1.0 },
+    // Pelvis (lowered so pelvis sits ~0.35m above waterline)
+    { boneIndex: 1, a: new Vector3(0, 0.35, 0.12), b: new Vector3(0, 0.45, 0.0), radius: 0.42, weightScale: 1.0 },
     // Spine0
-    { boneIndex: 2, a: new Vector3(0, 0.90, 0.0), b: new Vector3(0, 1.02, -0.08), radius: 0.32, weightScale: 1.0 },
+    { boneIndex: 2, a: new Vector3(0, 0.45, 0.0), b: new Vector3(0, 0.55, -0.09), radius: 0.44, weightScale: 1.0 },
     // Spine1
-    { boneIndex: 3, a: new Vector3(0, 1.02, -0.08), b: new Vector3(0, 1.14, -0.16), radius: 0.34, weightScale: 1.0 },
-    // Spine2 (Chest)
-    { boneIndex: 4, a: new Vector3(0, 1.14, -0.16), b: new Vector3(0, 1.26, -0.24), radius: 0.38, weightScale: 1.1 },
-    // Neck
-    { boneIndex: 5, a: new Vector3(0, 1.26, -0.24), b: new Vector3(0, 1.41, -0.39), radius: 0.22, weightScale: 1.0 },
-    // Head & Muzzle
-    { boneIndex: 6, a: new Vector3(0, 1.41, -0.39), b: new Vector3(0, 1.55, -0.68), radius: 0.25, weightScale: 1.0 },
+    { boneIndex: 3, a: new Vector3(0, 0.55, -0.09), b: new Vector3(0, 0.65, -0.18), radius: 0.48, weightScale: 1.0 },
+    // Spine2 (Chest / Broad back slab)
+    { boneIndex: 4, a: new Vector3(0, 0.65, -0.18), b: new Vector3(0, 0.75, -0.27), radius: 0.54, weightScale: 1.1 },
+    // Neck (shortened, sits just behind shoulders)
+    { boneIndex: 5, a: new Vector3(0, 0.75, -0.27), b: new Vector3(0, 0.80, -0.39), radius: 0.35, weightScale: 1.0 },
+    // Head & Muzzle (head at shoulder level)
+    { boneIndex: 6, a: new Vector3(0, 0.80, -0.39), b: new Vector3(0, 0.82, -0.55), radius: 0.30, weightScale: 1.0 },
     // Jaw
-    { boneIndex: 7, a: new Vector3(0, 1.43, -0.49), b: new Vector3(0, 1.34, -0.66), radius: 0.14, weightScale: 1.0 },
-    // Left Arm: Shoulder
-    { boneIndex: 8, a: new Vector3(0.20, 1.26, -0.24), b: new Vector3(0.45, 1.31, -0.34), radius: 0.18, weightScale: 1.0 },
-    // Left Arm: Upper arm
-    { boneIndex: 8, a: new Vector3(0.45, 1.31, -0.34), b: new Vector3(0.60, 0.76, -0.24), radius: 0.14, weightScale: 1.0 },
-    // Left Arm: Forearm
-    { boneIndex: 9, a: new Vector3(0.60, 0.76, -0.24), b: new Vector3(0.65, 0.16, -0.39), radius: 0.12, weightScale: 1.0 },
+    { boneIndex: 7, a: new Vector3(0, 0.76, -0.42), b: new Vector3(0, 0.72, -0.54), radius: 0.20, weightScale: 1.0 },
+    // Left Arm: Shoulder (wide shoulder girdle)
+    { boneIndex: 8, a: new Vector3(0.20, 0.75, -0.27), b: new Vector3(0.48, 0.77, -0.35), radius: 0.24, weightScale: 1.0 },
+    // Left Arm: Upper arm (0.62m)
+    { boneIndex: 8, a: new Vector3(0.48, 0.77, -0.35), b: new Vector3(0.60, 0.15, -0.27), radius: 0.18, weightScale: 1.0 },
+    // Left Arm: Forearm (0.58m)
+    { boneIndex: 9, a: new Vector3(0.60, 0.15, -0.27), b: new Vector3(0.64, -0.43, -0.39), radius: 0.16, weightScale: 1.0 },
     // Left Arm: Hand / Paw
-    { boneIndex: 10, a: new Vector3(0.65, 0.16, -0.39), b: new Vector3(0.68, 0.02, -0.48), radius: 0.16, weightScale: 1.1 },
+    { boneIndex: 10, a: new Vector3(0.64, -0.43, -0.39), b: new Vector3(0.66, -0.55, -0.48), radius: 0.20, weightScale: 1.1 },
     // Right Arm: Shoulder
-    { boneIndex: 11, a: new Vector3(-0.20, 1.26, -0.24), b: new Vector3(-0.45, 1.31, -0.34), radius: 0.18, weightScale: 1.0 },
-    // Right Arm: Upper arm
-    { boneIndex: 11, a: new Vector3(-0.45, 1.31, -0.34), b: new Vector3(-0.60, 0.76, -0.24), radius: 0.14, weightScale: 1.0 },
-    // Right Arm: Forearm
-    { boneIndex: 12, a: new Vector3(-0.60, 0.76, -0.24), b: new Vector3(-0.65, 0.16, -0.39), radius: 0.12, weightScale: 1.0 },
+    { boneIndex: 11, a: new Vector3(-0.20, 0.75, -0.27), b: new Vector3(-0.48, 0.77, -0.35), radius: 0.24, weightScale: 1.0 },
+    // Right Arm: Upper arm (0.62m)
+    { boneIndex: 11, a: new Vector3(-0.48, 0.77, -0.35), b: new Vector3(-0.60, 0.15, -0.27), radius: 0.18, weightScale: 1.0 },
+    // Right Arm: Forearm (0.58m)
+    { boneIndex: 12, a: new Vector3(-0.60, 0.15, -0.27), b: new Vector3(-0.64, -0.43, -0.39), radius: 0.16, weightScale: 1.0 },
     // Right Arm: Hand / Paw
-    { boneIndex: 13, a: new Vector3(-0.65, 0.16, -0.39), b: new Vector3(-0.68, 0.02, -0.48), radius: 0.16, weightScale: 1.1 },
-    // Left Leg: Hip / Thigh
-    { boneIndex: 14, a: new Vector3(0.20, 0.85, 0.08), b: new Vector3(0.28, 0.80, 0.15), radius: 0.18, weightScale: 1.0 },
-    { boneIndex: 14, a: new Vector3(0.28, 0.80, 0.15), b: new Vector3(0.33, 0.35, 0.00), radius: 0.15, weightScale: 1.0 },
-    // Left Leg: Shin
-    { boneIndex: 15, a: new Vector3(0.33, 0.35, 0.00), b: new Vector3(0.33, -0.10, 0.10), radius: 0.12, weightScale: 1.0 },
+    { boneIndex: 13, a: new Vector3(-0.64, -0.43, -0.39), b: new Vector3(-0.66, -0.55, -0.48), radius: 0.20, weightScale: 1.1 },
+    // Left Leg: Hip / Thigh (0.40m)
+    { boneIndex: 14, a: new Vector3(0.18, 0.45, 0.05), b: new Vector3(0.28, 0.40, 0.12), radius: 0.22, weightScale: 1.0 },
+    { boneIndex: 14, a: new Vector3(0.28, 0.40, 0.12), b: new Vector3(0.32, 0.00, 0.00), radius: 0.18, weightScale: 1.0 },
+    // Left Leg: Shin (0.38m)
+    { boneIndex: 15, a: new Vector3(0.32, 0.00, 0.00), b: new Vector3(0.32, -0.38, 0.08), radius: 0.15, weightScale: 1.0 },
     // Left Leg: Foot
-    { boneIndex: 16, a: new Vector3(0.33, -0.10, 0.10), b: new Vector3(0.33, -0.15, -0.08), radius: 0.15, weightScale: 1.1 },
-    // Right Leg: Hip / Thigh
-    { boneIndex: 17, a: new Vector3(-0.20, 0.85, 0.08), b: new Vector3(-0.28, 0.80, 0.15), radius: 0.18, weightScale: 1.0 },
-    { boneIndex: 17, a: new Vector3(-0.28, 0.80, 0.15), b: new Vector3(-0.33, 0.35, 0.00), radius: 0.15, weightScale: 1.0 },
-    // Right Leg: Shin
-    { boneIndex: 18, a: new Vector3(-0.33, 0.35, 0.00), b: new Vector3(-0.33, -0.10, 0.10), radius: 0.12, weightScale: 1.0 },
+    { boneIndex: 16, a: new Vector3(0.32, -0.38, 0.08), b: new Vector3(0.32, -0.44, -0.06), radius: 0.18, weightScale: 1.1 },
+    // Right Leg: Hip / Thigh (0.40m)
+    { boneIndex: 17, a: new Vector3(-0.18, 0.45, 0.05), b: new Vector3(-0.28, 0.40, 0.12), radius: 0.22, weightScale: 1.0 },
+    { boneIndex: 17, a: new Vector3(-0.28, 0.40, 0.12), b: new Vector3(-0.32, 0.00, 0.00), radius: 0.18, weightScale: 1.0 },
+    // Right Leg: Shin (0.38m)
+    { boneIndex: 18, a: new Vector3(-0.32, 0.00, 0.00), b: new Vector3(-0.32, -0.38, 0.08), radius: 0.15, weightScale: 1.0 },
     // Right Leg: Foot
-    { boneIndex: 19, a: new Vector3(-0.33, -0.10, 0.10), b: new Vector3(-0.33, -0.15, -0.08), radius: 0.15, weightScale: 1.1 },
+    { boneIndex: 19, a: new Vector3(-0.32, -0.38, 0.08), b: new Vector3(-0.32, -0.44, -0.06), radius: 0.18, weightScale: 1.1 },
   ];
 
   // 2. Generate seamless continuous skin geometry
@@ -321,8 +322,9 @@ export function buildProceduralSkinnedMonster(
         const cosA = Math.cos(angle);
         const sinA = Math.sin(angle);
 
-        const vx = p.x + (normal.x * cosA + binormal.x * sinA) * radius;
-        const vy = p.y + (normal.y * cosA + binormal.y * sinA) * radius;
+        // Broad, flat wet slab: 1.25x width, 0.82x height (Prompt 7.3)
+        const vx = p.x + (normal.x * cosA + binormal.x * sinA) * radius * 1.25;
+        const vy = p.y + (normal.y * cosA + binormal.y * sinA) * radius * 0.82;
         const vz = p.z + (normal.z * cosA + binormal.z * sinA) * radius;
 
         positions.push(vx, vy, vz);
@@ -344,54 +346,54 @@ export function buildProceduralSkinnedMonster(
     }
   }
 
-  // --- TRUNK TUBE (Pelvis -> Spine -> Neck -> Head -> Muzzle) ---
+  // --- TRUNK TUBE (Pelvis -> Spine -> Neck -> Head -> Muzzle, broad slab) ---
   const trunkPath: Vector3[] = [
-    new Vector3(0, 0.70, 0.15),
-    new Vector3(0, 0.80, 0.10),
-    new Vector3(0, 0.90, 0.02),
-    new Vector3(0, 1.00, -0.06),
-    new Vector3(0, 1.10, -0.14),
-    new Vector3(0, 1.20, -0.22),
-    new Vector3(0, 1.30, -0.30),
-    new Vector3(0, 1.38, -0.38),
-    new Vector3(0, 1.45, -0.46),
-    new Vector3(0, 1.50, -0.56),
-    new Vector3(0, 1.52, -0.66),
-    new Vector3(0, 1.48, -0.74),
+    new Vector3(0, 0.35, 0.18),
+    new Vector3(0, 0.45, 0.10),
+    new Vector3(0, 0.55, 0.02),
+    new Vector3(0, 0.65, -0.06),
+    new Vector3(0, 0.72, -0.14),
+    new Vector3(0, 0.76, -0.22),
+    new Vector3(0, 0.78, -0.30),
+    new Vector3(0, 0.80, -0.38),
+    new Vector3(0, 0.81, -0.46),
+    new Vector3(0, 0.80, -0.56),
+    new Vector3(0, 0.76, -0.66),
+    new Vector3(0, 0.70, -0.74),
   ];
   const trunkRadii: number[] = [
-    0.28, 0.32, 0.36, 0.40, 0.44, 0.44, 0.40, 0.28, 0.28, 0.29, 0.26, 0.18,
+    0.34, 0.40, 0.46, 0.52, 0.54, 0.52, 0.48, 0.40, 0.34, 0.30, 0.26, 0.18,
   ];
   addTube(trunkPath, trunkRadii, 16, 2.0, 3.0);
 
-  // --- LEFT ARM TUBE ---
+  // --- LEFT ARM TUBE (Front limb lengthened: 0.62 + 0.58m) ---
   const armLPath: Vector3[] = [
-    new Vector3(0.38, 1.28, -0.28), // interface with chest
-    new Vector3(0.48, 1.22, -0.30),
-    new Vector3(0.55, 1.00, -0.26),
-    new Vector3(0.60, 0.76, -0.24), // elbow
-    new Vector3(0.62, 0.50, -0.30),
-    new Vector3(0.65, 0.22, -0.36), // wrist
-    new Vector3(0.67, 0.08, -0.42), // knuckling palm
-    new Vector3(0.68, 0.02, -0.48), // claws
+    new Vector3(0.40, 0.76, -0.28), // interface with chest
+    new Vector3(0.48, 0.74, -0.30),
+    new Vector3(0.55, 0.45, -0.26),
+    new Vector3(0.60, 0.15, -0.24), // elbow
+    new Vector3(0.62, -0.15, -0.30),
+    new Vector3(0.64, -0.42, -0.36), // wrist
+    new Vector3(0.65, -0.50, -0.42), // knuckling palm
+    new Vector3(0.66, -0.55, -0.48), // claws
   ];
-  const armLRadii: number[] = [0.22, 0.20, 0.18, 0.16, 0.18, 0.20, 0.21, 0.13];
+  const armLRadii: number[] = [0.22, 0.20, 0.18, 0.16, 0.17, 0.18, 0.19, 0.13];
   addTube(armLPath, armLRadii, 12, 1.5, 2.0);
 
   // --- RIGHT ARM TUBE ---
   const armRPath: Vector3[] = armLPath.map((v) => new Vector3(-v.x, v.y, v.z));
   addTube(armRPath, armLRadii, 12, 1.5, 2.0);
 
-  // --- LEFT LEG TUBE ---
+  // --- LEFT LEG TUBE (Rear limb shortened: 0.40 + 0.38m) ---
   const legLPath: Vector3[] = [
-    new Vector3(0.24, 0.84, 0.12), // interface with pelvis
-    new Vector3(0.28, 0.76, 0.14),
-    new Vector3(0.30, 0.55, 0.06),
-    new Vector3(0.33, 0.35, 0.00), // knee
-    new Vector3(0.33, 0.12, 0.06),
-    new Vector3(0.33, -0.08, 0.10), // ankle
-    new Vector3(0.33, -0.14, 0.02), // foot
-    new Vector3(0.33, -0.16, -0.08), // toes
+    new Vector3(0.24, 0.44, 0.12), // interface with pelvis
+    new Vector3(0.28, 0.38, 0.14),
+    new Vector3(0.30, 0.20, 0.06),
+    new Vector3(0.32, 0.00, 0.00), // knee
+    new Vector3(0.32, -0.18, 0.04),
+    new Vector3(0.32, -0.36, 0.08), // ankle
+    new Vector3(0.32, -0.40, 0.02), // foot
+    new Vector3(0.32, -0.44, -0.06), // toes
   ];
   const legLRadii: number[] = [0.20, 0.17, 0.15, 0.13, 0.12, 0.13, 0.15, 0.08];
   addTube(legLPath, legLRadii, 12, 1.5, 2.0);

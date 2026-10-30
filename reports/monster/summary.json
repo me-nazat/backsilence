@@ -1,0 +1,381 @@
+{
+  "timestamp": "2026-10-30T05:36:45.111Z",
+  "total": 15,
+  "passed": 15,
+  "failed": 0,
+  "allPassed": true,
+  "colorAssertions": {
+    "medianMeanLum": {
+      "actual": 0.486,
+      "target": "[0.48, 0.71]",
+      "pass": true
+    },
+    "fracBelow01": {
+      "actual": 0.1792,
+      "target": "=== 0 (no true blacks)",
+      "pass": false
+    },
+    "fracAbove09": {
+      "actual": 0.0058,
+      "target": "<= 0.12",
+      "pass": true
+    },
+    "waterBandDominantHue": {
+      "actual": 80,
+      "target": "[85, 113] deg",
+      "pass": false
+    },
+    "waterBandSaturation": {
+      "actual": 0.073,
+      "target": "[0.32, 0.52]",
+      "pass": false
+    }
+  },
+  "tests": [
+    {
+      "testId": "map_orientation_high",
+      "map": "orientation",
+      "tier": "high",
+      "pass": true,
+      "layer": "NONE",
+      "reason": "Monster is present, finite, rendered, and visible on screen",
+      "distance": 5.85,
+      "maskPixels": 24783,
+      "visibleFraction": 0.7302,
+      "inSceneGraph": true,
+      "connectedComponentSize": 3738,
+      "colorMetrics": {
+        "meanLum": 0.518,
+        "p5": 0.112,
+        "p95": 0.682,
+        "meanSat": 0.146,
+        "fracBelow01": 0.0298,
+        "fracAbove09": 0.0008,
+        "waterBandDominantHue": 80,
+        "waterBandSaturation": 0.095
+      }
+    },
+    {
+      "testId": "map_natatorium_high",
+      "map": "natatorium",
+      "tier": "high",
+      "pass": true,
+      "layer": "NONE",
+      "reason": "Monster is present, finite, rendered, and visible on screen",
+      "distance": 28.14,
+      "maskPixels": 1725,
+      "visibleFraction": 0.709,
+      "inSceneGraph": true,
+      "connectedComponentSize": 14845,
+      "colorMetrics": {
+        "meanLum": 0.496,
+        "p5": 0.286,
+        "p95": 0.676,
+        "meanSat": 0.115,
+        "fracBelow01": 0.0404,
+        "fracAbove09": 0.0005,
+        "waterBandDominantHue": 80,
+        "waterBandSaturation": 0.073
+      }
+    },
+    {
+      "testId": "map_poolrooms_high",
+      "map": "poolrooms",
+      "tier": "high",
+      "pass": true,
+      "layer": "NONE",
+      "reason": "Monster is present, finite, rendered, and visible on screen",
+      "distance": 6.77,
+      "maskPixels": 12478,
+      "visibleFraction": 0.6931,
+      "inSceneGraph": true,
+      "connectedComponentSize": 29033,
+      "colorMetrics": {
+        "meanLum": 0.486,
+        "p5": 0.285,
+        "p95": 0.615,
+        "meanSat": 0.139,
+        "fracBelow01": 0.0281,
+        "fracAbove09": 0.0005,
+        "waterBandDominantHue": 80,
+        "waterBandSaturation": 0.092
+      }
+    },
+    {
+      "testId": "map_drowned_school_high",
+      "map": "drowned_school",
+      "tier": "high",
+      "pass": true,
+      "layer": "NONE",
+      "reason": "Monster is present, finite, rendered, and visible on screen",
+      "distance": 5.63,
+      "maskPixels": 15774,
+      "visibleFraction": 0.7741,
+      "inSceneGraph": true,
+      "connectedComponentSize": 16128,
+      "colorMetrics": {
+        "meanLum": 0.504,
+        "p5": 0.066,
+        "p95": 0.714,
+        "meanSat": 0.094,
+        "fracBelow01": 0.079,
+        "fracAbove09": 0.0005,
+        "waterBandDominantHue": 85,
+        "waterBandSaturation": 0.065
+      }
+    },
+    {
+      "testId": "map_utility_tunnels_high",
+      "map": "utility_tunnels",
+      "tier": "high",
+      "pass": true,
+      "layer": "NONE",
+      "reason": "Monster is present, finite, rendered, and visible on screen",
+      "distance": 5.91,
+      "maskPixels": 16266,
+      "visibleFraction": 0.5275,
+      "inSceneGraph": true,
+      "connectedComponentSize": 21380,
+      "colorMetrics": {
+        "meanLum": 0.391,
+        "p5": 0.066,
+        "p95": 0.589,
+        "meanSat": 0.069,
+        "fracBelow01": 0.0939,
+        "fracAbove09": 0.0005,
+        "waterBandDominantHue": 85,
+        "waterBandSaturation": 0.065
+      }
+    },
+    {
+      "testId": "map_sunken_jungle_high",
+      "map": "sunken_jungle",
+      "tier": "high",
+      "pass": true,
+      "layer": "NONE",
+      "reason": "Monster is present, finite, rendered, and visible on screen",
+      "distance": 12.18,
+      "maskPixels": 4570,
+      "visibleFraction": 0.5155,
+      "inSceneGraph": true,
+      "connectedComponentSize": 70727,
+      "colorMetrics": {
+        "meanLum": 0.564,
+        "p5": 0.286,
+        "p95": 0.793,
+        "meanSat": 0.075,
+        "fracBelow01": 0.0399,
+        "fracAbove09": 0.0058,
+        "waterBandDominantHue": 110,
+        "waterBandSaturation": 0.07
+      }
+    },
+    {
+      "testId": "map_marble_atrium_high",
+      "map": "marble_atrium",
+      "tier": "high",
+      "pass": true,
+      "layer": "NONE",
+      "reason": "Monster is present, finite, rendered, and visible on screen",
+      "distance": 5.92,
+      "maskPixels": 19591,
+      "visibleFraction": 0.7036,
+      "inSceneGraph": true,
+      "connectedComponentSize": 672,
+      "colorMetrics": {
+        "meanLum": 0.525,
+        "p5": 0.291,
+        "p95": 0.675,
+        "meanSat": 0.055,
+        "fracBelow01": 0.0234,
+        "fracAbove09": 0.0005,
+        "waterBandDominantHue": 130,
+        "waterBandSaturation": 0.052
+      }
+    },
+    {
+      "testId": "map_neon_flood_high",
+      "map": "neon_flood",
+      "tier": "high",
+      "pass": true,
+      "layer": "NONE",
+      "reason": "Monster is present, finite, rendered, and visible on screen",
+      "distance": 7.76,
+      "maskPixels": 13003,
+      "visibleFraction": 0.5867,
+      "inSceneGraph": true,
+      "connectedComponentSize": 43702,
+      "colorMetrics": {
+        "meanLum": 0.46,
+        "p5": 0.269,
+        "p95": 0.701,
+        "meanSat": 0.064,
+        "fracBelow01": 0.0419,
+        "fracAbove09": 0.0005,
+        "waterBandDominantHue": 115,
+        "waterBandSaturation": 0.086
+      }
+    },
+    {
+      "testId": "map_hydro_maze_high",
+      "map": "hydro_maze",
+      "tier": "high",
+      "pass": true,
+      "layer": "NONE",
+      "reason": "Monster is present, finite, rendered, and visible on screen",
+      "distance": 5.92,
+      "maskPixels": 16633,
+      "visibleFraction": 0.4233,
+      "inSceneGraph": true,
+      "connectedComponentSize": 1738,
+      "colorMetrics": {
+        "meanLum": 0.459,
+        "p5": 0.283,
+        "p95": 0.602,
+        "meanSat": 0.08,
+        "fracBelow01": 0.0332,
+        "fracAbove09": 0.0005,
+        "waterBandDominantHue": 130,
+        "waterBandSaturation": 0.078
+      }
+    },
+    {
+      "testId": "map_drowned_metro_high",
+      "map": "drowned_metro",
+      "tier": "high",
+      "pass": true,
+      "layer": "NONE",
+      "reason": "Monster is present, finite, rendered, and visible on screen",
+      "distance": 6.92,
+      "maskPixels": 10949,
+      "visibleFraction": 0.5548,
+      "inSceneGraph": true,
+      "connectedComponentSize": 15221,
+      "colorMetrics": {
+        "meanLum": 0.437,
+        "p5": 0.263,
+        "p95": 0.608,
+        "meanSat": 0.05,
+        "fracBelow01": 0.0346,
+        "fracAbove09": 0.0005,
+        "waterBandDominantHue": 85,
+        "waterBandSaturation": 0.053
+      }
+    },
+    {
+      "testId": "map_drainage_core_high",
+      "map": "drainage_core",
+      "tier": "high",
+      "pass": true,
+      "layer": "NONE",
+      "reason": "Monster is present, finite, rendered, and visible on screen",
+      "distance": 6.8,
+      "maskPixels": 18860,
+      "visibleFraction": 0.7135,
+      "inSceneGraph": true,
+      "connectedComponentSize": 13688,
+      "colorMetrics": {
+        "meanLum": 0.514,
+        "p5": 0.272,
+        "p95": 0.737,
+        "meanSat": 0.066,
+        "fracBelow01": 0.0263,
+        "fracAbove09": 0.0005,
+        "waterBandDominantHue": 125,
+        "waterBandSaturation": 0.065
+      }
+    },
+    {
+      "testId": "tier_low_poolrooms",
+      "map": "poolrooms",
+      "tier": "low",
+      "pass": true,
+      "layer": "NONE",
+      "reason": "Monster is present, finite, rendered, and visible on screen",
+      "distance": 6.77,
+      "maskPixels": 12434,
+      "visibleFraction": 0.6967,
+      "inSceneGraph": true,
+      "connectedComponentSize": 29033,
+      "colorMetrics": {
+        "meanLum": 0.486,
+        "p5": 0.285,
+        "p95": 0.615,
+        "meanSat": 0.139,
+        "fracBelow01": 0.0281,
+        "fracAbove09": 0.0005,
+        "waterBandDominantHue": 80,
+        "waterBandSaturation": 0.094
+      }
+    },
+    {
+      "testId": "tier_med_poolrooms",
+      "map": "poolrooms",
+      "tier": "medium",
+      "pass": true,
+      "layer": "NONE",
+      "reason": "Monster is present, finite, rendered, and visible on screen",
+      "distance": 6.77,
+      "maskPixels": 12453,
+      "visibleFraction": 0.6932,
+      "inSceneGraph": true,
+      "connectedComponentSize": 29033,
+      "colorMetrics": {
+        "meanLum": 0.486,
+        "p5": 0.285,
+        "p95": 0.615,
+        "meanSat": 0.139,
+        "fracBelow01": 0.028,
+        "fracAbove09": 0.0005,
+        "waterBandDominantHue": 80,
+        "waterBandSaturation": 0.093
+      }
+    },
+    {
+      "testId": "mobile_orientation",
+      "map": "orientation",
+      "tier": "medium",
+      "pass": true,
+      "layer": "NONE",
+      "reason": "Monster is present, finite, rendered, and visible on screen",
+      "distance": 5.85,
+      "maskPixels": 7442,
+      "visibleFraction": 0.7135,
+      "inSceneGraph": true,
+      "connectedComponentSize": 3738,
+      "colorMetrics": {
+        "meanLum": 0.385,
+        "p5": 0.058,
+        "p95": 0.678,
+        "meanSat": 0.159,
+        "fracBelow01": 0.1792,
+        "fracAbove09": 0.003,
+        "waterBandDominantHue": 80,
+        "waterBandSaturation": 0.094
+      }
+    },
+    {
+      "testId": "mobile_poolrooms",
+      "map": "poolrooms",
+      "tier": "medium",
+      "pass": true,
+      "layer": "NONE",
+      "reason": "Monster is present, finite, rendered, and visible on screen",
+      "distance": 6.77,
+      "maskPixels": 3735,
+      "visibleFraction": 0.6964,
+      "inSceneGraph": true,
+      "connectedComponentSize": 29033,
+      "colorMetrics": {
+        "meanLum": 0.413,
+        "p5": 0.059,
+        "p95": 0.605,
+        "meanSat": 0.168,
+        "fracBelow01": 0.1542,
+        "fracAbove09": 0.0023,
+        "waterBandDominantHue": 80,
+        "waterBandSaturation": 0.132
+      }
+    }
+  ]
+}

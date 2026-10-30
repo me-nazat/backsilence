@@ -28,18 +28,22 @@ export class MonsterManager {
   private readonly audios = new Map<string, MonsterAudio>();
   private readonly water?: WaterSystem | undefined;
   private readonly audio?: AudioEngine | undefined;
+  skinChoice?: 'auto' | 'model' | 'procedural' = 'auto';
 
-  constructor(water?: WaterSystem, audio?: AudioEngine) {
+  constructor(water?: WaterSystem, audio?: AudioEngine, skinChoice: 'auto' | 'model' | 'procedural' = 'auto') {
     this.root.name = 'Monsters';
     this.water = water;
     this.audio = audio;
+    this.skinChoice = skinChoice;
   }
 
   addMonster(def: MonsterDef): MonsterBody {
     const scale = def.scale ?? (def.variant === 'elder' ? 1.15 : def.variant === 'juvenile' ? 0.8 : 1.0);
-    const tint = def.tint ?? (def.variant === 'elder' ? '#443825' : def.variant === 'juvenile' ? '#6e5a3c' : '#5a5035');
+    const tint = def.tint ?? (def.variant === 'elder' ? '#443825' : def.variant === 'juvenile' ? '#6e5a3c' : '#6b5f40');
 
+    const skinChoice = this.skinChoice ?? 'auto';
     const body = new MonsterBody(def.id, scale, tint, this.water, this.audio);
+    body.setSkinPreference(skinChoice);
     this.bodies.set(def.id, body);
     this.root.add(body.mesh.root);
 
@@ -82,6 +86,10 @@ export class MonsterManager {
       const body = this.bodies.get(brain.id);
       if (body) {
         body.update(dt, snap, ground, camera);
+        if (body.failed) {
+          body.failed = false;
+          body.reloadProceduralSkin();
+        }
       }
       const mAudio = this.audios.get(brain.id);
       if (mAudio) {

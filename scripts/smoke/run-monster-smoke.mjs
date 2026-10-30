@@ -6,12 +6,12 @@
  *  Outputs results to reports/monster/smoke_results.json and screenshots.
  * ──────────────────────────────────────────────────────────────────────────── */
 
-import { spawn } from 'node:child_process';
-import { existsSync } from 'node:fs';
+import { execSync, spawn } from 'node:child_process';
+import { existsSync, readdirSync } from 'node:fs';
 import { mkdir, mkdtemp, writeFile } from 'node:fs/promises';
 import { createServer } from 'node:net';
-import { tmpdir } from 'node:os';
-import { resolve } from 'node:path';
+import { homedir, tmpdir } from 'node:os';
+import { resolve, join } from 'node:path';
 
 const ROOT = process.cwd();
 const PORT = 4177;
@@ -20,17 +20,68 @@ const REPORT_DIR = resolve(ROOT, 'reports/monster');
 const SHOTS_DIR = resolve(REPORT_DIR, 'screenshots/smoke');
 
 function chromePath() {
-  const candidates = [
-    process.env.BACKSILENCE_CHROME_BIN,
-    '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
-    'google-chrome',
-    'chromium',
-  ].filter(Boolean);
-  for (const c of candidates) {
-    if (c.includes('/') && existsSync(c)) return c;
-    if (!c.includes('/')) return c;
+  if (process.env.BACKSILENCE_CHROME_BIN && existsSync(process.env.BACKSILENCE_CHROME_BIN)) {
+    const bin = process.env.BACKSILENCE_CHROME_BIN;
+    console.log(`Using Chrome: ${bin}`);
+    return bin;
   }
-  throw new Error('Chrome was not found.');
+  const home = homedir();
+  const puppeteerDirs = [
+    join(home, '.cache', 'puppeteer', 'chrome'),
+    join(home, 'Library', 'Caches', 'puppeteer', 'chrome'),
+  ];
+  for (const pDir of puppeteerDirs) {
+    if (existsSync(pDir)) {
+      try {
+        const findBin = (dir) => {
+          const entries = readdirSync(dir, { withFileTypes: true });
+          for (const e of entries) {
+            const full = join(dir, e.name);
+            if (e.isDirectory()) {
+              const res = findBin(full);
+              if (res) return res;
+            } else if (e.isFile() && (e.name === 'chrome' || e.name === 'chromium' || e.name === 'Google Chrome for Testing' || e.name === 'Google Chrome')) {
+              return full;
+            }
+          }
+          return null;
+        };
+        const found = findBin(pDir);
+        if (found) {
+          console.log(`Using Chrome: ${found}`);
+          return found;
+        }
+      } catch {}
+    }
+  }
+
+  const platformPaths = [
+    '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+    '/Applications/Chromium.app/Contents/MacOS/Chromium',
+    '/usr/bin/google-chrome',
+    '/usr/bin/google-chrome-stable',
+    '/usr/bin/chromium',
+    '/usr/bin/chromium-browser',
+    '/snap/bin/chromium',
+  ];
+  for (const p of platformPaths) {
+    if (existsSync(p)) {
+      console.log(`Using Chrome: ${p}`);
+      return p;
+    }
+  }
+
+  for (const cmd of ['google-chrome', 'chromium', 'chromium-browser']) {
+    try {
+      const out = execSync(`which ${cmd}`, { stdio: ['pipe', 'pipe', 'ignore'] }).toString().trim();
+      if (out && existsSync(out)) {
+        console.log(`Using Chrome: ${out}`);
+        return out;
+      }
+    } catch {}
+  }
+
+  throw new Error('Chrome was not found. Set BACKSILENCE_CHROME_BIN.');
 }
 
 async function getFreePort() {
@@ -64,6 +115,7 @@ class Cdp {
     this.pending = new Map();
     this.listeners = new Map();
     this.logs = [];
+    this.uncaughtExceptions = [];
   }
 
   async connect() {
@@ -85,9 +137,28 @@ class Cdp {
           const type = msg.params.type;
           const text = msg.params.args.map((a) => a.value ?? a.description ?? '').join(' ');
           this.logs.push(`[${type}] ${text}`);
+        } else if (msg.method === 'Runtime.exceptionThrown') {
+          const desc = msg.params.exceptionDetails?.exception?.description || msg.params.exceptionDetails?.text || 'Uncaught Exception';
+          this.uncaughtExceptions.push(desc);
         }
       }
     });
+  }
+
+  clearErrors() {
+    this.logs = [];
+    this.uncaughtExceptions = [];
+  }
+
+  checkErrors() {
+    if (this.uncaughtExceptions.length > 0) {
+      throw new Error(`Browser uncaught exception: ${this.uncaughtExceptions.join('; ')}`);
+    }
+    const badRegex = /MonsterBody|MonsterWatchdog|non-finite|threw/i;
+    const bad = this.logs.find((l) => badRegex.test(l));
+    if (bad) {
+      throw new Error(`Forbidden console log matched: ${bad}`);
+    }
   }
 
   send(method, params = {}) {
@@ -211,7 +282,9 @@ async function main() {
     process.stdout.write(`[Gate ${id}] ${name}... `);
     const start = Date.now();
     try {
+      cdp.clearErrors();
       const outcome = await fn();
+      cdp.checkErrors();
       const durationMs = Date.now() - start;
       console.log(`✅ PASS (${durationMs}ms)`);
       results[id] = { pass: true, durationMs, details: outcome };

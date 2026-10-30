@@ -5,7 +5,7 @@
  * ──────────────────────────────────────────────────────────────────────── */
 
 import { MeshStandardMaterial } from 'three';
-import type { LayoutCtx, LayoutData, MapDefinition, PlatformDef, BoxDef, PropDef, BuildEnv } from '../MapTypes.js';
+import type { LayoutCtx, LayoutData, MapDefinition, PlatformDef, BoxDef, PropDef, StairDef, BuildEnv } from '../MapTypes.js';
 import type { MapInstance } from './MapInstance.js';
 import { TextureRegistry } from '../../procedural/textures/TextureRegistry.js';
 import { WATER_PROFILES } from '../../game/water/WaterProfile.js';
@@ -50,6 +50,7 @@ export const DrainageCoreMap: MapDefinition = {
     const platforms: PlatformDef[] = [];
     const walls: BoxDef[] = [];
     const props: PropDef[] = [];
+    const stairs: StairDef[] = [];
 
     // 1. Central Pit Rim Collider: 16 x 16m at (0, 0)
     // Blocked so players cannot fall into the bottomless drain shaft
@@ -73,12 +74,14 @@ export const DrainageCoreMap: MapDefinition = {
       { id: 'ring_inner_e', rect: [16, -16, 18, 16], topY: 0.3, kind: 'metal' },
     );
 
-    // Mid Ring Platforms
+    // Mid Ring Platforms with culvert openings for shallow_wading_spoke
     platforms.push(
       { id: 'ring_mid_n', rect: [-36, 32, 36, 34.5], topY: 0.3, kind: 'metal' },
       { id: 'ring_mid_s', rect: [-36, -34.5, 36, -32], topY: 0.3, kind: 'metal' },
-      { id: 'ring_mid_w', rect: [-34.5, -32, -32, 32], topY: 0.3, kind: 'metal' },
-      { id: 'ring_mid_e', rect: [32, -32, 34.5, 32], topY: 0.3, kind: 'metal' },
+      { id: 'ring_mid_w_s', rect: [-34.5, -32, -32, -2.5], topY: 0.3, kind: 'metal' },
+      { id: 'ring_mid_w_n', rect: [-34.5, 2.5, -32, 32], topY: 0.3, kind: 'metal' },
+      { id: 'ring_mid_e_s', rect: [32, -32, 34.5, -2.5], topY: 0.3, kind: 'metal' },
+      { id: 'ring_mid_e_n', rect: [32, 2.5, 34.5, 32], topY: 0.3, kind: 'metal' },
     );
 
     // Outer Ring Platforms
@@ -89,15 +92,40 @@ export const DrainageCoreMap: MapDefinition = {
       { id: 'ring_outer_e', rect: [48, -48, 50.5, 48], topY: 0.3, kind: 'metal' },
     );
 
-    // 3. 4 Axial Spoke Catwalks connecting the rings (width 2.2m)
-    // North Spoke
-    platforms.push({ id: 'spoke_north', rect: [-1.2, 18, 1.2, 48], topY: 0.3, kind: 'metal' });
-    // South Spoke
-    platforms.push({ id: 'spoke_south', rect: [-1.2, -48, 1.2, -18], topY: 0.3, kind: 'metal' });
-    // West Spoke
-    platforms.push({ id: 'spoke_west', rect: [-48, -1.2, -18, 1.2], topY: 0.3, kind: 'metal' });
-    // East Spoke
-    platforms.push({ id: 'spoke_east', rect: [18, -1.2, 48, 1.2], topY: 0.3, kind: 'metal' });
+    // 3. 4 Axial Spoke Catwalks connecting the rings (width 2.4m) with culvert water gaps (Prompt 5.3)
+    const culvertHalf = 1.5;
+    platforms.push(
+      // North Spoke
+      { id: 'spoke_north_1', rect: [-1.2, 18, 1.2, 25 - culvertHalf], topY: 0.3, kind: 'metal' },
+      { id: 'spoke_north_2', rect: [-1.2, 25 + culvertHalf, 1.2, 41 - culvertHalf], topY: 0.3, kind: 'metal' },
+      { id: 'spoke_north_3', rect: [-1.2, 41 + culvertHalf, 1.2, 48], topY: 0.3, kind: 'metal' },
+      // South Spoke
+      { id: 'spoke_south_1', rect: [-1.2, -48, 1.2, -41 - culvertHalf], topY: 0.3, kind: 'metal' },
+      { id: 'spoke_south_2', rect: [-1.2, -41 + culvertHalf, 1.2, -25 - culvertHalf], topY: 0.3, kind: 'metal' },
+      { id: 'spoke_south_3', rect: [-1.2, -25 + culvertHalf, 1.2, -18], topY: 0.3, kind: 'metal' },
+      // West Spoke
+      { id: 'spoke_west_1', rect: [-48, -1.2, -41 - culvertHalf, 1.2], topY: 0.3, kind: 'metal' },
+      { id: 'spoke_west_2', rect: [-41 + culvertHalf, -1.2, -25 - culvertHalf, 1.2], topY: 0.3, kind: 'metal' },
+      { id: 'spoke_west_3', rect: [-25 + culvertHalf, -1.2, -18, 1.2], topY: 0.3, kind: 'metal' },
+      // East Spoke
+      { id: 'spoke_east_1', rect: [18, -1.2, 25 - culvertHalf, 1.2], topY: 0.3, kind: 'metal' },
+      { id: 'spoke_east_2', rect: [25 + culvertHalf, -1.2, 41 - culvertHalf, 1.2], topY: 0.3, kind: 'metal' },
+      { id: 'spoke_east_3', rect: [41 + culvertHalf, -1.2, 48, 1.2], topY: 0.3, kind: 'metal' },
+    );
+
+    // Raised observation vantage platform & stairs (Prompt 5.3)
+    platforms.push({ id: 'vantage_catwalk', rect: [-3.5, -28, 3.5, -24], topY: 1.1, kind: 'metal' });
+    stairs.push({
+      id: 'stair_vantage',
+      x: -1.2,
+      z: -23.8,
+      width: 2.4,
+      riser: 0.20,
+      run: 0.28,
+      steps: 4,
+      baseY: 0.3,
+      direction: 'z-',
+    });
 
     // 4. 4 Corner Pump Rooms (14 x 14m)
     // NW: Generator 1
@@ -151,7 +179,7 @@ export const DrainageCoreMap: MapDefinition = {
       {
         id: 'monster_elder',
         variant: 'elder' as const,
-        spawn: { x: 30, y: -0.9, z: 49 },
+        spawn: { x: 30, y: -0.9, z: 42 },
         sleeperSpawn: { x: -30.0, y: -0.9, z: -30.0 },
         hearingMul: 1.25,
         speedMul: 0.85,
@@ -160,7 +188,7 @@ export const DrainageCoreMap: MapDefinition = {
       {
         id: 'monster_juv_1',
         variant: 'juvenile' as const,
-        spawn: { x: -35, y: -0.9, z: 0 },
+        spawn: { x: -26, y: -0.9, z: -10 },
         hearingMul: 0.8,
         speedMul: 1.2,
         scale: 0.8,
@@ -168,7 +196,7 @@ export const DrainageCoreMap: MapDefinition = {
       {
         id: 'monster_juv_2',
         variant: 'juvenile' as const,
-        spawn: { x: 0, y: -0.9, z: 19 },
+        spawn: { x: 0, y: -0.9, z: 25 },
         hearingMul: 0.8,
         speedMul: 1.2,
         scale: 0.8,
@@ -182,11 +210,23 @@ export const DrainageCoreMap: MapDefinition = {
       platforms,
       walls,
       pillars: [],
-      stairs: [],
+      stairs,
       waterBodies: [
         {
+          id: 'deep_abyss_drain',
+          rect: [-16, -16, 16, 16],
+          floorY: -1.8,
+          waterY: 0.0,
+        },
+        {
+          id: 'shallow_wading_spoke',
+          rect: [-54, -4, 54, 4],
+          floorY: -0.75,
+          waterY: 0.0,
+        },
+        {
           id: 'abyssal_water',
-          rect: [-60, -60, 60, 60],
+          rect: [-54, -54, 54, 54],
           floorY: -0.9,
           waterY: 0.0,
         },
@@ -208,11 +248,10 @@ export const DrainageCoreMap: MapDefinition = {
         {
           id: 'drainage_channel',
           points: [
-            { x: -40.0, y: -0.9, z: -40.0 },
-            { x: -30.0, y: -0.9, z: -30.0 },
-            { x: -15.0, y: -0.9, z: -20.0 },
-            { x: 0.0, y: -0.9, z: -15.0 },
-            { x: 15.0, y: -0.9, z: 0.0 },
+            { x: -38.0, y: -0.9, z: -38.0 },
+            { x: -25.0, y: -0.9, z: -25.0 },
+            { x: 0.0, y: -0.9, z: -25.0 },
+            { x: 25.0, y: -0.9, z: 0.0 },
           ],
         },
       ],
@@ -238,6 +277,8 @@ export const DrainageCoreMap: MapDefinition = {
       metalnessMap: metal.metalness,
       roughness: 0.45,
       metalness: 0.85,
+      envMapIntensity: 0.35,
+      vertexColors: true,
     });
 
     const wallMat = new MeshStandardMaterial({
@@ -246,6 +287,8 @@ export const DrainageCoreMap: MapDefinition = {
       normalMap: concrete.normal,
       roughness: 0.85,
       metalness: 0.05,
+      envMapIntensity: 0.35,
+      vertexColors: true,
     });
 
     const floorMat = new MeshStandardMaterial({
@@ -254,6 +297,8 @@ export const DrainageCoreMap: MapDefinition = {
       normalMap: concrete.normal,
       roughness: 0.6,
       metalness: 0.05,
+      envMapIntensity: 0.35,
+      vertexColors: true,
     });
 
     return buildStandardMapInstance(layout, env, { platformMat, wallMat, floorMat });

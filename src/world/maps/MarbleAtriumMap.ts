@@ -242,8 +242,8 @@ export const MarbleAtriumMap: MapDefinition = {
 
     // Player spawn on South Terrace
     const playerSpawn = { x: 0, y: 0.3, z: -14.0 };
-    // Monster spawn in lower court NE (far from player, > 25m)
-    const monsterPos = { x: 8, y: -0.9, z: 12 };
+    // Monster spawn in lower court NE (distance ~25m from player in deep court water)
+    const monsterPos = { x: 8, y: -0.9, z: 10 };
 
     return {
       mapId: 'marble_atrium',
@@ -255,9 +255,15 @@ export const MarbleAtriumMap: MapDefinition = {
       stairs,
       waterBodies: [
         {
-          id: 'atrium_water',
-          rect: [-40, -40, 40, 40],
-          floorY: -0.9,
+          id: 'atrium_deep_court',
+          rect: [-12, -12, 12, 12],
+          floorY: -1.4,
+          waterY: 0.0,
+        },
+        {
+          id: 'atrium_shallow_shelf',
+          rect: [-14, -14, 14, -10],
+          floorY: -0.5,
           waterY: 0.0,
         },
       ],
@@ -277,7 +283,7 @@ export const MarbleAtriumMap: MapDefinition = {
             id: 'monster_atrium',
             variant: 'standard',
             spawn: monsterPos,
-            sleeperSpawn: { x: 8, y: -0.9, z: 12 },
+            sleeperSpawn: { x: 8, y: -0.9, z: 10 },
             hearingMul: 1.1,
           },
         ],
@@ -286,11 +292,12 @@ export const MarbleAtriumMap: MapDefinition = {
         {
           id: 'atrium_court',
           points: [
-            { x: -8, y: -0.9, z: -5 },
-            { x: 0, y: -0.9, z: 0 },
-            { x: 8, y: -0.9, z: 12 },
-            { x: 14, y: -0.9, z: 5 },
-            { x: 0, y: -0.9, z: 18 },
+            { x: -3.5, y: -0.9, z: -8.0 },
+            { x: -8.0, y: -0.9, z: 0.0 },
+            { x: -3.5, y: -0.9, z: 8.0 },
+            { x: 3.5, y: -0.9, z: 8.0 },
+            { x: 8.0, y: -0.9, z: 0.0 },
+            { x: 3.5, y: -0.9, z: -8.0 },
           ],
         },
       ],
@@ -314,6 +321,8 @@ export const MarbleAtriumMap: MapDefinition = {
       normalMap: marble.normal,
       roughness: 0.25,
       metalness: 0.05,
+      envMapIntensity: 0.35,
+      vertexColors: true,
     });
 
     const wallMat = new MeshStandardMaterial({
@@ -322,6 +331,8 @@ export const MarbleAtriumMap: MapDefinition = {
       normalMap: marble.normal,
       roughness: 0.35,
       metalness: 0.02,
+      envMapIntensity: 0.35,
+      vertexColors: true,
     });
 
     const floorMat = new MeshStandardMaterial({
@@ -330,6 +341,8 @@ export const MarbleAtriumMap: MapDefinition = {
       normalMap: marble.normal,
       roughness: 0.15,
       metalness: 0.05,
+      envMapIntensity: 0.35,
+      vertexColors: true,
     });
 
     return buildStandardMapInstance(layout, env, { platformMat, wallMat, floorMat });

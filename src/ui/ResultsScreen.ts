@@ -406,6 +406,7 @@ export class ResultsScreen {
       const colors: Record<string, string> = { S: '#ffd700', A: '#86cfa0', B: '#64b5f6', C: '#ba68c8', D: '#9e9e9e' };
       rankBadgeEl.style.borderColor = colors[breakdown.rank] ?? '#86cfa0';
       MotionEngine.getInstance().rankStampThump(rankBadgeEl);
+      this.audio.play('results_stinger', { rank: breakdown.rank });
     }
 
     const shareBtn = this.el.querySelector('#btn-results-share');

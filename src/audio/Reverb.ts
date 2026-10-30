@@ -296,11 +296,11 @@ export function createImpulseResponse(
     // Smooth emergence of diffuse field (35 ms ramp from pre-delay)
     const diffuseFade = Math.min(1.0, Math.max(0, t / 0.035));
 
-    // Octave weighting
-    const w125 = 0.90;
-    const w500 = 1.00;
-    const w2k = 0.85 * cfg.brightness;
-    const w8k = 0.60 * cfg.brightness;
+    // Octave weighting (Prompt 3.9: bright poolroom 1.00/0.90/0.75*B/0.45*B)
+    const w125 = 1.00;
+    const w500 = 0.90;
+    const w2k = 0.75 * cfg.brightness;
+    const w8k = 0.45 * cfg.brightness;
 
     left[i] = (w125 * s125_L * env125 + w500 * s500_L * env500 + w2k * s2k_L * env2k + w8k * s8k_L * env8k) * diffuseFade;
     right[i] = (w125 * s125_R * env125 + w500 * s500_R * env500 + w2k * s2k_R * env2k + w8k * s8k_R * env8k) * diffuseFade;
@@ -340,7 +340,59 @@ export function createImpulseResponse(
     }
   }
 
+  // 4. RMS normalization pass after peak pass so convolver output level is predictable
+  let sumSq = 0;
+  for (let i = 0; i < length; i++) {
+    const l = left[i] ?? 0;
+    const r = right[i] ?? 0;
+    sumSq += l * l + r * r;
+  }
+  const rms = Math.sqrt(sumSq / (length * 2));
+  const targetRms = 0.045;
+  if (rms > 1e-5) {
+    const rmsScale = targetRms / rms;
+    const safeScale = Math.min(rmsScale, 0.85 / Math.max(1e-4, 0.65 * rmsScale));
+    for (let i = 0; i < length; i++) {
+      left[i] = (left[i] ?? 0) * safeScale;
+      right[i] = (right[i] ?? 0) * safeScale;
+    }
+  }
+
   return buffer;
+}
+
+const irCache = new Map<ReverbPreset, AudioBuffer>();
+
+/** Return cached impulse response or synthesize and cache it */
+export function getCachedImpulseResponse(ctx: BaseAudioContext, name: ReverbPreset): AudioBuffer {
+  let buf = irCache.get(name);
+  if (!buf) {
+    buf = createImpulseResponse(ctx, name);
+    irCache.set(name, buf);
+  }
+  return buf;
+}
+
+/** Pre-cache all 8 reverb presets in idle slices during loading */
+export function precacheReverbPresets(ctx: BaseAudioContext): Promise<void> {
+  const presets = Object.keys(PRESET_CONFIGS) as ReverbPreset[];
+  let idx = 0;
+  return new Promise<void>((resolve) => {
+    function step() {
+      if (idx >= presets.length) {
+        resolve();
+        return;
+      }
+      const p = presets[idx++]!;
+      getCachedImpulseResponse(ctx, p);
+      if (typeof requestIdleCallback !== 'undefined') {
+        requestIdleCallback(() => step());
+      } else {
+        setTimeout(step, 0);
+      }
+    }
+    step();
+  });
 }
 
 /**
@@ -365,6 +417,7 @@ export class ReverbUnit {
 
     this.input = ctx.createGain();
     this.output = ctx.createGain();
+    this.output.gain.value = 0.55; // Prompt 3.9: output.gain 1.0 -> 0.55
 
     this.convA = ctx.createConvolver();
     this.convB = ctx.createConvolver();
@@ -376,8 +429,10 @@ export class ReverbUnit {
     this.gainA.gain.value = 1.0;
     this.gainB.gain.value = 0.0;
 
-    this.convA.buffer = createImpulseResponse(ctx, 'poolroom');
-    this.convB.buffer = createImpulseResponse(ctx, 'poolroom');
+    // Prompt 3.9: Build only ONE IR at init and share buffer between convA and convB
+    const initialBuf = getCachedImpulseResponse(ctx, 'poolroom');
+    this.convA.buffer = initialBuf;
+    this.convB.buffer = initialBuf;
 
     this.input.connect(this.convA);
     this.input.connect(this.convB);
@@ -393,14 +448,19 @@ export class ReverbUnit {
     return this.currentPreset;
   }
 
+  setWetGain(gain: number): void {
+    const target = Math.max(0.0, Math.min(1.5, gain));
+    this.output.gain.setTargetAtTime(target, this.ctx.currentTime, 0.05);
+  }
+
   /**
-   * Crossfade to a new reverb preset over 1.5 seconds.
+   * Crossfade to a new reverb preset over 1.5 seconds using pre-cached IR.
    */
   setPreset(name: ReverbPreset): void {
     if (name === this.currentPreset) return;
     this.currentPreset = name;
 
-    const nextBuffer = createImpulseResponse(this.ctx, name);
+    const nextBuffer = getCachedImpulseResponse(this.ctx, name);
     const now = this.ctx.currentTime;
     const fadeDuration = 1.5;
 

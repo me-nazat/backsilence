@@ -27,14 +27,14 @@ export const QUALITY_CONFIGS: Record<Exclude<QualityTier, 'auto'>, QualityConfig
   medium: {
     dprCap: 1.5,
     tileTexSize: 512,
-    shadows: '1024',
+    shadows: '2048',
     shadowType: 'pcfsoft',
     shadowLights: 1,
     postFx: 'light',
     maxAudioVoices: 24,
   },
   high: {
-    dprCap: 2.0,
+    dprCap: 1.5,
     tileTexSize: 1024,
     shadows: '2048',
     shadowType: 'pcfsoft',

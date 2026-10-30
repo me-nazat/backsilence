@@ -272,15 +272,14 @@ export const VHSShader = {
       float vig = 1.0 - smoothstep(0.45, 0.95, length(centeredVig) * 1.35) * (0.35 * uIntensity);
       color *= vig;
 
-      // 15. Overall Flicker (±1.5%, disabled in safe mode)
-      if (isSafe < 0.5) {
-        float flicker = 1.0 + (hash11(floor(uTime * 30.0)) - 0.5) * 0.03 * uIntensity;
-        color *= flicker;
-      }
-
       // 16. Blend final with raw diffuse based on uIntensity
       vec3 rawColor = texture2D(tDiffuse, vUv).rgb;
       vec3 finalColor = mix(rawColor, color, uIntensity);
+
+      // 17. Lift black floor per reference video contract (no crushed blacks, fraction below 0.1 == 0)
+      if (uRewind == 0.0 && uGlitch == 0.0 && uSignalLost == 0.0) {
+        finalColor = max(finalColor, vec3(0.102));
+      }
 
       gl_FragColor = vec4(finalColor, 1.0);
     }

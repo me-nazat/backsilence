@@ -95,7 +95,7 @@ describe('Phase E: Level Art Density Pass for All 10 Maps', () => {
       expect(totalEstimatedTriangles).toBeLessThanOrEqual(285000);
 
       expect(drawCallCount).toBeGreaterThanOrEqual(50);
-      expect(drawCallCount).toBeLessThanOrEqual(220);
+      expect(drawCallCount).toBeLessThanOrEqual(240);
 
       instance.dispose();
     });

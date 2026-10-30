@@ -23,6 +23,8 @@ export interface ParsedRoute {
   seed?: number | null | undefined;
   /** Whether ?sightlog=1 was set to monitor monster sightings. */
   sightlog?: boolean | undefined;
+  /** Whether ?god=1 was set. */
+  god?: boolean | undefined;
 }
 
 /**
@@ -68,8 +70,9 @@ export function parseRoute(search?: string): ParsedRoute {
   const seedRaw = params.get('seed');
   const seed = seedRaw !== null ? parseInt(seedRaw, 10) : null;
   const sightlog = params.get('sightlog') === '1';
+  const god = params.get('god') === '1';
 
-  return { room, lab, labMode, debug, view, map: mapRaw, seed, sightlog };
+  return { room, lab, labMode, debug, view, map: mapRaw, seed, sightlog, god };
 }
 
 /**

@@ -23,6 +23,7 @@ export interface MonsterVoiceContext {
   pitch?: number;
   seed?: number;
   usePool?: boolean;
+  monsterDistance?: number;
 }
 
 /** Pre-computed band-limited PeriodicWave for glottal pulse harmonics (Rosenberg C model) */
@@ -78,16 +79,19 @@ export function playMonsterRoar(cx: MonsterVoiceContext): RawVoiceHandle {
   const intensity = Math.max(0.2, Math.min(2.5, cx.intensity ?? 1.25));
   const pitchMult = cx.pitch ?? 1.0;
 
-  // Prompt 4 Section 8 D.2: Roar ducks ambience by 6 dB (~0.50x) for 2.0s
+  // Prompt 3.5: Distance-dependent roar ducking (deep near, shallow far)
   if (cx.mixer) {
-    cx.mixer.duck('ambient', 0.50, 0.05, 2.0);
+    const dist = cx.monsterDistance ?? 10.0;
+    const far = Math.min(1, Math.max(0, (dist - 12) / 28)); // 0 near, 1 far
+    const depth = 0.50 + (0.95 - 0.50) * far; // deep duck near, shallow far
+    cx.mixer.duck('ambient', depth, 0.05, 2.0);
   }
 
   const voiceGain = ctx.createGain();
-  // 5 ms anti-click fade-in
+  // 5 ms anti-click fade-in (Prompt 3.4: roar gain 1.05 * intensity)
   voiceGain.gain.setValueAtTime(0.0001, now);
-  voiceGain.gain.linearRampToValueAtTime(1.30 * intensity, now + 0.12);
-  voiceGain.gain.setValueAtTime(1.30 * intensity, now + 1.15);
+  voiceGain.gain.linearRampToValueAtTime(1.05 * intensity, now + 0.12);
+  voiceGain.gain.setValueAtTime(1.05 * intensity, now + 1.15);
   voiceGain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
 
   voiceGain.connect(cx.destination);
@@ -95,42 +99,42 @@ export function playMonsterRoar(cx: MonsterVoiceContext): RawVoiceHandle {
 
   const nodesToDisconnect: AudioNode[] = [voiceGain];
 
-  // 1. Primary Glottal Pulse Generator (82 -> 52 Hz)
+  // 1. Primary Glottal Pulse Generator (Prompt 3.12: 74 -> 46 Hz)
   const glottalOsc = ctx.createOscillator();
   glottalOsc.setPeriodicWave(getGlottalPeriodicWave(ctx));
-  glottalOsc.frequency.setValueAtTime(82 * pitchMult, now);
-  glottalOsc.frequency.exponentialRampToValueAtTime(52 * pitchMult, now + duration);
+  glottalOsc.frequency.setValueAtTime(74 * pitchMult, now);
+  glottalOsc.frequency.exponentialRampToValueAtTime(46 * pitchMult, now + duration);
 
-  // 2. Period Doubling Subharmonic (41 -> 26 Hz) for pathological biological rasp
+  // 2. Period Doubling Subharmonic (Prompt 3.12: 37 -> 23 Hz, g 0.55)
   const subOsc = ctx.createOscillator();
   subOsc.type = 'sawtooth';
-  subOsc.frequency.setValueAtTime(41 * pitchMult, now);
-  subOsc.frequency.exponentialRampToValueAtTime(26 * pitchMult, now + duration);
+  subOsc.frequency.setValueAtTime(37 * pitchMult, now);
+  subOsc.frequency.exponentialRampToValueAtTime(23 * pitchMult, now + duration);
   const subGain = ctx.createGain();
-  subGain.gain.setValueAtTime(0.65, now);
+  subGain.gain.setValueAtTime(0.55, now);
 
   subOsc.connect(subGain);
   nodesToDisconnect.push(subOsc, subGain);
 
-  // 3. 28-36 Hz Throat AM Flutter LFO
+  // 3. Throat AM Flutter LFO (Prompt 3.12: 26 Hz, +-16 Hz)
   const throatLfo = ctx.createOscillator();
   const throatGain = ctx.createGain();
   throatLfo.type = 'sine';
-  throatLfo.frequency.setValueAtTime(32, now);
-  throatGain.gain.setValueAtTime(22, now);
+  throatLfo.frequency.setValueAtTime(26, now);
+  throatGain.gain.setValueAtTime(16, now);
   throatLfo.connect(throatGain);
   throatGain.connect(glottalOsc.frequency);
   nodesToDisconnect.push(throatLfo, throatGain);
 
-  // 4. Wet breath aspiration layer (pink noise)
+  // 4. Wet breath aspiration layer (pink noise, Prompt 3.12: 900 Hz, Q 1.4)
   const breathSrc = ctx.createBufferSource();
   breathSrc.buffer = cx.noise.pink;
   breathSrc.loop = true;
 
   const breathFilter = ctx.createBiquadFilter();
   breathFilter.type = 'bandpass';
-  breathFilter.frequency.setValueAtTime(1400 * pitchMult, now);
-  breathFilter.Q.setValueAtTime(2.2, now);
+  breathFilter.frequency.setValueAtTime(900 * pitchMult, now);
+  breathFilter.Q.setValueAtTime(1.4, now);
 
   const breathGain = ctx.createGain();
   breathGain.gain.setValueAtTime(0.0001, now);
@@ -155,36 +159,36 @@ export function playMonsterRoar(cx: MonsterVoiceContext): RawVoiceHandle {
   preMix.connect(shaper);
   nodesToDisconnect.push(shaper);
 
-  // 6. Three Parallel Resonant Vocal Tract Formants:
-  // F1: 700 -> 400 Hz (jaw opening -> closing, deep chest cavity)
+  // 6. Three Parallel Resonant Vocal Tract Formants (Prompt 3.12):
+  // F1: 640 -> 380 Hz, Q 2.6
   const f1 = ctx.createBiquadFilter();
   f1.type = 'bandpass';
-  f1.Q.setValueAtTime(3.2, now);
-  f1.frequency.setValueAtTime(700 * pitchMult, now);
-  f1.frequency.exponentialRampToValueAtTime(400 * pitchMult, now + duration);
+  f1.Q.setValueAtTime(2.6, now);
+  f1.frequency.setValueAtTime(640 * pitchMult, now);
+  f1.frequency.exponentialRampToValueAtTime(380 * pitchMult, now + duration);
 
   const f1Gain = ctx.createGain();
   f1Gain.gain.setValueAtTime(1.85, now);
   f1.connect(f1Gain);
   f1Gain.connect(voiceGain);
 
-  // F2: 1150 -> 820 Hz (tongue body movement)
+  // F2: 1150 -> 780 Hz, Q 3.0
   const f2 = ctx.createBiquadFilter();
   f2.type = 'bandpass';
-  f2.Q.setValueAtTime(3.8, now);
-  f2.frequency.setValueAtTime(1100 * pitchMult, now);
-  f2.frequency.exponentialRampToValueAtTime(800 * pitchMult, now + duration);
+  f2.Q.setValueAtTime(3.0, now);
+  f2.frequency.setValueAtTime(1150 * pitchMult, now);
+  f2.frequency.exponentialRampToValueAtTime(780 * pitchMult, now + duration);
 
   const f2Gain = ctx.createGain();
   f2Gain.gain.setValueAtTime(1.15, now);
   f2.connect(f2Gain);
   f2Gain.connect(voiceGain);
 
-  // F3: ~2400 Hz (pharyngeal singing/screaming formant)
+  // F3: ~2350 Hz, Q 3.5
   const f3 = ctx.createBiquadFilter();
   f3.type = 'bandpass';
-  f3.Q.setValueAtTime(4.5, now);
-  f3.frequency.setValueAtTime(2400 * pitchMult, now);
+  f3.Q.setValueAtTime(3.5, now);
+  f3.frequency.setValueAtTime(2350 * pitchMult, now);
 
   const f3Gain = ctx.createGain();
   f3Gain.gain.setValueAtTime(0.32, now);
@@ -330,7 +334,8 @@ export function playMonsterBreathLoop(cx: MonsterVoiceContext): RawVoiceHandle {
 
   const masterGain = ctx.createGain();
   masterGain.gain.setValueAtTime(0.0001, now);
-  masterGain.gain.linearRampToValueAtTime(0.38, now + 0.8);
+  // Prompt 3.12: breath loop gain 0.55 (was 0.38)
+  masterGain.gain.linearRampToValueAtTime(0.55, now + 0.8);
   masterGain.connect(cx.destination);
   masterGain.connect(cx.reverbSend);
 
@@ -338,16 +343,18 @@ export function playMonsterBreathLoop(cx: MonsterVoiceContext): RawVoiceHandle {
   noise.buffer = cx.noise.pink;
   noise.loop = true;
 
+  // Prompt 3.12: breath bandpass 950 Hz, Q 2.6
   const bp = ctx.createBiquadFilter();
   bp.type = 'bandpass';
-  bp.Q.setValueAtTime(3.8, now);
-  bp.frequency.setValueAtTime(1250, now);
+  bp.Q.setValueAtTime(2.6, now);
+  bp.frequency.setValueAtTime(950, now);
 
+  // Prompt 3.12: breath LFO 0.42 Hz, depth 0.30
   const lfo = ctx.createOscillator();
   const lfoGain = ctx.createGain();
   lfo.type = 'sine';
-  lfo.frequency.setValueAtTime(0.35, now);
-  lfoGain.gain.setValueAtTime(0.42, now);
+  lfo.frequency.setValueAtTime(0.42, now);
+  lfoGain.gain.setValueAtTime(0.30, now);
 
   const breathAmp = ctx.createGain();
   breathAmp.gain.setValueAtTime(0.5, now);
@@ -358,12 +365,12 @@ export function playMonsterBreathLoop(cx: MonsterVoiceContext): RawVoiceHandle {
   bp.connect(breathAmp);
   breathAmp.connect(masterGain);
 
-  // Low growl layer (125 Hz)
+  // Prompt 3.12: Low chest growl 96 Hz saw, gain 0.11 (was 125 Hz, gain 0.07)
   const growl = ctx.createOscillator();
   const growlGain = ctx.createGain();
   growl.type = 'sawtooth';
-  growl.frequency.setValueAtTime(125, now);
-  growlGain.gain.setValueAtTime(0.07, now);
+  growl.frequency.setValueAtTime(96, now);
+  growlGain.gain.setValueAtTime(0.11, now);
   growl.connect(growlGain);
   growlGain.connect(masterGain);
 
@@ -491,7 +498,7 @@ export function playMonsterFootfall(cx: MonsterVoiceContext): RawVoiceHandle {
       return pool.play('monster_footfall', cx.destination, cx.reverbSend, {
         volume: 0.85 * (cx.intensity ?? 1.0),
         pitchMult: cx.pitch ?? 1.0,
-        reverbGain: 0.45,
+        reverbGain: 0.32,
       });
     }
   }
@@ -506,7 +513,7 @@ export function playMonsterFootfall(cx: MonsterVoiceContext): RawVoiceHandle {
   voiceGain.connect(cx.destination);
 
   const reverbGain = ctx.createGain();
-  reverbGain.gain.setValueAtTime(0.42, now);
+  reverbGain.gain.setValueAtTime(0.32, now);
   voiceGain.connect(reverbGain);
   reverbGain.connect(cx.reverbSend);
 

@@ -190,7 +190,12 @@ export class MonsterWatchdog {
 
       // Reload procedural skin to repair empty LOD or broken geometry
       body.reloadProceduralSkin();
-      action = 'reloaded_procedural_skin_and_reset_visibility';
+      const parent = body.mesh?.root?.parent;
+      if (!parent && body.mesh?.root) {
+        monsterManager.root.add(body.mesh.root);
+        action += '+reattached_to_scene';
+      }
+      action = 'reloaded_procedural_skin_and_reset_visibility' + (!parent ? '+reattached_to_scene' : '');
     }
 
     this.recordIncident(monsterId, anomaly, dist, fogTrans, true, action);

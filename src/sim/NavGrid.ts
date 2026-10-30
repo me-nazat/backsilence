@@ -44,8 +44,8 @@ export class NavGrid {
     let largest = this.computeLargestComponent();
     let ratio = this.totalWaterCells > 0 ? largest / this.totalWaterCells : 1.0;
 
-    // Phase B Rule 8: if monster's component is under 40% of the map's water area, relax clearance thresholds
-    if (this.totalWaterCells > 20 && ratio < 0.40) {
+    // Phase B Rule 8: if monster's component is under 60% of the map's water area, relax clearance thresholds
+    if (this.totalWaterCells > 20 && ratio < 0.60) {
       this.components.fill(-1);
       this.totalWaterCells = this.build(ground, waterY, 0.65);
       this.labelConnectedComponents();
@@ -267,6 +267,45 @@ export class NavGrid {
     }
 
     return found ? { x: bestX, z: bestZ } : null;
+  }
+
+  /**
+   * Return the centre of the largest walkable water cell within `radius` of (x,z).
+   */
+  findNearestWalkable(
+    x: number,
+    z: number,
+    radius = 12.0,
+  ): { x: number; z: number } | null {
+    const center = this.worldToGrid(x, z);
+    const maxSteps = Math.ceil(radius / this.cellSize);
+    const radSq = radius * radius;
+
+    let bestCell: { x: number; z: number } | null = null;
+    let bestCompSize = -1;
+    let bestDistSq = Infinity;
+
+    for (let dz = -maxSteps; dz <= maxSteps; dz++) {
+      for (let dx = -maxSteps; dx <= maxSteps; dx++) {
+        const gx = center.gx + dx;
+        const gz = center.gz + dz;
+        if (!this.isWalkable(gx, gz)) continue;
+
+        const world = this.gridToWorld(gx, gz);
+        const dSq = (world.x - x) ** 2 + (world.z - z) ** 2;
+        if (dSq > radSq) continue;
+
+        const compId = this.getComponent(gx, gz);
+        const compSize = this.componentCounts.get(compId) ?? 0;
+
+        if (compSize > bestCompSize || (compSize === bestCompSize && dSq < bestDistSq)) {
+          bestCompSize = compSize;
+          bestDistSq = dSq;
+          bestCell = world;
+        }
+      }
+    }
+    return bestCell;
   }
 
   findNearestWalkableCell(

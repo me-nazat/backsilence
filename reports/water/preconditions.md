@@ -1,6 +1,6 @@
 # Preconditions Verification Report — BackSilence Water System
 
-**Date:** Sun, 25 Oct 2026 07:07:39 GMT
+**Date:** Thu, 29 Oct 2026 13:43:39 GMT
 **Map:** natatorium (Default)
 **Quality Tier:** high
 **Status:** ALL PRECONDITIONS VERIFIED PASS
@@ -11,7 +11,7 @@
 - **Verdict:** PASS
 - **Canvas Dimensions:** 756 x 413
 - **Non-Zero Pixel Fraction:** 100.00% (Threshold: > 95.0%)
-- **Average RGB Color:** rgb(143.0, 113.3, 60.6)
+- **Average RGB Color:** rgb(84.6, 85.4, 47.2)
 - **Screenshot Artifact:** [preconditions_canvas.png](file:///Users/nazat/Desktop/Desktop/antigravity/BackSilence/poolrooms/reports/water/preconditions_canvas.png)
 
 ---

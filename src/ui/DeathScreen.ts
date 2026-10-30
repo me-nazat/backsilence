@@ -76,6 +76,15 @@ export class DeathScreen {
             margin-top: 8px;
             letter-spacing: 0.05em;
           ">It heard the water.</div>
+          <div id="death-cause-line" style="
+            font-size: 12px;
+            font-weight: bold;
+            color: #ff9100;
+            margin-top: 6px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            display: none;
+          "></div>
         </div>
 
         <div id="death-stats-container" style="
@@ -149,6 +158,16 @@ export class DeathScreen {
   setReason(reason: string): void {
     const sub = this.el?.querySelector('.death-subtitle');
     if (sub) sub.textContent = reason;
+  }
+
+  setCause(cause: string, soundRadiusMeters?: number): void {
+    const el = this.el?.querySelector<HTMLElement>('#death-cause-line');
+    if (el) {
+      el.textContent = soundRadiusMeters !== undefined && soundRadiusMeters > 0
+        ? `${cause} · Sound carried ~${Math.round(soundRadiusMeters)}m`
+        : cause;
+      el.style.display = 'block';
+    }
   }
 
   setStats(timeSurvived: number, noisesMade: number, closestCall: number): void {

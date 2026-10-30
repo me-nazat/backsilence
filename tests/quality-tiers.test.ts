@@ -28,16 +28,16 @@ describe('Phase I: Quality Tiers & Performance', () => {
     expect(low.postFx).toBe('off');
     expect(low.maxAudioVoices).toBe(16);
 
-    // Medium Tier (Laptop target: 16.6ms frame budget)
+    // Medium Tier (Laptop target: 16.6ms frame budget - Prompt 8.8: 2048 shadow map)
     expect(med.dprCap).toBe(1.5);
     expect(med.tileTexSize).toBe(512);
-    expect(med.shadows).toBe('1024');
+    expect(med.shadows).toBe('2048');
     expect(med.shadowType).toBe('pcfsoft');
     expect(med.postFx).toBe('light');
     expect(med.maxAudioVoices).toBe(24);
 
-    // High Tier (Desktop target: maximum fidelity)
-    expect(high.dprCap).toBe(2.0);
+    // High Tier (Desktop target: maximum fidelity - Prompt 8.8: dprCap lowered to 1.5)
+    expect(high.dprCap).toBe(1.5);
     expect(high.tileTexSize).toBe(1024);
     expect(high.shadows).toBe('2048');
     expect(high.shadowType).toBe('pcfsoft');

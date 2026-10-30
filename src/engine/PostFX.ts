@@ -24,7 +24,8 @@ import {
   MeshBasicMaterial,
   ShaderMaterial,
   Texture,
-  type WebGLRenderTarget,
+  WebGLRenderTarget,
+  HalfFloatType,
 } from 'three';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
@@ -160,7 +161,11 @@ export class PostFX {
     }
 
     try {
-      this.composer = new EffectComposer(this.renderer);
+      const composerTarget = new WebGLRenderTarget(this.width, this.height, {
+        type: HalfFloatType,
+        samples: 4,
+      });
+      this.composer = new EffectComposer(this.renderer, composerTarget);
       this.composer.setSize(this.width, this.height);
 
       // 1. TexturePass (single-pass texture input, does not render 3D scene)
@@ -174,9 +179,9 @@ export class PostFX {
 
       this.copyQuad = new FullScreenQuad(new ShaderMaterial(CopyShader));
 
-      // 2. BloomLitePass (half-res, cheap)
+      // 2. BloomLitePass (half-res, cheap - Prompt 4.12: 0.55, 0.70, 0.85)
       const bloomRes = new Vector2(Math.floor(this.width / 2), Math.floor(this.height / 2));
-      this.bloomPass = new UnrealBloomPass(bloomRes, 0.35, 0.45, 0.75);
+      this.bloomPass = new UnrealBloomPass(bloomRes, 0.55, 0.70, 0.85);
       this.bloomPass.enabled = this.currentTier === 'high' || this.currentTier === 'medium';
       this.composer.addPass(this.bloomPass);
 
@@ -260,13 +265,19 @@ export class PostFX {
         typeof window !== 'undefined' &&
         window.matchMedia('(prefers-reduced-motion: reduce)').matches);
 
-    u.uIntensity.value = s.graphics.vhsIntensity;
+    const baseIntensity = s.graphics.vhsIntensity;
+    if (baseIntensity > 0) {
+      const dynamicGrade = 0.20 + 0.35 * this.tension;
+      u.uIntensity.value = isSafe ? Math.min(0.25, dynamicGrade) : dynamicGrade;
+    } else {
+      u.uIntensity.value = 0.0;
+    }
     u.uLines.value = s.graphics.vhsLines ?? 240.0;
     u.uSafeMode.value = isSafe ? 1.0 : 0.0;
     u.uCurvature.value = isSafe ? 0.0 : 0.02;
 
     if (this.bloomPass) {
-      this.bloomPass.strength = isSafe ? 0.2 : 0.35;
+      this.bloomPass.strength = isSafe ? 0.2 : 0.55;
     }
     if (this.tapeSmearPass) {
       this.tapeSmearPass.enabled = this.currentTier === 'high' && !isSafe;
@@ -327,6 +338,11 @@ export class PostFX {
     const u = this.getVhsUniforms();
     if (u) {
       u.uTension.value = this.tension;
+      const baseIntensity = this.settings.graphics.vhsIntensity;
+      if (baseIntensity > 0) {
+        const dynamicGrade = 0.20 + 0.35 * this.tension;
+        u.uIntensity.value = this.isSafeMode() ? Math.min(0.25, dynamicGrade) : dynamicGrade;
+      }
     }
   }
 
@@ -460,6 +476,10 @@ export class PostFX {
       u.uGlitch.value = this.glitch;
       u.uRewind.value = this.isRewinding ? 1.0 : 0.0;
       u.uSignalLost.value = this.signalLost ? 0.8 : 0.0;
+      const isSafe = this.isSafeMode();
+      u.uCurvature.value = isSafe
+        ? 0.0
+        : 0.02 + 0.015 * this.tension * Math.sin(this.totalTime * 1.5);
     }
 
     // Tape smear dynamic factor based on camera speed

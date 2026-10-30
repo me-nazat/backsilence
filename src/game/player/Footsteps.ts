@@ -9,6 +9,7 @@ import type { Camera } from 'three';
 
 export class PlayerFootsteps {
   private readonly audio: AudioEngine;
+  private readonly onSplash?: ((pos: { x: number; y: number; z: number }, strength: number) => void) | undefined;
   private lastBobPhase = 0;
   private wasOnGround = true;
   private wasMantling = false;
@@ -16,8 +17,12 @@ export class PlayerFootsteps {
   private breathVoice: VoiceHandle | null = null;
   private isUnderwater = false;
 
-  constructor(audio: AudioEngine) {
+  constructor(
+    audio: AudioEngine,
+    onSplash?: (pos: { x: number; y: number; z: number }, strength: number) => void,
+  ) {
     this.audio = audio;
+    this.onSplash = onSplash;
   }
 
   update(
@@ -42,12 +47,14 @@ export class PlayerFootsteps {
           gain: intensity,
           pitch,
         });
+        // Phase-locked synchronized splash burst on foot plant frame
+        this.onSplash?.({ x: snapshot.pos.x, y: waterY, z: snapshot.pos.z }, intensity * 0.75);
       } else {
-        // Dry ceramic tile footstep
-        const squeak = Math.random() < 0.12 && horizSpeed > 2.0;
+        // Dry ceramic tile footstep (Prompt 3.3: dry gain 0.42 / 0.18, squeak prob 0.08 at speed > 2.5)
+        const squeak = Math.random() < 0.08 && horizSpeed > 2.5;
         this.audio.play(squeak ? 'step_squeak' : 'step_dry', {
           position: snapshot.pos,
-          gain: snapshot.crouchT > 0.5 ? 0.25 : 0.6,
+          gain: snapshot.crouchT > 0.5 ? 0.18 : 0.42,
         });
       }
     }
@@ -59,10 +66,13 @@ export class PlayerFootsteps {
       if (fallSpeed > 1.2) {
         if (snapshot.wet) {
           const isBig = fallSpeed > 4.0;
+          const gain = Math.min(1.0, 0.4 + fallSpeed * 0.12);
           this.audio.play(isBig ? 'splash_big' : 'splash_jump', {
             position: snapshot.pos,
-            gain: Math.min(1.0, 0.4 + fallSpeed * 0.12),
+            gain,
           });
+          // Phase-locked splash impact on landing frame
+          this.onSplash?.({ x: snapshot.pos.x, y: waterY, z: snapshot.pos.z }, Math.min(2.5, 0.8 + fallSpeed * 0.35));
         } else {
           this.audio.play('step_dry', {
             position: snapshot.pos,
@@ -95,9 +105,9 @@ export class PlayerFootsteps {
     }
     this.wasExhausted = snapshot.exhausted;
 
-    // 5. Underwater audio low-pass filter
+    // 5. Underwater audio low-pass filter (Prompt 3.14: 12cm threshold so slight head-dip doesn't muffle)
     const camY = camera.position.y;
-    const underwaterNow = camY < waterY - 0.05;
+    const underwaterNow = camY < waterY - 0.12;
     if (underwaterNow !== this.isUnderwater) {
       this.isUnderwater = underwaterNow;
       this.audio.setUnderwater(underwaterNow ? 1.0 : 0.0);

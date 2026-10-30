@@ -5,7 +5,7 @@
  * ──────────────────────────────────────────────────────────────────────── */
 
 import { PerspectiveCamera, Vector3, Euler, MathUtils } from 'three';
-import type { PlayerSnapshot } from '../../sim/PlayerMotor.js';
+import { PlayerMotor, type PlayerSnapshot } from '../../sim/PlayerMotor.js';
 import { WORLD } from '../../app/Config.js';
 import type { Settings } from '../../types/contracts.js';
 
@@ -56,7 +56,12 @@ export class PlayerCamera {
     nearestMonsterDist?: number,
   ): void {
     const reducedMotion = this.settings.accessibility.reducedMotion;
-    const enableBob = this.settings.graphics.headBob && !reducedMotion;
+    const prefersReduced =
+      typeof window !== 'undefined' &&
+      typeof window.matchMedia === 'function' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const isReduced = reducedMotion === 'on' || (reducedMotion === 'system' && prefersReduced);
+    const enableBob = this.settings.graphics.headBob && !isReduced;
 
     // 1. Interpolate position between physics ticks (reconcile sim tick with render frames)
     _interpPos.set(
@@ -108,14 +113,14 @@ export class PlayerCamera {
     let bobLateral = 0;
 
     if (enableBob && currSnapshot.onGround && horizSpeed > 0.2) {
-      const isSprinting = horizSpeed > WORLD.PLAYER.WALK + 0.5;
+      const isSprinting = horizSpeed > PlayerMotor.SPEED_WALK + 0.5;
       const isCrouching = currSnapshot.crouchT > 0.5;
 
-      const strideFreq = currSnapshot.wet ? 5.5 : 8.0; // Wading adds slower, heavier sway
-      this.bobPhase += dt * strideFreq * (horizSpeed / WORLD.PLAYER.WALK);
+      const strideFreq = currSnapshot.wet ? 4.6 : 8.0; // Wading adds slower, heavier sway
+      this.bobPhase += dt * strideFreq * (horizSpeed / PlayerMotor.SPEED_WALK);
 
-      let ampY = 0.035; // walking
-      if (isSprinting) ampY = 0.06;
+      let ampY = 0.026; // walking
+      if (isSprinting) ampY = 0.042;
       else if (isCrouching) ampY = 0.015;
 
       if (currSnapshot.wet) ampY *= 1.25;
@@ -157,11 +162,11 @@ export class PlayerCamera {
     _euler.set(pitch, yaw, roll, 'YXZ');
     this.camera.quaternion.setFromEuler(_euler);
 
-    // 10. Sprint FOV Kick (+6 deg) & Mantle / Exhaustion Breathing FOV
+    // 10. Sprint FOV Kick (+4.5 deg) & Mantle / Exhaustion Breathing FOV
     const agitationBreath = currSnapshot.exhausted ? Math.sin(this.idlePhase * 3.0) * 1.5 : 0;
-    const isSprinting = horizSpeed > WORLD.PLAYER.WALK + 0.5 && !currSnapshot.exhausted;
+    const isSprinting = horizSpeed > PlayerMotor.SPEED_WALK + 0.5 && !currSnapshot.exhausted;
     const targetFov =
-      (isSprinting ? this.baseFov + 6.0 : this.baseFov) + agitationBreath;
+      (isSprinting ? this.baseFov + 4.5 : this.baseFov) + agitationBreath;
 
     // Hor+ FOV adaptation: if aspect < 1.0 (portrait / mobile view), scale vertical FOV so horizontal FOV does not collapse
     let adaptedTargetFov = targetFov;

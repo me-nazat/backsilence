@@ -5,7 +5,7 @@
  * ──────────────────────────────────────────────────────────────────────── */
 
 import { MeshStandardMaterial } from 'three';
-import type { LayoutCtx, LayoutData, MapDefinition, PlatformDef, PillarDef, BoxDef, PropDef, BuildEnv } from '../MapTypes.js';
+import type { LayoutCtx, LayoutData, MapDefinition, PlatformDef, PillarDef, BoxDef, PropDef, StairDef, BuildEnv } from '../MapTypes.js';
 import type { MapInstance } from './MapInstance.js';
 import { Rng } from '../../procedural/core/prng.js';
 import { TextureRegistry } from '../../procedural/textures/TextureRegistry.js';
@@ -35,7 +35,7 @@ export const PoolroomsMap: MapDefinition = {
       color: '#fff8e7',
       intensity: 1.1,
       direction: { x: 0.4, y: 1.0, z: 0.3 },
-      castShadow: false,
+      castShadow: true,
     },
   },
   waterProfile: WATER_PROFILES.poolrooms,
@@ -53,6 +53,7 @@ export const PoolroomsMap: MapDefinition = {
     const walls: BoxDef[] = [];
     const pillars: PillarDef[] = [];
     const props: PropDef[] = [];
+    const stairs: StairDef[] = [];
 
     // 1. Archipelago blue-noise slab placement (15 slabs)
     const targetCount = 16;
@@ -96,6 +97,7 @@ export const PoolroomsMap: MapDefinition = {
 
     // Add remaining blue-noise slabs for exploration & decoy pillars
     let attempts = 0;
+    let raisedCreated = false;
     while (platforms.length < targetCount && attempts < 200) {
       attempts++;
       const cx = rng.range(-38, 38);
@@ -119,12 +121,29 @@ export const PoolroomsMap: MapDefinition = {
       }
 
       if (!overlaps) {
+        const isRaised = !raisedCreated;
+        if (isRaised) raisedCreated = true;
+        const topY = isRaised ? 1.1 : 0.3;
         platforms.push({
           id: `slab_aux_${platforms.length}`,
           rect,
-          topY: 0.3,
+          topY,
           kind: 'tile',
         });
+        if (isRaised) {
+          const midX = (rect[0] + rect[2]) * 0.5;
+          stairs.push({
+            id: 'stair_raised_vantage',
+            x: midX - 1.2,
+            z: rect[1] - 1.12,
+            width: 2.4,
+            riser: 0.20,
+            run: 0.28,
+            steps: 4,
+            baseY: 0.3,
+            direction: 'z+',
+          });
+        }
       }
     }
 
@@ -205,8 +224,8 @@ export const PoolroomsMap: MapDefinition = {
         const cz = (slab.rect[1] + slab.rect[3]) * 0.5;
         walls.push({
           id: `arch_wall_${i}`,
-          min: { x: cx - 2.5, y: slab.topY, z: cz - 0.3 },
-          max: { x: cx + 2.5, y: slab.topY + 3.2, z: cz + 0.3 },
+          min: { x: cx - 2.5, y: slab.topY, z: cz - 0.25 },
+          max: { x: cx + 2.5, y: slab.topY + 3.2, z: cz + 0.25 },
           kind: 'arch',
           isWall: true,
         });
@@ -244,8 +263,20 @@ export const PoolroomsMap: MapDefinition = {
       platforms,
       walls,
       pillars,
-      stairs: [],
+      stairs,
       waterBodies: [
+        {
+          id: 'deep_trench',
+          rect: [10, -48, 48, 10],
+          floorY: -1.4,
+          waterY: 0.0,
+        },
+        {
+          id: 'shallow_shelf',
+          rect: [-48, -10, 10, 20],
+          floorY: -0.3,
+          waterY: 0.0,
+        },
         {
           id: 'pool_water',
           rect: [-48, -48, 48, 48],
@@ -314,24 +345,36 @@ export const PoolroomsMap: MapDefinition = {
       map: platTiles.albedo,
       roughnessMap: platTiles.roughness,
       normalMap: platTiles.normal,
+      aoMap: platTiles.ao,
+      aoMapIntensity: 0.85,
       roughness: 0.35,
       metalness: 0.05,
+      envMapIntensity: 0.35,
+      vertexColors: true,
     });
 
     const wallMat = new MeshStandardMaterial({
       map: wallTiles.albedo,
       roughnessMap: wallTiles.roughness,
       normalMap: wallTiles.normal,
+      aoMap: wallTiles.ao,
+      aoMapIntensity: 0.85,
       roughness: 0.45,
       metalness: 0.02,
+      envMapIntensity: 0.35,
+      vertexColors: true,
     });
 
     const floorMat = new MeshStandardMaterial({
       map: floorTiles.albedo,
       roughnessMap: floorTiles.roughness,
       normalMap: floorTiles.normal,
+      aoMap: floorTiles.ao,
+      aoMapIntensity: 0.85,
       roughness: 0.2,
       metalness: 0.05,
+      envMapIntensity: 0.35,
+      vertexColors: true,
     });
 
     return buildStandardMapInstance(layout, env, { platformMat, wallMat, floorMat });

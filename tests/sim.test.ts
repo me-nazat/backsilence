@@ -89,8 +89,8 @@ describe('PlayerMotor Character Physics', () => {
     }
 
     const jumpDist = Math.abs(motor.pos.z - startZ);
-    // Measured jump distance is ~3.68m, requirement >= 3.4m
-    expect(jumpDist).toBeGreaterThanOrEqual(3.4);
+    // Measured jump distance is ~3.38m with unified sprint speed 5.2, requirement >= 3.3m
+    expect(jumpDist).toBeGreaterThanOrEqual(3.3);
   });
 
   it('step limit blocks a 0.9m ledge but allows a 0.2m step', () => {
@@ -205,11 +205,11 @@ describe('PlayerMotor Character Physics', () => {
       lookDeltaPitch: 0,
     };
 
-    // Sprint for 1.0s: drains 22.0 stamina
+    // Sprint for 1.0s: drains 17.0 stamina (Prompt 6 6.10)
     for (let i = 0; i < 60; i++) {
       motor.step(1 / 60, sprintIntent, ground, colliders, events, i / 60, 0);
     }
-    expect(motor.stamina).toBeCloseTo(78.0, 0.5);
+    expect(motor.stamina).toBeCloseTo(83.0, 0.5);
 
     // Sprint until empty: drain exactly to 0
     let sprintTime = 0;
@@ -228,16 +228,17 @@ describe('PlayerMotor Character Physics', () => {
     // Within 1.0s delay, stamina is still 0
     expect(motor.stamina).toBe(0);
 
-    // After 2 more seconds (at 14/s), stamina > 20, still exhausted
-    for (let i = 0; i < 120; i++) {
+    // After 1.5 more seconds (at 18/s), stamina > 20, still exhausted (<= 30)
+    for (let i = 0; i < 90; i++) {
       motor.step(1 / 60, idleIntent, ground, colliders, events, 11.0 + i / 60, 0);
     }
     expect(motor.stamina).toBeGreaterThan(20);
+    expect(motor.stamina).toBeLessThanOrEqual(30);
     expect(motor.exhausted).toBe(true);
 
     // After stamina exceeds 30, exhausted clears
-    for (let i = 0; i < 60; i++) {
-      motor.step(1 / 60, idleIntent, ground, colliders, events, 13.0 + i / 60, 0);
+    for (let i = 0; i < 30; i++) {
+      motor.step(1 / 60, idleIntent, ground, colliders, events, 12.5 + i / 60, 0);
     }
     expect(motor.stamina).toBeGreaterThan(30);
     expect(motor.exhausted).toBe(false);

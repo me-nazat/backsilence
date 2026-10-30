@@ -13,6 +13,7 @@ export type EffectiveQuality = 'low' | 'medium' | 'high';
 export class QualityBenchmark {
   private static instance: QualityBenchmark | null = null;
   private effectiveTier: EffectiveQuality = 'medium';
+  private choiceReason = 'Default baseline';
   private hasDropped = false;
   private benchmarkFinished = false;
 
@@ -79,6 +80,7 @@ export class QualityBenchmark {
     } else {
       this.effectiveTier = 'medium';
     }
+    this.choiceReason = `Hardware baseline score: ${score} (cores=${nav.hardwareConcurrency ?? 'N/A'}, mem=${nav.deviceMemory ?? 'N/A'}GB, mobile=${isMobile})`;
   }
 
   /**
@@ -109,6 +111,7 @@ export class QualityBenchmark {
           } else if (avgFrameMs > 19 && this.effectiveTier === 'high') {
             this.effectiveTier = 'medium';
           }
+          this.choiceReason = `Loading benchmark avgFrameMs=${avgFrameMs.toFixed(1)}ms (${this.choiceReason})`;
           this.benchmarkFinished = true;
           this.applyToSettings();
           resolve(this.effectiveTier);
@@ -127,11 +130,13 @@ export class QualityBenchmark {
     if (this.effectiveTier === 'high') {
       this.effectiveTier = 'medium';
       this.hasDropped = true;
+      this.choiceReason = `Downgraded to MEDIUM: ${reason}`;
       console.warn(`[QualityBenchmark] Quality dropped to MEDIUM: ${reason}`);
       this.applyToSettings();
     } else if (this.effectiveTier === 'medium') {
       this.effectiveTier = 'low';
       this.hasDropped = true;
+      this.choiceReason = `Downgraded to LOW: ${reason}`;
       console.warn(`[QualityBenchmark] Quality dropped to LOW: ${reason}`);
       this.applyToSettings();
     }
@@ -142,11 +147,24 @@ export class QualityBenchmark {
    */
   setUserOverride(tier: EffectiveQuality): void {
     this.effectiveTier = tier;
+    this.choiceReason = `User manual override to ${tier}`;
     this.applyToSettings();
   }
 
   getEffectiveTier(): EffectiveQuality {
     return this.effectiveTier;
+  }
+
+  getChoiceReason(): string {
+    return this.choiceReason;
+  }
+
+  getTierReport(): { tier: EffectiveQuality; reason: string; hasDropped: boolean } {
+    return {
+      tier: this.effectiveTier,
+      reason: this.choiceReason,
+      hasDropped: this.hasDropped,
+    };
   }
 
   getHasDropped(): boolean {

@@ -52,7 +52,7 @@ export const DrownedMetroMap: MapDefinition = {
       color: '#e0eee5',
       intensity: 0.8,
       direction: { x: 0.2, y: 0.9, z: 0.1 },
-      castShadow: false,
+      castShadow: true,
     },
   },
   waterProfile: WATER_PROFILES.drowned_metro,
@@ -298,22 +298,36 @@ export const DrownedMetroMap: MapDefinition = {
 
     const platformMat = new MeshStandardMaterial({
       map: concreteTex.albedo,
+      roughnessMap: concreteTex.roughness,
+      normalMap: concreteTex.normal,
       roughness: 0.5,
       metalness: 0.05,
+      envMapIntensity: 0.35,
+      vertexColors: true,
     });
     applyWetDarkening(platformMat, { waterY: 0.0 });
 
     const wallMat = new MeshStandardMaterial({
       map: subwayTileTex.albedo,
+      roughnessMap: subwayTileTex.roughness,
+      normalMap: subwayTileTex.normal,
+      aoMap: subwayTileTex.ao,
+      aoMapIntensity: 0.85,
       roughness: 0.25,
       metalness: 0.02,
+      envMapIntensity: 0.35,
+      vertexColors: true,
     });
     applyWetDarkening(wallMat, { waterY: 0.0 });
 
     const floorMat = new MeshStandardMaterial({
       map: concreteTex.albedo,
+      roughnessMap: concreteTex.roughness,
+      normalMap: concreteTex.normal,
       roughness: 0.35,
       metalness: 0.1,
+      envMapIntensity: 0.35,
+      vertexColors: true,
     });
 
     const instance = buildStandardMapInstance(layout, env, {

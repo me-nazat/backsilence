@@ -22,6 +22,9 @@ import {
   WebGLRenderTarget,
   DepthTexture,
   UnsignedIntType,
+  HalfFloatType,
+  LinearFilter,
+  PMREMGenerator,
   Mesh,
   Texture,
   SphereGeometry,
@@ -39,9 +42,11 @@ import { EngineRenderer } from '../engine/Renderer.js';
 import { PostFX } from '../engine/PostFX.js';
 import { resolveQualityTier } from '../engine/Quality.js';
 import { AudioEngine } from '../audio/AudioEngine.js';
+import { MenuMusic } from '../audio/MenuMusic.js';
 import type { Settings, NoiseEvent, RippleEvent, MapId, Vec3, PlayerId, PuzzleOp } from '../types/contracts.js';
 import { WORLD } from '../app/Config.js';
 import { SimWorld } from '../sim/SimWorld.js';
+import { PlayerMotor } from '../sim/PlayerMotor.js';
 import type { EncounterDirector } from '../sim/Director.js';
 import { WaterSystem } from './water/WaterSystem.js';
 import { MonsterManager } from './monster/MonsterManager.js';
@@ -54,7 +59,7 @@ import { PlayerInput } from './player/PlayerInput.js';
 import { PlayerFootsteps } from './player/Footsteps.js';
 import { InteractionSystem } from './interaction/InteractionSystem.js';
 import { AcousticSystem } from './AcousticSystem.js';
-import type { Hud, InventorySlot, RosterMember } from '../ui/Hud.js';
+import type { Hud, HudData, InventorySlot, RosterMember } from '../ui/Hud.js';
 import type { RunResults, CoOpPlayerResult } from '../ui/ResultsScreen.js';
 import type { KeypadModal } from '../ui/KeypadModal.js';
 import { getMapDefinition } from '../world/MapRegistry.js';
@@ -86,6 +91,7 @@ export class GameSession {
   readonly renderer: EngineRenderer;
   readonly postFX: PostFX;
   private readonly audio = AudioEngine.getInstance();
+  private menuMusic: MenuMusic | null = null;
   private readonly hud: Hud;
   private readonly callbacks: GameSessionCallbacks;
 
@@ -218,17 +224,24 @@ export class GameSession {
   private closestCall = 999.0;
   private lastNearMissTime = 0;
   private alertsCount = 0;
-  private godMode = false;
+  private godMode =
+    typeof window !== 'undefined' &&
+    ((window.location?.search && new URLSearchParams(window.location.search).get('god') === '1') ||
+      (window as unknown as { __BACKSILENCE_GOD__?: boolean }).__BACKSILENCE_GOD__ === true);
   private sunLight: DirectionalLight | null = null;
+  private envTexture: Texture | null = null;
   private autoExposureFrameCount = 0;
-  private currentExposure = 1.1;
+  private currentExposure = 0.95;
 
   // First minute reference flow & quiet hints
   private hasShownDryHint = false;
-  private hasShownWaterHint = false;
+  private hasShownWaterHintThisLevel = false;
+  private recentDamage = 0;
+  private lastNoiseCause = 'Sprint-wade';
   private hasShownTurnHint = false;
   private isShowingTurnHint = false;
   private firstCreatureSightingTime: number | null = null;
+  private openingTurn: { active: boolean; t: number; from: number; to: number } | null = null;
   private readonly listenerForward = new Vector3();
   private readonly listenerUp = new Vector3();
 
@@ -323,6 +336,7 @@ export class GameSession {
   ) {
     this.container = container;
     this.settings = settings;
+    this.audio.applySettings(settings.audio);
     this.hud = hud;
     this.hud.setMinimalHud(Boolean(this.settings.accessibility.minimalHud));
     this.hud.setUiScale(this.settings.accessibility.uiScale ?? 1.0);
@@ -429,6 +443,7 @@ export class GameSession {
         mode: simMode,
         mapId: this.mapId,
       });
+      this.audio.setColliders(this.simWorld.colliders);
       if (this.mapDef?.atmosphere?.fog?.density) {
         this.simWorld.director.setFogDensity(this.mapDef.atmosphere.fog.density);
       }
@@ -470,6 +485,8 @@ export class GameSession {
 
       // 5. Water System Setup (now has computed distance-to-dry and light streaks)
       const lightStreaks = (this.mapInstance.root.userData['lightStreaks'] as import('./water/WaterMaterial.js').LightStreak[]) ?? [];
+      const sunDirVec = this.mapDef.atmosphere.sun?.direction;
+      const sunDir = sunDirVec ? new Vector3(sunDirVec.x, sunDirVec.y, sunDirVec.z).normalize() : undefined;
       this.water = new WaterSystem(this.scene, {
         scene: this.scene,
         ground: this.simWorld.ground,
@@ -478,6 +495,7 @@ export class GameSession {
         audio: this.audio,
         profile: this.mapDef.waterProfile,
         streaks: lightStreaks,
+        sunDir,
       });
 
       // 5b. Lens overlay & Ambient Flock setup
@@ -502,23 +520,30 @@ export class GameSession {
       this.scene.add(this.weatherDirector.particles.root);
 
       if (typeof window !== 'undefined' && this.renderer.renderer.capabilities?.isWebGL2) {
-        const w = this.container.clientWidth || 1280;
-        const h = this.container.clientHeight || 720;
+        const dpr = this.renderer.renderer.getPixelRatio();
+        const w = Math.max(1, Math.floor((this.container.clientWidth || 1280) * dpr));
+        const h = Math.max(1, Math.floor((this.container.clientHeight || 720) * dpr));
         const depthTexture = new DepthTexture(w, h);
         depthTexture.type = UnsignedIntType;
         this.opaqueDepthTarget = new WebGLRenderTarget(w, h, {
           depthTexture,
           depthBuffer: true,
+          type: HalfFloatType,
+          minFilter: LinearFilter,
+          magFilter: LinearFilter,
         });
         this.waterCompositeTarget = new WebGLRenderTarget(w, h, {
           depthBuffer: true,
+          type: HalfFloatType,
+          minFilter: LinearFilter,
+          magFilter: LinearFilter,
         });
         this.waterScene = new Scene();
         this.waterScene.userData.isAuxiliaryPass = true;
       }
 
       // 6. Monster Presentation & AI Setup (now uses fully built NavGrid)
-      this.monsters = new MonsterManager(this.water, this.audio);
+      this.monsters = new MonsterManager(this.water, this.audio, this.settings.creatures?.waterMonsterSkin);
       this.scene.add(this.monsters.root);
 
       if (this.layout.patrolLanes) {
@@ -540,7 +565,7 @@ export class GameSession {
           body.fogDensity = this.mapDef.atmosphere.fog.density;
         }
 
-        this.simWorld.addMonster(
+        const brain = this.simWorld.addMonster(
           {
             id: mDef.id,
             variant: mDef.variant,
@@ -550,6 +575,18 @@ export class GameSession {
           },
           this.seed,
         );
+
+        const nav = this.simWorld.nav;
+        if (!nav.isWalkableWorld(brain.pos.x, brain.pos.z)) {
+          const fixed = nav.findNearestWalkable(brain.pos.x, brain.pos.z, 18.0);
+          if (fixed) {
+            brain.pos.x = fixed.x;
+            brain.pos.z = fixed.z;
+            console.warn(`[SpawnRepair] ${brain.id} spawn was not walkable; moved to ${fixed.x.toFixed(1)},${fixed.z.toFixed(1)}`);
+          } else {
+            console.error(`[SpawnRepair] ${brain.id} has no walkable water within 18m — map layout is invalid`);
+          }
+        }
       }
 
       // 6. Player presentation & Input Controls
@@ -578,7 +615,9 @@ export class GameSession {
       this.playerInput.attach(this.renderer.canvas);
 
       this.playerCamera = new PlayerCamera(this.camera, this.settings);
-      this.footsteps = new PlayerFootsteps(this.audio);
+      this.footsteps = new PlayerFootsteps(this.audio, (pos, strength) => {
+        this.water?.splashes.burst(pos, strength);
+      });
       this.interactions = new InteractionSystem();
       this.acoustics = new AcousticSystem(this.audio, this.hud, this.settings);
 
@@ -589,6 +628,29 @@ export class GameSession {
       const centerZ = (this.layout.bounds.minZ + this.layout.bounds.maxZ) / 2;
       const initialYaw = this.mapId === 'natatorium' ? Math.PI : Math.atan2(-(0 - pSpawn.x), -(centerZ - pSpawn.z));
       this.simWorld.player.setYaw(initialYaw);
+
+      if (this.mapId === 'natatorium') {
+        // Tagline wall beat: hold at Math.PI for 2.2s, smooth lerp to 0 (facing the pool hall) by 4.0s
+        this.openingTurn = { active: true, t: 0, from: Math.PI, to: 0 };
+      } else {
+        // Audit initial forward vector against sleeper spawn / first objective (must be within 100 deg)
+        const sleeper = this.layout.spawns.monsters[0]?.sleeperSpawn ?? this.layout.spawns.monsters[0]?.spawn;
+        if (sleeper) {
+          const fwdX = Math.sin(initialYaw);
+          const fwdZ = -Math.cos(initialYaw);
+          const toX = sleeper.x - pSpawn.x;
+          const toZ = sleeper.z - pSpawn.z;
+          const len = Math.hypot(toX, toZ);
+          if (len > 0.001) {
+            const dot = (fwdX * toX + fwdZ * toZ) / len;
+            const angleDeg = Math.acos(Math.max(-1, Math.min(1, dot))) * (180 / Math.PI);
+            if (angleDeg > 100) {
+              const targetYaw = Math.atan2(toX, -toZ);
+              this.openingTurn = { active: true, t: 0, from: initialYaw, to: targetYaw };
+            }
+          }
+        }
+      }
 
       // 7. Flashlight Setup (Map 5)
       if (this.mapId === 'drainage_core') {
@@ -641,6 +703,8 @@ export class GameSession {
       // 10. Audio Reverb & Ambience Bed
       this.audio.setReverbPreset(this.mapDef.reverb);
       this.startMapAmbience();
+      this.menuMusic = MenuMusic.getInstance(this.audio);
+      this.menuMusic.start();
 
       // Inventory HUD click binding
       this.hud.setInventoryCycleCallback(() => this.cycleInventory());
@@ -667,6 +731,17 @@ export class GameSession {
       this.simWorld.director.setFogDensity(def.atmosphere.fog.density);
     }
 
+    // Prompt 4.3: Build PMREM environment from fogColor
+    const pmrem = new PMREMGenerator(this.renderer.renderer);
+    pmrem.compileEquirectangularShader();
+    const envScene = new Scene();
+    envScene.background = new Color(fogColor);
+    const envTarget = pmrem.fromScene(envScene, 0.04);
+    this.envTexture = envTarget.texture;
+    this.scene.environment = this.envTexture;
+    this.scene.environmentIntensity = 0.35;
+    pmrem.dispose();
+
     // Set camera.far from fog density so distant geometry fades to fog color, never hard clips
     const fogFar = Math.max(75.0, Math.ceil(2.8 / Math.max(0.015, def.atmosphere.fog.density)));
     this.camera.far = fogFar;
@@ -685,20 +760,26 @@ export class GameSession {
       const isLow = this.settings.graphics.quality === 'low';
       if (def.atmosphere.sun.castShadow && !isLow) {
         sun.castShadow = true;
-        const shadowRes = this.settings.graphics.quality === 'high' ? 2048 : 1024;
+        const shadowRes = 2048;
         sun.shadow.mapSize.width = shadowRes;
         sun.shadow.mapSize.height = shadowRes;
         sun.shadow.camera.near = 0.5;
         sun.shadow.camera.far = 80.0;
-        sun.shadow.camera.left = -25;
-        sun.shadow.camera.right = 25;
-        sun.shadow.camera.top = 25;
-        sun.shadow.camera.bottom = -25;
-        sun.shadow.bias = -0.0005;
-        sun.shadow.normalBias = 0.02;
+        sun.shadow.camera.left = -18;
+        sun.shadow.camera.right = 18;
+        sun.shadow.camera.top = 18;
+        sun.shadow.camera.bottom = -18;
+        sun.shadow.bias = -0.0002;
+        sun.shadow.normalBias = 0.015;
       }
       this.scene.add(sun);
       this.sunLight = sun;
+
+      // Prompt 4.4: Secondary fill DirectionalLight from roughly opposite azimuth
+      const fillLight = new DirectionalLight(sunColor, 0.15);
+      fillLight.position.set(-dir.x * 20, Math.max(5, dir.y * 10), -dir.z * 20);
+      fillLight.castShadow = false;
+      this.scene.add(fillLight);
     }
   }
 
@@ -743,7 +824,8 @@ export class GameSession {
                 retries: 0,
               });
             },
-          }
+          },
+          this.settings,
         );
 
         this.interactions.register({
@@ -1052,7 +1134,7 @@ export class GameSession {
       case 'natatorium': {
         this.inventory = [{ kind: 'pebble', count: 5 }];
         this.hud.update({
-          objective: 'Locate 4 ordinal pillars on the Ear mosaic. Restore power at Plant Room Drain Wheel, then enter keypad code.',
+          objective: 'Find the four numbered pillars. Stay on dry tile.',
           notebookNumbers: ['#1: ?', '#2: ?', '#3: ?', '#4: ?'],
           inventory: this.inventory,
           selectedItemIndex: 0,
@@ -1525,6 +1607,7 @@ export class GameSession {
 
   setSettings(newSettings: Settings): void {
     this.settings = newSettings;
+    this.audio.applySettings(newSettings.audio);
     this.renderer.applySettings(newSettings);
     this.postFX.applySettings(newSettings);
     this.audio.setVhsIntensity(newSettings.graphics.vhsIntensity);
@@ -1556,10 +1639,12 @@ export class GameSession {
     this.isDead = false;
 
     this.hasShownDryHint = false;
-    this.hasShownWaterHint = false;
+    this.hasShownWaterHintThisLevel = false;
+    this.recentDamage = 0;
     this.hasShownTurnHint = false;
     this.isShowingTurnHint = false;
     this.firstCreatureSightingTime = null;
+    this.openingTurn = this.mapId === 'natatorium' ? { active: true, t: 0, from: Math.PI, to: 0 } : null;
 
     const spawn = this.layout.spawns.player[0] ?? { x: 0, y: 1.0, z: 0 };
     const centerZ = (this.layout.bounds.minZ + this.layout.bounds.maxZ) / 2;
@@ -1597,18 +1682,25 @@ export class GameSession {
     const pVel = this.simWorld?.player ? this.simWorld.player.getState().vel : { x: 0, y: 0, z: 0 };
     const cameraSpeed = Math.hypot(pVel.x, pVel.z);
     this.postFX.update(dt, cameraSpeed);
-    this.postFX.setTension(this.acoustics ? this.acoustics.tension : 0);
+    const dreadTension = this.acoustics ? this.acoustics.tension : 0;
+    this.postFX.setTension(dreadTension);
+    if (this.menuMusic) {
+      this.menuMusic.setDread(dreadTension);
+    }
 
     // Jumpscare update takes priority if active
     if (this.jumpscare.isActive()) {
+      this.renderer.beginFrame();
       this.jumpscare.update(dt);
       this.hud.update({ vhsOsdState: this.postFX.getOsdState() });
       this.postFX.render(this.scene, this.camera, dt);
+      this.renderer.endFrame();
       return;
     }
 
     // Spectator mode takes over if active
     if (this.isSpectating) {
+      this.renderer.beginFrame();
       const peers = this.netSession?.getRemotePeers() ?? [];
       const isReducedMotion =
         this.settings.accessibility.reducedMotion === 'on' ||
@@ -1635,6 +1727,7 @@ export class GameSession {
 
       this.hud.update({ vhsOsdState: this.postFX.getOsdState() });
       this.postFX.render(this.scene, this.camera, dt);
+      this.renderer.endFrame();
       return;
     }
 
@@ -1644,6 +1737,23 @@ export class GameSession {
     // 1. Poll Player Intent
     this.playerInput.updateThrowHold(dt);
     const intent = this.playerInput.pollIntent();
+
+    const hasPlayerInput =
+      Math.abs(intent.moveX) > 0.01 ||
+      Math.abs(intent.moveZ) > 0.01 ||
+      intent.jump ||
+      intent.crouch ||
+      intent.sprint ||
+      Math.abs(intent.lookDeltaYaw) > 0.0001 ||
+      Math.abs(intent.lookDeltaPitch) > 0.0001;
+
+    if (hasPlayerInput && this.openingTurn?.active) {
+      if (this.openingTurn.t > 2.2) {
+        const curEuler = new Euler().setFromQuaternion(this.camera.quaternion, 'YXZ');
+        this.simWorld.player.setYaw(curEuler.y);
+      }
+      this.openingTurn.active = false;
+    }
 
     // 2. Fixed Timestep Physics Simulation
     const recentNoises: NoiseEvent[] = [];
@@ -1696,11 +1806,50 @@ export class GameSession {
     const currSnap = this.simWorld.player.getSnapshot();
 
     this.playerCamera.update(dt, prevSnap, currSnap, renderAlpha);
+    if (this.openingTurn?.active) {
+      this.openingTurn.t += dt;
+      if (this.openingTurn.t < 2.2) {
+        const curEuler = new Euler().setFromQuaternion(this.camera.quaternion, 'YXZ');
+        curEuler.y = this.openingTurn.from;
+        this.camera.quaternion.setFromEuler(curEuler);
+      } else if (this.openingTurn.t <= 4.0) {
+        const p = Math.min(1.0, (this.openingTurn.t - 2.2) / 1.8);
+        const smoothP = p * p * (3.0 - 2.0 * p);
+        const curYaw = this.openingTurn.from + (this.openingTurn.to - this.openingTurn.from) * smoothP;
+        const curEuler = new Euler().setFromQuaternion(this.camera.quaternion, 'YXZ');
+        curEuler.y = curYaw;
+        this.camera.quaternion.setFromEuler(curEuler);
+        if (p >= 1.0) {
+          this.simWorld.player.setYaw(this.openingTurn.to);
+          this.openingTurn = null;
+        }
+      } else {
+        this.simWorld.player.setYaw(this.openingTurn.to);
+        this.openingTurn = null;
+      }
+    }
     this.footsteps.update(currSnap, this.playerCamera.getBobPhase(), this.camera, this.simWorld.waterY);
 
     this.listenerForward.set(0, 0, -1).applyQuaternion(this.camera.quaternion);
     this.listenerUp.set(0, 1, 0).applyQuaternion(this.camera.quaternion);
     this.audio.setListener(this.camera.position, this.listenerForward, this.listenerUp);
+    const nearWall = (() => {
+      if (!this.simWorld?.colliders) return false;
+      const candidates: import('../sim/Colliders.js').Collider[] = [];
+      this.simWorld.colliders.queryCircle(currSnap.pos.x, currSnap.pos.z, 1.0, candidates);
+      if (candidates.length === 0) return false;
+      const out = { x: currSnap.pos.x, z: currSnap.pos.z };
+      return this.simWorld.colliders.resolveCirclePushout(
+        currSnap.pos.x,
+        currSnap.pos.z,
+        1.0,
+        currSnap.pos.y,
+        1.8,
+        candidates,
+        out,
+      );
+    })();
+    this.audio.setListenerNearWall(nearWall);
 
     // 4. Player Wake in Water
     const playerSpeed = Math.hypot(currSnap.vel.x, currSnap.vel.z);
@@ -1740,14 +1889,15 @@ export class GameSession {
       this.mapDef?.atmosphere?.fog?.density ?? 0.045,
     );
 
-    // 5c. Quiet in-world hints (first 90s only)
-    if (this.timeSurvived <= 90 && !this.isDead) {
-      if (!this.hasShownDryHint && !currSnap.wet && currSnap.onGround) {
+    // 5c. Quiet in-world hints and first-run water notice
+    if (!this.isDead) {
+      if (!this.hasShownDryHint && !currSnap.wet && currSnap.onGround && this.timeSurvived <= 90) {
         this.hasShownDryHint = true;
-        this.hud.showQuietHint('Dry tiles are silent.', 4000);
-      } else if (!this.hasShownWaterHint && currSnap.wet) {
-        this.hasShownWaterHint = true;
-        this.hud.showQuietHint('Water is loud.', 4000);
+        this.hud.showQuietHint('Dry tiles are silent.', 3000);
+      } else if (!this.hasShownWaterHintThisLevel && currSnap.wet) {
+        this.hasShownWaterHintThisLevel = true;
+        this.hud.showQuietHint('Water is loud.', 3000);
+        this.hud.showFirstWaterNotice();
       }
 
       // Natatorium opening: subtle hint to turn from the tagline wall towards the flooded hall
@@ -1878,6 +2028,8 @@ export class GameSession {
             /* ignore */
           }
         }
+        const soundRadius = Math.round((currSnap.agitation || 0.7) * 40);
+        const cause = this.lastNoiseCause || (currSnap.wet && currSnap.exhausted ? 'Sprint-wade' : currSnap.wet ? 'Water splash' : 'Acoustic trigger');
         this.jumpscare.trigger(
           this.camera,
           headWorld,
@@ -1886,6 +2038,8 @@ export class GameSession {
             timeSurvived: this.timeSurvived,
             noisesMade: this.noisesMade,
             closestCall: this.closestCall,
+            cause,
+            soundRadius,
           },
           isReducedMotion,
         );
@@ -1923,6 +2077,9 @@ export class GameSession {
       if (beat.kind === 'first_contact' || beat.kind === 'ambient_far') {
         this.audio.play('monster_ambient_far', { position: beat.position, gain: 0.7 });
         this.postFX.triggerGlitch(0.18);
+        if (beat.kind === 'first_contact') {
+          this.hud.update({ objective: 'A deep presence ripples through the water ahead. Keep to dry tile.' });
+        }
       } else if (beat.kind === 'listening') {
         this.postFX.triggerTracking(0.8);
         this.postFX.setTension(0.9);
@@ -1969,16 +2126,113 @@ export class GameSession {
     const dirSnap = this.simWorld.director.getSnapshot();
     const visFrac = this.lastCachedL4Fraction ?? 0;
 
+    // Damage vignette calculation & decay
+    this.recentDamage = Math.max(0, this.recentDamage - dt * 0.8);
+    for (const m of this.simWorld.monsters) {
+      const mSnap = m.getSnapshot();
+      const dist = Math.hypot(mSnap.pos.x - currSnap.pos.x, mSnap.pos.z - currSnap.pos.z);
+      if (mSnap.state === 'ATTACK') {
+        this.recentDamage = 1.0;
+      } else if (dist < 4.0) {
+        this.recentDamage = Math.max(this.recentDamage, ((4.0 - dist) / 4.0) * 0.45);
+      }
+    }
+    if (this.isDead) {
+      this.recentDamage = 1.0;
+    }
+
+    // Noise cause tracking from recent noises
+    const horizSpeed = Math.hypot(currSnap.vel.x, currSnap.vel.z);
+    for (const noise of recentNoises) {
+      if (noise.sourcePlayerId !== 'world') {
+        if (currSnap.exhausted || horizSpeed > PlayerMotor.SPEED_WALK + 0.2) {
+          this.lastNoiseCause = 'Sprint-wade';
+        } else if (noise.kind === 'jump_in' || noise.kind === 'splash') {
+          this.lastNoiseCause = 'Splash landing';
+        } else if (noise.kind === 'wade') {
+          this.lastNoiseCause = 'Fast wade';
+        } else if (currSnap.wet) {
+          this.lastNoiseCause = 'Water splash';
+        } else {
+          this.lastNoiseCause = 'Tile footsteps';
+        }
+      }
+    }
+
+    // 6.4 Risk Tag from real game state
+    const moving = horizSpeed > 0.15;
+    let monsterHunting = false;
+    let monsterWithin18 = false;
+    for (const m of this.simWorld.monsters) {
+      const mSnap = m.getSnapshot();
+      if (mSnap.state === 'HUNT' || mSnap.state === 'ATTACK') {
+        monsterHunting = true;
+      }
+      const mDist = Math.hypot(mSnap.pos.x - currSnap.pos.x, mSnap.pos.z - currSnap.pos.z);
+      if (mDist <= 18.0) {
+        monsterWithin18 = true;
+      }
+    }
+
+    const riskTag =
+      monsterHunting          ? 'HUNTED' :
+      monsterWithin18         ? 'CLOSE'  :
+      (currSnap.wet && moving)? 'LOUD'   :
+      moving                  ? 'AUDIBLE':
+                                'QUIET';
+
+    // 6.8 Direction Finder (Diegetic arc indicator to next unread code pillar or exit keypad)
+    let objectiveIndicator: HudData['objectiveIndicator'] = null;
+    if (this.mapId === 'poolrooms' && this.inspectedPillars.size >= 1) {
+      let targetPos: { x: number; z: number } | null = null;
+      let targetLabel = '';
+      for (let ord = 1; ord <= 4; ord++) {
+        if (!this.inspectedPillars.has(ord)) {
+          const p = this.layout.pillars.find((pil) => pil.ordinal === ord);
+          if (p) {
+            targetPos = { x: p.x, z: p.z };
+            targetLabel = `PILLAR #${ord}`;
+            break;
+          }
+        }
+      }
+      if (!targetPos && this.layout.exit) {
+        targetPos = { x: this.layout.exit.position.x, z: this.layout.exit.position.z };
+        targetLabel = 'EXIT KEYPAD';
+      }
+      if (targetPos) {
+        const dx = targetPos.x - currSnap.pos.x;
+        const dz = targetPos.z - currSnap.pos.z;
+        const dist = Math.hypot(dx, dz);
+        const angleToTarget = Math.atan2(dx, -dz);
+        let relAngle = angleToTarget - currSnap.yaw;
+        while (relAngle > Math.PI) relAngle -= 2 * Math.PI;
+        while (relAngle < -Math.PI) relAngle += 2 * Math.PI;
+        objectiveIndicator = {
+          visible: true,
+          angleRad: relAngle,
+          distanceMeters: Math.round(dist),
+          label: targetLabel,
+        };
+      }
+    }
+
     this.hud.update({
       noiseLoudness: currSnap.agitation,
       stamina: currSnap.stamina / 100.0,
       status: statusText,
       interactionPrompt: promptState.visible ? promptState.label : null,
+      promptHoldProgress: promptState.holdProgress,
+      waterNoiseRadius: Math.round(currSnap.agitation * 40),
+      riskTag,
+      damageVignette: this.recentDamage,
+      showVhsOsd: this.settings.graphics.vhsOsd,
       vhsOsdState: this.postFX.getOsdState(),
       pointerLockHint: !this.playerInput.isPointerLocked(),
       sightings: dirSnap.sightingsCount ?? 0,
       lastSightingTime: dirSnap.lastSightingTime ?? 0,
       visFrac,
+      objectiveIndicator,
     });
 
     // 12. Multiplayer Replication & Ping Markers
@@ -2047,16 +2301,27 @@ export class GameSession {
       glRenderer.capabilities?.isWebGL2 &&
       isMediumOrHigh
     ) {
-      const w = this.container.clientWidth || 1280;
-      const h = this.container.clientHeight || 720;
-      const targetAspect = w / h;
+      const dpr = glRenderer.getPixelRatio();
+      const cssW = this.container.clientWidth || 1280;
+      const cssH = this.container.clientHeight || 720;
+      const w = Math.max(1, Math.floor(cssW * dpr));
+      const h = Math.max(1, Math.floor(cssH * dpr));
+      const targetAspect = cssW / cssH;
       if (Math.abs(this.camera.aspect - targetAspect) > 0.001) {
         this.camera.aspect = targetAspect;
         this.camera.updateProjectionMatrix();
       }
       if (this.opaqueDepthTarget.width !== w || this.opaqueDepthTarget.height !== h) {
         this.opaqueDepthTarget.setSize(w, h);
+        if (this.opaqueDepthTarget.depthTexture) {
+          this.opaqueDepthTarget.depthTexture.dispose();
+          const dt = new DepthTexture(w, h);
+          dt.type = UnsignedIntType;
+          this.opaqueDepthTarget.depthTexture = dt;
+        }
         this.waterCompositeTarget.setSize(w, h);
+        this.lensOverlay?.resize(cssW, cssH);
+        this.postFX.setSize(w, h);
       }
 
       // 1. Update planar reflection (High tier only, every 2nd frame)
@@ -2154,12 +2419,13 @@ export class GameSession {
     if (++this.autoExposureFrameCount % 4 === 0) {
       const pSnap = this.simWorld.player.getState();
       const inWater = pSnap.pos.y < (this.water?.currentWaterY ?? 0) + 0.1;
-      const baseExposure = this.mapDef?.atmosphere?.exposure ?? 1.15;
-      const targetExposure = inWater ? baseExposure * 1.08 : baseExposure;
+      const targetExposure = inWater ? 1.15 : 0.95;
       const blend = 1.0 - Math.exp(-(dt * 4) / 1.2);
       this.currentExposure += (targetExposure - this.currentExposure) * blend;
-      const totalExposure = this.currentExposure + this.weatherDirector.getExposureBoost();
-      this.renderer.renderer.toneMappingExposure = Math.max(0.7, Math.min(1.8, totalExposure));
+      const boost = this.weatherDirector?.getExposureBoost() ?? 0;
+      const brightnessFactor = (0.8 + (this.settings.graphics.brightness / 2.0) * 0.6) / 1.1;
+      const totalExposure = (this.currentExposure + boost) * brightnessFactor;
+      this.renderer.renderer.toneMappingExposure = Math.max(0.55, Math.min(1.45, totalExposure));
 
       if (this.sunLight && this.sunLight.castShadow) {
         const shadowWorldSize = 50.0;
@@ -3115,14 +3381,18 @@ export class GameSession {
 
       switch (e.code) {
         case 'KeyH': {
+          if (this.openingTurn) {
+            this.openingTurn.active = false;
+            this.openingTurn = null;
+          }
           const forward = this.camera.getWorldDirection(new Vector3());
           forward.y = 0;
           if (forward.lengthSq() > 0.001) forward.normalize();
           else forward.set(0, 0, -1);
 
-          const camX = this.camera.position.x;
-          const camY = this.camera.position.y;
-          const camZ = this.camera.position.z;
+          const camX = this.simWorld.player.pos.x;
+          const camY = this.simWorld.player.pos.y + 1.65;
+          const camZ = this.simWorld.player.pos.z;
           const bounds = this.layout.bounds;
 
           let bestX = camX + forward.x * 6.0;
@@ -3136,11 +3406,20 @@ export class GameSession {
           const hasClearSight3D = (tx: number, tz: number): boolean => {
             if (this.simWorld.colliders.segmentHits(camX, camZ, tx, tz) !== 0) return false;
             if (!this.simWorld.nav.isWalkableWorld(tx, tz)) return false;
+            let maxComp = 0;
+            if (this.simWorld.nav.componentCounts) {
+              for (const [cId, size] of this.simWorld.nav.componentCounts.entries()) {
+                if (cId >= 0 && size > maxComp) maxComp = size;
+              }
+            }
+            const compId = this.simWorld.nav.getComponentWorld(tx, tz);
+            const compSize = this.simWorld.nav.componentCounts?.get(compId) ?? 0;
+            if (compSize === 0 || (maxComp > 0 && compSize < maxComp)) return false;
 
             const rawTargetY = this.mapInstance.ground.heightAt(tx, tz);
             const groundH = Number.isFinite(rawTargetY) ? rawTargetY : -0.9;
             const targetY = Math.max(groundH, shoulderMinY);
-            const waistY = targetY + 0.5;
+            const waistY = targetY + 1.1;
             const steps = 14;
             for (let s = 1; s < steps; s++) {
               const t = s / steps;
@@ -3148,23 +3427,25 @@ export class GameSession {
               const iz = camZ + (tz - camZ) * t;
               const rayY = camY + (waistY - camY) * t;
               const gY = this.simWorld.ground.heightAt(ix, iz);
-              if (Number.isFinite(gY) && gY > rayY - 0.10) {
+              if (Number.isFinite(gY) && gY > rayY) {
                 return false; // occluded by intermediate platform slab / elevated terrain
               }
             }
             return true;
           };
 
-          // Search candidate rays within forward cone (4m to 14m), 5.5-6.5m optimal framing first
+          // Search candidate rays within forward cone (4m to 14m), 5.0-6.5m optimal framing first
           const angleOffsets = [0, 0.15, -0.15, 0.3, -0.3, 0.45, -0.45, 0.6, -0.6];
-          const distSteps = [5.5, 6.5, 7.5, 5.0, 8.5, 10.0, 12.0, 4.0];
+          const distSteps = [5.5, 5.0, 6.5, 7.5, 8.5, 10.0, 12.0, 4.0];
 
           for (const d of distSteps) {
             for (const angle of angleOffsets) {
-              const baseAngle = Math.atan2(forward.x, forward.z);
-              const testAngle = baseAngle + angle;
-              const tx = camX + Math.sin(testAngle) * d;
-              const tz = camZ + Math.cos(testAngle) * d;
+              const cosA = Math.cos(angle);
+              const sinA = Math.sin(angle);
+              const rx = forward.x * cosA - forward.z * sinA;
+              const rz = forward.x * sinA + forward.z * cosA;
+              const tx = camX + rx * d;
+              const tz = camZ + rz * d;
 
               // Check within bounds
               if (tx < bounds.minX + 1.5 || tx > bounds.maxX - 1.5 || tz < bounds.minZ + 1.5 || tz > bounds.maxZ - 1.5) {
@@ -3181,18 +3462,20 @@ export class GameSession {
             if (foundClear) break;
           }
 
-          // If forward cone did not find walkable water (e.g. spawned in dry foyer),
+          // If forward cone did not find walkable water (e.g. spawned facing a wall),
           // search radially for the closest walkable water cell with unobstructed 3D line of sight
           if (!foundClear) {
-            let closestDistSq = Infinity;
+            let bestScore = Infinity;
             for (let gz = 0; gz < this.simWorld.nav.depth; gz++) {
               for (let gx = 0; gx < this.simWorld.nav.width; gx++) {
                 if (this.simWorld.nav.walkable[gz * this.simWorld.nav.width + gx] === 1) {
                   const world = this.simWorld.nav.gridToWorld(gx, gz);
                   const dSq = (world.x - camX) ** 2 + (world.z - camZ) ** 2;
-                  if (dSq < closestDistSq && dSq >= 9.0 && dSq <= 1200.0) {
-                    if (hasClearSight3D(world.x, world.z)) {
-                      closestDistSq = dSq;
+                  if (dSq >= 16.0 && dSq <= 1200.0) {
+                    const dist = Math.sqrt(dSq);
+                    const score = Math.abs(dist - 6.5);
+                    if (score < bestScore && hasClearSight3D(world.x, world.z)) {
+                      bestScore = score;
                       bestX = world.x;
                       bestZ = world.z;
                       foundClear = true;
@@ -3203,21 +3486,20 @@ export class GameSession {
             }
           }
 
-          // Fallback if still blocked: find any walkable nav cell nearest to camera
+          // Final safety fallback to avoid NaN/out-of-bounds
           if (!foundClear) {
-            let closestDistSq = Infinity;
-            for (let gz = 0; gz < this.simWorld.nav.depth; gz++) {
-              for (let gx = 0; gx < this.simWorld.nav.width; gx++) {
-                if (this.simWorld.nav.walkable[gz * this.simWorld.nav.width + gx] === 1) {
-                  const world = this.simWorld.nav.gridToWorld(gx, gz);
-                  const dSq = (world.x - camX) ** 2 + (world.z - camZ) ** 2;
-                  if (dSq < closestDistSq && dSq >= 4.0) {
-                    closestDistSq = dSq;
-                    bestX = world.x;
-                    bestZ = world.z;
-                    foundClear = true;
-                  }
-                }
+            const sleeper = this.layout.spawns.monsters[0]?.sleeperSpawn ?? this.layout.spawns.monsters[0]?.spawn;
+            if (sleeper && this.simWorld.nav.isWalkableWorld(sleeper.x, sleeper.z)) {
+              bestX = sleeper.x;
+              bestZ = sleeper.z;
+            } else {
+              const lSpawn = this.simWorld.nav.findSpawnInLargestComponent();
+              if (lSpawn) {
+                bestX = lSpawn.x;
+                bestZ = lSpawn.z;
+              } else if (sleeper) {
+                bestX = sleeper.x;
+                bestZ = sleeper.z;
               }
             }
           }
@@ -3266,7 +3548,7 @@ export class GameSession {
           const lookDz = bestZ - camZ;
           const lookDist = Math.hypot(lookDx, lookDz);
           if (lookDist > 0.1) {
-            this.camera.position.set(camX, this.simWorld.player.pos.y + 1.65, camZ);
+            this.camera.position.set(camX, camY, camZ);
             this.camera.lookAt(bestX, targetY + 1.1, bestZ);
             const aimEuler = new Euler().setFromQuaternion(this.camera.quaternion, 'YXZ');
             this.simWorld.player.setYaw(aimEuler.y, aimEuler.x);
@@ -3522,6 +3804,11 @@ export class GameSession {
       this.trajectoryLine = null;
     }
 
+    this.audio.setColliders(null);
+    if (this.menuMusic) {
+      this.menuMusic.stop();
+      this.menuMusic = null;
+    }
     this.jumpscare.dispose();
     this.playerInput.dispose();
     this.footsteps.dispose();
@@ -3533,6 +3820,10 @@ export class GameSession {
     this.lensOverlay.dispose();
     this.opaqueDepthTarget?.dispose();
     this.waterCompositeTarget?.dispose();
+    if (this.envTexture) {
+      this.envTexture.dispose();
+      this.envTexture = null;
+    }
     this.mapInstance.dispose();
     this.pingMarkers.dispose();
     if (this.orientationDirector) {

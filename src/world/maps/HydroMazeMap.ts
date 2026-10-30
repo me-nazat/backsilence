@@ -5,7 +5,7 @@
  * ──────────────────────────────────────────────────────────────────────── */
 
 import { MeshStandardMaterial } from 'three';
-import type { LayoutCtx, LayoutData, MapDefinition, PlatformDef, BoxDef, PropDef, BuildEnv } from '../MapTypes.js';
+import type { LayoutCtx, LayoutData, MapDefinition, PlatformDef, BoxDef, PropDef, StairDef, BuildEnv } from '../MapTypes.js';
 import type { MapInstance } from './MapInstance.js';
 import { Rng } from '../../procedural/core/prng.js';
 import { TextureRegistry } from '../../procedural/textures/TextureRegistry.js';
@@ -36,7 +36,7 @@ export const HydroMazeMap: MapDefinition = {
       color: '#c2e0db',
       intensity: 0.8,
       direction: { x: 0.0, y: 1.0, z: 0.2 },
-      castShadow: false,
+      castShadow: true,
     },
   },
   waterProfile: WATER_PROFILES.hydro_maze,
@@ -52,6 +52,7 @@ export const HydroMazeMap: MapDefinition = {
     const platforms: PlatformDef[] = [];
     const walls: BoxDef[] = [];
     const props: PropDef[] = [];
+    const stairs: StairDef[] = [];
 
     // 9x9 Grid of 8m cells (-36 to +36)
     // Cell coordinates: col 0..8, row 0..8
@@ -122,6 +123,13 @@ export const HydroMazeMap: MapDefinition = {
 
     // Spawn is at (0, 0) in grid coords -> (-32, -32) world: W1 tier
     cellTiers.set('0,0', 'walk1');
+    // Connect corridor north of spawn directly into main basin
+    cellTiers.set('0,1', 'basin');
+    cellTiers.set('0,2', 'basin');
+    cellTiers.set('0,3', 'basin');
+    cellTiers.set('0,4', 'basin');
+    cellTiers.set('0,5', 'basin');
+    cellTiers.set('0,6', 'basin');
     // Fuse bay is at center (4, 4): W2 tier
     cellTiers.set('4,4', 'walk2');
 
@@ -237,6 +245,20 @@ export const HydroMazeMap: MapDefinition = {
       { id: 'maze_bound_e', min: { x: 35.5, y: -0.9, z: -36 }, max: { x: 36, y: 5.0, z: 36 }, isWall: true },
     );
 
+    // Raised observation vantage platform & stairs (Prompt 5.3)
+    platforms.push({ id: 'vantage_perch', rect: [-22, -22, -16, -16], topY: 1.1, kind: 'metal' });
+    stairs.push({
+      id: 'stair_perch',
+      x: -20,
+      z: -23.12,
+      width: 2.4,
+      riser: 0.20,
+      run: 0.28,
+      steps: 4,
+      baseY: 0.3,
+      direction: 'z+',
+    });
+
     // Player spawn at cell (0, 0)
     const playerSpawn = { x: -32.0, y: 0.3, z: -32.0 };
     // Monster spawn in central basin cell (3, 4)
@@ -249,8 +271,20 @@ export const HydroMazeMap: MapDefinition = {
       platforms,
       walls,
       pillars: [],
-      stairs: [],
+      stairs,
       waterBodies: [
+        {
+          id: 'deep_sump',
+          rect: [-12, -12, 12, 12],
+          floorY: -1.4,
+          waterY: -0.2,
+        },
+        {
+          id: 'shallow_wading_lane',
+          rect: [-36, -36, -20, -20],
+          floorY: -0.75,
+          waterY: -0.2,
+        },
         {
           id: 'maze_water',
           rect: [-36, -36, 36, 36],
@@ -274,7 +308,7 @@ export const HydroMazeMap: MapDefinition = {
             id: 'monster_maze',
             variant: 'standard',
             spawn: monsterPos,
-            sleeperSpawn: { x: -16.0, y: -0.9, z: -16.0 },
+            sleeperSpawn: { x: -32.0, y: -0.9, z: -8.0 },
             speedMul: 0.95,
           },
         ],
@@ -312,6 +346,8 @@ export const HydroMazeMap: MapDefinition = {
       normalMap: concrete.normal,
       roughness: 0.65,
       metalness: 0.05,
+      envMapIntensity: 0.35,
+      vertexColors: true,
     });
 
     const wallMat = new MeshStandardMaterial({
@@ -320,6 +356,8 @@ export const HydroMazeMap: MapDefinition = {
       normalMap: concrete.normal,
       roughness: 0.8,
       metalness: 0.02,
+      envMapIntensity: 0.35,
+      vertexColors: true,
     });
 
     const floorMat = new MeshStandardMaterial({
@@ -329,6 +367,8 @@ export const HydroMazeMap: MapDefinition = {
       metalnessMap: metal.metalness,
       roughness: 0.3,
       metalness: 0.7,
+      envMapIntensity: 0.35,
+      vertexColors: true,
     });
 
     return buildStandardMapInstance(layout, env, { platformMat, wallMat, floorMat });

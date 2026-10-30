@@ -66,16 +66,20 @@ export class MenuMusic {
   }
 
   /**
-   * Sets in-game dread (0..1). In main menus, pass 0.0 to fall back to peaceful aquatic ambiance.
+   * Sets in-game dread/tension (0..1).
+   * Prompt 3.2: Pad should be indistinguishable at tension 0 and oppressive at tension 1.
    */
   setDread(level: number): void {
     this.dread = Math.max(0, Math.min(1.0, level));
+    const ctx = this.engine.getContext();
+    if (!ctx) return;
+
     if (this.dreadGain) {
-      const ctx = this.engine.getContext();
-      if (ctx) {
-        // Dread layer fades in proportionally to tension
-        this.dreadGain.gain.setTargetAtTime(this.dread * 0.4, ctx.currentTime, 0.5);
-      }
+      this.dreadGain.gain.setTargetAtTime(this.dread * 0.55, ctx.currentTime, 0.4);
+    }
+    if (this.padGain && !this.isMuted) {
+      const targetPad = this.volume * (0.05 + 0.95 * Math.pow(this.dread, 1.4));
+      this.padGain.gain.setTargetAtTime(targetPad, ctx.currentTime, 0.4);
     }
   }
 
@@ -89,10 +93,12 @@ export class MenuMusic {
 
     // Master music bus gain
     const musicBus = ctx.createGain();
-    musicBus.gain.setValueAtTime(this.isMuted ? 0.0001 : this.volume, now);
-    const ambientBus = this.engine.getBusNode('ambient');
-    if (ambientBus) {
-      musicBus.connect(ambientBus);
+    // At tension 0, start faint/indistinguishable
+    const initialPadGain = this.isMuted ? 0.0001 : this.volume * (0.05 + 0.95 * Math.pow(this.dread, 1.4));
+    musicBus.gain.setValueAtTime(initialPadGain, now);
+    const busNode = this.engine.getBusNode('music') ?? this.engine.getBusNode('ambient');
+    if (busNode) {
+      musicBus.connect(busNode);
     } else {
       musicBus.connect(ctx.destination);
     }

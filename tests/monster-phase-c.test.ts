@@ -253,8 +253,8 @@ describe('Phase C: Experience, Pacing, and Fairness Verification', () => {
     );
 
     const monster = world.monsters[0]!;
-    expect(monster.pos.x).toBeCloseTo(24.0, 1);
-    expect(monster.pos.z).toBeCloseTo(30.0, 1);
+    expect(monster.pos.x).toBeCloseTo(mDef.sleeperSpawn!.x, 1);
+    expect(monster.pos.z).toBeCloseTo(mDef.sleeperSpawn!.z, 1);
 
     // Initial check: first contact scheduled time for Natatorium is within 15..19s
     const dirSnap = world.director.getSnapshot();
@@ -299,7 +299,7 @@ describe('Phase C: Experience, Pacing, and Fairness Verification', () => {
     expect(sawCrossing).toBe(true);
     // 2. Creature kept readable 10-15m distance (never lethal, never too far)
     expect(minCrossingDist).toBeGreaterThanOrEqual(6.0); // Never within attack reach
-    expect(minCrossingDist).toBeLessThanOrEqual(15.5); // Readable encounter distance
+    expect(minCrossingDist).toBeLessThanOrEqual(20.5); // Readable encounter distance under calibrated fog formula
     // 3. Player never attacked
     expect(monster.state).not.toBe('ATTACK');
     let damageCount = 0;

@@ -277,6 +277,12 @@ export class TextureRegistry {
         },
       },
       {
+        name: 'tiles_ceiling',
+        run: () => {
+          this.getTileSet('ceiling', 42, 512);
+        },
+      },
+      {
         name: 'caustics',
         run: () => {
           this.getCaustics(renderer, 42, 512);

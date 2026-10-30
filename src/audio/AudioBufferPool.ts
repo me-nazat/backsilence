@@ -15,6 +15,7 @@ export type PooledVoiceCategory =
   | 'wade_step'
   | 'drip'
   | 'step_wet'
+  | 'step_dry'
   | 'monster_footfall';
 
 /** Synthesizes a single van den Doel (2005) bubble into a buffer */
@@ -200,22 +201,93 @@ function renderWetStepBuffer(sampleRate: number, seed: number): Float32Array {
     out[i] = (out[i] ?? 0) + b0 * Math.exp(-t * 120.0) * 0.6;
   }
 
-  // 2. Rubber sole squelch release (starts 15 ms after tap, duration 60 ms)
-  const squelchOffset = Math.floor(0.015 * sampleRate);
+  // 2. Rubber sole squelch release (Prompt 3.3: 520 + 180*sin(90t) Hz, amplitude 0.20, starting at +22 ms)
+  const squelchOffset = Math.floor(0.022 * sampleRate);
   const squelchDur = 0.06;
   const squelchSamples = Math.floor(squelchDur * sampleRate);
   for (let i = 0; i < squelchSamples; i++) {
     const t = i / sampleRate;
     const idx = squelchOffset + i;
     if (idx >= length) break;
-    // Viscous air escape suction pop
-    const f = 800 + Math.sin(t * 150) * 300;
+    const f = 520 + 180 * Math.sin(90 * t);
     const phase = 2.0 * Math.PI * f * t;
     const env = Math.sin((t / squelchDur) * Math.PI);
-    out[idx] = (out[idx] ?? 0) + Math.sin(phase) * env * 0.28;
+    out[idx] = (out[idx] ?? 0) + Math.sin(phase) * env * 0.20;
   }
 
   normalizeAndFade(out, sampleRate, 0.7);
+  return out;
+}
+
+/** Synthesize dry ceramic footstep (Prompt 3.3): crisp ceramic tap + soft body thump + grit tick, NO squelch */
+function renderDryStepBuffer(sampleRate: number, seed: number): Float32Array {
+  const rng = new Rng(seed);
+  const duration = 0.18;
+  const length = Math.floor(sampleRate * duration);
+  const out = new Float32Array(length);
+
+  // 1. Ceramic tap: bandpass 2100-2600 Hz, Q 2.6, decay exp(-t * 120), amplitude 0.55
+  const tapDur = 0.035;
+  const tapSamples = Math.floor(tapDur * sampleRate);
+  const centerFreq = rng.range(2100, 2600);
+  const theta = (2.0 * Math.PI * centerFreq) / sampleRate;
+  const r = 0.89; // Q ~ 2.6
+  let b0 = 0, b1 = 0;
+  for (let i = 0; i < tapSamples; i++) {
+    const t = i / sampleRate;
+    const s = (rng.next() * 2.0 - 1.0) * (1.0 - r);
+    b0 = s + 2.0 * r * Math.cos(theta) * b0 - r * r * b1;
+    b1 = b0;
+    out[i] = (out[i] ?? 0) + b0 * Math.exp(-t * 120.0) * 0.55;
+  }
+
+  // 2. Soft body thump: 80 Hz -> 40 Hz exponential over 35 ms, amplitude 0.30
+  const thumpDur = 0.035;
+  const thumpSamples = Math.floor(thumpDur * sampleRate);
+  for (let i = 0; i < thumpSamples; i++) {
+    const t = i / sampleRate;
+    const f = 80.0 * Math.pow(40.0 / 80.0, t / thumpDur);
+    const phase = 2.0 * Math.PI * f * t;
+    const env = Math.sin((t / thumpDur) * Math.PI);
+    out[i] = (out[i] ?? 0) + Math.sin(phase) * env * 0.30;
+  }
+
+  // 3. Faint 5-9 kHz "grit" tick at amplitude 0.06 for tile texture
+  const gritDur = 0.020;
+  const gritSamples = Math.floor(gritDur * sampleRate);
+  const gritTheta = (2.0 * Math.PI * rng.range(5000, 9000)) / sampleRate;
+  let g0 = 0, g1 = 0;
+  const gr = 0.82;
+  for (let i = 0; i < gritSamples; i++) {
+    const t = i / sampleRate;
+    const s = (rng.next() * 2.0 - 1.0) * (1.0 - gr);
+    g0 = s + 2.0 * gr * Math.cos(gritTheta) * g0 - gr * gr * g1;
+    g1 = g0;
+    out[i] = (out[i] ?? 0) + g0 * Math.exp(-t * 200.0) * 0.06;
+  }
+
+  // Peak-normalised to 0.62 (dry is quieter than wading)
+  let maxPeak = 0;
+  for (let i = 0; i < length; i++) {
+    const v = Math.abs(out[i] ?? 0);
+    if (v > maxPeak) maxPeak = v;
+  }
+  if (maxPeak > 1e-4) {
+    const scale = 0.62 / maxPeak;
+    for (let i = 0; i < length; i++) {
+      out[i] = (out[i] ?? 0) * scale;
+    }
+  }
+
+  // Smooth tail fade
+  const fadeSamples = Math.floor(0.01 * sampleRate);
+  for (let i = 0; i < fadeSamples; i++) {
+    const idx = length - 1 - i;
+    if (idx >= 0) {
+      out[idx] = (out[idx] ?? 0) * (i / fadeSamples);
+    }
+  }
+
   return out;
 }
 
@@ -226,14 +298,14 @@ function renderMonsterFootfallBuffer(sampleRate: number, seed: number): Float32A
   const length = Math.floor(sampleRate * duration);
   const out = new Float32Array(length);
 
-  // Sub-bass physical floor shock (38 - 55 Hz)
+  // Sub-bass physical floor shock (44 Hz with 0.11s decay - Prompt 7.8)
   const shockDur = 0.28;
   const shockSamples = Math.floor(shockDur * sampleRate);
   for (let i = 0; i < shockSamples; i++) {
     const t = i / sampleRate;
-    const f = 55.0 * Math.exp(-t * 6.0);
+    const f = 44.0 * Math.exp(-t * 5.0);
     const phase = 2.0 * Math.PI * f * t;
-    out[i] = (out[i] ?? 0) + Math.sin(phase) * Math.exp(-t * 14.0) * 0.65;
+    out[i] = (out[i] ?? 0) + Math.sin(phase) * Math.exp(-t / 0.11) * 0.65;
   }
 
   // Heavy water displacement slosh
@@ -370,6 +442,15 @@ export class AudioBufferPool {
       this.pools.set('step_wet', wet);
     });
 
+    // 4 Dry footsteps (Prompt 3.3)
+    tasks.push(() => {
+      const dry = [];
+      for (let i = 0; i < 4; i++) {
+        dry.push(createBuf(renderDryStepBuffer(sampleRate, 650 + i)));
+      }
+      this.pools.set('step_dry', dry);
+    });
+
     // 4 Monster footfalls
     tasks.push(() => {
       const feet = [];
@@ -415,6 +496,7 @@ export class AudioBufferPool {
       wade: this.pools.get('wade_step')?.length ?? 0,
       drip: this.pools.get('drip')?.length ?? 0,
       step: this.pools.get('step_wet')?.length ?? 0,
+      step_dry: this.pools.get('step_dry')?.length ?? 0,
       monster_footfall: this.pools.get('monster_footfall')?.length ?? 0,
     };
     return res;

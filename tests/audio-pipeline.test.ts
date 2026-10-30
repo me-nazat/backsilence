@@ -98,14 +98,14 @@ function createMockAudioContext(): BaseAudioContext {
 }
 
 describe('Prompt 4 Phase F: Audio Pipeline Verification Suite', () => {
-  it('1. AudioBufferPool warms up and generates 28 baked procedural one-shots', async () => {
+  it('1. AudioBufferPool warms up and generates 32 baked procedural one-shots', async () => {
     const ctx = createMockAudioContext();
     const pool = new AudioBufferPool(ctx);
 
     expect(pool.ready).toBe(false);
     await pool.warmup();
     expect(pool.ready).toBe(true);
-    expect(pool.size).toBe(28);
+    expect(pool.size).toBe(32);
 
     // Verify all pools are populated
     const stats = pool.stats();
@@ -113,6 +113,7 @@ describe('Prompt 4 Phase F: Audio Pipeline Verification Suite', () => {
     expect(stats.wade).toBe(6);
     expect(stats.drip).toBe(6);
     expect(stats.step).toBe(4);
+    expect(stats.step_dry).toBe(4);
     expect(stats.monster_footfall).toBe(4);
   });
 
@@ -177,10 +178,10 @@ describe('Prompt 4 Phase F: Audio Pipeline Verification Suite', () => {
     expect(mixer.subBassHighpass.type).toBe('highpass');
     expect(mixer.subBassHighpass.frequency.value).toBe(25.0);
 
-    // Brickwall peak limiter
-    expect(mixer.masterLimiter.threshold.value).toBe(-1.0);
+    // Master limiter compressor (Prompt 3.8: -3.0 dB, ratio 20, attack 0.0005)
+    expect(mixer.masterLimiter.threshold.value).toBe(-3.0);
     expect(mixer.masterLimiter.ratio.value).toBe(20.0);
-    expect(mixer.masterLimiter.attack.value).toBe(0.001);
+    expect(mixer.masterLimiter.attack.value).toBe(0.0005);
 
     // Stillness listening dip
     mixer.setListeningDip(true);

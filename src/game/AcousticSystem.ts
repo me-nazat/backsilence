@@ -15,6 +15,7 @@ export class AcousticSystem {
   private settings: Settings;
 
   private currentTension = 0;
+  private lastRippleTickTime = 0;
 
   constructor(audio: AudioEngine, hud: Hud, settings: Settings) {
     this.audio = audio;
@@ -40,6 +41,7 @@ export class AcousticSystem {
     // 1. Compute target tension across all monsters
     // tension = clamp(max over monsters of stateWeight * proximityWeight)
     let maxTension = 0;
+    let minMonsterDist = Infinity;
 
     for (let i = 0; i < monsters.length; i++) {
       const m = monsters[i]!;
@@ -48,6 +50,9 @@ export class AcousticSystem {
       const dy = snap.pos.y - playerPos.y;
       const dz = snap.pos.z - playerPos.z;
       const dist = Math.hypot(dx, dy, dz);
+      if (dist < minMonsterDist) {
+        minMonsterDist = dist;
+      }
 
       let stateWeight = 0;
       switch (snap.state) {
@@ -88,6 +93,13 @@ export class AcousticSystem {
     this.currentTension += (clampedTarget - this.currentTension) * Math.min(1.0, dt * rate);
     this.audio.setTension(this.currentTension);
 
+    // Prompt 3.5: Proximity ducking as monster closes inside 18m so creature footsteps dominate
+    if (minMonsterDist < 18.0) {
+      const proxT = Math.max(0, Math.min(1.0, (18.0 - minMonsterDist) / 18.0));
+      const ambientDuck = 1.0 - 0.65 * proxT;
+      this.audio.duckBus('ambient', ambientDuck, 0.1, 0.5);
+    }
+
     // 2. Sound Visualizer processing for recent noises
     const visualizerEnabled = this.settings.audio.soundVisualizer;
     if (visualizerEnabled && recentNoises.length > 0) {
@@ -111,9 +123,14 @@ export class AcousticSystem {
         while (relAngle < -Math.PI) relAngle += Math.PI * 2;
 
         // Flash directional arc around crosshair for loud sounds (loudness >= 0.5)
+        // Prompt 3.13: Rate limit ripple_tick to 1 tick per 1.5s, drop gain to 0.08
         if (noise.loudness >= 0.5) {
           this.hud.flashDirectionArc(relAngle, noise.loudness, reducedMotion);
-          this.audio.play('ripple_tick', { gain: 0.15 });
+          const now = performance.now();
+          if (now - this.lastRippleTickTime >= 1500) {
+            this.audio.play('ripple_tick', { gain: 0.08 });
+            this.lastRippleTickTime = now;
+          }
         }
 
         // Generate caption with sound descriptor, rough distance, and relative angle

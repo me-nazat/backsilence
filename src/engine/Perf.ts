@@ -5,6 +5,15 @@
 import type { WebGLRenderer } from 'three';
 import { TextureRegistry } from '../procedural/textures/TextureRegistry.js';
 
+export const PERF_BUDGET = {
+  drawCalls: 220,
+  triangles: 450000,
+  programs: 90,
+  textures: 120,
+  frameTimeHighMs: 16.7,
+  frameTimeLowMs: 33.0,
+} as const;
+
 export interface PerfSnapshot {
   fps: number;
   frameTimeMs: number;
@@ -12,9 +21,17 @@ export interface PerfSnapshot {
   triangles: number;
   geometries: number;
   textures: number;
+  programs: number;
   textureMemoryMB: string;
   jsHeapMB: string;
   menuInteractiveMs: number;
+  budgetExceeded?: {
+    drawCalls: boolean;
+    triangles: boolean;
+    programs: boolean;
+    textures: boolean;
+    frameTime: boolean;
+  };
 }
 
 export class PerfTracker {
@@ -64,16 +81,30 @@ export class PerfTracker {
       jsHeap = (used / (1024 * 1024)).toFixed(1) + ' MB';
     }
 
+    const calls = (renderer as unknown as { lastFrameCalls?: number })?.lastFrameCalls ?? renderer?.info.render.calls ?? 0;
+    const triangles = (renderer as unknown as { lastFrameTriangles?: number })?.lastFrameTriangles ?? renderer?.info.render.triangles ?? 0;
+    const geometries = renderer?.info.memory.geometries ?? 0;
+    const textures = renderer?.info.memory.textures ?? 0;
+    const programs = renderer?.info.programs?.length ?? 0;
+
     return {
       fps: Math.round(this.rollingFps),
       frameTimeMs: parseFloat(this.rollingFrameTime.toFixed(1)),
-      drawCalls: renderer?.info.render.calls ?? 0,
-      triangles: renderer?.info.render.triangles ?? 0,
-      geometries: renderer?.info.memory.geometries ?? 0,
-      textures: renderer?.info.memory.textures ?? 0,
+      drawCalls: calls,
+      triangles,
+      geometries,
+      textures,
+      programs,
       textureMemoryMB: texStats.memoryMB,
       jsHeapMB: jsHeap,
       menuInteractiveMs: this.menuInteractiveTime,
+      budgetExceeded: {
+        drawCalls: calls > PERF_BUDGET.drawCalls,
+        triangles: triangles > PERF_BUDGET.triangles,
+        programs: programs > PERF_BUDGET.programs,
+        textures: textures > PERF_BUDGET.textures,
+        frameTime: this.rollingFrameTime > PERF_BUDGET.frameTimeLowMs,
+      },
     };
   }
 }

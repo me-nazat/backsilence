@@ -94,7 +94,7 @@ export class HowToPlay {
             </div>
             <div style="font-weight: bold; font-size: 13px; color: var(--fog); margin-bottom: 6px;">4. FIND THE NUMBERS</div>
             <div style="font-size: 11px; opacity: 0.8; line-height: 1.4;">
-              Locate giant spray-painted numbers on submerged pillars (#1, #2, #3). Collect the sequence to unlock the floodgate exit code.
+              Locate giant spray-painted numbers on submerged pillars (#1, #2, #3, #4). Collect the four-digit sequence to unlock the floodgate exit code.
             </div>
           </div>
 

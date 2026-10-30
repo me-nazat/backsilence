@@ -76,12 +76,17 @@ export interface Settings {
     vhsOsd: boolean;
     vhsLines: number;
     fpsCap?: 30 | 60 | 0 | undefined;
+    toneMapping?: 'ACES' | 'AgX' | 'Neutral' | 'aces' | 'agx' | 'neutral' | undefined;
   };
   audio: {
     master: number;
     sfx: number;
     ambient: number;
     monster: number;
+    ui?: number | undefined;
+    musicVolume?: number | undefined;
+    reverbWet?: number | undefined;
+    duckingEnabled?: boolean | undefined;
     muteOnBlur: boolean;
     soundVisualizer: boolean;
     outputProfile?: 'headphones' | 'speakers' | 'phone' | 'night' | 'mono' | undefined;

@@ -15,6 +15,7 @@ import {
   BoxGeometry,
   Vector3,
   Color,
+  PointLight,
 } from 'three';
 import type {
   LayoutCtx,
@@ -63,7 +64,7 @@ export const NatatoriumMap: MapDefinition = {
       color: '#fffbf0',
       intensity: 1.1,
       direction: { x: 0.35, y: 0.9, z: 0.25 },
-      castShadow: false,
+      castShadow: true,
     },
   },
   waterProfile: WATER_PROFILES.natatorium,
@@ -519,7 +520,7 @@ export const NatatoriumMap: MapDefinition = {
         id: 'monster_1',
         variant: 'standard',
         spawn: monsterSpawn,
-        sleeperSpawn: { x: 24.0, y: -0.9, z: 30.0 },
+        sleeperSpawn: { x: 2.0, y: -0.9, z: 22.0 },
         spawnGrace: 20.0,
       },
     ];
@@ -598,8 +599,11 @@ export const NatatoriumMap: MapDefinition = {
       roughnessMap: platformTiles.roughness,
       normalMap: platformTiles.normal,
       aoMap: platformTiles.ao,
+      aoMapIntensity: 0.85,
       roughness: 0.35,
       metalness: 0.02,
+      envMapIntensity: 0.35,
+      vertexColors: true,
     });
     applyWetDarkening(platformMat, { waterY: 0.0 });
     applyParallaxOcclusion(platformMat, { heightMap: platformTiles.height, scale: 0.015, maxDistance: 6.0 });
@@ -608,8 +612,12 @@ export const NatatoriumMap: MapDefinition = {
       map: wallTiles.albedo,
       roughnessMap: wallTiles.roughness,
       normalMap: wallTiles.normal,
+      aoMap: wallTiles.ao,
+      aoMapIntensity: 0.85,
       roughness: 0.45,
       metalness: 0.05,
+      envMapIntensity: 0.35,
+      vertexColors: true,
     });
     applyWetDarkening(wallMat, { waterY: 0.0 });
 
@@ -618,15 +626,33 @@ export const NatatoriumMap: MapDefinition = {
       roughnessMap: floorTiles.roughness,
       normalMap: floorTiles.normal,
       aoMap: floorTiles.ao,
+      aoMapIntensity: 0.85,
       roughness: 0.25,
       metalness: 0.04,
+      envMapIntensity: 0.35,
+      vertexColors: true,
     });
     applyParallaxOcclusion(floorMat, { heightMap: floorTiles.height, scale: 0.015, maxDistance: 6.0 });
+
+    const ceilingTiles = tex.getTileSet('ceiling', layout.seed);
+    const ceilingArchMat = new MeshStandardMaterial({
+      map: ceilingTiles.albedo,
+      roughnessMap: ceilingTiles.roughness,
+      normalMap: ceilingTiles.normal,
+      aoMap: ceilingTiles.ao,
+      aoMapIntensity: 0.85,
+      roughness: 0.70,
+      metalness: 0.05,
+      color: new Color('#b7a775'),
+      envMapIntensity: 0.35,
+      vertexColors: true,
+    });
 
     const instance = buildStandardMapInstance(layout, env, {
       platformMat,
       wallMat,
       floorMat,
+      ceilingMat: ceilingArchMat,
     });
 
     // 0. Spawn Wall Tagline Decal ("IT CAN'T SEE YOU. IT HEARS THE WATER.")
@@ -646,19 +672,52 @@ export const NatatoriumMap: MapDefinition = {
     tagMesh.name = 'SpawnTagline';
     instance.root.add(tagMesh);
 
+    // Foyer floor guide decal ("TURN BACK -> POOL HALL")
+    const foyerTurnTex = tex.getPaintedLabel({
+      text: 'TURN BACK ->',
+      subtext: 'POOL HALL',
+      color: '#3a4430',
+      width: 512,
+      height: 256,
+    });
+    const foyerTurnMat = new MeshBasicMaterial({
+      map: foyerTurnTex,
+      transparent: true,
+      depthWrite: false,
+      polygonOffset: true,
+      polygonOffsetFactor: -1,
+      polygonOffsetUnits: -1,
+    });
+    const foyerTurnMesh = new Mesh(new PlaneGeometry(2.8, 1.4), foyerTurnMat);
+    foyerTurnMesh.rotation.x = -Math.PI / 2;
+    foyerTurnMesh.rotation.z = Math.PI; // points towards -Z (pool hall)
+    foyerTurnMesh.position.set(0, 0.305, 48.5);
+    foyerTurnMesh.name = 'FoyerTurnDecal';
+    instance.root.add(foyerTurnMesh);
+
+    // Soft foyer guide light pointing toward the pool hall
+    const foyerGuideLight = new PointLight(0xd6dccd, 1.4, 22.0, 1.2);
+    foyerGuideLight.position.set(0, 3.5, 46.0);
+    foyerGuideLight.name = 'FoyerGuideLight';
+    instance.root.add(foyerGuideLight);
+
     // Foyer ceiling (encloses spawn area at height 6.0m)
     const foyerCeilingGeom = new BoxGeometry(25.0, 0.4, 15.0);
-    scaleBoxUv(foyerCeilingGeom, 25.0, 0.4, 15.0, 2.4);
-    const foyerCeiling = new Mesh(foyerCeilingGeom, wallMat);
+    scaleBoxUv(foyerCeilingGeom, 25.0, 0.4, 15.0, 1.6);
+    const foyerCeiling = new Mesh(foyerCeilingGeom, ceilingArchMat);
     foyerCeiling.position.set(0, 6.0, 45.5);
+    foyerCeiling.castShadow = true;
+    foyerCeiling.receiveShadow = true;
     foyerCeiling.name = 'FoyerCeiling';
     instance.root.add(foyerCeiling);
 
     // Vaulted ceiling over grand pool hall (covers full map bounds, height 9.0m)
     const grandRoofGeom = new BoxGeometry(140.0, 0.5, 120.0);
-    scaleBoxUv(grandRoofGeom, 140.0, 0.5, 120.0, 2.4);
-    const grandRoof = new Mesh(grandRoofGeom, wallMat);
+    scaleBoxUv(grandRoofGeom, 140.0, 0.5, 120.0, 1.6);
+    const grandRoof = new Mesh(grandRoofGeom, ceilingArchMat);
     grandRoof.position.set(0, 9.0, 0);
+    grandRoof.castShadow = true;
+    grandRoof.receiveShadow = true;
     grandRoof.name = 'GrandHallCeiling';
     instance.root.add(grandRoof);
 
@@ -688,6 +747,16 @@ export const NatatoriumMap: MapDefinition = {
     });
     shaft.position.set(0, 7.0, 0);
     instance.root.add(shaft);
+
+    // Drifting dust motes inside the grand hall light shaft (Prompt 5.6)
+    const grandHallMotes = createDustMotes({
+      count: 36,
+      bounds: { minX: -3.5, maxX: 3.5, minY: 1.0, maxY: 12.5, minZ: -3.5, maxZ: 3.5 },
+      color: '#fffbe8',
+      size: 0.06,
+      seed: 991,
+    });
+    instance.root.add(grandHallMotes);
 
     // Y-shaped antler standing fixtures on distant platform slabs (reference v_05s, v_12s)
     const yFixtureGeom = buildYFixtureGeometry();

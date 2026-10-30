@@ -30,8 +30,8 @@ describe('Prompt 4 Phase A: Art Direction & Design Tokens', () => {
     expect(PALETTE.cream).toBe('#e9dca8');
     expect(PALETTE.tan).toBe('#d8b36a');
     expect(PALETTE.grout).toBe('#5b4526');
-    expect(PALETTE.water).toBe('#86cfa0');
-    expect(PALETTE.waterDeep).toBe('#3f9c6b');
+    expect(PALETTE.water).toBe('#7d9a55');
+    expect(PALETTE.waterDeep).toBe('#33502a');
     expect(PALETTE.danger).toBe('#b3261e');
     expect(PALETTE.focus).toBe('#86cfa0');
   });
@@ -70,7 +70,7 @@ describe('Prompt 4 Phase A: Art Direction & Design Tokens', () => {
     expect(MOTION_TOKENS.fast).toBe(120);
     const css = generateCssTokens();
     expect(css).toContain('--bs-ink: #0d0b06');
-    expect(css).toContain('--bs-water: #86cfa0');
+    expect(css).toContain('--bs-water: #7d9a55');
   });
 
   it('contains ~40 inline SVG icons with 2px stroke and currentColor', () => {

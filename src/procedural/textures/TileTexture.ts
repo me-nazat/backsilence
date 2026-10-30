@@ -16,7 +16,7 @@ import { createNoisePermutation, fbm2DTileable } from '../core/noise.js';
 import { hexToRgb, jitterColor } from '../core/color.js';
 import { acquireCanvas } from '../core/canvasPool.js';
 
-export type TileVariant = 'platform' | 'wall' | 'floorWet';
+export type TileVariant = 'platform' | 'wall' | 'floorWet' | 'ceiling';
 
 export interface TileSetOptions {
   variant: TileVariant;
@@ -35,22 +35,28 @@ export interface TileSetResult {
 
 const PALETTE: Record<TileVariant, { base: string; grout: string; grid: number; crackRate: number }> = {
   platform: {
-    base: '#b7a87b',
+    base: '#b8873f',
     grout: '#5b4526',
     grid: 16,
     crackRate: 0.02,
   },
   wall: {
-    base: '#bea772',
+    base: '#d6c79c',
     grout: '#5b4526',
     grid: 16,
     crackRate: 0.01,
   },
   floorWet: {
-    base: '#889f63',
+    base: '#9aa08c',
     grout: '#3d3824',
     grid: 8,
-    crackRate: 0.38,
+    crackRate: 0.08,
+  },
+  ceiling: {
+    base: '#b7a775',
+    grout: '#5b4526',
+    grid: 16,
+    crackRate: 0.01,
   },
 };
 

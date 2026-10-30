@@ -11,8 +11,8 @@ export const PALETTE = {
   tan: '#d8b36a',
   grout: '#5b4526',
   fog: '#d9d3a2',
-  water: '#86cfa0',
-  waterDeep: '#3f9c6b',
+  water: '#7d9a55',
+  waterDeep: '#33502a',
   danger: '#b3261e',
 
   // Tile aliases for backwards compatibility

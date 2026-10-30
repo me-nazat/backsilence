@@ -21,8 +21,8 @@ describe('Phase A3: Settings and Profile Migration & Resilience', () => {
   it('loads pristine defaults when storage is empty', () => {
     const s = loadSettings(storage);
     expect(s.version).toBe(2);
-    expect(s.graphics.fov).toBe(75);
-    expect(s.audio.master).toBe(0.8);
+    expect(s.graphics.fov).toBe(72);
+    expect(s.audio.master).toBe(0.85);
   });
 
   it('migrates legacy poolrooms.settings.v1 without throwing', () => {

@@ -23,7 +23,7 @@ import type { GameSession } from '../GameSession.js';
 export interface MonsterProbeResult {
   verdict: {
     pass: boolean;
-    layer: 'L0' | 'L1' | 'L2' | 'L3' | 'L4' | 'L5' | 'NONE';
+    layer: 'L0' | 'L1' | 'L2' | 'L3' | 'L4' | 'L5' | 'L6' | 'L7' | 'NONE';
     reason: string;
     fields: Record<string, unknown>;
   };
@@ -80,6 +80,7 @@ export interface MonsterProbeResult {
   L3: {
     pass: boolean;
     pixelCount: number;
+    maskContaminated?: boolean;
     boundingBox: { minX: number; minY: number; maxX: number; maxY: number; width: number; height: number };
   };
   L4: {
@@ -92,6 +93,18 @@ export interface MonsterProbeResult {
     metersMoved60s: number;
     stateChangesCount: number;
     timeSinceLastWaypoint: number;
+  };
+  L6: {
+    pass: boolean;
+    inSceneGraph: boolean;
+    parentChain: string[];
+  };
+  L7: {
+    pass: boolean;
+    connectedComponentSize: number;
+    maxComponentSize: number;
+    inLargestComponent: boolean;
+    spawnCell: { gx: number; gz: number };
   };
 }
 
@@ -392,51 +405,64 @@ export function runMonsterProbe(session: GameSession): MonsterProbeResult {
     }
   }
 
-  const unlitOverrideMat = new MeshBasicMaterial({ color: 0xffffff });
+  const unlitOverrideMat = new MeshBasicMaterial({ color: 0xff00ff, fog: false });
   const prevOverride = scene.overrideMaterial;
   const prevTarget = renderer.getRenderTarget();
   const prevColor = new Color();
   renderer.getClearColor(prevColor);
   const prevAlpha = renderer.getClearAlpha();
   const prevBg = scene.background;
-
-  scene.background = null;
-  scene.overrideMaterial = unlitOverrideMat;
-  renderer.setRenderTarget(sharedMaskTarget);
-  renderer.setClearColor(0x000000, 0.0);
-  renderer.clear();
-  renderer.render(scene, camera);
+  const prevFog = scene.fog;
 
   const maskPixels = new Uint8Array(renderW * renderH * 4);
-  renderer.readRenderTargetPixels(sharedMaskTarget, 0, 0, renderW, renderH, maskPixels);
-
   let maskPixelCount = 0;
   let minPxX = renderW;
   let maxPxX = 0;
   let minPxY = renderH;
   let maxPxY = 0;
 
-  for (let y = 0; y < renderH; y++) {
-    for (let x = 0; x < renderW; x++) {
-      const idx = (y * renderW + x) * 4;
-      if ((maskPixels[idx] ?? 0) > 0 || (maskPixels[idx + 1] ?? 0) > 0 || (maskPixels[idx + 2] ?? 0) > 0) {
-        maskPixelCount++;
-        if (x < minPxX) minPxX = x;
-        if (x > maxPxX) maxPxX = x;
-        if (y < minPxY) minPxY = y;
-        if (y > maxPxY) maxPxY = y;
+  try {
+    scene.background = null;
+    scene.fog = null;
+    scene.overrideMaterial = unlitOverrideMat;
+    renderer.setRenderTarget(sharedMaskTarget);
+    renderer.setClearColor(0x000000, 1.0);
+    renderer.autoClear = true;
+    renderer.clear();
+    renderer.render(scene, camera);
+
+    renderer.readRenderTargetPixels(sharedMaskTarget, 0, 0, renderW, renderH, maskPixels);
+
+    for (let y = 0; y < renderH; y++) {
+      for (let x = 0; x < renderW; x++) {
+        const idx = (y * renderW + x) * 4;
+        const r = maskPixels[idx] ?? 0;
+        const g = maskPixels[idx + 1] ?? 0;
+        const b = maskPixels[idx + 2] ?? 0;
+        // Count pixels whose magenta channel > 32 AND blue channel > 32 (reject pale fog/black)
+        if (r > 32 && b > 32 && g < 150) {
+          maskPixelCount++;
+          if (x < minPxX) minPxX = x;
+          if (x > maxPxX) maxPxX = x;
+          if (y < minPxY) minPxY = y;
+          if (y > maxPxY) maxPxY = y;
+        }
       }
     }
+  } finally {
+    // Restore scene visibility and materials in finally block (Prompt 8.1 d)
+    scene.overrideMaterial = prevOverride;
+    scene.background = prevBg;
+    scene.fog = prevFog;
+    for (const [child, vis] of prevVisibility.entries()) {
+      child.visible = vis;
+    }
+    renderer.setRenderTarget(prevTarget);
+    renderer.setClearColor(prevColor, prevAlpha);
   }
 
-  // Restore scene visibility and materials
-  scene.overrideMaterial = prevOverride;
-  scene.background = prevBg;
-  for (const [child, vis] of prevVisibility.entries()) {
-    child.visible = vis;
-  }
-  renderer.setRenderTarget(prevTarget);
-  renderer.setClearColor(prevColor, prevAlpha);
+  const totalPixels = renderW * renderH;
+  const maskContaminated = maskPixelCount >= totalPixels * 0.35;
 
   const screenMinY = maskPixelCount > 0 ? renderH - 1 - maxPxY : 0;
   const screenMaxY = maskPixelCount > 0 ? renderH - 1 - minPxY : 0;
@@ -449,10 +475,11 @@ export function runMonsterProbe(session: GameSession): MonsterProbeResult {
     height: maskPixelCount > 0 ? screenMaxY - screenMinY + 1 : 0,
   };
 
-  const l3Pass = maskPixelCount > 0;
+  const l3Pass = maskPixelCount > 0 && !maskContaminated;
   const L3: MonsterProbeResult['L3'] = {
     pass: l3Pass,
     pixelCount: maskPixelCount,
+    maskContaminated,
     boundingBox: maskBBox,
   };
 
@@ -488,11 +515,14 @@ export function runMonsterProbe(session: GameSession): MonsterProbeResult {
     for (let y = minPxY; y <= maxPxY; y++) {
       for (let x = minPxX; x <= maxPxX; x++) {
         const idx = (y * renderW + x) * 4;
-        if ((maskPixels[idx] ?? 0) > 0) {
+        const mr = maskPixels[idx] ?? 0;
+        const mb = maskPixels[idx + 2] ?? 0;
+        const mg = maskPixels[idx + 1] ?? 0;
+        if (mr > 32 && mb > 32 && mg < 150) {
           const dr = Math.abs((bufA[idx] ?? 0) - (bufB[idx] ?? 0));
           const dg = Math.abs((bufA[idx + 1] ?? 0) - (bufB[idx + 1] ?? 0));
           const db = Math.abs((bufA[idx + 2] ?? 0) - (bufB[idx + 2] ?? 0));
-          if (dr > 8 || dg > 8 || db > 8) {
+          if (dr > 4 || dg > 4 || db > 4) {
             deltaDiffCount++;
           }
         }
@@ -606,6 +636,56 @@ export function runMonsterProbe(session: GameSession): MonsterProbeResult {
   };
 
   // ──────────────────────────────────────────────────────────────────────────
+  // L6: Scene-graph reachability. A visible, in-frustum, correctly-scaled creature
+  // that is NOT a descendant of the scene is invisible no matter what the mask says.
+  // ──────────────────────────────────────────────────────────────────────────
+  const reachable = (obj: Object3D | null | undefined): boolean => {
+    let cur: Object3D | null = obj ?? null;
+    while (cur) {
+      if (cur === scene) return true;
+      cur = cur.parent;
+    }
+    return false;
+  };
+  const bodyRoot = primaryMonster ? monstersManager?.getBody(primaryMonster.id)?.mesh?.root : undefined;
+  const isReachable = reachable(bodyRoot);
+  const L6: MonsterProbeResult['L6'] = {
+    pass: isReachable,
+    inSceneGraph: isReachable,
+    parentChain: (() => {
+      const names: string[] = [];
+      let c: Object3D | null = bodyRoot ?? null;
+      while (c) {
+        names.push(c.name || c.type);
+        c = c.parent;
+      }
+      return names;
+    })(),
+  };
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // L7: Nav-Reachability Assertion (Prompt 8.4)
+  // ──────────────────────────────────────────────────────────────────────────
+  let maxComponentSize = 0;
+  if (sim?.nav?.componentCounts) {
+    for (const [compId, size] of sim.nav.componentCounts.entries()) {
+      if (compId >= 0 && size > maxComponentSize) {
+        maxComponentSize = size;
+      }
+    }
+  }
+  const spawnCell = primaryMonster && sim?.nav ? sim.nav.worldToGrid(primaryMonster.pos.x, primaryMonster.pos.z) : { gx: -1, gz: -1 };
+  const inLargestComponent = connectedComponentSize > 0 && connectedComponentSize === maxComponentSize;
+  const l7Pass = connectedComponentSize > 0 && inLargestComponent;
+  const L7: MonsterProbeResult['L7'] = {
+    pass: l7Pass,
+    connectedComponentSize,
+    maxComponentSize,
+    inLargestComponent,
+    spawnCell,
+  };
+
+  // ──────────────────────────────────────────────────────────────────────────
   // Verdict: First failing layer
   // ──────────────────────────────────────────────────────────────────────────
   let verdict: MonsterProbeResult['verdict'] = {
@@ -621,6 +701,22 @@ export function runMonsterProbe(session: GameSession): MonsterProbeResult {
       layer: 'L0',
       reason: monsterCount === 0 ? 'No monsters found in simulation' : 'Non-finite components or unwalkable NavGrid in sim',
       fields: { monsterCount, allFinite, navWalkableCount, connectedComponentSize },
+    };
+  } else if (!L6.pass) {
+    verdict = {
+      pass: false,
+      layer: 'L6',
+      reason: 'monster detached from scene graph',
+      fields: { inSceneGraph: L6.inSceneGraph, parentChain: L6.parentChain },
+    };
+  } else if (!L7.pass) {
+    verdict = {
+      pass: false,
+      layer: 'L7',
+      reason: connectedComponentSize === 0
+        ? 'Monster spawn cell is unreachable (connectedComponentSize is 0)'
+        : `Monster spawn cell component (${connectedComponentSize}) is not in largest walkable component (${maxComponentSize})`,
+      fields: { connectedComponentSize, maxComponentSize, inLargestComponent: L7.inLargestComponent, spawnCell: L7.spawnCell },
     };
   } else if (!L1.pass) {
     verdict = {
@@ -652,8 +748,10 @@ export function runMonsterProbe(session: GameSession): MonsterProbeResult {
     verdict = {
       pass: false,
       layer: 'L3',
-      reason: 'Monster produced 0 pixels in offscreen mask pass (geometry culled or invisible material)',
-      fields: { pixelCount: maskPixelCount, frustumCulled: L1.frustumCulled, activeSkin },
+      reason: maskContaminated
+        ? 'Mask pass contaminated (>= 35% of frame pixels)'
+        : 'Monster produced 0 pixels in offscreen mask pass (geometry culled or invisible material)',
+      fields: { pixelCount: maskPixelCount, maskContaminated, frustumCulled: L1.frustumCulled, activeSkin },
     };
   } else if (!L4.pass) {
     verdict = {
@@ -671,5 +769,5 @@ export function runMonsterProbe(session: GameSession): MonsterProbeResult {
     };
   }
 
-  return { verdict, L0, L1, L2, L3, L4, L5 };
+  return { verdict, L0, L1, L2, L3, L4, L5, L6, L7 };
 }

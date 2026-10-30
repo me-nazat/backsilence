@@ -53,6 +53,7 @@ export interface WaterMaterialOptions {
   waterY?: number | undefined;
   profile?: WaterProfile | undefined;
   streaks?: LightStreak[] | undefined;
+  sunDir?: Vector3 | undefined;
   envCube?: CubeTexture | null | undefined;
   planarReflection?: Texture | null | undefined;
 }
@@ -89,8 +90,8 @@ float ripple(vec2 p, vec4 r, float time, inout vec2 grad) {
   float life = 1.0 - age / RIPPLE_LIFE;
   float amp = r.w * life * life / (1.0 + 0.8 * d);
   float ph = RIPPLE_K * x;
-  float h  = amp * env * cos(ph) * 0.07;
-  float dh = amp * env * (-RIPPLE_K * sin(ph) - 2.0 * x / (w * w) * cos(ph)) * 0.07;
+  float h  = amp * env * cos(ph) * 0.045;
+  float dh = amp * env * (-RIPPLE_K * sin(ph) - 2.0 * x / (w * w) * cos(ph)) * 0.045;
   grad += dh * (dv / max(d, 1e-3));
   return h;
 }
@@ -112,19 +113,19 @@ void evaluateGerstner(vec2 pos, float time, float scale, out vec3 disp, out vec2
   vec2 d3 = vec2(0.6822, 0.7311);
   vec2 d4 = vec2(0.4085, 0.9128);
 
-  // Amplitudes: 0.014, 0.009, 0.005, 0.003
-  float a1 = 0.014 * scale;
-  float a2 = 0.009 * scale;
-  float a3 = 0.005 * scale;
-  float a4 = 0.003 * scale;
+  // Amplitudes: 0.022, 0.013, 0.007, 0.004
+  float a1 = 0.022 * scale;
+  float a2 = 0.013 * scale;
+  float a3 = 0.007 * scale;
+  float a4 = 0.004 * scale;
 
-  // Frequencies: gentle pool speed multiplier 0.35
-  float w1 = 3.623 * 0.35;
-  float w2 = 5.176 * 0.35;
-  float w3 = 7.485 * 0.35;
-  float w4 = 10.135 * 0.35;
+  // Frequencies: pool speed multiplier 0.55
+  float w1 = 3.623 * 0.55;
+  float w2 = 5.176 * 0.55;
+  float w3 = 7.485 * 0.55;
+  float w4 = 10.135 * 0.55;
 
-  float q = 0.25;
+  float q = 0.55;
 
   float ph1 = dot(d1, pos) * k1 + time * w1;
   float ph2 = dot(d2, pos) * k2 + time * w2;
@@ -223,6 +224,8 @@ uniform vec4 uWakeParams[6];
 
 uniform vec3 uColorShallow;
 uniform vec3 uColorDeep;
+uniform vec3 uSpecularColor;
+uniform float uFoamStrength;
 uniform vec3 uSunDir;
 uniform vec3 uMonsterPos;
 uniform float uOpacityMin;
@@ -267,8 +270,8 @@ float evalRipple(vec2 p, vec4 r, float time, inout vec2 grad) {
   float life = 1.0 - age / RIPPLE_LIFE;
   float amp = r.w * life * life / (1.0 + 0.8 * d);
   float ph = RIPPLE_K * x;
-  float h  = amp * env * cos(ph) * 0.07;
-  float dh = amp * env * (-RIPPLE_K * sin(ph) - 2.0 * x / (w * w) * cos(ph)) * 0.07;
+  float h  = amp * env * cos(ph) * 0.045;
+  float dh = amp * env * (-RIPPLE_K * sin(ph) - 2.0 * x / (w * w) * cos(ph)) * 0.045;
   grad += dh * (dv / max(d, 1e-3));
   return h;
 }
@@ -369,9 +372,9 @@ void main() {
     cos(uTime * 82.10 + p.y * 31.0)
   ) * 0.022;
 
-  vec2 uv1 = p / 0.55 + vec2(uTime * animSpeed * 0.4, uTime * animSpeed * 0.28);
-  vec2 uv2 = p / 0.18 - vec2(uTime * animSpeed * 0.55, -uTime * animSpeed * 0.42);
-  vec2 uv3 = p / 0.06 + vec2(-uTime * animSpeed * 0.72, uTime * animSpeed * 0.6) + flickerNoise;
+  vec2 uv1 = p / 1.35 + vec2(uTime * animSpeed * 0.4, uTime * animSpeed * 0.28);
+  vec2 uv2 = p / 0.47 - vec2(uTime * animSpeed * 0.55, -uTime * animSpeed * 0.42);
+  vec2 uv3 = p / 0.14 + vec2(-uTime * animSpeed * 0.72, uTime * animSpeed * 0.6) + flickerNoise;
 
   vec3 norm1 = texture2D(uNormalMap, uv1).rgb * 2.0 - 1.0;
   vec3 norm2 = texture2D(uNormalMap, uv2).rgb * 2.0 - 1.0;
@@ -379,15 +382,20 @@ void main() {
 
   float distToCam = length(vViewPos);
   float nearFade = clamp(1.0 - distToCam / 9.0, 0.0, 1.0);
-  float distFade = clamp(1.0 - distToCam / 36.0, 0.0, 1.0);
+  float distFade = clamp(1.0 - distToCam / 70.0, 0.0, 1.0);
 
   // Toksvig-style anti-aliasing roughness increase
   float avgLen = length(norm1.xy * 0.55 + norm2.xy * 0.38);
   float variance = (1.0 - min(1.0, avgLen)) / max(0.01, avgLen);
-  float roughness = clamp(sqrt(uBaseRoughness * uBaseRoughness + variance * 0.28), 0.06, 0.35);
+  float roughness = clamp(sqrt(uBaseRoughness * uBaseRoughness + variance * 0.28), 0.09, 0.42);
 
   // Combine slopes before normalizing
-  vec2 slopeDetail = (norm1.xy * 0.55 + norm2.xy * 0.38 + norm3.xy * (0.32 * nearFade)) * (uNormalScale * distFade);
+  vec2 slopeDetail = (norm1.xy * 0.55 + norm2.xy * 0.38 + norm3.xy * (0.32 * nearFade)) * (uNormalScale * mix(0.25, 1.0, distFade));
+
+  // Pointillist sparkle term
+  float sparkleNoise = sin(p.x * 43.0 + uTime * 3.1) * cos(p.y * 37.0 - uTime * 2.6)
+                    + sin((p.x + p.y) * 61.0 - uTime * 4.4) * 0.5;
+  float sparkle = smoothstep(1.15, 1.45, sparkleNoise);
 
   // Add analytic ripples
   vec2 rippleGrad = vec2(0.0);
@@ -455,15 +463,22 @@ void main() {
   // 5. Refraction with foreground depth rejection
   vec3 sceneSample = uColorShallow;
   if (hasTrueDepth) {
-    float refractK = 0.035;
-    vec2 refractOffset = normal.xz * refractK * (1.0 - exp(-thickness));
+    float refractK = 0.075;
+    float depthFalloff = 1.0 - exp(-thickness * 1.4);
+    vec2 refractOffset = normal.xz * refractK * depthFalloff;
+    float aspect = uResolution.x / max(uResolution.y, 1.0);
+    refractOffset.x /= aspect;
     vec2 refractedUv = clamp(screenUv + refractOffset, 0.001, 0.999);
     float rawRefractDepth = texture2D(uSceneDepth, refractedUv).r;
     float refractLinearDepth = -perspectiveDepthToLinearZ(rawRefractDepth, uCameraNear, uCameraFar);
     
     // Foreground leak rejection: reject offset sample if depth nearer than water surface
     if (refractLinearDepth >= waterLinearDepth - 0.02) {
-      sceneSample = texture2D(uSceneColor, refractedUv).rgb;
+      vec2 uvR = clamp(screenUv + refractOffset * 1.06, 0.001, 0.999);
+      vec2 uvB = clamp(screenUv + refractOffset * 0.94, 0.001, 0.999);
+      sceneSample.r = texture2D(uSceneColor, uvR).r;
+      sceneSample.g = texture2D(uSceneColor, refractedUv).g;
+      sceneSample.b = texture2D(uSceneColor, uvB).b;
     } else {
       sceneSample = texture2D(uSceneColor, screenUv).rgb;
     }
@@ -473,8 +488,14 @@ void main() {
   vec3 sigma = vec3(0.90, 0.25, 0.45);
   vec3 T = exp(-sigma * thickness);
   float lumT = dot(T, vec3(0.299, 0.587, 0.114));
-  vec3 scatter = uColorShallow;
-  vec3 milkyVeil = vec3(0.85, 0.94, 0.88) * (0.08 * (1.0 - lumT));
+  // Depth-graded in-scatter: shallow tint near the surface, deep tint at depth.
+  float deepMix = 1.0 - exp(-thickness * 0.85);
+  vec3 scatter = mix(uColorShallow, uColorDeep, deepMix);
+  // Suspended-silt scattering (uMurk)
+  scatter = mix(scatter, vec3(0.42, 0.55, 0.30), clamp(uMurk * (1.0 - exp(-thickness * 0.5)), 0.0, 0.85));
+  // Veil must be gated by optical path length or it becomes a flat white sheet.
+  float veilGate = (1.0 - exp(-thickness * 1.6)) * (1.0 - lumT);
+  vec3 milkyVeil = vec3(0.85, 0.94, 0.88) * (0.07 * veilGate);
   vec3 absorbedWater = sceneSample * T + scatter * (1.0 - T) + milkyVeil;
 
   // 7. Schlick Fresnel reflection with F0 = 0.02 & reflection tiers (World Space)
@@ -515,7 +536,9 @@ void main() {
   }
 
   // 9. Sun GGX Specular Glint (balanced intensity for crisp wave glints without blowout)
-  vec3 sunSpec = evalGGX(normal, viewDir, uSunDir, vec3(1.0, 0.98, 0.92), 0.55, roughness);
+  vec3 sunSpec = evalGGX(normal, viewDir, uSunDir, uSpecularColor, 0.55, roughness);
+  vec3 sparkleNormal = normalize(normal + vec3(sparkle * 0.25, 0.0, sparkle * 0.25));
+  sunSpec += evalGGX(sparkleNormal, viewDir, uSunDir, uSpecularColor, 26.0 * sparkle, roughness * 0.6);
   waterColor += clamp(sunSpec, 0.0, 0.65);
 
   // 10. LightStreaks (up to 16 area/line light proxies) evaluated via GGX
@@ -540,31 +563,43 @@ void main() {
     waterColor += clamp(streakSpec, 0.0, 0.5);
   }
 
-  // 11. Soft Shoreline & Contact Foam (from depth difference or distToDry)
+  // 11. Soft Shoreline & Contact Foam (from depth gradient meniscus + 3-octave foam)
   float shoreFoam = 0.0;
+  float meniscusFoam = 0.0;
   if (hasTrueDepth) {
-    if (thickness < 0.08) {
-      float foamNoise = sin(p.x * 16.0 + uTime * 2.2) * cos(p.y * 16.0 - uTime * 1.8) * 0.5 + 0.5;
-      shoreFoam = smoothstep(0.08, 0.015, thickness) * (0.45 + 0.35 * foamNoise);
+    if (thickness < 0.32) {
+      float fn = sin(p.x * 5.3 + uTime * 1.7) * sin(p.y * 6.1 - uTime * 1.3)
+               + sin(p.x * 11.7 - uTime * 2.4) * 0.5
+               + sin(p.y * 13.1 + uTime * 2.1) * 0.4;
+      float foamNoise = clamp(fn * 0.5 + 0.5, 0.0, 1.0);
+      shoreFoam = smoothstep(0.32, 0.02, thickness) * (0.45 + 0.55 * foamNoise);
     }
+    float dpx = max(0.001, fwidth(p.x));
+    float dpz = max(0.001, fwidth(p.y));
+    float depthGrad = length(vec2(dFdx(thickness), dFdy(thickness))) / max(dpx + dpz, 1e-4);
+    meniscusFoam = smoothstep(0.35, 1.4, depthGrad) * smoothstep(0.30, 0.06, thickness) * 0.85;
   } else {
-    if (distToDry < 0.12) {
-      float foamNoise = sin(p.x * 14.0 + uTime * 2.2) * cos(p.y * 14.0 - uTime * 1.8) * 0.5 + 0.5;
-      shoreFoam = smoothstep(0.12, 0.02, distToDry) * (0.40 + 0.35 * foamNoise);
+    if (distToDry < 0.32) {
+      float fn = sin(p.x * 5.3 + uTime * 1.7) * sin(p.y * 6.1 - uTime * 1.3)
+               + sin(p.x * 11.7 - uTime * 2.4) * 0.5
+               + sin(p.y * 13.1 + uTime * 2.1) * 0.4;
+      float foamNoise = clamp(fn * 0.5 + 0.5, 0.0, 1.0);
+      shoreFoam = smoothstep(0.32, 0.02, distToDry) * (0.45 + 0.55 * foamNoise);
     }
   }
 
-  // Wave crest foam
-  float crestFoam = smoothstep(0.02, 0.06, abs(vWorldPos.y - uWaterY)) * 0.45;
+  // Wave crest foam (inverted: peaks on wave crest)
+  float crestFoam = smoothstep(0.006, 0.022, vWorldPos.y - uWaterY) * 0.55;
   float rippleFoam = smoothstep(0.007, 0.026, abs(vRippleHeight)) * 0.8;
-  float totalFoam = clamp(shoreFoam + wakeFoam + rippleFoam + crestFoam, 0.0, 1.0);
+  float totalFoam = clamp(shoreFoam + meniscusFoam + wakeFoam + rippleFoam + crestFoam, 0.0, 1.0);
 
-  vec3 foamColor = vec3(0.98, 0.97, 0.94);
-  waterColor = mix(waterColor, foamColor, totalFoam * 0.88);
+  vec3 foamColor = vec3(0.92, 0.95, 0.90);
+  waterColor = mix(waterColor, foamColor, totalFoam * clamp(uFoamStrength * 1.95, 0.3, 1.0));
 
   // Soft Edge Alpha: blend alpha to 0 over the last 3 cm of thickness
   float softEdge = clamp(thickness / 0.03, 0.0, 1.0);
-  float alpha = hasTrueDepth ? softEdge : mix(uOpacityMin, uOpacityMax, 1.0 - exp(-thickness * 2.0));
+  float depthAlpha = mix(uOpacityMin, uOpacityMax, 1.0 - exp(-thickness * 1.8));
+  float alpha = hasTrueDepth ? softEdge * depthAlpha : depthAlpha;
   alpha = max(alpha, totalFoam * 0.92);
 
   // Readability: never let water opacity exceed 0.6 within 3m of monster waterline
@@ -585,8 +620,9 @@ void main() {
 
   // 13. Submerged underwater grading
   if (uUnderwater > 0.5) {
-    waterColor = mix(waterColor * 0.6, vec3(0.2, 0.45, 0.45), 0.5);
-    alpha = max(alpha, 0.85);
+    vec3 underwaterTint = mix(uColorShallow, uColorDeep, 0.65);
+    waterColor = mix(waterColor * 0.55, underwaterTint, 0.55);
+    alpha = max(alpha, 0.92);
   }
 
   // 14. Fog & Horizon Blowout (Height fog + FogExp2)
@@ -597,13 +633,15 @@ void main() {
       float baseFogFactor = smoothstep( fogNear, fogFar, vFogDepth );
     #endif
 
-    // Height mist hugging the water surface
+    // Height mist hugging the water surface and grazing haziness
     float hDist = max(0.0, abs(vWorldPos.y - uWaterY));
-    float hMist = exp(-hDist * 0.75) * 0.45;
-    float finalFogFactor = clamp(baseFogFactor + hMist * (1.0 - baseFogFactor) * smoothstep(0.0, 5.0, vFogDepth), 0.0, 1.0);
+    float hMist = exp(-hDist * 0.85) * 0.32;
+    float grazingMist = pow(1.0 - max(0.0, dot(normal, viewDir)), 2.5) * 0.22 * smoothstep(1.0, 12.0, vFogDepth);
+    float finalFogFactor = clamp(baseFogFactor + (hMist + grazingMist) * (1.0 - baseFogFactor) * smoothstep(0.0, 5.0, vFogDepth), 0.0, 1.0);
 
     // Smooth dissolution into atmospheric horizon fog (pale grey-green, no blowout)
-    gl_FragColor.rgb = mix( waterColor, fogColor, finalFogFactor );
+    vec3 horizonColor = mix(fogColor, vec3(1.55, 1.48, 1.32), smoothstep(0.60, 1.0, finalFogFactor));
+    gl_FragColor.rgb = mix( waterColor, horizonColor, finalFogFactor );
     gl_FragColor.a = mix( alpha, 1.0, finalFogFactor );
   #else
     gl_FragColor = vec4(waterColor, alpha);
@@ -638,7 +676,7 @@ export function createWaterMaterial(options: WaterMaterialOptions): ShaderMateri
       uCameraFar: { value: 120.0 },
       uResolution: { value: new Vector2(1920, 1080) },
       uReflectionTier: { value: reflectionTier },
-      uBaseRoughness: { value: 0.08 },
+      uBaseRoughness: { value: 0.14 },
       uRipples: { value: options.ripples },
       uRippleCount: { value: 0 },
       uWaveSimTexture: { value: null },
@@ -650,7 +688,9 @@ export function createWaterMaterial(options: WaterMaterialOptions): ShaderMateri
       uWakeParams: { value: options.wakeParams },
       uColorShallow: { value: new Color(prof?.shallow ?? '#72bca5') },
       uColorDeep: { value: new Color(prof?.deep ?? '#2e6358') },
-      uSunDir: { value: new Vector3(0.4, 0.8, 0.4).normalize() },
+      uSpecularColor: { value: new Color(prof?.specular ?? '#fff3d8') },
+      uFoamStrength: { value: prof?.foam ?? 0.45 },
+      uSunDir: { value: (options.sunDir ?? new Vector3(0.4, 0.8, 0.4)).clone().normalize() },
       uMonsterPos: { value: new Vector3(0, -999, 0) },
       uOpacityMin: { value: prof?.opacityMin ?? 0.55 },
       uOpacityMax: { value: prof?.opacityMax ?? 0.93 },

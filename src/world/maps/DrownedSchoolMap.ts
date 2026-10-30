@@ -53,7 +53,7 @@ export const DrownedSchoolMap: MapDefinition = {
       color: '#d4ded0',
       intensity: 0.7,
       direction: { x: -0.4, y: 0.85, z: -0.3 },
-      castShadow: false,
+      castShadow: true,
     },
   },
   waterProfile: WATER_PROFILES.drowned_school,
@@ -343,22 +343,38 @@ export const DrownedSchoolMap: MapDefinition = {
 
     const platformMat = new MeshStandardMaterial({
       map: linoleumTiles.albedo,
+      roughnessMap: linoleumTiles.roughness,
+      normalMap: linoleumTiles.normal,
+      aoMap: linoleumTiles.ao,
+      aoMapIntensity: 0.85,
       roughness: 0.4,
       metalness: 0.02,
+      envMapIntensity: 0.35,
+      vertexColors: true,
     });
     applyWetDarkening(platformMat, { waterY: 0.0 });
 
     const wallMat = new MeshStandardMaterial({
       map: concreteTex.albedo,
+      roughnessMap: concreteTex.roughness,
+      normalMap: concreteTex.normal,
       roughness: 0.6,
       metalness: 0.02,
+      envMapIntensity: 0.35,
+      vertexColors: true,
     });
     applyWetDarkening(wallMat, { waterY: 0.0 });
 
     const floorMat = new MeshStandardMaterial({
       map: linoleumTiles.albedo,
+      roughnessMap: linoleumTiles.roughness,
+      normalMap: linoleumTiles.normal,
+      aoMap: linoleumTiles.ao,
+      aoMapIntensity: 0.85,
       roughness: 0.25,
       metalness: 0.04,
+      envMapIntensity: 0.35,
+      vertexColors: true,
     });
 
     const instance = buildStandardMapInstance(layout, env, {

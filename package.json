@@ -16,6 +16,7 @@
     "secret:scan": "node scripts/secret-scan.mjs",
     "i18n:check": "node scripts/i18n/check.mjs",
     "verify": "npm run typecheck && npm run lint && npm run test && npm run build && npm run audit && npm run secret:scan && npm run i18n:check",
+    "verify:all": "npm run verify && node scripts/monster-trace.mjs && node scripts/perf/run-perf.mjs && npm run shots:check && npm run reference:compare && npm run audio:compare",
     "shots": "node scripts/shots.mjs",
     "shots:check": "node scripts/visual/compare.mjs --check",
     "shots:approve": "node scripts/visual/compare.mjs --approve",

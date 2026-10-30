@@ -12,6 +12,7 @@ import { AudioEngine } from '../audio/AudioEngine.js';
 import type { SimWorld } from '../sim/SimWorld.js';
 import type { Hud } from '../ui/Hud.js';
 import { renderIcon } from '../ui/kit/index.js';
+import type { Settings } from '../types/contracts.js';
 
 export interface OrientationCallbacks {
   onComplete: () => void;
@@ -23,6 +24,16 @@ export interface HintCardDef {
   icon: 'walk' | 'drop' | 'wave' | 'crouch' | 'jump' | 'pebble' | 'perch' | 'door';
   title: string;
   detail: string;
+}
+
+function formatKeyName(code: string): string {
+  if (code.startsWith('Key')) return code.slice(3);
+  if (code.startsWith('Digit')) return code.slice(5);
+  if (code === 'ControlLeft' || code === 'ControlRight') return 'Ctrl';
+  if (code === 'ShiftLeft' || code === 'ShiftRight') return 'Shift';
+  if (code === 'AltLeft' || code === 'AltRight') return 'Alt';
+  if (code === 'Space') return 'Space';
+  return code;
 }
 
 export class OrientationDirector {
@@ -37,63 +48,71 @@ export class OrientationDirector {
   private stampEl: HTMLElement | null = null;
   private hintDismissTimer: ReturnType<typeof setTimeout> | null = null;
 
-  private static readonly STEPS: HintCardDef[] = [
-    {
-      id: 'look_move',
-      icon: 'walk',
-      title: 'LOOK & MOVE',
-      detail: 'Move with WASD / Left Stick. Look with Mouse / Right Stick. Explore the dry entrance platform.',
-    },
-    {
-      id: 'dry_silent',
-      icon: 'drop',
-      title: 'DRY TILES ARE SILENT',
-      detail: 'Notice your noise meter at the bottom remains at zero on dry ceramic. You are completely inaudible.',
-    },
-    {
-      id: 'water_loud',
-      icon: 'wave',
-      title: 'WATER RADIATES SOUND',
-      detail: 'Step into the shallow pool. Every normal step radiates acoustic ripple waves through the complex.',
-    },
-    {
-      id: 'crouch_quiet',
-      icon: 'crouch',
-      title: 'CROUCH TO BE QUIET',
-      detail: 'Press C / Crouch button. Wading while crouched halves water displacement and muffles echoes.',
-    },
-    {
-      id: 'jump_trench',
-      icon: 'jump',
-      title: 'JUMP ACROSS GAPS',
-      detail: 'Press Space / Jump button to clear deep drainage trenches without splashing.',
-    },
-    {
-      id: 'throw_pebble',
-      icon: 'pebble',
-      title: 'ACOUSTIC DIVERSION',
-      detail: 'Right Click / F / Throw button to fling a pebble into distant water, pulling attention away from you.',
-    },
-    {
-      id: 'perch_high',
-      icon: 'perch',
-      title: 'HIGH GROUND & PERCH',
-      detail: 'Climb onto elevated slabs or ledges. The blind lurker cannot reach platforms or perches.',
-    },
-    {
-      id: 'airlock_escape',
-      icon: 'door',
-      title: 'AIRLOCK EXTRACTION',
-      detail: 'Approach the reinforced airlock door and hold [E] / Interact to certify your tape and escape.',
-    },
-  ];
+  private readonly steps: HintCardDef[];
 
   constructor(
     private simWorld: SimWorld,
     private hud: Hud,
     private audio: AudioEngine,
-    private callbacks: OrientationCallbacks
+    private callbacks: OrientationCallbacks,
+    private settings?: Settings,
   ) {
+    const crouchKey = formatKeyName(this.settings?.controls?.bindings?.crouch ?? 'ControlLeft');
+    const jumpKey = formatKeyName(this.settings?.controls?.bindings?.jump ?? 'Space');
+    const throwKey = formatKeyName(this.settings?.controls?.bindings?.throw ?? 'KeyG');
+    const interactKey = formatKeyName(this.settings?.controls?.bindings?.interact ?? 'KeyE');
+
+    this.steps = [
+      {
+        id: 'look_move',
+        icon: 'walk',
+        title: 'LOOK & MOVE',
+        detail: 'Move with WASD / Left Stick. Look with Mouse / Right Stick. Explore the dry entrance platform.',
+      },
+      {
+        id: 'dry_silent',
+        icon: 'drop',
+        title: 'DRY TILES ARE SILENT',
+        detail: 'Notice your noise meter at the bottom remains at zero on dry ceramic. You are completely inaudible.',
+      },
+      {
+        id: 'water_loud',
+        icon: 'wave',
+        title: 'WATER RADIATES SOUND',
+        detail: 'Step into the shallow pool. Every normal step radiates acoustic ripple waves through the complex.',
+      },
+      {
+        id: 'crouch_quiet',
+        icon: 'crouch',
+        title: 'CROUCH TO BE QUIET',
+        detail: `Press ${crouchKey} / Crouch button. Wading while crouched halves water displacement and muffles echoes.`,
+      },
+      {
+        id: 'jump_trench',
+        icon: 'jump',
+        title: 'JUMP ACROSS GAPS',
+        detail: `Press ${jumpKey} / Jump button to clear deep drainage trenches without splashing.`,
+      },
+      {
+        id: 'throw_pebble',
+        icon: 'pebble',
+        title: 'ACOUSTIC DIVERSION',
+        detail: `Right Click / ${throwKey} / Throw button to fling a pebble into distant water, pulling attention away from you.`,
+      },
+      {
+        id: 'perch_high',
+        icon: 'perch',
+        title: 'HIGH GROUND & PERCH',
+        detail: 'Climb onto elevated slabs or ledges. The blind lurker cannot reach platforms or perches.',
+      },
+      {
+        id: 'airlock_escape',
+        icon: 'door',
+        title: 'AIRLOCK EXTRACTION',
+        detail: `Approach the reinforced airlock door and hold [${interactKey}] / Interact to certify your tape and escape.`,
+      },
+    ];
+
     this.mountOverlay();
     this.showStep(0);
   }
@@ -196,7 +215,7 @@ export class OrientationDirector {
     });
 
     overlay.querySelector('#hint-dont-show-btn')?.addEventListener('click', () => {
-      const step = OrientationDirector.STEPS[this.activeStep];
+      const step = this.steps[this.activeStep];
       if (step) {
         try {
           localStorage.setItem(`backsilence_hint_disabled_${step.id}`, 'true');
@@ -209,11 +228,11 @@ export class OrientationDirector {
   }
 
   showStep(index: number): void {
-    if (index >= OrientationDirector.STEPS.length) return;
+    if (index >= this.steps.length) return;
     this.activeStep = index;
     this.stepTimer = 0;
 
-    const step = OrientationDirector.STEPS[index];
+    const step = this.steps[index];
     if (!step) return;
 
     // Check if user disabled this hint

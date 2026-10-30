@@ -15,7 +15,7 @@ import {
   type Camera,
 } from 'three';
 import type { Settings } from '../types/contracts.js';
-import { resolveQuality } from './Quality.js';
+import { resolveQuality, resolveQualityTier } from './Quality.js';
 
 export class EngineRenderer {
   readonly renderer: WebGLRenderer;
@@ -48,7 +48,7 @@ export class EngineRenderer {
     this.renderer = new WebGLRenderer({
       canvas,
       powerPreference: 'high-performance',
-      antialias: settings.graphics.quality === 'high',
+      antialias: resolveQualityTier(settings.graphics.quality) !== 'low',
       alpha: false,
       depth: true,
       stencil: false,
@@ -66,7 +66,7 @@ export class EngineRenderer {
     };
 
     this.renderer.outputColorSpace = SRGBColorSpace;
-    this.renderer.toneMapping = ACESFilmicToneMapping;
+    this.setToneMapping(settings.graphics.toneMapping ?? 'agx');
     this.applySettings(settings);
 
     if (quality.shadowType === 'pcfsoft') {
@@ -92,12 +92,15 @@ export class EngineRenderer {
     const rawDpr = window.devicePixelRatio ?? 1.0;
     const effectiveDpr = Math.min(rawDpr, quality.dprCap) * (s.graphics.resolutionScale / 100.0);
     this.renderer.setPixelRatio(Math.max(0.5, effectiveDpr));
+
+    this.setToneMapping(s.graphics.toneMapping ?? 'agx');
   }
 
-  setToneMapping(mode: 'aces' | 'agx' | 'neutral'): void {
-    if (mode === 'agx') {
+  setToneMapping(mode: string): void {
+    const m = (mode || '').toLowerCase();
+    if (m === 'agx') {
       this.renderer.toneMapping = AgXToneMapping;
-    } else if (mode === 'neutral') {
+    } else if (m === 'neutral') {
       this.renderer.toneMapping = NeutralToneMapping;
     } else {
       this.renderer.toneMapping = ACESFilmicToneMapping;
@@ -152,7 +155,8 @@ export class EngineRenderer {
     this.lastFrameCalls = this.renderer.info.render.calls;
     this.lastFrameTriangles = this.renderer.info.render.triangles;
     this.sceneRendersThisFrame = 0;
-    this.renderer.info.reset();
+    (this.renderer as unknown as { lastFrameCalls: number; lastFrameTriangles: number }).lastFrameCalls = this.lastFrameCalls;
+    (this.renderer as unknown as { lastFrameCalls: number; lastFrameTriangles: number }).lastFrameTriangles = this.lastFrameTriangles;
 
     const metrics = {
       sceneRenders: this.lastFrameSceneRenders,

@@ -6,7 +6,9 @@
 import {
   Mesh,
   CylinderGeometry,
+  RingGeometry,
   ShaderMaterial,
+  MeshBasicMaterial,
   AdditiveBlending,
   DoubleSide,
   Color,
@@ -15,26 +17,27 @@ import {
   BufferGeometry,
   Float32BufferAttribute,
   PointsMaterial,
+  Group,
 } from 'three';
 import { Rng } from '../../procedural/core/prng.js';
 
 export interface LightShaftOptions {
-  topRadius?: number;    // default 0.8m (skylight opening)
-  bottomRadius?: number; // default 2.6m (spread on ground)
-  height?: number;       // default 12.0m
+  topRadius?: number;    // default 0.55m (skylight opening)
+  bottomRadius?: number; // default 2.0m (spread on ground)
+  height?: number;       // default 6.0m
   color?: Color | string;
-  intensity?: number;    // default 0.25
+  intensity?: number;    // default 0.20
 }
 
 /**
  * Creates an additive light shaft cone with smooth vertical gradient.
  */
 export function createLightShaftMesh(options: LightShaftOptions = {}): Mesh {
-  const topR = options.topRadius ?? 0.8;
-  const botR = options.bottomRadius ?? 2.6;
-  const height = options.height ?? 12.0;
+  const topR = options.topRadius ?? 0.55;
+  const botR = options.bottomRadius ?? 2.0;
+  const height = options.height ?? 6.0;
   const color = options.color instanceof Color ? options.color : new Color(options.color ?? '#fff5d1');
-  const intensity = options.intensity ?? 0.25;
+  const intensity = options.intensity ?? 0.20;
 
   const geom = new CylinderGeometry(topR, botR, height, 16, 8, true);
 
@@ -130,4 +133,78 @@ export function createDustMotes(options: DustMotesOptions = {}): Points {
   });
 
   return new Points(geom, mat);
+}
+
+export interface SkylightAssemblyOptions {
+  position?: Vector3 | { x: number; y: number; z: number };
+  ceilingY?: number;
+  topRadius?: number;
+  bottomRadius?: number;
+  height?: number;
+  color?: Color | string;
+  intensity?: number;
+  moteCount?: number;
+  seed?: number;
+}
+
+/**
+ * Creates a complete skylight assembly: ceiling opening with bright emissive rim,
+ * additive tapered light shaft, and localized drifting dust motes inside the beam.
+ */
+export function createSkylightAssembly(options: SkylightAssemblyOptions = {}): Group {
+  const group = new Group();
+  group.name = 'SkylightAssembly';
+
+  const pos = options.position ?? new Vector3(0, 0, 0);
+  const ceilingY = options.ceilingY ?? 5.0;
+  const topR = options.topRadius ?? 0.55;
+  const botR = options.bottomRadius ?? 2.0;
+  const height = options.height ?? Math.max(2.0, ceilingY);
+  const color = options.color ?? '#fff5d1';
+  const intensity = options.intensity ?? 0.20;
+  const moteCount = options.moteCount ?? 32;
+
+  // 1. Light Shaft Mesh
+  const shaft = createLightShaftMesh({
+    topRadius: topR,
+    bottomRadius: botR,
+    height,
+    color,
+    intensity,
+  });
+  // Top of shaft cone meets ceiling opening at ceilingY
+  shaft.position.set(pos.x, ceilingY - height * 0.5, pos.z);
+  group.add(shaft);
+
+  // 2. Bright Emissive Rim Opening on the ceiling
+  const rimGeom = new RingGeometry(topR * 0.82, topR * 1.18, 24);
+  rimGeom.rotateX(Math.PI / 2);
+  const rimMat = new MeshBasicMaterial({
+    color: new Color('#ffffff'),
+    transparent: true,
+    opacity: 0.95,
+  });
+  const rimMesh = new Mesh(rimGeom, rimMat);
+  rimMesh.position.set(pos.x, ceilingY - 0.01, pos.z);
+  rimMesh.name = 'SkylightEmissiveRim';
+  group.add(rimMesh);
+
+  // 3. Drifting Dust Motes INSIDE the light shaft beam
+  const motes = createDustMotes({
+    count: moteCount,
+    bounds: {
+      minX: pos.x - botR * 0.5,
+      maxX: pos.x + botR * 0.5,
+      minY: ceilingY - height + 0.2,
+      maxY: ceilingY - 0.2,
+      minZ: pos.z - botR * 0.5,
+      maxZ: pos.z + botR * 0.5,
+    },
+    color: '#fffbe8',
+    size: 0.05,
+    seed: options.seed ?? 101,
+  });
+  group.add(motes);
+
+  return group;
 }

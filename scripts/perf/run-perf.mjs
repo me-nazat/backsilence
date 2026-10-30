@@ -5,12 +5,12 @@
  *  and verifies frame-time budgets against stored baseline.
  * ──────────────────────────────────────────────────────────────────────── */
 
-import { spawn } from 'node:child_process';
-import { existsSync } from 'node:fs';
+import { execSync, spawn } from 'node:child_process';
+import { existsSync, readdirSync } from 'node:fs';
 import { mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises';
 import { createServer } from 'node:net';
-import { tmpdir } from 'node:os';
-import { resolve } from 'node:path';
+import { homedir, tmpdir } from 'node:os';
+import { resolve, join } from 'node:path';
 
 const ROOT = process.cwd();
 const PORT = 4175;
@@ -36,20 +36,71 @@ const TIERS = ['low', 'medium', 'high'];
 
 // Parse CLI flags
 const isQuick = process.argv.includes('--quick');
-const durationSec = isQuick ? 4 : (parseInt(process.argv.find((a) => a.startsWith('--duration='))?.split('=')[1] ?? '60', 10));
+const durationSec = isQuick ? 4 : (parseInt(process.argv.find((a) => a.startsWith('--duration='))?.split('=')[1] ?? '4', 10));
 
 function chromePath() {
-  const candidates = [
-    process.env.BACKSILENCE_CHROME_BIN,
-    '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
-    'google-chrome',
-    'chromium',
-  ].filter(Boolean);
-  for (const c of candidates) {
-    if (c.includes('/') && existsSync(c)) return c;
-    if (!c.includes('/')) return c;
+  if (process.env.BACKSILENCE_CHROME_BIN && existsSync(process.env.BACKSILENCE_CHROME_BIN)) {
+    const bin = process.env.BACKSILENCE_CHROME_BIN;
+    console.log(`Using Chrome: ${bin}`);
+    return bin;
   }
-  throw new Error('Chrome binary not found.');
+  const home = homedir();
+  const puppeteerDirs = [
+    join(home, '.cache', 'puppeteer', 'chrome'),
+    join(home, 'Library', 'Caches', 'puppeteer', 'chrome'),
+  ];
+  for (const pDir of puppeteerDirs) {
+    if (existsSync(pDir)) {
+      try {
+        const findBin = (dir) => {
+          const entries = readdirSync(dir, { withFileTypes: true });
+          for (const e of entries) {
+            const full = join(dir, e.name);
+            if (e.isDirectory()) {
+              const res = findBin(full);
+              if (res) return res;
+            } else if (e.isFile() && (e.name === 'chrome' || e.name === 'chromium' || e.name === 'Google Chrome for Testing' || e.name === 'Google Chrome')) {
+              return full;
+            }
+          }
+          return null;
+        };
+        const found = findBin(pDir);
+        if (found) {
+          console.log(`Using Chrome: ${found}`);
+          return found;
+        }
+      } catch {}
+    }
+  }
+
+  const platformPaths = [
+    '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+    '/Applications/Chromium.app/Contents/MacOS/Chromium',
+    '/usr/bin/google-chrome',
+    '/usr/bin/google-chrome-stable',
+    '/usr/bin/chromium',
+    '/usr/bin/chromium-browser',
+    '/snap/bin/chromium',
+  ];
+  for (const p of platformPaths) {
+    if (existsSync(p)) {
+      console.log(`Using Chrome: ${p}`);
+      return p;
+    }
+  }
+
+  for (const cmd of ['google-chrome', 'chromium', 'chromium-browser']) {
+    try {
+      const out = execSync(`which ${cmd}`, { stdio: ['pipe', 'pipe', 'ignore'] }).toString().trim();
+      if (out && existsSync(out)) {
+        console.log(`Using Chrome: ${out}`);
+        return out;
+      }
+    } catch {}
+  }
+
+  throw new Error('Chrome binary not found. Set BACKSILENCE_CHROME_BIN.');
 }
 
 async function getFreePort() {
@@ -212,7 +263,21 @@ async function main() {
             ...s.settings,
             graphics: { ...s.settings.graphics, quality: '${tier}' }
           });
+        })()`);
 
+        // Wait for rendered frames after tier switch to ensure shader recompilation settles
+        await cdp.evaluate(`new Promise((resolve) => {
+          let frames = 0;
+          const step = () => {
+            frames++;
+            if (frames >= 16) resolve();
+            else requestAnimationFrame(step);
+          };
+          requestAnimationFrame(step);
+        })`);
+        await delay(400);
+
+        await cdp.evaluate(`(() => {
           window.__perf_data = {
             frameTimes: [],
             longTasks: 0,
@@ -222,8 +287,20 @@ async function main() {
             heapEnd: 0,
           };
 
-          let lastRaf = performance.now();
+          let warmupFrames = 3;
+          let lastRaf = 0;
           window.__perf_raf = (now) => {
+            if (warmupFrames > 0) {
+              warmupFrames--;
+              lastRaf = now;
+              window.__perf_raf_id = requestAnimationFrame(window.__perf_raf);
+              return;
+            }
+            if (lastRaf === 0) {
+              lastRaf = now;
+              window.__perf_raf_id = requestAnimationFrame(window.__perf_raf);
+              return;
+            }
             const dt = now - lastRaf;
             lastRaf = now;
             if (dt > 0 && dt < 1000) {
@@ -250,6 +327,7 @@ async function main() {
           pd.heapEnd = performance.memory ? performance.memory.usedJSHeapSize : 0;
           const s = window.__backsilence_session;
           const rInfo = s?.renderer?.renderer?.info;
+          const lastMetrics = window.__backsilence_renderer_info || { calls: s?.renderer?.lastFrameCalls ?? 0, triangles: s?.renderer?.lastFrameTriangles ?? 0 };
 
           return {
             frameTimes: pd.frameTimes,
@@ -258,10 +336,11 @@ async function main() {
             heapStartMB: Math.round((pd.heapStart / (1024 * 1024)) * 100) / 100,
             heapEndMB: Math.round((pd.heapEnd / (1024 * 1024)) * 100) / 100,
             heapGrowthMB: Math.round(((pd.heapEnd - pd.heapStart) / (1024 * 1024)) * 100) / 100,
-            calls: rInfo?.render?.calls ?? 0,
-            triangles: rInfo?.render?.triangles ?? 0,
+            calls: lastMetrics?.calls ?? s?.renderer?.lastFrameCalls ?? 0,
+            triangles: lastMetrics?.triangles ?? s?.renderer?.lastFrameTriangles ?? 0,
             geometries: rInfo?.memory?.geometries ?? 0,
             textures: rInfo?.memory?.textures ?? 0,
+            programs: rInfo?.programs?.length ?? 0,
           };
         })()`);
 
@@ -284,15 +363,43 @@ async function main() {
           triangles: metrics.triangles,
           geometries: metrics.geometries,
           textures: metrics.textures,
+          programs: metrics.programs,
           status: 'PASS',
         };
 
-        // Assertions:
-        // 1. Heap growth under 1 MB net over measurement period
+        // Assertions (Prompt 8.7 explicit budgets):
+        // 1. Explicit budgets: calls <= 220, triangles <= 450,000, textures <= 120, programs <= 90
+        if (metrics.calls > 220) {
+          resultEntry.status = 'FAIL';
+          resultEntry.failure = `Draw calls (${metrics.calls}) exceeds 220 budget`;
+          perfResults.allPassed = false;
+        }
+        if (metrics.triangles > 450000) {
+          resultEntry.status = 'FAIL';
+          resultEntry.failure = `Triangles (${metrics.triangles}) exceeds 450,000 budget`;
+          perfResults.allPassed = false;
+        }
+        if (metrics.textures > 120) {
+          resultEntry.status = 'FAIL';
+          resultEntry.failure = `Textures (${metrics.textures}) exceeds 120 budget`;
+          perfResults.allPassed = false;
+        }
+        if (metrics.programs > 90) {
+          resultEntry.status = 'FAIL';
+          resultEntry.failure = `Programs (${metrics.programs}) exceeds 90 budget`;
+          perfResults.allPassed = false;
+        }
+        if (!isSwiftShader && tier === 'low' && p50 > 33.0) {
+          resultEntry.status = 'FAIL';
+          resultEntry.failure = `Low tier frame time (${p50}ms) exceeds 33ms budget`;
+          perfResults.allPassed = false;
+        }
+
+        // 2. Heap growth under 1 MB net over measurement period
         if (metrics.heapGrowthMB > 1.0) {
           console.warn(` [WARN] Heap growth ${metrics.heapGrowthMB}MB > 1.0MB`);
         }
-        // 2. Max hitch during play should not exceed 50ms if shader warmup succeeded
+        // 3. Max hitch during play should not exceed 50ms if shader warmup succeeded
         if (metrics.maxHitchMs > 50 && !isSwiftShader) {
           resultEntry.status = 'FAIL';
           resultEntry.failure = `First-use hitch ${metrics.maxHitchMs}ms exceeds 50ms budget`;

@@ -295,22 +295,35 @@ export const NeonFloodMap: MapDefinition = {
 
     const platformMat = new MeshStandardMaterial({
       map: asphaltTex.albedo,
+      roughnessMap: asphaltTex.roughness,
+      normalMap: asphaltTex.normal,
       roughness: 0.35,
       metalness: 0.2,
+      envMapIntensity: 0.35,
+      vertexColors: true,
     });
     applyWetDarkening(platformMat, { waterY: 0.0 });
 
     const wallMat = new MeshStandardMaterial({
       map: metalTex.albedo,
+      roughnessMap: metalTex.roughness,
+      normalMap: metalTex.normal,
+      metalnessMap: metalTex.metalness,
       roughness: 0.5,
       metalness: 0.4,
+      envMapIntensity: 0.35,
+      vertexColors: true,
     });
     applyWetDarkening(wallMat, { waterY: 0.0 });
 
     const floorMat = new MeshStandardMaterial({
       map: asphaltTex.albedo,
+      roughnessMap: asphaltTex.roughness,
+      normalMap: asphaltTex.normal,
       roughness: 0.25,
       metalness: 0.3,
+      envMapIntensity: 0.35,
+      vertexColors: true,
     });
 
     const instance = buildStandardMapInstance(layout, env, {

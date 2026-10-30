@@ -9,8 +9,9 @@
  * ──────────────────────────────────────────────────────────────────────── */
 
 import { describe, it, expect } from 'vitest';
-import { Scene, MeshStandardMaterial } from 'three';
+import { Scene, MeshStandardMaterial, Color, Mesh } from 'three';
 import { MonsterMeshHierarchy } from '../src/game/monster/MonsterMesh.js';
+import { MonsterBody } from '../src/game/monster/MonsterBody.js';
 import { ProceduralSkin, GlbSkin, createMonsterSkin } from '../src/game/creatures/MonsterSkin.js';
 import { AnimationLabPanel } from '../src/lab/AnimationLabPanel.js';
 
@@ -72,8 +73,8 @@ describe('Phase E: Look and Animation of the Creature', () => {
     expect(Number.isFinite(geom.boundingBox!.min.y)).toBe(true);
   });
 
-  it('implements readability shader hooks (40% fog extinction reduction, cool rim, wet specular)', () => {
-    const mesh = new MonsterMeshHierarchy(1.0, '#7a4a38', 54321);
+  it('implements readability shader hooks (45% fog extinction reduction, cool grey rim, wet specular)', () => {
+    const mesh = new MonsterMeshHierarchy(1.0, '#6b5f40', 54321);
     const skinMat = mesh.skinnedMesh.material as MeshStandardMaterial;
     expect(skinMat).toBeDefined();
     expect(typeof skinMat.onBeforeCompile).toBe('function');
@@ -82,20 +83,106 @@ describe('Phase E: Look and Animation of the Creature', () => {
     const fakeShader = {
       vertexShader: '#include <common>\n#include <worldpos_vertex>\n',
       fragmentShader: '#include <common>\n#include <roughnessmap_fragment>\n#include <fog_fragment>\n',
-      uniforms: {},
+      uniforms: {} as Record<string, { value: unknown }>,
     };
 
     (skinMat.onBeforeCompile as (s: unknown) => void)(fakeShader);
 
-    // Verify 40% fog extinction reduction injected in fragment shader
-    expect(fakeShader.fragmentShader).toContain('fogFactor * 0.60');
+    // Verify 45% fog extinction reduction injected in fragment shader (Prompt 7.5)
+    expect(fakeShader.fragmentShader).toContain('fogFactor * 0.55');
 
-    // Verify cool rim lighting injected
-    expect(fakeShader.fragmentShader).toContain('vec3(0.18, 0.52, 0.62)');
+    // Verify neutral cool grey rim lighting injected (Prompt 7.4)
+    expect(fakeShader.fragmentShader).toContain('vec3(0.16, 0.20, 0.22)');
+    expect(fakeShader.fragmentShader).toContain('vec3(0.065, 0.045, 0.038)'); // subsurface lift
 
-    // Verify wet specular and darkening logic below waterline injected
-    expect(fakeShader.fragmentShader).toContain('roughnessFactor = mix(roughnessFactor, 0.12');
-    expect(fakeShader.fragmentShader).toContain('diffuseColor.rgb *= (1.0 - wetT * 0.35)');
+    // Verify wet specular and darkening logic below waterline injected (Prompt 7.6)
+    expect(fakeShader.fragmentShader).toContain('roughnessFactor = mix(roughnessFactor, 0.10, wetT * 0.9)');
+    expect(fakeShader.fragmentShader).toContain('diffuseColor.rgb *= mix(1.0, 0.72, wetT)');
+    expect(fakeShader.uniforms.uWaterLevel).toBeDefined();
+  });
+
+  it('verifies anatomical proportions, head/jaw structure, 24 teeth, and ear-fins (Prompt 7.1-7.3)', () => {
+    const mesh = new MonsterMeshHierarchy(1.0, '#6b5f40', 54321);
+    const skinMat = mesh.skinnedMesh.material as MeshStandardMaterial;
+
+    // Body skin material: roughness 0.52, metalness 0.03
+    expect(skinMat.roughness).toBeCloseTo(0.52, 2);
+    expect(skinMat.metalness).toBeCloseTo(0.03, 2);
+
+    // Head and jaw features
+    const joints = mesh.joints;
+    expect(joints.jaw.children.length).toBeGreaterThan(0);
+    expect(mesh.teethMesh).toBeDefined();
+    expect(mesh.teethMesh.count).toBe(24);
+    expect(mesh.vertebraMesh).toBeDefined();
+    expect(mesh.vertebraMesh.count).toBe(14);
+
+    // Ear-fin material on bm.earLeft
+    const earMesh = joints.earLeft.children[0] as Mesh;
+    expect(earMesh).toBeDefined();
+    const earMat = earMesh.material as MeshStandardMaterial;
+    expect(earMat).toBeDefined();
+    expect(earMat.emissive.getHex()).toBe(0x000000);
+    expect(earMat.emissiveIntensity).toBe(0.0);
+    expect(earMat.roughness).toBeCloseTo(0.55, 2);
+    expect(earMat.opacity).toBeCloseTo(0.72, 2);
+    expect(earMat.color.getHexString().toLowerCase()).toBe('59462d');
+
+    // Eye sockets: sealed discs on head
+    const eyeSockets = joints.head.children.filter((c) => c.name === 'EyeSocket_L' || c.name === 'EyeSocket_R');
+    expect(eyeSockets.length).toBe(2);
+    const eyeMat = (eyeSockets[0] as Mesh).material as MeshStandardMaterial;
+    expect(eyeMat.color.getHexString().toLowerCase()).toBe('635240');
+  });
+
+  it('verifies MonsterBody ALERTED pose, telegraph, jaw opening, and V-wake parameters (Prompt 7.7-7.8)', () => {
+    const body = new MonsterBody('monster_test', 1.0, '#6b5f40');
+    expect(body.maxJawOpen).toBeCloseTo(1.15, 2);
+    expect(body.id).toBe('monster_test');
+    expect(body.mesh.root).toBeDefined();
+    expect(body.tint).toBe('#6b5f40');
+  });
+
+  it('verifies distance silhouette readability and color metrics (Prompt 7.9-7.10)', async () => {
+    const fsModName = 'node:fs';
+    const pathModName = 'node:path';
+    const fs = (await import(/* @vite-ignore */ fsModName)) as unknown as FsModule;
+    const path = (await import(/* @vite-ignore */ pathModName)) as unknown as PathModule;
+    const root = typeof process !== 'undefined' ? process.cwd() : '.';
+
+    const readabilityPath = path.resolve(root, 'reports/monster/readability.json');
+    expect(fs.existsSync(readabilityPath)).toBe(true);
+
+    interface ReadabilityReport {
+      distances: Record<string, { maskPixels: number }>;
+    }
+    const report = JSON.parse(fs.readFileSync(readabilityPath, 'utf-8')) as ReadabilityReport;
+    const distances = report.distances;
+
+    // Readability criteria:
+    // 6m > 3000 px, 15m > 800 px, 25m > 150 px, 40m > 40 px
+    expect(distances['6m']?.maskPixels).toBeGreaterThan(3000);
+    expect(distances['15m']?.maskPixels).toBeGreaterThan(800);
+    expect(distances['25m']?.maskPixels).toBeGreaterThan(150);
+    expect(distances['40m']?.maskPixels).toBeGreaterThan(40);
+
+    // Measured target color checks: head #59462d (89, 70, 45), body #5a5035 (90, 80, 53)
+    const headTarget = new Color('#59462d');
+    const bodyTarget = new Color('#5a5035');
+    const mesh = new MonsterMeshHierarchy(1.0, '#6b5f40', 54321);
+
+    const earMesh = mesh.joints.earLeft.children[0] as Mesh;
+    const earMat = earMesh.material as MeshStandardMaterial;
+    const headCol = earMat.color;
+    expect(Math.abs(headCol.r * 255 - headTarget.r * 255)).toBeLessThanOrEqual(12);
+    expect(Math.abs(headCol.g * 255 - headTarget.g * 255)).toBeLessThanOrEqual(12);
+    expect(Math.abs(headCol.b * 255 - headTarget.b * 255)).toBeLessThanOrEqual(12);
+
+    const skinMat = mesh.skinnedMesh.material as MeshStandardMaterial;
+    const bodyCol = skinMat.color;
+    expect(Math.abs(bodyCol.r * 255 - bodyTarget.r * 255)).toBeLessThanOrEqual(20);
+    expect(Math.abs(bodyCol.g * 255 - bodyTarget.g * 255)).toBeLessThanOrEqual(20);
+    expect(Math.abs(bodyCol.b * 255 - bodyTarget.b * 255)).toBeLessThanOrEqual(20);
   });
 
   it('guarantees foot-slide under 0.03 m/s while planted in AnimationLab', () => {

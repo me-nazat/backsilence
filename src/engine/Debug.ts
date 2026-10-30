@@ -941,6 +941,7 @@ export function updateDebugOverlay(stats: {
   triangles: number;
   geometries: number;
   textures: number;
+  programs?: number | undefined;
   activeVoices: number;
   timers?: number | undefined;
   listeners?: number | undefined;
@@ -958,12 +959,18 @@ export function updateDebugOverlay(stats: {
     ? `<div>sightings: <strong>${stats.sightings}</strong>, last: ${stats.lastSightingTime !== undefined && stats.lastSightingTime > 0 ? stats.lastSightingTime.toFixed(1) : 'n/a'} s, visFrac: ${(stats.visFrac ?? 0).toFixed(2)}</div>`
     : '';
 
+  // Performance budget enforcement flags (Prompt 8.7)
+  const dcFlag = stats.drawCalls > 220 ? ' <span style="color:#ff3333;font-weight:bold;">🚩 OVER BUDGET (&gt;220)</span>' : '';
+  const triFlag = stats.triangles > 450000 ? ' <span style="color:#ff3333;font-weight:bold;">🚩 OVER BUDGET (&gt;450k)</span>' : '';
+  const texFlag = stats.textures > 120 ? ' <span style="color:#ff3333;font-weight:bold;">🚩 OVER BUDGET (&gt;120)</span>' : '';
+  const ftFlag = stats.frameTimeMs > 33.0 ? ' <span style="color:#ff3333;font-weight:bold;">🚩 OVER BUDGET (&gt;33ms)</span>' : '';
+
   overlay.style.display = 'block';
   overlay.innerHTML = `
     <div><strong style="color:var(--water);">BACKSILENCE DEBUG</strong></div>
-    <div>FPS: <strong>${Math.round(stats.fps)}</strong> (${stats.frameTimeMs.toFixed(1)}ms)</div>
-    <div>Draw Calls: ${stats.drawCalls} / Tri: ${stats.triangles}</div>
-    <div>Geom: ${stats.geometries} / Tex: ${stats.textures}</div>
+    <div>FPS: <strong>${Math.round(stats.fps)}</strong> (${stats.frameTimeMs.toFixed(1)}ms)${ftFlag}</div>
+    <div>Draw Calls: ${stats.drawCalls}${dcFlag} / Tri: ${stats.triangles}${triFlag}</div>
+    <div>Geom: ${stats.geometries} / Tex: ${stats.textures}${texFlag}${stats.programs !== undefined ? ` / Prog: ${stats.programs}${stats.programs > 90 ? ' 🚩' : ''}` : ''}</div>
     <div>Proc VRAM: ~${regStats.memoryMB} (${regStats.count} cached)</div>
     <div>Audio Voices: ${stats.activeVoices}${stats.timers !== undefined ? ` | Timers: ${stats.timers}` : ''}${stats.listeners !== undefined ? ` | Listeners: ${stats.listeners}` : ''}</div>
     ${sightingLine}

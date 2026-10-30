@@ -276,6 +276,8 @@ export const UtilityTunnelsMap: MapDefinition = {
       metalnessMap: metal.metalness,
       roughness: 0.55,
       metalness: 0.85,
+      envMapIntensity: 0.35,
+      vertexColors: true,
     });
 
     const wallMat = new MeshStandardMaterial({
@@ -284,6 +286,8 @@ export const UtilityTunnelsMap: MapDefinition = {
       normalMap: concrete.normal,
       roughness: 0.75,
       metalness: 0.05,
+      envMapIntensity: 0.35,
+      vertexColors: true,
     });
 
     const floorMat = new MeshStandardMaterial({
@@ -292,6 +296,8 @@ export const UtilityTunnelsMap: MapDefinition = {
       normalMap: concrete.normal,
       roughness: 0.4,
       metalness: 0.05,
+      envMapIntensity: 0.35,
+      vertexColors: true,
     });
 
     return buildStandardMapInstance(layout, env, { platformMat, wallMat, floorMat });

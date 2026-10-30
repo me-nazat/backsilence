@@ -80,10 +80,10 @@ describe('Phase D: Mix, Dynamics, Silence & Output Profiles Suite', () => {
     expect(mixer.subBassHighpass.type).toBe('highpass');
     expect(mixer.subBassHighpass.frequency.value).toBe(25.0);
 
-    // -1.0 dBTP brickwall peak limiter
-    expect(mixer.masterLimiter.threshold.value).toBe(-1.0);
+    // Master limiter compressor (Prompt 3.8: -3.0 dB, ratio 20, attack 0.0005)
+    expect(mixer.masterLimiter.threshold.value).toBe(-3.0);
     expect(mixer.masterLimiter.ratio.value).toBe(20.0);
-    expect(mixer.masterLimiter.attack.value).toBe(0.001);
+    expect(mixer.masterLimiter.attack.value).toBe(0.0005);
   });
 
   it('2. Output profiles configure appropriate EQ and dynamic range stages', () => {

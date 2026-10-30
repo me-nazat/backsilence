@@ -2,21 +2,30 @@
  *  Custom height-dependent atmospheric mist hugging the water plane on top of FogExp2.
  * ──────────────────────────────────────────────────────────────────────── */
 
-import type { Material } from 'three';
+import { Color, type Material } from 'three';
 
 export interface HeightFogOptions {
   waterY?: number;
-  falloff?: number; // meters decay scale (default 0.75m)
-  density?: number; // max added density at water surface (default 0.45)
+  height?: number; // alias for waterY
+  falloff?: number; // meters decay scale (default 0.85m)
+  density?: number; // max added density at water surface (default 0.32)
+  color?: string | Color; // optional custom mist color (defaults to fogColor)
 }
 
 /**
  * Patches a Three.js material with height-fog shader chunk.
  */
 export function applyHeightFog(material: Material, options: HeightFogOptions = {}): void {
-  const waterY = options.waterY ?? 0.0;
-  const falloff = options.falloff ?? 0.75;
-  const density = options.density ?? 0.45;
+  const waterY = options.height ?? options.waterY ?? 0.0;
+  const falloff = options.falloff ?? 0.85;
+  const density = options.density ?? 0.32;
+  const customColor = options.color ? (options.color instanceof Color ? options.color : new Color(options.color)) : new Color('#d6dccd');
+  const useCustomColor = options.color !== undefined;
+
+  if ((material as unknown as { __heightFogApplied?: boolean }).__heightFogApplied) {
+    return;
+  }
+  (material as unknown as { __heightFogApplied?: boolean }).__heightFogApplied = true;
 
   // eslint-disable-next-line @typescript-eslint/unbound-method
   const prevCompile = material.onBeforeCompile;
@@ -44,6 +53,8 @@ export function applyHeightFog(material: Material, options: HeightFogOptions = {
     shader.uniforms['uHeightFogBaseY'] = { value: waterY };
     shader.uniforms['uHeightFogFalloff'] = { value: falloff };
     shader.uniforms['uHeightFogDensity'] = { value: density };
+    shader.uniforms['uHeightFogColor'] = { value: customColor };
+    shader.uniforms['uUseCustomHeightFogColor'] = { value: useCustomColor ? 1.0 : 0.0 };
 
     shader.fragmentShader = shader.fragmentShader.replace(
       '#include <common>',
@@ -53,6 +64,8 @@ export function applyHeightFog(material: Material, options: HeightFogOptions = {
       uniform float uHeightFogBaseY;
       uniform float uHeightFogFalloff;
       uniform float uHeightFogDensity;
+      uniform vec3 uHeightFogColor;
+      uniform float uUseCustomHeightFogColor;
       `,
     );
 
@@ -71,7 +84,8 @@ export function applyHeightFog(material: Material, options: HeightFogOptions = {
         float hMist = exp(-hDist * uHeightFogFalloff) * uHeightFogDensity;
         float finalFogFactor = clamp(baseFogFactor + hMist * (1.0 - baseFogFactor) * smoothstep(0.0, 5.0, vFogDepth), 0.0, 1.0);
 
-        gl_FragColor.rgb = mix( gl_FragColor.rgb, fogColor, finalFogFactor );
+        vec3 activeFogColor = mix(fogColor, uHeightFogColor, uUseCustomHeightFogColor);
+        gl_FragColor.rgb = mix( gl_FragColor.rgb, activeFogColor, finalFogFactor );
       #endif
       `,
     );

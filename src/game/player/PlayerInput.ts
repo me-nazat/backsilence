@@ -47,6 +47,11 @@ export class PlayerInput {
   private sprintToggled = false;
   private crouchToggled = false;
   private wasGpPause = false;
+  private wasGpThrow = false;
+  private wasGpFlashlight = false;
+  private wasGpCrank = false;
+  private wasGpCycleItem = false;
+  private wasGpPing = false;
 
   constructor(settings: Settings, callbacks: PlayerInputCallbacks) {
     this.settings = settings;
@@ -361,6 +366,52 @@ export class PlayerInput {
         this.callbacks.onPauseRequested();
       }
       this.wasGpPause = btns.pause;
+
+      if (btns.flashlight && !this.wasGpFlashlight) {
+        if (this.isSpectating) {
+          this.callbacks.onSpectateFreeRoamToggle?.();
+        } else {
+          this.callbacks.onToggleFlashlight?.();
+        }
+      }
+      this.wasGpFlashlight = btns.flashlight;
+
+      if (btns.cycleItem && !this.wasGpCycleItem) {
+        if (this.isSpectating) {
+          this.callbacks.onSpectatePrev?.();
+        } else {
+          this.callbacks.onCycleItem?.();
+        }
+      }
+      this.wasGpCycleItem = btns.cycleItem;
+
+      if (btns.ping && !this.wasGpPing) {
+        this.callbacks.onPing?.();
+      }
+      this.wasGpPing = btns.ping;
+
+      if (btns.throw && !this.wasGpThrow) {
+        if (!this.isThrowing && !this.isSpectating) {
+          this.isThrowing = true;
+          this.throwHoldTime = 0;
+        }
+      } else if (!btns.throw && this.wasGpThrow) {
+        if (this.isThrowing) {
+          this.throwReadyToLaunch = this.throwHoldTime;
+          this.isThrowing = false;
+          this.throwHoldTime = 0;
+        }
+      }
+      this.wasGpThrow = btns.throw;
+
+      if (btns.crank) {
+        if (!this.isSpectating) {
+          this.isCranking = true;
+        }
+      } else if (this.wasGpCrank && !this.keysDown.has('KeyC') && !this.keysDown.has('KeyR')) {
+        this.isCranking = false;
+      }
+      this.wasGpCrank = btns.crank;
 
       sprint = sprint || btns.sprint;
       crouch = crouch || btns.crouch;

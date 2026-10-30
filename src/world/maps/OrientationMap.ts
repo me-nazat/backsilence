@@ -21,6 +21,7 @@ import { WATER_PROFILES } from '../../game/water/WaterProfile.js';
 import { TextureRegistry } from '../../procedural/textures/TextureRegistry.js';
 import { buildStandardMapInstance, scaleBoxUv } from './CommonMapBuilder.js';
 import { applyWetDarkening } from '../../game/rendering/WetDarkening.js';
+import { createSkylightAssembly } from '../../game/rendering/LightShafts.js';
 
 export const OrientationMap: MapDefinition = {
   id: 'orientation',
@@ -45,7 +46,7 @@ export const OrientationMap: MapDefinition = {
       color: '#fffef0',
       intensity: 1.2,
       direction: { x: 0.2, y: 0.9, z: 0.2 },
-      castShadow: false,
+      castShadow: true,
     },
   },
   waterProfile: WATER_PROFILES.natatorium,
@@ -203,8 +204,12 @@ export const OrientationMap: MapDefinition = {
       map: platformTiles.albedo,
       roughnessMap: platformTiles.roughness,
       normalMap: platformTiles.normal,
+      aoMap: platformTiles.ao,
+      aoMapIntensity: 0.85,
       roughness: 0.35,
       metalness: 0.02,
+      envMapIntensity: 0.35,
+      vertexColors: true,
     });
     applyWetDarkening(platformMat, { waterY: 0.0 });
 
@@ -212,8 +217,12 @@ export const OrientationMap: MapDefinition = {
       map: wallTiles.albedo,
       roughnessMap: wallTiles.roughness,
       normalMap: wallTiles.normal,
+      aoMap: wallTiles.ao,
+      aoMapIntensity: 0.85,
       roughness: 0.45,
       metalness: 0.05,
+      envMapIntensity: 0.35,
+      vertexColors: true,
     });
     applyWetDarkening(wallMat, { waterY: 0.0 });
 
@@ -221,8 +230,12 @@ export const OrientationMap: MapDefinition = {
       map: floorTiles.albedo,
       roughnessMap: floorTiles.roughness,
       normalMap: floorTiles.normal,
+      aoMap: floorTiles.ao,
+      aoMapIntensity: 0.85,
       roughness: 0.25,
       metalness: 0.04,
+      envMapIntensity: 0.35,
+      vertexColors: true,
     });
 
     const instance = buildStandardMapInstance(layout, env, {
@@ -231,13 +244,51 @@ export const OrientationMap: MapDefinition = {
       floorMat,
     });
 
-    // Ceiling enclosing the training pool (height 5.0m)
+    // Ceiling enclosing the training pool (height 5.0m, Prompt 5.2 ceiling variant)
     const ceilingGeom = new BoxGeometry(34.0, 0.4, 42.0);
-    scaleBoxUv(ceilingGeom, 34.0, 0.4, 42.0, 2.4);
-    const ceiling = new Mesh(ceilingGeom, wallMat);
+    scaleBoxUv(ceilingGeom, 34.0, 0.4, 42.0, 1.6);
+    const ceilingTileSet = tex.getTileSet('ceiling', layout.seed);
+    const ceilingMat = new MeshStandardMaterial({
+      map: ceilingTileSet.albedo,
+      roughnessMap: ceilingTileSet.roughness,
+      normalMap: ceilingTileSet.normal,
+      aoMap: ceilingTileSet.ao,
+      roughness: 0.65,
+      metalness: 0.05,
+    });
+    const ceiling = new Mesh(ceilingGeom, ceilingMat);
     ceiling.position.set(0, 5.0, 0);
+    ceiling.castShadow = true;
+    ceiling.receiveShadow = true;
     ceiling.name = 'TrainingPoolCeiling';
     instance.root.add(ceiling);
+
+    // Skylight assemblies with emissive rims, light shafts, and internal dust motes (Prompt 5.6)
+    const skylightA = createSkylightAssembly({
+      position: { x: -6, y: 0, z: -5 },
+      ceilingY: 5.0,
+      topRadius: 0.55,
+      bottomRadius: 2.0,
+      height: 5.0,
+      color: '#fff5d1',
+      intensity: 0.20,
+      moteCount: 24,
+      seed: 881,
+    });
+    instance.root.add(skylightA);
+
+    const skylightB = createSkylightAssembly({
+      position: { x: 6, y: 0, z: 8 },
+      ceilingY: 5.0,
+      topRadius: 0.55,
+      bottomRadius: 2.0,
+      height: 5.0,
+      color: '#fff5d1',
+      intensity: 0.20,
+      moteCount: 24,
+      seed: 882,
+    });
+    instance.root.add(skylightB);
 
     return instance;
   },

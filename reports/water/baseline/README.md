@@ -1,6 +1,6 @@
 # BackSilence Water Baseline Measurement & Rubric Evaluation (Phase A)
 
-**Date:** Sun, 25 Oct 2026 07:33:43 GMT
+**Date:** Thu, 29 Oct 2026 12:50:18 GMT
 **Benchmark Quality Tier:** High (1080p equivalent)
 **Maps Tested:** `natatorium` (Default Map), `neon_flood` (Weather)
 **Evaluation Standard:** Prompt 2 Section 3 Visual Bible & Section 5 Rubric (Target: >= 4.0 on all pillars)
@@ -36,11 +36,11 @@
 - **Shoreline (2.5/5):** Slab intersections exhibit hard polygon step edges without soft foam or depth blending.
 - **Absence of Artifacts (4/5):** No polygon tears or fatal rendering exceptions occur.
 - **Extracted Section 2 Metrics:**
-  - Luminance Mean: `0.5516` ± `0.2894`
-  - Percentiles (p5 / p50 / p95 / p99): `0.0572` / `0.6507` / `0.8596` / `0.8826`
-  - Mean Saturation: `0.1827`
-  - Sobel Edge Density (1x / 2x / 4x): `0.2285` / `0.3595` / `0.5294`
-  - Water Region Pixels: `26294` (Mean RGB: `[0.516, 0.636, 0.587]`)
+  - Luminance Mean: `0.4159` ± `0.1773`
+  - Percentiles (p5 / p50 / p95 / p99): `0.1083` / `0.4723` / `0.7097` / `0.7137`
+  - Mean Saturation: `0.3903`
+  - Sobel Edge Density (1x / 2x / 4x): `0.0782` / `0.1202` / `0.2257`
+  - Water Region Pixels: `268340` (Mean RGB: `[0.386, 0.504, 0.312]`)
   - Glint Fraction ($L > 0.90$): `0`
   - Floor Grout Readability Ratio: `0.633`
 
@@ -53,11 +53,11 @@
 - **Shoreline (2.8/5):** Distant platforms cut through water with abrupt boundaries.
 - **Absence of Artifacts (4.1/5):** Smooth horizon gradient with minimal color banding.
 - **Extracted Section 2 Metrics:**
-  - Luminance Mean: `0.517` ± `0.284`
-  - Percentiles (p5 / p50 / p95 / p99): `0.0585` / `0.6221` / `0.8526` / `0.8758`
-  - Mean Saturation: `0.2257`
-  - Sobel Edge Density (1x / 2x / 4x): `0.1788` / `0.2595` / `0.3872`
-  - Water Region Pixels: `77269` (Mean RGB: `[0.517, 0.65, 0.598]`)
+  - Luminance Mean: `0.4266` ± `0.161`
+  - Percentiles (p5 / p50 / p95 / p99): `0.1476` / `0.4575` / `0.6904` / `0.6935`
+  - Mean Saturation: `0.3848`
+  - Sobel Edge Density (1x / 2x / 4x): `0.0908` / `0.1341` / `0.1924`
+  - Water Region Pixels: `302881` (Mean RGB: `[0.376, 0.513, 0.315]`)
   - Glint Fraction ($L > 0.90$): `0`
   - Floor Grout Readability Ratio: `0.633`
 
@@ -70,11 +70,11 @@
 - **Shoreline (2.4/5):** Missing wet band and soft contact foam on the slab wall.
 - **Absence of Artifacts (4/5):** Geometry bounds align with GroundGrid data.
 - **Extracted Section 2 Metrics:**
-  - Luminance Mean: `0.7089` ± `0.1708`
-  - Percentiles (p5 / p50 / p95 / p99): `0.2627` / `0.7662` / `0.8557` / `0.888`
-  - Mean Saturation: `0.1366`
-  - Sobel Edge Density (1x / 2x / 4x): `0.1027` / `0.1665` / `0.2667`
-  - Water Region Pixels: `19260` (Mean RGB: `[0.453, 0.553, 0.511]`)
+  - Luminance Mean: `0.423` ± `0.1256`
+  - Percentiles (p5 / p50 / p95 / p99): `0.1943` / `0.4572` / `0.5859` / `0.6214`
+  - Mean Saturation: `0.3823`
+  - Sobel Edge Density (1x / 2x / 4x): `0.0514` / `0.0915` / `0.1425`
+  - Water Region Pixels: `461995` (Mean RGB: `[0.384, 0.519, 0.318]`)
   - Glint Fraction ($L > 0.90$): `0`
   - Floor Grout Readability Ratio: `0.633`
 
@@ -87,11 +87,11 @@
 - **Shoreline (3/5):** Wake dissipates before reaching platform shorelines.
 - **Absence of Artifacts (4.2/5):** Analytic wake equations evaluate cleanly without NaN or jitter.
 - **Extracted Section 2 Metrics:**
-  - Luminance Mean: `0.4419` ± `0.2321`
-  - Percentiles (p5 / p50 / p95 / p99): `0.0821` / `0.382` / `0.8484` / `0.8588`
-  - Mean Saturation: `0.3277`
-  - Sobel Edge Density (1x / 2x / 4x): `0.2481` / `0.3634` / `0.507`
-  - Water Region Pixels: `84960` (Mean RGB: `[0.286, 0.322, 0.271]`)
+  - Luminance Mean: `0.4425` ± `0.1535`
+  - Percentiles (p5 / p50 / p95 / p99): `0.1409` / `0.4819` / `0.6417` / `0.6943`
+  - Mean Saturation: `0.3885`
+  - Sobel Edge Density (1x / 2x / 4x): `0.1015` / `0.144` / `0.2374`
+  - Water Region Pixels: `285078` (Mean RGB: `[0.403, 0.514, 0.318]`)
   - Glint Fraction ($L > 0.90$): `0`
   - Floor Grout Readability Ratio: `0.633`
 
@@ -104,11 +104,11 @@
 - **Shoreline (3/5):** Burst does not generate returning wave reflections from walls.
 - **Absence of Artifacts (4.1/5):** Particle lifetimes expire without lingering quad artifacts.
 - **Extracted Section 2 Metrics:**
-  - Luminance Mean: `0.4608` ± `0.2406`
-  - Percentiles (p5 / p50 / p95 / p99): `0.0605` / `0.4747` / `0.8484` / `0.8557`
-  - Mean Saturation: `0.4083`
-  - Sobel Edge Density (1x / 2x / 4x): `0.2584` / `0.3647` / `0.4975`
-  - Water Region Pixels: `1339` (Mean RGB: `[0.368, 0.557, 0.429]`)
+  - Luminance Mean: `0.4502` ± `0.1445`
+  - Percentiles (p5 / p50 / p95 / p99): `0.1389` / `0.4754` / `0.6339` / `0.6945`
+  - Mean Saturation: `0.389`
+  - Sobel Edge Density (1x / 2x / 4x): `0.0996` / `0.1482` / `0.2157`
+  - Water Region Pixels: `367163` (Mean RGB: `[0.375, 0.508, 0.308]`)
   - Glint Fraction ($L > 0.90$): `0`
   - Floor Grout Readability Ratio: `0.633`
 
@@ -121,11 +121,11 @@
 - **Shoreline (3/5):** Impact ripples lack wave simulation interference.
 - **Absence of Artifacts (4.2/5):** Alpha blending of particles fades smoothly.
 - **Extracted Section 2 Metrics:**
-  - Luminance Mean: `0.4608` ± `0.2405`
-  - Percentiles (p5 / p50 / p95 / p99): `0.0605` / `0.4747` / `0.8484` / `0.8557`
-  - Mean Saturation: `0.4085`
-  - Sobel Edge Density (1x / 2x / 4x): `0.2579` / `0.3636` / `0.4959`
-  - Water Region Pixels: `1514` (Mean RGB: `[0.331, 0.499, 0.385]`)
+  - Luminance Mean: `0.4519` ± `0.1439`
+  - Percentiles (p5 / p50 / p95 / p99): `0.1389` / `0.4771` / `0.6339` / `0.6935`
+  - Mean Saturation: `0.3874`
+  - Sobel Edge Density (1x / 2x / 4x): `0.1001` / `0.1484` / `0.2121`
+  - Water Region Pixels: `365949` (Mean RGB: `[0.376, 0.509, 0.309]`)
   - Glint Fraction ($L > 0.90$): `0`
   - Floor Grout Readability Ratio: `0.633`
 
@@ -138,11 +138,11 @@
 - **Shoreline (2.9/5):** No foam residue deposited on nearby platform steps.
 - **Absence of Artifacts (4.3/5):** Clean return to calm water state.
 - **Extracted Section 2 Metrics:**
-  - Luminance Mean: `0.4609` ± `0.2406`
-  - Percentiles (p5 / p50 / p95 / p99): `0.0603` / `0.4747` / `0.8484` / `0.8557`
-  - Mean Saturation: `0.408`
-  - Sobel Edge Density (1x / 2x / 4x): `0.2575` / `0.3641` / `0.4922`
-  - Water Region Pixels: `1555` (Mean RGB: `[0.323, 0.487, 0.375]`)
+  - Luminance Mean: `0.4543` ± `0.1444`
+  - Percentiles (p5 / p50 / p95 / p99): `0.1383` / `0.4779` / `0.6341` / `0.6999`
+  - Mean Saturation: `0.3855`
+  - Sobel Edge Density (1x / 2x / 4x): `0.0959` / `0.1445` / `0.2086`
+  - Water Region Pixels: `366700` (Mean RGB: `[0.38, 0.513, 0.314]`)
   - Glint Fraction ($L > 0.90$): `0`
   - Floor Grout Readability Ratio: `0.633`
 
@@ -155,11 +155,11 @@
 - **Shoreline (2.9/5):** Ring clips against platform without wave reflection.
 - **Absence of Artifacts (4.2/5):** Ring shader formula produces no numeric artifacts.
 - **Extracted Section 2 Metrics:**
-  - Luminance Mean: `0.5194` ± `0.1934`
-  - Percentiles (p5 / p50 / p95 / p99): `0.1554` / `0.5368` / `0.8428` / `0.8515`
-  - Mean Saturation: `0.4465`
-  - Sobel Edge Density (1x / 2x / 4x): `0.2029` / `0.2861` / `0.3997`
-  - Water Region Pixels: `2598` (Mean RGB: `[0.22, 0.322, 0.248]`)
+  - Luminance Mean: `0.4574` ± `0.1469`
+  - Percentiles (p5 / p50 / p95 / p99): `0.1333` / `0.4844` / `0.6251` / `0.7022`
+  - Mean Saturation: `0.3865`
+  - Sobel Edge Density (1x / 2x / 4x): `0.1187` / `0.1776` / `0.247`
+  - Water Region Pixels: `416069` (Mean RGB: `[0.38, 0.512, 0.312]`)
   - Glint Fraction ($L > 0.90$): `0`
   - Floor Grout Readability Ratio: `0.633`
 
@@ -172,11 +172,11 @@
 - **Shoreline (3/5):** Distant platforms lack soft depth fog occlusion.
 - **Absence of Artifacts (4/5):** Fog color matches map atmosphere.
 - **Extracted Section 2 Metrics:**
-  - Luminance Mean: `0.5671` ± `0.2977`
-  - Percentiles (p5 / p50 / p95 / p99): `0.0563` / `0.6887` / `0.8633` / `0.8876`
-  - Mean Saturation: `0.1606`
-  - Sobel Edge Density (1x / 2x / 4x): `0.2318` / `0.3584` / `0.5211`
-  - Water Region Pixels: `24024` (Mean RGB: `[0.509, 0.622, 0.577]`)
+  - Luminance Mean: `0.4695` ± `0.1718`
+  - Percentiles (p5 / p50 / p95 / p99): `0.1535` / `0.5113` / `0.7212` / `0.7288`
+  - Mean Saturation: `0.3745`
+  - Sobel Edge Density (1x / 2x / 4x): `0.0723` / `0.1081` / `0.17`
+  - Water Region Pixels: `259358` (Mean RGB: `[0.441, 0.538, 0.343]`)
   - Glint Fraction ($L > 0.90$): `0`
   - Floor Grout Readability Ratio: `0.633`
 
@@ -189,11 +189,11 @@
 - **Shoreline (3/5):** Submerged platform foundations show hard intersection.
 - **Absence of Artifacts (4.3/5):** Audio properly muffles when submerged.
 - **Extracted Section 2 Metrics:**
-  - Luminance Mean: `0.3682` ± `0.2095`
-  - Percentiles (p5 / p50 / p95 / p99): `0.051` / `0.4065` / `0.6533` / `0.6841`
-  - Mean Saturation: `0.2564`
-  - Sobel Edge Density (1x / 2x / 4x): `0.2269` / `0.3241` / `0.4511`
-  - Water Region Pixels: `297519` (Mean RGB: `[0.45, 0.542, 0.451]`)
+  - Luminance Mean: `0.2651` ± `0.1669`
+  - Percentiles (p5 / p50 / p95 / p99): `0.0249` / `0.2528` / `0.477` / `0.477`
+  - Mean Saturation: `0.4077`
+  - Sobel Edge Density (1x / 2x / 4x): `0.02` / `0.0292` / `0.0385`
+  - Water Region Pixels: `841903` (Mean RGB: `[0.235, 0.305, 0.241]`)
   - Glint Fraction ($L > 0.90$): `0`
   - Floor Grout Readability Ratio: `0.633`
 
@@ -206,11 +206,11 @@
 - **Shoreline (2.9/5):** Waves pass through platform without splashing against walls.
 - **Absence of Artifacts (4.1/5):** Monster skin integrates with water without sorting cracks.
 - **Extracted Section 2 Metrics:**
-  - Luminance Mean: `0.4588` ± `0.2291`
-  - Percentiles (p5 / p50 / p95 / p99): `0.0631` / `0.4949` / `0.8484` / `0.8565`
-  - Mean Saturation: `0.2767`
-  - Sobel Edge Density (1x / 2x / 4x): `0.2959` / `0.4094` / `0.5334`
-  - Water Region Pixels: `9538` (Mean RGB: `[0.275, 0.329, 0.274]`)
+  - Luminance Mean: `0.2789` ± `0.189`
+  - Percentiles (p5 / p50 / p95 / p99): `0.0644` / `0.2072` / `0.6179` / `0.6933`
+  - Mean Saturation: `0.4848`
+  - Sobel Edge Density (1x / 2x / 4x): `0.2287` / `0.2874` / `0.3645`
+  - Water Region Pixels: `16990` (Mean RGB: `[0.271, 0.307, 0.256]`)
   - Glint Fraction ($L > 0.90$): `0`
   - Floor Grout Readability Ratio: `0.633`
 
@@ -223,11 +223,11 @@
 - **Shoreline (3/5):** Rain ripples do not form foam along curbs.
 - **Absence of Artifacts (4.2/5):** Weather director rain streaks render cleanly.
 - **Extracted Section 2 Metrics:**
-  - Luminance Mean: `0.2784` ± `0.3029`
-  - Percentiles (p5 / p50 / p95 / p99): `0.0393` / `0.0785` / `0.8105` / `0.8456`
-  - Mean Saturation: `0.6886`
-  - Sobel Edge Density (1x / 2x / 4x): `0.0969` / `0.1411` / `0.2027`
-  - Water Region Pixels: `513162` (Mean RGB: `[0.004, 0.093, 0.005]`)
+  - Luminance Mean: `0.1846` ± `0.2306`
+  - Percentiles (p5 / p50 / p95 / p99): `0.0039` / `0.0488` / `0.6937` / `0.8043`
+  - Mean Saturation: `0.3483`
+  - Sobel Edge Density (1x / 2x / 4x): `0.0526` / `0.086` / `0.1427`
+  - Water Region Pixels: `391553` (Mean RGB: `[0.044, 0.065, 0.052]`)
   - Glint Fraction ($L > 0.90$): `0`
   - Floor Grout Readability Ratio: `0.633`
 
