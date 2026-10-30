@@ -40,8 +40,8 @@ export const DrownedMetroMap: MapDefinition = {
   },
   atmosphere: {
     fog: {
-      color: '#a9b2a8',
-      density: 0.04,
+      color: '#131e1c',
+      density: 0.024,
     },
     exposure: 1.0,
     hemisphere: {
@@ -281,8 +281,8 @@ export const DrownedMetroMap: MapDefinition = {
 
     // Player spawn on Platform P1
     const playerSpawn = { x: 10, y: 1.0, z: -11 };
-    // Monster spawn in flooded west end of T1 (>= 45m from player spawn)
-    const monsterSpawn = { x: -45, y: -0.9, z: -19 };
+    // Monster spawn in flooded west end of T1 (25m from player, inside 18m–32m patrol ring)
+    const monsterSpawn = { x: -14, y: -0.9, z: -19 };
 
     const monsters: Array<{ id: string; variant: 'standard' | 'elder' | 'juvenile'; spawn: Vec3; sleeperSpawn?: Vec3 }> = [
       {

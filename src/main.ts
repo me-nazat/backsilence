@@ -180,7 +180,7 @@ async function boot(): Promise<void> {
   const route = parseRoute();
   setBootProgress(15);
 
-  let settings = loadSettings();
+  const settings = loadSettings();
   setBootProgress(30);
 
   // 2. Initialize Core Systems

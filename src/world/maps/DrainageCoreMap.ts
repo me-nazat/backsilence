@@ -22,8 +22,8 @@ export const DrainageCoreMap: MapDefinition = {
   },
   atmosphere: {
     fog: {
-      color: '#020706',
-      density: 0.07,
+      color: '#040d0b',
+      density: 0.026,
     },
     exposure: 1.3,
     hemisphere: {
@@ -61,13 +61,23 @@ export const DrainageCoreMap: MapDefinition = {
       { id: 'pit_rim_e', min: { x: 7.6, y: -0.9, z: -8 }, max: { x: 8.0, y: 1.5, z: 8 }, isWall: true },
     );
 
-    // Perimeter boundary walls enclosing the sector to eliminate distant voids
+    // 8.5m Tall Brutalist Perimeter Enclosure Walls
     walls.push(
-      { id: 'bound_wall_n', min: { x: -60, y: -0.9, z: 59.5 }, max: { x: 60, y: 5.0, z: 60.5 }, isWall: true },
-      { id: 'bound_wall_s', min: { x: -60, y: -0.9, z: -60.5 }, max: { x: 60, y: 5.0, z: -59.5 }, isWall: true },
-      { id: 'bound_wall_w', min: { x: -60.5, y: -0.9, z: -60 }, max: { x: -59.5, y: 5.0, z: 60 }, isWall: true },
-      { id: 'bound_wall_e', min: { x: 59.5, y: -0.9, z: -60 }, max: { x: 60.5, y: 5.0, z: 60 }, isWall: true },
+      { id: 'bound_wall_n', min: { x: -60, y: -0.9, z: 59.2 }, max: { x: 60, y: 8.5, z: 60.5 }, isWall: true },
+      { id: 'bound_wall_s', min: { x: -60, y: -0.9, z: -60.5 }, max: { x: 60, y: 8.5, z: -59.2 }, isWall: true },
+      { id: 'bound_wall_w', min: { x: -60.5, y: -0.9, z: -60 }, max: { x: -59.2, y: 8.5, z: 60 }, isWall: true },
+      { id: 'bound_wall_e', min: { x: 59.2, y: -0.9, z: -60 }, max: { x: 60.5, y: 8.5, z: 60 }, isWall: true },
     );
+
+    // Concrete architectural buttresses and support piers every 12m along perimeters
+    for (let c = -48; c <= 48; c += 12) {
+      walls.push(
+        { id: `buttress_n_${c}`, min: { x: c - 0.75, y: -0.9, z: 57.8 }, max: { x: c + 0.75, y: 8.5, z: 59.5 }, isWall: true },
+        { id: `buttress_s_${c}`, min: { x: c - 0.75, y: -0.9, z: -59.5 }, max: { x: c + 0.75, y: 8.5, z: -57.8 }, isWall: true },
+        { id: `buttress_w_${c}`, min: { x: -59.5, y: -0.9, z: c - 0.75 }, max: { x: -57.8, y: 8.5, z: c + 0.75 }, isWall: true },
+        { id: `buttress_e_${c}`, min: { x: 57.8, y: -0.9, z: c - 0.75 }, max: { x: 59.5, y: 8.5, z: c + 0.75 }, isWall: true },
+      );
+    }
 
     // 2. Concentric Stepping-Stone Networks (Inner, Mid, Outer)
     // Replaced long uninterrupted footpaths with parkour stepping-stone pads separated by 2.5m–3.2m water gaps
@@ -201,14 +211,6 @@ export const DrainageCoreMap: MapDefinition = {
       kind: 'metal',
     });
 
-    // Outer enclosure boundary walls
-    walls.push(
-      { id: 'drain_bound_n', min: { x: -60, y: -0.9, z: 59 }, max: { x: 60, y: 8.0, z: 60 }, isWall: true },
-      { id: 'drain_bound_s', min: { x: -60, y: -0.9, z: -60 }, max: { x: 60, y: 8.0, z: -59 }, isWall: true },
-      { id: 'drain_bound_w', min: { x: -60, y: -0.9, z: -60 }, max: { x: -59, y: 8.0, z: 60 }, isWall: true },
-      { id: 'drain_bound_e', min: { x: 59, y: -0.9, z: -60 }, max: { x: 60, y: 8.0, z: 60 }, isWall: true },
-    );
-
     // Player spawn in Locker Cache room (SW)
     const playerSpawn = { x: -48.0, y: 0.3, z: -46.0 };
 
@@ -305,6 +307,7 @@ export const DrainageCoreMap: MapDefinition = {
       },
       meta: {
         playerCount: ctx.playerCount,
+        ceilingY: 8.5,
       },
     };
   },

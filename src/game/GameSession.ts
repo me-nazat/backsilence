@@ -1902,7 +1902,7 @@ export class GameSession {
     const prevSnap = this.simWorld.player.getPreviousSnapshot();
     const currSnap = this.simWorld.player.getSnapshot();
 
-    this.playerCamera.update(dt, prevSnap, currSnap, renderAlpha);
+    this.playerCamera.update(dt, prevSnap, currSnap, renderAlpha, undefined, this.water.currentWaterY);
     if (this.openingTurn?.active) {
       this.openingTurn.t += dt;
       if (this.openingTurn.t < 2.2) {
@@ -2152,7 +2152,7 @@ export class GameSession {
     this.water.update(dt, this.simWorld.simTime, this.camera, this.scene.fog as FogExp2);
     this.flock.update(dt, this.simWorld.simTime, this.camera);
     this.weatherDirector.update(dt, this.simWorld.simTime, this.camera, currSnap.pos);
-    this.lensOverlay.setSubmerged(this.camera.position.y < this.water.currentWaterY);
+    this.lensOverlay.setSubmerged(this.camera.position.y < this.water.currentWaterY && (!currSnap.wet || currSnap.depth > 1.55));
     this.lensOverlay.update(dt);
 
     // 8b. Wading leg wake displacement & knee splashes

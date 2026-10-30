@@ -54,6 +54,7 @@ export class PlayerCamera {
     currSnapshot: PlayerSnapshot,
     renderAlpha: number,
     nearestMonsterDist?: number,
+    waterY?: number,
   ): void {
     const reducedMotion = this.settings.accessibility.reducedMotion;
     const prefersReduced =
@@ -144,9 +145,14 @@ export class PlayerCamera {
     }
 
     // 8. Camera Position composition
+    let camY = _interpPos.y + this.currentEyeY + bobVertical + idleSway + this.dipOffset + jumpDip + shakeY;
+    if (waterY !== undefined && currSnapshot.wet && (currSnapshot.depth === undefined || currSnapshot.depth <= 1.55)) {
+      // Keep player head above water line in shallow / waist-deep water (avoid false submersion dip)
+      camY = Math.max(camY, waterY + 0.18);
+    }
     this.camera.position.set(
       _interpPos.x + bobLateral + shakeX,
-      _interpPos.y + this.currentEyeY + bobVertical + idleSway + this.dipOffset + jumpDip + shakeY,
+      camY,
       _interpPos.z,
     );
 

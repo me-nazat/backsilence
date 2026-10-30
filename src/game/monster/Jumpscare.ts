@@ -162,19 +162,19 @@ export class JumpscareSequence {
     }
 
     // -------------------------------------------------------------
-    // Stage 1 (0.00s – 0.18s, Snap & Unhinge): Camera whip to 0.85m face distance
+    // Stage 1 (0.00s – 0.18s, Snap & Unhinge): Camera smooth look-at whip to 0.82m face distance
     // -------------------------------------------------------------
-    const snapT = Math.min(1.0, t / 0.12);
+    const snapT = Math.min(1.0, t / 0.16);
     const easeOutSnap = 1.0 - Math.pow(1.0 - snapT, 3);
 
     this.camera.position.lerpVectors(_camStartPos, _targetPos, easeOutSnap);
     this.camera.quaternion.slerpQuaternions(_camStartQuat, _targetQuat, easeOutSnap);
 
-    // Flicker jumpscare key light between cold-white and crimson
+    // Dynamic jumpscare key light
     if (this.jumpscareLight) {
-      const flicker = Math.sin(t * 75.0) > 0;
+      const flicker = Math.sin(t * 50.0) > 0;
       this.jumpscareLight.color.setHex(flicker ? 0xff2030 : 0xddeeff);
-      this.jumpscareLight.intensity = 3.0 + Math.sin(t * 45.0) * 1.5;
+      this.jumpscareLight.intensity = 3.0 + Math.sin(t * 30.0) * 1.2;
     }
 
     // -------------------------------------------------------------
@@ -256,9 +256,10 @@ export class JumpscareSequence {
         }
       }
     } else if (t < 0.18 && this.overlayEl && !this.reducedMotion) {
-      // Rapid white/red strobe during Stage 1
-      this.overlayEl.style.background = (Math.floor(t * 60) % 2 === 0) ? 'white' : 'red';
-      this.overlayEl.style.opacity = '0.9';
+      // Smooth dark crimson vignette surge (no 60Hz strobe)
+      const surgeT = t / 0.18;
+      this.overlayEl.style.background = 'radial-gradient(circle, rgba(140, 10, 10, 0.45) 0%, rgba(30, 2, 2, 0.85) 70%, rgba(5, 0, 0, 0.95) 100%)';
+      this.overlayEl.style.opacity = (0.5 + surgeT * 0.4).toFixed(2);
     }
 
     // -------------------------------------------------------------

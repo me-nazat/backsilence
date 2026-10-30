@@ -76,9 +76,9 @@ export class LensOverlay {
 
   /** Trigger water droplets on lens when camera emerges from underwater */
   triggerEmergence(): void {
-    this.dropletTimer = 2.6; // 2.6s droplets decay
+    this.dropletTimer = 1.6; // 1.6s subtle droplet dissipation
     this.droplets = [];
-    const count = 18 + Math.floor(Math.random() * 12);
+    const count = 12 + Math.floor(Math.random() * 8);
     const w = this.canvas.width;
     const h = this.canvas.height;
 
@@ -86,9 +86,9 @@ export class LensOverlay {
       this.droplets.push({
         x: Math.random() * w,
         y: Math.random() * h * 0.8,
-        radius: 5 + Math.random() * 11,
-        alpha: 0.75 + Math.random() * 0.25,
-        vy: 16 + Math.random() * 45, // downward trickle
+        radius: 1.5 + Math.random() * 2.5,
+        alpha: 0.28 + Math.random() * 0.12,
+        vy: 14 + Math.random() * 28, // subtle downward trickle
       });
     }
   }
@@ -181,7 +181,7 @@ export class LensOverlay {
       this.ctx.restore();
     }
 
-    // 3. Draw Lens Droplets
+    // 3. Draw Lens Droplets (subtle translucent micro-droplets without harsh white discs)
     if (this.dropletTimer > 0) {
       this.dropletTimer -= dt;
       const fade = Math.min(1.0, this.dropletTimer / 0.8);
@@ -192,18 +192,17 @@ export class LensOverlay {
         const currentAlpha = d.alpha * fade;
         if (currentAlpha <= 0.01) continue;
 
-        // Outer glass refraction ring tinted green-white '#dcefe4'
+        // Subtle soft glass refraction ring
         const grad = this.ctx.createRadialGradient(
-          d.x - d.radius * 0.3,
-          d.y - d.radius * 0.3,
+          d.x - d.radius * 0.25,
+          d.y - d.radius * 0.25,
           d.radius * 0.1,
           d.x,
           d.y,
           d.radius,
         );
-        grad.addColorStop(0, `rgba(255, 255, 255, ${currentAlpha * 0.95})`);
-        grad.addColorStop(0.65, `rgba(214, 238, 220, ${currentAlpha * 0.5})`);
-        grad.addColorStop(0.9, `rgba(50, 85, 45, ${currentAlpha * 0.5})`);
+        grad.addColorStop(0, `rgba(220, 245, 235, ${currentAlpha * 0.5})`);
+        grad.addColorStop(0.7, `rgba(160, 210, 195, ${currentAlpha * 0.3})`);
         grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
 
         this.ctx.fillStyle = grad;
@@ -211,10 +210,10 @@ export class LensOverlay {
         this.ctx.arc(d.x, d.y, d.radius, 0, Math.PI * 2);
         this.ctx.fill();
 
-        // Droplet specular highlight
-        this.ctx.fillStyle = `rgba(255, 255, 255, ${currentAlpha * 0.95})`;
+        // Delicate micro specular glint
+        this.ctx.fillStyle = `rgba(255, 255, 255, ${currentAlpha * 0.55})`;
         this.ctx.beginPath();
-        this.ctx.arc(d.x - d.radius * 0.35, d.y - d.radius * 0.35, d.radius * 0.22, 0, Math.PI * 2);
+        this.ctx.arc(d.x - d.radius * 0.25, d.y - d.radius * 0.25, d.radius * 0.25, 0, Math.PI * 2);
         this.ctx.fill();
       }
       this.ctx.restore();

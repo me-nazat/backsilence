@@ -66,6 +66,7 @@ export class MonsterBrain {
 
   // Speeds
   static readonly SPEED_WANDER = 3.2;
+  static readonly SPEED_INVESTIGATE = 5.2;
   static readonly SPEED_HUNT = 10.4;
   static readonly SPEED_APEX_SPRINT = 13.8;
   static readonly TURN_RATE_WANDER = 7.5; // rad/s
@@ -367,7 +368,7 @@ export class MonsterBrain {
     }
 
     // 2.6. Check if current cell became unwalkable (stranded by water level drop)
-    if (this.state !== 'DORMANT' && this.state !== 'ATTACK' && this.state !== 'LURK' && distToPlayer > MonsterBrain.ATTACK_RANGE) {
+    if ((this.state === 'WANDER' || this.state === 'INVESTIGATE') && distToPlayer > MonsterBrain.ATTACK_RANGE) {
       const g = nav.worldToGrid(this.pos.x, this.pos.z);
       if (!nav.isWalkable(g.gx, g.gz)) {
         const nearest = nav.findNearestWalkableCell(this.pos.x, this.pos.z, 15.0);
@@ -387,12 +388,20 @@ export class MonsterBrain {
             return;
           }
         } else {
-          // Despawn / settle into DORMANT crouch
-          this.state = 'DORMANT';
-          this.stateTimer = 999.0;
-          this.vel.x = 0;
-          this.vel.z = 0;
-          return;
+          // Never freeze with 999s timer; search wider radius or resume wander
+          const fallback = nav.findNearestWalkableCell(this.pos.x, this.pos.z, 45.0);
+          if (fallback) {
+            const dx = fallback.x - this.pos.x;
+            const dz = fallback.z - this.pos.z;
+            const targetYaw = dAtan2(dx, -dz);
+            this.yaw = this.steerTowards(this.yaw, targetYaw, MonsterBrain.TURN_RATE_HUNT * dt);
+            const moveSpeed = MonsterBrain.SPEED_INVESTIGATE * this.speedMul;
+            this.pos.x += dSin(this.yaw) * moveSpeed * dt;
+            this.pos.z -= dCos(this.yaw) * moveSpeed * dt;
+            this.vel.x = dSin(this.yaw) * moveSpeed;
+            this.vel.z = -dCos(this.yaw) * moveSpeed;
+            return;
+          }
         }
       }
     }
@@ -439,13 +448,20 @@ export class MonsterBrain {
     // Ignore self-generated noises
     if (noise.sourcePlayerId === this.id) return false;
 
-    // Acoustic perception check
-    if (!canHearNoise(noise, this.pos, this.hearingMul, hearingCtx, colliders)) {
+    // Acoustic perception check: air attenuation + high-efficiency water shock transmission within 48m
+    const dx = noise.position.x - this.pos.x;
+    const dz = noise.position.z - this.pos.z;
+    const distToNoise = dHypot(dx, dz);
+    const isWaterSplash = noise.kind === 'splash' || (noise as unknown as { type?: string }).type === 'jump_in' || (noise.kind === 'wade' && noise.id.startsWith('noise_jump'));
+    const canHear = canHearNoise(noise, this.pos, this.hearingMul, hearingCtx, colliders) ||
+                    (isWaterSplash && distToNoise <= 48.0);
+
+    if (!canHear) {
       return false;
     }
 
-    // Track consecutive loud splashes/noises within 4.0s window
-    if (simTime - this.lastSplashTime < 4.0) {
+    // Track consecutive loud splashes/noises within 6.0s window
+    if (simTime - this.lastSplashTime < 6.0) {
       this.consecutiveSplashes = Math.min(5, this.consecutiveSplashes + 1);
     } else {
       this.consecutiveSplashes = 1;
@@ -456,8 +472,6 @@ export class MonsterBrain {
     this.agitation = Math.min(1.0, this.agitation + 0.35 + this.consecutiveSplashes * 0.15);
 
     // Aim ear-fins toward noise direction
-    const dx = noise.position.x - this.pos.x;
-    const dz = noise.position.z - this.pos.z;
     this.earAngle = dAtan2(dx, -dz);
 
     // Sighting protection: do not interrupt choreographed sighting sweeps
@@ -475,6 +489,9 @@ export class MonsterBrain {
       this.state === 'LURK'
     ) {
       this.enterAlerted(noise.position, score, simTime);
+      if (isWaterSplash && (this.consecutiveSplashes >= 2 || noise.loudness >= 0.45)) {
+        this.reactionTimer = Math.min(this.reactionTimer, 0.05);
+      }
       return true;
     }
 
@@ -737,7 +754,7 @@ export class MonsterBrain {
         this.enterWander(nav);
         return;
       }
-      const speed = MonsterBrain.SPEED_WANDER * this.speedMul;
+      const speed = MonsterBrain.SPEED_INVESTIGATE * this.speedMul;
       this.followPath(dt, speed, MonsterBrain.TURN_RATE_WANDER, nav, events, simTime);
       if (this.currentPathIndex >= this.currentPath.length) {
         this.pickSearchWaypoint(nav);
@@ -843,8 +860,6 @@ export class MonsterBrain {
     if (nav.isWalkableWorld(nextX, nextZ)) {
       if (playerPos && (this.state === 'WANDER' || this.state === 'DORMANT')) {
         if (dHypot(nextX - playerPos.x, nextZ - playerPos.z) < 6.0) {
-          this.vel.x = 0;
-          this.vel.z = 0;
           this.currentPathIndex = this.currentPath.length;
           this.pickNextWanderWaypoint(nav, playerPos);
           return;
@@ -858,8 +873,6 @@ export class MonsterBrain {
     } else if (nav.isWalkableWorld(directX, directZ)) {
       if (playerPos && (this.state === 'WANDER' || this.state === 'DORMANT')) {
         if (dHypot(directX - playerPos.x, directZ - playerPos.z) < 6.0) {
-          this.vel.x = 0;
-          this.vel.z = 0;
           this.currentPathIndex = this.currentPath.length;
           this.pickNextWanderWaypoint(nav, playerPos);
           return;

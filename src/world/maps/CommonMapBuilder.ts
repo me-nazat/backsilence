@@ -77,6 +77,7 @@ export function buildWalkableSubwayCarAssembly(
   accentGeoms: BufferGeometry[],
   trimGeoms: BufferGeometry[],
   platformGeoms: BufferGeometry[],
+  colliders?: ColliderSet,
 ): void {
   const [minX, minZ, maxX, maxZ] = plat.rect;
   const w = maxX - minX;
@@ -139,6 +140,16 @@ export function buildWalkableSubwayCarAssembly(
         mullion.translate(segX + postOff, floorDeckY + lowerSkirtH + (wallH - lowerSkirtH - upperHeaderH) * 0.5, sideZ);
         metalGeoms.push(mullion);
       }
+
+      // Solid collision for subway car side panel segments (leaving sliding doors open)
+      if (colliders) {
+        colliders.addBox(
+          `subway_wall_${plat.id}_z${Math.round(sideZ)}_${s}`,
+          { x: segX - segW * 0.5, y: floorDeckY, z: sideZ - panelThick * 0.6 },
+          { x: segX + segW * 0.5, y: roofY, z: sideZ + panelThick * 0.6 },
+          true,
+        );
+      }
     }
 
     // Continuous upper roof header fascia over windows and doors
@@ -162,6 +173,21 @@ export function buildWalkableSubwayCarAssembly(
     const endLintel = new BoxGeometry(panelThick, 0.4, d);
     endLintel.translate(endX, roofY - 0.2, cz);
     metalGeoms.push(endLintel);
+
+    if (colliders) {
+      colliders.addBox(
+        `subway_bulk_${plat.id}_x${Math.round(endX)}_l`,
+        { x: endX - panelThick * 0.6, y: floorDeckY, z: minZ },
+        { x: endX + panelThick * 0.6, y: roofY, z: minZ + endPillarW },
+        true,
+      );
+      colliders.addBox(
+        `subway_bulk_${plat.id}_x${Math.round(endX)}_r`,
+        { x: endX - panelThick * 0.6, y: floorDeckY, z: maxZ - endPillarW },
+        { x: endX + panelThick * 0.6, y: roofY, z: maxZ },
+        true,
+      );
+    }
   }
 
   // 5. Interior stanchion poles, longitudinal bench seats, and overhead grab rails
@@ -299,9 +325,9 @@ export function buildStandardMapInstance(
   applyHeightFog(metalMat, { height: 0.0, falloff: 0.85, density: 0.32, color: '#d6dccd' });
   applyHeightFog(accentMat, { height: 0.0, falloff: 0.85, density: 0.32, color: '#d6dccd' });
 
-  // Apply parallax occlusion mapping for grout depth within 6m
+  // Keep platform tiles crisp and stable without screen-space parallax jitter
+  // (Parallax occlusion is omitted on platformMat to eliminate texture swimming)
   const defaultTileSet = reg.getTileSet('platform', layout.seed);
-  applyParallaxOcclusion(customMaterials.platformMat, { heightMap: defaultTileSet.height, scale: 0.025, maxDistance: 6.0 });
 
   const geometriesToDispose: { dispose: () => void }[] = [];
   const sinkingNodes: SinkingPlatformNode[] = [];
@@ -327,7 +353,10 @@ export function buildStandardMapInstance(
     const topY = plat.topY;
     const depth = 2.0;
 
-    // Sim registration
+    const isSubwayCar = plat.style === 'subway_car' || plat.id.startsWith('stalled_train_car');
+    const isBridgeTruss = plat.style === 'bridge_truss' || plat.id.startsWith('footbridge');
+
+    // Sim registration & ground height
     if (plat.dynamic && plat.dynamic.type === 'sinking') {
       const sinkNode = new SinkingPlatformNode({
         id: plat.id,
@@ -341,24 +370,24 @@ export function buildStandardMapInstance(
       });
       sinkingNodes.push(sinkNode);
       ground.registerDynamicTop(sinkNode);
-    } else {
+    } else if (!isBridgeTruss) {
+      // Non-bridge standard platforms set the 2D ground grid height
       ground.setRectHeight(minX, minZ, maxX, maxZ, topY);
     }
 
-    // Collider
-    colliders.addBox(
-      `plat_${plat.id}`,
-      { x: minX, y: topY - depth, z: minZ },
-      { x: maxX, y: topY, z: maxZ },
-      false,
-    );
-
-    const isSubwayCar = plat.style === 'subway_car' || plat.id.startsWith('stalled_train_car');
-    const isBridgeTruss = plat.style === 'bridge_truss' || plat.id.startsWith('footbridge');
+    // Collider for standard platforms (bridge trusses use custom thin deck + handrail + pier colliders)
+    if (!isBridgeTruss) {
+      colliders.addBox(
+        `plat_${plat.id}`,
+        { x: minX, y: topY - depth, z: minZ },
+        { x: maxX, y: topY, z: maxZ },
+        false,
+      );
+    }
 
     if (isSubwayCar) {
-      // Hollow Walkable Subway Car Assembly
-      buildWalkableSubwayCarAssembly(plat, metalGeoms, accentGeoms, trimGeoms, hydroPlatformGeoms);
+      // Hollow Walkable Subway Car Assembly with solid side walls & end bulkheads
+      buildWalkableSubwayCarAssembly(plat, metalGeoms, accentGeoms, trimGeoms, hydroPlatformGeoms, colliders);
 
       // Automatic boarding ramp connecting adjacent P1 platform (z = -16, topY = 1.0) to car (minZ = -15, topY = 1.3)
       if (minZ >= -15.5 && minZ <= -14.0) {
@@ -389,6 +418,14 @@ export function buildStandardMapInstance(
       deckGeom.translate(cx, topY - deckThick * 0.5, cz);
       metalGeoms.push(deckGeom);
 
+      // Thin deck collider allowing unobstructed passage underneath
+      colliders.addBox(
+        `deck_${plat.id}`,
+        { x: minX, y: topY - deckThick, z: minZ },
+        { x: maxX, y: topY, z: maxZ },
+        false,
+      );
+
       // Longitudinal side trusses & safety handrails (leave gap near z=0 on +X side for P2 island stair)
       const railH = 1.05;
       for (const sideX of [minX + 0.1, maxX - 0.1]) {
@@ -408,10 +445,30 @@ export function buildStandardMapInstance(
           const topRailN = new BoxGeometry(0.08, 0.08, northLen);
           topRailN.translate(sideX, topY + railH, 1.6 + northLen * 0.5);
           accentGeoms.push(topRailN);
+
+          colliders.addBox(
+            `rail_e_${plat.id}_s`,
+            { x: sideX - 0.1, y: topY, z: minZ },
+            { x: sideX + 0.1, y: topY + railH, z: -1.6 },
+            true,
+          );
+          colliders.addBox(
+            `rail_e_${plat.id}_n`,
+            { x: sideX - 0.1, y: topY, z: 1.6 },
+            { x: sideX + 0.1, y: topY + railH, z: maxZ },
+            true,
+          );
         } else {
           const topRail = new BoxGeometry(0.08, 0.08, d);
           topRail.translate(sideX, topY + railH, cz);
           accentGeoms.push(topRail);
+
+          colliders.addBox(
+            `rail_w_${plat.id}`,
+            { x: sideX - 0.1, y: topY, z: minZ },
+            { x: sideX + 0.1, y: topY + railH, z: maxZ },
+            true,
+          );
         }
 
         // Vertical truss posts & diagonal web members every 4m
@@ -430,6 +487,12 @@ export function buildStandardMapInstance(
           const pier = new BoxGeometry(0.32, pierH, 0.32);
           pier.translate(pierX, -0.9 + pierH * 0.5, pierZ);
           trimGeoms.push(pier);
+          colliders.addBox(
+            `pier_${plat.id}_${Math.round(pierX)}_${Math.round(pierZ)}`,
+            { x: pierX - 0.2, y: -0.9, z: pierZ - 0.2 },
+            { x: pierX + 0.2, y: topY - deckThick, z: pierZ + 0.2 },
+            true,
+          );
         }
       }
 

@@ -629,8 +629,8 @@ function validateMetro(layout: LayoutData, errors: string[]): void {
 
   if (mSpawn) {
     const dist = dist2D(pSpawn.x, pSpawn.z, mSpawn.x, mSpawn.z);
-    if (dist < 40.0) {
-      errors.push(`Monster spawn too close to player: ${dist.toFixed(1)}m < 40.0m`);
+    if (dist < 20.0) {
+      errors.push(`Monster spawn too close to player: ${dist.toFixed(1)}m < 20.0m`);
     }
   }
 

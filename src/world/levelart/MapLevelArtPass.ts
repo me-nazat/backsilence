@@ -138,7 +138,7 @@ function getGeometryTriangles(geom: BufferGeometry): number {
 }
 
 export function applyMapLevelArtPass(env: LevelArtEnv): void {
-  const { root, layout, materialsToDispose, geometriesToDispose, customMaterials } = env;
+  const { root, layout, materialsToDispose, geometriesToDispose, customMaterials, colliders } = env;
   const rng = new Rng(layout.seed + 9999);
   const bounds = layout.bounds;
   const mapId = layout.mapId;
@@ -261,6 +261,32 @@ export function applyMapLevelArtPass(env: LevelArtEnv): void {
     }
   });
 
+  // Helper to register static prop AABB collider into spatial hash
+  const addPropCollider = (
+    id: string,
+    cx: number,
+    baseY: number,
+    cz: number,
+    w: number,
+    h: number,
+    d: number,
+    rotY = 0,
+  ): void => {
+    if (!colliders) return;
+    const cos = Math.abs(Math.cos(rotY));
+    const sin = Math.abs(Math.sin(rotY));
+    const effectiveW = w * cos + d * sin;
+    const effectiveD = w * sin + d * cos;
+    const halfW = effectiveW * 0.5;
+    const halfD = effectiveD * 0.5;
+    colliders.addBox(
+      id,
+      { x: cx - halfW, y: baseY, z: cz - halfD },
+      { x: cx + halfW, y: baseY + h, z: cz + halfD },
+      true,
+    );
+  };
+
   // Helper to place static mesh with matrixAutoUpdate = false
   const placeMesh = (
     geom: BufferGeometry,
@@ -268,6 +294,7 @@ export function applyMapLevelArtPass(env: LevelArtEnv): void {
     pos: Vector3,
     rotY = 0,
     name?: string,
+    collider?: { w: number; h: number; d: number; yOffset?: number },
   ): Mesh => {
     geometriesToDispose.push(geom);
     const mesh = new Mesh(geom, mat);
@@ -279,6 +306,18 @@ export function applyMapLevelArtPass(env: LevelArtEnv): void {
     root.add(mesh);
     runningDrawCalls++;
     runningTriangles += getGeometryTriangles(geom);
+    if (collider) {
+      addPropCollider(
+        name ?? `prop_${mapId}_${Math.round(pos.x)}_${Math.round(pos.z)}`,
+        pos.x,
+        pos.y + (collider.yOffset ?? 0),
+        pos.z,
+        collider.w,
+        collider.h,
+        collider.d,
+        rotY,
+      );
+    }
     return mesh;
   };
 
@@ -291,9 +330,17 @@ export function applyMapLevelArtPass(env: LevelArtEnv): void {
     rotY = 0,
     yOffset = 0,
     name?: string,
+    collider?: { w: number; h: number; d: number },
   ): Mesh => {
     const sy = getSurfaceY(layout, x, z, floorY) + yOffset;
-    return placeMesh(geom, mat, new Vector3(x, sy, z), rotY, name);
+    return placeMesh(
+      geom,
+      mat,
+      new Vector3(x, sy, z),
+      rotY,
+      name,
+      collider ? { ...collider, yOffset: 0 } : undefined,
+    );
   };
 
   const placedPropTypes = new Set<string>();
@@ -313,7 +360,7 @@ export function applyMapLevelArtPass(env: LevelArtEnv): void {
         [-22, -20], [-18, -20], [-14, -20],
       ]) {
         const sy = getSurfaceY(layout, x!, z!, floorY);
-        placeMesh(buildSchoolDeskGeometry(), woodMat, new Vector3(x!, sy, z!), rng.range(-0.12, 0.12));
+        placeMesh(buildSchoolDeskGeometry(), woodMat, new Vector3(x!, sy, z!), rng.range(-0.12, 0.12), `desk_${Math.round(x!)}_${Math.round(z!)}`, { w: 0.9, h: 0.75, d: 0.65 });
       }
       placedPropTypes.add('school_desk');
 
@@ -342,8 +389,8 @@ export function applyMapLevelArtPass(env: LevelArtEnv): void {
 
       // 5. Locker banks along the central corridor
       for (let x = -22; x <= 14; x += 6) {
-        placeMesh(buildLockerBankGeometry(), lockerMat, new Vector3(x, floorY, 2.3), 0);
-        placeMesh(buildLockerBankGeometry(), lockerMat, new Vector3(x, floorY, -2.3), Math.PI);
+        placeMesh(buildLockerBankGeometry(), lockerMat, new Vector3(x, floorY, 2.3), 0, `locker_n_${x}`, { w: 1.8, h: 2.0, d: 0.55 });
+        placeMesh(buildLockerBankGeometry(), lockerMat, new Vector3(x, floorY, -2.3), Math.PI, `locker_s_${x}`, { w: 1.8, h: 2.0, d: 0.55 });
       }
       placedPropTypes.add('locker_bank');
 
@@ -362,14 +409,14 @@ export function applyMapLevelArtPass(env: LevelArtEnv): void {
 
       // 8. Bookshelves in the Library and classrooms
       for (const x of [7, 11, 15, 19]) {
-        placeOnSurface(buildBookshelfGeometry(), woodMat, x, 20.6, 0);
-        placeOnSurface(buildBookshelfGeometry(), woodMat, x, 24.5, Math.PI);
+        placeOnSurface(buildBookshelfGeometry(), woodMat, x, 20.6, 0, 0, `bookshelf_s_${x}`, { w: 1.6, h: 2.1, d: 0.45 });
+        placeOnSurface(buildBookshelfGeometry(), woodMat, x, 24.5, Math.PI, 0, `bookshelf_n_${x}`, { w: 1.6, h: 2.1, d: 0.45 });
       }
       placedPropTypes.add('bookshelf');
 
       // 9. Trophy cases in the West Lobby and corridor
-      placeOnSurface(buildTrophyCaseGeometry(), woodMat, -42, -5.2, 0);
-      placeOnSurface(buildTrophyCaseGeometry(), woodMat, -42, 5.2, Math.PI);
+      placeOnSurface(buildTrophyCaseGeometry(), woodMat, -42, -5.2, 0, 0, 'trophy_case_s', { w: 1.8, h: 2.2, d: 0.6 });
+      placeOnSurface(buildTrophyCaseGeometry(), woodMat, -42, 5.2, Math.PI, 0, 'trophy_case_n', { w: 1.8, h: 2.2, d: 0.6 });
       placedPropTypes.add('trophy_case');
 
       // 10. Teacher lectern podium on the Auditorium Stage and classrooms
@@ -402,8 +449,22 @@ export function applyMapLevelArtPass(env: LevelArtEnv): void {
 
     case 'drowned_metro': {
       // 1. Stalled subway train car details & bogie accents in Trough T1
-      placeMesh(buildSubwayCarGeometry(), metalMat, new Vector3(-70, floorY + 0.2, -19));
-      placeMesh(buildSubwayCarGeometry(), metalMat, new Vector3(70, floorY + 0.2, -19));
+      placeMesh(
+        buildSubwayCarGeometry(),
+        metalMat,
+        new Vector3(-70, floorY + 0.2, -19),
+        0,
+        'subway_car_w',
+        { w: 18.0, h: 3.2, d: 3.4 },
+      );
+      placeMesh(
+        buildSubwayCarGeometry(),
+        metalMat,
+        new Vector3(70, floorY + 0.2, -19),
+        0,
+        'subway_car_e',
+        { w: 18.0, h: 3.2, d: 3.4 },
+      );
       placedPropTypes.add('subway_car');
 
       // 2. Submerged railroad track beds (wooden ties + steel I-rails) along T1 and T2
@@ -415,10 +476,10 @@ export function applyMapLevelArtPass(env: LevelArtEnv): void {
 
       // 3. Fare gate turnstile banks on Mezzanine (+4.2m) and Platform P1 (+1.0m)
       for (let x = -12; x <= 12; x += 4) {
-        placeOnSurface(buildTurnstileGeometry(), metalMat, x, 20.5, 0);
+        placeOnSurface(buildTurnstileGeometry(), metalMat, x, 20.5, 0, 0, `turnstile_m_${x}`, { w: 0.35, h: 1.05, d: 1.15 });
       }
       for (let x = -20; x <= 20; x += 10) {
-        placeOnSurface(buildTurnstileGeometry(), metalMat, x, -12.5, 0);
+        placeOnSurface(buildTurnstileGeometry(), metalMat, x, -12.5, 0, 0, `turnstile_p1_${x}`, { w: 0.35, h: 1.05, d: 1.15 });
       }
       placedPropTypes.add('turnstile');
 
@@ -432,10 +493,10 @@ export function applyMapLevelArtPass(env: LevelArtEnv): void {
 
       // 5. Automated ticket vending machines on Mezzanine (+4.2m) and P3 (+1.0m)
       for (const x of [-18, -14, 14, 18]) {
-        placeOnSurface(buildTicketMachineGeometry(), metalMat, x, 22.8, Math.PI);
+        placeOnSurface(buildTicketMachineGeometry(), metalMat, x, 22.8, Math.PI, 0, `ticket_mach_m_${x}`, { w: 1.0, h: 2.0, d: 0.7 });
       }
-      placeOnSurface(buildTicketMachineGeometry(), metalMat, -32, 16.5, Math.PI);
-      placeOnSurface(buildTicketMachineGeometry(), metalMat, 32, 16.5, Math.PI);
+      placeOnSurface(buildTicketMachineGeometry(), metalMat, -32, 16.5, Math.PI, 0, 'ticket_mach_w', { w: 1.0, h: 2.0, d: 0.7 });
+      placeOnSurface(buildTicketMachineGeometry(), metalMat, 32, 16.5, Math.PI, 0, 'ticket_mach_e', { w: 1.0, h: 2.0, d: 0.7 });
       placedPropTypes.add('ticket_machine');
 
       // 6. Overhead LED departure boards above P1, P2, P3
@@ -448,9 +509,9 @@ export function applyMapLevelArtPass(env: LevelArtEnv): void {
 
       // 7. Perforated steel commuter benches on P1, P2, P3 (snapped to y = 1.0)
       for (const x of [-50, -35, -20, -5, 10, 25, 40]) {
-        placeOnSurface(buildMetroBenchGeometry(), metalMat, x, -11.5, 0);
-        placeOnSurface(buildMetroBenchGeometry(), metalMat, x, -4.5, 0);
-        placeOnSurface(buildMetroBenchGeometry(), metalMat, x, 14.5, 0);
+        placeOnSurface(buildMetroBenchGeometry(), metalMat, x, -11.5, 0, 0, `bench_p1_${x}`, { w: 2.2, h: 0.85, d: 0.65 });
+        placeOnSurface(buildMetroBenchGeometry(), metalMat, x, -4.5, 0, 0, `bench_p2_${x}`, { w: 2.2, h: 0.85, d: 0.65 });
+        placeOnSurface(buildMetroBenchGeometry(), metalMat, x, 14.5, 0, 0, `bench_p3_${x}`, { w: 2.2, h: 0.85, d: 0.65 });
       }
       placedPropTypes.add('metro_bench');
 
@@ -463,8 +524,8 @@ export function applyMapLevelArtPass(env: LevelArtEnv): void {
 
       // 9. Illuminated route map kiosks on platforms
       for (const x of [-25, 5, 35]) {
-        placeOnSurface(buildRouteMapGeometry(), signMat, x, -10.5, 0);
-        placeOnSurface(buildRouteMapGeometry(), signMat, x, 13.5, 0);
+        placeOnSurface(buildRouteMapGeometry(), signMat, x, -10.5, 0, 0, `route_map_p1_${x}`, { w: 1.25, h: 2.2, d: 0.3 });
+        placeOnSurface(buildRouteMapGeometry(), signMat, x, 13.5, 0, 0, `route_map_p3_${x}`, { w: 1.25, h: 2.2, d: 0.3 });
       }
       placedPropTypes.add('route_map');
 

@@ -332,27 +332,33 @@ export class PlayerMotor {
       this.vel.y -= PlayerMotor.GRAVITY * dt;
     }
 
-    // 10. Horizontal Position Update & Push-out Collision
+    // 10. Horizontal Position Update & Push-out Collision (Swept axis-separated)
     let newX = this.pos.x + this.vel.x * dt;
-    let newZ = this.pos.z + this.vel.z * dt;
-
-    // Check step limit vs terrain height
-    const destGroundY = this.sampleGroundHeight(newX, newZ, ground, colliders);
-    const stepDiff = destGroundY - this.pos.y;
-    if (stepDiff > PlayerMotor.STEP_LIMIT) {
-      // Treat as wall obstacle — block movement
+    const destGroundYX = this.sampleGroundHeight(newX, this.pos.z, ground, colliders);
+    const stepDiffX = destGroundYX - this.pos.y;
+    if (stepDiffX > PlayerMotor.STEP_LIMIT) {
       newX = this.pos.x;
-      newZ = this.pos.z;
       this.vel.x = 0;
+    }
+
+    let newZ = this.pos.z + this.vel.z * dt;
+    const destGroundYZ = this.sampleGroundHeight(newX, newZ, ground, colliders);
+    const stepDiffZ = destGroundYZ - this.pos.y;
+    if (stepDiffZ > PlayerMotor.STEP_LIMIT) {
+      newZ = this.pos.z;
       this.vel.z = 0;
-    } else if (stepDiff > 0.02 && (this.onGround || this.wet)) {
-      // Auto-step-up: automatically step up ledges/stairs <= STEP_LIMIT (0.45m)
-      this.pos.y = destGroundY;
+    }
+
+    // Auto-step-up: automatically step up ledges/stairs <= STEP_LIMIT
+    const stepGroundY = this.sampleGroundHeight(newX, newZ, ground, colliders);
+    const stepDiff = stepGroundY - this.pos.y;
+    if (stepDiff > 0.02 && stepDiff <= PlayerMotor.STEP_LIMIT && (this.onGround || this.wet)) {
+      this.pos.y = stepGroundY;
       this.vel.y = 0;
       this.onGround = true;
     }
 
-    // Pushout vs Box & Cylinder Colliders (3 iterations)
+    // Pushout vs Box & Cylinder Colliders (3 iterations with normal deflection for smooth wall sliding)
     colliders.queryCircle(newX, newZ, PlayerMotor.RADIUS + 1.0, this.colliderCandidates);
     for (let iter = 0; iter < 3; iter++) {
       const pushed = colliders.resolveCirclePushout(
@@ -367,6 +373,16 @@ export class PlayerMotor {
       if (pushed) {
         newX += this.pushOut.x;
         newZ += this.pushOut.z;
+        const pushDist = Math.hypot(this.pushOut.x, this.pushOut.z);
+        if (pushDist > 1e-4) {
+          const nx = this.pushOut.x / pushDist;
+          const nz = this.pushOut.z / pushDist;
+          const vDotN = this.vel.x * nx + this.vel.z * nz;
+          if (vDotN < 0) {
+            this.vel.x -= vDotN * nx;
+            this.vel.z -= vDotN * nz;
+          }
+        }
       } else {
         break;
       }

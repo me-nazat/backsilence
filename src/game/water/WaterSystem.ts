@@ -92,7 +92,7 @@ export class WaterSystem {
   private fogInitialized = false;
   private defaultFogDensity = 0.035;
   private defaultFogColor = new Color('#eedec2');
-  private underwaterFogColor = new Color('#163f33');
+  private underwaterFogColor = new Color('#081e1a');
 
   constructor(parent: Object3D, options: WaterSystemOptions) {
     this.root = parent;
@@ -391,7 +391,7 @@ export class WaterSystem {
       this.underwaterT += (targetT - this.underwaterT) * Math.min(1.0, dt * 5.0);
 
       if (this.underwaterT > 0.01) {
-        sceneFog.density = this.defaultFogDensity * (1.0 - this.underwaterT) + 0.11 * this.underwaterT;
+        sceneFog.density = this.defaultFogDensity * (1.0 - this.underwaterT) + 0.028 * this.underwaterT;
         sceneFog.color.copy(this.defaultFogColor).lerp(this.underwaterFogColor, this.underwaterT);
       } else {
         sceneFog.density = this.defaultFogDensity;

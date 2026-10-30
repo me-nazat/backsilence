@@ -365,16 +365,10 @@ void main() {
 
   // 4. Detail normals at 3 scales: 0.55m, 0.18m, 0.06m near camera
   float animSpeed = max(0.04, uScrollSpeed) * 1.5;
-  
-  // 11.2 Hz micro-flicker temporal noise for twinkling surface glints
-  vec2 flickerNoise = vec2(
-    sin(uTime * 70.37 + p.x * 37.0),
-    cos(uTime * 82.10 + p.y * 31.0)
-  ) * 0.022;
 
   vec2 uv1 = p / 1.35 + vec2(uTime * animSpeed * 0.4, uTime * animSpeed * 0.28);
   vec2 uv2 = p / 0.47 - vec2(uTime * animSpeed * 0.55, -uTime * animSpeed * 0.42);
-  vec2 uv3 = p / 0.14 + vec2(-uTime * animSpeed * 0.72, uTime * animSpeed * 0.6) + flickerNoise;
+  vec2 uv3 = p / 0.14 + vec2(-uTime * animSpeed * 0.72, uTime * animSpeed * 0.6);
 
   vec3 norm1 = texture2D(uNormalMap, uv1).rgb * 2.0 - 1.0;
   vec3 norm2 = texture2D(uNormalMap, uv2).rgb * 2.0 - 1.0;
