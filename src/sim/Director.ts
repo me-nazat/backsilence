@@ -436,7 +436,9 @@ export class EncounterDirector {
     if (this.breatherTimer > 0) {
       this.breatherTimer -= dt;
       monster.setPatrolBias(monster.pos, 30.0, 0.1);
-      return;
+      if (this.firstContactDone) {
+        return;
+      }
     }
 
     // Pick target player (prioritize higher recent noise or closer distance)
