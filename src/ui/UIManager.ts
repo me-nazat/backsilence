@@ -12,7 +12,7 @@ import type { Store } from '../app/Store.js';
 import type { AppStateMachine } from '../app/StateMachine.js';
 import { AudioEngine } from '../audio/AudioEngine.js';
 import { saveSettings } from '../app/Settings.js';
-import { parseRoute, navigateToView } from '../app/Router.js';
+import { parseRoute, navigateToView, clearViewParam, setMenuRoute } from '../app/Router.js';
 import { ToastManager } from './ToastManager.js';
 import { AudioUnlock } from './AudioUnlock.js';
 import { ModeSelect } from './ModeSelect.js';
@@ -22,6 +22,7 @@ import { HowToPlay } from './HowToPlay.js';
 import { Hud, type HudData } from './Hud.js';
 import { PauseMenu } from './PauseMenu.js';
 import { DeathScreen } from './DeathScreen.js';
+import { safeExitPointerLock } from '../engine/input/PointerLock.js';
 import { CalibrationModal } from './CalibrationModal.js';
 import { LoadingScreen } from './LoadingScreen.js';
 import { ResultsScreen, type RunResults } from './ResultsScreen.js';
@@ -73,7 +74,7 @@ export interface UIManagerOptions {
   bus: EventBus;
   store: Store;
   stateMachine: AppStateMachine;
-  onStartGame?: (config: { mode: 'single' | 'multi'; mapId: MapId; difficulty: number; seed: number; room?: string }) => void;
+  onStartGame?: (config: { mode: 'single' | 'multi'; mapId: MapId; difficulty: number; seed: number; room?: string; subMode?: string | undefined }) => void;
 }
 
 export class UIManager {
@@ -118,7 +119,7 @@ export class UIManager {
   private audioLabPanel: AudioLabPanel | null = null;
   private isAudioUnlocked = false;
   private lastResults: RunResults | null = null;
-  private lastConfig?: { mode: 'single' | 'multi'; mapId: MapId; difficulty: number; seed: number; room?: string } | undefined;
+  private lastConfig?: { mode: 'single' | 'multi'; mapId: MapId; difficulty: number; seed: number; room?: string; subMode?: string | undefined } | undefined;
   private deathTimestamps: number[] = [];
 
   constructor(opts: UIManagerOptions) {
@@ -132,6 +133,40 @@ export class UIManager {
     const initialSettings = this.store.get().settings;
 
     // 1. Initialize Archive Screens
+    const handleSelectMode = (modeId: string) => {
+      if (modeId === 'campaign') {
+        this.navigateTo('MAPS');
+      } else if (modeId === 'training') {
+        this.startGame({
+          mode: 'single',
+          mapId: 'orientation',
+          difficulty: 1,
+          seed: Date.now(),
+          subMode: 'training',
+        });
+      } else if (modeId === 'endless') {
+        this.startGame({
+          mode: 'single',
+          mapId: 'drainage_core',
+          difficulty: 3,
+          seed: Date.now(),
+          subMode: 'endless',
+        });
+      } else if (modeId === 'daily' || modeId === 'ghost') {
+        this.navigateTo('LEADERBOARDS');
+      } else if (modeId === 'coop' || modeId === 'race' || modeId === 'last_dry') {
+        this.navigateTo('LOBBY');
+      } else {
+        this.startGame({
+          mode: 'single',
+          mapId: 'natatorium',
+          difficulty: 2,
+          seed: Date.now(),
+          subMode: 'campaign',
+        });
+      }
+    };
+
     this.homeScreen = new HomeScreen({
       onDescend: () => {
         // Direct user gesture unlocks AudioContext immediately
@@ -146,11 +181,13 @@ export class UIManager {
           mapId: targetMap,
           difficulty: 1,
           seed: Date.now(),
+          subMode: 'campaign',
         });
       },
       onDiveOnline: () => this.navigateTo('ROOM_LINK'),
       onDailyDescent: () => this.navigateTo('LEADERBOARDS'),
       onOpenPlayHub: () => this.navigateTo('PLAY_HUB'),
+      onSelectMode: handleSelectMode,
       onOpenBestiary: () => this.navigateTo('BESTIARY'),
       onOpenLeaderboards: () => this.navigateTo('LEADERBOARDS'),
       onOpenChampions: () => this.navigateTo('CHAMPIONS'),
@@ -161,36 +198,7 @@ export class UIManager {
     });
 
     this.playHubScreen = new PlayHubScreen({
-      onSelectMode: (modeId) => {
-        if (modeId === 'campaign') {
-          this.navigateTo('MAPS');
-        } else if (modeId === 'training') {
-          this.startGame({
-            mode: 'single',
-            mapId: 'orientation',
-            difficulty: 1,
-            seed: Date.now(),
-          });
-        } else if (modeId === 'endless') {
-          this.startGame({
-            mode: 'single',
-            mapId: 'drainage_core',
-            difficulty: 3,
-            seed: Date.now(),
-          });
-        } else if (modeId === 'daily' || modeId === 'ghost') {
-          this.navigateTo('LEADERBOARDS');
-        } else if (modeId === 'coop' || modeId === 'race' || modeId === 'last_dry') {
-          this.navigateTo('LOBBY');
-        } else {
-          this.startGame({
-            mode: 'single',
-            mapId: 'natatorium',
-            difficulty: 2,
-            seed: Date.now(),
-          });
-        }
-      },
+      onSelectMode: handleSelectMode,
       onBack: () => this.goBack(),
     });
 
@@ -201,6 +209,7 @@ export class UIManager {
           mapId: mapId as MapId,
           difficulty: 2,
           seed: Date.now(),
+          subMode: 'campaign',
         });
       },
       onBack: () => this.goBack(),
@@ -348,6 +357,9 @@ export class UIManager {
         this.bus.emit('game:retry' as unknown as 'game:start', undefined as unknown as { mode: 'single'; mapId: 'poolrooms'; difficulty: number; seed: number });
         this.resumeGame();
       },
+      onSettings: () => {
+        this.navigateTo('SETTINGS');
+      },
       onMenu: () => this.quitToMenu(),
     });
 
@@ -425,7 +437,9 @@ export class UIManager {
     } else if (route.view) {
       const revMap: Record<string, UIView> = {
         home: 'MENU',
+        hub: 'PLAY_HUB',
         play: 'PLAY_HUB',
+        silence: 'LEADERBOARDS',
         campaign: 'METAHUB',
         maps: 'MAPS',
         bestiary: 'BESTIARY',
@@ -449,7 +463,9 @@ export class UIManager {
       const v = (e.state as { view?: string })?.view ?? parseRoute().view ?? 'home';
       const revMap: Record<string, UIView> = {
         home: 'MENU',
+        hub: 'PLAY_HUB',
         play: 'PLAY_HUB',
+        silence: 'LEADERBOARDS',
         campaign: 'METAHUB',
         maps: 'MAPS',
         bestiary: 'BESTIARY',
@@ -463,9 +479,50 @@ export class UIManager {
         changelog: 'CHANGELOG',
         ui: 'UI_LAB',
       };
-      if (revMap[v]) {
-        this.navigateTo(revMap[v], false);
+
+      if (v === 'play') {
+        const pr = parseRoute();
+        if (pr.mode || pr.map) {
+          const mode = pr.mode;
+          const tape = (pr.tape || pr.map || 'natatorium') as MapId;
+          if (mode === 'endless-tide' || mode === 'endless') {
+            this.startGame({
+              mode: 'single',
+              mapId: 'drainage_core',
+              difficulty: 3,
+              seed: pr.seed ?? Date.now(),
+              subMode: 'endless',
+            });
+          } else if (mode === 'guided-practice' || mode === 'training') {
+            this.startGame({
+              mode: 'single',
+              mapId: 'orientation',
+              difficulty: 1,
+              seed: pr.seed ?? Date.now(),
+              subMode: 'training',
+            });
+          } else if (mode === 'daily-descent' || mode === 'daily') {
+            this.navigateTo('LEADERBOARDS', false);
+          } else {
+            this.startGame({
+              mode: 'single',
+              mapId: tape,
+              difficulty: 2,
+              seed: pr.seed ?? Date.now(),
+              subMode: mode === 'archive' ? 'campaign' : undefined,
+            });
+          }
+          return;
+        }
       }
+
+      if (this.currentView === 'GAME') {
+        safeExitPointerLock();
+        this.bus.emit('game:leave', undefined);
+      }
+
+      const target = revMap[v] ?? 'MENU';
+      this.navigateTo(target, false);
     });
 
     this.updateViewVisibility();
@@ -519,10 +576,13 @@ export class UIManager {
       this.stateMachine.goTo('MENU');
     }
 
-    if (pushUrl) {
+    if (view === 'MENU') {
+      setMenuRoute();
+    } else if (view === 'GAME') {
+      // Game route is set by GameSession via setGameRoute
+    } else if (pushUrl) {
       const urlMap: Partial<Record<UIView, string>> = {
-        MENU: 'home',
-        PLAY_HUB: 'play',
+        PLAY_HUB: 'hub',
         METAHUB: 'campaign',
         MAPS: 'maps',
         BESTIARY: 'bestiary',
@@ -539,6 +599,8 @@ export class UIManager {
       const viewParam = urlMap[view];
       if (viewParam) {
         navigateToView(viewParam);
+      } else {
+        clearViewParam();
       }
     }
 
@@ -546,18 +608,27 @@ export class UIManager {
   }
 
   goBack(): void {
+    if (this.currentView === 'GAME') {
+      safeExitPointerLock();
+      this.bus.emit('game:leave', undefined);
+    }
     if (this.viewStack.length > 1) {
       this.viewStack.pop();
       const prev = this.viewStack[this.viewStack.length - 1];
       this.currentView = prev ?? 'MENU';
       if (this.currentView === 'MENU') {
         this.stateMachine.goTo('MENU');
+        setMenuRoute();
+      } else {
+        this.navigateTo(this.currentView, true);
+        return;
       }
       this.updateViewVisibility();
     } else if (this.currentView !== 'MENU') {
       this.currentView = 'MENU';
       this.viewStack = ['MENU'];
       this.stateMachine.goTo('MENU');
+      setMenuRoute();
       this.updateViewVisibility();
     }
   }
@@ -720,7 +791,7 @@ export class UIManager {
     }
   }
 
-  private startGame(config: { mode: 'single' | 'multi'; mapId: MapId; difficulty: number; seed: number; room?: string }): void {
+  private startGame(config: { mode: 'single' | 'multi'; mapId: MapId; difficulty: number; seed: number; room?: string; subMode?: string | undefined }): void {
     this.lastConfig = config;
     try {
       localStorage.setItem('backsilence_last_tape', config.mapId);
@@ -765,6 +836,9 @@ export class UIManager {
     this.deathTimestamps = this.deathTimestamps.filter((t) => now - t < 300000); // 5 min window
     this.deathTimestamps.push(now);
 
+    safeExitPointerLock();
+    clearViewParam();
+
     if (reason) {
       this.deathScreen.setReason(reason);
     }
@@ -772,7 +846,7 @@ export class UIManager {
     this.viewStack.push('DEATH');
     this.updateViewVisibility();
     this.deathScreen.show();
-    this.stateMachine.goTo('DEAD');
+    this.stateMachine.goTo('GAME_OVER');
 
     // Frustration protection (Phase F): Offer assists after 2 rapid deaths, orientation after 3
     if (this.deathTimestamps.length === 2) {
@@ -818,11 +892,13 @@ export class UIManager {
   }
 
   quitToMenu(): void {
+    safeExitPointerLock();
     this.currentView = 'MENU';
     this.viewStack = ['MENU'];
     this.updateViewVisibility();
     this.stateMachine.goTo('MENU');
-    this.bus.emit('game:quit' as unknown as 'game:start', undefined as unknown as { mode: 'single'; mapId: 'poolrooms'; difficulty: number; seed: number });
+    setMenuRoute();
+    this.bus.emit('game:leave', undefined);
   }
 
   showKeypad(correctCode: string, onSolved: () => void, onLockout?: () => void): void {

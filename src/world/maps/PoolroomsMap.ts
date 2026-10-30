@@ -132,9 +132,16 @@ export const PoolroomsMap: MapDefinition = {
         });
         if (isRaised) {
           const midX = (rect[0] + rect[2]) * 0.5;
+          // Approach platform slab at baseY = 0.3 connecting water to stairs base
+          platforms.push({
+            id: `slab_approach_${platforms.length}`,
+            rect: [midX - 1.5, rect[1] - 3.0, midX + 1.5, rect[1] - 1.12],
+            topY: 0.3,
+            kind: 'tile',
+          });
           stairs.push({
             id: 'stair_raised_vantage',
-            x: midX - 1.2,
+            x: midX,
             z: rect[1] - 1.12,
             width: 2.4,
             riser: 0.20,

@@ -266,8 +266,8 @@ export function buildSchoolDeskGeometry(): BufferGeometry {
   const parts: { geom: BufferGeometry; matrix: Matrix4 }[] = [];
   const m = new Matrix4();
 
-  // Desk top
-  const deskTop = new BoxGeometry(0.75, 0.05, 0.55);
+  // Desk top (wooden surface)
+  const deskTop = new BoxGeometry(0.75, 0.04, 0.55);
   m.makeTranslation(0, 0.72, 0.15);
   parts.push({ geom: deskTop, matrix: m.clone() });
 
@@ -277,21 +277,44 @@ export function buildSchoolDeskGeometry(): BufferGeometry {
   parts.push({ geom: shelf, matrix: m.clone() });
 
   // Tubular desk frame legs
-  const leg = new CylinderGeometry(0.022, 0.022, 0.72, 12);
+  const leg = new CylinderGeometry(0.022, 0.022, 0.74, 12);
   const legPos = [
-    [-0.32, 0.36, -0.05],
-    [0.32, 0.36, -0.05],
-    [-0.32, 0.36, 0.35],
-    [0.32, 0.36, 0.35],
+    [-0.32, 0.37, -0.05],
+    [0.32, 0.37, -0.05],
+    [-0.32, 0.37, 0.35],
+    [0.32, 0.37, 0.35],
   ];
   for (const [x, y, z] of legPos) {
     m.makeTranslation(x!, y!, z!);
     parts.push({ geom: leg.clone(), matrix: m.clone() });
   }
 
+  // Cross stretchers connecting legs at the bottom (prevents cage-bar look)
+  const xStretcher = new CylinderGeometry(0.016, 0.016, 0.64, 8);
+  xStretcher.rotateZ(Math.PI * 0.5);
+  m.makeTranslation(0, 0.12, -0.05);
+  parts.push({ geom: xStretcher.clone(), matrix: m.clone() });
+  m.makeTranslation(0, 0.12, 0.35);
+  parts.push({ geom: xStretcher.clone(), matrix: m.clone() });
+
+  const zStretcher = new CylinderGeometry(0.016, 0.016, 0.40, 8);
+  zStretcher.rotateX(Math.PI * 0.5);
+  m.makeTranslation(-0.32, 0.12, 0.15);
+  parts.push({ geom: zStretcher.clone(), matrix: m.clone() });
+  m.makeTranslation(0.32, 0.12, 0.15);
+  parts.push({ geom: zStretcher.clone(), matrix: m.clone() });
+
+  // Connecting bridge from desk frame to chair frame
+  const bridge = new CylinderGeometry(0.018, 0.018, 0.30, 8);
+  bridge.rotateX(Math.PI * 0.5);
+  m.makeTranslation(-0.18, 0.12, -0.20);
+  parts.push({ geom: bridge.clone(), matrix: m.clone() });
+  m.makeTranslation(0.18, 0.12, -0.20);
+  parts.push({ geom: bridge.clone(), matrix: m.clone() });
+
   // Attached chair seat & back
   const chairSeat = new BoxGeometry(0.44, 0.04, 0.42);
-  m.makeTranslation(0, 0.44, -0.35);
+  m.makeTranslation(0, 0.46, -0.35);
   parts.push({ geom: chairSeat, matrix: m.clone() });
 
   const chairBack = new BoxGeometry(0.42, 0.3, 0.04);
@@ -299,13 +322,17 @@ export function buildSchoolDeskGeometry(): BufferGeometry {
   parts.push({ geom: chairBack, matrix: m.clone() });
 
   // Chair frame uprights
-  const chairLeg = new CylinderGeometry(0.018, 0.018, 0.44, 12);
-  m.makeTranslation(-0.18, 0.22, -0.35);
+  const chairLeg = new CylinderGeometry(0.018, 0.018, 0.46, 12);
+  m.makeTranslation(-0.18, 0.23, -0.35);
   parts.push({ geom: chairLeg.clone(), matrix: m.clone() });
-  m.makeTranslation(0.18, 0.22, -0.35);
+  m.makeTranslation(0.18, 0.23, -0.35);
   parts.push({ geom: chairLeg, matrix: m.clone() });
 
   leg.dispose();
+  chairLeg.dispose();
+  xStretcher.dispose();
+  zStretcher.dispose();
+  bridge.dispose();
   return mergeGeometries(parts);
 }
 

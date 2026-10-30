@@ -43,6 +43,8 @@ import { PostFX } from '../engine/PostFX.js';
 import { resolveQualityTier } from '../engine/Quality.js';
 import { AudioEngine } from '../audio/AudioEngine.js';
 import { MenuMusic } from '../audio/MenuMusic.js';
+import { safeExitPointerLock } from '../engine/input/PointerLock.js';
+import { setGameRoute, setMenuRoute } from '../app/Router.js';
 import type { Settings, NoiseEvent, RippleEvent, MapId, Vec3, PlayerId, PuzzleOp } from '../types/contracts.js';
 import { WORLD } from '../app/Config.js';
 import { SimWorld } from '../sim/SimWorld.js';
@@ -100,6 +102,7 @@ export class GameSession {
   private seed: number;
   private mapId: MapId;
   private keypadModal?: KeypadModal | undefined;
+  private subMode?: string | undefined;
 
   // Presentation & Sim components
   private mapDef!: MapDefinition;
@@ -333,6 +336,7 @@ export class GameSession {
     mapId: MapId = 'poolrooms',
     keypadModal?: KeypadModal,
     netSession?: NetSession,
+    subMode?: string,
   ) {
     this.container = container;
     this.settings = settings;
@@ -346,6 +350,9 @@ export class GameSession {
     this.mapId = mapId;
     this.keypadModal = keypadModal;
     this.netSession = netSession;
+    this.subMode = subMode;
+
+    setGameRoute(this.mapId, this.seed, this.subMode);
 
     this.scene = new Scene();
     this.camera = new PerspectiveCamera(
@@ -426,6 +433,17 @@ export class GameSession {
         this.waterCycle = new WaterLevelCycle();
         levelProvider = this.waterCycle;
         discreteWaterLevels = [-0.2, 0.55];
+      } else if (this.subMode === 'endless') {
+        this.waterCycle = new WaterLevelCycle({
+          lowY: -0.2,
+          highY: 0.25,
+          lowHold: 20.0,
+          riseDuration: 15.0,
+          highHold: 25.0,
+          fallDuration: 10.0,
+        });
+        levelProvider = this.waterCycle;
+        discreteWaterLevels = [-0.2, 0.25];
       }
 
       const simMode = this.netSession ? (this.netSession.role === 'client' ? 'replica' : 'host') : 'solo';
@@ -611,6 +629,14 @@ export class GameSession {
           this.spectatorController.toggleFreeRoam();
           this.updateSpectatorHud();
         },
+        onPointerLockNotice: (msg: string) => {
+          this.hud.update({ interactionPrompt: msg });
+          setTimeout(() => {
+            if (this.hud) {
+              this.hud.update({ interactionPrompt: null });
+            }
+          }, 1400);
+        },
       });
       this.playerInput.attach(this.renderer.canvas);
 
@@ -675,6 +701,8 @@ export class GameSession {
           },
           onDeath: (stats: JumpscareStats) => {
             this.isDead = true;
+            this.playerInput.setFreeze(true);
+            safeExitPointerLock();
             if (this.netSession) {
               this.netSession.publishDeath();
               this.updateRosterHud();
@@ -684,14 +712,13 @@ export class GameSession {
                 this.playerInput.isSpectating = true;
                 this.spectatorController.cycleTarget(livingPeers, 1);
                 this.updateSpectatorHud();
-                this.playerInput.exitPointerLock();
+                safeExitPointerLock();
                 return;
               }
             }
             this.audio.play('tape_rewind');
-            this.postFX.triggerDeathRewind(() => {
-              this.callbacks.onDeath(stats);
-            });
+            this.postFX.triggerDeathRewind();
+            this.callbacks.onDeath(stats);
           },
         },
         this.audio,
@@ -1079,8 +1106,11 @@ export class GameSession {
 
       case 'drainage_core': {
         this.inventory = [{ kind: 'noisemaker', count: 2 }];
+        const isEndless = this.subMode === 'endless';
         this.hud.update({
-          objective: 'Prime and start all 3 Core Generators. Keep them running simultaneously for 5s to open the Blast Doors.',
+          objective: isEndless
+            ? 'ENDLESS TIDE: Water level is rising. Leap across stepping-stone platforms to survive.'
+            : 'Prime and start all 3 Core Generators. Keep them running simultaneously for 5s to open the Blast Doors.',
           inventory: this.inventory,
           flashlight: { active: this.flashlightActive, battery: this.flashlightBattery },
         });
@@ -1128,6 +1158,29 @@ export class GameSession {
             },
           });
         }
+
+        // Central arch vantage console (0, 0.3, -21)
+        this.interactions.register({
+          id: 'core_master_console',
+          position: { x: 0, y: 0.3, z: -21.0 },
+          radius: 3.0,
+          holdTime: 2.0,
+          label: () => {
+            if (this.blastDoorsOpen) return '[OVERRIDE COMPLETE] Blast Doors Released';
+            const runningCount = Array.from(this.generators.values()).filter((g) => g.state === 'running').length;
+            if (runningCount === 3) return '[READY] Core Synchronization in progress...';
+            return `[CONSOLE] Substation Status: ${runningCount}/3 Generators Active`;
+          },
+          canUse: () => !this.blastDoorsOpen,
+          onUse: () => {
+            const runningCount = Array.from(this.generators.values()).filter((g) => g.state === 'running').length;
+            if (runningCount === 3) {
+              this.hud.update({ objective: 'SYNCHRONIZING GENERATORS... HOLD POSITIONS!' });
+            } else {
+              this.hud.update({ objective: `DRAINAGE CORE ALERT: Only ${runningCount}/3 generators active. Synchronize G1, G2, and G3 across the perimeter.` });
+            }
+          },
+        });
         break;
       }
 
@@ -1624,6 +1677,7 @@ export class GameSession {
     if (!sameSeed) {
       this.seed = Math.floor(Math.random() * 100000);
     }
+    setGameRoute(this.mapId, this.seed, this.subMode);
     this.jumpscare.reset();
     this.playerInput.setFreeze(false);
 
@@ -1658,6 +1712,7 @@ export class GameSession {
       }
     }
 
+    this.playerInput.setFreeze(false);
     this.playerInput.requestPointerLock();
   }
 
@@ -1667,12 +1722,14 @@ export class GameSession {
       this.playerInput.exitPointerLock();
       this.callbacks.onPause();
     } else {
+      this.playerInput.setFreeze(false);
       this.playerInput.requestPointerLock();
     }
   }
 
   resume(): void {
     this.isPaused = false;
+    this.playerInput.setFreeze(false);
     this.playerInput.requestPointerLock();
   }
 
@@ -3760,6 +3817,7 @@ export class GameSession {
 
   dispose(): void {
     this.isDisposed = true;
+    setMenuRoute();
     if (this.wakeLock) {
       try {
         void (this.wakeLock as { release: () => Promise<void> }).release();

@@ -100,14 +100,33 @@
 }
 
 .bs-btn-ghost {
-  background: transparent;
-  border-color: transparent;
-  color: var(--bs-tan);
+  background: rgba(13, 11, 6, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #F4F6F0;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9), 0 0 2px #000;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
 }
 
 .bs-btn-ghost:hover:not(:disabled) {
-  background: var(--bs-surface-hover);
-  border-color: var(--bs-border);
+  background: rgba(134, 207, 160, 0.22);
+  border-color: var(--bs-water);
+  color: #ffffff;
+  box-shadow: 0 0 12px rgba(134, 207, 160, 0.35);
+}
+
+.bs-high-contrast-text {
+  -webkit-text-stroke: 1px rgba(0, 0, 0, 0.85);
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.95), 0 0 2px #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+  color: #F4F6F0 !important;
+}
+
+.bs-contrast-panel {
+  background: rgba(8, 12, 10, 0.82) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.75) !important;
 }
 
 .bs-btn-danger {

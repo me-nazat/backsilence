@@ -112,7 +112,7 @@ export const MarbleAtriumMap: MapDefinition = {
     // Marble stairs from South Terrace up to South Balcony
     stairs.push({
       id: 'stairs_south_balcony',
-      x: -2.0,
+      x: 0.0,
       z: -14.0,
       width: 4.0,
       riser: 0.18,

@@ -123,7 +123,7 @@ export class LabScene {
     this.audioLabPanel = new AudioLabPanel(AudioEngine.getInstance());
     this.audioLabPanel.mount(container);
 
-    this.animLabPanel = new AnimationLabPanel(this.scene);
+    this.animLabPanel = new AnimationLabPanel(this.scene, { isMenuMode: this.isMenuMode });
     this.animLabPanel.mount(container);
     if (typeof window !== 'undefined' && window.location.search.includes('lab=anim')) {
       this.animLabPanel.show();
@@ -131,7 +131,9 @@ export class LabScene {
 
     this.scaleLab = new ScaleLab();
     this.scene.add(this.scaleLab.group);
-    if (typeof window !== 'undefined' && window.location.search.includes('lab=scale')) {
+    const isScaleLab = typeof window !== 'undefined' && window.location.search.includes('lab=scale');
+    this.scaleLab.group.visible = isScaleLab;
+    if (isScaleLab) {
       this.scaleLab.mount(container);
       this.camPos.set(0, 1.65, 3.8);
       this.camYaw = 0.0;
@@ -144,16 +146,22 @@ export class LabScene {
   }
 
   private setupAtmosphere(): void {
-    const fogColor = new Color('#b3bb9f');
+    const fogHex = this.isMenuMode ? '#0a100d' : '#b3bb9f';
+    const fogColor = new Color(fogHex);
     this.scene.background = fogColor;
-    this.scene.fog = new FogExp2(fogColor, 0.045);
+    this.scene.fog = new FogExp2(fogColor, this.isMenuMode ? 0.055 : 0.045);
 
-    // Warm-cream hemisphere light with subtle green bounce from water
-    this.hemiLight = new HemisphereLight('#b3bb9f', '#7c9e5b', 0.95);
+    // Warm-cream or deep-analog hemisphere light with subtle bounce
+    const skyColor = this.isMenuMode ? '#18241e' : '#b3bb9f';
+    const gndColor = this.isMenuMode ? '#050a08' : '#7c9e5b';
+    const hemiIntensity = this.isMenuMode ? 0.65 : 0.95;
+    this.hemiLight = new HemisphereLight(skyColor, gndColor, hemiIntensity);
     this.scene.add(this.hemiLight);
 
     // Directional light casting soft PCF shadows
-    this.dirLight = new DirectionalLight('#fff8e7', 1.25);
+    const dirColor = this.isMenuMode ? '#c8f0db' : '#fff8e7';
+    const dirIntensity = this.isMenuMode ? 0.85 : 1.25;
+    this.dirLight = new DirectionalLight(dirColor, dirIntensity);
     this.dirLight.position.set(8, 12, 6);
     this.dirLight.castShadow = true;
     this.dirLight.shadow.mapSize.width = 1024;
@@ -164,7 +172,7 @@ export class LabScene {
     this.scene.add(this.dirLight);
 
     // Faint atmospheric point light
-    this.pointLight = new PointLight('#b3bb9f', 0.6, 25);
+    this.pointLight = new PointLight(this.isMenuMode ? '#4ade80' : '#b3bb9f', this.isMenuMode ? 0.4 : 0.6, 25);
     this.pointLight.position.set(0, 3.2, 0);
     this.scene.add(this.pointLight);
   }

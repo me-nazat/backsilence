@@ -272,6 +272,8 @@ export class MonsterBrain {
     hearingCtx: HearingContext,
     simTime: number,
     isPlayerPerched = false,
+    isPlayerInWater = false,
+    isPlayerMoving = false,
   ): void {
     if (this.astar.nav !== nav) {
       this.setNav(nav);
@@ -342,7 +344,25 @@ export class MonsterBrain {
       }
     }
 
-    // 2.5. Check if current cell became unwalkable (stranded by water level drop)
+    // 2.5. Instant Water Acoustic Aggro:
+    // If the player touches or enters water and is not perched on dry tile:
+    // - If moving/wading, acoustic disturbance alerts and charges immediately.
+    // - If right next to the monster (<= 3.5m) in water, senses physical displacement.
+    if (isPlayerInWater && !isPlayerPerched && !this.isSighting && (isPlayerMoving || distToPlayer <= 3.5)) {
+      this.agitation = 1.0;
+      if (this.state === 'DORMANT' || this.state === 'WANDER' || this.state === 'INVESTIGATE' || this.state === 'LURK') {
+        this.enterAlerted(playerPos, 1.0, simTime);
+      } else if (this.state === 'HUNT') {
+        const targetDist = this.currentTarget ? dHypot(playerPos.x - this.currentTarget.x, playerPos.z - this.currentTarget.z) : 999;
+        if (targetDist > 1.2 || this.currentPathIndex >= this.currentPath.length) {
+          this.currentTarget = { ...playerPos };
+          this.currentPath = this.astar.findPath(this.pos.x, this.pos.z, playerPos.x, playerPos.z);
+          this.currentPathIndex = 0;
+        }
+      }
+    }
+
+    // 2.6. Check if current cell became unwalkable (stranded by water level drop)
     if (this.state !== 'DORMANT' && this.state !== 'ATTACK' && this.state !== 'LURK' && distToPlayer > MonsterBrain.ATTACK_RANGE) {
       const g = nav.worldToGrid(this.pos.x, this.pos.z);
       if (!nav.isWalkable(g.gx, g.gz)) {
@@ -385,7 +405,7 @@ export class MonsterBrain {
         this.stepAlerted(dt, nav, events, simTime);
         break;
       case 'HUNT':
-        this.stepHunt(dt, nav, hearingCtx, events, simTime);
+        this.stepHunt(dt, nav, hearingCtx, events, simTime, playerPos, isPlayerInWater);
         break;
       case 'INVESTIGATE':
         this.stepInvestigate(dt, nav, events, simTime);
@@ -591,8 +611,28 @@ export class MonsterBrain {
     _hearingCtx: HearingContext,
     events: EventRingBuffer,
     simTime: number,
+    playerPos?: Vec3,
+    isPlayerInWater = false,
   ): void {
     const speed = MonsterBrain.SPEED_HUNT * this.speedMul;
+
+    // Direct surge pursuit if player is in water and within acoustic striking distance
+    if (isPlayerInWater && playerPos) {
+      const dx = playerPos.x - this.pos.x;
+      const dz = playerPos.z - this.pos.z;
+      const dist = dHypot(dx, dz);
+      if (dist < 10.0 && nav.isWalkableWorld(this.pos.x, this.pos.z)) {
+        const targetYaw = dAtan2(dx, -dz);
+        this.yaw = this.steerTowards(this.yaw, targetYaw, MonsterBrain.TURN_RATE_HUNT * dt);
+        this.pos.x += dSin(this.yaw) * speed * dt;
+        this.pos.z -= dCos(this.yaw) * speed * dt;
+        this.vel.x = dSin(this.yaw) * speed;
+        this.vel.z = -dCos(this.yaw) * speed;
+        events.pushFootfall(this.id, this.pos.x, this.pos.y, this.pos.z, 1.0, true, simTime);
+        return;
+      }
+    }
+
     this.followPath(dt, speed, MonsterBrain.TURN_RATE_HUNT, nav, events, simTime);
 
     // Check if reached end of hunt path

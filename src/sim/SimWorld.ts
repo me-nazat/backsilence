@@ -20,6 +20,7 @@ import type { WeatherSystem } from './Weather.js';
 import type { GhostTrain } from './GhostTrain.js';
 import type { Drone } from './Drone.js';
 import { Rng } from './rng.js';
+import { dHypot } from './dmath.js';
 import { EncounterDirector, type DirectorDifficulty } from './Director.js';
 
 export interface SimWorldConfig {
@@ -394,6 +395,13 @@ export class SimWorld {
 
     // 3. Step all monsters with current nav grid (host & solo only)
     if (this.mode !== 'replica') {
+      const pVel = this.player.getState().vel;
+      const isPlayerMoving = dHypot(pVel.x, pVel.z) > 0.05;
+      const isPlayerInWater =
+        (this.player.isWading || this.player.pos.y <= this.currentWaterY + 0.05) &&
+        !isPerched &&
+        !this.player.isMantling;
+
       for (let m = 0; m < this.monsters.length; m++) {
         this.monsters[m]!.step(
           dt,
@@ -404,6 +412,8 @@ export class SimWorld {
           this.hearingCtx,
           this.simTime,
           isPerched,
+          isPlayerInWater,
+          isPlayerMoving,
         );
       }
     }

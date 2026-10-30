@@ -25,6 +25,10 @@ export interface ParsedRoute {
   sightlog?: boolean | undefined;
   /** Whether ?god=1 was set. */
   god?: boolean | undefined;
+  /** Game mode descriptor (e.g. endless-tide, archive, daily-descent) */
+  mode?: string | null | undefined;
+  /** Archive tape identifier if ?tape=<id> */
+  tape?: string | null | undefined;
 }
 
 /**
@@ -71,8 +75,10 @@ export function parseRoute(search?: string): ParsedRoute {
   const seed = seedRaw !== null ? parseInt(seedRaw, 10) : null;
   const sightlog = params.get('sightlog') === '1';
   const god = params.get('god') === '1';
+  const mode = params.get('mode');
+  const tape = params.get('tape');
 
-  return { room, lab, labMode, debug, view, map: mapRaw, seed, sightlog, god };
+  return { room, lab, labMode, debug, view, map: mapRaw, seed, sightlog, god, mode, tape };
 }
 
 /**
@@ -89,4 +95,95 @@ export function navigateToView(view: string, extraParams?: Record<string, string
   }
   const newUrl = `${window.location.pathname}?${current.toString()}`;
   window.history.pushState({ view }, '', newUrl);
+}
+
+/**
+ * Clear the ?v= parameter using history.replaceState while preserving session parameters.
+ */
+export function clearViewParam(): void {
+  if (typeof window === 'undefined' || !window.history) return;
+  const current = new URLSearchParams(window.location.search);
+  if (!current.has('v')) return;
+  current.delete('v');
+  const query = current.toString();
+  const newUrl = query ? `${window.location.pathname}?${query}` : window.location.pathname;
+  window.history.replaceState({}, '', newUrl);
+}
+
+/**
+ * Format game mode and tape parameters for granular URL query strings
+ */
+export function formatGameModeParam(mapId?: string, subMode?: string): { mode: string; tape?: string } {
+  if (subMode === 'endless' || mapId === 'drainage_core') {
+    return { mode: 'endless-tide' };
+  }
+  if (subMode === 'daily') {
+    return { mode: 'daily-descent' };
+  }
+  if (subMode === 'training' || mapId === 'orientation') {
+    return { mode: 'guided-practice' };
+  }
+  if (subMode === 'coop') {
+    return { mode: 'co-op' };
+  }
+  if (subMode === 'race') {
+    return { mode: 'silent-race' };
+  }
+  if (subMode === 'last_dry') {
+    return { mode: 'last-one-dry' };
+  }
+  if (subMode === 'ghost') {
+    return { mode: 'ghost-run' };
+  }
+  return { mode: 'archive', tape: mapId ?? 'natatorium' };
+}
+
+/**
+ * Set the menu route to clean root URL '/' (or preserve room if present)
+ */
+export function setMenuRoute(push = true): void {
+  if (typeof window === 'undefined' || !window.history) return;
+  const current = new URLSearchParams(window.location.search);
+  current.delete('v');
+  current.delete('mode');
+  current.delete('tape');
+  current.delete('map');
+  current.delete('seed');
+  const room = current.get('room');
+  const net = current.get('net');
+  const god = current.get('god');
+  const clean = new URLSearchParams();
+  if (room) clean.set('room', room);
+  if (net) clean.set('net', net);
+  if (god) clean.set('god', god);
+  const query = clean.toString();
+  const newUrl = query ? `${window.location.pathname}?${query}` : window.location.pathname;
+  if (push && window.location.search.length > 0) {
+    window.history.pushState({ view: 'MENU' }, '', newUrl);
+  } else {
+    window.history.replaceState({ view: 'MENU' }, '', newUrl);
+  }
+}
+
+/**
+ * Set active gameplay route: '/?v=play&mode=<mode>&tape=<tape>&map=<mapId>&seed=<seed>'
+ */
+export function setGameRoute(mapId?: string, seed?: number, subMode?: string): void {
+  if (typeof window === 'undefined' || !window.history) return;
+  const current = new URLSearchParams(window.location.search);
+  current.set('v', 'play');
+
+  const { mode, tape } = formatGameModeParam(mapId, subMode);
+  current.set('mode', mode);
+  if (tape) {
+    current.set('tape', tape);
+  } else {
+    current.delete('tape');
+  }
+  if (mapId) current.set('map', mapId);
+  if (seed !== undefined && seed !== null) current.set('seed', String(seed));
+
+  const query = current.toString();
+  const newUrl = `${window.location.pathname}?${query}`;
+  window.history.pushState({ state: 'PLAYING', view: 'play', map: mapId, seed, subMode, mode, tape }, '', newUrl);
 }

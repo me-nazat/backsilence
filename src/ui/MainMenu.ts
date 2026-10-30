@@ -47,30 +47,35 @@ export class MainMenu {
 
     el.innerHTML = `
       <!-- Header -->
-      <div style="text-align: center; pointer-events: auto;">
+      <div class="bs-contrast-panel" style="text-align: center; pointer-events: auto; padding: 20px 32px; border-radius: 8px; max-width: 600px;">
         <h1 class="flicker-title" style="
           font-family: ui-serif, Georgia, 'Times New Roman', serif;
           font-size: clamp(2.8rem, 8vw, 5.5rem);
-          color: var(--fog, #d9d3a2);
+          color: #F4F6F0;
           margin-bottom: 6px;
           letter-spacing: 0.05em;
-          text-shadow: 0 0 25px rgba(134,207,160,0.35);
+          -webkit-text-stroke: 1px rgba(0, 0, 0, 0.85);
+          text-shadow: 0 2px 6px rgba(0, 0, 0, 0.95), 0 0 2px #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
         ">BACKSILENCE</h1>
         <div style="
           font-family: monospace;
           font-size: clamp(0.75rem, 2vw, 1.05rem);
+          font-weight: 700;
           color: var(--water, #86cfa0);
           letter-spacing: 0.15em;
-          opacity: 0.9;
+          -webkit-text-stroke: 1px rgba(0, 0, 0, 0.85);
+          text-shadow: 0 2px 6px rgba(0, 0, 0, 0.95), 0 0 2px #000;
         ">IT CAN'T SEE YOU. IT HEARS THE WATER.</div>
       </div>
 
       <!-- Action Buttons -->
-      <div id="menu-btn-group" style="
+      <div id="menu-btn-group" class="bs-contrast-panel" style="
         display: flex;
         flex-direction: column;
         gap: 12px;
-        width: min(340px, 85vw);
+        width: min(360px, 88vw);
+        padding: 24px;
+        border-radius: 8px;
         pointer-events: auto;
       ">
         <button id="btn-play-solo" class="analog-btn primary">

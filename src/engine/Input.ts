@@ -4,6 +4,7 @@
  * ──────────────────────────────────────────────────────────────────────── */
 
 import type { Action, Settings } from '../types/contracts.js';
+import { safeRequestPointerLock, safeExitPointerLock } from './input/PointerLock.js';
 
 export class InputManager {
   private keysDown = new Set<string>();
@@ -76,38 +77,12 @@ export class InputManager {
 
   requestPointerLock(): void {
     if (this.canvas && !this.isPointerLocked) {
-      try {
-        const target = this.canvas as { requestPointerLock?: (opts?: { unadjustedMovement?: boolean }) => Promise<void> | void };
-        const res = target.requestPointerLock?.({ unadjustedMovement: true });
-        if (res instanceof Promise) {
-          res.catch(() => {
-            try {
-              const fallback = this.canvas?.requestPointerLock();
-              if (fallback instanceof Promise) {
-                fallback.catch(() => {});
-              }
-            } catch {
-              /* ignore */
-            }
-          });
-        }
-      } catch {
-        try {
-          const fallback = this.canvas.requestPointerLock();
-          if (fallback instanceof Promise) {
-            fallback.catch(() => {});
-          }
-        } catch {
-          /* ignore */
-        }
-      }
+      void safeRequestPointerLock(this.canvas, { unadjustedMovement: true });
     }
   }
 
   exitPointerLock(): void {
-    if (this.isPointerLocked && document.exitPointerLock) {
-      document.exitPointerLock();
-    }
+    safeExitPointerLock();
   }
 
   isActionActive(action: Action): boolean {

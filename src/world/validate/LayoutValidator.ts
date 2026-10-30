@@ -442,9 +442,9 @@ function validateDrainageCore(layout: LayoutData, errors: string[]): void {
     errors.push('Blast door prop not found');
   }
 
-  // 3 distinct monsters: 1 elder, 2 juvenile
-  if (layout.spawns.monsters.length !== 3) {
-    errors.push(`Expected 3 monsters, found ${layout.spawns.monsters.length}`);
+  // 1 to 3 monsters (1 relentless apex elder in solo, optional juveniles in multiplayer/deafening)
+  if (layout.spawns.monsters.length < 1 || layout.spawns.monsters.length > 3) {
+    errors.push(`Expected 1 to 3 monsters, found ${layout.spawns.monsters.length}`);
   }
 
   for (const m of layout.spawns.monsters) {

@@ -8,6 +8,7 @@
 import { AudioEngine } from '../audio/AudioEngine.js';
 import { ConfirmationModal } from './ConfirmationModal.js';
 import { loadSettings, saveSettings } from '../app/Settings.js';
+import { safeRequestPointerLock } from '../engine/input/PointerLock.js';
 
 export interface PauseMenuCallbacks {
   onResume: () => void;
@@ -187,15 +188,8 @@ export class PauseMenu {
       this.callbacks.onResume();
       // Re-lock pointer in 1 click
       const canvas = document.querySelector('canvas');
-      if (canvas && typeof canvas.requestPointerLock === 'function') {
-        try {
-          const res = canvas.requestPointerLock();
-          if (res instanceof Promise) {
-            res.catch(() => {});
-          }
-        } catch {
-          /* ignore */
-        }
+      if (canvas) {
+        void safeRequestPointerLock(canvas);
       }
     };
 

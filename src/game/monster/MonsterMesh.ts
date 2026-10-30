@@ -142,7 +142,10 @@ export class MonsterMeshHierarchy {
         vec3 coolRim = vec3(0.16, 0.20, 0.22) * pow(rim, 2.2) * 0.35;
         vec3 wetSheen = vec3(0.04, 0.045, 0.04) * pow(rim, 3.0);
         vec3 subsurfaceLift = vec3(0.065, 0.045, 0.038);
-        gl_FragColor.rgb += coolTopRim + coolRim + wetSheen + subsurfaceLift;
+        // Dark wet abyssal chitin with subtle bio-acoustic acoustic vein pulse
+        float veinNoise = sin(vWorldPositionForWet.x * 12.0 + vWorldPositionForWet.z * 12.0) * cos(vWorldPositionForWet.y * 18.0);
+        vec3 acousticVein = vec3(0.02, 0.12, 0.09) * smoothstep(0.75, 0.98, veinNoise);
+        gl_FragColor.rgb += coolTopRim + coolRim + wetSheen + subsurfaceLift + acousticVein;
         `,
       );
     };
@@ -349,6 +352,24 @@ export class MonsterMeshHierarchy {
     }
     this.vertebraMesh.instanceMatrix.needsUpdate = true;
     bm.spine2.add(this.vertebraMesh);
+
+    // Trailing dark abyssal tendrils parented to pelvis and spine
+    const tendrilMat = new MeshStandardMaterial({
+      color: new Color('#0a0d0c'),
+      roughness: 0.85,
+      metalness: 0.1,
+    });
+    this.materials.push(tendrilMat);
+    for (let t = 0; t < 6; t++) {
+      const tendrilGeom = new CylinderGeometry(0.015, 0.003, 0.75 + (t % 3) * 0.2, 6);
+      tendrilGeom.translate(0, -0.35, 0);
+      const tendrilMesh = new Mesh(tendrilGeom, tendrilMat);
+      const angle = (t / 6) * Math.PI * 2;
+      tendrilMesh.position.set(Math.cos(angle) * 0.14, -0.05, Math.sin(angle) * 0.16 + 0.08);
+      tendrilMesh.rotation.z = ((t % 2 === 0 ? 1 : -1) * 0.25);
+      tendrilMesh.rotation.x = 0.25 + (t * 0.05);
+      bm.pelvis.add(tendrilMesh);
+    }
 
     // 4. Build LOD1 simplified merged mesh (for distance > 35m, <= 2000 tris)
     this.buildLod1Mesh(skinMat);

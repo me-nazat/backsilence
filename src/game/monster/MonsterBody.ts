@@ -36,6 +36,7 @@ export class MonsterBody {
   private currentJawOpen = 0;
   private currentRearing = 0;
   private breathPhase = 0;
+  private undulationPhase = 0;
   private wakeTimer = 0;
 
   // Hardening and Diagnostic Probe fields (Phase B)
@@ -296,11 +297,18 @@ export class MonsterBody {
     joints.footR.parent!.worldToLocal(_tempLocal);
     joints.footR.position.copy(_tempLocal);
 
-    // 5. Spine FK chain & Bounding sway
+    // 5. Spine FK chain & organic traveling undulation
+    this.undulationPhase += dt * (snapshot.state === 'ATTACK' || snapshot.state === 'HUNT' ? 8.5 : speed > 0.4 ? 5.2 : 2.4);
+    const isAgitated = snapshot.state === 'ATTACK' || snapshot.state === 'HUNT';
+    const spinePitchBase = isAgitated ? 0.35 : (this.gait.spinePitch * 0.2);
     for (let i = 0; i < joints.spine.length; i++) {
       const sp = joints.spine[i]!;
-      sp.rotation.x = this.gait.spinePitch * 0.2;
-      sp.rotation.z = this.gait.spineRoll * 0.15;
+      const phaseOffset = i * 0.75;
+      const wave = Math.sin(this.undulationPhase - phaseOffset);
+      const waveCos = Math.cos(this.undulationPhase - phaseOffset);
+      sp.rotation.y = wave * (isAgitated ? 0.16 : 0.08);
+      sp.rotation.z = (this.gait.spineRoll * 0.15) + waveCos * (isAgitated ? 0.10 : 0.05);
+      sp.rotation.x = spinePitchBase + Math.sin(this.breathPhase * 1.5 - phaseOffset * 0.5) * 0.04;
     }
 
     // 6. Rearing animation (up to 55 deg = 0.96 rad when roaring or alerted)
@@ -332,6 +340,17 @@ export class MonsterBody {
       joints.head.rotation.z = 0.0;
       joints.neck.rotation.y = 0.0;
       joints.jaw.rotation.x = -Math.PI / 6 + 0.35 * 1.15;
+    } else if (snapshot.state === 'ATTACK' || snapshot.state === 'HUNT') {
+      // Aggressive surging forward lunge: torso pitched forward, jaws snapping, faster gait
+      joints.torso.rotation.x = 0.38;
+      joints.neck.rotation.x = 0.15;
+      joints.head.rotation.x = -0.10;
+      joints.head.rotation.z = 0.0;
+      const dx = camera.position.x - finalPosX;
+      const dz = camera.position.z - finalPosZ;
+      const angleToCam = Math.atan2(dx, -dz) - this.currentYaw;
+      joints.head.rotation.y = Math.max(-0.6, Math.min(0.6, angleToCam));
+      this.currentJawOpen = Math.max(0.65, this.currentJawOpen);
     } else if (snapshot.state === 'ALERTED') {
       // Alerted pre-charge pose: body goes rigid, head swings to face player, jaw opens 30% (Prompt 7.7)
       joints.torso.rotation.x = 0.05;
@@ -382,9 +401,11 @@ export class MonsterBody {
 
     // 8c. V-wake and ripple trail emission when moving in water (Prompt 7.8: 0.6 / 0.9 / 3.6)
     const isAttackingTelegraph = snapshot.state === 'ATTACK' && this.attackTimer < 0.8;
-    if (this.water && speed > 0.4 && !isAttackingTelegraph) {
+    if (this.water && speed > 0.25 && !isAttackingTelegraph) {
       this.wakeTimer += dt;
-      if (this.wakeTimer >= 0.15) {
+      const isFast = speed > 1.8 || snapshot.state === 'ATTACK' || snapshot.state === 'HUNT';
+      const wakeInterval = isFast ? 0.09 : 0.15;
+      if (this.wakeTimer >= wakeInterval) {
         this.wakeTimer = 0;
         this.water.wakes.addWake(
           snapshot.pos.x,
@@ -396,6 +417,19 @@ export class MonsterBody {
           0.9,
           3.6,
         );
+        // Continuous displacement ripple rings around monster
+        this.rippleEvent.position.x = snapshot.pos.x;
+        this.rippleEvent.position.y = waterLevel;
+        this.rippleEvent.position.z = snapshot.pos.z;
+        this.rippleEvent.strength = Math.min(1.0, 0.35 + speed * 0.12);
+        this.rippleEvent.t = performance.now() * 0.001;
+        this.water.onRipple(this.rippleEvent);
+
+        // Emit dynamic water splashes when charging/sprinting
+        if (isFast) {
+          _tempMid.set(snapshot.pos.x, waterLevel, snapshot.pos.z);
+          this.water.onSplash(_tempMid, Math.min(1.0, speed * 0.22), true);
+        }
       }
     }
 

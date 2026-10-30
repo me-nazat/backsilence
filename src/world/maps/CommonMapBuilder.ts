@@ -441,6 +441,43 @@ export function buildStandardMapInstance(
   // 4. Build Stairs
   for (const st of layout.stairs) {
     rasterizeStairsToGround(ground, st);
+    const riser = st.riser || 0.18;
+    const run = st.run || 0.28;
+    const halfW = st.width * 0.5;
+    for (let i = 0; i < st.steps; i++) {
+      const stepTopY = st.baseY + (i + 1) * riser;
+      let minX = 0;
+      let maxX = 0;
+      let minZ = 0;
+      let maxZ = 0;
+      if (st.direction === 'x+') {
+        minX = st.x + i * run;
+        maxX = st.x + (i + 1) * run;
+        minZ = st.z - halfW;
+        maxZ = st.z + halfW;
+      } else if (st.direction === 'x-') {
+        minX = st.x - (i + 1) * run;
+        maxX = st.x - i * run;
+        minZ = st.z - halfW;
+        maxZ = st.z + halfW;
+      } else if (st.direction === 'z+') {
+        minX = st.x - halfW;
+        maxX = st.x + halfW;
+        minZ = st.z + i * run;
+        maxZ = st.z + (i + 1) * run;
+      } else {
+        minX = st.x - halfW;
+        maxX = st.x + halfW;
+        minZ = st.z - (i + 1) * run;
+        maxZ = st.z - i * run;
+      }
+      colliders.addBox(
+        `${st.id}_step_${i}`,
+        { x: minX, y: st.baseY, z: minZ },
+        { x: maxX, y: stepTopY, z: maxZ },
+        false,
+      );
+    }
     const geom = buildStairGeometry(st);
     geometriesToDispose.push(geom);
     const mesh = new Mesh(geom, customMaterials.platformMat);
@@ -545,6 +582,7 @@ export function buildStandardMapInstance(
   applyMapLevelArtPass({
     root,
     layout,
+    colliders,
     customMaterials,
     materialsToDispose,
     geometriesToDispose,

@@ -247,9 +247,10 @@ export const HydroMazeMap: MapDefinition = {
 
     // Raised observation vantage platform & stairs (Prompt 5.3)
     platforms.push({ id: 'vantage_perch', rect: [-22, -22, -16, -16], topY: 1.1, kind: 'metal' });
+    platforms.push({ id: 'perch_approach', rect: [-20.5, -25.5, -17.5, -23.12], topY: 0.3, kind: 'metal' });
     stairs.push({
       id: 'stair_perch',
-      x: -20,
+      x: -19.0,
       z: -23.12,
       width: 2.4,
       riser: 0.20,

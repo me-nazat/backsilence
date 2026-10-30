@@ -6,6 +6,7 @@
 
 import { Vector3, Quaternion, Euler, type PerspectiveCamera } from 'three';
 import type { AudioEngine } from '../../audio/AudioEngine.js';
+import { safeExitPointerLock } from '../../engine/input/PointerLock.js';
 
 export interface JumpscareStats {
   timeSurvived: number;
@@ -34,7 +35,7 @@ const _euler = new Euler();
 export class JumpscareSequence {
   private active = false;
   private timer = 0;
-  private duration = 1.6;
+  private duration = 1.0;
   private initialFov = 72;
   private overlayEl: HTMLElement | null = null;
   private stats: JumpscareStats = { timeSurvived: 0, noisesMade: 0, closestCall: 0 };
@@ -170,18 +171,18 @@ export class JumpscareSequence {
       if (this.reducedMotion) {
         // Smooth fade only
         this.overlayEl.style.background = 'black';
-        this.overlayEl.style.opacity = Math.min(1.0, (t / 1.6) * 1.2).toString();
+        this.overlayEl.style.opacity = Math.min(1.0, (t / this.duration) * 1.2).toString();
       } else {
         if (t < 0.12) {
           // White flicker frames
           this.overlayEl.style.background = (Math.floor(t * 60) % 2 === 0) ? 'white' : 'red';
           this.overlayEl.style.opacity = '1.0';
-        } else if (t < 1.2) {
+        } else if (t < 0.75) {
           this.overlayEl.style.background = 'radial-gradient(circle, rgba(255, 0, 0, 0.4) 0%, rgba(180, 0, 0, 0.8) 70%, rgba(10, 0, 0, 0.95) 100%)';
           this.overlayEl.style.opacity = '0.75';
         } else {
           // Cut to black
-          const blackT = (t - 1.2) / 0.4;
+          const blackT = (t - 0.75) / 0.25;
           this.overlayEl.style.background = 'black';
           this.overlayEl.style.opacity = Math.min(1.0, blackT * 1.5).toString();
         }
@@ -190,12 +191,16 @@ export class JumpscareSequence {
 
     // 5. PostFX glitch hook (BATCH-4)
     if (this.callbacks.onPostFXGlitch) {
-      this.callbacks.onPostFXGlitch(Math.max(0, 1.0 - t / 1.6));
+      this.callbacks.onPostFXGlitch(Math.max(0, 1.0 - t / this.duration));
     }
 
     // 6. Complete and trigger death screen
     if (t >= this.duration) {
       this.active = false;
+      if (this.overlayEl) {
+        this.overlayEl.style.opacity = '0';
+      }
+      safeExitPointerLock();
       this.callbacks.onDeath(this.stats);
       return false;
     }

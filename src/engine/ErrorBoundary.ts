@@ -42,6 +42,19 @@ export const ErrorBoundary = {
       const err = event.error as { stack?: string } | null | undefined;
       const stack = typeof err?.stack === 'string' ? err.stack : undefined;
       const msg = event.message || 'Unknown runtime error';
+
+      // Benign pointer lock security/pending errors must never crash the game into TRACKING LOST
+      const lower = msg.toLowerCase();
+      if (
+        lower.includes('pointer lock') ||
+        lower.includes('pointerlock') ||
+        lower.includes('requestpointerlock') ||
+        lower.includes('exited the lock')
+      ) {
+        event.preventDefault?.();
+        return;
+      }
+
       ErrorBoundary.recordError('error', msg, stack);
 
       if (
@@ -61,6 +74,19 @@ export const ErrorBoundary = {
       const reason: unknown = event.reason;
       const message = reason instanceof Error ? reason.message : String(reason);
       const stack = reason instanceof Error ? reason.stack : undefined;
+
+      // Benign pointer lock pending/denied/cooldown exceptions must never crash the game into TRACKING LOST
+      const lower = message.toLowerCase();
+      if (
+        lower.includes('pointer lock') ||
+        lower.includes('pointerlock') ||
+        lower.includes('requestpointerlock') ||
+        lower.includes('exited the lock')
+      ) {
+        event.preventDefault?.();
+        return;
+      }
+
       ErrorBoundary.recordError('unhandledrejection', message, stack);
 
       if (

@@ -17,6 +17,7 @@ import {
   Vector3,
 } from 'three';
 import type { LayoutData } from '../MapTypes.js';
+import type { ColliderSet } from '../../sim/Colliders.js';
 import { Rng } from '../../procedural/core/prng.js';
 import { DecalSystem } from '../../game/decals/DecalSystem.js';
 import {
@@ -49,6 +50,7 @@ import {
 export interface LevelArtEnv {
   root: Group;
   layout: LayoutData;
+  colliders?: ColliderSet;
   materialsToDispose: { dispose: () => void }[];
   geometriesToDispose: { dispose: () => void }[];
   customMaterials: {
@@ -59,7 +61,7 @@ export interface LevelArtEnv {
 }
 
 export function applyMapLevelArtPass(env: LevelArtEnv): void {
-  const { root, layout, materialsToDispose, geometriesToDispose, customMaterials } = env;
+  const { root, layout, colliders, materialsToDispose, geometriesToDispose, customMaterials } = env;
   const rng = new Rng(layout.seed + 9999);
   const bounds = layout.bounds;
   const mapId = layout.mapId;
@@ -308,7 +310,15 @@ export function applyMapLevelArtPass(env: LevelArtEnv): void {
       for (let x = -24; x <= 24; x += 8) {
         for (let z = -20; z <= 20; z += 10) {
           if (rng.next() < 0.65) {
-            placeMesh(buildSchoolDeskGeometry(), woodMat, new Vector3(x, -0.55, z), rng.range(-0.3, 0.3));
+            placeMesh(buildSchoolDeskGeometry(), woodMat, new Vector3(x, -0.50, z), rng.range(-0.3, 0.3));
+            if (colliders) {
+              colliders.addBox(
+                `desk_${x}_${z}`,
+                { x: x - 0.45, y: -0.50, z: z - 0.45 },
+                { x: x + 0.45, y: 0.26, z: z + 0.45 },
+                false,
+              );
+            }
           }
         }
       }
@@ -324,6 +334,10 @@ export function applyMapLevelArtPass(env: LevelArtEnv): void {
       for (let z = -25; z <= 25; z += 10) {
         placeMesh(buildStackedChairsGeometry(), metalMat, new Vector3(-28, 0.3, z), Math.PI * 0.5);
         placeMesh(buildStackedChairsGeometry(), metalMat, new Vector3(28, 0.3, z), -Math.PI * 0.5);
+        if (colliders) {
+          colliders.addBox(`stacked_w_${z}`, { x: -28.4, y: 0.3, z: z - 0.4 }, { x: -27.6, y: 1.15, z: z + 0.4 }, false);
+          colliders.addBox(`stacked_e_${z}`, { x: 27.6, y: 0.3, z: z - 0.4 }, { x: 28.4, y: 1.15, z: z + 0.4 }, false);
+        }
       }
       placedPropTypes.add('stacked_chairs');
 
@@ -497,10 +511,15 @@ export function applyMapLevelArtPass(env: LevelArtEnv): void {
 
     case 'utility_tunnels': {
       // Pipe clusters, tunnel rings, catwalks, vents, steam plumes
-      for (let z = -32; z <= 32; z += 12) {
+      for (let z = -36; z <= 36; z += 9) {
         placeMesh(buildTunnelRingGeometry(3.6), metalMat, new Vector3(0, 0, z));
       }
       placedPropTypes.add('tunnel_ring');
+
+      for (let z = -30; z <= 30; z += 10) {
+        placeMesh(buildVaultRibGeometry(14.0, 4.5), customMaterials.wallMat, new Vector3(0, 0, z));
+      }
+      placedPropTypes.add('vault_rib');
 
       for (let z = -25; z <= 25; z += 10) {
         placeMesh(buildBalustradeGeometry(6.0), metalMat, new Vector3(2.2, 0.3, z), Math.PI * 0.5);
@@ -661,24 +680,54 @@ export function applyMapLevelArtPass(env: LevelArtEnv): void {
   // 4. One Point of Interest (POI) in every 16m grid cell across the map bounds
   for (let x = bounds.minX + 8; x < bounds.maxX; x += 16) {
     for (let z = bounds.minZ + 8; z < bounds.maxZ; z += 16) {
+      // Check if (x, z) is over a dry platform
+      let platY: number | null = null;
+      for (const p of layout.platforms) {
+        if (x >= p.rect[0] && x <= p.rect[2] && z >= p.rect[1] && z <= p.rect[3]) {
+          platY = p.topY;
+          break;
+        }
+      }
+
       // Primary POI
       const roll = rng.next();
-      if (roll < 0.25) {
-        placeMesh(buildFloorDrainGeometry(), metalMat, new Vector3(x, 0.3, z));
-      } else if (roll < 0.5) {
-        placeMesh(buildFloatingPapersGeometry(), signMat, new Vector3(x, 0, z));
-      } else if (roll < 0.75) {
-        placeMesh(buildBalustradeGeometry(3.6), metalMat, new Vector3(x, 0.3, z));
+      if (platY !== null && platY >= 0.2) {
+        // Dry platform: floor drain, balustrade, or papers
+        if (roll < 0.4) {
+          placeMesh(buildFloorDrainGeometry(), metalMat, new Vector3(x, platY, z));
+        } else if (roll < 0.7) {
+          placeMesh(buildBalustradeGeometry(3.6), metalMat, new Vector3(x, platY, z));
+        } else {
+          placeMesh(buildFloatingPapersGeometry(), signMat, new Vector3(x, platY, z));
+        }
       } else {
-        placeMesh(buildStalactiteGeometry(), customMaterials.wallMat, new Vector3(x, 1.2, z));
+        // Open water / deep floor: submerged boulder or weir gate on floor, papers on surface, or stalactite from ceiling
+        if (roll < 0.3) {
+          placeMesh(buildBoulderGeometry(1.2), customMaterials.platformMat, new Vector3(x, -0.7, z));
+          if (colliders) {
+            colliders.addBox(`boulder_${x}_${z}`, { x: x - 0.7, y: -0.9, z: z - 0.7 }, { x: x + 0.7, y: 0.35, z: z + 0.7 }, false);
+          }
+        } else if (roll < 0.55) {
+          placeMesh(buildWeirGateGeometry(), metalMat, new Vector3(x, -0.9, z));
+        } else if (roll < 0.8) {
+          placeMesh(buildStalactiteGeometry(), customMaterials.wallMat, new Vector3(x, 1.2, z));
+        } else {
+          placeMesh(buildFloatingPapersGeometry(), signMat, new Vector3(x, 0, z));
+        }
       }
 
       // Secondary depth details (foreground clutter)
-      if (rng.next() < 0.4) {
-        placeMesh(buildFloatingPapersGeometry(), signMat, new Vector3(x + rng.range(-3, 3), 0, z + rng.range(-3, 3)));
-      }
-      if (rng.next() < 0.35) {
-        placeMesh(buildBalustradeGeometry(3.2), metalMat, new Vector3(x + rng.range(-2, 2), 0.3, z + rng.range(-2, 2)));
+      if (platY !== null && platY >= 0.2) {
+        if (rng.next() < 0.35) {
+          placeMesh(buildBalustradeGeometry(3.2), metalMat, new Vector3(x + rng.range(-2, 2), platY, z + rng.range(-2, 2)));
+        }
+      } else {
+        const secRoll = rng.next();
+        if (secRoll < 0.3) {
+          placeMesh(buildBoulderGeometry(1.0), customMaterials.platformMat, new Vector3(x + rng.range(-2, 2), -0.7, z + rng.range(-2, 2)));
+        } else if (secRoll < 0.6) {
+          placeMesh(buildFloatingPapersGeometry(), signMat, new Vector3(x + rng.range(-3, 3), 0, z + rng.range(-3, 3)));
+        }
       }
     }
   }

@@ -23,7 +23,7 @@ import { injectPaletteVars } from './app/Palette.js';
 import type { UIManager } from './ui/UIManager.js';
 import type { LabScene } from './lab/LabScene.js';
 import type { NetSession } from './net/session/NetSession.js';
-import type { Settings } from './types/contracts.js';
+import type { Settings, MapId } from './types/contracts.js';
 
 // ── Boot progress bar ───────────────────────────────────────────────────
 function setBootProgress(pct: number): void {
@@ -190,8 +190,8 @@ async function boot(): Promise<void> {
     settings,
     session: {
       mode: route.room ? 'multi' : 'single',
-      mapId: 'natatorium',
-      seed: Date.now(),
+      mapId: route.map || 'natatorium',
+      seed: route.seed || Date.now(),
       room: route.room,
     },
     ui: {
@@ -420,6 +420,7 @@ async function boot(): Promise<void> {
           ui.showResults(results);
         },
         onExit: () => {
+          bus.emit('game:leave', undefined);
           ui.navigateTo('MENU');
         },
       },
@@ -427,6 +428,8 @@ async function boot(): Promise<void> {
       cfg.seed,
       cfg.mapId,
       ui.getKeypadModal(),
+      undefined,
+      (cfg as { subMode?: string }).subMode,
     );
     g.__backsilence_session = activeGameSession;
     if (route.sightlog || (typeof location !== 'undefined' && location.search.includes('sightlog=1'))) {
@@ -477,6 +480,7 @@ async function boot(): Promise<void> {
           ui.showResults(results);
         },
         onExit: () => {
+          bus.emit('game:leave', undefined);
           ui.navigateTo('MENU');
         },
       },
@@ -538,13 +542,17 @@ async function boot(): Promise<void> {
       labScene.audioLabPanel.toggle(true);
     }
     ui.showToast('Material & Audio Lab active. Controls: WASD + mouse. Press H for HUD, B for Audio Lab.', 'info');
-  } else if (route.map) {
-    // Direct launch via ?map=<id>&seed=<n>
+  } else if (route.view === 'play' || route.mode || route.map) {
+    const mode = route.mode;
+    const targetMap: MapId = route.map || (route.tape as MapId) || (mode === 'endless-tide' ? 'drainage_core' : mode === 'guided-practice' ? 'orientation' : 'natatorium');
+    const subMode = mode === 'endless-tide' ? 'endless' : mode === 'guided-practice' ? 'training' : mode === 'daily-descent' ? 'daily' : 'campaign';
+    const diff = subMode === 'endless' ? 3 : subMode === 'training' ? 1 : 2;
     bus.emit('game:start', {
       mode: 'single',
-      mapId: route.map,
-      difficulty: 1.0,
+      mapId: targetMap,
+      difficulty: diff,
       seed: route.seed ?? 12345,
+      subMode,
     });
   } else if (route.room) {
     ui.navigateTo('ROOM_LINK');

@@ -37,6 +37,7 @@ export type AppState =
   | 'PLAYING'
   | 'PAUSED'
   | 'DEAD'
+  | 'GAME_OVER'
   | 'SPECTATING'
   | 'RESULTS';
 

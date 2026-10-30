@@ -170,20 +170,36 @@ export class ProceduralSkin implements MonsterSkin {
     }
 
     // 2. Secondary breathing motion
-    const breathRate = this.mode === 'HUNT' || this.mode === 'ATTACK' ? 4.5 : 2.2;
-    const breath = Math.sin(this.animTimer * breathRate) * 0.025;
+    const breathRate = this.mode === 'HUNT' || this.mode === 'ATTACK' ? 4.5 : (effectiveSpeed < 0.1 ? 1.4 : 2.2);
+    const breath = Math.sin(this.animTimer * breathRate) * (effectiveSpeed < 0.1 ? 0.018 : 0.025);
     j.torso.scale.set(1.0 + breath, 1.0 + breath * 0.7, 1.0 + breath);
 
-    // 3. Quadruped stride kinematics (clamped to prevent sliding)
-    const legL = Math.sin(phase);
-    const legR = Math.sin(phase + Math.PI);
-    const armL = Math.sin(phase + Math.PI);
-    const armR = Math.sin(phase);
+    // 3. Predatory posture: Stride kinematics during movement, creepy crouch & twitches during idle
+    const legL = effectiveSpeed < 0.1 ? 0 : Math.sin(phase);
+    const legR = effectiveSpeed < 0.1 ? 0 : Math.sin(phase + Math.PI);
+    const armL = effectiveSpeed < 0.1 ? 0 : Math.sin(phase + Math.PI);
+    const armR = effectiveSpeed < 0.1 ? 0 : Math.sin(phase);
 
-    j.hipL.rotation.x = legL * 0.32 * Math.min(1.0, effectiveSpeed);
-    j.hipR.rotation.x = legR * 0.32 * Math.min(1.0, effectiveSpeed);
-    j.shoulderL.rotation.x = armL * 0.36 * Math.min(1.0, effectiveSpeed);
-    j.shoulderR.rotation.x = armR * 0.36 * Math.min(1.0, effectiveSpeed);
+    if (effectiveSpeed < 0.1) {
+      // Natural terrifying crouch on waterbed with articulated limbs
+      j.hipL.rotation.x = 0.12;
+      j.hipR.rotation.x = 0.12;
+      j.shoulderL.rotation.x = 0.16;
+      j.shoulderR.rotation.x = 0.16;
+
+      // Slow acoustic listening head-cocking sweep
+      if (!headTarget) {
+        const listenSweep = Math.sin(this.animTimer * 0.7) * 0.20;
+        const listenTilt = Math.sin(this.animTimer * 1.4) * 0.06;
+        j.head.rotation.y = listenSweep;
+        j.head.rotation.z = listenTilt;
+      }
+    } else {
+      j.hipL.rotation.x = legL * 0.32 * Math.min(1.0, effectiveSpeed);
+      j.hipR.rotation.x = legR * 0.32 * Math.min(1.0, effectiveSpeed);
+      j.shoulderL.rotation.x = armL * 0.36 * Math.min(1.0, effectiveSpeed);
+      j.shoulderR.rotation.x = armR * 0.36 * Math.min(1.0, effectiveSpeed);
+    }
 
     // 4. Jaw opening with anticipation on attack/roar
     if (this.mode === 'ATTACK' || this.mode === 'ALERTED' || this.mode === 'ROAR') {

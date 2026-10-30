@@ -8,6 +8,7 @@ import type { PlayerIntent } from '../../sim/PlayerMotor.js';
 import type { Action, Settings } from '../../types/contracts.js';
 import { TouchControls } from './TouchControls.js';
 import { GamepadManager } from '../../engine/input/GamepadManager.js';
+import { safeRequestPointerLock, safeExitPointerLock, getPointerLockCooldownRemaining } from '../../engine/input/PointerLock.js';
 
 export interface PlayerInputCallbacks {
   onPauseRequested: () => void;
@@ -17,6 +18,7 @@ export interface PlayerInputCallbacks {
   onSpectateNext?: () => void;
   onSpectatePrev?: () => void;
   onSpectateFreeRoamToggle?: () => void;
+  onPointerLockNotice?: (message: string) => void;
 }
 
 export class PlayerInput {
@@ -225,47 +227,31 @@ export class PlayerInput {
   }
 
   requestPointerLock(): void {
-    if (this.canvas && !this.isLocked) {
-      const wantUnadjusted = this.settings.controls.unadjustedMovement !== false;
-      try {
-        const target = this.canvas as { requestPointerLock?: (opts?: { unadjustedMovement?: boolean }) => Promise<void> | void };
-        if (wantUnadjusted && typeof target.requestPointerLock === 'function') {
-          const res = target.requestPointerLock({ unadjustedMovement: true });
-          if (res instanceof Promise) {
-            res.catch(() => {
-              try {
-                const fallback = this.canvas?.requestPointerLock();
-                if (fallback instanceof Promise) {
-                  fallback.catch(() => {});
-                }
-              } catch {
-                /* ignore */
-              }
-            });
-          }
-        } else {
-          const res = this.canvas.requestPointerLock();
-          if (res instanceof Promise) {
-            res.catch(() => {});
-          }
+    if (this.freezeInput || !this.canvas) return;
+    const wantUnadjusted = this.settings.controls.unadjustedMovement !== false;
+    const cooldown = getPointerLockCooldownRemaining();
+    if (cooldown > 0) {
+      this.callbacks.onPointerLockNotice?.('Locking cursor...');
+      setTimeout(() => {
+        if (!this.freezeInput && !this.isLocked && this.canvas) {
+          void safeRequestPointerLock(
+            this.canvas,
+            { unadjustedMovement: wantUnadjusted },
+            () => !this.freezeInput,
+          );
         }
-      } catch {
-        try {
-          const fallback = this.canvas.requestPointerLock();
-          if (fallback instanceof Promise) {
-            fallback.catch(() => {});
-          }
-        } catch {
-          /* ignore */
-        }
-      }
+      }, cooldown + 50);
+      return;
     }
+    void safeRequestPointerLock(
+      this.canvas,
+      { unadjustedMovement: wantUnadjusted },
+      () => !this.freezeInput,
+    );
   }
 
   exitPointerLock(): void {
-    if (this.isLocked && document.exitPointerLock) {
-      document.exitPointerLock();
-    }
+    safeExitPointerLock();
   }
 
   isPointerLocked(): boolean {

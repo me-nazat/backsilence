@@ -12,7 +12,7 @@ export interface EventMap {
   'app:error': { message: string; fatal: boolean };
   'settings:changed': Settings;
   'net:join': { room: string; mode: 'host' | 'peer' };
-  'game:start': { mode: 'single' | 'multi'; mapId: MapId; difficulty: number; seed: number; room?: string };
+  'game:start': { mode: 'single' | 'multi'; mapId: MapId; difficulty: number; seed: number; room?: string; subMode?: string | undefined };
   'game:leave': undefined;
 }
 

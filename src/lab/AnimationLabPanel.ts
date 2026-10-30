@@ -14,6 +14,10 @@ import { createMonsterSkin, type MonsterSkin, type LocomotionState } from '../ga
 import { FlockDirector } from '../game/creatures/FlockDirector.js';
 import { ViewModel, type ViewModelState } from '../game/player/ViewModel.js';
 
+export interface AnimationLabOptions {
+  isMenuMode?: boolean;
+}
+
 export class AnimationLabPanel {
   private panelEl: HTMLElement | null = null;
   private isVisible = false;
@@ -23,6 +27,7 @@ export class AnimationLabPanel {
   private flock: FlockDirector | null = null;
   private viewModel: ViewModel | null = null;
   private readonly scene: Scene;
+  private readonly isMenuMode: boolean;
 
   // State
   private speed = 1.8;
@@ -41,8 +46,14 @@ export class AnimationLabPanel {
   private footSlideSpeed = 0.0;
   private prevFootPositions = new Map<string, Vector3>();
 
-  constructor(scene: Scene) {
+  constructor(scene: Scene, options?: AnimationLabOptions) {
     this.scene = scene;
+    this.isMenuMode = !!options?.isMenuMode;
+    if (this.isMenuMode) {
+      this.speed = 0.0;
+      this.isFlockActive = false;
+      this.isViewModelActive = false;
+    }
   }
 
   mount(container: HTMLElement): void {
@@ -202,6 +213,10 @@ export class AnimationLabPanel {
     this.monsterSkin = createMonsterSkin(this.skinChoice);
     this.monsterSkin.root.position.set(0, 0, 0);
     this.scene.add(this.monsterSkin.root);
+    if (this.isMenuMode) {
+      this.monsterSkin.setMode('LURK');
+      return;
+    }
 
     // Overhead ambient flock preview
     this.flock = new FlockDirector({

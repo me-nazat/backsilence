@@ -11,7 +11,7 @@ import type { EventRingBuffer } from './Events.js';
 import type { WorldProfile } from './WorldProfile.js';
 import type { PerchSystem } from './PerchSystem.js';
 import type { FlowField } from './FlowField.js';
-import { dHypot, dSin, dCos, dPow, D_PI } from './dmath.js';
+import { dHypot, dSin, dCos, D_PI } from './dmath.js';
 
 export interface PlayerIntent {
   moveX: number; // -1 (left) .. +1 (right)
@@ -54,9 +54,9 @@ export class PlayerMotor {
   static readonly CROUCH_HEIGHT = 1.1;
   static readonly EYE_STAND = 1.65;
   static readonly EYE_CROUCH = 0.95;
-  static readonly STEP_LIMIT = 0.35;
+  static readonly STEP_LIMIT = 0.45;
   static readonly GRAVITY = 14.0;
-  static readonly JUMP_V = 4.65;
+  static readonly JUMP_V = 4.6;
   static readonly SPEED_WALK = 3.2;
   static readonly SPEED_SPRINT = 5.2;
   static readonly SPEED_CROUCH = 1.6;
@@ -78,15 +78,16 @@ export class PlayerMotor {
   private wasOnGround = true;
 
   // Timers for jump buffer and coyote time
-  public coyoteDuration = 0.1;
+  public coyoteDuration = 0.15;
   private coyoteTimer = 0;
   private jumpBufferTimer = 0;
+  private jumpCooldownTimer = 0;
 
   // Mantling state
   private mantle = {
     active: false,
     timer: 0,
-    duration: 0.6,
+    duration: 0.5,
     from: { x: 0, y: 0, z: 0 },
     to: { x: 0, y: 0, z: 0 },
   };
@@ -150,6 +151,10 @@ export class PlayerMotor {
     return this.depth > 0;
   }
 
+  get isMantling(): boolean {
+    return this.mantle.active;
+  }
+
   getSnapshot(): PlayerMotorState {
     return this.getState();
   }
@@ -189,6 +194,11 @@ export class PlayerMotor {
   ): void {
     this.copyToState(this.previousState);
 
+    // Update jump cooldown timer
+    if (this.jumpCooldownTimer > 0) {
+      this.jumpCooldownTimer = Math.max(0, this.jumpCooldownTimer - dt);
+    }
+
     // 1. Look orientation
     this.yaw += intent.lookDeltaYaw || 0;
     this.pitch = Math.max(-1.48, Math.min(1.48, this.pitch + (intent.lookDeltaPitch || 0)));
@@ -210,17 +220,17 @@ export class PlayerMotor {
 
     // 5. Water entry detection (from air)
     if (!this.wasWet && this.wet) {
-      const isJump = !this.onGround && this.vel.y < -1.0;
+      const isHardFall = !this.onGround && this.vel.y < -2.0;
       const fallSpeed = Math.abs(this.vel.y);
-      const loudness = isJump ? 1.0 : Math.max(0.5, Math.min(1.0, 0.5 + fallSpeed * 0.1));
+      const loudness = isHardFall ? Math.min(1.0, 0.5 + fallSpeed * 0.1) : 0.35;
       events.pushNoise(`noise_splash_${simTime}`, 'jump_in', this.pos.x, waterY, this.pos.z, loudness, this.playerId, simTime);
-      events.pushRipple(this.pos.x, waterY, this.pos.z, 1.0, this.playerId, simTime);
+      events.pushRipple(this.pos.x, waterY, this.pos.z, isHardFall ? 1.0 : 0.5, this.playerId, simTime);
       this.recordLoudness(loudness);
     }
     this.wasWet = this.wet;
 
-    // 6. Check for Mantle trigger while in water
-    if (this.wet && intent.jump && this.tryStartMantle(ground, colliders, waterY, simTime, events)) {
+    // 6. Check for Mantle trigger while in water or airborne facing a ledge
+    if ((this.wet || !this.onGround) && intent.jump && this.tryStartMantle(ground, colliders, waterY, simTime, events)) {
       return;
     }
 
@@ -286,29 +296,38 @@ export class PlayerMotor {
     }
 
     // 9. Jump & Gravity logic (Coyote time & Jump buffer)
-    if (this.onGround) {
+    if (this.onGround || this.wet) {
       this.coyoteTimer = this.coyoteDuration;
     } else {
       this.coyoteTimer = Math.max(0, this.coyoteTimer - dt);
     }
 
     if (intent.jump) {
-      this.jumpBufferTimer = 0.1;
+      this.jumpBufferTimer = 0.15;
     } else {
       this.jumpBufferTimer = Math.max(0, this.jumpBufferTimer - dt);
     }
 
-    if (this.jumpBufferTimer > 0 && this.coyoteTimer > 0) {
+    const canJump = (this.onGround || this.wet || this.coyoteTimer > 0) && this.jumpCooldownTimer <= 0;
+    if (this.jumpBufferTimer > 0 && canJump) {
       if (isSprinting) {
         this.stamina = Math.max(0, this.stamina - 12.0);
         if (this.stamina <= 0.0) {
           this.exhausted = true;
         }
       }
-      this.vel.y = PlayerMotor.JUMP_V - PlayerMotor.GRAVITY * dt * 0.5;
+      const jumpImpulse = this.wet ? 6.2 : PlayerMotor.JUMP_V;
+      this.vel.y = jumpImpulse - PlayerMotor.GRAVITY * dt * 0.5;
       this.onGround = false;
       this.coyoteTimer = 0;
       this.jumpBufferTimer = 0;
+      this.jumpCooldownTimer = 0.35;
+
+      if (this.wet) {
+        events.pushNoise(`noise_jump_${simTime}`, 'wade', this.pos.x, this.pos.y, this.pos.z, 0.4, this.playerId, simTime);
+        events.pushRipple(this.pos.x, waterY, this.pos.z, 0.5, this.playerId, simTime);
+        this.recordLoudness(0.4);
+      }
     } else if (!this.onGround) {
       this.vel.y -= PlayerMotor.GRAVITY * dt;
     }
@@ -318,13 +337,19 @@ export class PlayerMotor {
     let newZ = this.pos.z + this.vel.z * dt;
 
     // Check step limit vs terrain height
-    const destGroundY = this.sampleGroundHeight(newX, newZ, ground);
-    if (destGroundY - this.pos.y > PlayerMotor.STEP_LIMIT) {
+    const destGroundY = this.sampleGroundHeight(newX, newZ, ground, colliders);
+    const stepDiff = destGroundY - this.pos.y;
+    if (stepDiff > PlayerMotor.STEP_LIMIT) {
       // Treat as wall obstacle — block movement
       newX = this.pos.x;
       newZ = this.pos.z;
       this.vel.x = 0;
       this.vel.z = 0;
+    } else if (stepDiff > 0.02 && (this.onGround || this.wet)) {
+      // Auto-step-up: automatically step up ledges/stairs <= STEP_LIMIT (0.45m)
+      this.pos.y = destGroundY;
+      this.vel.y = 0;
+      this.onGround = true;
     }
 
     // Pushout vs Box & Cylinder Colliders (3 iterations)
@@ -363,15 +388,15 @@ export class PlayerMotor {
 
     // 11. Vertical Position Update & Ground Snapping
     let newY = this.pos.y + this.vel.y * dt;
-    const finalGroundY = this.sampleGroundHeight(this.pos.x, this.pos.z, ground);
+    const finalGroundY = this.sampleGroundHeight(this.pos.x, this.pos.z, ground, colliders);
 
     if (newY <= finalGroundY) {
       newY = finalGroundY;
       this.vel.y = 0;
       this.onGround = true;
     } else {
-      // Airborne
-      if (newY - finalGroundY < 0.08 && this.vel.y <= 0) {
+      // Airborne ground landing snap
+      if (newY - finalGroundY < 0.10 && this.vel.y <= 0) {
         newY = finalGroundY;
         this.vel.y = 0;
         this.onGround = true;
@@ -407,7 +432,7 @@ export class PlayerMotor {
     this.handleNoiseEmission(dt, inputLen, isSprinting, intent.crouch, events, simTime, waterY);
   }
 
-  private sampleGroundHeight(x: number, z: number, ground: GroundGrid): number {
+  private sampleGroundHeight(x: number, z: number, ground: GroundGrid, colliders?: ColliderSet): number {
     const r = PlayerMotor.RADIUS * 0.7;
     const c = ground.heightAt(x, z);
     const n = ground.heightAt(x, z - r);
@@ -420,6 +445,21 @@ export class PlayerMotor {
     if (Number.isFinite(s) && s > maxH) maxH = s;
     if (Number.isFinite(e) && e > maxH) maxH = e;
     if (Number.isFinite(w) && w > maxH) maxH = w;
+
+    if (colliders) {
+      colliders.queryCircle(x, z, r + 0.1, this.colliderCandidates);
+      for (let i = 0; i < this.colliderCandidates.length; i++) {
+        const col = this.colliderCandidates[i]!;
+        if (col.type === 'box') {
+          if (x >= col.min.x && x <= col.max.x && z >= col.min.z && z <= col.max.z) {
+            // Box top is reachable within step-up range or the player is resting/stepping on it
+            if (col.max.y <= this.pos.y + PlayerMotor.STEP_LIMIT + 0.1 && col.max.y > maxH) {
+              maxH = col.max.y;
+            }
+          }
+        }
+      }
+    }
 
     return maxH;
   }
@@ -500,56 +540,82 @@ export class PlayerMotor {
     const fwdX = dSin(this.yaw);
     const fwdZ = -dCos(this.yaw);
 
-    // Sample 0.6m ahead
-    const checkX = this.pos.x + fwdX * 0.6;
-    const checkZ = this.pos.z + fwdZ * 0.6;
-    const targetH = ground.heightAt(checkX, checkZ);
+    // Test multiple sample distances ahead to catch nearby edges reliably (0.6m primary, then 0.75m, then 0.45m)
+    const sampleDistances = [0.6, 0.75, 0.45];
+    for (const dist of sampleDistances) {
+      const checkX = this.pos.x + fwdX * dist;
+      const checkZ = this.pos.z + fwdZ * dist;
 
-    if (!Number.isFinite(targetH)) return false;
+      let targetH = ground.heightAt(checkX, checkZ);
+      if (!Number.isFinite(targetH)) targetH = -999;
 
-    const heightAboveFeet = targetH - this.pos.y;
-    // Edge height must be between 0.5 and 1.6 m above feet
-    if (heightAboveFeet < 0.5 || heightAboveFeet > 1.6) return false;
-
-    // Verify destination is dry
-    if (targetH < waterY - 0.05) return false;
-
-    // Verify clear landing space (no collider overlap)
-    colliders.queryCircle(checkX, checkZ, PlayerMotor.RADIUS, this.colliderCandidates);
-    for (let i = 0; i < this.colliderCandidates.length; i++) {
-      const col = this.colliderCandidates[i]!;
-      if (col.type === 'box') {
-        if (targetH >= col.min.y && targetH <= col.max.y) return false;
+      // Also check colliders for raised platforms, bleachers, or furniture tops
+      colliders.queryCircle(checkX, checkZ, 0.4, this.colliderCandidates);
+      for (let i = 0; i < this.colliderCandidates.length; i++) {
+        const col = this.colliderCandidates[i]!;
+        if (col.type === 'box') {
+          if (checkX >= col.min.x && checkX <= col.max.x && checkZ >= col.min.z && checkZ <= col.max.z) {
+            if (col.max.y > targetH) {
+              targetH = col.max.y;
+            }
+          }
+        }
       }
+
+      if (targetH <= -990) continue;
+
+      const heightAboveFeet = targetH - this.pos.y;
+      // Edge height between 0.15m and 1.8m above feet
+      if (heightAboveFeet < 0.15 || heightAboveFeet > 1.8) continue;
+
+      // Verify destination is dry
+      if (targetH < waterY - 0.05) continue;
+
+      // Verify clear headroom: ensure no tall collider blocks the space above targetH
+      let blocked = false;
+      for (let i = 0; i < this.colliderCandidates.length; i++) {
+        const col = this.colliderCandidates[i]!;
+        if (col.type === 'box') {
+          if (checkX >= col.min.x && checkX <= col.max.x && checkZ >= col.min.z && checkZ <= col.max.z) {
+            if (col.min.y < targetH + PlayerMotor.STAND_HEIGHT && col.max.y > targetH + 0.2) {
+              blocked = true;
+              break;
+            }
+          }
+        }
+      }
+      if (blocked) continue;
+
+      // Found valid ledge to mantle!
+      this.mantle.active = true;
+      this.mantle.timer = 0;
+      this.mantle.duration = 0.55;
+      this.mantle.from = { x: this.pos.x, y: this.pos.y, z: this.pos.z };
+      this.mantle.to = { x: checkX, y: targetH, z: checkZ };
+
+      // Emit mantle noise and ripple
+      events.pushNoise(`noise_mantle_${simTime}`, 'mantle', this.pos.x, this.pos.y, this.pos.z, 0.5, this.playerId, simTime);
+      events.pushRipple(this.pos.x, waterY, this.pos.z, 0.6, this.playerId, simTime);
+      this.recordLoudness(0.5);
+      return true;
     }
 
-    // Start mantle scripted arc (0.6s)
-    this.mantle.active = true;
-    this.mantle.timer = 0;
-    this.mantle.duration = 0.6;
-    this.mantle.from = { x: this.pos.x, y: this.pos.y, z: this.pos.z };
-    this.mantle.to = { x: checkX, y: targetH, z: checkZ };
-
-    // Emit mantle noise (0.5) and ripple (0.6)
-    events.pushNoise(`noise_mantle_${simTime}`, 'mantle', this.pos.x, this.pos.y, this.pos.z, 0.5, this.playerId, simTime);
-    events.pushRipple(this.pos.x, waterY, this.pos.z, 0.6, this.playerId, simTime);
-    this.recordLoudness(0.5);
-
-    return true;
+    return false;
   }
 
   private stepMantle(dt: number, events: EventRingBuffer, simTime: number): void {
     this.mantle.timer += dt;
     const progress = Math.min(1.0, this.mantle.timer / this.mantle.duration);
 
-    // Ease-in-out quadratic curve
-    const t = progress < 0.5 ? 2 * progress * progress : 1 - dPow(-2 * progress + 2, 2) / 2;
+    // Cubic ease out for natural vaulting feel
+    const inv = 1 - progress;
+    const t = 1 - inv * inv * inv;
 
     this.pos.x = this.mantle.from.x + (this.mantle.to.x - this.mantle.from.x) * t;
     this.pos.z = this.mantle.from.z + (this.mantle.to.z - this.mantle.from.z) * t;
 
-    // Arc upward then settle
-    const arcLift = dSin(progress * D_PI) * 0.25;
+    // Arc upward then settle onto surface
+    const arcLift = dSin(progress * D_PI) * 0.30;
     this.pos.y = this.mantle.from.y + (this.mantle.to.y - this.mantle.from.y) * t + arcLift;
 
     if (progress >= 1.0) {
@@ -561,6 +627,7 @@ export class PlayerMotor {
       this.vel.y = 0;
       this.vel.z = 0;
       this.onGround = true;
+      this.wet = false;
       // Exiting water step
       events.pushNoise(`noise_exit_${simTime}`, 'wade', this.pos.x, this.pos.y, this.pos.z, 0.2, this.playerId, simTime);
     }

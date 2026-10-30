@@ -61,36 +61,74 @@ export const DrainageCoreMap: MapDefinition = {
       { id: 'pit_rim_e', min: { x: 7.6, y: -0.9, z: -8 }, max: { x: 8.0, y: 1.5, z: 8 }, isWall: true },
     );
 
-    // 2. Concentric Square Rings (Inner, Mid, Outer)
-    // Inner Ring: bounds -21 to +21 (width 5m, catwalks at +0.3m)
-    // Mid Ring: bounds -38 to +38 (width 6m)
-    // Outer Ring: bounds -55 to +55 (width 7m)
-
-    // Inner Ring Platforms (catwalk W1 +0.3m, width 2m along inner edge)
-    platforms.push(
-      { id: 'ring_inner_n', rect: [-20, 16, 20, 18], topY: 0.3, kind: 'metal' },
-      { id: 'ring_inner_s', rect: [-20, -18, 20, -16], topY: 0.3, kind: 'metal' },
-      { id: 'ring_inner_w', rect: [-18, -16, -16, 16], topY: 0.3, kind: 'metal' },
-      { id: 'ring_inner_e', rect: [16, -16, 18, 16], topY: 0.3, kind: 'metal' },
+    // Perimeter boundary walls enclosing the sector to eliminate distant voids
+    walls.push(
+      { id: 'bound_wall_n', min: { x: -60, y: -0.9, z: 59.5 }, max: { x: 60, y: 5.0, z: 60.5 }, isWall: true },
+      { id: 'bound_wall_s', min: { x: -60, y: -0.9, z: -60.5 }, max: { x: 60, y: 5.0, z: -59.5 }, isWall: true },
+      { id: 'bound_wall_w', min: { x: -60.5, y: -0.9, z: -60 }, max: { x: -59.5, y: 5.0, z: 60 }, isWall: true },
+      { id: 'bound_wall_e', min: { x: 59.5, y: -0.9, z: -60 }, max: { x: 60.5, y: 5.0, z: 60 }, isWall: true },
     );
 
-    // Mid Ring Platforms with culvert openings for shallow_wading_spoke
-    platforms.push(
-      { id: 'ring_mid_n', rect: [-36, 32, 36, 34.5], topY: 0.3, kind: 'metal' },
-      { id: 'ring_mid_s', rect: [-36, -34.5, 36, -32], topY: 0.3, kind: 'metal' },
-      { id: 'ring_mid_w_s', rect: [-34.5, -32, -32, -2.5], topY: 0.3, kind: 'metal' },
-      { id: 'ring_mid_w_n', rect: [-34.5, 2.5, -32, 32], topY: 0.3, kind: 'metal' },
-      { id: 'ring_mid_e_s', rect: [32, -32, 34.5, -2.5], topY: 0.3, kind: 'metal' },
-      { id: 'ring_mid_e_n', rect: [32, 2.5, 34.5, 32], topY: 0.3, kind: 'metal' },
-    );
+    // 2. Concentric Stepping-Stone Networks (Inner, Mid, Outer)
+    // Replaced long uninterrupted footpaths with parkour stepping-stone pads separated by 2.5m–3.2m water gaps
+    function addSteppingPads(
+      prefix: string,
+      start: number,
+      end: number,
+      fixedMin: number,
+      fixedMax: number,
+      isXAxis: boolean,
+      padLen = 4.2,
+      gapLen = 2.8,
+    ): void {
+      let cur = start;
+      let padIdx = 1;
+      while (cur + padLen <= end) {
+        const next = cur + padLen;
+        const rect: [number, number, number, number] = isXAxis
+          ? [cur, fixedMin, next, fixedMax]
+          : [fixedMin, cur, fixedMax, next];
+        platforms.push({
+          id: `${prefix}_pad_${padIdx}`,
+          rect,
+          topY: 0.3,
+          kind: 'metal',
+        });
+        cur = next + gapLen;
+        padIdx++;
+      }
+      if (cur < end && end - cur >= 1.5) {
+        const rect: [number, number, number, number] = isXAxis
+          ? [cur, fixedMin, end, fixedMax]
+          : [fixedMin, cur, fixedMax, end];
+        platforms.push({
+          id: `${prefix}_pad_${padIdx}`,
+          rect,
+          topY: 0.3,
+          kind: 'metal',
+        });
+      }
+    }
 
-    // Outer Ring Platforms
-    platforms.push(
-      { id: 'ring_outer_n', rect: [-52, 48, 52, 50.5], topY: 0.3, kind: 'metal' },
-      { id: 'ring_outer_s', rect: [-52, -50.5, 52, -48], topY: 0.3, kind: 'metal' },
-      { id: 'ring_outer_w', rect: [-50.5, -48, -48, 48], topY: 0.3, kind: 'metal' },
-      { id: 'ring_outer_e', rect: [48, -48, 50.5, 48], topY: 0.3, kind: 'metal' },
-    );
+    // Inner Ring: broken into stepping stone platform pads
+    addSteppingPads('ring_in_n', -20, 20, 16, 18, true, 7.0, 2.8);
+    addSteppingPads('ring_in_s', -20, 20, -18, -16, true, 7.0, 2.8);
+    addSteppingPads('ring_in_w', -16, 16, -18, -16, false, 7.0, 2.8);
+    addSteppingPads('ring_in_e', -16, 16, 16, 18, false, 7.0, 2.8);
+
+    // Mid Ring: stepping stone platforms
+    addSteppingPads('ring_mid_n', -36, 36, 32, 34.5, true, 7.5, 2.8);
+    addSteppingPads('ring_mid_s', -36, 36, -34.5, -32, true, 7.5, 2.8);
+    addSteppingPads('ring_mid_w_s', -32, -2.5, -34.5, -32, false, 6.8, 2.8);
+    addSteppingPads('ring_mid_w_n', 2.5, 32, -34.5, -32, false, 6.8, 2.8);
+    addSteppingPads('ring_mid_e_s', -32, -2.5, 32, 34.5, false, 6.8, 2.8);
+    addSteppingPads('ring_mid_e_n', 2.5, 32, 32, 34.5, false, 6.8, 2.8);
+
+    // Outer Ring: stepping stone platforms
+    addSteppingPads('ring_out_n', -52, 52, 48, 50.5, true, 8.5, 3.0);
+    addSteppingPads('ring_out_s', -52, 52, -50.5, -48, true, 8.5, 3.0);
+    addSteppingPads('ring_out_w', -48, 48, -50.5, -48, false, 8.5, 3.0);
+    addSteppingPads('ring_out_e', -48, 48, 48, 50.5, false, 8.5, 3.0);
 
     // 3. 4 Axial Spoke Catwalks connecting the rings (width 2.4m) with culvert water gaps (Prompt 5.3)
     const culvertHalf = 1.5;
@@ -117,8 +155,8 @@ export const DrainageCoreMap: MapDefinition = {
     platforms.push({ id: 'vantage_catwalk', rect: [-3.5, -28, 3.5, -24], topY: 1.1, kind: 'metal' });
     stairs.push({
       id: 'stair_vantage',
-      x: -1.2,
-      z: -23.8,
+      x: 0.0,
+      z: -22.88,
       width: 2.4,
       riser: 0.20,
       run: 0.28,
@@ -130,15 +168,18 @@ export const DrainageCoreMap: MapDefinition = {
     // 4. 4 Corner Pump Rooms (14 x 14m)
     // NW: Generator 1
     platforms.push({ id: 'pump_nw', rect: [-55, 41, -41, 55], topY: 0.3, kind: 'concrete' });
-    props.push({ id: 'gen_1', kind: 'generator', position: { x: -48, y: 0.3, z: 48 }, yaw: Math.PI / 4 });
+    props.push({ id: 'gen_1', kind: 'generator', position: { x: -48, y: 0.3, z: 48 }, yaw: Math.PI / 4, params: { id: 'g1' } });
 
     // NE: Generator 2
     platforms.push({ id: 'pump_ne', rect: [41, 41, 55, 55], topY: 0.3, kind: 'concrete' });
-    props.push({ id: 'gen_2', kind: 'generator', position: { x: 48, y: 0.3, z: 48 }, yaw: -Math.PI / 4 });
+    props.push({ id: 'gen_2', kind: 'generator', position: { x: 48, y: 0.3, z: 48 }, yaw: -Math.PI / 4, params: { id: 'g2' } });
 
     // SE: Generator 3
     platforms.push({ id: 'pump_se', rect: [41, -55, 55, -41], topY: 0.3, kind: 'concrete' });
-    props.push({ id: 'gen_3', kind: 'generator', position: { x: 48, y: 0.3, z: -48 }, yaw: -3 * Math.PI / 4 });
+    props.push({ id: 'gen_3', kind: 'generator', position: { x: 48, y: 0.3, z: -48 }, yaw: -3 * Math.PI / 4, params: { id: 'g3' } });
+
+    // Central Arch vantage console (0, 0.3, -21)
+    props.push({ id: 'core_master_console', kind: 'terminal', position: { x: 0, y: 0.3, z: -21.0 }, yaw: 0, params: { id: 'master' } });
 
     // SW: Locker Cache (2 noisemakers + 1 battery cell)
     platforms.push({ id: 'pump_sw', rect: [-55, -55, -41, -41], topY: 0.3, kind: 'concrete' });
@@ -171,37 +212,40 @@ export const DrainageCoreMap: MapDefinition = {
     // Player spawn in Locker Cache room (SW)
     const playerSpawn = { x: -48.0, y: 0.3, z: -46.0 };
 
-    // 3 Distinct Monsters in distinct rings
-    // 1. Elder in Outer Ring (North-East channel)
-    // 2. Juvenile 1 in Mid Ring (West channel)
-    // 3. Juvenile 2 in Inner Ring (North channel)
-    const monsters = [
+    // Single Relentless Apex Hunter in the Drainage Core
+    const monsters: Array<{
+      id: string;
+      variant: 'standard' | 'elder' | 'juvenile';
+      spawn: { x: number; y: number; z: number };
+      sleeperSpawn?: { x: number; y: number; z: number };
+      hearingMul?: number;
+      speedMul?: number;
+      scale?: number;
+      tint?: string;
+      spawnGrace?: number;
+    }> = [
       {
         id: 'monster_elder',
         variant: 'elder' as const,
         spawn: { x: 30, y: -0.9, z: 42 },
         sleeperSpawn: { x: -30.0, y: -0.9, z: -30.0 },
-        hearingMul: 1.25,
-        speedMul: 0.85,
+        hearingMul: 1.35,
+        speedMul: 1.10,
         scale: 1.15,
+        spawnGrace: 4.0,
       },
-      {
+    ];
+
+    if (ctx.difficulty === 'deafening' || ctx.playerCount >= 3) {
+      monsters.push({
         id: 'monster_juv_1',
         variant: 'juvenile' as const,
         spawn: { x: -26, y: -0.9, z: -10 },
-        hearingMul: 0.8,
-        speedMul: 1.2,
-        scale: 0.8,
-      },
-      {
-        id: 'monster_juv_2',
-        variant: 'juvenile' as const,
-        spawn: { x: 0, y: -0.9, z: 25 },
-        hearingMul: 0.8,
-        speedMul: 1.2,
-        scale: 0.8,
-      },
-    ];
+        hearingMul: 1.0,
+        speedMul: 1.25,
+        scale: 0.85,
+      });
+    }
 
     return {
       mapId: 'drainage_core',
