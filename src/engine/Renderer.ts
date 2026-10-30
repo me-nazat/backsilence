@@ -35,7 +35,6 @@ export class EngineRenderer {
   constructor(container: HTMLElement, settings: Settings) {
     this.settings = settings;
 
-    const quality = resolveQuality(settings.graphics.quality);
     const canvas = document.createElement('canvas');
     canvas.id = 'webgl-canvas';
     canvas.style.position = 'absolute';

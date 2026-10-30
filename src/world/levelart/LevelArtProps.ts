@@ -1323,7 +1323,7 @@ export function buildBioFungiGeometry(): BufferGeometry {
     [0.24, 0, -0.15, 0.85],
     [0.12, 0, 0.25, 0.6],
   ];
-  for (const [x, _y, z, s] of cluster) {
+  for (const [x, , z, s] of cluster) {
     const sc = s!;
     const st = stem.clone();
     st.scale(sc, sc, sc);

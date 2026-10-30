@@ -3,7 +3,7 @@
  *  Enables 100% playable multiplayer modes solo or with remote peers.
  * ──────────────────────────────────────────────────────────────────────── */
 
-import { Group } from 'three';
+import { Group, type Camera } from 'three';
 import { RemotePlayerAvatar } from '../player/RemotePlayerAvatar.js';
 import type { Vec3 } from '../../types/contracts.js';
 import type { Hud, RosterMember } from '../../ui/Hud.js';
@@ -71,7 +71,8 @@ export class OperatorBotDirector {
 
   private spawnBot(id: string, name: string, colorIndex: number, spawn: Vec3): void {
     const avatar = new RemotePlayerAvatar(id, name, colorIndex);
-    avatar.teleport(spawn, 0);
+    avatar.root.position.set(spawn.x, spawn.y, spawn.z);
+    avatar.root.rotation.y = 0;
     this.root.add(avatar.root);
 
     this.bots.push({
@@ -95,6 +96,7 @@ export class OperatorBotDirector {
     playerPos: Vec3,
     waterY: number,
     isPlayerNearPlateA = false,
+    camera?: Camera,
   ): OperatorBotStepResult {
     this.matchTime += dt;
     const result: OperatorBotStepResult = {};
@@ -192,7 +194,7 @@ export class OperatorBotDirector {
           bot.eliminated = true;
           bot.avatar.root.visible = false;
           result.eliminatedName = bot.name;
-          this.audio.play('water_splash_submerge', { position: bot.pos, gain: 0.9 });
+          this.audio.play('splash_big', { position: bot.pos, gain: 0.9 });
         }
       }
     }
@@ -212,16 +214,22 @@ export class OperatorBotDirector {
         bot.yaw = Math.atan2(dx, dz);
       }
 
-      bot.avatar.updatePose(
-        bot.pos,
-        bot.yaw,
-        0,
-        dist > 0.1,
-        false,
-        false,
-        waterY,
-        dt,
-      );
+      if (camera) {
+        bot.avatar.update(
+          bot.pos,
+          bot.yaw,
+          0,
+          false,
+          bot.pos.y < waterY,
+          false,
+          bot.alive,
+          camera,
+          dt,
+        );
+      } else {
+        bot.avatar.root.position.set(bot.pos.x, bot.pos.y, bot.pos.z);
+        bot.avatar.root.rotation.y = bot.yaw;
+      }
     }
 
     // 5. Update Roster HUD
@@ -236,7 +244,7 @@ export class OperatorBotDirector {
       ...this.bots.map((b) => ({
         id: b.id,
         name: b.name,
-        status: (b.alive ? 'alive' : 'dead') as 'alive' | 'dead',
+        status: b.alive ? ('alive' as const) : ('dead' as const),
         isLocal: false,
         colorIndex: b.colorIndex,
       })),

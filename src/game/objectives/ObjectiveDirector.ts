@@ -13,8 +13,6 @@ import {
   RingGeometry,
   BoxGeometry,
   PointLight,
-  Color,
-  Vector3,
   DoubleSide,
   AdditiveBlending,
 } from 'three';
@@ -448,7 +446,6 @@ export class ObjectiveDirector {
     const checklist: ObjectiveChecklistItem[] = [];
 
     let primaryTarget: { pos: Vec3; label: string } | null = null;
-    let primaryDist = Infinity;
 
     if (mode === 'campaign') {
       sectorTitle = 'THE ARCHIVE TAPES // SECTOR 01';

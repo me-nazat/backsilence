@@ -643,9 +643,9 @@ export class EncounterDirector {
   private scheduleNextSighting(phase: string): void {
     let interval = 45.0;
     if (phase === 'prowl') {
-      interval = this.rng.range(45.0, 70.0);
+      interval = this.rng.range(32.0, 48.0);
     } else if (phase === 'closing') {
-      interval = this.rng.range(30.0, 45.0);
+      interval = this.rng.range(24.0, 38.0);
     } else if (phase === 'hunt') {
       interval = this.rng.range(15.0, 25.0);
     }
@@ -665,8 +665,8 @@ export class EncounterDirector {
 
     // Prompt 1 B: a "sighting" crosses player's current view cone (half-angle 45°) at 8-16 m
     const candidateDistances = attempt === 0
-      ? [11.0, 13.0, 9.5, 14.0, 8.5]
-      : [11.0, 13.0, 9.5, 14.0, 8.5, 15.5];
+      ? [10.0, 12.0, 9.0, 14.0, 8.0, 15.0]
+      : [10.0, 12.0, 9.0, 14.0, 8.0, 15.0, 16.0];
 
     const coneAngles = attempt === 0
       ? [0.785398, 0.65]
@@ -691,13 +691,13 @@ export class EncounterDirector {
 
           const sCell = nav.isWalkableWorld(sx, sz) && nav.getComponentWorld(sx, sz) === myComp
             ? { x: sx, z: sz }
-            : nav.findNearestWalkable(sx, sz, 1.8);
+            : nav.findNearestWalkable(sx, sz, 3.2);
           const mCell = nav.isWalkableWorld(mx, mz) && nav.getComponentWorld(mx, mz) === myComp
             ? { x: mx, z: mz }
-            : nav.findNearestWalkable(mx, mz, 1.8);
+            : nav.findNearestWalkable(mx, mz, 3.2);
           const eCell = nav.isWalkableWorld(ex, ez) && nav.getComponentWorld(ex, ez) === myComp
             ? { x: ex, z: ez }
-            : nav.findNearestWalkable(ex, ez, 1.8);
+            : nav.findNearestWalkable(ex, ez, 3.2);
 
           if (
             sCell && mCell && eCell &&

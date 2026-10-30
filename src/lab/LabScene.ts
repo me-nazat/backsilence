@@ -24,6 +24,7 @@ import {
   Raycaster,
   Vector2,
   Vector3,
+  WebGLRenderTarget,
   type Texture,
 } from 'three';
 
@@ -86,7 +87,7 @@ export class LabScene {
         this.dirLight.shadow.mapSize.height = res;
         if (this.dirLight.shadow.map) {
           this.dirLight.shadow.map.dispose();
-          this.dirLight.shadow.map = null as any;
+          this.dirLight.shadow.map = null as unknown as WebGLRenderTarget;
         }
       }
     }

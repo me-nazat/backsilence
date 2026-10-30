@@ -353,9 +353,9 @@ export class MonsterBrain {
     // If the player touches or enters water and is not perched on dry tile:
     // - If moving/wading, acoustic disturbance alerts and charges immediately.
     // - If right next to the monster (<= 3.5m) in water, senses physical displacement.
-    if (isPlayerInWater && !isPlayerPerched && !this.isSighting && (isPlayerMoving || distToPlayer <= 3.5)) {
+    if (isPlayerInWater && !isPlayerPerched && !this.isSighting && isPlayerMoving) {
       this.agitation = 1.0;
-      if (this.state === 'DORMANT' || this.state === 'WANDER' || this.state === 'INVESTIGATE' || this.state === 'LURK') {
+      if (this.state === 'WANDER' || this.state === 'INVESTIGATE' || this.state === 'LURK') {
         this.enterAlerted(playerPos, 1.0, simTime);
       } else if (this.state === 'ALERTED') {
         this.currentTarget = { ...playerPos };
@@ -806,6 +806,12 @@ export class MonsterBrain {
     this.jawOpenT = 1.0;
     this.rearingT = 0.5;
     this.stateTimer -= dt;
+    if (this.stateTimer <= 0) {
+      this.state = 'WANDER';
+      this.stateTimer = 0;
+      this.jawOpenT = 0;
+      this.rearingT = 0;
+    }
   }
 
   private followPath(

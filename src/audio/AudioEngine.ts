@@ -1216,15 +1216,17 @@ export async function unlockAudioContext(engineInstance?: AudioEngine): Promise<
 
   if (typeof window !== 'undefined' && !isUnlockHandlerBound) {
     isUnlockHandlerBound = true;
-    const onUserInteraction = async (): Promise<void> => {
-      const activeCtx = engine.getContext();
-      if (!activeCtx) {
-        await engine.init().catch(() => {});
-        engine.startAmbience();
-      } else if (activeCtx.state === 'suspended') {
-        await activeCtx.resume().catch(() => {});
-        engine.startAmbience();
-      }
+    const onUserInteraction = (): void => {
+      void (async () => {
+        const activeCtx = engine.getContext();
+        if (!activeCtx) {
+          await engine.init().catch(() => {});
+          engine.startAmbience();
+        } else if (activeCtx.state === 'suspended') {
+          await activeCtx.resume().catch(() => {});
+          engine.startAmbience();
+        }
+      })();
     };
 
     window.addEventListener('pointerdown', onUserInteraction, { once: false, passive: true });

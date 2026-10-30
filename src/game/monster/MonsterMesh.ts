@@ -319,8 +319,8 @@ export class MonsterMeshHierarchy {
         vec3 abyssalRim = mix(vec3(0.18, 0.28, 0.25), vec3(0.45, 0.06, 0.04), clamp(uAgitation, 0.0, 1.0)) * pow(rim, 2.2) * (0.50 + uAgitation * 0.50);
 
         // Wet Mucus Specular Micro-Sheen term
-        vec3 normal = vNormal;
-        float mucusSheen = pow(max(0.0, dot(reflect(-viewDir, normal), viewDir)), 24.0) * 0.35;
+        vec3 mucusNormal = normalize(vNormal);
+        float mucusSheen = pow(max(0.0, dot(reflect(-viewDir, mucusNormal), viewDir)), 24.0) * 0.35;
 
         // Dark wet abyssal chitin with subtle bio-acoustic acoustic vein pulse
         float veinNoise = sin(vWorldPositionForWet.x * 12.0 + vWorldPositionForWet.z * 12.0) * cos(vWorldPositionForWet.y * 18.0);

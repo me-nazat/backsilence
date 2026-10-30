@@ -373,7 +373,7 @@ export class PlayerMotor {
       if (pushed) {
         newX += this.pushOut.x;
         newZ += this.pushOut.z;
-        const pushDist = Math.hypot(this.pushOut.x, this.pushOut.z);
+        const pushDist = dHypot(this.pushOut.x, this.pushOut.z);
         if (pushDist > 1e-4) {
           const nx = this.pushOut.x / pushDist;
           const nz = this.pushOut.z / pushDist;

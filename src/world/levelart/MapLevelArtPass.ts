@@ -360,7 +360,7 @@ export function applyMapLevelArtPass(env: LevelArtEnv): void {
         [-22, -20], [-18, -20], [-14, -20],
       ]) {
         const sy = getSurfaceY(layout, x!, z!, floorY);
-        placeMesh(buildSchoolDeskGeometry(), woodMat, new Vector3(x!, sy, z!), rng.range(-0.12, 0.12), `desk_${Math.round(x!)}_${Math.round(z!)}`, { w: 0.9, h: 0.75, d: 0.65 });
+        placeMesh(buildSchoolDeskGeometry(), woodMat, new Vector3(x, sy, z), rng.range(-0.12, 0.12), `desk_${Math.round(x!)}_${Math.round(z!)}`, { w: 0.9, h: 0.75, d: 0.65 });
       }
       placedPropTypes.add('school_desk');
 
@@ -612,7 +612,7 @@ export function applyMapLevelArtPass(env: LevelArtEnv): void {
 
       // 9. Fallen carved stone obelisks in shallows and islands
       for (const [x, z, rot] of [[-30, -25, 0.4], [12, 10, -0.5], [38, 35, 0.8], [-15, 20, 1.1]]) {
-        placeOnSurface(buildFallenObeliskGeometry(), customMaterials.platformMat, x!, z!, rot!);
+        placeOnSurface(buildFallenObeliskGeometry(), customMaterials.platformMat, x!, z!, rot);
       }
       placedPropTypes.add('fallen_obelisk');
 
@@ -630,7 +630,7 @@ export function applyMapLevelArtPass(env: LevelArtEnv): void {
 
       // 12. Carved mossy stepping stone pedestals along shallow water paths
       for (const [x, z] of [[-42, -48], [-36, -44], [-15, -30], [-9, -24], [15, 2], [21, 15]]) {
-        placeMesh(buildSteppingStoneGeometry(), customMaterials.platformMat, new Vector3(x!, floorY, z!));
+        placeMesh(buildSteppingStoneGeometry(), customMaterials.platformMat, new Vector3(x, floorY, z));
       }
       placedPropTypes.add('stepping_stone');
       break;
@@ -649,13 +649,13 @@ export function applyMapLevelArtPass(env: LevelArtEnv): void {
         [-12, -28, 0.2], [-12, -8, -0.15], [-12, 14, 0.3], [-12, 32, -0.25],
         [12, -24, -0.3], [12, -4, 0.1], [12, 18, -0.2], [12, 34, 0.35],
       ]) {
-        placeMesh(buildHoverCarGeometry(), metalMat, new Vector3(x!, floorY + 0.55, z!), rot!);
+        placeMesh(buildHoverCarGeometry(), metalMat, new Vector3(x, floorY + 0.55, z), rot);
       }
       placedPropTypes.add('hover_car');
 
       // 3. Vertical neon kanji/katakana sign cages on tower corners
       for (const [x, z] of [[-24.5, -18], [-24.5, 18], [24.5, -18], [24.5, 18], [-24.5, 35], [24.5, 35]]) {
-        placeMesh(buildNeonSignGeometry(), signMat, new Vector3(x!, 3.8, z!));
+        placeMesh(buildNeonSignGeometry(), signMat, new Vector3(x, 3.8, z));
       }
       placedPropTypes.add('neon_sign');
 
@@ -671,7 +671,7 @@ export function applyMapLevelArtPass(env: LevelArtEnv): void {
         [20.5, -22, -Math.PI * 0.5], [20.5, 28, -Math.PI * 0.5],
         [-12, 21.2, 0], [12, 21.2, 0],
       ]) {
-        placeOnSurface(buildCyberVendingGeometry(), signMat, x!, z!, rot!);
+        placeOnSurface(buildCyberVendingGeometry(), signMat, x!, z!, rot);
       }
       placedPropTypes.add('cyber_vending');
 
@@ -699,7 +699,7 @@ export function applyMapLevelArtPass(env: LevelArtEnv): void {
         [-10, -4, 0], [10, -4, 0], [-10, 4, 0], [10, 4, 0],
         [-16, -15, Math.PI * 0.5], [16, 15, Math.PI * 0.5],
       ]) {
-        placeOnSurface(buildRoadBarrierGeometry(), customMaterials.platformMat, x!, z!, rot!);
+        placeOnSurface(buildRoadBarrierGeometry(), customMaterials.platformMat, x!, z!, rot);
       }
       placedPropTypes.add('road_barrier');
 
@@ -806,7 +806,7 @@ export function applyMapLevelArtPass(env: LevelArtEnv): void {
 
       // 2. Classical Roman statues on plinths
       for (const [x, z, rot] of [[-14, -14, Math.PI * 0.25], [14, -14, -Math.PI * 0.25], [-14, 14, Math.PI * 0.75], [14, 14, -Math.PI * 0.75]]) {
-        placeOnSurface(buildRomanStatueGeometry(), customMaterials.platformMat, x!, z!, rot!);
+        placeOnSurface(buildRomanStatueGeometry(), customMaterials.platformMat, x!, z!, rot);
       }
       placedPropTypes.add('roman_statue');
 

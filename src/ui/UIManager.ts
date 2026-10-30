@@ -216,7 +216,7 @@ export class UIManager {
         void engine.init().then(() => engine.startAmbience());
 
         const lastTape = typeof localStorage !== 'undefined' ? (localStorage.getItem('backsilence_last_tape') as MapId | null) : null;
-        const targetMap = lastTape ?? 'drowned_metro';
+        const targetMap = lastTape ?? 'natatorium';
         this.startGame({
           mode: 'single',
           mapId: targetMap,

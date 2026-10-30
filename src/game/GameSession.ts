@@ -29,6 +29,7 @@ import {
   Texture,
   SphereGeometry,
   PlaneGeometry,
+  BoxGeometry,
   InstancedMesh,
   MeshBasicMaterial,
   Matrix4,
@@ -765,6 +766,7 @@ export class GameSession {
       await this.warmupGpuPipeline();
 
       this.isLoaded = true;
+      console.log('[GameSession] initAsync complete, isLoaded = true');
     } catch (err: unknown) {
       console.error('[GameSession] Failed to initialize map session:', err);
       const msg = err instanceof Error ? err.message : String(err);
@@ -1189,7 +1191,7 @@ export class GameSession {
                 this.audio.play('pebble_clack', { gain: 0.8 });
                 this.objectiveDirector?.setWaypointCompleted(`canister_${idx + 1}`);
                 if (this.objectiveDirector) this.objectiveDirector.endlessCanistersCollected++;
-                let slot = this.inventory.find((i) => i.kind === 'noisemaker');
+                const slot = this.inventory.find((i) => i.kind === 'noisemaker');
                 if (slot) slot.count += 2;
                 else this.inventory.push({ kind: 'noisemaker', count: 2 });
                 this.hud.update({
@@ -1729,7 +1731,19 @@ export class GameSession {
         });
       }
       this.ghostTrajectory = new GhostTrajectory({
-        header: { version: 1, runId: 'champion_ghost', mapId: this.mapId, seed: this.seed, durationSec: totalTime, outcome: 'escaped' },
+        header: {
+          version: 1,
+          simVersion: 1,
+          mapId: this.mapId,
+          seed: this.seed,
+          difficulty: 'normal',
+          mutators: [],
+          loadout: { active1: 'pebble_pouch', active2: null, passive: null },
+          tickRate: 50,
+          totalTicks: Math.round(totalTime * 50),
+          durationSec: totalTime,
+        },
+        frames: [],
         sampleTrajectory: samples,
       });
 
@@ -1893,7 +1907,7 @@ export class GameSession {
         this.sunLight.shadow.mapSize.height = res;
         if (this.sunLight.shadow.map) {
           this.sunLight.shadow.map.dispose();
-          this.sunLight.shadow.map = null as any;
+          this.sunLight.shadow.map = null as unknown as WebGLRenderTarget;
         }
       }
     }
@@ -1908,7 +1922,7 @@ export class GameSession {
         this.flashlightLight.shadow.mapSize.height = res;
         if (this.flashlightLight.shadow.map) {
           this.flashlightLight.shadow.map.dispose();
-          this.flashlightLight.shadow.map = null as any;
+          this.flashlightLight.shadow.map = null as unknown as WebGLRenderTarget;
         }
       }
     }
@@ -2552,7 +2566,13 @@ export class GameSession {
     // 11c. Update AI Operator Bots (Co-Op Escape, Silent Race, Last One Dry)
     if (this.operatorBotDirector) {
       const isNearPlateA = Math.hypot(-8 - currSnap.pos.x, -15 - currSnap.pos.z) < 2.5;
-      const botRes = this.operatorBotDirector.update(dt, currSnap.pos, this.mapInstance.waterY, isNearPlateA);
+      const botRes = this.operatorBotDirector.update(
+        dt,
+        currSnap.pos,
+        this.mapInstance.waterY,
+        isNearPlateA,
+        this.camera,
+      );
       if (botRes.coopDoorUnlocked && !this.coopDoorUnlocked) {
         this.coopDoorUnlocked = true;
         this.exitUnlocked = true;
@@ -2570,7 +2590,7 @@ export class GameSession {
           t: this.simWorld.simTime,
           sourcePlayerId: 'world',
         });
-        this.audio.play('water_splash_medium', { position: botRes.botSplash.pos, gain: 0.8 });
+        this.audio.play('splash_big', { position: botRes.botSplash.pos, gain: 0.8 });
         this.simWorld.broadcastNoise({
           kind: 'splash',
           position: botRes.botSplash.pos,
@@ -4218,28 +4238,28 @@ export class GameSession {
       this.trajectoryLine = null;
     }
 
-    this.audio.setColliders(null);
+    this.audio?.setColliders(null);
     if (this.menuMusic) {
       this.menuMusic.stop();
       this.menuMusic = null;
     }
-    this.jumpscare.dispose();
-    this.playerInput.dispose();
-    this.footsteps.dispose();
-    this.interactions.dispose();
-    this.water.dispose();
-    this.monsters.dispose();
-    this.flock.dispose();
-    this.weatherDirector.dispose();
-    this.lensOverlay.dispose();
+    this.jumpscare?.dispose();
+    this.playerInput?.dispose();
+    this.footsteps?.dispose();
+    this.interactions?.dispose();
+    this.water?.dispose();
+    this.monsters?.dispose();
+    this.flock?.dispose();
+    this.weatherDirector?.dispose();
+    this.lensOverlay?.dispose();
     this.opaqueDepthTarget?.dispose();
     this.waterCompositeTarget?.dispose();
     if (this.envTexture) {
       this.envTexture.dispose();
       this.envTexture = null;
     }
-    this.mapInstance.dispose();
-    this.pingMarkers.dispose();
+    this.mapInstance?.dispose();
+    this.pingMarkers?.dispose();
     if (this.orientationDirector) {
       this.orientationDirector.dispose();
       this.orientationDirector = null;

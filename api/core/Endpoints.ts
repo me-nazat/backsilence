@@ -165,12 +165,12 @@ export async function handleApiRequest(req: Request, env: ServerEnv): Promise<Re
       let finalName = name;
       if (existingPlayer.rows.length > 0) {
         const pRow = existingPlayer.rows[0]!;
-        tag = String(pRow['tag'] || tag);
+        tag = typeof pRow['tag'] === 'string' ? pRow['tag'] : tag;
         if (body.name && body.name.trim()) {
           finalName = sanitizeName(body.name);
           await TursoClient.query('UPDATE players SET name = ? WHERE player_id = ?', [finalName, playerId], env);
         } else {
-          finalName = String(pRow['name'] || name);
+          finalName = typeof pRow['name'] === 'string' ? pRow['name'] : name;
         }
       } else {
         await TursoClient.query(
@@ -251,10 +251,12 @@ export async function handleApiRequest(req: Request, env: ServerEnv): Promise<Re
       }
 
       const account = accRes.rows[0]!;
+      const saltStr = typeof account['password_salt'] === 'string' ? account['password_salt'] : '';
+      const hashStr = typeof account['password_hash'] === 'string' ? account['password_hash'] : '';
       const pwValid = await verifyPasswordPbkdf2(
         body.password,
-        String(account['password_salt'] || ''),
-        String(account['password_hash'] || ''),
+        saltStr,
+        hashStr,
       );
       if (!pwValid) {
         return errorJson('Invalid email or password', 401, corsHeaders);
@@ -271,13 +273,14 @@ export async function handleApiRequest(req: Request, env: ServerEnv): Promise<Re
         env,
       );
       const pRow = pRes.rows[0];
-      const name = String(pRow?.['name'] || 'Operator');
-      const tag = String(pRow?.['tag'] || '0001');
+      const name = typeof pRow?.['name'] === 'string' ? pRow['name'] : 'Operator';
+      const tag = typeof pRow?.['tag'] === 'string' ? pRow['tag'] : '0001';
       const sr = Number(pRow?.['sr'] ?? 1000);
 
       let parsedProfile: Record<string, unknown> = {};
       try {
-        parsedProfile = JSON.parse(String(account['profile_json'] || '{}')) as Record<string, unknown>;
+        const profStr = typeof account['profile_json'] === 'string' ? account['profile_json'] : '{}';
+        parsedProfile = JSON.parse(profStr) as Record<string, unknown>;
       } catch {
         parsedProfile = {};
       }
@@ -341,14 +344,14 @@ export async function handleApiRequest(req: Request, env: ServerEnv): Promise<Re
             [candidatePlayerId],
             env,
           );
-          let pubkey = accRes.rows[0]?.['pubkey'] ? String(accRes.rows[0]['pubkey']) : '';
+          let pubkey = typeof accRes.rows[0]?.['pubkey'] === 'string' ? accRes.rows[0]['pubkey'] : '';
           if (!pubkey) {
             const pRes = await TursoClient.query(
               'SELECT pubkey FROM players WHERE player_id = ?',
               [candidatePlayerId],
               env,
             );
-            pubkey = pRes.rows[0]?.['pubkey'] ? String(pRes.rows[0]['pubkey']) : '';
+            pubkey = typeof pRes.rows[0]?.['pubkey'] === 'string' ? pRes.rows[0]['pubkey'] : '';
           }
           if (pubkey) {
             const sigVerify = await verifyRequestSignature(req.method, pathname, bodyText, req.headers, pubkey);
@@ -411,7 +414,8 @@ export async function handleApiRequest(req: Request, env: ServerEnv): Promise<Re
 
       let parsedProfile: Record<string, unknown> = {};
       try {
-        parsedProfile = JSON.parse(String(acc['profile_json'] || '{}')) as Record<string, unknown>;
+        const profStr = typeof acc['profile_json'] === 'string' ? acc['profile_json'] : '{}';
+        parsedProfile = JSON.parse(profStr) as Record<string, unknown>;
       } catch {
         parsedProfile = {};
       }
@@ -420,10 +424,10 @@ export async function handleApiRequest(req: Request, env: ServerEnv): Promise<Re
         {
           authenticated: true,
           accountId: tokenPayload.accountId,
-          email: String(acc['email']),
+          email: typeof acc['email'] === 'string' ? acc['email'] : '',
           playerId: tokenPayload.playerId,
-          name: String(pRow?.['name'] || 'Operator'),
-          tag: String(pRow?.['tag'] || '0001'),
+          name: typeof pRow?.['name'] === 'string' ? pRow['name'] : 'Operator',
+          tag: typeof pRow?.['tag'] === 'string' ? pRow['tag'] : '0001',
           profile: parsedProfile,
         },
         200,

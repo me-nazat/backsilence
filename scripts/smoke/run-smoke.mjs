@@ -93,7 +93,7 @@ class Cdp {
           if (type === 'error') this.errors.push(text);
           else if (type === 'warning') this.warnings.push(text);
         } else if (msg.method === 'Runtime.exceptionThrown') {
-          const errText = msg.params.exceptionDetails?.text || 'Uncaught Exception';
+          const errText = msg.params.exceptionDetails?.exception?.description || msg.params.exceptionDetails?.text || 'Uncaught Exception';
           this.errors.push(errText);
           this.logs.push(`[exception] ${errText}`);
         } else if (msg.method === 'Network.loadingFailed') {
@@ -528,6 +528,18 @@ async function main() {
     // ── S4: HUD count ────────────────────────────────────────────────────────
     await recordScenario('S4', 'HUD count (at most 2 HUD elements on the default frame)', async () => {
       const hudDetails = await cdp.evaluate(`(() => {
+        const session = window.__backsilence_session;
+        if (session) {
+          const sp = session.layout.spawns.player[0] || { x: 0, y: 0.3, z: 50 };
+          session.simWorld.player.pos.x = sp.x;
+          session.simWorld.player.pos.y = sp.y;
+          session.simWorld.player.pos.z = sp.z;
+          session.simWorld.player.vel.x = 0;
+          session.simWorld.player.vel.z = 0;
+          session.recentDamage = 0;
+          session.isDead = false;
+          session.hud.update({ damageVignette: 0 });
+        }
         const overlay = document.querySelector('#hud-overlay');
         if (!overlay) return { ok: false, error: 'No #hud-overlay found' };
 

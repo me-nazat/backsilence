@@ -86,6 +86,7 @@ export class Button {
       this.element.addEventListener('click', (e) => {
         if (this.element.disabled) return;
         e.preventDefault();
+        e.stopPropagation();
         opts.onClick?.();
       });
     }
