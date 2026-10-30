@@ -28,11 +28,19 @@ export interface SpectatorHudData {
   canCycle: boolean;
 }
 
+export interface ObjectiveChecklistItem {
+  text: string;
+  done: boolean;
+  distanceM?: number | null;
+}
+
 export interface HudData {
   noiseLoudness: number; // 0..1
   stamina: number;       // 0..1
   status: 'DRY' | 'WET' | 'CROUCHED' | 'EXHAUSTED';
   objective: string;
+  sectorTitle?: string;
+  checklist?: ObjectiveChecklistItem[];
   interactionPrompt?: string | null;
   notebookNumbers: string[]; // e.g. ['#1: 4', '#2: 2', '#3: ?']
   soundVisualizerCaption?: string | null;
@@ -111,6 +119,8 @@ export class Hud {
   private staminaBarEl: HTMLElement | null = null;
   private statusChipEl: HTMLElement | null = null;
   private objectiveEl: HTMLElement | null = null;
+  private sectorTitleEl: HTMLElement | null = null;
+  private checklistEl: HTMLElement | null = null;
   private riskTagEl: HTMLElement | null = null;
   private promptEl: HTMLElement | null = null;
   private promptRingSvgEl: SVGElement | null = null;
@@ -339,8 +349,7 @@ export class Hud {
         .bs-hud {
           --hud-scale: 1.0;
         }
-        /* Clean picture: Default HUD is empty except thin noise line and interaction prompt */
-        .bs-hud:not(.show-more-hud) #hud-risk-tag,
+        /* Clean picture: Default HUD is empty except thin noise line, persistent top-left objective and interaction prompt */
         .bs-hud:not(.show-more-hud) #hud-vhs-osd,
         .bs-hud:not(.show-more-hud) #hud-notebook-container,
         .bs-hud:not(.show-more-hud) #hud-notebook,
@@ -350,7 +359,6 @@ export class Hud {
         .bs-hud:not(.show-more-hud) #hud-jungle-status,
         .bs-hud:not(.show-more-hud) #hud-neon-status,
         .bs-hud:not(.show-more-hud) #hud-metro-status,
-        .bs-hud:not(.show-more-hud) #hud-objective-container,
         .bs-hud:not(.show-more-hud) #hud-bottom-center,
         .bs-hud:not(.show-more-hud) #hud-status,
         .bs-hud:not(.show-more-hud) #hud-stamina-bar,
@@ -733,31 +741,35 @@ export class Hud {
         </div>
       </div>
 
-      <!-- Top-Left Objective Line with Risk Tag -->
+      <!-- Top-Left Objective Line with Risk Tag & Telemetry Checklist -->
       <div id="hud-objective-container" style="
         position: absolute;
         top: max(20px, env(safe-area-inset-top, 20px));
         left: max(20px, env(safe-area-inset-left, 20px));
         display: flex;
-        align-items: center;
-        gap: 8px;
+        flex-direction: column;
+        gap: 6px;
         background: rgba(8, 6, 3, 0.92);
         border: 1px solid rgba(217, 211, 162, 0.35);
-        padding: 6px 14px;
-        border-radius: 16px;
+        padding: 8px 14px;
+        border-radius: 8px;
         box-shadow: 0 4px 16px rgba(0,0,0,0.7);
         max-width: min(92vw, 560px);
         box-sizing: border-box;
         z-index: 10;
+        pointer-events: none;
       ">
-        <span id="hud-risk-tag" class="hud-risk-quiet" style="
-          font-size: 10px;
-          font-weight: bold;
-          padding: 2px 6px;
-          border-radius: 3px;
-          letter-spacing: 0.1em;
-          flex-shrink: 0;
-        ">[QUIET]</span>
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; border-bottom: 1px solid rgba(217,211,162,0.18); padding-bottom: 4px;">
+          <span id="hud-sector-title" style="font-size: 11px; font-weight: bold; letter-spacing: 0.12em; color: #ffb000; text-transform: uppercase;">SECTOR 01 // DROWNED METRO</span>
+          <span id="hud-risk-tag" class="hud-risk-quiet" style="
+            font-size: 10px;
+            font-weight: bold;
+            padding: 2px 6px;
+            border-radius: 3px;
+            letter-spacing: 0.1em;
+            flex-shrink: 0;
+          ">[QUIET]</span>
+        </div>
         <span id="hud-objective" style="
           font-size: 12px;
           color: var(--fog, #d9d3a2);
@@ -767,6 +779,7 @@ export class Hud {
           max-width: 560px;
           overflow: hidden;
         ">Find the numbered pillars. Avoid making splashes.</span>
+        <div id="hud-checklist" style="display: none; flex-direction: column; gap: 4px; margin-top: 2px;"></div>
       </div>
 
       <!-- Top-Center Diegetic Direction Finder / Compass Arc -->
@@ -1185,6 +1198,8 @@ export class Hud {
     this.staminaBarEl = el.querySelector('#hud-stamina-bar');
     this.statusChipEl = el.querySelector('#hud-status');
     this.objectiveEl = el.querySelector('#hud-objective');
+    this.sectorTitleEl = el.querySelector('#hud-sector-title');
+    this.checklistEl = el.querySelector('#hud-checklist');
     this.riskTagEl = el.querySelector('#hud-risk-tag');
     this.promptEl = el.querySelector('#hud-prompt');
     this.promptRingSvgEl = el.querySelector('#hud-prompt-ring');
@@ -1376,6 +1391,27 @@ export class Hud {
       if (data.objective !== this.lastAnnouncedObjective) {
         this.lastAnnouncedObjective = data.objective;
         this.announceToScreenReader(`New Objective: ${data.objective}`);
+      }
+    }
+
+    if (this.sectorTitleEl && data.sectorTitle) {
+      this.sectorTitleEl.textContent = data.sectorTitle;
+    }
+
+    if (this.checklistEl) {
+      if (data.checklist && data.checklist.length > 0) {
+        this.checklistEl.style.display = 'flex';
+        this.checklistEl.innerHTML = data.checklist
+          .map((item) => {
+            if (item.done) {
+              return `<div style="font-size: 11px; color: #86cfa0; opacity: 0.8; text-decoration: line-through;">[✓] ${item.text}</div>`;
+            }
+            const dist = item.distanceM !== undefined && item.distanceM !== null ? ` <span style="color: #ffb000; font-family: monospace;">(${item.distanceM}m)</span>` : '';
+            return `<div style="font-size: 11px; color: #fff4d0; font-weight: 500;">[ ] ${item.text}${dist}</div>`;
+          })
+          .join('');
+      } else {
+        this.checklistEl.style.display = 'none';
       }
     }
 

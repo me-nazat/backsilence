@@ -134,9 +134,11 @@ export class UIManager {
 
     // 1. Initialize Archive Screens
     const handleSelectMode = (modeId: string) => {
-      if (modeId === 'campaign') {
-        this.navigateTo('MAPS');
-      } else if (modeId === 'training') {
+      this.isAudioUnlocked = true;
+      const engine = AudioEngine.getInstance();
+      void engine.init().then(() => engine.startAmbience());
+
+      if (modeId === 'training') {
         this.startGame({
           mode: 'single',
           mapId: 'orientation',
@@ -152,14 +154,53 @@ export class UIManager {
           seed: Date.now(),
           subMode: 'endless',
         });
-      } else if (modeId === 'daily' || modeId === 'ghost') {
-        this.navigateTo('LEADERBOARDS');
-      } else if (modeId === 'coop' || modeId === 'race' || modeId === 'last_dry') {
-        this.navigateTo('LOBBY');
-      } else {
+      } else if (modeId === 'daily') {
+        const todayStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+        const dailySeed = parseInt(todayStr, 10) || 20261030;
         this.startGame({
           mode: 'single',
           mapId: 'natatorium',
+          difficulty: 2,
+          seed: dailySeed,
+          subMode: 'daily',
+        });
+      } else if (modeId === 'ghost') {
+        this.startGame({
+          mode: 'single',
+          mapId: 'natatorium',
+          difficulty: 2,
+          seed: 42,
+          subMode: 'ghost',
+        });
+      } else if (modeId === 'coop') {
+        this.startGame({
+          mode: 'single',
+          mapId: 'poolrooms',
+          difficulty: 2,
+          seed: Date.now(),
+          subMode: 'coop',
+        });
+      } else if (modeId === 'race') {
+        this.startGame({
+          mode: 'single',
+          mapId: 'marble_atrium',
+          difficulty: 2,
+          seed: Date.now(),
+          subMode: 'race',
+        });
+      } else if (modeId === 'last_dry') {
+        this.startGame({
+          mode: 'single',
+          mapId: 'natatorium',
+          difficulty: 2,
+          seed: Date.now(),
+          subMode: 'last_dry',
+        });
+      } else {
+        // 'campaign' / THE ARCHIVE TAPES
+        this.startGame({
+          mode: 'single',
+          mapId: 'drowned_metro',
           difficulty: 2,
           seed: Date.now(),
           subMode: 'campaign',
@@ -175,7 +216,7 @@ export class UIManager {
         void engine.init().then(() => engine.startAmbience());
 
         const lastTape = typeof localStorage !== 'undefined' ? (localStorage.getItem('backsilence_last_tape') as MapId | null) : null;
-        const targetMap = lastTape ?? 'natatorium';
+        const targetMap = lastTape ?? 'drowned_metro';
         this.startGame({
           mode: 'single',
           mapId: targetMap,
@@ -185,7 +226,7 @@ export class UIManager {
         });
       },
       onDiveOnline: () => this.navigateTo('ROOM_LINK'),
-      onDailyDescent: () => this.navigateTo('LEADERBOARDS'),
+      onDailyDescent: () => handleSelectMode('daily'),
       onOpenPlayHub: () => this.navigateTo('PLAY_HUB'),
       onSelectMode: handleSelectMode,
       onOpenBestiary: () => this.navigateTo('BESTIARY'),

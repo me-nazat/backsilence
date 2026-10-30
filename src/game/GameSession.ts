@@ -78,6 +78,9 @@ import { ToastManager } from '../ui/ToastManager.js';
 import { ErrorBoundary } from '../engine/ErrorBoundary.js';
 import { OrientationDirector } from './OrientationDirector.js';
 import { GamepadManager } from '../engine/input/GamepadManager.js';
+import { ObjectiveDirector } from './objectives/ObjectiveDirector.js';
+import { OperatorBotDirector } from './bots/OperatorBotDirector.js';
+import { GhostTrajectory } from '../meta/Ghost.js';
 
 const _scratchEuler = new Euler();
 const _scratchVecA = new Vector3();
@@ -152,6 +155,13 @@ export class GameSession {
   private inspectedPillars = new Map<number, number>(); // ordinal -> digit
   private exitUnlocked = false;
   private orientationDirector: OrientationDirector | null = null;
+  private objectiveDirector: ObjectiveDirector | null = null;
+  private operatorBotDirector: OperatorBotDirector | null = null;
+  private ghostRunnerMesh: Mesh | null = null;
+  private ghostTrajectory: GhostTrajectory | null = null;
+  private peakNoiseDb = -60.0;
+  private endlessWave = 1;
+  private coopDoorUnlocked = false;
 
   // Multiplayer & Replication
   private netSession?: NetSession | undefined;
@@ -426,6 +436,16 @@ export class GameSession {
         difficulty: this.difficulty,
       });
       this.scene.add(this.mapInstance.root);
+
+      // Objective & Waypoint Director
+      this.objectiveDirector = new ObjectiveDirector({
+        modeId: this.subMode ?? 'campaign',
+        mapId: this.mapId,
+        seed: this.seed,
+        hud: this.hud,
+        audio: this.audio,
+      });
+      this.scene.add(this.objectiveDirector.root);
 
       // 3. SimWorld instantiation
       const playerSpawns = this.layout.spawns.player;
@@ -1110,12 +1130,112 @@ export class GameSession {
       }
 
       case 'drainage_core': {
-        this.inventory = [{ kind: 'noisemaker', count: 2 }];
         const isEndless = this.subMode === 'endless';
+        if (isEndless) {
+          this.inventory = [
+            { kind: 'noisemaker', count: 3 },
+            { kind: 'pebble', count: 6 },
+          ];
+          this.hud.update({
+            inventory: this.inventory,
+            flashlight: { active: this.flashlightActive, battery: this.flashlightBattery },
+          });
+
+          // 1. Floodgate Ascent Lock Beacon at North Wall (x: 0, z: 52)
+          const floodgatePos = { x: 0, y: 0.3, z: 52 };
+          this.objectiveDirector?.addEndlessFloodgateBeacon(floodgatePos);
+
+          this.interactions.register({
+            id: 'endless_floodgate',
+            position: floodgatePos,
+            radius: 3.5,
+            holdTime: 3.0,
+            label: () => '[HOLD E] Pressurize Ascent Lock (Advance Sector)',
+            canUse: () => true,
+            onUse: () => {
+              this.audio.play('valve_release', { gain: 1.0 });
+              this.audio.play('door_clunk', { gain: 1.0 });
+              this.endlessWave++;
+              if (this.objectiveDirector) {
+                this.objectiveDirector.endlessSector = this.endlessWave;
+                this.objectiveDirector.endlessScore += 1500;
+                this.objectiveDirector.endlessTideTimer = 45.0;
+              }
+              this.simWorld.player.teleport({ x: -48.0, y: 0.5, z: -46.0 });
+              this.hud.update({
+                interactionPrompt: `[SECTOR 0${this.endlessWave - 1} CLEARED // ASCENDING TO SECTOR 0${this.endlessWave}]`,
+              });
+              setTimeout(() => this.hud.update({ interactionPrompt: null }), 4000);
+            },
+          });
+
+          // 2. 3 Acoustic Decoy Canisters
+          const canisterPositions = [
+            { x: -25, y: 0.3, z: -20 },
+            { x: -5, y: 0.3, z: 10 },
+            { x: 20, y: 0.3, z: 30 },
+          ];
+          canisterPositions.forEach((cp, idx) => {
+            this.objectiveDirector?.addCanisterBeacon(cp, idx + 1);
+            let picked = false;
+            this.interactions.register({
+              id: `canister_${idx + 1}`,
+              position: cp,
+              radius: 2.0,
+              label: () => (picked ? '[EMPTY] Canister Recovered' : `[E] Pick up Acoustic Decoy Canister #${idx + 1}`),
+              canUse: () => !picked,
+              onUse: () => {
+                picked = true;
+                this.audio.play('pebble_clack', { gain: 0.8 });
+                this.objectiveDirector?.setWaypointCompleted(`canister_${idx + 1}`);
+                if (this.objectiveDirector) this.objectiveDirector.endlessCanistersCollected++;
+                let slot = this.inventory.find((i) => i.kind === 'noisemaker');
+                if (slot) slot.count += 2;
+                else this.inventory.push({ kind: 'noisemaker', count: 2 });
+                this.hud.update({
+                  inventory: this.inventory,
+                  interactionPrompt: '[+2 ACOUSTIC DECOY CANISTERS SECURED]',
+                });
+                setTimeout(() => this.hud.update({ interactionPrompt: null }), 3000);
+              },
+            });
+          });
+
+          // 3. 2 Archive Data Caches
+          const cachePositions = [
+            { x: 30, y: 0.3, z: -25 },
+            { x: -25, y: 0.3, z: 35 },
+          ];
+          cachePositions.forEach((cp, idx) => {
+            this.objectiveDirector?.addDataCacheBeacon(cp, idx + 1);
+            let picked = false;
+            this.interactions.register({
+              id: `cache_${idx + 1}`,
+              position: cp,
+              radius: 2.0,
+              label: () => (picked ? '[EMPTY] Cache Decrypted' : `[E] Secure Archive Data Cache #${idx + 1}`),
+              canUse: () => !picked,
+              onUse: () => {
+                picked = true;
+                this.audio.play('ui_click', { gain: 1.0 });
+                this.objectiveDirector?.setWaypointCompleted(`cache_${idx + 1}`);
+                if (this.objectiveDirector) {
+                  this.objectiveDirector.endlessCachesCollected++;
+                  this.objectiveDirector.endlessScore += 500;
+                }
+                this.hud.update({
+                  interactionPrompt: '[ARCHIVE DATA CACHE RECOVERED: +500 PTS]',
+                });
+                setTimeout(() => this.hud.update({ interactionPrompt: null }), 3000);
+              },
+            });
+          });
+          break;
+        }
+
+        this.inventory = [{ kind: 'noisemaker', count: 2 }];
         this.hud.update({
-          objective: isEndless
-            ? 'ENDLESS TIDE: Water level is rising. Leap across stepping-stone platforms to survive.'
-            : 'Prime and start all 3 Core Generators. Keep them running simultaneously for 5s to open the Blast Doors.',
+          objective: 'Prime and start all 3 Core Generators. Keep them running simultaneously for 5s to open the Blast Doors.',
           inventory: this.inventory,
           flashlight: { active: this.flashlightActive, battery: this.flashlightBattery },
         });
@@ -1453,14 +1573,18 @@ export class GameSession {
 
       case 'drowned_metro': {
         this.bottlesCount = 3;
+        this.inventory = [{ kind: 'pebble', count: 5 }];
         this.hud.update({
-          objective: 'Find Conductor Key, pull 2 track levers (mind the Ghost Train!), and board Stalled Car 5.',
+          objective: 'Recover 3 Archive Tapes + Conductor Key, pull 2 track levers, and board Stalled Car 5.',
           ghostTrainSchedule: { timeToTrain: 45.0, trainDurationRemaining: 0, active: false, warning: false },
           bottleCount: this.bottlesCount,
+          inventory: this.inventory,
         });
 
         const keyProp = this.layout.props.find((p) => p.kind === 'conductor_key');
         const keyPos = keyProp?.position ?? { x: 55, y: 1.0, z: -11 };
+        this.objectiveDirector?.addKeyBeacon(keyPos, 'Conductor Key');
+
         this.interactions.register({
           id: 'conductor_key',
           position: keyPos,
@@ -1470,13 +1594,49 @@ export class GameSession {
           onUse: () => {
             this.conductorKeyAcquired = true;
             this.audio.play('ui_click');
+            this.objectiveDirector?.setWaypointCompleted(`key_${keyPos.x.toFixed(0)}_${keyPos.z.toFixed(0)}`);
+            if (this.objectiveDirector) this.objectiveDirector.conductorKeyAcquired = true;
             this.hud.update({ objective: 'Conductor Key acquired! Pull both track levers.' });
           },
+        });
+
+        // 3 Archive Tapes with Lore logs
+        const tapePositions = [
+          { x: -20, y: 1.0, z: -4 },
+          { x: 0, y: 4.2, z: 20 },
+          { x: 25, y: 1.0, z: 14 },
+        ];
+        const tapeLore = [
+          'TAPE 01: "Water ingress detected in Trough 1 at 03:14. Express tracks halted."',
+          'TAPE 02: "Something was crawling along the submerged third rails. Heavy acoustic drag."',
+          'TAPE 03: "Emergency throttle bypass wired to Car 5. Switch track levers to clear signals."',
+        ];
+        tapePositions.forEach((tp, idx) => {
+          this.objectiveDirector?.addTapeBeacon(tp, idx + 1);
+          let picked = false;
+          this.interactions.register({
+            id: `archive_tape_${idx + 1}`,
+            position: tp,
+            radius: 2.2,
+            label: () => (picked ? '[EMPTY] Tape Recovered' : `[E] Recover Archive Tape #${idx + 1}`),
+            canUse: () => !picked,
+            onUse: () => {
+              picked = true;
+              this.audio.play('tape_insert', { gain: 0.9 });
+              this.objectiveDirector?.setWaypointCompleted(`tape_${idx + 1}`);
+              if (this.objectiveDirector) this.objectiveDirector.archiveTapesCollected++;
+              this.hud.update({
+                interactionPrompt: `[${tapeLore[idx]}]`,
+              });
+              setTimeout(() => this.hud.update({ interactionPrompt: null }), 4500);
+            },
+          });
         });
 
         for (let lIdx = 1; lIdx <= 2; lIdx++) {
           const lProp = this.layout.props.find((p) => p.kind === 'track_lever' && (p.params?.['index'] === lIdx || (p.params?.['id'] as string)?.includes(String(lIdx))));
           const lPos = lProp?.position ?? { x: lIdx === 1 ? -45 : 45, y: 0.5, z: lIdx === 1 ? -19 : 7 };
+          this.objectiveDirector?.addLeverStatusLight(lPos, lIdx);
 
           this.interactions.register({
             id: `metro_lever_${lIdx}`,
@@ -1488,10 +1648,12 @@ export class GameSession {
             onUse: () => {
               this.pulledLevers.add(`l_${lIdx}`);
               this.audio.play('lever_clunk', { gain: 0.9 });
+              this.objectiveDirector?.setWaypointCompleted(`lever_${lIdx}`);
+              if (this.objectiveDirector) this.objectiveDirector.leversPulledCount = this.pulledLevers.size;
               this.simWorld.broadcastNoise({
                 kind: 'lever',
                 position: lPos,
-                loudness: 0.5,
+                loudness: 0.7,
                 sourcePlayerId: 'player_local',
               });
               this.hud.update({
@@ -1503,6 +1665,8 @@ export class GameSession {
 
         const cabProp = this.layout.props.find((p) => p.kind === 'cab_throttle');
         const cabPos = cabProp?.position ?? { x: 45, y: 1.3, z: -19 };
+        this.objectiveDirector?.addExitBeacon(cabPos, 'Stalled Car 5 (Extraction Train)');
+
         this.interactions.register({
           id: 'cab_throttle',
           position: cabPos,
@@ -1518,6 +1682,7 @@ export class GameSession {
           onUse: () => {
             this.engineStarted = true;
             this.boardingTimer = 20.0;
+            if (this.objectiveDirector) this.objectiveDirector.engineReady = true;
             this.audio.play('train_horn', { gain: 1.0 });
             this.audio.play('train_rumble_loop', { gain: 0.85 });
             this.simWorld.broadcastNoise({
@@ -1534,6 +1699,46 @@ export class GameSession {
         });
         break;
       }
+    }
+
+    // 10. Sub-mode specialized directors and actors (Co-op, Race, Last One Dry, Ghost Run)
+    if (this.subMode === 'coop') {
+      this.operatorBotDirector = new OperatorBotDirector('coop', this.hud, this.audio, this.layout.exit.position);
+      this.scene.add(this.operatorBotDirector.root);
+      this.objectiveDirector?.addExitBeacon(this.layout.exit.position, 'Heavy Blast Door');
+    } else if (this.subMode === 'race') {
+      this.operatorBotDirector = new OperatorBotDirector('race', this.hud, this.audio, this.layout.exit.position);
+      this.scene.add(this.operatorBotDirector.root);
+      this.objectiveDirector?.addExitBeacon(this.layout.exit.position, 'Extraction Finish Portal');
+    } else if (this.subMode === 'last_dry') {
+      this.operatorBotDirector = new OperatorBotDirector('last_dry', this.hud, this.audio, { x: 0, y: 0.3, z: 0 });
+      this.scene.add(this.operatorBotDirector.root);
+    } else if (this.subMode === 'ghost') {
+      const exitPos = this.layout.exit.position;
+      const samples: Array<{ t: number; x: number; y: number; z: number; yaw: number }> = [];
+      const totalTime = 50.0;
+      const pSp = this.layout.spawns.player[0] ?? { x: 0, y: 0.3, z: 0 };
+      for (let i = 0; i <= 25; i++) {
+        const frac = i / 25;
+        samples.push({
+          t: frac * totalTime,
+          x: pSp.x + (exitPos.x - pSp.x) * frac,
+          y: pSp.y + (exitPos.y - pSp.y) * frac,
+          z: pSp.z + (exitPos.z - pSp.z) * frac,
+          yaw: Math.atan2(exitPos.x - pSp.x, -(exitPos.z - pSp.z)),
+        });
+      }
+      this.ghostTrajectory = new GhostTrajectory({
+        header: { version: 1, runId: 'champion_ghost', mapId: this.mapId, seed: this.seed, durationSec: totalTime, outcome: 'escaped' },
+        sampleTrajectory: samples,
+      });
+
+      const gGeo = new BoxGeometry(0.6, 1.8, 0.4);
+      const gMat = new MeshBasicMaterial({ color: 0x00ffff, wireframe: true, transparent: true, opacity: 0.5 });
+      this.ghostRunnerMesh = new Mesh(gGeo, gMat);
+      this.ghostRunnerMesh.position.set(pSp.x, pSp.y + 0.9, pSp.z);
+      this.scene.add(this.ghostRunnerMesh);
+      this.objectiveDirector?.addExitBeacon(exitPos, 'Extraction Gate');
     }
   }
 
@@ -2341,6 +2546,71 @@ export class GameSession {
       objectiveIndicator,
     });
 
+    // 11b. Update Objective Director & Telemetry Checklist
+    this.objectiveDirector?.update(dt, currSnap.pos, currSnap.yaw);
+
+    // 11c. Update AI Operator Bots (Co-Op Escape, Silent Race, Last One Dry)
+    if (this.operatorBotDirector) {
+      const isNearPlateA = Math.hypot(-8 - currSnap.pos.x, -15 - currSnap.pos.z) < 2.5;
+      const botRes = this.operatorBotDirector.update(dt, currSnap.pos, this.mapInstance.waterY, isNearPlateA);
+      if (botRes.coopDoorUnlocked && !this.coopDoorUnlocked) {
+        this.coopDoorUnlocked = true;
+        this.exitUnlocked = true;
+        this.audio.play('door_clunk');
+        this.objectiveDirector?.setWaypointCompleted('exit_blast_door');
+      }
+      if (botRes.racePlacement && this.objectiveDirector) {
+        this.objectiveDirector.racePlacement = botRes.racePlacement;
+      }
+      if (botRes.botSplash) {
+        this.water?.splashes.burst(botRes.botSplash.pos, 0.6);
+        this.water?.onRipple({
+          position: botRes.botSplash.pos,
+          strength: 0.7,
+          t: this.simWorld.simTime,
+          sourcePlayerId: 'world',
+        });
+        this.audio.play('water_splash_medium', { position: botRes.botSplash.pos, gain: 0.8 });
+        this.simWorld.broadcastNoise({
+          kind: 'splash',
+          position: botRes.botSplash.pos,
+          loudness: 0.75,
+          sourcePlayerId: 'world',
+        });
+      }
+      if (botRes.eliminatedName) {
+        this.hud.update({
+          interactionPrompt: `[${botRes.eliminatedName} ELIMINATED BY DEPTHS]`,
+        });
+        setTimeout(() => this.hud.update({ interactionPrompt: null }), 3000);
+      }
+    }
+
+    // 11d. Ghost Run Tracker & Live Split-Timer
+    if (this.subMode === 'ghost' && this.ghostTrajectory) {
+      const gDelta = this.ghostTrajectory.computeDelta(this.simWorld.simTime, currSnap.pos);
+      if (this.objectiveDirector) {
+        this.objectiveDirector.ghostDeltaSeconds = gDelta.deltaSeconds;
+        this.objectiveDirector.ghostAhead = gDelta.playerAhead;
+      }
+      if (this.ghostRunnerMesh) {
+        const gPose = this.ghostTrajectory.sampleAt(this.simWorld.simTime);
+        this.ghostRunnerMesh.position.set(gPose.position.x, gPose.position.y + 0.9, gPose.position.z);
+        this.ghostRunnerMesh.rotation.y = gPose.yaw;
+      }
+    }
+
+    // 11e. Daily Descent Peak Noise Tracker
+    if (this.subMode === 'daily') {
+      const noiseDb = -60 + currSnap.agitation * 50;
+      if (noiseDb > this.peakNoiseDb) {
+        this.peakNoiseDb = noiseDb;
+      }
+      if (this.objectiveDirector) {
+        this.objectiveDirector.dailyPeakNoiseDb = this.peakNoiseDb;
+      }
+    }
+
     // 12. Multiplayer Replication & Ping Markers
     this.netSession?.update(dt);
 
@@ -2949,25 +3219,30 @@ export class GameSession {
     }
 
     if (this.mapId === 'drowned_metro') {
-      if (this.bottlesCount <= 0) return;
-      this.bottlesCount--;
-      const pSnap = this.simWorld.player.getState();
-      const vel = this.projectileSystem.calculateLaunchVelocity(pSnap.yaw, pSnap.pitch, holdTime);
-      this.activeProjectiles.push({
-        id: `bottle_${Date.now()}`,
-        kind: 'bottle',
-        pos: { x: pSnap.pos.x, y: pSnap.pos.y + 1.4, z: pSnap.pos.z },
-        vel,
-        active: true,
-        spawnTime: this.simWorld.simTime,
-      });
-      this.audio.play('stone_creak', { gain: 0.4 });
-      this.hud.update({ bottleCount: this.bottlesCount });
-      return;
+      if (this.bottlesCount > 0) {
+        this.bottlesCount--;
+        const pSnap = this.simWorld.player.getState();
+        const vel = this.projectileSystem.calculateLaunchVelocity(pSnap.yaw, pSnap.pitch, holdTime);
+        this.activeProjectiles.push({
+          id: `bottle_${Date.now()}`,
+          kind: 'bottle',
+          pos: { x: pSnap.pos.x, y: pSnap.pos.y + 1.4, z: pSnap.pos.z },
+          vel,
+          active: true,
+          spawnTime: this.simWorld.simTime,
+        });
+        this.audio.play('stone_creak', { gain: 0.4 });
+        this.hud.update({ bottleCount: this.bottlesCount });
+        return;
+      }
     }
 
-    const slot = this.inventory[this.selectedInventoryIndex];
-    if (!slot || slot.count <= 0) return;
+    let slot = this.inventory[this.selectedInventoryIndex];
+    if (!slot || slot.count <= 0) {
+      slot = { kind: 'pebble', count: 5 };
+      this.inventory.push(slot);
+      this.selectedInventoryIndex = this.inventory.length - 1;
+    }
 
     slot.count--;
     const pSnap = this.simWorld.player.getState();
@@ -3008,8 +3283,17 @@ export class GameSession {
 
     if (impact.kind === 'bottle') {
       this.audio.play('bottle_shatter', { position: pos, gain: 0.95 });
+      if (impact.isWater) {
+        this.water?.splashes.burst(pos, 0.85);
+        this.water?.onRipple({
+          position: pos,
+          strength: 0.85,
+          t: this.simWorld.simTime,
+          sourcePlayerId: 'player_local',
+        });
+      }
       this.simWorld.broadcastNoise({
-        kind: 'shatter',
+        kind: impact.isWater ? 'splash' : 'shatter',
         position: pos,
         loudness: 0.85,
         sourcePlayerId: 'player_local',
@@ -3019,27 +3303,37 @@ export class GameSession {
 
     if (impact.kind === 'noisemaker') {
       this.audio.play('generator_cord', { position: pos, gain: 0.9 });
+      if (impact.isWater) {
+        this.water?.splashes.burst(pos, 0.8);
+        this.water?.onRipple({
+          position: pos,
+          strength: 0.8,
+          t: this.simWorld.simTime,
+          sourcePlayerId: 'player_local',
+        });
+      }
       this.simWorld.broadcastNoise({
-        kind: 'beacon',
+        kind: impact.isWater ? 'splash' : 'beacon',
         position: pos,
-        loudness: 0.7,
+        loudness: 0.75,
         sourcePlayerId: 'player_local',
       });
       return;
     }
 
     if (impact.isWater) {
-      this.audio.play('pebble_plink', { position: pos, gain: 0.8 });
-      this.water.onRipple({
+      this.audio.play('pebble_plink', { position: pos, gain: 0.85 });
+      this.water?.splashes.burst(pos, 0.75);
+      this.water?.onRipple({
         position: pos,
-        strength: 0.5,
+        strength: 0.75,
         t: this.simWorld.simTime,
         sourcePlayerId: 'player_local',
       });
       this.simWorld.broadcastNoise({
-        kind: 'pebble',
+        kind: 'splash',
         position: pos,
-        loudness: 0.6,
+        loudness: 0.75,
         sourcePlayerId: 'player_local',
       });
     } else {
@@ -3311,6 +3605,16 @@ export class GameSession {
     this.pingMarkers.recordPing(nowSec);
     this.pingMarkers.addMarker(this.netSession ? this.netSession.localPlayerId : 'local', pingPos, nowSec);
     this.netSession?.publishPingMarker(pingPos);
+
+    if (this.objectiveDirector) {
+      const pingNotice = this.objectiveDirector.triggerSensorPing(pSnap.pos);
+      if (pingNotice) {
+        this.hud.update({ interactionPrompt: `[SENSOR PING] TARGET ACQUIRED: ${pingNotice}` });
+        setTimeout(() => {
+          this.hud.update({ interactionPrompt: null });
+        }, 3000);
+      }
+    }
   }
 
   private updateSpectatorHud(): void {
@@ -3939,6 +4243,20 @@ export class GameSession {
     if (this.orientationDirector) {
       this.orientationDirector.dispose();
       this.orientationDirector = null;
+    }
+    if (this.objectiveDirector) {
+      this.objectiveDirector.dispose();
+      this.objectiveDirector = null;
+    }
+    if (this.operatorBotDirector) {
+      this.operatorBotDirector.dispose();
+      this.operatorBotDirector = null;
+    }
+    if (this.ghostRunnerMesh) {
+      this.scene.remove(this.ghostRunnerMesh);
+      this.ghostRunnerMesh.geometry.dispose();
+      (this.ghostRunnerMesh.material as MeshBasicMaterial).dispose();
+      this.ghostRunnerMesh = null;
     }
 
     for (const avatar of this.remoteAvatars.values()) {
