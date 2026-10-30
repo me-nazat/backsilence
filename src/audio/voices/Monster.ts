@@ -88,16 +88,24 @@ export function playMonsterRoar(cx: MonsterVoiceContext): RawVoiceHandle {
   }
 
   const voiceGain = ctx.createGain();
-  // 5 ms anti-click fade-in (Prompt 3.4: roar gain 1.05 * intensity)
+  // Ear-safe max peak gain capped at -10 dBFS (~0.316)
+  const peakRoarGain = Math.min(0.316, 0.316 * intensity);
   voiceGain.gain.setValueAtTime(0.0001, now);
-  voiceGain.gain.linearRampToValueAtTime(1.05 * intensity, now + 0.12);
-  voiceGain.gain.setValueAtTime(1.05 * intensity, now + 1.15);
+  voiceGain.gain.linearRampToValueAtTime(peakRoarGain, now + 0.12);
+  voiceGain.gain.setValueAtTime(peakRoarGain, now + 1.15);
   voiceGain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
 
-  voiceGain.connect(cx.destination);
-  voiceGain.connect(cx.reverbSend);
+  // Smooth high-frequency roll-off above 3200 Hz for ear-safe subterranean acoustics
+  const earSafeFilter = ctx.createBiquadFilter();
+  earSafeFilter.type = 'lowpass';
+  earSafeFilter.frequency.setValueAtTime(3200, now);
+  earSafeFilter.Q.setValueAtTime(0.707, now);
 
-  const nodesToDisconnect: AudioNode[] = [voiceGain];
+  voiceGain.connect(earSafeFilter);
+  earSafeFilter.connect(cx.destination);
+  earSafeFilter.connect(cx.reverbSend);
+
+  const nodesToDisconnect: AudioNode[] = [voiceGain, earSafeFilter];
 
   // 1. Primary Glottal Pulse Generator (Prompt 3.12: 74 -> 46 Hz)
   const glottalOsc = ctx.createOscillator();
@@ -105,9 +113,9 @@ export function playMonsterRoar(cx: MonsterVoiceContext): RawVoiceHandle {
   glottalOsc.frequency.setValueAtTime(74 * pitchMult, now);
   glottalOsc.frequency.exponentialRampToValueAtTime(46 * pitchMult, now + duration);
 
-  // 2. Period Doubling Subharmonic (Prompt 3.12: 37 -> 23 Hz, g 0.55)
+  // 2. Period Doubling Subharmonic (triangle wave - zero harsh buzzing sawtooth)
   const subOsc = ctx.createOscillator();
-  subOsc.type = 'sawtooth';
+  subOsc.type = 'triangle';
   subOsc.frequency.setValueAtTime(37 * pitchMult, now);
   subOsc.frequency.exponentialRampToValueAtTime(23 * pitchMult, now + duration);
   const subGain = ctx.createGain();
@@ -334,10 +342,17 @@ export function playMonsterBreathLoop(cx: MonsterVoiceContext): RawVoiceHandle {
 
   const masterGain = ctx.createGain();
   masterGain.gain.setValueAtTime(0.0001, now);
-  // Prompt 3.12: breath loop gain 0.55 (was 0.38)
-  masterGain.gain.linearRampToValueAtTime(0.55, now + 0.8);
-  masterGain.connect(cx.destination);
-  masterGain.connect(cx.reverbSend);
+  // Ear-safe max baseline gain clamped at -10 dBFS (~0.316)
+  masterGain.gain.linearRampToValueAtTime(0.316, now + 0.8);
+
+  const lpFilter = ctx.createBiquadFilter();
+  lpFilter.type = 'lowpass';
+  lpFilter.frequency.setValueAtTime(3200, now);
+  lpFilter.Q.setValueAtTime(0.707, now);
+
+  masterGain.connect(lpFilter);
+  lpFilter.connect(cx.destination);
+  lpFilter.connect(cx.reverbSend);
 
   const noise = ctx.createBufferSource();
   noise.buffer = cx.noise.pink;
@@ -365,12 +380,12 @@ export function playMonsterBreathLoop(cx: MonsterVoiceContext): RawVoiceHandle {
   bp.connect(breathAmp);
   breathAmp.connect(masterGain);
 
-  // Prompt 3.12: Low chest growl 96 Hz saw, gain 0.11 (was 125 Hz, gain 0.07)
+  // Low chest organic growl (96 Hz triangle, gain 0.08)
   const growl = ctx.createOscillator();
   const growlGain = ctx.createGain();
-  growl.type = 'sawtooth';
+  growl.type = 'triangle';
   growl.frequency.setValueAtTime(96, now);
-  growlGain.gain.setValueAtTime(0.11, now);
+  growlGain.gain.setValueAtTime(0.08, now);
   growl.connect(growlGain);
   growlGain.connect(masterGain);
 

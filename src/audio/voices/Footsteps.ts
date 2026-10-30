@@ -23,7 +23,8 @@ export interface FootstepVoiceContext {
 }
 
 /**
- * Dry-tile footstep: 25 ms ceramic click (2.2 kHz) + low thump (65 Hz) + subtle squelch.
+ * Dry-tile footstep: soft, low-amplitude rubber/wet-sole thud (80 Hz – 220 Hz, duration: 0.06s, gain: -26 dBFS).
+ * Suppresses high-frequency harshness for stealthy, quiet, and damped platform-to-platform traversal.
  */
 export function playStepDry(cx: FootstepVoiceContext): RawVoiceHandle {
   const ctx = cx.ctx;
@@ -31,62 +32,52 @@ export function playStepDry(cx: FootstepVoiceContext): RawVoiceHandle {
     const pool = AudioBufferPool.getInstance(ctx);
     if (pool.isReady()) {
       return pool.play('step_dry', cx.destination, cx.reverbSend, {
-        volume: 0.55 * (cx.intensity ?? 1.0),
+        volume: 0.25 * (cx.intensity ?? 1.0),
         pitchMult: cx.pitch ?? 1.0,
-        reverbGain: 0.25,
+        reverbGain: 0.15,
       });
     }
   }
 
   const now = ctx.currentTime;
-  const rng = new Rng(cx.seed ?? Math.floor(Math.random() * 100000));
   const intensity = cx.intensity ?? 1.0;
   const pitchMult = cx.pitch ?? 1.0;
 
   const voiceGain = ctx.createGain();
+  // Safe baseline gain at -26 dBFS (~0.05) scaled by intensity
+  const baseGain = 0.050 * intensity;
   voiceGain.gain.setValueAtTime(0.0001, now);
-  voiceGain.gain.linearRampToValueAtTime(0.42 * intensity, now + 0.003);
+  voiceGain.gain.linearRampToValueAtTime(baseGain, now + 0.003);
   voiceGain.connect(cx.destination);
   voiceGain.connect(cx.reverbSend);
 
   const nodesToDisconnect: AudioNode[] = [voiceGain];
 
-  // 1. Crisp Ceramic tile click (2.2 kHz bandpass)
-  const click = ctx.createBufferSource();
-  click.buffer = cx.noise.white;
-  const bp = ctx.createBiquadFilter();
-  bp.type = 'bandpass';
-  bp.Q.setValueAtTime(2.6, now);
-  bp.frequency.setValueAtTime(rng.range(1900, 2600) * pitchMult, now);
-
-  const clickGain = ctx.createGain();
-  clickGain.gain.setValueAtTime(0.0001, now);
-  clickGain.gain.linearRampToValueAtTime(0.85, now + 0.002);
-  clickGain.gain.exponentialRampToValueAtTime(0.001, now + 0.025);
-
-  click.connect(bp);
-  bp.connect(clickGain);
-  clickGain.connect(voiceGain);
-  click.start(now);
-  click.stop(now + 0.03);
-  nodesToDisconnect.push(click, bp, clickGain);
-
-  // 2. Low physical foot thump (80 -> 40 Hz)
+  // Soft low-amplitude rubber/wet-sole thud (220 Hz -> 80 Hz drop over 0.06s)
+  const thudDur = 0.06;
   const thump = ctx.createOscillator();
   const thumpGain = ctx.createGain();
+  const thumpFilter = ctx.createBiquadFilter();
+
   thump.type = 'sine';
-  thump.frequency.setValueAtTime(80 * pitchMult, now);
-  thump.frequency.exponentialRampToValueAtTime(40 * pitchMult, now + 0.035);
+  thump.frequency.setValueAtTime(220 * pitchMult, now);
+  thump.frequency.exponentialRampToValueAtTime(Math.max(40, 80 * pitchMult), now + thudDur);
+
+  thumpFilter.type = 'lowpass';
+  thumpFilter.frequency.setValueAtTime(280, now);
+  thumpFilter.Q.setValueAtTime(0.707, now);
 
   thumpGain.gain.setValueAtTime(0.0001, now);
-  thumpGain.gain.linearRampToValueAtTime(0.55, now + 0.002);
-  thumpGain.gain.exponentialRampToValueAtTime(0.001, now + 0.035);
+  thumpGain.gain.linearRampToValueAtTime(0.85, now + 0.003);
+  thumpGain.gain.exponentialRampToValueAtTime(0.0001, now + thudDur);
 
-  thump.connect(thumpGain);
+  thump.connect(thumpFilter);
+  thumpFilter.connect(thumpGain);
   thumpGain.connect(voiceGain);
+
   thump.start(now);
-  thump.stop(now + 0.04);
-  nodesToDisconnect.push(thump, thumpGain);
+  thump.stop(now + thudDur + 0.01);
+  nodesToDisconnect.push(thump, thumpFilter, thumpGain);
 
   let endedResolve: () => void;
   const ended = new Promise<void>((r) => { endedResolve = r; });

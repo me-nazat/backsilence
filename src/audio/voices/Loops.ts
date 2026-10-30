@@ -137,32 +137,16 @@ export function playHumLoop(cx: LoopVoiceContext): RawVoiceHandle {
     oscs.push(osc);
   }
 
-  // Faint 2.4 kHz buzz
-  const buzz = ctx.createOscillator();
-  const buzzFilter = ctx.createBiquadFilter();
-  const buzzGain = ctx.createGain();
-  buzz.type = 'sawtooth';
-  buzz.frequency.setValueAtTime(2400, now);
-  buzzFilter.type = 'bandpass';
-  buzzFilter.Q.value = 12.0;
-  buzzFilter.frequency.setValueAtTime(2400, now);
-  buzzGain.gain.setValueAtTime(0.02, now);
-
-  buzz.connect(buzzFilter);
-  buzzFilter.connect(buzzGain);
-  buzzGain.connect(masterGain);
-  buzz.start(now);
-  oscs.push(buzz);
-
-  // Filtered noise floor
+  // Filtered sub-bass noise floor (gentle lowpass at 180 Hz)
   const noise = ctx.createBufferSource();
   noise.buffer = cx.noise.brown;
   noise.loop = true;
   const noiseFilter = ctx.createBiquadFilter();
   noiseFilter.type = 'lowpass';
-  noiseFilter.frequency.setValueAtTime(280, now);
+  noiseFilter.frequency.setValueAtTime(180, now);
+  noiseFilter.Q.setValueAtTime(0.707, now);
   const noiseGain = ctx.createGain();
-  noiseGain.gain.setValueAtTime(0.08, now);
+  noiseGain.gain.setValueAtTime(0.06, now);
 
   noise.connect(noiseFilter);
   noiseFilter.connect(noiseGain);
@@ -225,15 +209,15 @@ export function playDroneLoop(cx: LoopVoiceContext): RawVoiceHandle {
 
   const filter = ctx.createBiquadFilter();
   filter.type = 'lowpass';
-  filter.Q.value = 2.0;
-  filter.frequency.setValueAtTime(320, now);
+  filter.Q.value = 0.707;
+  filter.frequency.setValueAtTime(220, now);
 
-  // 0.03 Hz LFO sweeping cutoff between 250 and 600 Hz
+  // 0.02 Hz subtle LFO modulating cutoff between 160 and 260 Hz
   const lfo = ctx.createOscillator();
   const lfoGain = ctx.createGain();
   lfo.type = 'sine';
-  lfo.frequency.setValueAtTime(0.03, now);
-  lfoGain.gain.setValueAtTime(180, now);
+  lfo.frequency.setValueAtTime(0.02, now);
+  lfoGain.gain.setValueAtTime(50, now);
   lfo.connect(lfoGain);
   lfoGain.connect(filter.frequency);
   lfo.start(now);
@@ -241,14 +225,16 @@ export function playDroneLoop(cx: LoopVoiceContext): RawVoiceHandle {
   filter.connect(masterGain);
 
   const oscs: OscillatorNode[] = [];
-  const dronePitches = [55.0, 55.4, 82.5, 110.2];
+  const dronePitches = [55.0, 55.4, 82.5, 110.0];
 
-  for (const freq of dronePitches) {
+  for (let i = 0; i < dronePitches.length; i++) {
+    const freq = dronePitches[i]!;
     const osc = ctx.createOscillator();
     const g = ctx.createGain();
-    osc.type = 'sawtooth';
+    // Warm, deep sine and triangle oscillators - zero harsh buzzing sawtooths
+    osc.type = i % 2 === 0 ? 'sine' : 'triangle';
     osc.frequency.setValueAtTime(freq, now);
-    g.gain.setValueAtTime(0.2, now);
+    g.gain.setValueAtTime(0.18, now);
 
     osc.connect(g);
     g.connect(filter);

@@ -33,60 +33,24 @@ export function playJumpscare(cx: JumpscareVoiceContext): RawVoiceHandle {
   }
 
   const voiceGain = ctx.createGain();
-  // 3 ms anti-click fade-in
+  // Ear-safe max peak gain strictly clamped at -10 dBFS (~0.316)
+  const peakJumpGain = Math.min(0.316, 0.28 * intensity);
   voiceGain.gain.setValueAtTime(0.0001, now);
-  voiceGain.gain.linearRampToValueAtTime(0.245 * intensity, now + 0.003);
-  voiceGain.connect(cx.destination);
-  voiceGain.connect(cx.reverbSend);
+  voiceGain.gain.linearRampToValueAtTime(peakJumpGain, now + 0.003);
 
-  const nodesToClean: AudioNode[] = [voiceGain];
+  // Smooth high-frequency roll-off above 3200 Hz to prevent screeching and ear fatigue
+  const safeLp = ctx.createBiquadFilter();
+  safeLp.type = 'lowpass';
+  safeLp.frequency.setValueAtTime(3200, now);
+  safeLp.Q.setValueAtTime(0.707, now);
 
-  // 1. Distorted shriek: sawtooth 950 -> 1650 Hz with fast vibrato
-  const shriek = ctx.createOscillator();
-  shriek.type = 'sawtooth';
-  shriek.frequency.setValueAtTime(950, now);
-  shriek.frequency.exponentialRampToValueAtTime(1650, now + 0.35);
+  voiceGain.connect(safeLp);
+  safeLp.connect(cx.destination);
+  safeLp.connect(cx.reverbSend);
 
-  const vibrato = ctx.createOscillator();
-  const vibratoGain = ctx.createGain();
-  vibrato.frequency.setValueAtTime(32, now);
-  vibratoGain.gain.setValueAtTime(80, now);
-  vibrato.connect(vibratoGain);
-  vibratoGain.connect(shriek.frequency);
+  const nodesToClean: AudioNode[] = [voiceGain, safeLp];
 
-  const shriekGain = ctx.createGain();
-  shriekGain.gain.setValueAtTime(0.0001, now);
-  shriekGain.gain.linearRampToValueAtTime(0.95, now + 0.003);
-  shriekGain.gain.exponentialRampToValueAtTime(0.001, now + 0.85);
-
-  shriek.connect(shriekGain);
-  shriekGain.connect(voiceGain);
-
-  shriek.start(now);
-  vibrato.start(now);
-  shriek.stop(now + 0.9);
-  vibrato.stop(now + 0.9);
-  nodesToClean.push(shriek, vibrato, vibratoGain, shriekGain);
-
-  // 2. Dissonant cluster (311 Hz Eb4, 330 Hz E4, 349 Hz F4)
-  const clusterFreqs = [311.13, 329.63, 349.23];
-  for (const f of clusterFreqs) {
-    const osc = ctx.createOscillator();
-    const g = ctx.createGain();
-    osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(f, now);
-    g.gain.setValueAtTime(0.0001, now);
-    g.gain.linearRampToValueAtTime(0.32, now + 0.003);
-    g.gain.exponentialRampToValueAtTime(0.001, now + 0.95);
-
-    osc.connect(g);
-    g.connect(voiceGain);
-    osc.start(now);
-    osc.stop(now + 1.0);
-    nodesToClean.push(osc, g);
-  }
-
-  // 3. Sub boom: sine 50 -> 28 Hz (650 ms)
+  // 1. Heavy cinematic low-end impact: Sub-bass drop (50 Hz -> 28 Hz over 650 ms)
   const sub = ctx.createOscillator();
   const subGain = ctx.createGain();
   sub.type = 'sine';
@@ -102,34 +66,58 @@ export function playJumpscare(cx: JumpscareVoiceContext): RawVoiceHandle {
   sub.stop(now + 0.7);
   nodesToClean.push(sub, subGain);
 
-  // 4. Full-spectrum noise burst (white noise)
-  const noise = ctx.createBufferSource();
-  noise.buffer = cx.noise.white;
-  const noiseGain = ctx.createGain();
-  noiseGain.gain.setValueAtTime(0.0001, now);
-  noiseGain.gain.linearRampToValueAtTime(0.95, now + 0.003);
-  noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+  // 2. Chest punch impact transient (110 Hz -> 42 Hz over 120 ms)
+  const punch = ctx.createOscillator();
+  const punchGain = ctx.createGain();
+  punch.type = 'sine';
+  punch.frequency.setValueAtTime(110, now);
+  punch.frequency.exponentialRampToValueAtTime(42, now + 0.12);
+  punchGain.gain.setValueAtTime(0.0001, now);
+  punchGain.gain.linearRampToValueAtTime(0.85, now + 0.002);
+  punchGain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
 
-  noise.connect(noiseGain);
-  noiseGain.connect(voiceGain);
-  noise.start(now);
-  noise.stop(now + 0.5);
-  nodesToClean.push(noise, noiseGain);
+  punch.connect(punchGain);
+  punchGain.connect(voiceGain);
+  punch.start(now);
+  punch.stop(now + 0.14);
+  nodesToClean.push(punch, punchGain);
 
-  // 5. Ringing tinnitus aftermath (sine 7.2 kHz fading over 2.4s)
-  const tinnitus = ctx.createOscillator();
-  const tinnitusGain = ctx.createGain();
-  tinnitus.type = 'sine';
-  tinnitus.frequency.setValueAtTime(7200, now + 0.15);
-  tinnitusGain.gain.setValueAtTime(0.0001, now + 0.15);
-  tinnitusGain.gain.linearRampToValueAtTime(0.24, now + 0.3);
-  tinnitusGain.gain.exponentialRampToValueAtTime(0.0001, now + 2.5);
+  // 3. Wet visceral creature lunge: Organic throat aspiration & resonance
+  const lungeNoise = ctx.createBufferSource();
+  lungeNoise.buffer = cx.noise.pink;
+  const lungeFilter = ctx.createBiquadFilter();
+  lungeFilter.type = 'bandpass';
+  lungeFilter.frequency.setValueAtTime(950, now);
+  lungeFilter.frequency.exponentialRampToValueAtTime(480, now + 0.55);
+  lungeFilter.Q.setValueAtTime(1.8, now);
 
-  tinnitus.connect(tinnitusGain);
-  tinnitusGain.connect(cx.destination);
-  tinnitus.start(now + 0.15);
-  tinnitus.stop(now + 2.6);
-  nodesToClean.push(tinnitus, tinnitusGain);
+  const lungeGain = ctx.createGain();
+  lungeGain.gain.setValueAtTime(0.0001, now);
+  lungeGain.gain.linearRampToValueAtTime(0.75, now + 0.005);
+  lungeGain.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
+
+  lungeNoise.connect(lungeFilter);
+  lungeFilter.connect(lungeGain);
+  lungeGain.connect(voiceGain);
+  lungeNoise.start(now);
+  lungeNoise.stop(now + 0.6);
+  nodesToClean.push(lungeNoise, lungeFilter, lungeGain);
+
+  // 4. Low guttural body groan (triangle 75 Hz -> 36 Hz)
+  const guttural = ctx.createOscillator();
+  const gutturalGain = ctx.createGain();
+  guttural.type = 'triangle';
+  guttural.frequency.setValueAtTime(75, now);
+  guttural.frequency.exponentialRampToValueAtTime(36, now + 0.55);
+  gutturalGain.gain.setValueAtTime(0.0001, now);
+  gutturalGain.gain.linearRampToValueAtTime(0.60, now + 0.02);
+  gutturalGain.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
+
+  guttural.connect(gutturalGain);
+  gutturalGain.connect(voiceGain);
+  guttural.start(now);
+  guttural.stop(now + 0.6);
+  nodesToClean.push(guttural, gutturalGain);
 
   let endedResolve: () => void;
   const ended = new Promise<void>((r) => { endedResolve = r; });

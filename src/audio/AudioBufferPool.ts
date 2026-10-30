@@ -219,61 +219,33 @@ function renderWetStepBuffer(sampleRate: number, seed: number): Float32Array {
   return out;
 }
 
-/** Synthesize dry ceramic footstep (Prompt 3.3): crisp ceramic tap + soft body thump + grit tick, NO squelch */
+/** Synthesize quiet damped dry footstep: soft low-amplitude rubber/sole thud (80–220 Hz, duration 0.06s, gain -26 dBFS) */
 function renderDryStepBuffer(sampleRate: number, seed: number): Float32Array {
   const rng = new Rng(seed);
-  const duration = 0.18;
+  const duration = 0.06;
   const length = Math.floor(sampleRate * duration);
   const out = new Float32Array(length);
 
-  // 1. Ceramic tap: bandpass 2100-2600 Hz, Q 2.6, decay exp(-t * 120), amplitude 0.55
-  const tapDur = 0.035;
-  const tapSamples = Math.floor(tapDur * sampleRate);
-  const centerFreq = rng.range(2100, 2600);
-  const theta = (2.0 * Math.PI * centerFreq) / sampleRate;
-  const r = 0.89; // Q ~ 2.6
-  let b0 = 0, b1 = 0;
-  for (let i = 0; i < tapSamples; i++) {
-    const t = i / sampleRate;
-    const s = (rng.next() * 2.0 - 1.0) * (1.0 - r);
-    b0 = s + 2.0 * r * Math.cos(theta) * b0 - r * r * b1;
-    b1 = b0;
-    out[i] = (out[i] ?? 0) + b0 * Math.exp(-t * 120.0) * 0.55;
-  }
-
-  // 2. Soft body thump: 80 Hz -> 40 Hz exponential over 35 ms, amplitude 0.30
-  const thumpDur = 0.035;
-  const thumpSamples = Math.floor(thumpDur * sampleRate);
+  // Soft body thump: 220 Hz -> 80 Hz exponential drop over 0.06s
+  const thumpSamples = length;
+  const fStart = rng.range(200, 230);
+  const fEnd = rng.range(75, 85);
   for (let i = 0; i < thumpSamples; i++) {
     const t = i / sampleRate;
-    const f = 80.0 * Math.pow(40.0 / 80.0, t / thumpDur);
+    const f = fStart * Math.pow(fEnd / fStart, t / duration);
     const phase = 2.0 * Math.PI * f * t;
-    const env = Math.sin((t / thumpDur) * Math.PI);
-    out[i] = (out[i] ?? 0) + Math.sin(phase) * env * 0.30;
+    const env = Math.sin((t / duration) * Math.PI) * Math.exp(-t * 25.0);
+    out[i] = (out[i] ?? 0) + Math.sin(phase) * env * 0.25;
   }
 
-  // 3. Faint 5-9 kHz "grit" tick at amplitude 0.06 for tile texture
-  const gritDur = 0.020;
-  const gritSamples = Math.floor(gritDur * sampleRate);
-  const gritTheta = (2.0 * Math.PI * rng.range(5000, 9000)) / sampleRate;
-  let g0 = 0, g1 = 0;
-  const gr = 0.82;
-  for (let i = 0; i < gritSamples; i++) {
-    const t = i / sampleRate;
-    const s = (rng.next() * 2.0 - 1.0) * (1.0 - gr);
-    g0 = s + 2.0 * gr * Math.cos(gritTheta) * g0 - gr * gr * g1;
-    g1 = g0;
-    out[i] = (out[i] ?? 0) + g0 * Math.exp(-t * 200.0) * 0.06;
-  }
-
-  // Peak-normalised to 0.62 (dry is quieter than wading)
+  // Peak-normalised to 0.22 (-26 dBFS equivalent, damped stealth foley)
   let maxPeak = 0;
   for (let i = 0; i < length; i++) {
     const v = Math.abs(out[i] ?? 0);
     if (v > maxPeak) maxPeak = v;
   }
   if (maxPeak > 1e-4) {
-    const scale = 0.62 / maxPeak;
+    const scale = 0.22 / maxPeak;
     for (let i = 0; i < length; i++) {
       out[i] = (out[i] ?? 0) * scale;
     }

@@ -246,6 +246,7 @@ export class AudioDirector {
    * Start default ambience (natatorium).
    */
   startAmbience(): void {
+    if (this.isAmbienceRunning) return;
     this.startMapAmbience(this.currentMapId);
   }
 

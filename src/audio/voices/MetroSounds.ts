@@ -19,41 +19,42 @@ export interface MetroVoiceContext {
 }
 
 /**
- * Rail singing loop: rising high-frequency whine of rails before train arrival.
+ * Rail singing loop: distant subterranean acoustic rail resonance and low vibrations.
  */
 export function playRailSingLoop(cx: MetroVoiceContext): RawVoiceHandle {
   const ctx = cx.ctx;
   const now = ctx.currentTime;
 
   const voiceGain = ctx.createGain();
-  voiceGain.gain.setValueAtTime(0.35, now);
+  voiceGain.gain.setValueAtTime(0.18, now);
   voiceGain.connect(cx.destination);
   voiceGain.connect(cx.reverbSend);
 
+  // Muted subterranean rail resonance (180 Hz and 183.5 Hz)
   const osc1 = ctx.createOscillator();
   const osc2 = ctx.createOscillator();
   osc1.type = 'sine';
-  osc2.type = 'triangle';
-  osc1.frequency.setValueAtTime(580, now);
-  osc2.frequency.setValueAtTime(584, now);
+  osc2.type = 'sine';
+  osc1.frequency.setValueAtTime(180, now);
+  osc2.frequency.setValueAtTime(183.5, now);
 
-  const bp = ctx.createBiquadFilter();
-  bp.type = 'bandpass';
-  bp.frequency.setValueAtTime(600, now);
-  bp.Q.setValueAtTime(10.0, now);
+  const lp = ctx.createBiquadFilter();
+  lp.type = 'lowpass';
+  lp.frequency.setValueAtTime(320, now);
+  lp.Q.setValueAtTime(0.707, now);
 
-  // Slow vibrato / singing modulation
+  // Slow subtle acoustic modulation (0.2 Hz)
   const lfo = ctx.createOscillator();
-  lfo.frequency.setValueAtTime(4.5, now);
+  lfo.frequency.setValueAtTime(0.2, now);
   const lfoGain = ctx.createGain();
-  lfoGain.gain.setValueAtTime(12, now);
+  lfoGain.gain.setValueAtTime(3.5, now);
   lfo.connect(lfoGain);
   lfoGain.connect(osc1.frequency);
   lfoGain.connect(osc2.frequency);
 
-  osc1.connect(bp);
-  osc2.connect(bp);
-  bp.connect(voiceGain);
+  osc1.connect(lp);
+  osc2.connect(lp);
+  lp.connect(voiceGain);
 
   osc1.start(now);
   osc2.start(now);
@@ -69,7 +70,7 @@ export function playRailSingLoop(cx: MetroVoiceContext): RawVoiceHandle {
     },
     setParam(param, val) {
       if (param === 'intensity') {
-        voiceGain.gain.linearRampToValueAtTime(0.35 * Math.max(0, Math.min(1, val)), ctx.currentTime + 0.1);
+        voiceGain.gain.linearRampToValueAtTime(0.20 * Math.max(0, Math.min(1, val)), ctx.currentTime + 0.1);
       }
     },
     ended: new Promise<void>(() => {}),

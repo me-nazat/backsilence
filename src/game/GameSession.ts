@@ -2270,13 +2270,24 @@ export class GameSession {
       }
     }
 
+    let calculatedRadius = 0;
+    if (currSnap.wet && currSnap.agitation > 0.01) {
+      if (currSnap.crouchT > 0.5) {
+        calculatedRadius = Math.max(1, Math.round(currSnap.agitation * 18)); // crouching in water: quiet ripple ~2m
+      } else if (currSnap.agitation < 0.55) {
+        calculatedRadius = Math.max(2, Math.round(currSnap.agitation * 15)); // walking in water: moderate slosh ~5m
+      } else {
+        calculatedRadius = Math.max(12, Math.round(currSnap.agitation * 40)); // jumping/sprinting in water: loud splash ~12m+
+      }
+    }
+
     this.hud.update({
       noiseLoudness: currSnap.agitation,
       stamina: currSnap.stamina / 100.0,
       status: statusText,
       interactionPrompt: promptState.visible ? promptState.label : null,
       promptHoldProgress: promptState.holdProgress,
-      waterNoiseRadius: Math.round(currSnap.agitation * 40),
+      waterNoiseRadius: calculatedRadius,
       riskTag,
       damageVignette: this.recentDamage,
       showVhsOsd: this.settings.graphics.vhsOsd,

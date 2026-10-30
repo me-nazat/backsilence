@@ -120,6 +120,15 @@ export class Mixer {
     this.musicGain = ctx.createGain();
     this.uiGain = ctx.createGain();
 
+    // Initialize gains at safe baseline levels
+    const now = ctx.currentTime;
+    this.masterGain.gain.setValueAtTime(this.baseVolumes.master, now);
+    this.sfxGain.gain.setValueAtTime(this.baseVolumes.sfx, now);
+    this.ambientGain.gain.setValueAtTime(this.baseVolumes.ambient, now);
+    this.monsterGain.gain.setValueAtTime(this.baseVolumes.monster, now);
+    this.musicGain.gain.setValueAtTime(this.baseVolumes.music, now);
+    this.uiGain.gain.setValueAtTime(this.baseVolumes.ui, now);
+
     // Ambient HF Tilt Filter (atmospheric tilt driven by dread)
     this.ambientTiltFilter = ctx.createBiquadFilter();
     this.ambientTiltFilter.type = 'lowpass';
@@ -271,18 +280,24 @@ export class Mixer {
   }
 
   /**
-   * Smooth volume updates via setTargetAtTime to eliminate zipper noise (Prompt 4 Section 8 D.1).
+   * Smooth volume updates via linearRampToValueAtTime over 0.15s to eliminate clicks, pops,
+   * and muted state lockups across scenes and configuration changes.
    */
-  private updateGains(): void {
+  private rampNodeGain(node: GainNode, target: number, rampSec = 0.15): void {
     const now = this.ctx.currentTime;
-    const tau = 0.020; // 20ms smoothing time constant
-    this.masterGain.gain.setTargetAtTime(this.baseVolumes.master, now, tau);
-    this.sfxGain.gain.setTargetAtTime(this.baseVolumes.sfx, now, tau);
+    node.gain.cancelScheduledValues(now);
+    node.gain.setValueAtTime(node.gain.value, now);
+    node.gain.linearRampToValueAtTime(target, now + rampSec);
+  }
+
+  private updateGains(): void {
     const ambTarget = this.listeningDipActive ? this.baseVolumes.ambient * 0.40 : this.baseVolumes.ambient;
-    this.ambientGain.gain.setTargetAtTime(ambTarget, now, tau);
-    this.monsterGain.gain.setTargetAtTime(this.baseVolumes.monster, now, tau);
-    this.musicGain.gain.setTargetAtTime(this.baseVolumes.music, now, tau);
-    this.uiGain.gain.setTargetAtTime(this.baseVolumes.ui, now, tau);
+    this.rampNodeGain(this.masterGain, this.baseVolumes.master, 0.15);
+    this.rampNodeGain(this.sfxGain, this.baseVolumes.sfx, 0.15);
+    this.rampNodeGain(this.ambientGain, ambTarget, 0.15);
+    this.rampNodeGain(this.monsterGain, this.baseVolumes.monster, 0.15);
+    this.rampNodeGain(this.musicGain, this.baseVolumes.music, 0.15);
+    this.rampNodeGain(this.uiGain, this.baseVolumes.ui, 0.15);
   }
 
   /**

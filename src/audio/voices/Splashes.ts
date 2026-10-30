@@ -50,7 +50,7 @@ export function playSplash(
   }
 
   // Real-time physical Web Audio synthesis path
-  const duration = (type === 'small' ? 0.32 : type === 'big' ? 0.65 : 0.95) * Math.sqrt(intensity);
+  const duration = (type === 'small' ? 0.35 : type === 'big' ? 0.65 : 0.95) * Math.sqrt(intensity);
   const voiceGain = ctx.createGain();
   // 3 ms anti-click fade-in
   voiceGain.gain.setValueAtTime(0.0001, now);
@@ -64,118 +64,101 @@ export function playSplash(
 
   const nodesToDisconnect: AudioNode[] = [voiceGain, revGain];
 
-  // 1. Noise impact burst with falling sweep (3.5 kHz -> 400 Hz)
-  const burstDur = type === 'small' ? 0.05 : type === 'big' ? 0.09 : 0.13;
-  const noiseSrc = ctx.createBufferSource();
-  noiseSrc.buffer = cx.noise.pink;
-  noiseSrc.loop = true;
+  // ── LAYER 1: Initial Surface Plunge (Low-mid body thump + transient noise burst) ──
+  // 1a. Low-mid body thump: 120 Hz -> 45 Hz pitch drop over 0.12s
+  const thumpOsc = ctx.createOscillator();
+  const thumpGain = ctx.createGain();
+  thumpOsc.type = 'sine';
+  thumpOsc.frequency.setValueAtTime(120 * pitchMult, now);
+  thumpOsc.frequency.exponentialRampToValueAtTime(Math.max(30, 45 * pitchMult), now + 0.12);
 
-  const sweepFilter = ctx.createBiquadFilter();
-  sweepFilter.type = 'bandpass';
-  sweepFilter.Q.setValueAtTime(1.8, now);
-  sweepFilter.frequency.setValueAtTime(3500 * pitchMult, now);
-  sweepFilter.frequency.exponentialRampToValueAtTime(
-    Math.max(100, 380 * pitchMult),
-    now + burstDur
-  );
+  thumpGain.gain.setValueAtTime(0.0001, now);
+  thumpGain.gain.linearRampToValueAtTime(0.70 * intensity, now + 0.003);
+  thumpGain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
 
-  const noiseGain = ctx.createGain();
-  noiseGain.gain.setValueAtTime(0.0001, now);
-  noiseGain.gain.linearRampToValueAtTime(0.85, now + 0.003);
-  noiseGain.gain.exponentialRampToValueAtTime(0.001, now + burstDur);
+  thumpOsc.connect(thumpGain);
+  thumpGain.connect(voiceGain);
+  thumpOsc.start(now);
+  thumpOsc.stop(now + 0.13);
+  nodesToDisconnect.push(thumpOsc, thumpGain);
 
-  noiseSrc.connect(sweepFilter);
-  sweepFilter.connect(noiseGain);
-  noiseGain.connect(voiceGain);
+  // 1b. Transient bandpass noise burst: 300 Hz – 1200 Hz over 0.09s
+  const plungeBurstDur = 0.09;
+  const plungeNoise = ctx.createBufferSource();
+  plungeNoise.buffer = cx.noise.pink;
+  plungeNoise.loop = true;
 
-  noiseSrc.start(now);
-  noiseSrc.stop(now + burstDur + 0.01);
-  nodesToDisconnect.push(noiseSrc, sweepFilter, noiseGain);
+  const plungeFilter = ctx.createBiquadFilter();
+  plungeFilter.type = 'bandpass';
+  plungeFilter.frequency.setValueAtTime(650 * pitchMult, now);
+  plungeFilter.Q.setValueAtTime(1.2, now);
 
-  // 2. van den Doel physical bubbles (frequency rises over lifetime)
-  const bubbleCount = type === 'small' ? 5 : type === 'big' ? 12 : 18;
-  for (let i = 0; i < bubbleCount; i++) {
-    const onset = Math.pow(rng.next(), 1.8) * (duration * 0.6);
-    // Power-law radius between 1.5mm and 12mm
-    const radius = 0.0015 + Math.pow(rng.next(), 2.2) * 0.011;
-    // f0 = 3 / r
-    const f0 = (3.0 / radius) * pitchMult;
-    const d = 0.043 * f0 + 0.0014 * Math.pow(f0, 1.5);
-    const bubbleDur = Math.min(0.18, 4.5 / d);
+  const plungeNoiseGain = ctx.createGain();
+  plungeNoiseGain.gain.setValueAtTime(0.0001, now);
+  plungeNoiseGain.gain.linearRampToValueAtTime(0.75 * intensity, now + 0.003);
+  plungeNoiseGain.gain.exponentialRampToValueAtTime(0.001, now + plungeBurstDur);
 
-    // Physical pitch rise: f(t) = f0 * (1 + 0.1 * d * t)
-    const fEnd = f0 * (1.0 + 0.1 * d * bubbleDur);
+  plungeNoise.connect(plungeFilter);
+  plungeFilter.connect(plungeNoiseGain);
+  plungeNoiseGain.connect(voiceGain);
+  plungeNoise.start(now);
+  plungeNoise.stop(now + plungeBurstDur + 0.01);
+  nodesToDisconnect.push(plungeNoise, plungeFilter, plungeNoiseGain);
 
-    const osc = ctx.createOscillator();
-    const g = ctx.createGain();
-    osc.type = 'sine';
+  // ── LAYER 2: Cavitation & Spray (800 Hz – 4200 Hz filtered noise, exponential decay 0.35s - 0.65s) ──
+  const sprayDur = Math.max(0.35, Math.min(0.65, 0.45 * Math.sqrt(intensity)));
+  const sprayNoise = ctx.createBufferSource();
+  sprayNoise.buffer = cx.noise.white;
+  sprayNoise.loop = true;
 
-    osc.frequency.setValueAtTime(f0, now + onset);
-    osc.frequency.exponentialRampToValueAtTime(Math.min(18000, fEnd), now + onset + bubbleDur);
+  const sprayBp = ctx.createBiquadFilter();
+  sprayBp.type = 'bandpass';
+  sprayBp.frequency.setValueAtTime(2200 * pitchMult, now);
+  sprayBp.Q.setValueAtTime(1.0, now);
 
-    const bAmp = rng.range(0.12, 0.28);
-    g.gain.setValueAtTime(0.0001, now + onset);
-    g.gain.linearRampToValueAtTime(bAmp, now + onset + 0.002);
-    g.gain.exponentialRampToValueAtTime(0.001, now + onset + bubbleDur);
+  const sprayLp = ctx.createBiquadFilter();
+  sprayLp.type = 'lowpass';
+  sprayLp.frequency.setValueAtTime(4200 * pitchMult, now);
+  sprayLp.Q.setValueAtTime(0.707, now);
 
-    osc.connect(g);
-    g.connect(voiceGain);
+  const sprayGain = ctx.createGain();
+  sprayGain.gain.setValueAtTime(0.0001, now);
+  sprayGain.gain.linearRampToValueAtTime(0.60 * intensity, now + 0.01);
+  sprayGain.gain.exponentialRampToValueAtTime(0.0001, now + sprayDur);
 
-    osc.start(now + onset);
-    osc.stop(now + onset + bubbleDur + 0.01);
-    nodesToDisconnect.push(osc, g);
-  }
+  sprayNoise.connect(sprayBp);
+  sprayBp.connect(sprayLp);
+  sprayLp.connect(sprayGain);
+  sprayGain.connect(voiceGain);
+  sprayNoise.start(now);
+  sprayNoise.stop(now + sprayDur + 0.02);
+  nodesToDisconnect.push(sprayNoise, sprayBp, sprayLp, sprayGain);
 
-  // 3. Low-frequency cavity thump for big and jump splashes (60 - 120 Hz)
-  if (type !== 'small') {
-    const thump = ctx.createOscillator();
-    const thumpGain = ctx.createGain();
-    const thumpDur = type === 'big' ? 0.15 : 0.22;
-    const fStart = rng.range(85, 115) * pitchMult;
-
-    thump.type = 'sine';
-    thump.frequency.setValueAtTime(fStart, now);
-    thump.frequency.exponentialRampToValueAtTime(35 * pitchMult, now + thumpDur);
-
-    thumpGain.gain.setValueAtTime(0.0001, now);
-    thumpGain.gain.linearRampToValueAtTime(0.65 * intensity, now + 0.003);
-    thumpGain.gain.exponentialRampToValueAtTime(0.001, now + thumpDur);
-
-    thump.connect(thumpGain);
-    thumpGain.connect(voiceGain);
-
-    thump.start(now);
-    thump.stop(now + thumpDur + 0.02);
-    nodesToDisconnect.push(thump, thumpGain);
-  }
-
-  // 4. Droplet fall-back tinkles (150-450 ms after impact)
-  const dropletCount = type === 'small' ? 2 : type === 'big' ? 4 : 7;
+  // ── LAYER 3: Ripple Droplets (4 to 7 micro-scheduled droplet pings: 900–1800 Hz over 0.15s - 0.5s) ──
+  const dropletCount = Math.floor(rng.range(4, 7));
   for (let i = 0; i < dropletCount; i++) {
-    const onset = rng.range(0.12, duration * 0.9);
-    const radius = rng.range(0.0009, 0.0022); // tiny high droplets
-    const f0 = (3.0 / radius) * pitchMult;
-    const d = 0.043 * f0 + 0.0014 * Math.pow(f0, 1.5);
-    const dropDur = Math.min(0.08, 4.0 / d);
-    const fEnd = f0 * (1.0 + 0.12 * d * dropDur);
+    const onset = rng.range(0.15, Math.min(0.50, duration * 0.85));
+    const dropFreq = rng.range(900, 1800) * pitchMult;
+    const dropDur = rng.range(0.04, 0.08);
 
-    const osc = ctx.createOscillator();
-    const g = ctx.createGain();
-    osc.type = 'sine';
+    const dropOsc = ctx.createOscillator();
+    const dropGain = ctx.createGain();
+    dropOsc.type = 'sine';
+    dropOsc.frequency.setValueAtTime(dropFreq, now + onset);
+    dropOsc.frequency.exponentialRampToValueAtTime(dropFreq * 1.10, now + onset + dropDur);
 
-    osc.frequency.setValueAtTime(f0, now + onset);
-    osc.frequency.exponentialRampToValueAtTime(fEnd, now + onset + dropDur);
+    dropGain.gain.setValueAtTime(0.0001, now + onset);
+    dropGain.gain.linearRampToValueAtTime(0.15, now + onset + 0.002);
+    dropGain.gain.exponentialRampToValueAtTime(0.0001, now + onset + dropDur);
 
-    g.gain.setValueAtTime(0.0001, now + onset);
-    g.gain.linearRampToValueAtTime(0.14, now + onset + 0.001);
-    g.gain.exponentialRampToValueAtTime(0.001, now + onset + dropDur);
+    dropOsc.connect(dropGain);
+    dropGain.connect(voiceGain);
+    // Connect directly into natatorium reverb send for realistic acoustic reflection
+    dropGain.connect(revGain);
 
-    osc.connect(g);
-    g.connect(voiceGain);
-
-    osc.start(now + onset);
-    osc.stop(now + onset + dropDur + 0.01);
-    nodesToDisconnect.push(osc, g);
+    dropOsc.start(now + onset);
+    dropOsc.stop(now + onset + dropDur + 0.01);
+    nodesToDisconnect.push(dropOsc, dropGain);
   }
 
   let endedResolve: () => void;

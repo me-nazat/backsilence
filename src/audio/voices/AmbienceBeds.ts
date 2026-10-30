@@ -27,17 +27,18 @@ export function playAmbienceTunnels(cx: BedVoiceContext): RawVoiceHandle {
   master.connect(cx.destination);
   master.connect(cx.reverbSend);
 
-  // Electrical buzz + metallic resonant hum (60 Hz + 180 Hz)
+  // Warm metallic resonant hum (60 Hz + 180 Hz)
   const osc1 = ctx.createOscillator();
   const osc2 = ctx.createOscillator();
-  osc1.type = 'sawtooth';
+  osc1.type = 'triangle';
   osc2.type = 'sine';
   osc1.frequency.setValueAtTime(60, now);
   osc2.frequency.setValueAtTime(180, now);
 
   const lp = ctx.createBiquadFilter();
   lp.type = 'lowpass';
-  lp.frequency.setValueAtTime(280, now);
+  lp.frequency.setValueAtTime(220, now);
+  lp.Q.setValueAtTime(0.707, now);
   osc1.connect(lp);
   osc2.connect(lp);
   lp.connect(master);
@@ -48,8 +49,8 @@ export function playAmbienceTunnels(cx: BedVoiceContext): RawVoiceHandle {
   noise.loop = true;
   const bp = ctx.createBiquadFilter();
   bp.type = 'bandpass';
-  bp.frequency.setValueAtTime(850, now);
-  bp.Q.setValueAtTime(3.5, now);
+  bp.frequency.setValueAtTime(600, now);
+  bp.Q.setValueAtTime(1.2, now);
   noise.connect(bp);
   bp.connect(master);
 
@@ -181,7 +182,7 @@ export function playAmbienceFiltration(cx: BedVoiceContext): RawVoiceHandle {
 
   // Pump pulsation (45 Hz motor + 2 Hz amplitude tremolo)
   const pump = ctx.createOscillator();
-  pump.type = 'sawtooth';
+  pump.type = 'triangle';
   pump.frequency.setValueAtTime(45, now);
 
   const pumpLfo = ctx.createOscillator();
@@ -345,9 +346,9 @@ export function playMonsterAmbientFar(cx: BedVoiceContext): RawVoiceHandle {
   // Heavy reverb send for cavernous distance
   master.connect(cx.reverbSend);
 
-  // Formant-filtered saw moan
+  // Formant-filtered moan
   const osc = ctx.createOscillator();
-  osc.type = 'sawtooth';
+  osc.type = 'triangle';
   osc.frequency.setValueAtTime(62, now);
   osc.frequency.linearRampToValueAtTime(54, now + dur * 0.6);
   osc.frequency.linearRampToValueAtTime(48, now + dur);

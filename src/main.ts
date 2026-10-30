@@ -266,13 +266,16 @@ async function boot(): Promise<void> {
     { LabScene },
     { TextureRegistry },
     { PerfTracker },
-    { AudioEngine },
+    { AudioEngine, unlockAudioContext },
   ] = await Promise.all([
     import('./lab/LabScene.js'),
     import('./procedural/textures/TextureRegistry.js'),
     import('./engine/Perf.js'),
     import('./audio/AudioEngine.js'),
   ]);
+
+  // Unlock and bind AudioContext resume handlers on window gestures immediately
+  void unlockAudioContext(AudioEngine.getInstance());
 
   // Run 2-second quality auto-detect benchmark in background
   void import('./engine/QualityBenchmark.js').then(({ QualityBenchmark }) => {

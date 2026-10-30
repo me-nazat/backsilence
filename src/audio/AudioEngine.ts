@@ -152,6 +152,7 @@ import {
 } from './voices/WispSounds.js';
 
 export type VoiceName =
+  | 'water_splash'
   | 'splash_small'
   | 'splash_big'
   | 'splash_jump'
@@ -379,7 +380,28 @@ export class AudioEngine implements AudioEngineApi {
     const analyserNode = this.ctx.createAnalyser();
     analyserNode.fftSize = 512;
     this.mixer.masterGain.connect(analyserNode);
-    analyserNode.connect(this.ctx.destination);
+
+    // Master DynamicsCompressorNode and Brickwall low-pass filter (14000 Hz) before ctx.destination
+    // Prevents clipping, buzzing, or piercing frequencies from ever reaching speakers
+    if (typeof this.ctx.createDynamicsCompressor === 'function' && typeof this.ctx.createBiquadFilter === 'function') {
+      const masterSafetyCompressor = this.ctx.createDynamicsCompressor();
+      masterSafetyCompressor.threshold.setValueAtTime(-18, this.ctx.currentTime);
+      masterSafetyCompressor.knee.setValueAtTime(12, this.ctx.currentTime);
+      masterSafetyCompressor.ratio.setValueAtTime(4, this.ctx.currentTime);
+      masterSafetyCompressor.attack.setValueAtTime(0.003, this.ctx.currentTime);
+      masterSafetyCompressor.release.setValueAtTime(0.25, this.ctx.currentTime);
+
+      const brickwallFilter = this.ctx.createBiquadFilter();
+      brickwallFilter.type = 'lowpass';
+      brickwallFilter.frequency.setValueAtTime(14000, this.ctx.currentTime);
+      brickwallFilter.Q.setValueAtTime(0.707, this.ctx.currentTime);
+
+      analyserNode.connect(masterSafetyCompressor);
+      masterSafetyCompressor.connect(brickwallFilter);
+      brickwallFilter.connect(this.ctx.destination);
+    } else {
+      analyserNode.connect(this.ctx.destination);
+    }
     (this as { analyser: AnalyserNode }).analyser = analyserNode;
 
     // Window visibility lifecycle: mute on blur if configured
@@ -473,12 +495,20 @@ export class AudioEngine implements AudioEngineApi {
     // Spatial 3D HRTF audio routing with physical distance model & wall occlusion (Section 7 C.2, C.3, C.4)
     if (opts.position) {
       const now = this.ctx.currentTime;
+      const isMonsterVoice = busName === 'monster' || name.startsWith('monster_') || opts.monsterDistance !== undefined;
       panner = this.ctx.createPanner();
       panner.panningModel = 'HRTF';
       panner.distanceModel = 'inverse';
-      panner.refDistance = 4.0;
-      panner.maxDistance = 80.0;
-      panner.rolloffFactor = 0.55;
+      if (isMonsterVoice) {
+        // Monster spatial proximity: reference distance 2.0m, max distance 25.0m
+        panner.refDistance = 2.0;
+        panner.maxDistance = 25.0;
+        panner.rolloffFactor = 1.0;
+      } else {
+        panner.refDistance = 4.0;
+        panner.maxDistance = 80.0;
+        panner.rolloffFactor = 0.55;
+      }
 
       if (panner.positionX) {
         panner.positionX.setValueAtTime(opts.position.x, now);
@@ -572,6 +602,7 @@ export class AudioEngine implements AudioEngineApi {
       case 'splash_small':
         handle = playSplash('small', voiceCtx);
         break;
+      case 'water_splash':
       case 'splash_big':
         handle = playSplash('big', voiceCtx);
         break;
@@ -1164,5 +1195,40 @@ export class AudioEngine implements AudioEngineApi {
       this.ctx.close().catch(() => {});
     }
     this.isInitialized = false;
+  }
+}
+
+/**
+ * Centralized singleton AudioContext unlock handler.
+ * Attached to pointerdown, mousedown, and keydown on window with { once: false, passive: true }
+ * to immediately resume suspended audio contexts on any user interaction across the entire app.
+ */
+let isUnlockHandlerBound = false;
+
+export async function unlockAudioContext(engineInstance?: AudioEngine): Promise<void> {
+  const engine = engineInstance ?? AudioEngine.getInstance();
+  const ctx = engine.getContext();
+  if (!ctx) {
+    await engine.init().catch(() => {});
+  } else if (ctx.state === 'suspended') {
+    await ctx.resume().catch(() => {});
+  }
+
+  if (typeof window !== 'undefined' && !isUnlockHandlerBound) {
+    isUnlockHandlerBound = true;
+    const onUserInteraction = async (): Promise<void> => {
+      const activeCtx = engine.getContext();
+      if (!activeCtx) {
+        await engine.init().catch(() => {});
+        engine.startAmbience();
+      } else if (activeCtx.state === 'suspended') {
+        await activeCtx.resume().catch(() => {});
+        engine.startAmbience();
+      }
+    };
+
+    window.addEventListener('pointerdown', onUserInteraction, { once: false, passive: true });
+    window.addEventListener('mousedown', onUserInteraction, { once: false, passive: true });
+    window.addEventListener('keydown', onUserInteraction, { once: false, passive: true });
   }
 }

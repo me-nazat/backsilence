@@ -50,11 +50,11 @@ export class PlayerFootsteps {
         // Phase-locked synchronized splash burst on foot plant frame
         this.onSplash?.({ x: snapshot.pos.x, y: waterY, z: snapshot.pos.z }, intensity * 0.75);
       } else {
-        // Dry ceramic tile footstep (Prompt 3.3: dry gain 0.42 / 0.18, squeak prob 0.08 at speed > 2.5)
-        const squeak = Math.random() < 0.08 && horizSpeed > 2.5;
+        // Quiet, damped dry-tile / board footstep
+        const squeak = Math.random() < 0.04 && horizSpeed > 3.2;
         this.audio.play(squeak ? 'step_squeak' : 'step_dry', {
           position: snapshot.pos,
-          gain: snapshot.crouchT > 0.5 ? 0.18 : 0.42,
+          gain: snapshot.crouchT > 0.5 ? 0.15 : 0.28,
         });
       }
     }
@@ -66,7 +66,7 @@ export class PlayerFootsteps {
       if (fallSpeed > 1.2) {
         if (snapshot.wet) {
           const isBig = fallSpeed > 4.0;
-          const gain = Math.min(1.0, 0.4 + fallSpeed * 0.12);
+          const gain = Math.min(1.0, 0.45 + fallSpeed * 0.12);
           this.audio.play(isBig ? 'splash_big' : 'splash_jump', {
             position: snapshot.pos,
             gain,
@@ -74,9 +74,10 @@ export class PlayerFootsteps {
           // Phase-locked splash impact on landing frame
           this.onSplash?.({ x: snapshot.pos.x, y: waterY, z: snapshot.pos.z }, Math.min(2.5, 0.8 + fallSpeed * 0.35));
         } else {
+          // Soft, low-amplitude rubber/wet-sole thud for dry board-to-board jumps
           this.audio.play('step_dry', {
             position: snapshot.pos,
-            gain: Math.min(1.0, 0.4 + fallSpeed * 0.1),
+            gain: Math.min(0.35, 0.12 + fallSpeed * 0.04),
           });
         }
       }
