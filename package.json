@@ -35,11 +35,11 @@
     "@eslint/js": "9.17.0",
     "@types/three": "0.170.0",
     "axe-core": "^4.14.0",
-    "eslint": "9.17.0",
-    "typescript": "5.6.3",
-    "typescript-eslint": "8.18.2",
-    "vite": "6.0.7",
-    "vite-node": "2.1.8",
-    "vitest": "2.1.8"
+    "eslint": "10.13.0",
+    "typescript": "7.0.2",
+    "typescript-eslint": "8.72.1",
+    "vite": "8.3.5",
+    "vite-node": "6.0.0",
+    "vitest": "5.0.5"
   }
 }
