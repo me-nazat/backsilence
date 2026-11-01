@@ -436,6 +436,7 @@ async function boot(): Promise<void> {
           onWin: (results) => {
             ui.showResults(results);
           },
+          onPhotoMode: () => ui.takePhotoMode(),
           onExit: () => {
             bus.emit('game:leave', undefined);
             ui.navigateTo('MENU');
@@ -499,6 +500,7 @@ async function boot(): Promise<void> {
         onWin: (results) => {
           ui.showResults(results);
         },
+        onPhotoMode: () => ui.takePhotoMode(),
         onExit: () => {
           bus.emit('game:leave', undefined);
           ui.navigateTo('MENU');

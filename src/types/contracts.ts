@@ -111,6 +111,7 @@ export interface Settings {
     minimalHud?: boolean | undefined;
     showMoreHud?: boolean | undefined;
     cinematic?: boolean | undefined;
+    streamerMode?: boolean | undefined;
     language?: string;
   };
   player: {

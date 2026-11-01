@@ -460,6 +460,7 @@ export class UIManager {
     const curSettings = this.store.get().settings;
     this.hud.setShowMoreHud(Boolean(curSettings.accessibility?.showMoreHud));
     this.hud.setCinematic(Boolean(curSettings.accessibility?.cinematic));
+    this.hud.setStreamerMode(Boolean(curSettings.accessibility?.streamerMode));
     this.pauseMenu.mount(this.container);
     this.deathScreen.mount(this.container);
     this.loadingScreen.mount(this.container);
@@ -1079,6 +1080,7 @@ export class UIManager {
     this.hud.setMinimalHud(Boolean(s.accessibility.minimalHud));
     this.hud.setShowMoreHud(Boolean(s.accessibility.showMoreHud));
     this.hud.setCinematic(Boolean(s.accessibility.cinematic));
+    this.hud.setStreamerMode(Boolean(s.accessibility.streamerMode));
     this.hud.setUiScale(s.accessibility.uiScale ?? 1.0);
 
     if (s.accessibility.highContrast) {

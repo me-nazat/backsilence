@@ -152,6 +152,7 @@ export class Hud {
   private quietHintTimeout: ReturnType<typeof setTimeout> | null = null;
   private showMoreHud = false;
   private cinematic = false;
+  private streamerMode = false;
   private nearMissEl: HTMLElement | null = null;
   private screenReaderLiveEl: HTMLElement | null = null;
   private debugSightingEl: HTMLElement | null = null;
@@ -269,6 +270,29 @@ export class Hud {
 
   getCinematic(): boolean {
     return this.cinematic;
+  }
+
+  setStreamerMode(streamer: boolean): void {
+    this.streamerMode = streamer;
+    if (!this.el) return;
+    if (streamer) {
+      this.el.classList.add('streamer-mode');
+    } else {
+      this.el.classList.remove('streamer-mode');
+    }
+    this.updateFacecamOverlayVisibility();
+  }
+
+  isStreamerMode(): boolean {
+    return this.streamerMode;
+  }
+
+  private updateFacecamOverlayVisibility(): void {
+    const isDebug = typeof window !== 'undefined' && Boolean(window.location?.search?.includes('debug=1'));
+    const facecam = this.el?.querySelector<HTMLElement>('#debug-facecam-overlay');
+    if (facecam) {
+      facecam.style.display = (this.streamerMode || isDebug) ? 'block' : 'none';
+    }
   }
 
   showQuietHint(text: string, durationMs = 3000): void {
@@ -497,7 +521,26 @@ export class Hud {
             font-size: 11px !important;
           }
         }
+
+        .bs-hud.streamer-mode #hud-run-timer {
+          top: max(18px, calc(28% + 12px)) !important;
+        }
+        @media (max-aspect-ratio: 1/1) {
+          .bs-hud #hud-run-timer {
+            top: max(18px, calc(28% + 12px));
+          }
+        }
+        #debug-facecam-overlay {
+          position: absolute; top: 0; left: 0; width: 100%; height: 28%;
+          background: #d113; border-bottom: 2px dashed #f55d;
+          pointer-events: none; display: none; z-index: 50; padding: 10px 14px; box-sizing: border-box;
+        }
+        #debug-facecam-overlay > span {
+          font-family: monospace; font-size: 10px; color: #ffdc; background: #000a; padding: 2px 8px;
+        }
       </style>
+
+      <div id="debug-facecam-overlay"><span>FACECAM ZONE (28%)</span></div>
 
       <!-- Screen Reader Off-screen Live Region -->
       <div id="hud-screen-reader-live" aria-live="polite" aria-atomic="true" style="
@@ -1334,6 +1377,7 @@ export class Hud {
 
     container.appendChild(el);
     this.el = el;
+    this.updateFacecamOverlayVisibility();
 
     this.screenReaderLiveEl = el.querySelector('#hud-screen-reader-live');
     this.debugSightingEl = el.querySelector('#hud-debug-sighting');

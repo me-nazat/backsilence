@@ -93,6 +93,7 @@ export interface GameSessionCallbacks {
   onDeath: (stats: JumpscareStats) => void;
   onWin: (results: RunResults) => void;
   onExit: () => void;
+  onPhotoMode?: () => void;
   onOpenKeypad?: (onSubmit: (code: string) => boolean) => void;
 }
 
@@ -245,6 +246,7 @@ export class GameSession {
   private timeSurvived = 0;
   private sessionRunTime = 0;
   private voidHoldTimeout: ReturnType<typeof setTimeout> | null = null;
+  private respawnFadeEl: HTMLElement | null = null;
   private noisesMade = 0;
   private closestCall = 999.0;
   private lastNearMissTime = 0;
@@ -2024,6 +2026,27 @@ export class GameSession {
     }
   }
 
+  private triggerRespawnFade(durationSec = 0.4): void {
+    if (typeof document === 'undefined') return;
+    if (!this.respawnFadeEl) {
+      this.respawnFadeEl = document.createElement('div');
+      this.respawnFadeEl.id = 'respawn-fade-overlay';
+      this.respawnFadeEl.style.cssText = 'position:absolute;inset:0;background:#000;pointer-events:none;z-index:540;opacity:1;';
+      this.container.appendChild(this.respawnFadeEl);
+    }
+    this.respawnFadeEl.style.display = 'block';
+    this.respawnFadeEl.style.transition = 'none';
+    this.respawnFadeEl.style.opacity = '1';
+    void this.respawnFadeEl.offsetWidth; // force DOM reflow
+    this.respawnFadeEl.style.transition = `opacity ${durationSec}s ease-out`;
+    this.respawnFadeEl.style.opacity = '0';
+    setTimeout(() => {
+      if (this.respawnFadeEl) {
+        this.respawnFadeEl.style.display = 'none';
+      }
+    }, durationSec * 1000);
+  }
+
   restart(sameSeed = true): void {
     this.reset(sameSeed);
   }
@@ -2070,6 +2093,18 @@ export class GameSession {
         body.mesh.root.position.set(m.pos.x, m.pos.y, m.pos.z);
       }
     }
+
+    this.throwableSystem?.reset();
+    if (this.mapId === 'orientation') {
+      this.inventory = [{ kind: 'pebble', count: 6 }];
+    } else {
+      this.inventory = [{ kind: 'pebble', count: 4 }];
+    }
+    this.hud.update({
+      pebbleCount: this.throwableSystem?.pebbleCount ?? 4,
+      pebbleEquipped: false,
+    });
+    this.triggerRespawnFade(0.4);
 
     this.playerInput.setFreeze(false);
     this.playerInput.requestPointerLock();
@@ -2205,6 +2240,11 @@ export class GameSession {
           if (this.debugMode) {
             this.spawnHearingRing(ev.data);
           }
+          if (ev.data.kind === 'jump_in' && ev.data.loudness >= 0.7) {
+            this.water?.splashes.burst({ x: ev.data.position.x, y: ev.data.position.y, z: ev.data.position.z }, 2.0);
+            this.water?.rippleManager.spawnPlayerJumpSplash(ev.data.position.x, ev.data.position.z);
+            this.audio.play('splash_big', { gain: 0.95 });
+          }
           this.netSession?.publishLocalNoise(ev.data);
         } else if (ev.type === 'ripple') {
           this.water.onRipple(ev.data);
@@ -2224,6 +2264,12 @@ export class GameSession {
     // 3. Player Camera & Footsteps
     const prevSnap = this.simWorld.player.getPreviousSnapshot();
     const currSnap = this.simWorld.player.getSnapshot();
+
+    if (currSnap.waterFallActive) {
+      this.audio.setUnderwater(1.0);
+    } else {
+      this.audio.setUnderwater(0.0);
+    }
 
     this.playerCamera.update(dt, prevSnap, currSnap, renderAlpha, undefined, this.water.currentWaterY);
     if (this.openingTurn?.active) {
@@ -4202,8 +4248,12 @@ export class GameSession {
           break;
         }
         case 'KeyP': {
-          this.exitUnlocked = true;
-          this.hud.update({ objective: 'DEBUG: Exit unlocked instantly' });
+          if (this.callbacks.onPhotoMode) {
+            this.callbacks.onPhotoMode();
+          } else {
+            this.exitUnlocked = true;
+            this.hud.update({ objective: 'DEBUG: Exit unlocked instantly' });
+          }
           break;
         }
       }
@@ -4346,6 +4396,10 @@ export class GameSession {
     if (this.voidHoldTimeout !== null) {
       clearTimeout(this.voidHoldTimeout);
       this.voidHoldTimeout = null;
+    }
+    if (this.respawnFadeEl) {
+      this.respawnFadeEl.remove();
+      this.respawnFadeEl = null;
     }
     setMenuRoute();
     if (this.wakeLock) {

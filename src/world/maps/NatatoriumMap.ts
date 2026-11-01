@@ -50,6 +50,8 @@ import {
   makeExitWarningDecal,
   makePillarWayfindingArrow,
   makePuzzleDigitDecal,
+  makeHandwrittenWarningGraffiti,
+  makeRouteArrowDecal,
 } from '../../procedural/textures/GraffitiDecals.js';
 import type { LightStreak } from '../../game/water/WaterMaterial.js';
 
@@ -839,6 +841,129 @@ export const NatatoriumMap: MapDefinition = {
     exitWarningFloor.position.set(0.0, 0.39, -42.0);
     exitWarningFloor.name = 'ExitWarningFloor';
     instance.root.add(exitWarningFloor);
+
+    // ──────────────────────────────────────────────────────────────────────────
+    // In-World Wayfinding: Handwritten "DONT SPLASH, IT KNOWS" Warnings (4-6 points)
+    // and Navmesh-Validated Route Decision Arrows (Prompt 8 Task 3)
+    // ──────────────────────────────────────────────────────────────────────────
+
+    function validateArrowDirection(
+      x: number,
+      z: number,
+      symbol: '>' | '<' | '^' | 'v',
+      walls: BoxDef[],
+    ): '>' | '<' | '^' | 'v' {
+      const dirMap: Record<string, { dx: number; dz: number }> = {
+        '>': { dx: 1, dz: 0 },
+        '<': { dx: -1, dz: 0 },
+        '^': { dx: 0, dz: -1 },
+        'v': { dx: 0, dz: 1 },
+      };
+      const check = (sym: '>' | '<' | '^' | 'v'): boolean => {
+        const { dx, dz } = dirMap[sym]!;
+        for (let t = 0.5; t <= 2.5; t += 0.5) {
+          const tx = x + dx * t;
+          const tz = z + dz * t;
+          for (const w of walls) {
+            if (w.isWall && tx >= w.min.x && tx <= w.max.x && tz >= w.min.z && tz <= w.max.z && w.max.y > 0.5) {
+              return false;
+            }
+          }
+        }
+        return true;
+      };
+
+      if (check(symbol)) return symbol;
+      const candidates: ('>' | '<' | '^' | 'v')[] = ['^', '>', '<', 'v'];
+      for (const c of candidates) {
+        if (check(c)) return c;
+      }
+      return symbol;
+    }
+
+    // High-visibility warning graffiti along the critical path (respecting 0.15m tile grid)
+    const warningPoints: Array<{
+      id: string;
+      x: number;
+      y: number;
+      z: number;
+      isFloor: boolean;
+      rotY: number;
+      arrowDir: 'left' | 'right' | 'up' | 'down' | 'none';
+      text?: string;
+    }> = [
+      // 1. Near spawn / Foyer deck boundary
+      { id: 'Warning_Spawn', x: -7.85, y: 1.6, z: 46.5, isFloor: false, rotY: Math.PI / 2, arrowDir: 'right' },
+      // 2. Before first deep water crossing (Zone A low arch/stepping-stone rim)
+      { id: 'Warning_FirstCrossing', x: 0.0, y: 0.385, z: 34.5, isFloor: true, rotY: Math.PI, arrowDir: 'up' },
+      // 3. Middle Pillar Hall entrance / Palm arch fork
+      { id: 'Warning_PillarHall', x: -6.0, y: 1.6, z: 22.0, isFloor: false, rotY: 0, arrowDir: 'left' },
+      // 4. At Trench Landmark (narrow trench rim where creature gets blocked)
+      { id: 'Warning_Trench', x: 0.0, y: 0.385, z: -11.5, isFloor: true, rotY: Math.PI, arrowDir: 'down' },
+      // 5. Approaching lit Arched Checkpoint / S-bend Corridor
+      { id: 'Warning_ArchedCheckpoint', x: -2.0, y: 1.6, z: -43.48, isFloor: false, rotY: 0, arrowDir: 'right' },
+      // 6. Near Floodgate / Plant Room exit keypad door
+      { id: 'Warning_Floodgate', x: 0.0, y: 1.8, z: -53.2, isFloor: false, rotY: 0, arrowDir: 'up' },
+    ];
+
+    for (const wp of warningPoints) {
+      // Snap positions to 0.15m tile grid
+      const gridX = Math.round(wp.x / 0.15) * 0.15;
+      const gridZ = Math.round(wp.z / 0.15) * 0.15;
+      const wTex = makeHandwrittenWarningGraffiti({
+        text: wp.text ?? 'DONT SPLASH, IT KNOWS',
+        arrowDir: wp.arrowDir,
+        seed: layout.seed + Math.round(gridZ * 10),
+      });
+      const wMesh = DecalSystem.createWallDecalMesh(wTex, 2.6, 1.3);
+      if (wp.isFloor) {
+        wMesh.rotation.x = -Math.PI * 0.5;
+        wMesh.rotation.z = wp.rotY;
+        wMesh.position.set(gridX, wp.y, gridZ);
+      } else {
+        wMesh.rotation.y = wp.rotY;
+        wMesh.position.set(gridX, wp.y, gridZ);
+      }
+      wMesh.name = `Graffiti_${wp.id}`;
+      instance.root.add(wMesh);
+    }
+
+    // Flavor handwritten scrawls ("IT HEARS THE WATER" + Tallies)
+    const hearsWaterTex = makeHandwrittenWarningGraffiti({
+      text: 'IT HEARS THE WATER',
+      arrowDir: 'none',
+      seed: layout.seed + 77,
+    });
+    const hearsWaterMesh = DecalSystem.createWallDecalMesh(hearsWaterTex, 2.4, 1.2);
+    hearsWaterMesh.position.set(-4.5, 0.385, 20.0);
+    hearsWaterMesh.rotation.x = -Math.PI * 0.5;
+    hearsWaterMesh.rotation.z = Math.PI;
+    hearsWaterMesh.name = 'Graffiti_Flavor_HearsWater';
+    instance.root.add(hearsWaterMesh);
+
+    // Route decision arrows validated with navmesh raycast
+    const routeDecisions: Array<{ x: number; z: number; targetDir: '>' | '<' | '^' | 'v' }> = [
+      { x: 0.0, z: 43.5, targetDir: '^' },      // Foyer stepping stones forward
+      { x: 0.0, z: 35.0, targetDir: '^' },      // Stepping stone 2 forward across gap
+      { x: 0.0, z: 18.0, targetDir: '>' },      // Mid-hall fork to East path
+      { x: -6.0, z: 24.0, targetDir: '<' },     // Colonnade to Pillar #1
+      { x: 0.0, z: -14.0, targetDir: '^' },     // Along trench rim
+      { x: -2.0, z: -46.0, targetDir: '>' },    // Into S-bend corridor
+      { x: 0.0, z: -55.0, targetDir: '^' },     // To final floodgate door
+    ];
+
+    for (let i = 0; i < routeDecisions.length; i++) {
+      const rd = routeDecisions[i]!;
+      const validDir = validateArrowDirection(rd.x, rd.z, rd.targetDir, layout.walls);
+      const gridX = Math.round(rd.x / 0.15) * 0.15;
+      const gridZ = Math.round(rd.z / 0.15) * 0.15;
+      const arrowTex = makeRouteArrowDecal({ symbol: validDir, seed: layout.seed + i });
+      const arrowMesh = DecalSystem.createWallDecalMesh(arrowTex, 1.2, 1.2);
+      arrowMesh.rotation.x = -Math.PI * 0.5;
+      arrowMesh.position.set(gridX, 0.388, gridZ);
+      arrowMesh.name = `RouteArrow_${i + 1}`;
+      instance.root.add(arrowMesh);
+    }
 
     // Stencil Puzzle Digits on the 4 Code Pillars at y = 1.1m above waterline
     for (const pil of layout.pillars) {

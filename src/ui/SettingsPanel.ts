@@ -400,6 +400,14 @@ export class SettingsPanel {
 
           <div class="setting-row">
             <div>
+              <div class="setting-label">PORTRAIT / STREAMER MODE</div>
+              <div class="setting-sub">Locks 9:16 layout, safe below facecam</div>
+            </div>
+            <input id="set-streamermode" type="checkbox" ${this.settings.accessibility?.streamerMode ? 'checked' : ''} class="setting-toggle">
+          </div>
+
+          <div class="setting-row">
+            <div>
               <div class="setting-label">UI SCALE: <span id="lbl-uiscale">${Math.round((this.settings.accessibility?.uiScale ?? 1.0) * 100)}%</span></div>
               <div class="setting-sub">Scale on-screen interface text and elements</div>
             </div>
@@ -727,6 +735,15 @@ export class SettingsPanel {
           this.settings.accessibility = { reducedMotion: 'system', uiScale: 1.0, highContrast: false };
         }
         this.settings.accessibility.cinematic = cinematic.checked;
+        this.liveApply();
+      });
+
+      const streamerMode = this.el.querySelector('#set-streamermode') as HTMLInputElement;
+      streamerMode?.addEventListener('change', () => {
+        if (!this.settings.accessibility) {
+          this.settings.accessibility = { reducedMotion: 'system', uiScale: 1.0, highContrast: false };
+        }
+        this.settings.accessibility.streamerMode = streamerMode.checked;
         this.liveApply();
       });
 

@@ -37,6 +37,7 @@ export interface PlayerMotorState {
   depth: number;
   mantling: boolean;
   agitation: number;
+  waterFallActive?: boolean;
 }
 
 export type PlayerSnapshot = PlayerMotorState;
@@ -86,6 +87,8 @@ export class PlayerMotor {
 
   wet = false;
   depth = 0;
+  public waterFallActive = false;
+  public waterFallTimer = 0;
   private wasWet = false;
   private wasOnGround = true;
 
@@ -144,6 +147,7 @@ export class PlayerMotor {
     out.depth = this.depth;
     out.mantling = this.mantle.active;
     out.agitation = this.agitation;
+    out.waterFallActive = this.waterFallActive;
   }
 
   getState(): PlayerMotorState {
@@ -215,6 +219,13 @@ export class PlayerMotor {
       this.jumpCooldownTimer = Math.max(0, this.jumpCooldownTimer - dt);
     }
 
+    if (this.waterFallTimer > 0) {
+      this.waterFallTimer = Math.max(0, this.waterFallTimer - dt);
+      if (this.waterFallTimer <= 0) {
+        this.waterFallActive = false;
+      }
+    }
+
     // 1. Look orientation
     this.yaw += intent.lookDeltaYaw || 0;
     this.pitch = Math.max(-1.48, Math.min(1.48, this.pitch + (intent.lookDeltaPitch || 0)));
@@ -236,12 +247,15 @@ export class PlayerMotor {
 
     // 5. Water entry detection (from air)
     if (!this.wasWet && this.wet) {
-      const isHardFall = !this.onGround && this.vel.y < -2.0;
-      const fallSpeed = Math.abs(this.vel.y);
-      const loudness = isHardFall ? Math.min(1.0, 0.5 + fallSpeed * 0.1) : 0.35;
+      const isHardFall = (!this.onGround && this.vel.y < -2.0) || this.depth > 0.8;
+      const loudness = isHardFall ? 0.75 : 0.35;
       events.pushNoise(`noise_splash_${simTime}`, 'jump_in', this.pos.x, waterY, this.pos.z, loudness, this.playerId, simTime);
       events.pushRipple(this.pos.x, waterY, this.pos.z, isHardFall ? 1.0 : 0.5, this.playerId, simTime);
       this.recordLoudness(loudness);
+      if (isHardFall) {
+        this.waterFallActive = true;
+        this.waterFallTimer = 0.5;
+      }
     }
     this.wasWet = this.wet;
 
@@ -434,28 +448,44 @@ export class PlayerMotor {
       this.pos.x = newX;
       this.pos.z = newZ;
 
-      // 10d. Auto-Mantle Ledge Assist:
-      // Smoothly step/mantle up onto dry platform (y = 0.38m) when jumping from water within 0.18m of top surface (y >= 0.20m).
+      // 10d. Auto-Mantle & Scramble-Out Assist:
+      // Smoothly step/mantle up onto dry platform (y = 0.38m) when jumping or moving in water within 1.2m reach.
       if (this.wet) {
-        const fX = dSin(this.yaw);
-        const fZ = -dCos(this.yaw);
-        const probeDist = 0.45;
-        const probeX = this.pos.x + fX * probeDist;
-        const probeZ = this.pos.z + fZ * probeDist;
-        const probeGroundY = this.sampleGroundHeight(probeX, probeZ, ground, colliders);
+        const angles = [0, 0.35, -0.35];
+        const probeDistances = [0.45, 0.75, 1.05, 1.2];
+        let foundLedge = false;
 
-        if (probeGroundY >= 0.30 && probeGroundY <= 0.48) {
-          const distToTop = probeGroundY - this.pos.y;
-          if (distToTop <= 0.18 && distToTop >= -0.10 && this.pos.y >= 0.20) {
-            this.pos.x = probeX;
-            this.pos.z = probeZ;
-            this.pos.y = probeGroundY;
-            this.vel.x = 0;
-            this.vel.y = 0;
-            this.vel.z = 0;
-            this.onGround = true;
-            this.wet = false;
-            events.pushNoise(`noise_automantle_${simTime}`, 'mantle', this.pos.x, this.pos.y, this.pos.z, 0.25, this.playerId, simTime);
+        for (const ang of angles) {
+          if (foundLedge) break;
+          const curYaw = this.yaw + ang;
+          const fX = dSin(curYaw);
+          const fZ = -dCos(curYaw);
+
+          for (const probeDist of probeDistances) {
+            const probeX = this.pos.x + fX * probeDist;
+            const probeZ = this.pos.z + fZ * probeDist;
+            const probeGroundY = this.sampleGroundHeight(probeX, probeZ, ground, colliders);
+
+            if (probeGroundY >= 0.25 && probeGroundY <= 0.60) {
+              const distToTop = probeGroundY - this.pos.y;
+              const isMoving = intent.moveZ < -0.1 || Math.abs(intent.moveX) > 0.1;
+              const canScramble = (intent.jump && distToTop <= 1.4) || (distToTop <= 0.35 && (isMoving || distToTop <= 0.18));
+              if (distToTop >= 0.05 && canScramble) {
+                this.pos.x = probeX;
+                this.pos.z = probeZ;
+                this.pos.y = probeGroundY;
+                this.vel.x = 0;
+                this.vel.y = 0;
+                this.vel.z = 0;
+                this.onGround = true;
+                this.wet = false;
+                this.waterFallActive = false;
+                this.waterFallTimer = 0;
+                events.pushNoise(`noise_automantle_${simTime}`, 'mantle', this.pos.x, this.pos.y, this.pos.z, 0.25, this.playerId, simTime);
+                foundLedge = true;
+                break;
+              }
+            }
           }
         }
       }
@@ -626,12 +656,15 @@ export class PlayerMotor {
     simTime: number,
     events: EventRingBuffer,
   ): boolean {
-    const fwdX = dSin(this.yaw);
-    const fwdZ = -dCos(this.yaw);
+    const sampleDistances = [0.6, 0.85, 1.15, 0.45];
+    const angles = [0, 0.35, -0.35];
 
-    // Test multiple sample distances ahead to catch nearby edges reliably (0.6m primary, then 0.75m, then 0.45m)
-    const sampleDistances = [0.6, 0.75, 0.45];
-    for (const dist of sampleDistances) {
+    for (const ang of angles) {
+      const curYaw = this.yaw + ang;
+      const fwdX = dSin(curYaw);
+      const fwdZ = -dCos(curYaw);
+
+      for (const dist of sampleDistances) {
       const checkX = this.pos.x + fwdX * dist;
       const checkZ = this.pos.z + fwdZ * dist;
 
@@ -688,6 +721,7 @@ export class PlayerMotor {
       this.recordLoudness(0.5);
       return true;
     }
+  }
 
     return false;
   }

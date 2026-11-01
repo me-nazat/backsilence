@@ -305,9 +305,46 @@ export class SimWorld {
     this.simTime = 0;
     this.noiseSequence = 0;
     this.director.resetOnRetry(0);
+    this.events.clear();
 
     for (const monster of this.monsters) {
-      const distantCell = this.nav.findDistantCell(playerSpawn.x, playerSpawn.z, 60.0);
+      // Find a walkable distant cell in the water nav mesh:
+      // Try 60m (for large poolrooms maps), cascading down to 40m, 25m, 15m.
+      let distantCell = this.nav.findDistantCell(playerSpawn.x, playerSpawn.z, 60.0);
+      let d = distantCell ? dHypot(distantCell.x - playerSpawn.x, distantCell.z - playerSpawn.z) : 0;
+      if (!distantCell || d < 15.0) {
+        distantCell = this.nav.findDistantCell(playerSpawn.x, playerSpawn.z, 40.0);
+        d = distantCell ? dHypot(distantCell.x - playerSpawn.x, distantCell.z - playerSpawn.z) : 0;
+      }
+      if (!distantCell || d < 15.0) {
+        distantCell = this.nav.findDistantCell(playerSpawn.x, playerSpawn.z, 25.0);
+        d = distantCell ? dHypot(distantCell.x - playerSpawn.x, distantCell.z - playerSpawn.z) : 0;
+      }
+      if (!distantCell || d < 15.0) {
+        distantCell = this.nav.findDistantCell(playerSpawn.x, playerSpawn.z, 15.0);
+        d = distantCell ? dHypot(distantCell.x - playerSpawn.x, distantCell.z - playerSpawn.z) : 0;
+      }
+      if (!distantCell || d < 15.0) {
+        let maxD = -1;
+        let best: { x: number; z: number } | null = null;
+        for (let gz = 0; gz < this.nav.depth; gz++) {
+          for (let gx = 0; gx < this.nav.width; gx++) {
+            if (this.nav.isWalkable(gx, gz)) {
+              const world = this.nav.gridToWorld(gx, gz);
+              const dist = dHypot(world.x - playerSpawn.x, world.z - playerSpawn.z);
+              if (dist >= 15.0 && dist > maxD) {
+                best = world;
+                maxD = dist;
+              } else if (dist > maxD) {
+                maxD = dist;
+                best = world;
+              }
+            }
+          }
+        }
+        if (best) distantCell = best;
+      }
+
       if (distantCell) {
         monster.pos.x = distantCell.x;
         monster.pos.z = distantCell.z;

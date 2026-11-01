@@ -81,6 +81,7 @@ export function defaultSettings(): Settings {
       minimalHud: false,
       showMoreHud: false,
       cinematic: false,
+      streamerMode: false,
     },
     player: {
       name: '',
@@ -166,6 +167,7 @@ export function clampSettings(s: Settings): Settings {
       minimalHud: Boolean(acc?.minimalHud),
       showMoreHud: Boolean(acc?.showMoreHud),
       cinematic: Boolean(acc?.cinematic),
+      streamerMode: Boolean(acc?.streamerMode),
     },
     player: {
       name: typeof p?.name === 'string' ? p.name.slice(0, 32) : '',

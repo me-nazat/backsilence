@@ -628,3 +628,176 @@ export function makePuzzleDigitDecal(
   decalCache.set(cacheKey, texture);
   return texture;
 }
+
+export interface WarningGraffitiOptions {
+  text?: string;
+  arrowDir?: 'left' | 'right' | 'up' | 'down' | 'none';
+  seed?: number;
+  width?: number;
+  height?: number;
+}
+
+/**
+ * Handwritten Warning Graffiti on tiled walls (Video 2 00:08, 00:32, 01:10).
+ * "DONT SPLASH, IT KNOWS" in dark marker with directional arrow.
+ */
+export function makeHandwrittenWarningGraffiti(options: WarningGraffitiOptions = {}): CanvasTexture {
+  const width = options.width ?? 1024;
+  const height = options.height ?? 512;
+  const seed = options.seed ?? 101;
+  const text = options.text ?? 'DONT SPLASH, IT KNOWS';
+  const arrowDir = options.arrowDir ?? 'right';
+
+  const cacheKey = `warning_graffiti_${text}_${arrowDir}_${seed}_${width}_${height}`;
+  if (decalCache.has(cacheKey)) {
+    return decalCache.get(cacheKey)!;
+  }
+
+  const pooled = acquireCanvas(width, height);
+  const ctx = pooled.ctx;
+  ctx.clearRect(0, 0, width, height);
+
+  const rng = new Rng(seed);
+  const color = '#0d0b06';
+
+  const lines = text.split('\n');
+  if (lines.length === 1 && text === 'DONT SPLASH, IT KNOWS') {
+    lines[0] = 'DONT SPLASH,';
+    lines.push('IT KNOWS');
+  }
+
+  let curY = height * 0.22;
+  for (let li = 0; li < lines.length; li++) {
+    const line = lines[li]!;
+    const fontSize = li === 0 ? 54 : 64;
+    const textRes = layoutText(line, { size: fontSize, tracking: 0.1, rng: rng.next.bind(rng), wobble: 0.05 });
+    const shiftX = Math.max(40, (width - textRes.width) * 0.35);
+    const strokes = textRes.polylines.map((s) => s.map(([x, y]) => [x + shiftX, y + curY] as Point2D));
+    drawMarker(ctx, strokes, { width: 12.0, color, seed: seed + li });
+
+    if (li === 1) {
+      const uStrokes: Polyline[] = [
+        [[shiftX - 10, curY + fontSize + 20], [shiftX + textRes.width + 10, curY + fontSize + 25]],
+      ];
+      drawMarker(ctx, uStrokes, { width: 9.0, color, seed: seed + 50 });
+    }
+    curY += fontSize + 36;
+  }
+
+  if (arrowDir !== 'none') {
+    const arrowStrokes: Polyline[] = [];
+    if (arrowDir === 'right') {
+      const ax = width - 180;
+      const ay = height * 0.65;
+      arrowStrokes.push([[ax - 120, ay], [ax, ay]]);
+      arrowStrokes.push([[ax - 50, ay - 45], [ax, ay], [ax - 50, ay + 45]]);
+    } else if (arrowDir === 'left') {
+      const ax = 140;
+      const ay = height * 0.65;
+      arrowStrokes.push([[ax + 120, ay], [ax, ay]]);
+      arrowStrokes.push([[ax + 50, ay - 45], [ax, ay], [ax + 50, ay + 45]]);
+    } else if (arrowDir === 'up') {
+      const ax = width * 0.5;
+      const ay = height * 0.15;
+      arrowStrokes.push([[ax, ay + 100], [ax, ay]]);
+      arrowStrokes.push([[ax - 40, ay + 40], [ax, ay], [ax + 40, ay + 40]]);
+    } else if (arrowDir === 'down') {
+      const ax = width * 0.5;
+      const ay = height * 0.85;
+      arrowStrokes.push([[ax, ay - 100], [ax, ay]]);
+      arrowStrokes.push([[ax - 40, ay - 40], [ax, ay], [ax + 40, ay - 40]]);
+    }
+    if (arrowStrokes.length > 0) {
+      drawMarker(ctx, arrowStrokes, { width: 13.0, color, seed: seed + 80 });
+    }
+  }
+
+  for (let d = 0; d < 3; d++) {
+    const dx = rng.range(width * 0.2, width * 0.8);
+    const dy = rng.range(height * 0.5, height * 0.7);
+    const len = rng.range(15, 35);
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.moveTo(dx, dy);
+    ctx.lineTo(dx + (rng.next() - 0.5) * 2, dy + len);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(dx, dy + len, 2.8, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  const texture = new CanvasTexture(pooled.canvas as HTMLCanvasElement);
+  texture.wrapS = ClampToEdgeWrapping;
+  texture.wrapT = ClampToEdgeWrapping;
+  texture.minFilter = LinearFilter;
+  texture.magFilter = LinearFilter;
+  texture.colorSpace = SRGBColorSpace;
+  texture.generateMipmaps = true;
+  texture.needsUpdate = true;
+
+  decalCache.set(cacheKey, texture);
+  return texture;
+}
+
+/**
+ * Bold painted black arrow (>, <, ^, v) for wayfinding route decisions on walls/tiles.
+ */
+export function makeRouteArrowDecal(options: {
+  symbol?: '>' | '<' | '^' | 'v';
+  width?: number;
+  height?: number;
+  seed?: number;
+} = {}): CanvasTexture {
+  const symbol = options.symbol ?? '>';
+  const width = options.width ?? 512;
+  const height = options.height ?? 512;
+  const seed = options.seed ?? 42;
+
+  const cacheKey = `route_arrow_${symbol}_${seed}_${width}_${height}`;
+  if (decalCache.has(cacheKey)) {
+    return decalCache.get(cacheKey)!;
+  }
+
+  const pooled = acquireCanvas(width, height);
+  const ctx = pooled.ctx;
+  ctx.clearRect(0, 0, width, height);
+
+  const color = '#0d0b06';
+  const strokes: Polyline[] = [];
+  const cx = width * 0.5;
+  const cy = height * 0.5;
+
+  if (symbol === '>') {
+    strokes.push([[cx - 150, cy], [cx + 150, cy]]);
+    strokes.push([[cx + 60, cy - 90], [cx + 150, cy], [cx + 60, cy + 90]]);
+    strokes.push([[cx - 10, cy - 70], [cx + 80, cy], [cx - 10, cy + 70]]);
+  } else if (symbol === '<') {
+    strokes.push([[cx + 150, cy], [cx - 150, cy]]);
+    strokes.push([[cx - 60, cy - 90], [cx - 150, cy], [cx - 60, cy + 90]]);
+    strokes.push([[cx + 10, cy - 70], [cx - 80, cy], [cx + 10, cy + 70]]);
+  } else if (symbol === '^') {
+    strokes.push([[cx, cy + 150], [cx, cy - 150]]);
+    strokes.push([[cx - 90, cy - 60], [cx, cy - 150], [cx + 90, cy - 60]]);
+    strokes.push([[cx - 70, cy + 10], [cx, cy - 80], [cx + 70, cy + 10]]);
+  } else {
+    // 'v'
+    strokes.push([[cx, cy - 150], [cx, cy + 150]]);
+    strokes.push([[cx - 90, cy + 60], [cx, cy + 150], [cx + 90, cy + 60]]);
+    strokes.push([[cx - 70, cy - 10], [cx, cy + 80], [cx + 70, cy - 10]]);
+  }
+
+  drawMarker(ctx, strokes, { width: 22.0, color, seed });
+
+  const texture = new CanvasTexture(pooled.canvas as HTMLCanvasElement);
+  texture.wrapS = ClampToEdgeWrapping;
+  texture.wrapT = ClampToEdgeWrapping;
+  texture.minFilter = LinearFilter;
+  texture.magFilter = LinearFilter;
+  texture.colorSpace = SRGBColorSpace;
+  texture.generateMipmaps = true;
+  texture.needsUpdate = true;
+
+  decalCache.set(cacheKey, texture);
+  return texture;
+}

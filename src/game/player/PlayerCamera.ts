@@ -146,7 +146,10 @@ export class PlayerCamera {
 
     // 8. Camera Position composition
     let camY = _interpPos.y + this.currentEyeY + bobVertical + idleSway + this.dipOffset + jumpDip + shakeY;
-    if (waterY !== undefined && currSnapshot.wet && (currSnapshot.depth === undefined || currSnapshot.depth <= 1.55)) {
+    if (currSnapshot.waterFallActive && waterY !== undefined) {
+      // Water-fall submersion dip below surface (0.5s)
+      camY = Math.min(camY, waterY - 0.22);
+    } else if (waterY !== undefined && currSnapshot.wet && (currSnapshot.depth === undefined || currSnapshot.depth <= 1.55)) {
       // Keep player head above water line in shallow / waist-deep water (avoid false submersion dip)
       camY = Math.max(camY, waterY + 0.18);
     }
