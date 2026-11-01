@@ -1,6 +1,6 @@
 # BackSilence: Balance Bot Swarm Calibration Report
 
-**Execution Timestamp:** 2026-10-24T04:00:23.356Z  
+**Execution Timestamp:** 2026-11-01T13:04:27.711Z  
 **Scope:** 11 maps x 6 bot strategies x 200 seeds = 13,200 simulated runs  
 **Environment:** Headless SimWorld + EncounterDirector on Node  
 
@@ -39,11 +39,19 @@
   },
   "natatorium": {
     "parSeconds": 240,
-    "noiseBudget": 8
+    "noiseBudget": 8,
+    "firstContactMin": 12,
+    "firstContactMax": 16,
+    "firstContactDistMin": 10,
+    "firstContactDistMax": 14
   },
   "poolrooms": {
     "parSeconds": 280,
-    "noiseBudget": 9
+    "noiseBudget": 9,
+    "firstContactMin": 20,
+    "firstContactMax": 28,
+    "firstContactDistMin": 10,
+    "firstContactDistMax": 15
   },
   "drowned_school": {
     "parSeconds": 320,

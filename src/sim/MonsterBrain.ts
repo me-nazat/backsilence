@@ -75,8 +75,8 @@ export class MonsterBrain {
   static readonly TURN_RATE_HUNT = 16.0; // rad/s
 
   // Ranges
-  static readonly TOUCH_RANGE = 1.15; // physical body contact
-  static readonly ATTACK_RANGE = 2.35; // strike reach
+  static readonly TOUCH_RANGE = 1.15; // physical body contact (0.68m monster + ~0.45m player)
+  static readonly ATTACK_RANGE = 2.35; // strike reach (when noisy/moving)
   static readonly LUNGE_RANGE = 3.8; // high-speed hydro-lunge pounce range
 
   readonly hearingMul: number;
@@ -284,7 +284,7 @@ export class MonsterBrain {
     dt: number,
     playerPos: Vec3,
     nav: NavGrid,
-    _colliders: ColliderSet,
+    colliders: ColliderSet,
     events: EventRingBuffer,
     hearingCtx: HearingContext,
     simTime: number,
@@ -343,10 +343,18 @@ export class MonsterBrain {
           return;
         }
 
-        if (this.monsterNav && (this.state === 'HUNT' || this.state === 'ALERTED')) {
-          // PROMPT 3A & 3B Advanced Monster Navigation & Acoustic Rules during charge/hunt
+        // Direct physical body touch contact (< 0.85m) in any active state
+        if (distToPlayer <= MonsterBrain.TOUCH_RANGE && vertDistToPlayer <= 2.2) {
+          if (!this.isSighting) {
+            this.triggerAttack(events, simTime);
+            return;
+          }
+        }
+
+        if (this.state === 'HUNT' || this.state === 'ALERTED') {
+          // Advanced Monster Navigation & Acoustic Rules during charge/hunt
           if (isPlayerMoving) {
-            // Actively moving in water: lethal strike within ATTACK_RANGE
+            // Actively moving / splashing in water: lethal strike within ATTACK_RANGE
             if (distToPlayer <= MonsterBrain.ATTACK_RANGE && vertDistToPlayer <= 2.2) {
               if (!this.isSighting) {
                 this.triggerAttack(events, simTime);
@@ -354,74 +362,62 @@ export class MonsterBrain {
               }
             }
           } else {
-            // Frozen still in water during charge: ONLY killed on direct body impact (< 0.65m)
-            if (distToPlayer <= 0.65 && vertDistToPlayer <= 2.2) {
-              if (!this.isSighting) {
-                this.triggerAttack(events, simTime);
-                return;
-              }
-            }
-            // Gentle tangential steering deflection brushing past player's shoulder (0.65m - 2.5m)
-            if (distToPlayer >= 0.65 && distToPlayer <= 2.5) {
+            // Frozen still in water during charge: ONLY killed on direct body impact (< TOUCH_RANGE)
+            // Gentle tangential steering deflection brushing past player's shoulder (0.85m - 2.5m)
+            if (distToPlayer >= MonsterBrain.TOUCH_RANGE && distToPlayer <= 2.5) {
               const curSpeed = dHypot(this.vel.x, this.vel.z);
               if (curSpeed > 0.5) {
                 const toPX = playerPos.x - this.pos.x;
                 const toPZ = playerPos.z - this.pos.z;
                 const tanX = -toPZ / distToPlayer;
                 const tanZ = toPX / distToPlayer;
-                const nudge = 5.0 * (1.0 - (distToPlayer - 0.65) / 1.85);
+                const nudge = 5.0 * (1.0 - (distToPlayer - MonsterBrain.TOUCH_RANGE) / (2.5 - MonsterBrain.TOUCH_RANGE));
                 this.pos.x += tanX * nudge * dt;
                 this.pos.z += tanZ * nudge * dt;
               }
             }
           }
-        } else {
-          // Standard / WANDER / BLOCKED / touch contact check
+        } else if (this.state === 'BLOCKED') {
           const inNarrowTrench = this.monsterNav ? this.monsterNav.isInsideNarrowTrench(playerPos.x, playerPos.z) : false;
-          if (this.state === 'BLOCKED') {
-            if (distToPlayer <= (inNarrowTrench ? 1.45 : MonsterBrain.ATTACK_RANGE) && vertDistToPlayer <= 2.2) {
-              if (!this.isSighting) {
-                this.triggerAttack(events, simTime);
-                return;
-              }
-            }
-          }
-          // Touch check: if player touches the monster (< 1.15m) in any active state
-          if (distToPlayer <= MonsterBrain.TOUCH_RANGE && vertDistToPlayer <= 2.2) {
+          if (distToPlayer <= (inNarrowTrench ? 1.45 : MonsterBrain.ATTACK_RANGE) && vertDistToPlayer <= 2.2) {
             if (!this.isSighting) {
               this.triggerAttack(events, simTime);
               return;
             }
           }
-          // Attack reach check: if alerted, hunting, investigating, or blocked (< 2.35m)
-          if (
-            (this.state === 'ALERTED' || this.state === 'HUNT' || this.state === 'INVESTIGATE' || this.state === 'BLOCKED') &&
-            distToPlayer <= MonsterBrain.ATTACK_RANGE &&
-            vertDistToPlayer <= 2.2
-          ) {
-            if (!this.isSighting) {
-              this.triggerAttack(events, simTime);
-              return;
+        } else {
+          // In WANDER, PATROL, or INVESTIGATE:
+          // Monster is 100% blind; a silent player (> TOUCH_RANGE) is NEVER attacked.
+          // If approaching stationary player, gentle tangential steering deflection allows natural near-misses.
+          if (!isPlayerMoving && distToPlayer >= MonsterBrain.TOUCH_RANGE && distToPlayer <= 2.5) {
+            const curSpeed = dHypot(this.vel.x, this.vel.z);
+            if (curSpeed > 0.3) {
+              const toPX = playerPos.x - this.pos.x;
+              const toPZ = playerPos.z - this.pos.z;
+              const tanX = -toPZ / distToPlayer;
+              const tanZ = toPX / distToPlayer;
+              const nudge = 3.5 * (1.0 - (distToPlayer - MonsterBrain.TOUCH_RANGE) / (2.5 - MonsterBrain.TOUCH_RANGE));
+              this.pos.x += tanX * nudge * dt;
+              this.pos.z += tanZ * nudge * dt;
             }
           }
-        }
-      }
-    }
 
-    // 2.5. Instant Water Acoustic Aggro:
-    // If the player touches or enters water and is not perched on dry tile:
-    // - If moving/wading, acoustic disturbance alerts and charges immediately.
-    // - If right next to the monster (<= 3.5m) in water, senses physical displacement.
-    if (isPlayerInWater && !isPlayerPerched && !this.isSighting && isPlayerMoving) {
-      this.agitation = 1.0;
-      if (this.state === 'WANDER' || this.state === 'INVESTIGATE' || this.state === 'LURK') {
-        this.enterAlerted(playerPos, 1.0, simTime);
-      } else if (this.state === 'ALERTED') {
-        this.currentTarget = { ...playerPos };
-      } else if (this.state === 'HUNT') {
-        const targetDist = this.currentTarget ? dHypot(playerPos.x - this.currentTarget.x, playerPos.z - this.currentTarget.z) : 999;
-        if (targetDist > 1.2 || this.currentPathIndex >= this.currentPath.length) {
-          this.updateHuntTargetInPlace(playerPos, 1.0, nav, simTime);
+          // Active wading movement in water: if acoustic wade sound can be heard, alert predator
+          if (this.state === 'WANDER' && isPlayerInWater && isPlayerMoving) {
+            const wadeNoise: NoiseEvent = {
+              id: `synth_wade_${simTime}`,
+              kind: 'wade',
+              position: playerPos,
+              loudness: 0.35,
+              sourcePlayerId: 'player',
+              t: simTime,
+            };
+            if (canHearNoise(wadeNoise, this.pos, this.hearingMul, hearingCtx, colliders)) {
+              this.enterAlerted(playerPos, 1.0, simTime);
+              this.agitation = 1.0;
+              return;
+            }
+          }
         }
       }
     }
@@ -515,17 +511,16 @@ export class MonsterBrain {
     // Ignore self-generated noises
     if (noise.sourcePlayerId === this.id) return false;
 
-    // Acoustic perception check: air attenuation + high-efficiency water shock transmission within 48m
-    const dx = noise.position.x - this.pos.x;
-    const dz = noise.position.z - this.pos.z;
-    const distToNoise = dHypot(dx, dz);
-    const isWaterSplash = noise.kind === 'splash' || (noise as unknown as { type?: string }).type === 'jump_in' || (noise.kind === 'wade' && noise.id.startsWith('noise_jump'));
-    const canHear = canHearNoise(noise, this.pos, this.hearingMul, hearingCtx, colliders) ||
-                    (isWaterSplash && distToNoise <= 48.0);
+    // Acoustic perception check strictly governed by ACOUSTIC_RULEBOOK.md
+    const canHear = canHearNoise(noise, this.pos, this.hearingMul, hearingCtx, colliders);
 
     if (!canHear) {
       return false;
     }
+
+    const dx = noise.position.x - this.pos.x;
+    const dz = noise.position.z - this.pos.z;
+    const isWaterSplash = noise.kind === 'splash' || (noise as unknown as { type?: string }).type === 'jump_in' || (noise.kind === 'wade' && noise.id.startsWith('noise_jump'));
 
     // Track consecutive loud splashes/noises within 6.0s window
     if (simTime - this.lastSplashTime < 6.0) {
@@ -766,27 +761,6 @@ export class MonsterBrain {
         events.pushFootfall(this.id, this.pos.x, this.pos.y, this.pos.z, 1.35, true, simTime);
         return;
       }
-
-      // Direct Line-of-Sight Water Charge within 28.0m (Blind creature: only runs when player actively moves in water)
-      if (
-        isPlayerInWater &&
-        isPlayerMoving &&
-        distToPlayer < 28.0 &&
-        (distToPlayer < 10.0 || this.astar.hasWalkableLineOfSight(this.pos, playerPos, nav, 0.25))
-      ) {
-        const targetYaw = dAtan2(dx, -dz);
-        this.yaw = this.steerTowards(this.yaw, targetYaw, MonsterBrain.TURN_RATE_HUNT * dt);
-        const nextX = this.pos.x + dSin(this.yaw) * speed * dt;
-        const nextZ = this.pos.z - dCos(this.yaw) * speed * dt;
-        if (nav.isWalkableWorld(nextX, nextZ)) {
-          this.pos.x = nextX;
-          this.pos.z = nextZ;
-          this.vel.x = dSin(this.yaw) * speed;
-          this.vel.z = -dCos(this.yaw) * speed;
-          events.pushFootfall(this.id, this.pos.x, this.pos.y, this.pos.z, speed / MonsterBrain.SPEED_HUNT, true, simTime);
-          return;
-        }
-      }
     }
 
     this.followPath(dt, speed, MonsterBrain.TURN_RATE_HUNT, nav, events, simTime);
@@ -796,12 +770,13 @@ export class MonsterBrain {
     if (dTarget < 0.9 || this.currentPathIndex >= this.currentPath.length) {
       if (playerPos && !isPlayerPerched && !this.isSighting && isPlayerInWater) {
         const dP = dHypot(playerPos.x - this.pos.x, playerPos.z - this.pos.z);
-        if (dP <= MonsterBrain.ATTACK_RANGE && Math.abs(playerPos.y - this.pos.y) <= 2.2) {
+        const lethalRange = isPlayerMoving ? MonsterBrain.ATTACK_RANGE : MonsterBrain.TOUCH_RANGE;
+        if (dP <= lethalRange && Math.abs(playerPos.y - this.pos.y) <= 2.2) {
           this.triggerAttack(events, simTime);
           return;
         }
       }
-      // Prompt 3B: Upon reaching splash point, rears up, roars, and transitions to investigate/retreat
+      // Reached splash point: roar and transition to investigate
       this.rearingT = 1.0;
       this.jawOpenT = 1.0;
       events.pushNoise(`noise_roar_${this.id}_${simTime}`, 'roar', this.pos.x, this.pos.y, this.pos.z, 0.95, this.id, simTime);
@@ -812,14 +787,18 @@ export class MonsterBrain {
   private enterInvestigate(): void {
     this.state = 'INVESTIGATE';
     this.investigatePhase = 'sniff';
-    // 4–8s investigation duration, shortened by agitation
-    this.stateTimer = 4.0 + (1.0 - this.agitation) * 4.0;
-    this.searchTimer = 10.0;
+    // 3–6s natural investigation per spec: ~1.8s sniff/listen, 3.0–4.0s slow search crawl
+    this.stateTimer = 1.8 + (1.0 - this.agitation) * 0.4;
+    this.searchTimer = 3.0 + (1.0 - this.agitation) * 1.0;
     this.vel.x = 0;
     this.vel.z = 0;
+    this.rearingT = 0; // head low, listening
+    this.jawOpenT = 0;
   }
 
   private stepInvestigate(dt: number, nav: NavGrid, events: EventRingBuffer, simTime: number): void {
+    this.rearingT = 0; // head low, listening
+    this.jawOpenT = Math.max(0, this.jawOpenT - dt * 2.0);
     if (this.investigatePhase === 'sniff') {
       this.vel.x = 0;
       this.vel.z = 0;
@@ -829,7 +808,7 @@ export class MonsterBrain {
         this.pickSearchWaypoint(nav);
       }
     } else {
-      // 10s search pattern within 12m of last noise at wander speed
+      // Slow search crawl around splash point (~5m radius); if silence continues, lose interest & return to PATROL/WANDER
       this.searchTimer -= dt;
       if (this.searchTimer <= 0) {
         this.enterWander(nav);
@@ -847,8 +826,8 @@ export class MonsterBrain {
     const origin = this.currentTarget ?? this.pos;
     const myComponent = nav.getComponentWorld(this.pos.x, this.pos.z);
     for (let attempts = 0; attempts < 16; attempts++) {
-      const rx = origin.x + this.rng.range(-12, 12);
-      const rz = origin.z + this.rng.range(-12, 12);
+      const rx = origin.x + this.rng.range(-5, 5);
+      const rz = origin.z + this.rng.range(-5, 5);
       if (nav.isWalkableWorld(rx, rz) && nav.getComponentWorld(rx, rz) === myComponent) {
         this.currentPath = this.astar.findPath(this.pos.x, this.pos.z, rx, rz);
         this.currentPathIndex = 0;

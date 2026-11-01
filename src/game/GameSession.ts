@@ -243,6 +243,8 @@ export class GameSession {
 
   // Stats tracking
   private timeSurvived = 0;
+  private sessionRunTime = 0;
+  private voidHoldTimeout: ReturnType<typeof setTimeout> | null = null;
   private noisesMade = 0;
   private closestCall = 999.0;
   private lastNearMissTime = 0;
@@ -803,7 +805,15 @@ export class GameSession {
             }
             this.audio.play('tape_rewind');
             this.postFX.triggerDeathRewind();
-            this.callbacks.onDeath(stats);
+            // Video timing: 1.0–1.5s dark/void hold before showing death screen UI
+            const voidHoldMs = 1200;
+            if (this.voidHoldTimeout !== null) {
+              clearTimeout(this.voidHoldTimeout);
+            }
+            this.voidHoldTimeout = setTimeout(() => {
+              this.voidHoldTimeout = null;
+              this.callbacks.onDeath(stats);
+            }, voidHoldMs);
           },
         },
         this.audio,
@@ -2024,6 +2034,10 @@ export class GameSession {
     }
     setGameRoute(this.mapId, this.seed, this.subMode);
     this.jumpscare.reset();
+    if (this.voidHoldTimeout !== null) {
+      clearTimeout(this.voidHoldTimeout);
+      this.voidHoldTimeout = null;
+    }
     this.playerInput.setFreeze(false);
 
     // Reset Sim & presentation
@@ -2201,6 +2215,7 @@ export class GameSession {
       this.stepSubsystems(this.FIXED_DT);
 
       this.timeSurvived += this.FIXED_DT;
+      this.sessionRunTime += this.FIXED_DT;
       this.accumulator -= this.FIXED_DT;
     }
 
@@ -2404,7 +2419,7 @@ export class GameSession {
       if (dist < 4.0) {
         void GamepadManager.getInstance().playRumble('near-miss');
       }
-      if (dist < 3.0 && !this.isDead && mSnap.state !== 'ATTACK' && performance.now() - this.lastNearMissTime > 4000) {
+      if (dist <= 5.0 && !this.isDead && mSnap.state !== 'ATTACK' && performance.now() - this.lastNearMissTime > 4000) {
         this.lastNearMissTime = performance.now();
         this.hud.showNearMiss(dist);
       }
@@ -2651,7 +2666,7 @@ export class GameSession {
       interactionPrompt: finalPrompt,
       promptHoldProgress: promptState.holdProgress,
       waterNoiseRadius: calculatedRadius,
-      runTimeMs: this.simWorld.simTime * 1000,
+      runTimeMs: this.sessionRunTime * 1000,
       pebbleCount: this.throwableSystem.pebbleCount,
       pebbleEquipped: this.throwableSystem.isEquipped,
       riskTag,
@@ -4328,6 +4343,10 @@ export class GameSession {
 
   dispose(): void {
     this.isDisposed = true;
+    if (this.voidHoldTimeout !== null) {
+      clearTimeout(this.voidHoldTimeout);
+      this.voidHoldTimeout = null;
+    }
     setMenuRoute();
     if (this.wakeLock) {
       try {
