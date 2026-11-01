@@ -8,6 +8,7 @@ import { MeshStandardMaterial } from 'three';
 import type { LayoutCtx, LayoutData, MapDefinition, PlatformDef, BoxDef, PropDef, StairDef, BuildEnv } from '../MapTypes.js';
 import type { MapInstance } from './MapInstance.js';
 import { TextureRegistry } from '../../procedural/textures/TextureRegistry.js';
+import { MaterialCache } from '../../graphics/MaterialCache.js';
 import { WATER_PROFILES } from '../../game/water/WaterProfile.js';
 import { buildStandardMapInstance } from './CommonMapBuilder.js';
 
@@ -313,39 +314,48 @@ export const DrainageCoreMap: MapDefinition = {
   },
 
   async build(layout: LayoutData, env: BuildEnv): Promise<MapInstance> {
-    const reg = TextureRegistry.getInstance();
-    const concrete = reg.getConcreteSet('tunnel', layout.seed);
-    const metal = reg.getRustMetalSet(layout.seed);
-
-    const platformMat = new MeshStandardMaterial({
-      map: metal.albedo,
-      roughnessMap: metal.roughness,
-      normalMap: metal.normal,
-      metalnessMap: metal.metalness,
-      roughness: 0.45,
-      metalness: 0.85,
-      envMapIntensity: 0.35,
-      vertexColors: true,
+    const cache = MaterialCache.getInstance(env.renderer as import('three').WebGLRenderer | undefined);
+    const platformMat = cache.getOrCreateMaterial('drainage_core:platform', () => {
+      const reg = TextureRegistry.getInstance();
+      const metal = reg.getRustMetalSet(42, 512);
+      return new MeshStandardMaterial({
+        map: metal.albedo,
+        roughnessMap: metal.roughness,
+        normalMap: metal.normal,
+        metalnessMap: metal.metalness,
+        roughness: 0.45,
+        metalness: 0.85,
+        envMapIntensity: 0.35,
+        vertexColors: true,
+      });
     });
 
-    const wallMat = new MeshStandardMaterial({
-      map: concrete.albedo,
-      roughnessMap: concrete.roughness,
-      normalMap: concrete.normal,
-      roughness: 0.85,
-      metalness: 0.05,
-      envMapIntensity: 0.35,
-      vertexColors: true,
+    const wallMat = cache.getOrCreateMaterial('drainage_core:wall', () => {
+      const reg = TextureRegistry.getInstance();
+      const concrete = reg.getConcreteSet('tunnel', 42, 512);
+      return new MeshStandardMaterial({
+        map: concrete.albedo,
+        roughnessMap: concrete.roughness,
+        normalMap: concrete.normal,
+        roughness: 0.85,
+        metalness: 0.05,
+        envMapIntensity: 0.35,
+        vertexColors: true,
+      });
     });
 
-    const floorMat = new MeshStandardMaterial({
-      map: concrete.albedo,
-      roughnessMap: concrete.roughness,
-      normalMap: concrete.normal,
-      roughness: 0.6,
-      metalness: 0.05,
-      envMapIntensity: 0.35,
-      vertexColors: true,
+    const floorMat = cache.getOrCreateMaterial('drainage_core:floor', () => {
+      const reg = TextureRegistry.getInstance();
+      const concrete = reg.getConcreteSet('tunnel', 42, 512);
+      return new MeshStandardMaterial({
+        map: concrete.albedo,
+        roughnessMap: concrete.roughness,
+        normalMap: concrete.normal,
+        roughness: 0.6,
+        metalness: 0.05,
+        envMapIntensity: 0.35,
+        vertexColors: true,
+      });
     });
 
     return buildStandardMapInstance(layout, env, { platformMat, wallMat, floorMat });

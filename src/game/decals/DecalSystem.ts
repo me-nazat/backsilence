@@ -44,18 +44,23 @@ export class DecalSystem {
   private readonly dummyScale = new Vector3();
   private readonly atlasTexture: CanvasTexture;
 
+  private static cachedAtlasTexture: CanvasTexture | null = null;
+
+  static getAtlasTexture(): CanvasTexture {
+    if (!DecalSystem.cachedAtlasTexture) {
+      const atlasHandle = acquireCanvas(1024, 1024);
+      const ctx = atlasHandle.ctx as CanvasRenderingContext2D;
+      ctx.clearRect(0, 0, 1024, 1024);
+      DecalSystem.drawAtlasTo(ctx);
+      DecalSystem.cachedAtlasTexture = new CanvasTexture(atlasHandle.canvas);
+      DecalSystem.cachedAtlasTexture.generateMipmaps = true;
+    }
+    return DecalSystem.cachedAtlasTexture;
+  }
+
   constructor(maxDecals = 400) {
     this.maxDecals = maxDecals;
-
-    // Generate procedural decal atlas (4x4 cells = 16 decal patterns)
-    const atlasHandle = acquireCanvas(1024, 1024);
-    const ctx = atlasHandle.ctx as CanvasRenderingContext2D;
-    ctx.clearRect(0, 0, 1024, 1024);
-
-    this.drawAtlas(ctx);
-
-    this.atlasTexture = new CanvasTexture(atlasHandle.canvas);
-    this.atlasTexture.generateMipmaps = true;
+    this.atlasTexture = DecalSystem.getAtlasTexture();
 
     const geom = new PlaneGeometry(1, 1);
     const mat = new MeshStandardMaterial({
@@ -76,7 +81,7 @@ export class DecalSystem {
     this.root.matrixAutoUpdate = false;
   }
 
-  private drawAtlas(ctx: CanvasRenderingContext2D): void {
+  private static drawAtlasTo(ctx: CanvasRenderingContext2D): void {
     const cellSize = 256;
     ctx.lineWidth = 6;
     ctx.strokeStyle = '#ffffff';

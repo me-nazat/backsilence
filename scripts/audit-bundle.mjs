@@ -115,14 +115,14 @@ for (const filePath of files) {
   const gzipSize = gzipped.length;
   totalGzip += gzipSize;
 
-  const isMapChunk = (rel.includes('Map-') || rel.includes('CommonMapBuilder-') || rel.includes('LabScene-') || rel.includes('MetroSounds-')) && ext === '.js';
+  const isMapChunk = (rel.includes('Map-') || rel.includes('CommonMapBuilder-') || rel.includes('LabScene-') || rel.includes('MetroSounds-') || rel.includes('MaterialCache-')) && ext === '.js';
   const isLocaleChunk = /^(assets\/)?(ar|ar-test|bn|de|es|fr|hi|ja|ko|pt-BR|qps-ploc|ru|tr|zh-CN)-[A-Za-z0-9_-]+\.js$/.test(rel);
 
   if (isMapChunk) {
     mapChunksGzip += gzipSize;
   } else if (isLocaleChunk) {
     localeChunksGzip += gzipSize;
-  } else {
+  } else if (rel !== '_headers' && rel !== 'manifest.webmanifest') {
     coreGzip += gzipSize;
   }
 

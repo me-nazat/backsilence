@@ -45,6 +45,23 @@ import { AboutPrivacyScreen } from './screens/AboutPrivacyScreen.js';
 import { ChangelogScreen } from './screens/ChangelogScreen.js';
 import { UiLabPage } from './kit/UiLabPage.js';
 import { UiLayerManager } from './UiLayerManager.js';
+import { initNavigationHistory, pushNavigationState } from './NavigationHistory.js';
+
+const VIEW_URL_MAP: Partial<Record<UIView, string>> = {
+  PLAY_HUB: 'hub',
+  METAHUB: 'campaign',
+  MAPS: 'maps',
+  BESTIARY: 'bestiary',
+  LEADERBOARDS: 'leaderboards',
+  CHAMPIONS: 'champions',
+  PROFILE: 'profile',
+  LOBBY: 'lobby',
+  SETTINGS: 'settings',
+  CREDITS: 'credits',
+  ABOUT: 'about',
+  CHANGELOG: 'changelog',
+  UI_LAB: 'ui',
+};
 
 export type UIState =
   | 'MAIN_MENU'
@@ -535,8 +552,8 @@ export class UIManager {
       }
     }
 
-    window.addEventListener('popstate', (e) => {
-      const v = (e.state as { view?: string })?.view ?? parseRoute().view ?? 'home';
+    initNavigationHistory((state, entry) => {
+      const v = (entry?.view as string) || (entry?.modalId as string) || parseRoute().view || 'home';
       const revMap: Record<string, UIView> = {
         home: 'MENU',
         hub: 'PLAY_HUB',
@@ -597,9 +614,31 @@ export class UIManager {
         this.bus.emit('game:leave', undefined);
       }
 
-      const target = revMap[v] ?? 'MENU';
-      this.navigateTo(target, false);
+      if (state === 'MAIN_MENU') {
+        this.currentView = 'MENU';
+        this.viewStack = ['MENU'];
+        this.stateMachine.goTo('MENU');
+        setMenuRoute(false);
+        this.setUIState('MAIN_MENU');
+        this.updateViewVisibility();
+      } else if (state === 'PLAY_HUB') {
+        this.navigateTo('PLAY_HUB', false);
+      } else if (state === 'ACTIVE_GAMEPLAY') {
+        this.setUIState('ACTIVE_GAMEPLAY');
+      } else {
+        const target = revMap[v] ?? 'MENU';
+        this.navigateTo(target, false);
+      }
     });
+
+    if (this.currentView !== 'MENU' && this.currentView !== 'GAME') {
+      const p = VIEW_URL_MAP[this.currentView];
+      if (this.currentView === 'PLAY_HUB') {
+        pushNavigationState('PLAY_HUB', undefined, `${window.location.pathname}?v=hub`);
+      } else if (p) {
+        pushNavigationState('MODAL_SUBPAGE', { modalId: p }, `${window.location.pathname}?v=${p}`);
+      }
+    }
 
     this.updateViewVisibility();
   }
@@ -677,27 +716,17 @@ export class UIManager {
 
     if (view === 'MENU') {
       setMenuRoute();
+      if (pushUrl) pushNavigationState('MAIN_MENU');
     } else if (view === 'GAME') {
-      // Game route is set by GameSession via setGameRoute
+      if (pushUrl) pushNavigationState('ACTIVE_GAMEPLAY', { modeId: this.lastConfig?.subMode ?? 'campaign' });
+    } else if (view === 'PLAY_HUB') {
+      navigateToView('hub');
+      if (pushUrl) pushNavigationState('PLAY_HUB', undefined, `${window.location.pathname}?v=hub`);
     } else if (pushUrl) {
-      const urlMap: Partial<Record<UIView, string>> = {
-        PLAY_HUB: 'hub',
-        METAHUB: 'campaign',
-        MAPS: 'maps',
-        BESTIARY: 'bestiary',
-        LEADERBOARDS: 'leaderboards',
-        CHAMPIONS: 'champions',
-        PROFILE: 'profile',
-        LOBBY: 'lobby',
-        SETTINGS: 'settings',
-        CREDITS: 'credits',
-        ABOUT: 'about',
-        CHANGELOG: 'changelog',
-        UI_LAB: 'ui',
-      };
-      const viewParam = urlMap[view];
+      const viewParam = VIEW_URL_MAP[view];
       if (viewParam) {
         navigateToView(viewParam);
+        pushNavigationState('MODAL_SUBPAGE', { modalId: viewParam });
       } else {
         clearViewParam();
       }
@@ -962,6 +991,7 @@ export class UIManager {
 
   private startGame(config: { mode: 'single' | 'multi'; mapId: MapId; difficulty: number; seed: number; room?: string; subMode?: string | undefined }): void {
     this.setUIState('ACTIVE_GAMEPLAY');
+    pushNavigationState('ACTIVE_GAMEPLAY', { modeId: config.subMode ?? 'campaign', mapId: config.mapId });
     this.lastConfig = config;
     try {
       localStorage.setItem('backsilence_last_tape', config.mapId);

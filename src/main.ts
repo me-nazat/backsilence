@@ -267,11 +267,13 @@ async function boot(): Promise<void> {
     { TextureRegistry },
     { PerfTracker },
     { AudioEngine, unlockAudioContext },
+    { MaterialCache },
   ] = await Promise.all([
     import('./lab/LabScene.js'),
     import('./procedural/textures/TextureRegistry.js'),
     import('./engine/Perf.js'),
     import('./audio/AudioEngine.js'),
+    import('./graphics/MaterialCache.js'),
   ]);
 
   // Unlock and bind AudioContext resume handlers on window gestures immediately
@@ -351,6 +353,7 @@ async function boot(): Promise<void> {
   });
 
   ui.setAudioLabPanel(labScene.audioLabPanel);
+  MaterialCache.getInstance().warmup(labScene.renderer.renderer);
   registerOfflineSupport(
     () => {
       ui?.setCalibrationProgress(1.0);

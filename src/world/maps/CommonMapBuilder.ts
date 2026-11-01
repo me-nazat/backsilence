@@ -20,6 +20,7 @@ import { GroundGrid } from '../../sim/GroundGrid.js';
 import { ColliderSet } from '../../sim/Colliders.js';
 import { SinkingPlatformNode } from '../../sim/SinkingPlatformNode.js';
 import { TextureRegistry } from '../../procedural/textures/TextureRegistry.js';
+import { MaterialCache } from '../../graphics/MaterialCache.js';
 import { createTiledBoxGeometry } from '../../procedural/geometry/TiledBox.js';
 import { createTiledCylinderGeometry } from '../../procedural/geometry/TiledCylinder.js';
 import { buildArchGeometry } from '../../procedural/geometry/ArchBuilder.js';
@@ -234,10 +235,10 @@ export function buildStandardMapInstance(
 
   const reg = TextureRegistry.getInstance();
   const ceilingMat = customMaterials.ceilingMat ?? new MeshStandardMaterial({
-    map: reg.getTileSet('ceiling', layout.seed).albedo,
-    roughnessMap: reg.getTileSet('ceiling', layout.seed).roughness,
-    normalMap: reg.getTileSet('ceiling', layout.seed).normal,
-    aoMap: reg.getTileSet('ceiling', layout.seed).ao,
+    map: reg.getTileSet('ceiling', 42).albedo,
+    roughnessMap: reg.getTileSet('ceiling', 42).roughness,
+    normalMap: reg.getTileSet('ceiling', 42).normal,
+    aoMap: reg.getTileSet('ceiling', 42).ao,
     aoMapIntensity: 0.85,
     roughness: 0.65,
     metalness: 0.05,
@@ -246,9 +247,9 @@ export function buildStandardMapInstance(
   });
 
   // Distinct 6-material thematic palette per map (platformMat, wallMat, floorMat, trimMat, metalMat, accentMat)
-  const metalTex = reg.getRustMetalSet(layout.seed + 7);
-  const woodPbr = reg.getPbrSet('wood', layout.seed + 13, 128);
-  const marbleSet = reg.getMarbleSet(layout.seed + 19);
+  const metalTex = reg.getRustMetalSet(42);
+  const woodPbr = reg.getPbrSet('wood', 42, 128);
+  const marbleSet = reg.getMarbleSet(42);
 
   const themePalette: Record<string, { trimColor: string; metalColor: string; accentColor: string; accentEmissive?: string; useWoodTrim?: boolean; useMarbleTrim?: boolean }> = {
     drowned_school: { trimColor: '#5b7863', metalColor: '#6d7b74', accentColor: '#4e3524', useWoodTrim: true },
@@ -327,7 +328,7 @@ export function buildStandardMapInstance(
 
   // Keep platform tiles crisp and stable without screen-space parallax jitter
   // (Parallax occlusion is omitted on platformMat to eliminate texture swimming)
-  const defaultTileSet = reg.getTileSet('platform', layout.seed);
+  const defaultTileSet = reg.getTileSet('platform', 42);
 
   const geometriesToDispose: { dispose: () => void }[] = [];
   const sinkingNodes: SinkingPlatformNode[] = [];
@@ -612,6 +613,7 @@ export function buildStandardMapInstance(
   }
 
   // 2. Build Fluted Columns / 3-Section Pillars (Prompt 5.4)
+  const pillarGeomCache = new Map<string, BufferGeometry>();
   for (const pil of layout.pillars) {
     colliders.addCylinder(
       `pil_${pil.id}`,
@@ -624,47 +626,58 @@ export function buildStandardMapInstance(
 
     const r = pil.radius;
     const h = pil.height;
-    const seed = pil.id.charCodeAt(0);
+    const pKey = `${r.toFixed(2)}_${h.toFixed(2)}`;
 
-    const hBase = 0.35;
-    const rBase = r * 1.12;
-    const hGap = 0.06;
-    const rGap = r * 0.94;
-    const hCap = 0.30;
-    const rCap = r * 1.08;
-    const hShaft = Math.max(0.4, h - hBase - hCap - hGap * 2);
+    let mergedPillarGeom = pillarGeomCache.get(pKey);
+    if (!mergedPillarGeom) {
+      const seed = 42;
+      const hBase = 0.35;
+      const rBase = r * 1.12;
+      const hGap = 0.06;
+      const rGap = r * 0.94;
+      const hCap = 0.30;
+      const rCap = r * 1.08;
+      const hShaft = Math.max(0.4, h - hBase - hCap - hGap * 2);
 
-    const baseGeom = createTiledCylinderGeometry({ r: rBase, h: hBase, radialSegments: 24, uvOffsetSeed: seed });
-    baseGeom.translate(0, -0.9 + hBase * 0.5, 0);
+      const baseGeom = createTiledCylinderGeometry({ r: rBase, h: hBase, radialSegments: 24, uvOffsetSeed: seed });
+      baseGeom.translate(0, -0.9 + hBase * 0.5, 0);
 
-    const gap1Geom = createTiledCylinderGeometry({ r: rGap, h: hGap, radialSegments: 24, uvOffsetSeed: seed });
-    gap1Geom.translate(0, -0.9 + hBase + hGap * 0.5, 0);
+      const gap1Geom = createTiledCylinderGeometry({ r: rGap, h: hGap, radialSegments: 24, uvOffsetSeed: seed });
+      gap1Geom.translate(0, -0.9 + hBase + hGap * 0.5, 0);
 
-    const shaftGeom = createTiledCylinderGeometry({ r, h: hShaft, radialSegments: 24, uvOffsetSeed: seed });
-    shaftGeom.translate(0, -0.9 + hBase + hGap + hShaft * 0.5, 0);
+      const shaftGeom = createTiledCylinderGeometry({ r, h: hShaft, radialSegments: 24, uvOffsetSeed: seed });
+      shaftGeom.translate(0, -0.9 + hBase + hGap + hShaft * 0.5, 0);
 
-    const gap2Geom = createTiledCylinderGeometry({ r: rGap, h: hGap, radialSegments: 24, uvOffsetSeed: seed });
-    gap2Geom.translate(0, -0.9 + h - hCap - hGap * 0.5, 0);
+      const gap2Geom = createTiledCylinderGeometry({ r: rGap, h: hGap, radialSegments: 24, uvOffsetSeed: seed });
+      gap2Geom.translate(0, -0.9 + h - hCap - hGap * 0.5, 0);
 
-    const capGeom = createTiledCylinderGeometry({ r: rCap, h: hCap, radialSegments: 24, uvOffsetSeed: seed });
-    capGeom.translate(0, -0.9 + h - hCap * 0.5, 0);
+      const capGeom = createTiledCylinderGeometry({ r: rCap, h: hCap, radialSegments: 24, uvOffsetSeed: seed });
+      capGeom.translate(0, -0.9 + h - hCap * 0.5, 0);
 
-    const mergedPillarGeom = mergeGeometries([baseGeom, gap1Geom, shaftGeom, gap2Geom, capGeom]);
-    baseGeom.dispose();
-    gap1Geom.dispose();
-    shaftGeom.dispose();
-    gap2Geom.dispose();
-    capGeom.dispose();
+      const merged = mergeGeometries([baseGeom, gap1Geom, shaftGeom, gap2Geom, capGeom]);
+      baseGeom.dispose();
+      gap1Geom.dispose();
+      shaftGeom.dispose();
+      gap2Geom.dispose();
+      capGeom.dispose();
 
-    geometriesToDispose.push(mergedPillarGeom);
-    const mesh = new Mesh(mergedPillarGeom, customMaterials.wallMat);
-    mesh.name = `Pillar_${pil.id}`;
-    mesh.position.set(pil.x, 0, pil.z);
-    mesh.castShadow = true;
-    mesh.receiveShadow = true;
-    mesh.matrixAutoUpdate = false;
-    mesh.updateMatrix();
-    root.add(mesh);
+      if (merged) {
+        mergedPillarGeom = merged;
+        pillarGeomCache.set(pKey, merged);
+        geometriesToDispose.push(merged);
+      }
+    }
+
+    if (mergedPillarGeom) {
+      const mesh = new Mesh(mergedPillarGeom, customMaterials.wallMat);
+      mesh.name = `Pillar_${pil.id}`;
+      mesh.position.set(pil.x, 0, pil.z);
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+      mesh.matrixAutoUpdate = false;
+      mesh.updateMatrix();
+      root.add(mesh);
+    }
 
     // Attach number decal if present (y = 1.6m, size 1.4m x 1.4m)
     if (pil.decalNumber !== undefined) {
@@ -1086,7 +1099,19 @@ export function buildStandardMapInstance(
       for (const geom of geometriesToDispose) {
         geom.dispose();
       }
+      const cache = MaterialCache.getInstance();
       for (const mat of materialsToDispose) {
+        // Never dispose cached procedural tile materials across sector swaps
+        if (
+          mat.name === 'WallTileMaterial' ||
+          mat.name === 'PlatformTopMaterial' ||
+          mat.name === 'PlatformSideMaterial' ||
+          mat.name === 'PoolFloorMaterial' ||
+          mat.name === 'CeilingTileMaterial' ||
+          cache.hasMaterial(mat.name)
+        ) {
+          continue;
+        }
         mat.dispose();
       }
       root.clear();

@@ -108,12 +108,12 @@ export class TileMaterialFactory {
   }
 
   /**
-   * Generates Wall Tile textures (1024x1024, 16x16 grid = 4.0m world repeat).
+   * Generates Wall Tile textures (512x512, 8x8 grid = 4.0m world repeat).
    * Base glaze #ebe4c8 with +/- 3% luminance jitter, #6e6550 2px grout, recessed normal map.
    */
   private generateWallTileTextures(anisotropy: number): { albedo: CanvasTexture; normal: CanvasTexture } {
-    const size = 1024;
-    const grid = 16;
+    const size = 512;
+    const grid = 8;
     const tileSize = size / grid; // 64px
     const groutPx = 2;
 
@@ -217,12 +217,12 @@ export class TileMaterialFactory {
   }
 
   /**
-   * Generates Platform Top textures (1024x1024, 16x16 grid = 3.52m world repeat).
+   * Generates Platform Top textures (512x512, 8x8 grid = 3.52m world repeat).
    * Warm tan/ochre ceramic tiles (#d5b676), dark brown grout (#4a3b22).
    */
   private generatePlatformTopTextures(anisotropy: number): { albedo: CanvasTexture; normal: CanvasTexture } {
-    const size = 1024;
-    const grid = 16;
+    const size = 512;
+    const grid = 8;
     const tileSize = size / grid;
     const groutPx = 2;
 
@@ -327,7 +327,7 @@ export class TileMaterialFactory {
    * Below waterline (y = -0.75m to 0.0, V = 0.0 to 0.6637): submerged wet-darkened tiles.
    */
   private generatePlatformSideTextures(anisotropy: number): { albedo: CanvasTexture; normal: CanvasTexture } {
-    const size = 1024;
+    const size = 512;
     const albedoHandle = acquireCanvas(size, size);
     const normalHandle = acquireCanvas(size, size);
     const aCtx = albedoHandle.ctx;
@@ -465,8 +465,8 @@ export class TileMaterialFactory {
    * Slightly desaturated cream-green tile grid (#c8d4ba) with #566852 grout lines.
    */
   private generatePoolFloorTextures(anisotropy: number): { albedo: CanvasTexture; normal: CanvasTexture } {
-    const size = 1024;
-    const grid = 16;
+    const size = 512;
+    const grid = 8;
     const tileSize = size / grid;
     const groutPx = 2;
 
