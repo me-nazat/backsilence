@@ -25,6 +25,12 @@ export interface WarningDecalOptions {
   size?: number;
 }
 
+const decalCache = new Map<string, CanvasTexture>();
+
+export function clearDecalCache(): void {
+  decalCache.clear();
+}
+
 /**
  * Generate the iconic reference tagline wall decal.
  */
@@ -32,6 +38,11 @@ export function makeTaglineDecal(options: TaglineDecalOptions = {}): CanvasTextu
   const width = options.width ?? 1024;
   const height = options.height ?? 512;
   const seed = options.seed ?? 77;
+
+  const cacheKey = `tagline_${width}_${height}_${seed}`;
+  if (decalCache.has(cacheKey)) {
+    return decalCache.get(cacheKey)!;
+  }
 
   const pooled = acquireCanvas(width, height);
   const ctx = pooled.ctx;
@@ -145,70 +156,88 @@ export function makeTaglineDecal(options: TaglineDecalOptions = {}): CanvasTextu
     seed: seed + 3,
   });
 
-  // Below text: Water drop art
+  // Below text: Procedural black ink water-splash crown (central rising droplet column, 7-pointed crown rim, 4 concentric oval ripple rings)
   const dropCenterX = width * 0.5;
 
-  // 1. Single falling teardrop (y ~ 278 to 320)
+  // 1. Central rising droplet column (y ~ 265 to 330)
   ctx.save();
   ctx.fillStyle = color;
   ctx.beginPath();
-  const dropTopY = 278;
-  const dropBotY = 320;
+  const dropTopY = 265;
+  const dropBotY = 325;
   ctx.moveTo(dropCenterX, dropTopY);
   ctx.bezierCurveTo(
-    dropCenterX - 13,
-    dropTopY + 24,
-    dropCenterX - 15,
-    dropBotY,
-    dropCenterX,
+    dropCenterX - 10,
+    dropTopY + 20,
+    dropCenterX - 14,
+    dropBotY - 10,
+    dropCenterX - 8,
     dropBotY,
   );
+  ctx.lineTo(dropCenterX + 8, dropBotY);
   ctx.bezierCurveTo(
-    dropCenterX + 15,
-    dropBotY,
-    dropCenterX + 13,
-    dropTopY + 24,
+    dropCenterX + 14,
+    dropBotY - 10,
+    dropCenterX + 10,
+    dropTopY + 20,
     dropCenterX,
     dropTopY,
   );
   ctx.fill();
 
-  // 2. Splash "crown" at water contact point (y ~ 345) with 6 spikes and tip beads
+  // Droplet head bead at apex
+  ctx.beginPath();
+  ctx.arc(dropCenterX, dropTopY - 4, 6.5, 0, Math.PI * 2);
+  ctx.fill();
+
+  // 2. 7-pointed splash crown rim at water contact point (y ~ 345) with flying ink droplets
   const crownY = 345;
-  const spikeCount = 6;
-  const crownRadius = 38;
+  const spikeCount = 7;
+  const crownRadius = 42;
   const crownStrokes: Polyline[] = [];
 
   for (let i = 0; i < spikeCount; i++) {
-    const angle = Math.PI * 1.05 + (i / (spikeCount - 1)) * (Math.PI * 0.9); // Upper semicircle
-    const spikeLen = rng.range(22, 34);
-    const sx1 = dropCenterX + Math.cos(angle) * (crownRadius * 0.5);
-    const sy1 = crownY + Math.sin(angle) * (crownRadius * 0.25);
-    const sx2 = dropCenterX + Math.cos(angle) * (crownRadius * 0.5 + spikeLen);
-    const sy2 = crownY + Math.sin(angle) * (crownRadius * 0.25 + spikeLen * 0.85);
+    const angle = Math.PI * 1.02 + (i / (spikeCount - 1)) * (Math.PI * 0.96); // Upper arc
+    const spikeLen = rng.range(26, 40);
+    const sx1 = dropCenterX + Math.cos(angle) * (crownRadius * 0.55);
+    const sy1 = crownY + Math.sin(angle) * (crownRadius * 0.28);
+    const sx2 = dropCenterX + Math.cos(angle) * (crownRadius * 0.55 + spikeLen);
+    const sy2 = crownY + Math.sin(angle) * (crownRadius * 0.28 + spikeLen * 0.85);
 
     crownStrokes.push([[sx1, sy1], [sx2, sy2]]);
-    ctx.beginPath();
-    ctx.arc(sx2, sy2, rng.range(3.2, 4.6), 0, Math.PI * 2);
-    ctx.fill();
-  }
-  drawMarker(ctx, crownStrokes, { width: 5.5, color, seed: seed + 10 });
 
-  // 3. Three concentric broken ellipse ripple rings
+    // Tip droplet beads & flying ink droplets
+    ctx.beginPath();
+    ctx.arc(sx2, sy2, rng.range(3.8, 5.2), 0, Math.PI * 2);
+    ctx.fill();
+
+    // Flying airborne ink droplets off the crown rim
+    if (i % 2 === 0) {
+      const flyX = sx2 + Math.cos(angle) * rng.range(8, 18);
+      const flyY = sy2 + Math.sin(angle) * rng.range(8, 16);
+      ctx.beginPath();
+      ctx.arc(flyX, flyY, rng.range(2.0, 3.4), 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+  drawMarker(ctx, crownStrokes, { width: 6.5, color, seed: seed + 10 });
+
+  // 3. Four concentric oval ripple rings around the base
   const ringRadii = [
-    { rx: 65, ry: 18, width: 4.8 },
-    { rx: 125, ry: 34, width: 3.8 },
-    { rx: 190, ry: 50, width: 2.8 },
+    { rx: 55, ry: 15, width: 5.2 },
+    { rx: 105, ry: 28, width: 4.2 },
+    { rx: 165, ry: 44, width: 3.4 },
+    { rx: 225, ry: 58, width: 2.6 },
   ];
 
   for (const ring of ringRadii) {
     const ellipseStrokes: Polyline[] = [];
-    const segments = 18;
+    const segments = 22;
     for (let s = 0; s < segments; s++) {
-      // Create broken dashed appearance
-      if (s % 3 === 2) continue;
+      // Broken expressive hand-brushed appearance
+      if (s % 4 === 3) continue;
       const a1 = (s / segments) * Math.PI * 2.0;
-      const a2 = ((s + 0.85) / segments) * Math.PI * 2.0;
+      const a2 = ((s + 0.88) / segments) * Math.PI * 2.0;
 
       const px1 = dropCenterX + Math.cos(a1) * ring.rx;
       const py1 = crownY + Math.sin(a1) * ring.ry;
@@ -259,6 +288,7 @@ export function makeTaglineDecal(options: TaglineDecalOptions = {}): CanvasTextu
   texture.generateMipmaps = true;
   texture.needsUpdate = true;
 
+  decalCache.set(cacheKey, texture);
   return texture;
 }
 
@@ -273,6 +303,11 @@ export function makeWarningDecal(
   const seed = options.seed ?? 55;
   const count = options.count ?? 5;
   const num = options.num ?? 1;
+
+  const cacheKey = `warning_${kind}_${seed}_${count}_${num}_${size}`;
+  if (decalCache.has(cacheKey)) {
+    return decalCache.get(cacheKey)!;
+  }
 
   const pooled = acquireCanvas(size, size);
   const ctx = pooled.ctx;
@@ -372,9 +407,224 @@ export function makeWarningDecal(
   texture.generateMipmaps = true;
   texture.needsUpdate = true;
 
+  decalCache.set(cacheKey, texture);
   return texture;
 }
 
 function widthOrDefault(s: number): number {
   return s;
+}
+
+/**
+ * High-Resolution Spawn Wall Mural alias (Video 2 00:00–00:04).
+ */
+export const makeSpawnWallMural = makeTaglineDecal;
+
+/**
+ * Exit & Checkpoint Warning Graffiti (Video 1 02:42, 02:44, 02:50, 02:51).
+ * "DON'T SPLASH," / "IT KNOWS" with hand-drawn brush arrows.
+ */
+export function makeExitWarningDecal(options: {
+  variant?: 'outside' | 'corridor_left' | 'corridor_right' | 'floor';
+  seed?: number;
+  width?: number;
+  height?: number;
+} = {}): CanvasTexture {
+  const width = options.width ?? 1024;
+  const height = options.height ?? 512;
+  const seed = options.seed ?? 88;
+  const variant = options.variant ?? 'outside';
+
+  const cacheKey = `exit_${variant}_${width}_${height}_${seed}`;
+  if (decalCache.has(cacheKey)) {
+    return decalCache.get(cacheKey)!;
+  }
+
+  const pooled = acquireCanvas(width, height);
+  const ctx = pooled.ctx;
+  ctx.clearRect(0, 0, width, height);
+
+  const rng = new Rng(seed);
+  const color = '#0d0b06';
+
+  if (variant === 'floor') {
+    // Floor chevron arrow pointing into the corridor
+    const arrowStrokes: Polyline[] = [
+      [[width * 0.5, height * 0.15], [width * 0.5, height * 0.85]],
+      [[width * 0.28, height * 0.45], [width * 0.5, height * 0.15], [width * 0.72, height * 0.45]],
+      [[width * 0.32, height * 0.65], [width * 0.5, height * 0.35], [width * 0.68, height * 0.65]],
+    ];
+    drawMarker(ctx, arrowStrokes, { width: 16.0, color, seed });
+  } else {
+    // Line 1: DON'T SPLASH,
+    const res1 = layoutText("DON'T SPLASH,", { size: 56, tracking: 0.1, rng: rng.next.bind(rng), wobble: 0.05 });
+    const shift1 = res1.polylines.map((s) => s.map(([x, y]) => [x + 60, y + 80] as Point2D));
+    drawMarker(ctx, shift1, { width: 11.0, color, seed: seed + 1 });
+
+    // Line 2: IT KNOWS
+    const res2 = layoutText('IT KNOWS', { size: 68, tracking: 0.14, rng: rng.next.bind(rng), wobble: 0.06 });
+    const shift2 = res2.polylines.map((s) => s.map(([x, y]) => [x + 100, y + 210] as Point2D));
+    drawMarker(ctx, shift2, { width: 14.0, color, seed: seed + 2 });
+
+    // Underline under IT KNOWS
+    const uStrokes: Polyline[] = [
+      [[90, 315], [90 + res2.width + 20, 320]],
+      [[95, 325], [85 + res2.width + 15, 328]],
+    ];
+    drawMarker(ctx, uStrokes, { width: 10.0, color, seed: seed + 3 });
+
+    // Hand-drawn brush arrows
+    const arrowStrokes: Polyline[] = [];
+    if (variant === 'outside' || variant === 'corridor_right') {
+      // Arrow pointing right -->
+      arrowStrokes.push([
+        [width - 240, 240],
+        [width - 60, 240],
+      ]);
+      arrowStrokes.push([
+        [width - 130, 180],
+        [width - 60, 240],
+        [width - 130, 300],
+      ]);
+    }
+    if (variant === 'outside' || variant === 'corridor_left') {
+      // Arrow pointing left <--
+      arrowStrokes.push([
+        [240, 380],
+        [60, 380],
+      ]);
+      arrowStrokes.push([
+        [130, 320],
+        [60, 380],
+        [130, 440],
+      ]);
+    }
+    if (arrowStrokes.length > 0) {
+      drawMarker(ctx, arrowStrokes, { width: 12.0, color, seed: seed + 4 });
+    }
+  }
+
+  const texture = new CanvasTexture(pooled.canvas as HTMLCanvasElement);
+  texture.wrapS = ClampToEdgeWrapping;
+  texture.wrapT = ClampToEdgeWrapping;
+  texture.minFilter = LinearFilter;
+  texture.magFilter = LinearFilter;
+  texture.colorSpace = SRGBColorSpace;
+  texture.generateMipmaps = true;
+  texture.needsUpdate = true;
+
+  decalCache.set(cacheKey, texture);
+  return texture;
+}
+
+/**
+ * Cylindrical Pillar Wayfinding Arrows (Video 1 00:35, 01:37, 01:57, 02:13).
+ * Hand-painted black dashed/solid arrows (--> and <--) for wrapping onto giant pillars.
+ */
+export function makePillarWayfindingArrow(
+  direction: 'left' | 'right' = 'right',
+  dashed = false,
+  seed = 99,
+): CanvasTexture {
+  const cacheKey = `arrow_${direction}_${dashed}_${seed}`;
+  if (decalCache.has(cacheKey)) {
+    return decalCache.get(cacheKey)!;
+  }
+
+  const size = 512;
+  const pooled = acquireCanvas(size, size);
+  const ctx = pooled.ctx;
+  ctx.clearRect(0, 0, size, size);
+
+  const color = '#0d0b06';
+  const strokes: Polyline[] = [];
+
+  const cy = size * 0.5;
+  if (direction === 'right') {
+    if (dashed) {
+      // Dashed shaft: 3 dashes
+      strokes.push([[60, cy], [140, cy]]);
+      strokes.push([[180, cy], [260, cy]]);
+      strokes.push([[300, cy], [440, cy]]);
+    } else {
+      strokes.push([[60, cy], [440, cy]]);
+    }
+    strokes.push([[350, cy - 70], [440, cy], [350, cy + 70]]);
+  } else {
+    if (dashed) {
+      strokes.push([[440, cy], [360, cy]]);
+      strokes.push([[320, cy], [240, cy]]);
+      strokes.push([[200, cy], [60, cy]]);
+    } else {
+      strokes.push([[440, cy], [60, cy]]);
+    }
+    strokes.push([[150, cy - 70], [60, cy], [150, cy + 70]]);
+  }
+
+  drawMarker(ctx, strokes, { width: 14.0, color, seed });
+
+  const texture = new CanvasTexture(pooled.canvas as HTMLCanvasElement);
+  texture.wrapS = ClampToEdgeWrapping;
+  texture.wrapT = ClampToEdgeWrapping;
+  texture.minFilter = LinearFilter;
+  texture.magFilter = LinearFilter;
+  texture.colorSpace = SRGBColorSpace;
+  texture.generateMipmaps = true;
+  texture.needsUpdate = true;
+
+  decalCache.set(cacheKey, texture);
+  return texture;
+}
+
+/**
+ * Pillar & Wall Puzzle Digits (Video 2 00:21, 00:24, 00:29).
+ * Hand-painted black stencil numbers (#1, 2, etc.) for keypad puzzle.
+ */
+export function makePuzzleDigitDecal(
+  digit: number | string,
+  hasHash = false,
+  seed = 505,
+  colorHex?: string,
+): CanvasTexture {
+  const cacheKey = `puzzle_${digit}_${hasHash}_${seed}_${colorHex ?? 'none'}`;
+  if (decalCache.has(cacheKey)) {
+    return decalCache.get(cacheKey)!;
+  }
+
+  const size = 512;
+  const pooled = acquireCanvas(size, size);
+  const ctx = pooled.ctx;
+  ctx.clearRect(0, 0, size, size);
+
+  const rng = new Rng(seed);
+  const color = '#0d0b06';
+  const label = hasHash ? `#${digit}` : `${digit}`;
+
+  if (colorHex) {
+    // Distinct colored clue accent bars (Blue = #1, Green = #2, Yellow = #3, Red = #4)
+    ctx.fillStyle = colorHex;
+    ctx.globalAlpha = 0.9;
+    ctx.fillRect(size * 0.15, size * 0.16, size * 0.70, 16);
+    ctx.fillRect(size * 0.15, size * 0.80, size * 0.70, 16);
+    ctx.globalAlpha = 1.0;
+  }
+
+  const textRes = layoutText(label, { size: 160, tracking: 0.1, rng: rng.next.bind(rng), wobble: 0.05 });
+  const shiftX = Math.max(30, (size - textRes.width) * 0.5);
+  const shiftY = size * 0.22;
+  const strokes = textRes.polylines.map((s) => s.map(([x, y]) => [x + shiftX, y + shiftY] as Point2D));
+
+  drawSpray(ctx, strokes, { width: 22.0, color, seed, dripRate: 0.18 });
+
+  const texture = new CanvasTexture(pooled.canvas as HTMLCanvasElement);
+  texture.wrapS = ClampToEdgeWrapping;
+  texture.wrapT = ClampToEdgeWrapping;
+  texture.minFilter = LinearFilter;
+  texture.magFilter = LinearFilter;
+  texture.colorSpace = SRGBColorSpace;
+  texture.generateMipmaps = true;
+  texture.needsUpdate = true;
+
+  decalCache.set(cacheKey, texture);
+  return texture;
 }

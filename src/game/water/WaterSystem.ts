@@ -40,6 +40,7 @@ import { buildWaterMapData, type WaterMapResult } from './WaterMapData.js';
 import { createWaterMaterial, type LightStreak } from './WaterMaterial.js';
 import { SplashSystem } from './Splashes.js';
 import { GpuWaveSimulation } from './GpuWaveSimulation.js';
+import { RipplePoolManager } from './RipplePoolManager.js';
 import { makeWaterNormalMap } from '../../procedural/textures/WaterNormal.js';
 import type { AudioEngine } from '../../audio/AudioEngine.js';
 
@@ -64,6 +65,7 @@ export class WaterSystem {
   readonly ripples: RippleBuffer;
   readonly wakes: WakeEmitters;
   readonly splashes: SplashSystem;
+  readonly rippleManager: RipplePoolManager;
   readonly waveSim: GpuWaveSimulation;
   readonly mapData: WaterMapResult;
   readonly tier: GraphicsTier;
@@ -88,11 +90,9 @@ export class WaterSystem {
 
   // Underwater state tracking
   private isUnderwater = false;
-  private underwaterT = 0;
   private fogInitialized = false;
   private defaultFogDensity = 0.035;
   private defaultFogColor = new Color('#eedec2');
-  private underwaterFogColor = new Color('#081e1a');
 
   constructor(parent: Object3D, options: WaterSystemOptions) {
     this.root = parent;
@@ -102,14 +102,15 @@ export class WaterSystem {
     this.tier = tier;
     this.currentTier = tier;
 
-    // Segments: 192 (high), 160 (medium), 96 (low) (Prompt 8.8)
-    const segments = tier === 'low' ? 96 : tier === 'medium' ? 160 : 192;
+    // High-subdivision water plane (220x220 segments, Prompt 1B)
+    const segments = tier === 'low' ? 120 : 220;
     this.segStep = this.planeSize / segments;
 
     // 1. Buffers & Subsystems
     this.ripples = new RippleBuffer(tier);
     this.wakes = new WakeEmitters();
     this.splashes = new SplashSystem(parent, this.currentWaterY);
+    this.rippleManager = new RipplePoolManager(parent, this.currentWaterY);
     this.mapData = buildWaterMapData(options.ground, tier);
     this.waveSim = new GpuWaveSimulation({
       tier,
@@ -336,7 +337,7 @@ export class WaterSystem {
     this.splashes.burst(pos, strength, isMonster);
   }
 
-  update(dt: number, time: number, camera: Camera, sceneFog?: FogExp2): void {
+  update(dt: number, time: number, camera: Camera, sceneFog?: FogExp2, isMovingInWater = false, playerPos?: Vector3): void {
     // 1. Camera-following grid snapping to avoid vertex swimming
     const snapX = Math.floor(camera.position.x / this.segStep) * this.segStep;
     const snapZ = Math.floor(camera.position.z / this.segStep) * this.segStep;
@@ -355,6 +356,7 @@ export class WaterSystem {
 
     // 5. Update splash particles & foam rings
     this.splashes.update(dt, camera.position);
+    this.rippleManager.update(dt, isMovingInWater, playerPos);
 
     // 6. Update bioluminescent motes
     if (this.motesMesh && this.motesData.length > 0) {
@@ -380,23 +382,15 @@ export class WaterSystem {
       }
     }
 
-    // 8. Smooth underwater fog transition if scene has fog
+    // 8. Maintain warm humid mist without blind clipping or grey fog when stepping into water
     if (sceneFog) {
       if (!this.fogInitialized) {
         this.defaultFogDensity = sceneFog.density;
         this.defaultFogColor.copy(sceneFog.color);
         this.fogInitialized = true;
       }
-      const targetT = this.isUnderwater ? 1.0 : 0.0;
-      this.underwaterT += (targetT - this.underwaterT) * Math.min(1.0, dt * 5.0);
-
-      if (this.underwaterT > 0.01) {
-        sceneFog.density = this.defaultFogDensity * (1.0 - this.underwaterT) + 0.028 * this.underwaterT;
-        sceneFog.color.copy(this.defaultFogColor).lerp(this.underwaterFogColor, this.underwaterT);
-      } else {
-        sceneFog.density = this.defaultFogDensity;
-        sceneFog.color.copy(this.defaultFogColor);
-      }
+      sceneFog.density = this.defaultFogDensity;
+      sceneFog.color.copy(this.defaultFogColor);
     }
   }
 
@@ -417,6 +411,7 @@ export class WaterSystem {
     this.material.dispose();
     this.mapData.texture.dispose();
     this.splashes.dispose();
+    this.rippleManager.dispose();
     this.waveSim.dispose();
     this.cubeRenderTarget?.dispose();
     this.planarRenderTarget?.dispose();

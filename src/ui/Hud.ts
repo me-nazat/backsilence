@@ -104,6 +104,22 @@ export interface HudData {
     distanceMeters: number;
     label: string;
   } | null;
+
+  // Batch 4 Prompt 4B Additions
+  runTimeMs?: number;
+  pebbleCount?: number;
+  pebbleEquipped?: boolean;
+  checkpointSaved?: boolean;
+}
+
+export function formatRunTimer(ms: number): string {
+  const totalSeconds = Math.max(0, ms / 1000);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = Math.floor(totalSeconds % 60);
+  const tenths = Math.floor((totalSeconds * 10) % 10);
+  const mStr = String(minutes).padStart(2, '0');
+  const sStr = String(seconds).padStart(2, '0');
+  return `${mStr}:${sStr}.${tenths}`;
 }
 
 export class Hud {
@@ -164,6 +180,37 @@ export class Hud {
   private jungleStatusEl: HTMLElement | null = null;
   private neonStatusEl: HTMLElement | null = null;
   private metroStatusEl: HTMLElement | null = null;
+
+  // Batch 4 Prompt 4B Elements
+  private runTimerEl: HTMLElement | null = null;
+  private reticleEl: HTMLElement | null = null;
+  private checkpointSavedEl: HTMLElement | null = null;
+  private throwableHotbarEl: HTMLElement | null = null;
+  private pebbleCountEl: HTMLElement | null = null;
+  private slot1El: HTMLElement | null = null;
+  private checkpointTimeout: ReturnType<typeof setTimeout> | null = null;
+
+  getReticleElement(): HTMLElement | null {
+    return this.reticleEl;
+  }
+
+  getHotbarElement(): HTMLElement | null {
+    return this.throwableHotbarEl;
+  }
+
+  showCheckpointSaved(durationMs = 2200): void {
+    if (!this.checkpointSavedEl) return;
+    this.checkpointSavedEl.style.opacity = '1';
+    if (this.checkpointTimeout !== null) {
+      clearTimeout(this.checkpointTimeout);
+    }
+    this.checkpointTimeout = setTimeout(() => {
+      if (this.checkpointSavedEl) {
+        this.checkpointSavedEl.style.opacity = '0';
+      }
+      this.checkpointTimeout = null;
+    }, durationMs);
+  }
 
   private onCycleInventoryCallback?: (() => void) | undefined;
   private onSpectatorLeaveCallback?: (() => void) | undefined;
@@ -364,7 +411,10 @@ export class Hud {
         .bs-hud:not(.show-more-hud) #hud-stamina-bar,
         .bs-hud:not(.show-more-hud) #hud-generator-status,
         .bs-hud:not(.show-more-hud) #hud-inventory-strip,
-        .bs-hud:not(.show-more-hud) #hud-flashlight-meter {
+        .bs-hud:not(.show-more-hud) #hud-flashlight-meter,
+        .bs-hud:not(.show-more-hud) #hud-objective-container,
+        .bs-hud:not(.show-more-hud) #hud-ping-hint,
+        .bs-hud:not(.show-more-hud) #hud-near-miss {
           display: none !important;
         }
 
@@ -502,6 +552,110 @@ export class Hud {
         transition: opacity 0.25s ease;
         z-index: 200;
       "></div>
+
+      <!-- Top-Center Run Timer (Prompt 4B Section 1) -->
+      <div id="hud-run-timer" style="
+        position: absolute;
+        top: 18px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        font-size: 26px;
+        font-weight: 600;
+        font-variant-numeric: tabular-nums;
+        color: #ffffff;
+        text-shadow: 0 2px 8px rgba(0,0,0,0.75);
+        letter-spacing: 0.04em;
+        pointer-events: none;
+        z-index: 100;
+      ">00:00.0</div>
+
+      <!-- Center Reticle (Prompt 4B Section 1: 3px x 3px solid white dot) -->
+      <div id="hud-reticle" style="
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 3px;
+        height: 3px;
+        border-radius: 50%;
+        background-color: rgba(255, 255, 255, 0.85);
+        box-shadow: 0 0 2px rgba(0,0,0,0.8);
+        transform: translate(-50%, -50%);
+        pointer-events: none;
+        z-index: 90;
+      "></div>
+
+      <!-- Checkpoint Notification (Prompt 4B Section 1) -->
+      <div id="hud-checkpoint-saved" style="
+        position: absolute;
+        bottom: 85px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        font-size: 18px;
+        font-weight: 500;
+        color: #ffffff;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.85);
+        letter-spacing: 0.05em;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.4s ease;
+        z-index: 110;
+      ">Progress saved</div>
+
+      <!-- Bottom-Center Hotbar & Control Hint (Prompt 4B Section 1) -->
+      <div id="hud-throwable-hotbar" style="
+        position: absolute;
+        bottom: 18px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        pointer-events: none;
+        z-index: 100;
+      ">
+        <div id="hud-throwable-hint" style="
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+          font-size: 13px;
+          font-weight: 400;
+          color: #ffffff;
+          text-shadow: 0 1px 4px rgba(0,0,0,0.85), 0 2px 8px rgba(0,0,0,0.7);
+          letter-spacing: 0.03em;
+          white-space: nowrap;
+        ">1-9 pick • again to put away • CLICK to throw / push</div>
+        <div style="display: flex; gap: 8px;">
+          <div id="hud-slot-1" style="
+            width: 44px;
+            height: 44px;
+            background: rgba(0, 0, 0, 0.45);
+            border: 1.5px solid rgba(255, 255, 255, 0.6);
+            border-radius: 4px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            box-sizing: border-box;
+          ">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" style="opacity: 0.95;">
+              <ellipse cx="12" cy="13" rx="7" ry="5" fill="#757575" stroke="#ffffff" stroke-width="1.5"/>
+            </svg>
+            <span id="hud-pebble-count" style="
+              position: absolute;
+              bottom: 2px;
+              right: 5px;
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+              font-size: 12px;
+              font-weight: bold;
+              color: #ffffff;
+              text-shadow: 0 1px 3px #000;
+            ">2</span>
+          </div>
+        </div>
+      </div>
 
       <!-- Center Crosshair and Directional Arc Ring -->
       <div id="hud-crosshair-container" style="
@@ -1229,6 +1383,14 @@ export class Hud {
     this.spectatorContainerEl = el.querySelector('#hud-spectator-container');
     this.spectatorNameEl = el.querySelector('#hud-spectator-name');
 
+    // Batch 4 Prompt 4B Elements
+    this.runTimerEl = el.querySelector('#hud-run-timer');
+    this.reticleEl = el.querySelector('#hud-reticle');
+    this.checkpointSavedEl = el.querySelector('#hud-checkpoint-saved');
+    this.throwableHotbarEl = el.querySelector('#hud-throwable-hotbar');
+    this.pebbleCountEl = el.querySelector('#hud-pebble-count');
+    this.slot1El = el.querySelector('#hud-slot-1');
+
     el.querySelector('#btn-spectate-prev')?.addEventListener('click', () => {
       this.onSpectatorCyclePrevCallback?.();
     });
@@ -1881,6 +2043,21 @@ export class Hud {
       } else {
         this.metroStatusEl.style.display = 'none';
       }
+    }
+
+    // 19. Run Timer, Pebble Hotbar, and Checkpoint Notification (Prompt 4B)
+    if (data.runTimeMs !== undefined && this.runTimerEl) {
+      this.runTimerEl.textContent = formatRunTimer(data.runTimeMs);
+    }
+    if (data.pebbleCount !== undefined && this.pebbleCountEl) {
+      this.pebbleCountEl.textContent = String(Math.max(0, data.pebbleCount));
+    }
+    if (data.pebbleEquipped !== undefined && this.slot1El) {
+      this.slot1El.style.borderColor = data.pebbleEquipped ? '#00e5ff' : 'rgba(255, 255, 255, 0.6)';
+      this.slot1El.style.boxShadow = data.pebbleEquipped ? '0 0 10px rgba(0, 229, 255, 0.6)' : '0 2px 10px rgba(0,0,0,0.5)';
+    }
+    if (data.checkpointSaved) {
+      this.showCheckpointSaved();
     }
   }
 

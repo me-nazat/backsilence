@@ -16,25 +16,23 @@ interface MapAudioConfig {
 
 export const MAP_AUDIO_CONFIGS: Record<MapId, MapAudioConfig> = {
   natatorium: {
-    bedType: 'triad', // lap_loop + hum_loop + drone_loop
+    bedType: 'triad',
     sparseEvents: [
       'drip',
-      'sparse_pipe_clank',
-      'sparse_water_surge',
       'sparse_cavern_draft',
-      'sparse_electrical_crackle',
-      'monster_ambient_far',
+      'sparse_water_surge',
+      'sparse_pebble_fall',
+      'sparse_pipe_clank',
     ],
   },
   poolrooms: {
     bedType: 'triad',
     sparseEvents: [
       'drip',
-      'sparse_pipe_clank',
-      'sparse_water_surge',
       'sparse_cavern_draft',
-      'sparse_electrical_crackle',
-      'monster_ambient_far',
+      'sparse_water_surge',
+      'sparse_pebble_fall',
+      'sparse_pipe_clank',
     ],
   },
   orientation: {

@@ -149,13 +149,13 @@ export class Mixer {
     this.musicGain.connect(this.subBassHighpass);
     this.uiGain.connect(this.subBassHighpass);
 
-    // 2. Main Bus Dynamics Compressor (Prompt 3.7: threshold -14.0, knee 6.0, ratio 4.0, attack 0.010, release 0.250)
+    // 2. Main Bus Dynamics Compressor (Section 2.2: threshold -10 dB, knee 8 dB, ratio 8, attack 0.002s, release 0.18s)
     this.compressor = ctx.createDynamicsCompressor();
-    this.compressor.threshold.value = -14.0;
-    this.compressor.knee.value = 6.0;
-    this.compressor.ratio.value = 4.0;
-    this.compressor.attack.value = 0.010;
-    this.compressor.release.value = 0.250;
+    this.compressor.threshold.value = -10.0;
+    this.compressor.knee.value = 8.0;
+    this.compressor.ratio.value = 8.0;
+    this.compressor.attack.value = 0.002;
+    this.compressor.release.value = 0.18;
     this.subBassHighpass.connect(this.compressor);
 
     // 3. Underwater lowpass muffle filter

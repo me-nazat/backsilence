@@ -19,6 +19,8 @@ export interface PlayerInputCallbacks {
   onSpectatePrev?: () => void;
   onSpectateFreeRoamToggle?: () => void;
   onPointerLockNotice?: (message: string) => void;
+  onSlot1?: () => void;
+  onLeftClickInGame?: () => void;
 }
 
 export class PlayerInput {
@@ -127,6 +129,10 @@ export class PlayerInput {
         if (!this.isSpectating) {
           this.isCranking = true;
         }
+      } else if (e.code === 'Digit1') {
+        if (!this.isSpectating) {
+          this.callbacks.onSlot1?.();
+        }
       }
     });
 
@@ -155,9 +161,13 @@ export class PlayerInput {
         e.preventDefault();
         this.isThrowing = true;
         this.throwHoldTime = 0;
-      } else if (e.button === 0 && !this.isLocked && this.canvas) {
-        // Left click anywhere in active window locks mouse
-        this.requestPointerLock();
+      } else if (e.button === 0) {
+        if (!this.isLocked && this.canvas) {
+          // Left click anywhere in active window locks mouse
+          this.requestPointerLock();
+        } else if (this.isLocked && !this.isSpectating) {
+          this.callbacks.onLeftClickInGame?.();
+        }
       }
     });
 

@@ -23,8 +23,9 @@ export interface FootstepVoiceContext {
 }
 
 /**
- * Dry-tile footstep: soft, low-amplitude rubber/wet-sole thud (80 Hz – 220 Hz, duration: 0.06s, gain: -26 dBFS).
- * Suppresses high-frequency harshness for stealthy, quiet, and damped platform-to-platform traversal.
+ * Dry Ceramic Tile Footstep (Section 3.1):
+ * Short, crisp shoe-on-ceramic transient (duration: 0.04s):
+ * Bandpass noise burst (900 Hz, Q = 3.5, gain: 0.08) + damped sine thud (135 Hz -> 65 Hz, 0.035s, gain: 0.12).
  */
 export function playStepDry(cx: FootstepVoiceContext): RawVoiceHandle {
   const ctx = cx.ctx;
@@ -44,40 +45,147 @@ export function playStepDry(cx: FootstepVoiceContext): RawVoiceHandle {
   const pitchMult = cx.pitch ?? 1.0;
 
   const voiceGain = ctx.createGain();
-  // Safe baseline gain at -26 dBFS (~0.05) scaled by intensity
-  const baseGain = 0.050 * intensity;
   voiceGain.gain.setValueAtTime(0.0001, now);
-  voiceGain.gain.linearRampToValueAtTime(baseGain, now + 0.003);
+  voiceGain.gain.linearRampToValueAtTime(1.0, now + 0.002);
   voiceGain.connect(cx.destination);
-  voiceGain.connect(cx.reverbSend);
 
-  const nodesToDisconnect: AudioNode[] = [voiceGain];
+  const revSend = ctx.createGain();
+  revSend.gain.setValueAtTime(0.15, now);
+  voiceGain.connect(revSend);
+  revSend.connect(cx.reverbSend);
 
-  // Soft low-amplitude rubber/wet-sole thud (220 Hz -> 80 Hz drop over 0.06s)
-  const thudDur = 0.06;
+  const nodesToDisconnect: AudioNode[] = [voiceGain, revSend];
+
+  // 1. Bandpass noise burst (900 Hz, Q = 3.5, gain: 0.08, duration: 0.04s)
+  const noise = ctx.createBufferSource();
+  noise.buffer = cx.noise.pink;
+  noise.loop = true;
+
+  const bp = ctx.createBiquadFilter();
+  bp.type = 'bandpass';
+  bp.frequency.setValueAtTime(900 * pitchMult, now);
+  bp.Q.setValueAtTime(3.5, now);
+
+  const noiseGain = ctx.createGain();
+  noiseGain.gain.setValueAtTime(0.0001, now);
+  noiseGain.gain.linearRampToValueAtTime(0.08 * intensity, now + 0.002);
+  noiseGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.04);
+
+  noise.connect(bp);
+  bp.connect(noiseGain);
+  noiseGain.connect(voiceGain);
+
+  noise.start(now);
+  noise.stop(now + 0.045);
+  nodesToDisconnect.push(noise, bp, noiseGain);
+
+  // 2. Damped sine thud (135 Hz -> 65 Hz, 0.035s, gain: 0.12)
   const thump = ctx.createOscillator();
   const thumpGain = ctx.createGain();
-  const thumpFilter = ctx.createBiquadFilter();
 
   thump.type = 'sine';
-  thump.frequency.setValueAtTime(220 * pitchMult, now);
-  thump.frequency.exponentialRampToValueAtTime(Math.max(40, 80 * pitchMult), now + thudDur);
-
-  thumpFilter.type = 'lowpass';
-  thumpFilter.frequency.setValueAtTime(280, now);
-  thumpFilter.Q.setValueAtTime(0.707, now);
+  thump.frequency.setValueAtTime(135 * pitchMult, now);
+  thump.frequency.exponentialRampToValueAtTime(Math.max(30, 65 * pitchMult), now + 0.035);
 
   thumpGain.gain.setValueAtTime(0.0001, now);
-  thumpGain.gain.linearRampToValueAtTime(0.85, now + 0.003);
-  thumpGain.gain.exponentialRampToValueAtTime(0.0001, now + thudDur);
+  thumpGain.gain.linearRampToValueAtTime(0.12 * intensity, now + 0.002);
+  thumpGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.035);
 
-  thump.connect(thumpFilter);
-  thumpFilter.connect(thumpGain);
+  thump.connect(thumpGain);
   thumpGain.connect(voiceGain);
 
   thump.start(now);
-  thump.stop(now + thudDur + 0.01);
-  nodesToDisconnect.push(thump, thumpFilter, thumpGain);
+  thump.stop(now + 0.04);
+  nodesToDisconnect.push(thump, thumpGain);
+
+  let endedResolve: () => void;
+  const ended = new Promise<void>((r) => { endedResolve = r; });
+
+  const cleanup = () => {
+    for (const node of nodesToDisconnect) {
+      try { node.disconnect(); } catch { /* ignore */ }
+    }
+  };
+
+  setTimeout(() => {
+    cleanup();
+    endedResolve();
+  }, 50);
+
+  return {
+    stop(fadeSec = 0.01): void {
+      const t = ctx.currentTime;
+      voiceGain.gain.cancelScheduledValues(t);
+      voiceGain.gain.linearRampToValueAtTime(0.0001, t + fadeSec);
+      setTimeout(() => {
+        cleanup();
+        endedResolve();
+      }, fadeSec * 1000);
+    },
+    setParam(): void {},
+    ended,
+  };
+}
+
+/**
+ * Dry Platform Jump Landing (Section 3.1):
+ * Slightly heavier double-tap ceramic thud (115 Hz -> 50 Hz, 0.06s, gain: 0.18) with subtle poolroom reverb tail.
+ */
+export function playDryLanding(cx: FootstepVoiceContext): RawVoiceHandle {
+  const ctx = cx.ctx;
+  const now = ctx.currentTime;
+  const intensity = cx.intensity ?? 1.0;
+  const pitchMult = cx.pitch ?? 1.0;
+
+  const voiceGain = ctx.createGain();
+  voiceGain.gain.setValueAtTime(0.0001, now);
+  voiceGain.gain.linearRampToValueAtTime(1.0, now + 0.003);
+  voiceGain.connect(cx.destination);
+
+  const revSend = ctx.createGain();
+  revSend.gain.setValueAtTime(0.35, now);
+  voiceGain.connect(revSend);
+  revSend.connect(cx.reverbSend);
+
+  const nodesToDisconnect: AudioNode[] = [voiceGain, revSend];
+
+  // Heavier ceramic thud: 115 Hz -> 50 Hz over 0.06s (gain: 0.18)
+  const thud = ctx.createOscillator();
+  const thudGain = ctx.createGain();
+
+  thud.type = 'sine';
+  thud.frequency.setValueAtTime(115 * pitchMult, now);
+  thud.frequency.exponentialRampToValueAtTime(Math.max(30, 50 * pitchMult), now + 0.06);
+
+  thudGain.gain.setValueAtTime(0.0001, now);
+  thudGain.gain.linearRampToValueAtTime(0.18 * intensity, now + 0.003);
+  thudGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.06);
+
+  thud.connect(thudGain);
+  thudGain.connect(voiceGain);
+
+  thud.start(now);
+  thud.stop(now + 0.07);
+  nodesToDisconnect.push(thud, thudGain);
+
+  // Subtle second tap
+  const thud2 = ctx.createOscillator();
+  const thudGain2 = ctx.createGain();
+
+  thud2.type = 'sine';
+  thud2.frequency.setValueAtTime(95 * pitchMult, now + 0.02);
+  thud2.frequency.exponentialRampToValueAtTime(Math.max(30, 45 * pitchMult), now + 0.07);
+
+  thudGain2.gain.setValueAtTime(0.0001, now + 0.02);
+  thudGain2.gain.linearRampToValueAtTime(0.10 * intensity, now + 0.023);
+  thudGain2.gain.exponentialRampToValueAtTime(0.0001, now + 0.07);
+
+  thud2.connect(thudGain2);
+  thudGain2.connect(voiceGain);
+
+  thud2.start(now + 0.02);
+  thud2.stop(now + 0.08);
+  nodesToDisconnect.push(thud2, thudGain2);
 
   let endedResolve: () => void;
   const ended = new Promise<void>((r) => { endedResolve = r; });

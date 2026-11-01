@@ -13,6 +13,7 @@ export class MonsterAudio {
   private readonly audio: AudioEngine;
   private breathLoop: VoiceHandle | null = null;
   private lastState: MonsterBrainState = 'DORMANT';
+  private gallopTimer = 0;
   private snarlTimer = 0;
   private sniffTimer = 0;
   private stalkTimer = 4.0;
@@ -93,10 +94,37 @@ export class MonsterAudio {
       this.closeHeartbeatTimer = 0.4;
     }
 
-    // 4. State transition sounds
+    // 3.5. High-Speed Water-Thrashing Gallop (Section 4.1):
+    // ~3.2 times per second during ALERT_AND_CHARGE / HUNT
+    // ~1.1 times per second during PATROL / WANDER / RETREAT_PROWL
+    const speed = Math.hypot(snapshot.vel.x, snapshot.vel.z);
+    const isCharging = snapshot.state === 'ALERT_AND_CHARGE' || snapshot.state === 'HUNT';
+    const isPatrolling = snapshot.state === 'PATROL' || snapshot.state === 'WANDER' || snapshot.state === 'RETREAT_PROWL';
+
+    if (speed > 0.4 && (isCharging || isPatrolling)) {
+      this.gallopTimer -= dt;
+      if (this.gallopTimer <= 0) {
+        const strideInterval = isCharging ? (1.0 / 3.2) : (1.0 / 1.1);
+        this.gallopTimer = strideInterval;
+        this.audio.play('monster_gallop_slam', {
+          position: pos,
+          gain: isCharging ? 0.95 : 0.65,
+          monsterDistance: dist,
+          bus: 'monster',
+        });
+      }
+    } else {
+      this.gallopTimer = 0.08;
+    }
+
+    // 4. State transition sounds (Roar on ALERT, ALERT_AND_CHARGE, ARRIVE_AND_ROAR)
     if (snapshot.state !== this.lastState) {
-      if (snapshot.state === 'ALERTED') {
-        this.audio.play('monster_roar', {
+      if (
+        snapshot.state === 'ALERTED' ||
+        snapshot.state === 'ALERT_AND_CHARGE' ||
+        snapshot.state === 'ARRIVE_AND_ROAR'
+      ) {
+        this.audio.play('creature_roar', {
           position: pos,
           gain: 1.0,
           monsterDistance: dist,

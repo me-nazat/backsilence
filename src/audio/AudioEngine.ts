@@ -20,6 +20,7 @@ import {
 } from './voices/Splashes.js';
 import {
   playStepDry,
+  playDryLanding,
   playStepSqueak,
   playMantle,
   playDrip,
@@ -29,9 +30,11 @@ import {
   playLapLoop,
   playHumLoop,
   playDroneLoop,
+  playCalmRoomTone,
 } from './voices/Loops.js';
 import {
   playMonsterRoar,
+  playMonsterGallopSlam,
   playMonsterSnarl,
   playMonsterBreathLoop,
   playMonsterSniff,
@@ -167,6 +170,10 @@ export type VoiceName =
   | 'lap_loop'
   | 'hum_loop'
   | 'drone_loop'
+  | 'calm_room_tone'
+  | 'dry_landing'
+  | 'monster_gallop_slam'
+  | 'creature_roar'
   | 'monster_roar'
   | 'monster_snarl'
   | 'monster_breath_loop'
@@ -413,6 +420,17 @@ export class AudioEngine implements AudioEngineApi {
       }
     });
 
+    // Reliable First-Gesture Unlock (Section 2.1):
+    // Resume AudioContext on any pointerdown, mousedown, or keydown event.
+    const unlockGesture = () => {
+      if (this.ctx && this.ctx.state === 'suspended') {
+        this.ctx.resume().catch(() => {});
+      }
+    };
+    window.addEventListener('pointerdown', unlockGesture, { passive: true });
+    window.addEventListener('mousedown', unlockGesture, { passive: true });
+    window.addEventListener('keydown', unlockGesture, { passive: true });
+
     this.isInitialized = true;
 
     // AudioWorklet loading with fallback logging (Prompt 3.2 c)
@@ -500,10 +518,10 @@ export class AudioEngine implements AudioEngineApi {
       panner.panningModel = 'HRTF';
       panner.distanceModel = 'inverse';
       if (isMonsterVoice) {
-        // Monster spatial proximity: reference distance 2.0m, max distance 25.0m
-        panner.refDistance = 2.0;
-        panner.maxDistance = 25.0;
-        panner.rolloffFactor = 1.0;
+        // Monster spatial proximity (Section 4): refDistance: 2.2, maxDistance: 50.0, rolloffFactor: 1.25
+        panner.refDistance = 2.2;
+        panner.maxDistance = 50.0;
+        panner.rolloffFactor = 1.25;
       } else {
         panner.refDistance = 4.0;
         panner.maxDistance = 80.0;
@@ -618,8 +636,14 @@ export class AudioEngine implements AudioEngineApi {
       case 'pebble_plink':
         handle = playPebblePlink(voiceCtx);
         break;
+      case 'calm_room_tone':
+        handle = playCalmRoomTone(voiceCtx);
+        break;
       case 'step_dry':
         handle = playStepDry(voiceCtx);
+        break;
+      case 'dry_landing':
+        handle = playDryLanding(voiceCtx);
         break;
       case 'step_squeak':
         handle = playStepSqueak(voiceCtx);
@@ -639,8 +663,12 @@ export class AudioEngine implements AudioEngineApi {
       case 'drone_loop':
         handle = playDroneLoop(voiceCtx);
         break;
+      case 'creature_roar':
       case 'monster_roar':
         handle = playMonsterRoar(voiceCtx);
+        break;
+      case 'monster_gallop_slam':
+        handle = playMonsterGallopSlam(voiceCtx);
         break;
       case 'monster_snarl':
         handle = playMonsterSnarl(voiceCtx);
@@ -1016,6 +1044,8 @@ export class AudioEngine implements AudioEngineApi {
     }
     if (
       name === 'monster_footfall' ||
+      name === 'monster_gallop_slam' ||
+      name === 'creature_roar' ||
       name.startsWith('monster_') ||
       name === 'jumpscare' ||
       name === 'heartbeat'
@@ -1023,6 +1053,7 @@ export class AudioEngine implements AudioEngineApi {
       return 'monster';
     }
     if (
+      name === 'calm_room_tone' ||
       name.endsWith('_loop') ||
       name === 'drip' ||
       name.startsWith('ambience_') ||

@@ -219,6 +219,87 @@ function makeBiquadBP(freq: number, Q: number, sampleRate: number): BiquadBP {
 }
 
 /**
+ * Generate the exact Tiled-Natatorium Impulse Response (Section 2.2):
+ * 2.1s stereo decay using exp(-t * 3.2), early reflection spikes at 14ms, 29ms, 47ms, 78ms, lowpassed at 4200 Hz.
+ */
+export function createNatatoriumImpulseResponse(ctx: BaseAudioContext): AudioBuffer {
+  const sampleRate = ctx.sampleRate;
+  const duration = 2.1;
+  const length = Math.floor(sampleRate * duration);
+  const buffer = ctx.createBuffer(2, length, sampleRate);
+
+  const left = buffer.getChannelData(0);
+  const right = buffer.getChannelData(1);
+
+  const rngL = mulberry32(1001);
+  const rngR = mulberry32(2002);
+
+  // 1-pole lowpass filter coefficient for 4200 Hz
+  const fc = 4200.0;
+  const alpha = Math.min(1.0, (2.0 * Math.PI * fc) / sampleRate);
+
+  let prevL = 0;
+  let prevR = 0;
+
+  // Exponentially decaying stereo noise exp(-t * 3.2)
+  for (let i = 0; i < length; i++) {
+    const t = i / sampleRate;
+    const decay = Math.exp(-t * 3.2);
+
+    const rawL = (rngL() * 2.0 - 1.0) * decay;
+    const rawR = (rngR() * 2.0 - 1.0) * decay;
+
+    prevL += alpha * (rawL - prevL);
+    prevR += alpha * (rawR - prevR);
+
+    left[i] = prevL;
+    right[i] = prevR;
+  }
+
+  // Early reflection spikes at 14ms, 29ms, 47ms, and 78ms
+  const earlySpikes = [
+    { delayMs: 14.0, gain: 0.65, pan: -0.20 },
+    { delayMs: 29.0, gain: 0.52, pan: 0.25 },
+    { delayMs: 47.0, gain: 0.42, pan: -0.35 },
+    { delayMs: 78.0, gain: 0.32, pan: 0.40 },
+  ];
+
+  for (const spike of earlySpikes) {
+    const idx = Math.floor((spike.delayMs * 0.001) * sampleRate);
+    if (idx >= length - 2) continue;
+
+    const gL = spike.gain * (1.0 - spike.pan) * 0.5;
+    const gR = spike.gain * (1.0 + spike.pan) * 0.5;
+
+    left[idx - 1] = (left[idx - 1] ?? 0) + gL * 0.25;
+    left[idx] = (left[idx] ?? 0) + gL * 0.50;
+    left[idx + 1] = (left[idx + 1] ?? 0) + gL * 0.25;
+
+    right[idx - 1] = (right[idx - 1] ?? 0) + gR * 0.25;
+    right[idx] = (right[idx] ?? 0) + gR * 0.50;
+    right[idx + 1] = (right[idx + 1] ?? 0) + gR * 0.25;
+  }
+
+  // Peak normalization
+  let maxPeak = 0;
+  for (let i = 0; i < length; i++) {
+    const absL = Math.abs(left[i] ?? 0);
+    const absR = Math.abs(right[i] ?? 0);
+    if (absL > maxPeak) maxPeak = absL;
+    if (absR > maxPeak) maxPeak = absR;
+  }
+  if (maxPeak > 1e-4) {
+    const norm = 0.65 / maxPeak;
+    for (let i = 0; i < length; i++) {
+      left[i] = (left[i] ?? 0) * norm;
+      right[i] = (right[i] ?? 0) * norm;
+    }
+  }
+
+  return buffer;
+}
+
+/**
  * Generate a procedural stereo impulse response buffer with image-source
  * early reflections (< 80ms) and octave-band filtered diffuse decay (Section 7 C.1).
  */
@@ -417,7 +498,7 @@ export class ReverbUnit {
 
     this.input = ctx.createGain();
     this.output = ctx.createGain();
-    this.output.gain.value = 0.55; // Prompt 3.9: output.gain 1.0 -> 0.55
+    this.output.gain.value = 0.30; // Section 2.2: Parallel Dry (70%) + Wet Reverb (30%) bus
 
     this.convA = ctx.createConvolver();
     this.convB = ctx.createConvolver();

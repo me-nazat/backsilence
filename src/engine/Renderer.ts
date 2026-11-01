@@ -66,7 +66,11 @@ export class EngineRenderer {
     };
 
     this.renderer.outputColorSpace = SRGBColorSpace;
-    this.setToneMapping(settings.graphics.toneMapping ?? 'agx');
+    this.renderer.toneMapping = ACESFilmicToneMapping;
+    this.renderer.toneMappingExposure = 1.12;
+    this.renderer.shadowMap.enabled = true;
+    this.renderer.shadowMap.type = PCFSoftShadowMap;
+    this.setToneMapping(settings.graphics.toneMapping ?? 'acesfilmic');
     this.applySettings(settings);
 
     this.setupContextHandlers();
@@ -78,8 +82,8 @@ export class EngineRenderer {
     const tier = resolveQualityTier(s.graphics.quality);
     const quality = resolveQuality(s.graphics.quality);
 
-    // Brightness maps to exposure 0.8–1.4 (default ~1.1 at brightness 1.0)
-    const exposure = 0.8 + (s.graphics.brightness / 2.0) * 0.6;
+    // Exposure calibrated to 1.12 baseline (reference palette alignment)
+    const exposure = 1.12 * (s.graphics.brightness ?? 1.0);
     this.renderer.toneMappingExposure = exposure;
 
     // Adaptive DPR based on resolution scale and quality cap

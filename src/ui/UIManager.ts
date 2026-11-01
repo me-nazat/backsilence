@@ -138,23 +138,23 @@ export class UIManager {
       const engine = AudioEngine.getInstance();
       void engine.init().then(() => engine.startAmbience());
 
-      if (modeId === 'training') {
+      if (modeId === 'training' || modeId === 'guided-practice') {
         this.startGame({
           mode: 'single',
-          mapId: 'orientation',
+          mapId: 'natatorium',
           difficulty: 1,
           seed: Date.now(),
           subMode: 'training',
         });
-      } else if (modeId === 'endless') {
+      } else if (modeId === 'endless' || modeId === 'endless-tide') {
         this.startGame({
           mode: 'single',
-          mapId: 'drainage_core',
+          mapId: 'natatorium',
           difficulty: 3,
           seed: Date.now(),
           subMode: 'endless',
         });
-      } else if (modeId === 'daily') {
+      } else if (modeId === 'daily' || modeId === 'daily-descent') {
         const todayStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
         const dailySeed = parseInt(todayStr, 10) || 20261030;
         this.startGame({
@@ -164,7 +164,7 @@ export class UIManager {
           seed: dailySeed,
           subMode: 'daily',
         });
-      } else if (modeId === 'ghost') {
+      } else if (modeId === 'ghost' || modeId === 'ghost-run') {
         this.startGame({
           mode: 'single',
           mapId: 'natatorium',
@@ -172,23 +172,23 @@ export class UIManager {
           seed: 42,
           subMode: 'ghost',
         });
-      } else if (modeId === 'coop') {
+      } else if (modeId === 'coop' || modeId === 'co-op-escape') {
         this.startGame({
           mode: 'single',
-          mapId: 'poolrooms',
+          mapId: 'natatorium',
           difficulty: 2,
           seed: Date.now(),
           subMode: 'coop',
         });
-      } else if (modeId === 'race') {
+      } else if (modeId === 'race' || modeId === 'silent-race') {
         this.startGame({
           mode: 'single',
-          mapId: 'marble_atrium',
+          mapId: 'natatorium',
           difficulty: 2,
           seed: Date.now(),
           subMode: 'race',
         });
-      } else if (modeId === 'last_dry') {
+      } else if (modeId === 'last_dry' || modeId === 'last-one-dry') {
         this.startGame({
           mode: 'single',
           mapId: 'natatorium',
@@ -197,10 +197,10 @@ export class UIManager {
           subMode: 'last_dry',
         });
       } else {
-        // 'campaign' / THE ARCHIVE TAPES
+        // 'campaign' / THE ARCHIVE TAPES - Main Poolrooms progression
         this.startGame({
           mode: 'single',
-          mapId: 'drowned_metro',
+          mapId: 'natatorium',
           difficulty: 2,
           seed: Date.now(),
           subMode: 'campaign',
@@ -611,6 +611,25 @@ export class UIManager {
     this.viewStack.push(view);
     this.currentView = view;
 
+    if (view !== 'GAME') {
+      safeExitPointerLock();
+      if (typeof document !== 'undefined') {
+        if (document.exitPointerLock && document.pointerLockElement) {
+          try {
+            document.exitPointerLock();
+          } catch {
+            /* ignore */
+          }
+        }
+        const canvasContainer = document.getElementById('canvas-container');
+        if (canvasContainer) canvasContainer.style.pointerEvents = 'none';
+        const canvases = document.querySelectorAll<HTMLCanvasElement>('canvas');
+        canvases.forEach((c) => {
+          c.style.pointerEvents = 'none';
+        });
+      }
+    }
+
     if (view === 'MODE_SELECT') {
       this.stateMachine.goTo('MODE_SELECT');
     } else if (view === 'MENU') {
@@ -650,12 +669,20 @@ export class UIManager {
 
   goBack(): void {
     safeExitPointerLock();
-    if (typeof document !== 'undefined' && document.exitPointerLock && document.pointerLockElement) {
-      try {
-        document.exitPointerLock();
-      } catch {
-        /* ignore */
+    if (typeof document !== 'undefined') {
+      if (document.exitPointerLock && document.pointerLockElement) {
+        try {
+          document.exitPointerLock();
+        } catch {
+          /* ignore */
+        }
       }
+      const canvasContainer = document.getElementById('canvas-container');
+      if (canvasContainer) canvasContainer.style.pointerEvents = 'none';
+      const canvases = document.querySelectorAll<HTMLCanvasElement>('canvas');
+      canvases.forEach((c) => {
+        c.style.pointerEvents = 'none';
+      });
     }
     if (this.currentView === 'GAME') {
       this.bus.emit('game:leave', undefined);
@@ -678,6 +705,12 @@ export class UIManager {
       this.stateMachine.goTo('MENU');
       setMenuRoute();
       this.updateViewVisibility();
+    }
+
+    if (this.currentView === 'MENU') {
+      this.homeScreen.element.style.pointerEvents = 'auto';
+      this.homeScreen.element.removeAttribute('inert');
+      this.homeScreen.element.removeAttribute('aria-hidden');
     }
   }
 

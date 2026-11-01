@@ -276,3 +276,73 @@ export function playDroneLoop(cx: LoopVoiceContext): RawVoiceHandle {
     ended,
   };
 }
+
+/**
+ * Calm Room Tone (Section 2.3):
+ * A barely perceptible -40 dBFS brown-noise air bed bandpassed between 70 Hz – 260 Hz.
+ * Zero tonal oscillators. Zero background music or synths.
+ */
+export function playCalmRoomTone(cx: LoopVoiceContext): RawVoiceHandle {
+  const ctx = cx.ctx;
+  const now = ctx.currentTime;
+
+  const voiceGain = ctx.createGain();
+  // -40 dBFS = 0.010
+  voiceGain.gain.setValueAtTime(0.0001, now);
+  voiceGain.gain.linearRampToValueAtTime(0.010, now + 0.8);
+  voiceGain.connect(cx.destination);
+
+  const brown = ctx.createBufferSource();
+  brown.buffer = cx.noise.brown;
+  brown.loop = true;
+
+  // Bandpass filter between 70 Hz and 260 Hz
+  const hp = ctx.createBiquadFilter();
+  hp.type = 'highpass';
+  hp.frequency.setValueAtTime(70, now);
+  hp.Q.setValueAtTime(0.707, now);
+
+  const lp = ctx.createBiquadFilter();
+  lp.type = 'lowpass';
+  lp.frequency.setValueAtTime(260, now);
+  lp.Q.setValueAtTime(0.707, now);
+
+  brown.connect(hp);
+  hp.connect(lp);
+  lp.connect(voiceGain);
+
+  brown.start(now);
+
+  let isPlaying = true;
+  let endedResolve: () => void;
+  const ended = new Promise<void>((r) => { endedResolve = r; });
+
+  return {
+    stop(fade = 0.8): void {
+      if (!isPlaying) return;
+      isPlaying = false;
+      const t = ctx.currentTime;
+      voiceGain.gain.cancelScheduledValues(t);
+      voiceGain.gain.setValueAtTime(voiceGain.gain.value, t);
+      voiceGain.gain.linearRampToValueAtTime(0.0001, t + fade);
+      setTimeout(() => {
+        try {
+          brown.stop();
+          brown.disconnect();
+          hp.disconnect();
+          lp.disconnect();
+          voiceGain.disconnect();
+        } catch {
+          /* ignore */
+        }
+        endedResolve();
+      }, fade * 1000);
+    },
+    setParam(name: string, v: number): void {
+      if (name === 'volume') {
+        voiceGain.gain.setTargetAtTime(Math.max(0.0001, v * 0.010), ctx.currentTime, 0.05);
+      }
+    },
+    ended,
+  };
+}

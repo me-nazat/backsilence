@@ -64,38 +64,40 @@ export function playSplash(
 
   const nodesToDisconnect: AudioNode[] = [voiceGain, revGain];
 
-  // ── LAYER 1: Initial Surface Plunge (Low-mid body thump + transient noise burst) ──
-  // 1a. Low-mid body thump: 120 Hz -> 45 Hz pitch drop over 0.12s
-  const thumpOsc = ctx.createOscillator();
-  const thumpGain = ctx.createGain();
-  thumpOsc.type = 'sine';
-  thumpOsc.frequency.setValueAtTime(120 * pitchMult, now);
-  thumpOsc.frequency.exponentialRampToValueAtTime(Math.max(30, 45 * pitchMult), now + 0.12);
+  // ── LAYER 1: Initial Surface Plunge (Section 3.2 Water Plunge) ──
+  // 1a. Bubble Cavity Plunge: Sine pitch sweep 160 Hz -> 42 Hz over 0.16s (gain: 0.45)
+  const cavityOsc = ctx.createOscillator();
+  const cavityGain = ctx.createGain();
+  cavityOsc.type = 'sine';
+  cavityOsc.frequency.setValueAtTime(160 * pitchMult, now);
+  cavityOsc.frequency.exponentialRampToValueAtTime(Math.max(25, 42 * pitchMult), now + 0.16);
 
-  thumpGain.gain.setValueAtTime(0.0001, now);
-  thumpGain.gain.linearRampToValueAtTime(0.70 * intensity, now + 0.003);
-  thumpGain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+  cavityGain.gain.setValueAtTime(0.0001, now);
+  cavityGain.gain.linearRampToValueAtTime(0.45 * intensity, now + 0.003);
+  cavityGain.gain.exponentialRampToValueAtTime(0.001, now + 0.16);
 
-  thumpOsc.connect(thumpGain);
-  thumpGain.connect(voiceGain);
-  thumpOsc.start(now);
-  thumpOsc.stop(now + 0.13);
-  nodesToDisconnect.push(thumpOsc, thumpGain);
+  cavityOsc.connect(cavityGain);
+  cavityGain.connect(voiceGain);
+  cavityOsc.start(now);
+  cavityOsc.stop(now + 0.17);
+  nodesToDisconnect.push(cavityOsc, cavityGain);
 
-  // 1b. Transient bandpass noise burst: 300 Hz – 1200 Hz over 0.09s
-  const plungeBurstDur = 0.09;
+  // 1b. Turbulent Water Burst: Pink noise dynamic bandpass sweeping 450 Hz -> 1800 Hz -> 320 Hz over 0.48s (gain: 0.55)
+  const plungeBurstDur = 0.48;
   const plungeNoise = ctx.createBufferSource();
   plungeNoise.buffer = cx.noise.pink;
   plungeNoise.loop = true;
 
   const plungeFilter = ctx.createBiquadFilter();
   plungeFilter.type = 'bandpass';
-  plungeFilter.frequency.setValueAtTime(650 * pitchMult, now);
-  plungeFilter.Q.setValueAtTime(1.2, now);
+  plungeFilter.frequency.setValueAtTime(450 * pitchMult, now);
+  plungeFilter.frequency.exponentialRampToValueAtTime(Math.min(10000, 1800 * pitchMult), now + 0.18);
+  plungeFilter.frequency.exponentialRampToValueAtTime(Math.max(100, 320 * pitchMult), now + plungeBurstDur);
+  plungeFilter.Q.setValueAtTime(1.5, now);
 
   const plungeNoiseGain = ctx.createGain();
   plungeNoiseGain.gain.setValueAtTime(0.0001, now);
-  plungeNoiseGain.gain.linearRampToValueAtTime(0.75 * intensity, now + 0.003);
+  plungeNoiseGain.gain.linearRampToValueAtTime(0.55 * intensity, now + 0.005);
   plungeNoiseGain.gain.exponentialRampToValueAtTime(0.001, now + plungeBurstDur);
 
   plungeNoise.connect(plungeFilter);
@@ -193,7 +195,8 @@ export function playSplash(
 }
 
 /**
- * Wade step: leg displacement, fluid swish, and trailing van den Doel bubbles.
+ * Wading Slosh (Section 3.2):
+ * Modulated bandpass noise (350 Hz – 1400 Hz, duration: 0.28s, gain: 0.35) with a soft 95 Hz water displacement thump.
  */
 export function playWadeStep(cx: SplashVoiceContext): RawVoiceHandle {
   const ctx = cx.ctx;
@@ -208,11 +211,93 @@ export function playWadeStep(cx: SplashVoiceContext): RawVoiceHandle {
     }
   }
 
-  // Fallback to small splash with soft wading profile
-  return playSplash('small', {
-    ...cx,
-    intensity: (cx.intensity ?? 0.6) * 0.75,
-  });
+  const now = ctx.currentTime;
+  const intensity = cx.intensity ?? 1.0;
+  const pitchMult = cx.pitch ?? 1.0;
+
+  const voiceGain = ctx.createGain();
+  voiceGain.gain.setValueAtTime(0.0001, now);
+  voiceGain.gain.linearRampToValueAtTime(1.0, now + 0.003);
+  voiceGain.connect(cx.destination);
+
+  const revSend = ctx.createGain();
+  revSend.gain.setValueAtTime(0.35, now);
+  voiceGain.connect(revSend);
+  revSend.connect(cx.reverbSend);
+
+  const nodesToDisconnect: AudioNode[] = [voiceGain, revSend];
+
+  // 1. Modulated bandpass noise (350 Hz – 1400 Hz, duration: 0.28s, gain: 0.35)
+  const noise = ctx.createBufferSource();
+  noise.buffer = cx.noise.pink;
+  noise.loop = true;
+
+  const bp = ctx.createBiquadFilter();
+  bp.type = 'bandpass';
+  bp.frequency.setValueAtTime(350 * pitchMult, now);
+  bp.frequency.exponentialRampToValueAtTime(Math.min(8000, 1400 * pitchMult), now + 0.12);
+  bp.frequency.exponentialRampToValueAtTime(Math.max(100, 450 * pitchMult), now + 0.28);
+  bp.Q.setValueAtTime(1.8, now);
+
+  const noiseGain = ctx.createGain();
+  noiseGain.gain.setValueAtTime(0.0001, now);
+  noiseGain.gain.linearRampToValueAtTime(0.35 * intensity, now + 0.008);
+  noiseGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.28);
+
+  noise.connect(bp);
+  bp.connect(noiseGain);
+  noiseGain.connect(voiceGain);
+
+  noise.start(now);
+  noise.stop(now + 0.29);
+  nodesToDisconnect.push(noise, bp, noiseGain);
+
+  // 2. Soft 95 Hz water displacement thump
+  const thump = ctx.createOscillator();
+  const thumpGain = ctx.createGain();
+
+  thump.type = 'sine';
+  thump.frequency.setValueAtTime(95 * pitchMult, now);
+  thump.frequency.exponentialRampToValueAtTime(Math.max(25, 45 * pitchMult), now + 0.10);
+
+  thumpGain.gain.setValueAtTime(0.0001, now);
+  thumpGain.gain.linearRampToValueAtTime(0.30 * intensity, now + 0.003);
+  thumpGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.10);
+
+  thump.connect(thumpGain);
+  thumpGain.connect(voiceGain);
+
+  thump.start(now);
+  thump.stop(now + 0.11);
+  nodesToDisconnect.push(thump, thumpGain);
+
+  let endedResolve: () => void;
+  const ended = new Promise<void>((r) => { endedResolve = r; });
+
+  const cleanup = () => {
+    for (const node of nodesToDisconnect) {
+      try { node.disconnect(); } catch { /* ignore */ }
+    }
+  };
+
+  setTimeout(() => {
+    cleanup();
+    endedResolve();
+  }, 300);
+
+  return {
+    stop(fadeSec = 0.02): void {
+      const t = ctx.currentTime;
+      voiceGain.gain.cancelScheduledValues(t);
+      voiceGain.gain.linearRampToValueAtTime(0.0001, t + fadeSec);
+      setTimeout(() => {
+        cleanup();
+        endedResolve();
+      }, fadeSec * 1000);
+    },
+    setParam(): void {},
+    ended,
+  };
 }
 
 /**

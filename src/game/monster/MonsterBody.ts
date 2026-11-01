@@ -9,6 +9,8 @@ import type { GroundGrid } from '../../sim/GroundGrid.js';
 import { MonsterMeshHierarchy } from './MonsterMesh.js';
 import { MonsterIKSolver } from './MonsterIK.js';
 import { MonsterGaitGenerator } from './MonsterGait.js';
+import { MonsterRig } from './MonsterRig.js';
+import { MonsterAnimator } from './MonsterAnimator.js';
 import type { WaterSystem } from '../water/WaterSystem.js';
 import type { AudioEngine } from '../../audio/AudioEngine.js';
 
@@ -27,6 +29,8 @@ const _worldRoot = new Vector3();
 export class MonsterBody {
   readonly id: string;
   readonly mesh: MonsterMeshHierarchy;
+  readonly rig: MonsterRig;
+  readonly animator: MonsterAnimator;
   private readonly gait = new MonsterGaitGenerator();
   private readonly water?: WaterSystem | undefined;
   private readonly audio?: AudioEngine | undefined;
@@ -68,8 +72,31 @@ export class MonsterBody {
     this.scale = scale;
     this.tint = tint;
     this.mesh = new MonsterMeshHierarchy(scale, tint);
+    this.rig = new MonsterRig(scale, tint);
+    this.mesh.root.add(this.rig.rootGroup);
+    if (this.mesh.skinnedMesh) {
+      this.mesh.skinnedMesh.visible = false;
+    }
     this.water = water;
     this.audio = audio;
+
+    this.animator = new MonsterAnimator(this.rig, {
+      onForelimbSlam: (pos: Vector3, force: number) => {
+        if (this.water) {
+          this.water.rippleManager?.spawnMonsterGallopSlam(pos.x, pos.z);
+          this.water.onSplash(pos, force, true);
+        }
+        if (this.audio) {
+          this.audio.play('monster_footfall', { position: pos, gain: force * 1.0 });
+        }
+      },
+      onRearUpSplash: (pos: Vector3) => {
+        if (this.water) {
+          this.water.rippleManager?.spawnMonsterGallopSlam(pos.x, pos.z);
+          this.water.onSplash(pos, 1.25, true);
+        }
+      },
+    });
   }
 
   public readonly maxJawOpen = 1.15;
@@ -222,6 +249,7 @@ export class MonsterBody {
     const groundY = Number.isFinite(rawGroundY) ? rawGroundY : -0.9;
     const waterLevel = this.water ? this.water.currentWaterY : 0.0;
     this.mesh.setWaterLevel(waterLevel);
+    this.rig.setWaterLevel(waterLevel);
     
     // Standing wade pose: torso + head sit >= 1.2m above waterline
     const isWadeStand = snapshot.isSighting || ((snapshot.state === 'WANDER' || snapshot.state === 'DORMANT') && rawGroundY < waterLevel);
@@ -235,12 +263,27 @@ export class MonsterBody {
     this.currentYaw += (snapshot.yaw - this.currentYaw) * Math.min(1.0, dt * 10.0);
     this.mesh.root.rotation.y = this.currentYaw;
     this.mesh.setAgitation(snapshot.agitation ?? 0.0);
-
-    this.lastGoodPos.copy(this.mesh.root.position);
-    this.lastGoodYaw = this.currentYaw;
+    this.rig.setAgitation(snapshot.agitation ?? 0.0);
 
     const speed = Math.hypot(snapshot.vel.x, snapshot.vel.z);
     _worldRoot.copy(this.mesh.root.position);
+
+    // Trigger rear up roar if brain sets rearingT or on alerted transition
+    if (snapshot.rearingT > 0.6 && !this.animator.isRoaring()) {
+      this.animator.triggerRearUpRoar();
+    }
+
+    // Update procedural skeletal animation controller
+    this.animator.update(
+      dt,
+      speed,
+      snapshot.state,
+      camera.position,
+      waterLevel,
+    );
+
+    this.lastGoodPos.copy(this.mesh.root.position);
+    this.lastGoodYaw = this.currentYaw;
 
     // Dynamic water wake / foam displacement while monster wades
     if (this.water && speed > 0.3 && finalRootY < waterLevel + 0.6) {
@@ -432,6 +475,7 @@ export class MonsterBody {
         if (isFast) {
           _tempMid.set(snapshot.pos.x, waterLevel, snapshot.pos.z);
           this.water.onSplash(_tempMid, Math.min(1.0, speed * 0.22), true);
+          this.water.rippleManager?.spawnMonsterStride(snapshot.pos.x, snapshot.pos.z);
         }
       }
     }
@@ -469,6 +513,10 @@ export class MonsterBody {
       (this.mesh as { joints: unknown }).joints = fresh.joints;
       (this.mesh as { lod0: unknown }).lod0 = fresh.lod0;
       (this.mesh as { lod1: unknown }).lod1 = fresh.lod1;
+      if (this.mesh.skinnedMesh) {
+        this.mesh.skinnedMesh.visible = false;
+      }
+      this.mesh.root.add(this.rig.rootGroup);
       this.mesh.root.position.copy(this.lastGoodPos);
       this.mesh.root.rotation.y = this.lastGoodYaw;
       this.mesh.root.scale.set(this.scale, this.scale, this.scale);
@@ -486,6 +534,7 @@ export class MonsterBody {
   }
 
   dispose(): void {
+    this.rig.dispose();
     this.mesh.dispose();
   }
 }

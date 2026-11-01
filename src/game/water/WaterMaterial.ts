@@ -33,6 +33,7 @@ import {
 } from 'three';
 import type { GraphicsTier } from '../../types/contracts.js';
 import type { WaterProfile } from './WaterProfile.js';
+export { WaterSurfaceShader } from './WaterSurfaceShader.js';
 
 export interface LightStreak {
   pos: Vector3;
@@ -535,6 +536,12 @@ void main() {
   sunSpec += evalGGX(sparkleNormal, viewDir, uSunDir, uSpecularColor, 26.0 * sparkle, roughness * 0.6);
   waterColor += clamp(sunSpec, 0.0, 0.65);
 
+  // White Wavy Specular Glints: sharp highlight term rendering bright white wavy streak reflections
+  vec3 H_glint = normalize(viewDir + uSunDir);
+  float specBase = max(0.0, dot(normal, H_glint));
+  float specWave = step(0.92, specBase) * 0.85 + pow(specBase, 48.0);
+  waterColor += uSpecularColor * (specWave * 0.75);
+
   // 10. LightStreaks (up to 16 area/line light proxies) evaluated via GGX
   for (int i = 0; i < 16; i++) {
     if (i >= uStreakCount) break;
@@ -582,18 +589,31 @@ void main() {
     }
   }
 
+  // Subtle 0.06m white-green edge foam rim where the water intersects platforms, pillars, and walls
+  float edgeRim = 0.0;
+  if (thickness < 0.06) {
+    edgeRim = smoothstep(0.06, 0.005, thickness);
+    vec3 edgeRimColor = vec3(0.88, 0.96, 0.90);
+    waterColor = mix(waterColor, edgeRimColor, edgeRim * 0.75);
+  }
+
   // Wave crest foam (inverted: peaks on wave crest)
   float crestFoam = smoothstep(0.006, 0.022, vWorldPos.y - uWaterY) * 0.55;
   float rippleFoam = smoothstep(0.007, 0.026, abs(vRippleHeight)) * 0.8;
-  float totalFoam = clamp(shoreFoam + meniscusFoam + wakeFoam + rippleFoam + crestFoam, 0.0, 1.0);
+  float totalFoam = clamp(shoreFoam + meniscusFoam + wakeFoam + rippleFoam + crestFoam + edgeRim, 0.0, 1.0);
 
   vec3 foamColor = vec3(0.92, 0.95, 0.90);
   waterColor = mix(waterColor, foamColor, totalFoam * clamp(uFoamStrength * 1.95, 0.3, 1.0));
 
+  // Fresnel-modulated alpha (reveals submerged tile grid on floor at y = -0.75m and monster's limbs)
+  float fresnelTerm = pow(1.0 - max(dot(viewDir, normal), 0.0), 2.5);
+  float fresnelAlpha = mix(0.62, 0.86, fresnelTerm);
+
   // Soft Edge Alpha: blend alpha to 0 over the last 3 cm of thickness
   float softEdge = clamp(thickness / 0.03, 0.0, 1.0);
   float depthAlpha = mix(uOpacityMin, uOpacityMax, 1.0 - exp(-thickness * 1.8));
-  float alpha = hasTrueDepth ? softEdge * depthAlpha : depthAlpha;
+  float blendedAlpha = mix(depthAlpha, fresnelAlpha, 0.75);
+  float alpha = hasTrueDepth ? softEdge * blendedAlpha : blendedAlpha;
   alpha = max(alpha, totalFoam * 0.92);
 
   // Readability: never let water opacity exceed 0.6 within 3m of monster waterline

@@ -1,18 +1,23 @@
 /* ── NatatoriumMap.ts ──────────────────────────────────────────────────────
  *  Map 1 (Default): The Grand Natatorium
- *  An authored, architectural flooded municipal bath: vaulted skylights,
- *  mosaic walls, brass fittings, mist hugging milky green water, the Ear mosaic
- *  at the pool-floor center, curated wings, and a 3-stage ExitProtocol puzzle.
+ *  Authentic Backrooms Poolrooms architecture based on reference videos:
+ *  - Zone A: The Skylight Spawn Pool & Swim-Under Tunnel
+ *  - Zone B: The Great Flooded Pillar Hall & Stepping-Stone Course (~45 dry platforms)
+ *  - Zone C: Bright Lit Arched Checkpoint Corridor (S-bend, warm circular lamps)
+ *  - World-space ceramic tile materials (TileMaterialFactory) with zero UV stretching
+ *  - Hand-painted decals (mural splash crown, checkpoint warning, curved pillar arrows, stencils)
  * ──────────────────────────────────────────────────────────────────────── */
 
 import {
   MeshStandardMaterial,
-  MeshBasicMaterial,
   Mesh,
   InstancedMesh,
   Matrix4,
   PlaneGeometry,
   BoxGeometry,
+  CylinderGeometry,
+  DodecahedronGeometry,
+  Group,
   Vector3,
   Color,
   PointLight,
@@ -32,13 +37,20 @@ import type { MapInstance } from './MapInstance.js';
 import { Rng } from '../../procedural/core/prng.js';
 import { TextureRegistry } from '../../procedural/textures/TextureRegistry.js';
 import { WATER_PROFILES } from '../../game/water/WaterProfile.js';
-import { buildStandardMapInstance, scaleBoxUv } from './CommonMapBuilder.js';
+import { buildStandardMapInstance, scaleBoxUv, type CustomBuilderHook } from './CommonMapBuilder.js';
 import { makeMosaicEarTexture } from '../../procedural/textures/MosaicEarTexture.js';
 import { bakeVertexAO } from '../../procedural/geometry/VertexAO.js';
-import { applyWetDarkening } from '../../game/rendering/WetDarkening.js';
-import { applyParallaxOcclusion } from '../../game/rendering/ParallaxOcclusion.js';
 import { createLightShaftMesh, createDustMotes } from '../../game/rendering/LightShafts.js';
 import { buildYFixtureGeometry, buildColorPanelGeometry } from '../levelart/LevelArtProps.js';
+import { buildArchGeometry } from '../../procedural/geometry/ArchBuilder.js';
+import { TileMaterialFactory } from '../../procedural/textures/TileMaterialFactory.js';
+import { DecalSystem } from '../../game/decals/DecalSystem.js';
+import {
+  makeSpawnWallMural,
+  makeExitWarningDecal,
+  makePillarWayfindingArrow,
+  makePuzzleDigitDecal,
+} from '../../procedural/textures/GraffitiDecals.js';
 import type { LightStreak } from '../../game/water/WaterMaterial.js';
 
 export const NatatoriumMap: MapDefinition = {
@@ -52,17 +64,18 @@ export const NatatoriumMap: MapDefinition = {
   },
   atmosphere: {
     fog: {
-      color: '#b3bb9f',
-      density: 0.035,
+      color: '#d8d0b0',
+      density: 0.0145,
     },
-    exposure: 1.28,
+    exposure: 1.12,
     hemisphere: {
-      sky: '#b3bb9f',
-      ground: '#7c9e5b',
+      sky: '#fff9e6',
+      ground: '#6cb48e',
+      intensity: 1.25,
     },
     sun: {
-      color: '#fffbf0',
-      intensity: 1.1,
+      color: '#fffdf5',
+      intensity: 1.15,
       direction: { x: 0.35, y: 0.9, z: 0.25 },
       castShadow: true,
     },
@@ -78,449 +91,599 @@ export const NatatoriumMap: MapDefinition = {
 
   generateLayout(ctx: LayoutCtx): LayoutData {
     const rng = new Rng(ctx.seed);
-    const bounds = { minX: -70, minZ: -60, maxX: 70, maxZ: 60 };
+    const bounds = { minX: -45, minZ: -60, maxX: 45, maxZ: 58 };
 
     const platforms: PlatformDef[] = [];
     const walls: BoxDef[] = [];
     const pillars: PillarDef[] = [];
     const props: PropDef[] = [];
 
-    // 1. Entry Foyer (South, dry +0.3m, player spawn)
+    // ──────────────────────────────────────────────────────────────────────────
+    // ZONE A: The Skylight Spawn Pool & Swim-Under Tunnel (Video 2 00:00–00:07)
+    // ──────────────────────────────────────────────────────────────────────────
+
+    // 1. Entry Foyer / Spawn Deck (+0.38m above water)
     platforms.push({
       id: 'plat_foyer',
-      rect: [-12, 40, 12, 58],
-      topY: 0.3,
-      kind: 'marble',
-    });
-
-    // Colonnade in foyer (x = -6 and 6, center x = 0 left open for unobstructed view and wading)
-    for (const x of [-6, 6]) {
-      pillars.push({
-        id: `pil_foyer_${x}`,
-        x,
-        z: 46,
-        radius: 0.55,
-        height: 6.0,
-        kind: 'marble',
-      });
-    }
-
-    // 2. Grand Pool Hall Deck Ring (3m wide, surrounding pool [-38, -36, 38, 38])
-    // Collapsed sections create 5 gaps of 1.8-3.0m
-    // South Deck: [-38, 35, 38, 38] -> 2 segments with a collapsed gap at x in [-4, -1]
-    platforms.push({
-      id: 'plat_deck_s1',
-      rect: [-38, 35, -4, 38],
-      topY: 0.3,
-      kind: 'tile',
-    });
-    platforms.push({
-      id: 'plat_deck_s2',
-      rect: [-1, 35, 38, 38],
-      topY: 0.3,
+      rect: [-8, 44, 8, 54],
+      topY: 0.38,
       kind: 'tile',
     });
 
-    // North Deck: [-38, -38, 38, -35] -> 2 segments with collapsed gap at x in [6, 9]
+    // Curved tan-tiled peninsula platforms in Zone A to the left (Video 2 00:05)
     platforms.push({
-      id: 'plat_deck_n1',
-      rect: [-38, -38, 6, -35],
-      topY: 0.3,
+      id: 'plat_peninsula_1',
+      rect: [-14, 44, -8.5, 49],
+      topY: 0.38,
       kind: 'tile',
     });
     platforms.push({
-      id: 'plat_deck_n2',
-      rect: [9, -38, 38, -35],
-      topY: 0.3,
-      kind: 'tile',
-    });
-
-    // West Deck: [-38, -35, -35, 35] -> with collapsed gap at z in [0, 3]
-    platforms.push({
-      id: 'plat_deck_w1',
-      rect: [-38, -35, -35, 0],
-      topY: 0.3,
+      id: 'plat_peninsula_2',
+      rect: [-18, 36, -11, 43],
+      topY: 0.38,
       kind: 'tile',
     });
     platforms.push({
-      id: 'plat_deck_w2',
-      rect: [-38, 3, -35, 35],
-      topY: 0.3,
-      kind: 'tile',
-    });
-
-    // East Deck: [35, -35, 38, 35] -> with collapsed gaps at z in [-18, -15] and [12, 15]
-    platforms.push({
-      id: 'plat_deck_e1',
-      rect: [35, -35, 38, -18],
-      topY: 0.3,
+      id: 'plat_peninsula_3',
+      rect: [-16, 28, -9, 35],
+      topY: 0.38,
       kind: 'tile',
     });
     platforms.push({
-      id: 'plat_deck_e2',
-      rect: [35, -15, 38, 12],
-      topY: 0.3,
-      kind: 'tile',
-    });
-    platforms.push({
-      id: 'plat_deck_e3',
-      rect: [35, 15, 38, 35],
-      topY: 0.3,
+      id: 'plat_peninsula_tip',
+      rect: [-12, 22, -6, 27],
+      topY: 0.38,
       kind: 'tile',
     });
 
-    // Connecting corridor from Foyer to South Deck
+    // Zone A central stepping-stones connecting Foyer towards the swim-under tunnel (z=44 -> z=36.5)
     platforms.push({
-      id: 'plat_foyer_to_deck',
-      rect: [-4, 38, 4, 40],
-      topY: 0.3,
-      kind: 'tile',
-    });
-
-    // 3. Rotunda Island: central fountain hub [-8, -6, 8, 10]
-    platforms.push({
-      id: 'plat_rotunda',
-      rect: [-8, -6, 8, 10],
-      topY: 0.35,
-      kind: 'marble',
-    });
-
-    // 4 Columns on Rotunda
-    const rotundaPillars = [
-      { x: -5, z: -3 },
-      { x: 5, z: -3 },
-      { x: -5, z: 7 },
-      { x: 5, z: 7 },
-    ];
-    for (let i = 0; i < rotundaPillars.length; i++) {
-      const rp = rotundaPillars[i]!;
-      pillars.push({
-        id: `pil_rotunda_${i}`,
-        x: rp.x,
-        z: rp.z,
-        radius: 0.5,
-        height: 7.0,
-        kind: 'marble',
-      });
-    }
-
-    // 4. Floating pontoons (3 rafts 6x6 between deck and rotunda)
-    platforms.push({
-      id: 'pontoon_1',
-      rect: [-14, 18, -8, 24],
-      topY: 0.25,
-      kind: 'metal',
-    });
-    platforms.push({
-      id: 'pontoon_2',
-      rect: [14, 2, 20, 8],
-      topY: 0.25,
-      kind: 'metal',
-    });
-    platforms.push({
-      id: 'pontoon_3',
-      rect: [-22, 2, -16, 8],
-      topY: 0.25,
-      kind: 'metal',
-    });
-
-    // 5. Starting-block piers: 8 podium blocks 2.4m apart [-36, -10, -30, 14]
-    for (let b = 0; b < 8; b++) {
-      const zBlock = -9 + b * 3.1;
-      platforms.push({
-        id: `starting_podium_${b}`,
-        rect: [-34, zBlock - 0.7, -31.5, zBlock + 0.7],
-        topY: 0.45,
-        kind: 'tile',
-      });
-    }
-
-    // 6. Diving Tower: [26, -6, 34, 6]
-    platforms.push({
-      id: 'plat_diving_base',
-      rect: [26, -6, 34, 6],
-      topY: 1.0,
-      kind: 'concrete',
-    });
-    platforms.push({
-      id: 'plat_diving_mid',
-      rect: [27, -4, 33, 4],
-      topY: 3.0,
-      kind: 'concrete',
-    });
-    platforms.push({
-      id: 'plat_diving_top',
-      rect: [28, -2.5, 32, 2.5],
-      topY: 5.0,
-      kind: 'concrete',
-    });
-
-    // 7. Spectator Gallery (North wall, +3.2m, 4m wide)
-    // Connects via catwalk and stairs with 3 collapsed sections
-    platforms.push({
-      id: 'plat_gallery_w',
-      rect: [-36, -42, -12, -38],
-      topY: 3.2,
-      kind: 'marble',
-    });
-    platforms.push({
-      id: 'plat_gallery_mid',
-      rect: [-8, -42, 14, -38],
-      topY: 3.2,
-      kind: 'marble',
-    });
-    platforms.push({
-      id: 'plat_gallery_e',
-      rect: [18, -42, 36, -38],
-      topY: 3.2,
-      kind: 'marble',
-    });
-
-    // High catwalk bridging from gallery east to diving tower
-    platforms.push({
-      id: 'plat_catwalk_high',
-      rect: [28, -38, 31, -8],
-      topY: 3.2,
-      kind: 'metal',
-    });
-
-    // 8. Changing-Room Wing: [-62, -14, -40, 22]
-    platforms.push({
-      id: 'plat_changing_aisle_1',
-      rect: [-60, -12, -42, -8],
-      topY: 0.2,
+      id: 'plat_a_step1',
+      rect: [-2.0, 38.0, 2.0, 42.0],
+      topY: 0.38,
       kind: 'tile',
     });
     platforms.push({
-      id: 'plat_changing_aisle_2',
-      rect: [-60, -2, -42, 2],
-      topY: 0.2,
-      kind: 'tile',
-    });
-    platforms.push({
-      id: 'plat_changing_aisle_3',
-      rect: [-60, 8, -42, 12],
-      topY: 0.2,
-      kind: 'tile',
-    });
-    platforms.push({
-      id: 'plat_changing_corridor',
-      rect: [-42, -12, -38, 18],
-      topY: 0.2,
+      id: 'plat_a_step2',
+      rect: [-1.6, 33.0, 1.6, 36.5],
+      topY: 0.38,
       kind: 'tile',
     });
 
-    // Changing wing walls
-    walls.push({
-      id: 'wall_changing_outer',
-      min: { x: -62, y: -0.9, z: -14 },
-      max: { x: -40, y: 5.0, z: -13.2 },
-      isWall: true,
+    // Zone A East stepping-stones
+    platforms.push({
+      id: 'plat_a_east1',
+      rect: [4.0, 38.0, 9.0, 43.0],
+      topY: 0.38,
+      kind: 'tile',
     });
-    walls.push({
-      id: 'wall_changing_west',
-      min: { x: -62.8, y: -0.9, z: -14 },
-      max: { x: -62, y: 5.0, z: 22 },
-      isWall: true,
+    platforms.push({
+      id: 'plat_a_east2',
+      rect: [10.0, 31.0, 15.0, 37.0],
+      topY: 0.38,
+      kind: 'tile',
     });
-    walls.push({
-      id: 'wall_changing_div_1',
-      min: { x: -58, y: -0.9, z: -5.5 },
-      max: { x: -44, y: 3.5, z: -4.5 },
-      isWall: true,
-    });
-    walls.push({
-      id: 'wall_changing_div_2',
-      min: { x: -58, y: -0.9, z: 4.5 },
-      max: { x: -44, y: 3.5, z: 5.5 },
-      isWall: true,
+    platforms.push({
+      id: 'plat_a_east3',
+      rect: [7.0, 24.0, 12.0, 29.0],
+      topY: 0.38,
+      kind: 'tile',
     });
 
-    // 9. Plant Room (Boilers, Drain Wheel, pumps): [-14, -58, 14, -38]
+    // ──────────────────────────────────────────────────────────────────────────
+    // ZONE B: The Great Flooded Pillar Hall & Stepping-Stone Course (~45 platforms)
+    // ──────────────────────────────────────────────────────────────────────────
+
+    // Entry stepping-stones emerging from the low bridge / swim-under tunnel (z=31.5 -> z=18)
+    platforms.push({
+      id: 'plat_b_entry',
+      rect: [-1.6, 28.0, 1.6, 31.5],
+      topY: 0.38,
+      kind: 'tile',
+    });
+    platforms.push({
+      id: 'plat_b_step_w1',
+      rect: [-5.5, 23.5, -2.0, 26.5],
+      topY: 0.38,
+      kind: 'tile',
+    });
+    platforms.push({
+      id: 'plat_b_step_w2',
+      rect: [-11.0, 21.0, -7.0, 25.0],
+      topY: 0.38,
+      kind: 'tile',
+    });
+    platforms.push({
+      id: 'plat_b_step_c1',
+      rect: [-3.0, 18.0, 0.5, 21.5],
+      topY: 0.38,
+      kind: 'tile',
+    });
+
+    // Central stepping-stone course through Zone B
+    platforms.push({
+      id: 'plat_b_cent_1',
+      rect: [-2.0, 12.5, 2.0, 16.0],
+      topY: 0.38,
+      kind: 'tile',
+    });
+    platforms.push({
+      id: 'plat_b_cent_2',
+      rect: [-2.5, 7.0, 1.5, 10.5],
+      topY: 0.38,
+      kind: 'tile',
+    });
+    platforms.push({
+      id: 'plat_b_cent_3',
+      rect: [-2.0, 1.5, 2.0, 5.0],
+      topY: 0.38,
+      kind: 'tile',
+    });
+    // Offset island maintaining dry path while leaving (0, -1.5) open water for apex monster
+    platforms.push({
+      id: 'plat_b_cent_3b',
+      rect: [-6.0, -1.5, -2.0, 1.0],
+      topY: 0.38,
+      kind: 'tile',
+    });
+    platforms.push({
+      id: 'plat_b_cent_4',
+      rect: [-2.0, -7.5, 2.0, -4.0],
+      topY: 0.38,
+      kind: 'tile',
+    });
+    platforms.push({
+      id: 'plat_b_cent_5',
+      rect: [-2.5, -14.0, 1.5, -9.5],
+      topY: 0.38,
+      kind: 'tile',
+    });
+    platforms.push({
+      id: 'plat_b_cent_6',
+      rect: [-2.0, -20.5, 2.0, -16.0],
+      topY: 0.38,
+      kind: 'tile',
+    });
+    platforms.push({
+      id: 'plat_b_cent_7',
+      rect: [-2.0, -26.0, 2.0, -22.5],
+      topY: 0.38,
+      kind: 'tile',
+    });
+
+    // West archipelago stepping-stones in Zone B
+    platforms.push({
+      id: 'plat_b_west_lane1',
+      rect: [-18.0, 14.0, -13.0, 19.0],
+      topY: 0.38,
+      kind: 'tile',
+    });
+    platforms.push({
+      id: 'plat_b_west_lane2',
+      rect: [-15.0, 7.0, -10.0, 12.0],
+      topY: 0.38,
+      kind: 'tile',
+    });
+    platforms.push({
+      id: 'plat_b_west_lane3',
+      rect: [-18.0, 0.0, -13.0, 5.0],
+      topY: 0.38,
+      kind: 'tile',
+    });
+    platforms.push({
+      id: 'plat_b_west_lane4',
+      rect: [-15.0, -7.0, -10.0, -2.0],
+      topY: 0.38,
+      kind: 'tile',
+    });
+    platforms.push({
+      id: 'plat_b_west_lane5',
+      rect: [-19.0, -15.0, -14.0, -9.0],
+      topY: 0.38,
+      kind: 'tile',
+    });
+    platforms.push({
+      id: 'plat_b_west_lane6',
+      rect: [-15.0, -23.0, -10.0, -17.0],
+      topY: 0.38,
+      kind: 'tile',
+    });
+
+    // East archipelago stepping-stones in Zone B
+    platforms.push({
+      id: 'plat_b_east_lane1',
+      rect: [8.0, 15.0, 13.0, 20.0],
+      topY: 0.38,
+      kind: 'tile',
+    });
+    platforms.push({
+      id: 'plat_b_east_lane2',
+      rect: [15.0, 9.0, 20.0, 14.0],
+      topY: 0.38,
+      kind: 'tile',
+    });
+    platforms.push({
+      id: 'plat_b_east_lane3',
+      rect: [9.0, 2.0, 14.0, 7.0],
+      topY: 0.38,
+      kind: 'tile',
+    });
+    platforms.push({
+      id: 'plat_b_east_lane4',
+      rect: [16.0, -5.0, 21.0, 0.0],
+      topY: 0.38,
+      kind: 'tile',
+    });
+    platforms.push({
+      id: 'plat_b_east_lane5',
+      rect: [9.0, -12.0, 14.0, -7.0],
+      topY: 0.38,
+      kind: 'tile',
+    });
+    platforms.push({
+      id: 'plat_b_east_lane6',
+      rect: [15.0, -19.0, 20.0, -14.0],
+      topY: 0.38,
+      kind: 'tile',
+    });
+    platforms.push({
+      id: 'plat_b_east_lane7',
+      rect: [8.0, -26.0, 13.0, -21.0],
+      topY: 0.38,
+      kind: 'tile',
+    });
+
+    // Perimeter islands
+    platforms.push({
+      id: 'plat_b_far_w1',
+      rect: [-32.0, 12.0, -26.0, 18.0],
+      topY: 0.38,
+      kind: 'tile',
+    });
+    platforms.push({
+      id: 'plat_b_far_w2',
+      rect: [-33.0, -2.0, -27.0, 4.0],
+      topY: 0.38,
+      kind: 'tile',
+    });
+    platforms.push({
+      id: 'plat_b_far_w3',
+      rect: [-32.0, -16.0, -26.0, -10.0],
+      topY: 0.38,
+      kind: 'tile',
+    });
+    platforms.push({
+      id: 'plat_b_far_e1',
+      rect: [26.0, 12.0, 32.0, 18.0],
+      topY: 0.38,
+      kind: 'tile',
+    });
+    platforms.push({
+      id: 'plat_b_far_e2',
+      rect: [27.0, -2.0, 33.0, 4.0],
+      topY: 0.38,
+      kind: 'tile',
+    });
+    platforms.push({
+      id: 'plat_b_far_e3',
+      rect: [26.0, -16.0, 32.0, -10.0],
+      topY: 0.38,
+      kind: 'tile',
+    });
+
+    // Narrow Water Trench Safe-Zone (width 1.05m, length 8.0m, flanked by two 6m x 8m dry platforms)
+    platforms.push({
+      id: 'plat_trench_west',
+      rect: [-7.05, -35.0, -1.05, -27.0],
+      topY: 0.38,
+      kind: 'tile',
+    });
+    platforms.push({
+      id: 'plat_trench_east',
+      rect: [0.0, -35.0, 6.0, -27.0],
+      topY: 0.38,
+      kind: 'tile',
+    });
+
+    // ──────────────────────────────────────────────────────────────────────────
+    // ZONE C: Bright Lit Arched Checkpoint Corridor & Exit (Video 1 02:50–02:52)
+    // ──────────────────────────────────────────────────────────────────────────
+
+    // Approach platforms connecting trench to Zone C arch
+    platforms.push({
+      id: 'plat_b_approach',
+      rect: [-3.5, -40.0, 3.5, -37.0],
+      topY: 0.38,
+      kind: 'tile',
+    });
+    platforms.push({
+      id: 'plat_corridor_ramp',
+      rect: [-3.5, -45.0, 3.5, -42.0],
+      topY: 0.38,
+      kind: 'tile',
+    });
+    platforms.push({
+      id: 'plat_corridor_sbend',
+      rect: [-5.0, -51.0, 1.5, -47.0],
+      topY: 0.38,
+      kind: 'tile',
+    });
+    // Plant Room / Exit Platform
     platforms.push({
       id: 'plat_plant_room',
-      rect: [-14, -58, 14, -38],
-      topY: 0.3,
-      kind: 'concrete',
-    });
-
-    // Plant room walls
-    walls.push({
-      id: 'wall_plant_w',
-      min: { x: -14.8, y: -0.9, z: -58 },
-      max: { x: -14, y: 4.5, z: -38 },
-      isWall: true,
-    });
-    walls.push({
-      id: 'wall_plant_e',
-      min: { x: 14, y: -0.9, z: -58 },
-      max: { x: 14.8, y: 4.5, z: -38 },
-      isWall: true,
-    });
-
-    // 10. Steam/Kids' Annex: [38, 14, 58, 32]
-    platforms.push({
-      id: 'plat_steam_annex',
-      rect: [38, 14, 58, 32],
-      topY: 0.15,
+      rect: [-8.0, -58.0, 8.0, -53.0],
+      topY: 0.38,
       kind: 'tile',
     });
 
-    // 11. Grand Pool Hall Outer Enclosure Walls
-    // South Wall with archway opening [-4, 4] connecting foyer corridor
-    walls.push({
-      id: 'wall_hall_south_w',
-      min: { x: -40, y: -0.9, z: 38 },
-      max: { x: -4, y: 9.0, z: 39 },
-      isWall: true,
-    });
-    walls.push({
-      id: 'wall_hall_south_e',
-      min: { x: 4, y: -0.9, z: 38 },
-      max: { x: 40, y: 9.0, z: 39 },
-      isWall: true,
-    });
-    walls.push({
-      id: 'wall_hall_south_lintel',
-      min: { x: -4, y: 4.5, z: 38 },
-      max: { x: 4, y: 9.0, z: 39 },
-      isWall: true,
-    });
+    // ──────────────────────────────────────────────────────────────────────────
+    // Giant Cylindrical Columns, Code Pillars, and Decoy Columns
+    // ──────────────────────────────────────────────────────────────────────────
 
-    // Foyer Enclosure & Spawn Tagline Wall
-    walls.push({
-      id: 'wall_foyer_w',
-      min: { x: -12.5, y: -0.9, z: 38 },
-      max: { x: -12.0, y: 6.0, z: 53.0 },
-      isWall: true,
-    });
-    walls.push({
-      id: 'wall_foyer_e',
-      min: { x: 12.0, y: -0.9, z: 38 },
-      max: { x: 12.5, y: 6.0, z: 53.0 },
-      isWall: true,
-    });
-    walls.push({
-      id: 'wall_spawn_tagline',
-      min: { x: -12.5, y: -0.9, z: 52.4 },
-      max: { x: 12.5, y: 6.0, z: 53.0 },
-      isWall: true,
-    });
-    walls.push({
-      id: 'wall_hall_north',
-      min: { x: -40, y: -0.9, z: -44 },
-      max: { x: 40, y: 9.0, z: -43 },
-      isWall: true,
-    });
-    walls.push({
-      id: 'wall_hall_west',
-      min: { x: -40, y: -0.9, z: -44 },
-      max: { x: -39, y: 9.0, z: 39 },
-      isWall: true,
-    });
-    walls.push({
-      id: 'wall_hall_east',
-      min: { x: 39, y: -0.9, z: -44 },
-      max: { x: 40, y: 9.0, z: 39 },
-      isWall: true,
-    });
-
-    // 12. Code Pillars & Decoy Pillars
-    // Generate 4 distinct random digits for the ordinal sequence
+    // Distinct random 4-digit puzzle code
     const digits: number[] = [];
     while (digits.length < 4) {
       const d = rng.int(1, 9);
       if (!digits.includes(d)) digits.push(d);
     }
 
-    // Pillar 1: Foyer colonnade
+    // 4 Ordinal Code Pillars (each >= 20m apart)
+    // Pillar 1: Zone A / B Colonnade (Blue = #1)
     pillars.push({
       id: 'pil_code_1',
-      x: -6,
-      z: 44,
-      radius: 0.6,
-      height: 6.0,
+      x: -8.0,
+      z: 30.0,
+      radius: 0.75,
+      height: 8.0,
       decalNumber: digits[0],
       ordinal: 1,
-      kind: 'marble',
+      clueColor: '#1e88e5',
+      kind: 'tile',
     });
-
-    // Pillar 2: Pool-deck east
+    // Pillar 2: East Hall (Green = #2)
     pillars.push({
       id: 'pil_code_2',
-      x: 36.5,
-      z: -4,
-      radius: 0.6,
-      height: 7.0,
+      x: 30.0,
+      z: 2.0,
+      radius: 0.75,
+      height: 8.0,
       decalNumber: digits[1],
       ordinal: 2,
+      clueColor: '#43a047',
       kind: 'tile',
     });
-
-    // Pillar 3: Spectator gallery
+    // Pillar 3: West Hall (Yellow = #3)
     pillars.push({
       id: 'pil_code_3',
-      x: 0,
-      z: -40,
-      radius: 0.6,
-      height: 5.0,
+      x: -30.0,
+      z: -6.0,
+      radius: 0.75,
+      height: 8.0,
       decalNumber: digits[2],
       ordinal: 3,
-      kind: 'marble',
+      clueColor: '#fbc02d',
+      kind: 'tile',
     });
-
-    // Pillar 4: Changing room wing
+    // Pillar 4: Near Trench Safe Zone & Keypad Door (Red = #4)
     pillars.push({
       id: 'pil_code_4',
-      x: -50,
-      z: 0,
-      radius: 0.6,
-      height: 4.5,
+      x: 14.0,
+      z: -36.0,
+      radius: 0.75,
+      height: 8.0,
       decalNumber: digits[3],
       ordinal: 4,
+      clueColor: '#e53935',
       kind: 'tile',
     });
 
-    // Decoy pillars (have digits but NO ordinal marker)
-    const decoyPositions = [
-      { x: 36.5, z: 24 },
-      { x: -36.5, z: 24 },
+    // Giant Cylindrical Tiled Columns (radius 2.1m, height 16.0m, square UVs)
+    // Also fulfill the requirement for >= 6 decoy pillars
+    const giantPositions = [
+      { id: 'pil_giant_1', x: -22.0, z: 18.0 },
+      { id: 'pil_giant_2', x: 22.0, z: 18.0 },
+      { id: 'pil_giant_3', x: -22.0, z: -2.0 },
+      { id: 'pil_giant_4', x: 22.0, z: -2.0 },
+      { id: 'pil_giant_5', x: -22.0, z: -22.0 },
+      { id: 'pil_giant_6', x: 22.0, z: -22.0 },
+      { id: 'pil_giant_7', x: -35.0, z: 8.0 },
+      { id: 'pil_giant_8', x: 35.0, z: 8.0 },
+      { id: 'pil_giant_9', x: -35.0, z: -12.0 },
+      { id: 'pil_giant_10', x: 35.0, z: -12.0 },
     ];
-    for (let i = 0; i < decoyPositions.length; i++) {
-      const dp = decoyPositions[i]!;
+
+    for (const gp of giantPositions) {
       pillars.push({
-        id: `pil_decoy_${i}`,
-        x: dp.x,
-        z: dp.z,
-        radius: 0.6,
-        height: 5.0,
+        id: gp.id,
+        x: gp.x,
+        z: gp.z,
+        radius: 2.1,
+        height: 16.0,
         decalNumber: rng.int(0, 9),
         ordinal: undefined,
         kind: 'tile',
       });
     }
 
-    // 13. Drain Wheel prop in Plant Room
+    // ──────────────────────────────────────────────────────────────────────────
+    // Walls, Arches, and Enclosures
+    // ──────────────────────────────────────────────────────────────────────────
+
+    // Outer Natatorium Boundary Walls (90m x 118m, height 16m)
+    walls.push({
+      id: 'wall_outer_south',
+      min: { x: -45.0, y: -0.75, z: 54.5 },
+      max: { x: 45.0, y: 16.0, z: 55.5 },
+      isWall: true,
+    });
+    walls.push({
+      id: 'wall_outer_north',
+      min: { x: -45.0, y: -0.75, z: -60.5 },
+      max: { x: 45.0, y: 16.0, z: -59.5 },
+      isWall: true,
+    });
+    walls.push({
+      id: 'wall_outer_west',
+      min: { x: -45.5, y: -0.75, z: -60.0 },
+      max: { x: -44.5, y: 16.0, z: 55.0 },
+      isWall: true,
+    });
+    walls.push({
+      id: 'wall_outer_east',
+      min: { x: 44.5, y: -0.75, z: -60.0 },
+      max: { x: 45.5, y: 16.0, z: 55.0 },
+      isWall: true,
+    });
+
+    // Spawn Tagline Wall at z = 52.4 (facing player spawn at z = 50)
+    walls.push({
+      id: 'wall_spawn_tagline',
+      min: { x: -10.0, y: -0.75, z: 52.4 },
+      max: { x: 10.0, y: 6.0, z: 53.0 },
+      isWall: true,
+    });
+
+    // Foyer Side Enclosure Walls
+    walls.push({
+      id: 'wall_foyer_w',
+      min: { x: -10.5, y: -0.75, z: 44.0 },
+      max: { x: -10.0, y: 6.0, z: 53.0 },
+      isWall: true,
+    });
+    walls.push({
+      id: 'wall_foyer_e',
+      min: { x: 10.0, y: -0.75, z: 44.0 },
+      max: { x: 10.5, y: 6.0, z: 53.0 },
+      isWall: true,
+    });
+
+    // Dividing Wall between Zone A and Zone B (at z = 35)
+    // Low bridge tunnel opening (clearance 1.65m above water, width 3.2m, length 4.5m)
+    walls.push({
+      id: 'wall_zone_a_div_w',
+      min: { x: -45.0, y: -0.75, z: 34.6 },
+      max: { x: -1.6, y: 16.0, z: 35.4 },
+      isWall: true,
+    });
+    walls.push({
+      id: 'wall_zone_a_div_e',
+      min: { x: 1.6, y: -0.75, z: 34.6 },
+      max: { x: 45.0, y: 16.0, z: 35.4 },
+      isWall: true,
+    });
+    // Tunnel roof / lintel spanning across the swim-under opening
+    walls.push({
+      id: 'wall_tunnel_bridge_roof',
+      min: { x: -1.6, y: 1.65, z: 34.0 },
+      max: { x: 1.6, y: 3.5, z: 38.5 },
+      isWall: true,
+    });
+
+    // Dividing Wall 1 in Zone B (at z = 8.0) pierced by 6.5m x 6.0m Roman Arch
+    walls.push({
+      id: 'wall_arch1_w',
+      min: { x: -45.0, y: -0.75, z: 7.6 },
+      max: { x: -3.25, y: 16.0, z: 8.4 },
+      isWall: true,
+    });
+    walls.push({
+      id: 'wall_arch1_e',
+      min: { x: 3.25, y: -0.75, z: 7.6 },
+      max: { x: 45.0, y: 16.0, z: 8.4 },
+      isWall: true,
+    });
+    walls.push({
+      id: 'wall_arch1_lintel',
+      min: { x: -3.25, y: 6.0, z: 7.6 },
+      max: { x: 3.25, y: 16.0, z: 8.4 },
+      isWall: true,
+    });
+
+    // Dividing Wall 2 in Zone B (at z = -14.0) pierced by 6.5m x 6.0m Roman Arch
+    walls.push({
+      id: 'wall_arch2_w',
+      min: { x: -45.0, y: -0.75, z: -14.4 },
+      max: { x: -3.25, y: 16.0, z: -13.6 },
+      isWall: true,
+    });
+    walls.push({
+      id: 'wall_arch2_e',
+      min: { x: 3.25, y: -0.75, z: -14.4 },
+      max: { x: 45.0, y: 16.0, z: -13.6 },
+      isWall: true,
+    });
+    walls.push({
+      id: 'wall_arch2_lintel',
+      min: { x: -3.25, y: 6.0, z: -14.4 },
+      max: { x: 3.25, y: 16.0, z: -13.6 },
+      isWall: true,
+    });
+
+    // Zone C Corridor Entrance Wall (at z = -44.0)
+    walls.push({
+      id: 'wall_corridor_div_w',
+      min: { x: -45.0, y: -0.75, z: -44.5 },
+      max: { x: -1.75, y: 16.0, z: -43.5 },
+      isWall: true,
+    });
+    walls.push({
+      id: 'wall_corridor_div_e',
+      min: { x: 1.75, y: -0.75, z: -44.5 },
+      max: { x: 45.0, y: 16.0, z: -43.5 },
+      isWall: true,
+    });
+    walls.push({
+      id: 'wall_corridor_div_lintel',
+      min: { x: -1.75, y: 4.5, z: -44.5 },
+      max: { x: 1.75, y: 16.0, z: -43.5 },
+      isWall: true,
+    });
+
+    // ──────────────────────────────────────────────────────────────────────────
+    // Props, Spawns, and Puzzles
+    // ──────────────────────────────────────────────────────────────────────────
+
+    // Drain wheel in Plant Room
     props.push({
       id: 'drain_wheel',
       kind: 'drain_wheel',
-      position: { x: 0, y: 0.3, z: -54 },
+      position: { x: 0.0, y: 0.38, z: -54.0 },
     });
 
-    // 14. Exit Door at North end of Plant Room
-    const exitPos = { x: 0, y: 0.3, z: -58 };
+    // Collectible pebble props on dry platforms (Prompt 4B Section 2)
+    const pebbleSpawns = [
+      { id: 'pebble_prop_1', x: -0.5, y: 0.38, z: 8.5 },
+      { id: 'pebble_prop_2', x: 0.0, y: 0.38, z: -6.0 },
+      { id: 'pebble_prop_3', x: -12.5, y: 0.38, z: 9.5 },
+      { id: 'pebble_prop_4', x: 17.5, y: 0.38, z: 11.5 },
+      { id: 'pebble_prop_5', x: 0.0, y: 0.38, z: -18.0 },
+    ];
+    for (const p of pebbleSpawns) {
+      props.push({
+        id: p.id,
+        kind: 'pebble',
+        position: { x: p.x, y: p.y, z: p.z },
+      });
+    }
 
-    // 15. Player and Monster Spawns
-    const playerSpawn = { x: 0, y: 0.3, z: 50 }; // in foyer
-    // Monster spawn in Grand Pool Hall at center Ear mosaic, >= 45m from player spawn (distance = 48m)
-    const monsterSpawn = { x: 0, y: -0.9, z: 2 };
+    // 3D 4-Color Keypad Console Pedestal near exit doors (Prompt 4B Section 3)
+    props.push({
+      id: 'keypad_console_pedestal',
+      kind: 'keypad_pedestal',
+      position: { x: 2.2, y: 0.38, z: -56.5 },
+    });
+
+    const exitPos = { x: 0.0, y: 0.38, z: -58.0 };
+    const playerSpawn = { x: 0.0, y: 0.38, z: 50.0 };
+    // Apex monster spawn in flooded hall, distance 51.5m >= 45m from player spawn
+    const monsterSpawn = { x: 0.0, y: -0.75, z: -1.5 };
 
     const monsters: Array<{ id: string; variant: 'standard' | 'elder' | 'juvenile'; spawn: Vec3; sleeperSpawn?: Vec3; spawnGrace?: number }> = [
       {
         id: 'monster_1',
         variant: 'standard',
         spawn: monsterSpawn,
-        sleeperSpawn: { x: 2.0, y: -0.9, z: 22.0 },
+        sleeperSpawn: { x: 2.0, y: -0.75, z: 22.0 },
         spawnGrace: 20.0,
       },
     ];
@@ -529,7 +692,7 @@ export const NatatoriumMap: MapDefinition = {
       monsters.push({
         id: 'monster_2',
         variant: 'juvenile',
-        spawn: { x: -28, y: -0.9, z: -20 },
+        spawn: { x: -28.0, y: -0.75, z: -20.0 },
       });
     }
 
@@ -544,8 +707,8 @@ export const NatatoriumMap: MapDefinition = {
       waterBodies: [
         {
           id: 'main_pool',
-          rect: [-38, -36, 38, 38],
-          floorY: -0.9,
+          rect: [-45.0, -55.0, 45.0, 55.0],
+          floorY: -0.75,
           waterY: 0.0,
         },
       ],
@@ -557,7 +720,7 @@ export const NatatoriumMap: MapDefinition = {
           position: exitPos,
           params: {
             code: digits.join(''),
-            drainWheelPos: { x: 0, y: 0.3, z: -54 },
+            drainWheelPos: { x: 0.0, y: 0.38, z: -54.0 },
           },
         },
       ],
@@ -569,11 +732,10 @@ export const NatatoriumMap: MapDefinition = {
         {
           id: 'natatorium_lane_main',
           points: [
-            { x: 0, y: -0.9, z: 35 },
-            { x: 0, y: -0.9, z: 25 },
-            { x: 0, y: -0.9, z: 10 },
-            { x: -12, y: -0.9, z: -10 },
-            { x: 0, y: -0.9, z: -30 },
+            { x: 0.0, y: -0.75, z: 26.0 },
+            { x: 4.0, y: -0.75, z: 12.0 },
+            { x: -4.0, y: -0.75, z: -4.0 },
+            { x: 0.0, y: -0.75, z: -28.0 },
           ],
         },
       ],
@@ -583,91 +745,66 @@ export const NatatoriumMap: MapDefinition = {
       },
       meta: {
         codeDigits: digits,
-        steamMaskActive: true,
+        waterFloorY: -0.75,
       },
     };
   },
 
   async build(layout: LayoutData, env: BuildEnv): Promise<MapInstance> {
     const tex = TextureRegistry.getInstance();
-    const platformTiles = tex.getTileSet('platform', layout.seed);
-    const wallTiles = tex.getTileSet('wall', layout.seed);
-    const floorTiles = tex.getTileSet('floorWet', layout.seed);
+    const tileFactory = TileMaterialFactory.getInstance(env.renderer as import('three').WebGLRenderer | undefined);
 
-    const platformMat = new MeshStandardMaterial({
-      map: platformTiles.albedo,
-      roughnessMap: platformTiles.roughness,
-      normalMap: platformTiles.normal,
-      aoMap: platformTiles.ao,
-      aoMapIntensity: 0.85,
-      roughness: 0.35,
-      metalness: 0.02,
-      envMapIntensity: 0.35,
-      vertexColors: true,
-    });
-    applyWetDarkening(platformMat, { waterY: 0.0 });
-    applyParallaxOcclusion(platformMat, { heightMap: platformTiles.height, scale: 0.015, maxDistance: 6.0 });
+    const platformMat = tileFactory.platformTopMaterial;
+    const wallMat = tileFactory.wallTileMaterial;
+    const floorMat = tileFactory.poolFloorMaterial;
+    const ceilingArchMat = tileFactory.ceilingTileMaterial;
+    ceilingArchMat.envMapIntensity = 0.35;
+    ceilingArchMat.vertexColors = true;
+    ceilingArchMat.aoMapIntensity = 0.85;
 
-    const wallMat = new MeshStandardMaterial({
-      map: wallTiles.albedo,
-      roughnessMap: wallTiles.roughness,
-      normalMap: wallTiles.normal,
-      aoMap: wallTiles.ao,
-      aoMapIntensity: 0.85,
-      roughness: 0.45,
-      metalness: 0.05,
-      envMapIntensity: 0.35,
-      vertexColors: true,
-    });
-    applyWetDarkening(wallMat, { waterY: 0.0 });
+    // Platform hook applies multi-material groups with world-space scaling
+    // Top: 0.22m square ceramic tile (#d5b676, #4a3b22 grout)
+    // Vertical Sides: 3 distinct horizontal rows above water + 0.08m wet-grout watermark at y=0.0
+    // Completely eliminates UV stretching and cartoon black outlines
+    const hooks: CustomBuilderHook = {
+      onPlatformMesh: (mesh: Mesh, plat: PlatformDef) => {
+        const [minX, minZ, maxX, maxZ] = plat.rect;
+        const w = maxX - minX;
+        const d = maxZ - minZ;
+        const topY = plat.topY;
+        const floorY = -0.75;
+        const depth = topY - floorY;
+        mesh.geometry.dispose();
+        mesh.geometry = tileFactory.createPlatformGeometry(w, depth, d, topY, floorY);
+        mesh.material = [tileFactory.platformTopMaterial, tileFactory.platformSideMaterial];
+        mesh.position.set((minX + maxX) * 0.5, (topY + floorY) * 0.5, (minZ + maxZ) * 0.5);
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+        mesh.matrixAutoUpdate = false;
+        mesh.updateMatrix();
+      },
+    };
 
-    const floorMat = new MeshStandardMaterial({
-      map: floorTiles.albedo,
-      roughnessMap: floorTiles.roughness,
-      normalMap: floorTiles.normal,
-      aoMap: floorTiles.ao,
-      aoMapIntensity: 0.85,
-      roughness: 0.25,
-      metalness: 0.04,
-      envMapIntensity: 0.35,
-      vertexColors: true,
-    });
-    applyParallaxOcclusion(floorMat, { heightMap: floorTiles.height, scale: 0.015, maxDistance: 6.0 });
+    const instance = buildStandardMapInstance(
+      layout,
+      env,
+      {
+        platformMat,
+        wallMat,
+        floorMat,
+        ceilingMat: ceilingArchMat,
+      },
+      hooks,
+    );
 
-    const ceilingTiles = tex.getTileSet('ceiling', layout.seed);
-    const ceilingArchMat = new MeshStandardMaterial({
-      map: ceilingTiles.albedo,
-      roughnessMap: ceilingTiles.roughness,
-      normalMap: ceilingTiles.normal,
-      aoMap: ceilingTiles.ao,
-      aoMapIntensity: 0.85,
-      roughness: 0.70,
-      metalness: 0.05,
-      color: new Color('#b7a775'),
-      envMapIntensity: 0.35,
-      vertexColors: true,
-    });
+    // ──────────────────────────────────────────────────────────────────────────
+    // 0. Hand-Painted Wall Graffiti & Decals (DecalSystem)
+    // ──────────────────────────────────────────────────────────────────────────
 
-    const instance = buildStandardMapInstance(layout, env, {
-      platformMat,
-      wallMat,
-      floorMat,
-      ceilingMat: ceilingArchMat,
-    });
-
-    // 0. Spawn Wall Tagline Decal ("IT CAN'T SEE YOU. IT HEARS THE WATER.")
-    const tagTex = tex.getTagline(77, 1024, 512);
-    const tagMat = new MeshBasicMaterial({
-      map: tagTex,
-      transparent: true,
-      depthWrite: false,
-      polygonOffset: true,
-      polygonOffsetFactor: -1,
-      polygonOffsetUnits: -1,
-    });
-    const tagGeo = new PlaneGeometry(4.8, 2.4);
-    const tagMesh = new Mesh(tagGeo, tagMat);
-    tagMesh.position.set(0, 0.3 + 1.65, 52.38);
+    // Spawn Wall Mural: "IT CAN'T SEE YOU. IT HEARS THE WATER." + Ink Splash Crown (Video 2 00:00–00:04)
+    const tagTex = makeSpawnWallMural({ width: 1024, height: 512 });
+    const tagMesh = DecalSystem.createWallDecalMesh(tagTex, 4.8, 2.4);
+    tagMesh.position.set(0.0, 0.38 + 1.65, 52.38);
     tagMesh.rotation.y = Math.PI; // facing -Z towards player at z=50
     tagMesh.name = 'SpawnTagline';
     instance.root.add(tagMesh);
@@ -680,75 +817,321 @@ export const NatatoriumMap: MapDefinition = {
       width: 512,
       height: 256,
     });
-    const foyerTurnMat = new MeshBasicMaterial({
-      map: foyerTurnTex,
-      transparent: true,
-      depthWrite: false,
-      polygonOffset: true,
-      polygonOffsetFactor: -1,
-      polygonOffsetUnits: -1,
-    });
-    const foyerTurnMesh = new Mesh(new PlaneGeometry(2.8, 1.4), foyerTurnMat);
+    const foyerTurnMesh = DecalSystem.createWallDecalMesh(foyerTurnTex, 2.8, 1.4);
     foyerTurnMesh.rotation.x = -Math.PI / 2;
-    foyerTurnMesh.rotation.z = Math.PI; // points towards -Z (pool hall)
-    foyerTurnMesh.position.set(0, 0.305, 48.5);
+    foyerTurnMesh.rotation.z = Math.PI;
+    foyerTurnMesh.position.set(0.0, 0.385, 48.5);
     foyerTurnMesh.name = 'FoyerTurnDecal';
     instance.root.add(foyerTurnMesh);
 
-    // Soft foyer guide light pointing toward the pool hall
-    const foyerGuideLight = new PointLight(0xd6dccd, 1.4, 22.0, 1.2);
-    foyerGuideLight.position.set(0, 3.5, 46.0);
-    foyerGuideLight.name = 'FoyerGuideLight';
-    instance.root.add(foyerGuideLight);
+    // Exit & Checkpoint Warnings: "DON'T SPLASH, / IT KNOWS" with hand-drawn brush arrows (Video 1 02:50–02:52)
+    const exitWarningTex = makeExitWarningDecal({ width: 1024, height: 512 });
+    const exitWarningWall = DecalSystem.createWallDecalMesh(exitWarningTex, 3.2, 1.6);
+    exitWarningWall.position.set(0.0, 2.2, -43.48);
+    exitWarningWall.rotation.y = 0;
+    exitWarningWall.name = 'ExitWarningWall';
+    instance.root.add(exitWarningWall);
+
+    const floorArrowTex = makePillarWayfindingArrow('right');
+    const exitWarningFloor = DecalSystem.createWallDecalMesh(floorArrowTex, 1.6, 1.6);
+    exitWarningFloor.rotation.x = -Math.PI * 0.5;
+    exitWarningFloor.rotation.z = Math.PI; // pointing towards corridor (-Z)
+    exitWarningFloor.position.set(0.0, 0.39, -42.0);
+    exitWarningFloor.name = 'ExitWarningFloor';
+    instance.root.add(exitWarningFloor);
+
+    // Stencil Puzzle Digits on the 4 Code Pillars at y = 1.1m above waterline
+    for (const pil of layout.pillars) {
+      if (pil.ordinal !== undefined && pil.decalNumber !== undefined) {
+        const clueColor = pil.clueColor ?? (pil.ordinal === 1 ? '#1e88e5' : pil.ordinal === 2 ? '#43a047' : pil.ordinal === 3 ? '#fbc02d' : '#e53935');
+        const stencilTex = makePuzzleDigitDecal(pil.decalNumber, pil.ordinal !== undefined, 500 + pil.ordinal, clueColor);
+        const stencilMesh = DecalSystem.createCurvedPillarDecalMesh(stencilTex, pil.radius, 1.2, 1.2);
+        stencilMesh.position.set(pil.x, 1.1, pil.z);
+        stencilMesh.name = `StencilDigit_${pil.id}`;
+        instance.root.add(stencilMesh);
+      }
+    }
+
+    // ──────────────────────────────────────────────────────────────────────────
+    // 3D 4-Color Keypad Console Pedestal (Prompt 4B Section 3)
+    // ──────────────────────────────────────────────────────────────────────────
+    const pedestalGroup = new Group();
+    pedestalGroup.name = 'KeypadConsolePedestal';
+    pedestalGroup.position.set(2.2, 0.38, -56.5);
+
+    const standMat = new MeshStandardMaterial({
+      color: 0x22201d,
+      roughness: 0.6,
+      metalness: 0.8,
+    });
+
+    const postMesh = new Mesh(new BoxGeometry(0.22, 0.95, 0.22), standMat);
+    postMesh.position.set(0, 0.475, 0);
+    postMesh.castShadow = true;
+    pedestalGroup.add(postMesh);
+
+    const deckGroup = new Group();
+    deckGroup.position.set(0, 0.95, 0);
+    deckGroup.rotation.x = 0.42;
+
+    const deckBox = new Mesh(new BoxGeometry(0.72, 0.10, 0.44), standMat);
+    deckBox.castShadow = true;
+    deckGroup.add(deckBox);
+
+    // 4 Colored Vertical Column Channels (Blue = #1, Green = #2, Yellow = #3, Red = #4)
+    const colColors = [0x1e88e5, 0x43a047, 0xfbc02d, 0xe53935];
+    const colStartX = -0.24;
+    const colStepX = 0.16;
+
+    for (let c = 0; c < 4; c++) {
+      const colX = colStartX + c * colStepX;
+
+      const colMat = new MeshStandardMaterial({
+        color: colColors[c]!,
+        roughness: 0.35,
+        metalness: 0.2,
+      });
+      const colStrip = new Mesh(new BoxGeometry(0.12, 0.02, 0.34), colMat);
+      colStrip.position.set(colX, 0.055, 0);
+      colStrip.name = `KeypadChannel_${c + 1}`;
+      deckGroup.add(colStrip);
+
+      const rollerMat = new MeshStandardMaterial({
+        color: 0x111111,
+        roughness: 0.4,
+        metalness: 0.5,
+      });
+      const roller = new Mesh(new CylinderGeometry(0.045, 0.045, 0.09, 16), rollerMat);
+      roller.rotation.z = Math.PI * 0.5;
+      roller.position.set(colX, 0.075, 0.05);
+      roller.name = `KeypadRoller_${c + 1}`;
+      deckGroup.add(roller);
+    }
+
+    pedestalGroup.add(deckGroup);
+    instance.root.add(pedestalGroup);
+
+    // 3D Collectible Pebble Meshes on dry platforms (Prompt 4B Section 2)
+    const stoneMat = new MeshStandardMaterial({
+      color: 0x3a3835,
+      roughness: 0.85,
+      metalness: 0.05,
+    });
+    for (const prop of layout.props) {
+      if (prop.kind === 'pebble') {
+        const pebbleMesh = new Mesh(new DodecahedronGeometry(0.09, 1), stoneMat);
+        pebbleMesh.position.set(prop.position.x, prop.position.y + 0.04, prop.position.z);
+        pebbleMesh.scale.set(1.0, 0.72, 1.15);
+        pebbleMesh.rotation.set(0.1, Math.random() * Math.PI, 0.05);
+        pebbleMesh.castShadow = true;
+        pebbleMesh.name = `Pebble_${prop.id}`;
+        instance.root.add(pebbleMesh);
+      }
+    }
+
+    // ──────────────────────────────────────────────────────────────────────────
+    // 1. Giant Cylindrical Columns & Curved Pillar Wayfinding Arrows
+    // ──────────────────────────────────────────────────────────────────────────
+
+    // Replace giant columns with 48-segment world-space square tile UV geometry
+    for (const pil of layout.pillars) {
+      if (pil.radius >= 1.5) {
+        const pMesh = instance.root.getObjectByName(`Pillar_${pil.id}`) as Mesh | undefined;
+        if (pMesh) {
+          pMesh.geometry.dispose();
+          pMesh.geometry = tileFactory.createGiantColumnGeometry(pil.radius, pil.height, 48);
+          pMesh.material = tileFactory.wallTileMaterial;
+          pMesh.position.set(pil.x, -0.75 + pil.height * 0.5, pil.z);
+          pMesh.castShadow = true;
+          pMesh.receiveShadow = true;
+          pMesh.matrixAutoUpdate = false;
+          pMesh.updateMatrix();
+        }
+      }
+    }
+
+    // Wayfinding arrow decals wrapped on curved cylindrical pillars
+    const arrowRightTex = makePillarWayfindingArrow('right');
+    const arrowLeftTex = makePillarWayfindingArrow('left');
+
+    const pillarArrow1 = DecalSystem.createCurvedPillarDecalMesh(arrowRightTex, 2.1, 1.6, 1.1);
+    pillarArrow1.position.set(-22.0, 1.8, 18.0);
+    pillarArrow1.name = 'PillarArrow_1';
+    instance.root.add(pillarArrow1);
+
+    const pillarArrow2 = DecalSystem.createCurvedPillarDecalMesh(arrowLeftTex, 2.1, 1.6, 1.1);
+    pillarArrow2.position.set(22.0, 1.8, 18.0);
+    pillarArrow2.rotation.y = Math.PI;
+    pillarArrow2.name = 'PillarArrow_2';
+    instance.root.add(pillarArrow2);
+
+    // ──────────────────────────────────────────────────────────────────────────
+    // 2. Zone A Architectural Props & Palm-Arch Pillars (Video 2 00:05, 00:12)
+    // ──────────────────────────────────────────────────────────────────────────
+
+    // Three decorative Palm-Arch Tiled Pillars in Zone A shallow pool
+    const palmPositions = [
+      { x: -6.0, z: 32.0 },
+      { x: 6.0, z: 32.0 },
+      { x: 0.0, z: 24.0 },
+    ];
+    for (let i = 0; i < palmPositions.length; i++) {
+      const pos = palmPositions[i]!;
+      const palm = tileFactory.createPalmArchPillar(5.5, 2.2);
+      palm.position.set(pos.x, 0.0, pos.z);
+      palm.name = `PalmArchPillar_${i}`;
+      palm.matrixAutoUpdate = false;
+      palm.updateMatrix();
+      instance.root.add(palm);
+    }
+
+    // High rectangular skylight window on west wall casting bright daylight across curved peninsula
+    const skylightGeom = new PlaneGeometry(4.2, 2.5);
+    const skylightMat = new MeshStandardMaterial({
+      color: 0xffffff,
+      emissive: 0xffffff,
+      emissiveIntensity: 2.2,
+      roughness: 0.1,
+      metalness: 0.0,
+    });
+    const skylightMesh = new Mesh(skylightGeom, skylightMat);
+    skylightMesh.position.set(-18.48, 5.5, 40.0);
+    skylightMesh.rotation.y = Math.PI * 0.5;
+    skylightMesh.name = 'SkylightSpawnWindow';
+    instance.root.add(skylightMesh);
+
+    // Daylight sunbeam from skylight onto curved peninsula
+    const daylightBeam = new PointLight(0xfffdf5, 2.2, 24.0, 1.2);
+    daylightBeam.position.set(-16.0, 5.0, 40.0);
+    daylightBeam.name = 'SkylightDaylightBeam';
+    instance.root.add(daylightBeam);
+
+    // ──────────────────────────────────────────────────────────────────────────
+    // 3. Zone B Rounded Roman Archways (Video 1 00:11, 00:27, Video 2 00:08)
+    // ──────────────────────────────────────────────────────────────────────────
+
+    const romanArchMat = tileFactory.wallTileMaterial;
+    const arch1Geom = buildArchGeometry({
+      width: 6.5,
+      height: 3.25,
+      pierHeight: 2.75,
+      thickness: 0.8,
+      wallWidth: 6.5,
+      wallHeight: 6.0,
+      type: 'semicircular',
+    });
+    const arch1Mesh = new Mesh(arch1Geom, romanArchMat);
+    arch1Mesh.position.set(0.0, -0.75, 8.0);
+    arch1Mesh.castShadow = true;
+    arch1Mesh.receiveShadow = true;
+    arch1Mesh.name = 'RomanArch_1';
+    instance.root.add(arch1Mesh);
+
+    const arch2Geom = buildArchGeometry({
+      width: 6.5,
+      height: 3.25,
+      pierHeight: 2.75,
+      thickness: 0.8,
+      wallWidth: 6.5,
+      wallHeight: 6.0,
+      type: 'semicircular',
+    });
+    const arch2Mesh = new Mesh(arch2Geom, romanArchMat);
+    arch2Mesh.position.set(0.0, -0.75, -14.0);
+    arch2Mesh.castShadow = true;
+    arch2Mesh.receiveShadow = true;
+    arch2Mesh.name = 'RomanArch_2';
+    instance.root.add(arch2Mesh);
+
+    // ──────────────────────────────────────────────────────────────────────────
+    // 4. Zone C Arched Checkpoint Corridor Glowing Ceiling Fixtures (Video 1 02:51)
+    // ──────────────────────────────────────────────────────────────────────────
+
+    const fixtureGeom = new CylinderGeometry(0.65, 0.65, 0.08, 24);
+    const fixtureMat = new MeshStandardMaterial({
+      color: 0xffffff,
+      emissive: 0xffffff,
+      emissiveIntensity: 2.5,
+      roughness: 0.2,
+      metalness: 0.1,
+    });
+
+    const corridorFixturePositions = [
+      { x: 0.0, y: 4.8, z: -45.0 },
+      { x: -2.0, y: 4.8, z: -49.0 },
+      { x: 0.0, y: 4.8, z: -55.0 },
+    ];
+
+    for (let i = 0; i < corridorFixturePositions.length; i++) {
+      const pos = corridorFixturePositions[i]!;
+      const fixMesh = new Mesh(fixtureGeom, fixtureMat);
+      fixMesh.position.set(pos.x, pos.y, pos.z);
+      fixMesh.name = `CorridorCeilingFixture_${i}`;
+      instance.root.add(fixMesh);
+
+      const light = new PointLight(0xffffff, 1.8, 18.0, 1.5);
+      light.position.set(pos.x, pos.y - 0.2, pos.z);
+      light.name = `CorridorCeilingPointLight_${i}`;
+      instance.root.add(light);
+    }
+
+    // ──────────────────────────────────────────────────────────────────────────
+    // 5. Ceilings & Roof Assemblies (Foyer + Grand Natatorium)
+    // ──────────────────────────────────────────────────────────────────────────
 
     // Foyer ceiling (encloses spawn area at height 6.0m)
-    const foyerCeilingGeom = new BoxGeometry(25.0, 0.4, 15.0);
-    scaleBoxUv(foyerCeilingGeom, 25.0, 0.4, 15.0, 1.6);
+    const foyerCeilingGeom = new BoxGeometry(22.0, 0.4, 15.0);
+    scaleBoxUv(foyerCeilingGeom, 22.0, 0.4, 15.0, 1.6);
     const foyerCeiling = new Mesh(foyerCeilingGeom, ceilingArchMat);
-    foyerCeiling.position.set(0, 6.0, 45.5);
+    foyerCeiling.position.set(0.0, 6.0, 48.0);
     foyerCeiling.castShadow = true;
     foyerCeiling.receiveShadow = true;
     foyerCeiling.name = 'FoyerCeiling';
     instance.root.add(foyerCeiling);
 
-    // Vaulted ceiling over grand pool hall (covers full map bounds, height 9.0m)
-    const grandRoofGeom = new BoxGeometry(140.0, 0.5, 120.0);
-    scaleBoxUv(grandRoofGeom, 140.0, 0.5, 120.0, 1.6);
+    // Vaulted ceiling over grand pool hall (covers full map bounds, height 16.0m)
+    const grandRoofGeom = new BoxGeometry(90.0, 0.5, 118.0);
+    scaleBoxUv(grandRoofGeom, 90.0, 0.5, 118.0, 1.6);
     const grandRoof = new Mesh(grandRoofGeom, ceilingArchMat);
-    grandRoof.position.set(0, 9.0, 0);
+    grandRoof.position.set(0.0, 16.0, 0.0);
     grandRoof.castShadow = true;
     grandRoof.receiveShadow = true;
     grandRoof.name = 'GrandHallCeiling';
     instance.root.add(grandRoof);
 
-    // 1. Add Ear mosaic to the pool floor center: [x: -6..6, z: -6..6, y = -0.89]
+    // ──────────────────────────────────────────────────────────────────────────
+    // 6. Submerged Ear Mosaic at Pool Floor Center
+    // ──────────────────────────────────────────────────────────────────────────
+
     const earTexture = makeMosaicEarTexture(512);
     const earMat = new MeshStandardMaterial({
       map: earTexture,
-      roughness: 0.3,
-      metalness: 0.05,
+      roughness: 0.28,
+      metalness: 0.04,
     });
     const earGeom = new PlaneGeometry(14, 14);
-    bakeVertexAO(earGeom, { floorY: -0.89 });
+    bakeVertexAO(earGeom, { floorY: -0.74 });
     const earMesh = new Mesh(earGeom, earMat);
     earMesh.rotation.x = -Math.PI * 0.5;
-    earMesh.position.set(0, -0.89, 0);
+    earMesh.position.set(0.0, -0.74, 0.0);
     earMesh.name = 'MosaicEar';
     instance.root.add(earMesh);
 
-    // 2. Add barrel vault skylight light shafts and streaks
+    // ──────────────────────────────────────────────────────────────────────────
+    // 7. Light Shafts, Motes, and Water Surface Streaks
+    // ──────────────────────────────────────────────────────────────────────────
+
     const lightStreaks: LightStreak[] = [];
     const shaft = createLightShaftMesh({
       topRadius: 1.8,
       bottomRadius: 6.5,
       height: 14.0,
-      color: '#fff5d6',
-      intensity: 0.07, // Soft and gentle, preserving crystal clear corridor sightlines
+      color: '#fffdf5',
+      intensity: 0.08,
     });
-    shaft.position.set(0, 7.0, 0);
+    shaft.position.set(0.0, 7.0, 0.0);
     instance.root.add(shaft);
 
-    // Drifting dust motes inside the grand hall light shaft (Prompt 5.6)
     const grandHallMotes = createDustMotes({
       count: 36,
       bounds: { minX: -3.5, maxX: 3.5, minY: 1.0, maxY: 12.5, minZ: -3.5, maxZ: 3.5 },
@@ -758,66 +1141,19 @@ export const NatatoriumMap: MapDefinition = {
     });
     instance.root.add(grandHallMotes);
 
-    // Y-shaped antler standing fixtures on distant platform slabs (reference v_05s, v_12s)
-    const yFixtureGeom = buildYFixtureGeometry();
-    const fixtureMat = new MeshStandardMaterial({
-      color: new Color('#5a4d3a'),
-      roughness: 0.4,
-      metalness: 0.7,
-    });
-    const yFixtures = new InstancedMesh(yFixtureGeom, fixtureMat, 2);
-    yFixtures.name = 'YFixtures';
-    const m4 = new Matrix4();
-    m4.makeTranslation(12, 0.3, 10);
-    yFixtures.setMatrixAt(0, m4);
-    m4.makeRotationY(0.4);
-    m4.setPosition(18, 0.3, -5);
-    yFixtures.setMatrixAt(1, m4);
-    yFixtures.instanceMatrix.needsUpdate = true;
-    instance.root.add(yFixtures);
-
-    // Luminous rectangular window on west wall (reference v_05s, v_21s)
-    const winGeom = new PlaneGeometry(3.6, 2.2);
-    const winMat = new MeshBasicMaterial({
-      color: new Color('#fff3d6'),
-      transparent: true,
-      opacity: 0.88,
-    });
-    const winMesh = new Mesh(winGeom, winMat);
-    winMesh.position.set(-39.38, 5.2, 12.0);
-    winMesh.rotation.y = Math.PI * 0.5;
-    winMesh.name = 'WestWallWindow';
-    instance.root.add(winMesh);
-
-    // Tricolor wall panel on far gallery wall (reference v_12s, v_21s)
-    const panelGeom = buildColorPanelGeometry(3.6, 2.0);
-    const panelMat = new MeshStandardMaterial({
-      color: new Color('#e0d5be'),
-      roughness: 0.5,
-      metalness: 0.1,
-    });
-    const panelMesh = new Mesh(panelGeom, panelMat);
-    panelMesh.position.set(-14.0, 5.0, -41.8);
-    panelMesh.name = 'TricolorPanel';
-    instance.root.add(panelMesh);
-
     const skylightZ = [-24, -8, 8, 24];
     for (let i = 0; i < skylightZ.length; i++) {
       const z = skylightZ[i]!;
-      // Area light streak proxy on rippling water
       lightStreaks.push({
-        pos: new Vector3(0, 7.0, z),
-        dir: new Vector3(1, 0, 0), // along x axis
+        pos: new Vector3(0.0, 7.0, z),
+        dir: new Vector3(1, 0, 0),
         size: 28.0,
         color: new Color('#fff6e0'),
         intensity: 0.85,
       });
     }
-
-    // Attach streaks to instance meta for WaterSystem upload
     instance.root.userData['lightStreaks'] = lightStreaks;
 
-    // 3. Atmospheric floating dust motes
     const motes = createDustMotes({
       count: 140,
       bounds: { minX: -30, maxX: 30, minY: 0.5, maxY: 10, minZ: -30, maxZ: 30 },
@@ -826,7 +1162,37 @@ export const NatatoriumMap: MapDefinition = {
     });
     instance.root.add(motes);
 
-    // Freeze matrices on post-build meshes
+    // Standalone Y-fixture props
+    const yFixtureGeom = buildYFixtureGeometry();
+    const fixturePropMat = new MeshStandardMaterial({
+      color: new Color('#5a4d3a'),
+      roughness: 0.4,
+      metalness: 0.7,
+    });
+    const yFixtures = new InstancedMesh(yFixtureGeom, fixturePropMat, 2);
+    yFixtures.name = 'YFixtures';
+    const m4 = new Matrix4();
+    m4.makeTranslation(12, 0.38, 10);
+    yFixtures.setMatrixAt(0, m4);
+    m4.makeRotationY(0.4);
+    m4.setPosition(18, 0.38, -5);
+    yFixtures.setMatrixAt(1, m4);
+    yFixtures.instanceMatrix.needsUpdate = true;
+    instance.root.add(yFixtures);
+
+    // Tricolor panel on far wall
+    const panelGeom = buildColorPanelGeometry(3.6, 2.0);
+    const panelMat = new MeshStandardMaterial({
+      color: new Color('#e0d5be'),
+      roughness: 0.5,
+      metalness: 0.1,
+    });
+    const panelMesh = new Mesh(panelGeom, panelMat);
+    panelMesh.position.set(-14.0, 5.0, -43.8);
+    panelMesh.name = 'TricolorPanel';
+    instance.root.add(panelMesh);
+
+    // Freeze all matrices across the hierarchy
     instance.root.traverse((obj) => {
       if (obj instanceof Mesh) {
         obj.matrixAutoUpdate = false;
@@ -838,8 +1204,8 @@ export const NatatoriumMap: MapDefinition = {
   },
 
   drawThumbnail(g: CanvasRenderingContext2D, layout: LayoutData, w: number, h: number): void {
-    const scaleX = w / 140.0;
-    const scaleY = h / 120.0;
+    const scaleX = w / 90.0;
+    const scaleY = h / 118.0;
 
     // Background water
     g.fillStyle = '#265446';
@@ -848,7 +1214,7 @@ export const NatatoriumMap: MapDefinition = {
     // Platforms
     g.fillStyle = '#e2dac6';
     for (const p of layout.platforms) {
-      const rx = (p.rect[0] + 70) * scaleX;
+      const rx = (p.rect[0] + 45) * scaleX;
       const ry = (p.rect[1] + 60) * scaleY;
       const rw = (p.rect[2] - p.rect[0]) * scaleX;
       const rh = (p.rect[3] - p.rect[1]) * scaleY;
@@ -856,7 +1222,7 @@ export const NatatoriumMap: MapDefinition = {
     }
 
     // Ear spiral mosaic at pool floor center
-    const earX = (0 + 70) * scaleX;
+    const earX = (0 + 45) * scaleX;
     const earY = (0 + 60) * scaleY;
     g.strokeStyle = '#d4af37';
     g.lineWidth = 2;
@@ -866,7 +1232,7 @@ export const NatatoriumMap: MapDefinition = {
 
     // Code pillars
     for (const pil of layout.pillars) {
-      const px = (pil.x + 70) * scaleX;
+      const px = (pil.x + 45) * scaleX;
       const py = (pil.z + 60) * scaleY;
       g.fillStyle = pil.ordinal ? '#e08a3c' : '#444';
       g.beginPath();
@@ -878,13 +1244,13 @@ export const NatatoriumMap: MapDefinition = {
     const sp = layout.spawns.player[0]!;
     g.fillStyle = '#4cd964';
     g.beginPath();
-    g.arc((sp.x + 70) * scaleX, (sp.z + 60) * scaleY, 4, 0, Math.PI * 2);
+    g.arc((sp.x + 45) * scaleX, (sp.z + 60) * scaleY, 4, 0, Math.PI * 2);
     g.fill();
 
     const ex = layout.exit.position;
     g.fillStyle = '#ff3b30';
     g.beginPath();
-    g.arc((ex.x + 70) * scaleX, (ex.z + 60) * scaleY, 4, 0, Math.PI * 2);
+    g.arc((ex.x + 45) * scaleX, (ex.z + 60) * scaleY, 4, 0, Math.PI * 2);
     g.fill();
   },
 };

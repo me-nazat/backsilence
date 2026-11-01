@@ -18,6 +18,7 @@ import {
 import type { AudioEngine } from '../../audio/AudioEngine.js';
 import { safeExitPointerLock } from '../../engine/input/PointerLock.js';
 import type { MonsterJoints } from './MonsterMesh.js';
+import type { MonsterRig } from './MonsterRig.js';
 
 export interface JumpscareStats {
   timeSurvived: number;
@@ -56,6 +57,7 @@ export class JumpscareSequence {
   private reducedMotion = false;
   private jumpscareLight: PointLight | null = null;
   private joints?: MonsterJoints | undefined;
+  private monsterRig?: MonsterRig | undefined;
 
   constructor(callbacks: JumpscareCallbacks, audio?: AudioEngine) {
     this.callbacks = callbacks;
@@ -87,6 +89,7 @@ export class JumpscareSequence {
     stats: JumpscareStats,
     reducedMotion = false,
     monsterJoints?: MonsterJoints,
+    monsterRig?: MonsterRig,
   ): void {
     if (this.active) return;
     this.active = true;
@@ -96,6 +99,7 @@ export class JumpscareSequence {
     this.reducedMotion = reducedMotion;
     this.initialFov = camera.fov;
     this.joints = monsterJoints;
+    this.monsterRig = monsterRig;
 
     // 1. Freeze player input & hit-stop (0.25x time-scale for 0.25s)
     this.callbacks.onFreezeInput();
@@ -162,9 +166,9 @@ export class JumpscareSequence {
     }
 
     // -------------------------------------------------------------
-    // Stage 1 (0.00s – 0.18s, Snap & Unhinge): Camera smooth look-at whip to 0.82m face distance
+    // Stage 1 (0.00s – 0.18s, Snap & Unhinge): Camera smooth look-at whip in 0.08s to face distance
     // -------------------------------------------------------------
-    const snapT = Math.min(1.0, t / 0.16);
+    const snapT = Math.min(1.0, t / 0.08);
     const easeOutSnap = 1.0 - Math.pow(1.0 - snapT, 3);
 
     this.camera.position.lerpVectors(_camStartPos, _targetPos, easeOutSnap);
@@ -179,7 +183,7 @@ export class JumpscareSequence {
 
     // -------------------------------------------------------------
     // Stage 2 (0.18s – 0.50s, Talon Grapple & Maw Lunge):
-    // Jaws unhinge to 1.15 rad (65 deg), FOV punch (75 -> 52 -> 88 deg), roll, and glitch spike
+    // Jaws unhinge to 1.15 rad / 75° split, FOV punch (75 -> 52 -> 88 deg), roll, and glitch spike
     // -------------------------------------------------------------
     if (t >= 0.18 && t < 0.50) {
       const stageT = (t - 0.18) / 0.32;
@@ -195,7 +199,7 @@ export class JumpscareSequence {
         }
         this.camera.updateProjectionMatrix();
 
-        // 28Hz seeded noise shake & violent camera roll (Dutch angle)
+        // 28Hz seeded noise shake & violent camera roll (Dutch angle) with 0.045m amplitude
         const freq = 28 * Math.PI * 2;
         const shakeAmp = 0.045 * (1.0 - stageT * 0.5);
         _shakeOffset.set(
@@ -211,7 +215,7 @@ export class JumpscareSequence {
         this.camera.quaternion.setFromEuler(_euler);
       }
 
-      // Drive monster split jaw unhinging to 1.15 rad (65 deg)
+      // Drive monster split jaw unhinging (1.15 rad pitch & 75° / ±0.65 rad lateral split)
       if (this.joints) {
         this.joints.jaw.rotation.x = Math.min(1.15, 0.75 + stageT * 0.40);
         // Hooked talons grapple across frustum edges
@@ -219,6 +223,17 @@ export class JumpscareSequence {
         this.joints.handR.position.z = -0.40 - stageT * 0.30;
         this.joints.handL.rotation.x = -0.65;
         this.joints.handR.rotation.x = -0.65;
+      }
+      if (this.monsterRig) {
+        this.monsterRig.setJawSplit(Math.min(0.65, 0.35 + stageT * 0.30));
+        // Hands framing the screen borders
+        this.monsterRig.shoulderL.rotation.set(-0.85, 0.25, 0.45);
+        this.monsterRig.elbowL.rotation.set(-0.65, 0, 0);
+        this.monsterRig.handL.rotation.set(-0.45, 0, 0.35);
+
+        this.monsterRig.shoulderR.rotation.set(-0.85, -0.25, -0.45);
+        this.monsterRig.elbowR.rotation.set(-0.65, 0, 0);
+        this.monsterRig.handR.rotation.set(-0.45, 0, -0.35);
       }
 
       // Chromatic aberration / VHS tear spike via PostFX
@@ -235,6 +250,9 @@ export class JumpscareSequence {
       if (this.joints) {
         // Snap jaws shut with bite impact
         this.joints.jaw.rotation.x = 0.04;
+      }
+      if (this.monsterRig) {
+        this.monsterRig.setJawSplit(0.04);
       }
 
       if (this.overlayEl) {

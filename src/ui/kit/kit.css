@@ -508,6 +508,16 @@
   pointer-events: auto;
 }
 
+.bs-modal-backdrop:not(.bs-open),
+.modal:not(.is-open),
+.modal[aria-hidden="true"],
+.bs-modal[aria-hidden="true"],
+.bs-modal:not(.is-open) {
+  display: none !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
+}
+
 .bs-modal-panel {
   background: var(--bs-surface-1);
   border: 1px solid var(--bs-border-strong);

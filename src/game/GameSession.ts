@@ -70,6 +70,7 @@ import { generateValidLayout } from '../world/validate/LayoutValidator.js';
 import type { LayoutData, MapDefinition } from '../world/MapTypes.js';
 import type { MapInstance } from '../world/maps/MapInstance.js';
 import { ProjectileSystem, type ProjectileState } from '../sim/Projectile.js';
+import { ThrowableSystem } from './ThrowableSystem.js';
 import { WaterLevelCycle } from '../sim/WaterLevelCycle.js';
 import type { NetSession, ReplicatedMonsterState } from '../net/session/NetSession.js';
 import { RemotePlayerAvatar } from './player/RemotePlayerAvatar.js';
@@ -147,6 +148,7 @@ export class GameSession {
 
   // Projectiles & Inventory
   private projectileSystem = new ProjectileSystem();
+  private throwableSystem = new ThrowableSystem();
   private activeProjectiles: ProjectileState[] = [];
   private trajectoryLine: Line | null = null;
   private inventory: InventorySlot[] = [];
@@ -422,6 +424,7 @@ export class GameSession {
 
       // 1. Atmosphere Setup
       this.setupAtmosphere(this.mapDef);
+      this.settings.graphics.vhsIntensity = 0.0;
       this.postFX.setPostGrade(this.mapDef.postGrade);
       this.audio.play('tape_insert');
       this.postFX.triggerTracking(0.8);
@@ -486,6 +489,14 @@ export class GameSession {
         colliders: this.mapInstance.colliders,
         mode: simMode,
         mapId: this.mapId,
+        platforms: this.layout.platforms.map((p) => ({
+          id: p.id,
+          minX: p.rect[0],
+          minZ: p.rect[1],
+          maxX: p.rect[2],
+          maxZ: p.rect[3],
+          topY: p.topY,
+        })),
       });
       this.audio.setColliders(this.simWorld.colliders);
       if (this.mapDef?.atmosphere?.fog?.density) {
@@ -663,12 +674,60 @@ export class GameSession {
             }
           }, 1400);
         },
+        onSlot1: () => {
+          const camPos = this.camera.position;
+          const camDir = _scratchVecA;
+          this.camera.getWorldDirection(camDir);
+          const lookingPebble = this.throwableSystem.checkPickup(
+            { x: camPos.x, y: camPos.y, z: camPos.z },
+            { x: camDir.x, y: camDir.y, z: camDir.z },
+          );
+          if (lookingPebble) {
+            this.throwableSystem.pickupPebble(lookingPebble.id);
+            this.audio.play('pebble_clack', { gain: 0.5 });
+            this.hud.update({
+              pebbleCount: this.throwableSystem.pebbleCount,
+              interactionPrompt: null,
+            });
+          } else {
+            const equipped = this.throwableSystem.toggleEquip();
+            this.hud.update({
+              pebbleEquipped: equipped,
+              pebbleCount: this.throwableSystem.pebbleCount,
+            });
+          }
+        },
+        onLeftClickInGame: () => {
+          if (this.throwableSystem.isEquipped && this.throwableSystem.pebbleCount > 0) {
+            const camPos = this.camera.position;
+            const camDir = _scratchVecA;
+            this.camera.getWorldDirection(camDir);
+            const p = this.throwableSystem.throwPebble(
+              { x: camPos.x, y: camPos.y, z: camPos.z },
+              { x: camDir.x, y: camDir.y, z: camDir.z },
+              this.simWorld.simTime,
+              this.scene,
+            );
+            if (p) {
+              this.audio.play('stone_creak', { gain: 0.4 });
+              this.hud.update({
+                pebbleCount: this.throwableSystem.pebbleCount,
+                pebbleEquipped: this.throwableSystem.isEquipped,
+              });
+            }
+          }
+        },
       });
       this.playerInput.attach(this.renderer.canvas);
 
       this.playerCamera = new PlayerCamera(this.camera, this.settings);
       this.footsteps = new PlayerFootsteps(this.audio, (pos, strength) => {
         this.water?.splashes.burst(pos, strength);
+        if (strength >= 1.0) {
+          this.water?.rippleManager.spawnPlayerJumpSplash(pos.x, pos.z);
+        } else {
+          this.water?.rippleManager.spawnPlayerWadingStep(pos.x, pos.z);
+        }
       });
       this.interactions = new InteractionSystem();
       this.acoustics = new AcousticSystem(this.audio, this.hud, this.settings);
@@ -781,6 +840,10 @@ export class GameSession {
     this.scene.fog = new FogExp2(fogColor, def.atmosphere.fog.density);
     this.scene.background = new Color(fogColor);
     this.renderer.renderer.setClearColor(fogColor, 1.0);
+    this.renderer.renderer.toneMapping = 4; // THREE.ACESFilmicToneMapping
+    this.renderer.renderer.toneMappingExposure = def.atmosphere.exposure ?? 1.12;
+    this.renderer.renderer.shadowMap.enabled = true;
+    this.renderer.renderer.shadowMap.type = 2; // THREE.PCFSoftShadowMap
     if (this.simWorld?.director) {
       this.simWorld.director.setFogDensity(def.atmosphere.fog.density);
     }
@@ -803,7 +866,8 @@ export class GameSession {
 
     const skyColor = parseInt(def.atmosphere.hemisphere.sky.replace('#', '0x'), 16);
     const groundColor = parseInt(def.atmosphere.hemisphere.ground.replace('#', '0x'), 16);
-    const hemi = new HemisphereLight(skyColor, groundColor, 0.95);
+    const hemiIntensity = def.atmosphere.hemisphere.intensity ?? 1.25;
+    const hemi = new HemisphereLight(skyColor, groundColor, hemiIntensity);
     this.scene.add(hemi);
 
     if (def.atmosphere.sun) {
@@ -823,8 +887,8 @@ export class GameSession {
         sun.shadow.camera.right = 18;
         sun.shadow.camera.top = 18;
         sun.shadow.camera.bottom = -18;
-        sun.shadow.bias = -0.0002;
-        sun.shadow.normalBias = 0.015;
+        sun.shadow.bias = -0.0004;
+        sun.shadow.normalBias = 0.02;
       }
       this.scene.add(sun);
       this.sunLight = sun;
@@ -842,6 +906,13 @@ export class GameSession {
   }
 
   private initMapPuzzles(): void {
+    // Spawn collectible pebbles from map props (Prompt 4B Section 2)
+    for (const p of this.layout.props) {
+      if (p.kind === 'pebble') {
+        this.throwableSystem.addCollectible(p.id, p.position, this.scene);
+      }
+    }
+
     switch (this.mapId) {
       case 'orientation': {
         this.inventory = [{ kind: 'pebble', count: 6 }];
@@ -1312,12 +1383,12 @@ export class GameSession {
       }
 
       case 'natatorium': {
-        this.inventory = [{ kind: 'pebble', count: 5 }];
+        this.throwableSystem.reset();
         this.hud.update({
           objective: 'Find the four numbered pillars. Stay on dry tile.',
           notebookNumbers: ['#1: ?', '#2: ?', '#3: ?', '#4: ?'],
-          inventory: this.inventory,
-          selectedItemIndex: 0,
+          pebbleCount: this.throwableSystem.pebbleCount,
+          pebbleEquipped: false,
         });
 
         const wheelProp = this.layout.props.find((p) => p.kind === 'drain_wheel');
@@ -1349,6 +1420,17 @@ export class GameSession {
           position: this.layout.exit.position,
           radius: 2.4,
           label: () => (!this.powerRestored ? '[UNPOWERED] Restore Power at Plant Room' : this.exitUnlocked ? '[E] Exit Open' : '[E] Enter 4-Digit Keypad Code'),
+          canUse: () => this.powerRestored && !this.exitUnlocked,
+          onUse: () => {
+            this.openKeypad();
+          },
+        });
+
+        this.interactions.register({
+          id: 'keypad_console_pedestal',
+          position: { x: 2.2, y: 0.38, z: -56.5 },
+          radius: 2.5,
+          label: () => (!this.powerRestored ? '[UNPOWERED] Restore Power at Plant Room' : this.exitUnlocked ? '[E] Console Solved' : '[E] Enter 4-Digit Color Keypad Code'),
           canUse: () => this.powerRestored && !this.exitUnlocked,
           onUse: () => {
             this.openKeypad();
@@ -1767,7 +1849,8 @@ export class GameSession {
   }
 
   submitKeypadCode(code: string): boolean {
-    const expected = (this.layout.meta['code'] as string) ?? '1234';
+    const metaCode = (this.layout.meta['code'] as string) ?? (Array.isArray(this.layout.meta['codeDigits']) ? (this.layout.meta['codeDigits'] as number[]).join('') : '1234');
+    const expected = metaCode;
     if (code === expected) {
       this.exitUnlocked = true;
       this.audio.play('door_clunk', { gain: 1.0 });
@@ -1777,7 +1860,10 @@ export class GameSession {
         loudness: 0.7,
         sourcePlayerId: 'player_local',
       });
-      this.hud.update({ objective: 'Access granted! Proceed through the open door.' });
+      this.hud.update({
+        objective: 'Access granted! Proceed through the open door.',
+        checkpointSaved: true,
+      });
       return true;
     } else {
       // Wrong code -> alarm noise 0.8 at keypad, beast hears it!
@@ -1994,6 +2080,7 @@ export class GameSession {
 
   update(dt: number): void {
     if (this.isDisposed || this.isPaused || !this.isLoaded) return;
+    dt = Math.min(dt, 0.05);
 
     const pVel = this.simWorld?.player ? this.simWorld.player.getState().vel : { x: 0, y: 0, z: 0 };
     const cameraSpeed = Math.hypot(pVel.x, pVel.z);
@@ -2036,7 +2123,9 @@ export class GameSession {
       this.listenerForward.set(0, 0, -1).applyQuaternion(this.camera.quaternion);
       this.listenerUp.set(0, 1, 0).applyQuaternion(this.camera.quaternion);
       this.audio.setListener(this.camera.position, this.listenerForward, this.listenerUp);
-      this.water.update(dt, this.simWorld.simTime, this.camera, this.scene.fog as FogExp2);
+      const snap = this.simWorld.player.getSnapshot();
+      const isLocalWading = Boolean(snap.wet && (Math.hypot(snap.vel.x, snap.vel.z) > 0.15));
+      this.water.update(dt, this.simWorld.simTime, this.camera, this.scene.fog as FogExp2, isLocalWading, this.camera.position);
       this.mapInstance.update(dt);
       this.pingMarkers.update(this.camera, this.simWorld.simTime);
       this.updateRemoteAvatars(dt);
@@ -2346,6 +2435,7 @@ export class GameSession {
         }
         const soundRadius = Math.round((currSnap.agitation || 0.7) * 40);
         const cause = this.lastNoiseCause || (currSnap.wet && currSnap.exhausted ? 'Sprint-wade' : currSnap.wet ? 'Water splash' : 'Acoustic trigger');
+        body?.animator.triggerJumpscareGrab();
         this.jumpscare.trigger(
           this.camera,
           headWorld,
@@ -2359,6 +2449,7 @@ export class GameSession {
           },
           isReducedMotion,
           body?.mesh.joints,
+          body?.rig,
         );
         break;
       }
@@ -2368,7 +2459,8 @@ export class GameSession {
     const promptState = this.interactions.update(dt, this.camera, intent.interact);
 
     // 8. Water System & Ambient Flock update
-    this.water.update(dt, this.simWorld.simTime, this.camera, this.scene.fog as FogExp2);
+    const isWading = Boolean(currSnap.wet && (Math.hypot(currSnap.vel.x, currSnap.vel.z) > 0.15));
+    this.water.update(dt, this.simWorld.simTime, this.camera, this.scene.fog as FogExp2, isWading, this.camera.position);
     this.flock.update(dt, this.simWorld.simTime, this.camera);
     this.weatherDirector.update(dt, this.simWorld.simTime, this.camera, currSnap.pos);
     this.lensOverlay.setSubmerged(this.camera.position.y < this.water.currentWaterY && (!currSnap.wet || currSnap.depth > 1.55));
@@ -2542,13 +2634,26 @@ export class GameSession {
       }
     }
 
+    const camPos = this.camera.position;
+    const camDir = _scratchVecA;
+    this.camera.getWorldDirection(camDir);
+    const lookPebble = this.throwableSystem.checkPickup(
+      { x: camPos.x, y: camPos.y, z: camPos.z },
+      { x: camDir.x, y: camDir.y, z: camDir.z },
+    );
+    const pebblePrompt = lookPebble ? '[1 / E] Pick up Pebble' : null;
+    const finalPrompt = promptState.visible ? promptState.label : pebblePrompt;
+
     this.hud.update({
       noiseLoudness: currSnap.agitation,
       stamina: currSnap.stamina / 100.0,
       status: statusText,
-      interactionPrompt: promptState.visible ? promptState.label : null,
+      interactionPrompt: finalPrompt,
       promptHoldProgress: promptState.holdProgress,
       waterNoiseRadius: calculatedRadius,
+      runTimeMs: this.simWorld.simTime * 1000,
+      pebbleCount: this.throwableSystem.pebbleCount,
+      pebbleEquipped: this.throwableSystem.isEquipped,
       riskTag,
       damageVignette: this.recentDamage,
       showVhsOsd: this.settings.graphics.vhsOsd,
@@ -2898,6 +3003,32 @@ export class GameSession {
         this.activeProjectiles.splice(i, 1);
       }
     }
+
+    // 2b. ThrowableSystem Simulation (Prompt 4B Section 2)
+    this.throwableSystem.step(dt, this.simWorld.simTime, this.simWorld.waterY, {
+      onWaterHit: (pos) => {
+        this.audio.play('pebble_plink', { position: pos, gain: 0.85 });
+        this.water?.splashes.burst(pos, 0.75);
+        this.water?.rippleManager.spawnPebbleImpact(pos.x, pos.z);
+        this.water?.onRipple({
+          position: pos,
+          strength: 0.75,
+          t: this.simWorld.simTime,
+          sourcePlayerId: 'player_local',
+        });
+        this.simWorld.broadcastNoise({
+          kind: 'splash',
+          position: pos,
+          loudness: 0.85,
+          sourcePlayerId: 'player_local',
+        });
+      },
+      onDryHit: (pos) => {
+        this.audio.play('pebble_clack', { position: pos, gain: 0.6 });
+      },
+      isPlatformAt: (x, z) => (this.simWorld.monsterNav ? this.simWorld.monsterNav.isPlatformAt(x, z) : false),
+      acousticBus: this.simWorld.acousticBus,
+    });
 
     // 3. Ambient ceiling drips in water-rich maps (Natatorium, etc.)
     if (this.water && (this.mapId === 'natatorium' || this.mapId === 'poolrooms' || this.mapId === 'marble_atrium')) {
@@ -3344,6 +3475,7 @@ export class GameSession {
     if (impact.isWater) {
       this.audio.play('pebble_plink', { position: pos, gain: 0.85 });
       this.water?.splashes.burst(pos, 0.75);
+      this.water?.rippleManager.spawnPebbleImpact(pos.x, pos.z);
       this.water?.onRipple({
         position: pos,
         strength: 0.75,
@@ -4244,6 +4376,7 @@ export class GameSession {
       this.menuMusic = null;
     }
     this.jumpscare?.dispose();
+    this.throwableSystem?.dispose();
     this.playerInput?.dispose();
     this.footsteps?.dispose();
     this.interactions?.dispose();
@@ -4350,6 +4483,10 @@ export class GameSession {
       lastTime: dirSnap?.lastSightingTime ?? 0,
       visFrac: this.lastCachedL4Fraction ?? 0,
     };
+  }
+
+  getThrowableSystem(): ThrowableSystem {
+    return this.throwableSystem;
   }
 }
 

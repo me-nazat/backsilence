@@ -65,6 +65,7 @@ export interface PillarDef {
   height: number;
   decalNumber?: number | undefined;
   ordinal?: number | undefined; // 1..4 for code pillars, undefined for decoys
+  clueColor?: string | undefined; // Clue accent color (Blue = #1, Green = #2, Yellow = #3, Red = #4)
   kind?: 'tile' | 'marble' | 'concrete' | undefined;
 }
 
@@ -139,6 +140,7 @@ export interface AtmospherePreset {
   hemisphere: {
     sky: string;
     ground: string;
+    intensity?: number;
   };
   sun?: {
     color: string;
@@ -153,6 +155,7 @@ export interface BuildEnv {
   textures: unknown; // TextureRegistry
   audio: unknown; // AudioEngine
   difficulty: 'whisper' | 'normal' | 'deafening';
+  renderer?: unknown;
 }
 
 export interface MapDefinition {

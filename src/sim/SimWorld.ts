@@ -22,6 +22,8 @@ import type { Drone } from './Drone.js';
 import { Rng } from './rng.js';
 import { dHypot } from './dmath.js';
 import { EncounterDirector, type DirectorDifficulty } from './Director.js';
+import { MonsterNavigation, type PlatformRect } from './MonsterNavigation.js';
+import { AcousticBus } from './AcousticBus.js';
 
 export interface SimWorldConfig {
   /** Seed shared by every authoritative simulation participant. */
@@ -35,6 +37,9 @@ export interface SimWorldConfig {
   director?: EncounterDirector | undefined;
   ground?: GroundGrid | undefined;
   colliders?: ColliderSet | undefined;
+  platforms?: PlatformRect[] | undefined;
+  monsterNav?: MonsterNavigation | undefined;
+  acousticBus?: AcousticBus | undefined;
   mode?: ('solo' | 'host' | 'replica') | undefined;
   worldProfile?: WorldProfile | undefined;
   perchSystem?: PerchSystem | undefined;
@@ -52,6 +57,8 @@ export class SimWorld {
   readonly ground: GroundGrid;
   readonly colliders: ColliderSet;
   nav: NavGrid;
+  readonly monsterNav?: MonsterNavigation | undefined;
+  readonly acousticBus: AcousticBus;
   readonly events: EventRingBuffer;
   readonly player: PlayerMotor;
   readonly monsters: MonsterBrain[] = [];
@@ -137,9 +144,22 @@ export class SimWorld {
 
     // Player motor
     this.player = new PlayerMotor('player_local', config.playerSpawn);
+    if (config.mapId === 'natatorium') {
+      this.player.parkourMode = true;
+    }
 
     // Initial dummy nav grid, rebuilt after terrain is populated
     this.nav = new NavGrid(this.ground, this.currentWaterY, 0.5, this.worldProfile);
+
+    // Monster 2D spatial grid & acoustic bus
+    this.monsterNav = config.monsterNav ?? (config.platforms ? new MonsterNavigation(config.bounds) : undefined);
+    if (this.monsterNav && config.platforms) {
+      this.monsterNav.registerPlatforms(config.platforms);
+    }
+    if (this.monsterNav && config.colliders) {
+      this.monsterNav.registerColliders(config.colliders);
+    }
+    this.acousticBus = config.acousticBus ?? new AcousticBus();
   }
 
   get waterY(): number {
@@ -158,6 +178,9 @@ export class SimWorld {
     sourcePlayerId?: PlayerId | 'world';
   }): void {
     const t = noise.t ?? this.simTime;
+    if (noise.kind === 'splash' && (noise.sourcePlayerId === 'world' || noise.sourcePlayerId === 'stone')) {
+      this.acousticBus.emitStoneSplash(noise.position, t, noise.loudness);
+    }
     const id = `world_noise_${this.seed}_${this.noiseSequence++}_${Math.round(t * 60)}`;
     this.events.pushNoise(
       id,
@@ -260,6 +283,10 @@ export class SimWorld {
 
     const finalDef: MonsterDef = { ...def, spawn: spawnPos };
     const brain = new MonsterBrain(finalDef, this.nav, seed ?? 42);
+    if (this.monsterNav) {
+      brain.setMonsterNav(this.monsterNav);
+    }
+    brain.setAcousticBus(this.acousticBus);
     if (this.mapId && !this.nav.isWalkableWorld(brain.pos.x, brain.pos.z)) {
       const fixed = this.nav.findNearestWalkable(brain.pos.x, brain.pos.z, 18.0);
       if (fixed) {
@@ -360,6 +387,26 @@ export class SimWorld {
       this.worldProfile,
       this.perchSystem,
       this.flowField,
+    );
+
+    // 1.5 Step Acoustic Bus with current player state
+    const pSnap = this.player.getState();
+    const isPlayerInWaterEarly =
+      (this.player.isWading || this.player.pos.y <= this.currentWaterY + 0.05) &&
+      !isPerched &&
+      !this.player.isMantling;
+    const pOnDry = !isPlayerInWaterEarly || pSnap.pos.y >= 0.30 || isPerched;
+
+    this.acousticBus.step(
+      dt,
+      {
+        pos: pSnap.pos,
+        vel: pSnap.vel,
+        isInWater: isPlayerInWaterEarly,
+        isOnDryPlatform: pOnDry,
+        onGround: pSnap.onGround,
+      },
+      this.simTime,
     );
 
     // 2. Broadcast pending noise events emitted in this step to all monsters

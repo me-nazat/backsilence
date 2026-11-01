@@ -38,13 +38,49 @@
     /* Enforce click-through on full-screen HUD, toast containers & overlays */
     #toast-container,
     .bs-toast-container,
+    .toast-container,
     #vhs-overlay,
     #vhs-css-fallback,
     #hud-overlay,
+    #hud,
     .bs-hud,
+    #damage-vignette,
+    .bs-vignette,
     #debug-overlay,
     .bs-scanlines {
       pointer-events: none !important;
+    }
+    #toast-container > *,
+    .bs-toast-container > *,
+    .toast-container > * {
+      pointer-events: auto !important;
+    }
+
+    /* Strict invisible modal interception elimination */
+    .modal[aria-hidden="true"],
+    .modal:not(.is-open),
+    .bs-modal[aria-hidden="true"],
+    .bs-modal:not(.is-open),
+    .bs-modal-backdrop:not(.bs-open),
+    .bs-modal-backdrop[aria-hidden="true"],
+    .bs-modal-layer[aria-hidden="true"],
+    [role="dialog"][aria-hidden="true"],
+    [role="dialog"]:not(.is-open):not(.bs-open),
+    [role="alertdialog"][aria-hidden="true"],
+    [role="alertdialog"]:not(.is-open):not(.bs-open),
+    #settings-panel-view[aria-hidden="true"],
+    #settings-panel-view:not(.is-open),
+    #mode-select-view[aria-hidden="true"],
+    #room-link-view[aria-hidden="true"],
+    #how-to-play-view[aria-hidden="true"],
+    #pause-menu-view[aria-hidden="true"],
+    #death-screen-view[aria-hidden="true"],
+    #results-screen[aria-hidden="true"],
+    #keypad-modal-overlay[aria-hidden="true"],
+    #keypad-modal-overlay:not(.is-open) {
+      display: none !important;
+      pointer-events: none !important;
+      visibility: hidden !important;
     }
 
     /* Splash Screen */

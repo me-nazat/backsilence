@@ -7,6 +7,9 @@
 import {
   InstancedMesh,
   PlaneGeometry,
+  CylinderGeometry,
+  Mesh,
+  Texture,
   MeshStandardMaterial,
   Matrix4,
   Quaternion,
@@ -169,6 +172,59 @@ export class DecalSystem {
     this.root.count = this.count;
     this.root.instanceMatrix.needsUpdate = true;
     if (this.root.instanceColor) this.root.instanceColor.needsUpdate = true;
+  }
+
+  /**
+   * Creates a standalone flat wall decal mesh with proper polygonOffset and transparent material.
+   */
+  static createWallDecalMesh(texture: Texture, width: number, height: number): Mesh {
+    const geom = new PlaneGeometry(width, height);
+    const mat = new MeshStandardMaterial({
+      map: texture,
+      transparent: true,
+      alphaTest: 0.02,
+      depthWrite: false,
+      polygonOffset: true,
+      polygonOffsetFactor: -1.0,
+      polygonOffsetUnits: -1.0,
+      roughness: 0.85,
+      metalness: 0.05,
+      side: DoubleSide,
+    });
+    const mesh = new Mesh(geom, mat);
+    mesh.matrixAutoUpdate = false;
+    return mesh;
+  }
+
+  /**
+   * Creates a standalone curved decal mesh wrapped flush (+0.012m offset) around a cylindrical pillar.
+   */
+  static createCurvedPillarDecalMesh(
+    texture: Texture,
+    pillarRadius: number,
+    arcWidth = 1.4,
+    height = 1.2,
+  ): Mesh {
+    const radius = pillarRadius + 0.012;
+    const arcAngle = arcWidth / radius;
+    const thetaStart = Math.PI * 0.5 - arcAngle * 0.5;
+    // CylinderGeometry(radiusTop, radiusBottom, height, radialSegments, heightSegments, openEnded, thetaStart, thetaLength)
+    const geom = new CylinderGeometry(radius, radius, height, 16, 1, true, thetaStart, arcAngle);
+    const mat = new MeshStandardMaterial({
+      map: texture,
+      transparent: true,
+      alphaTest: 0.02,
+      depthWrite: false,
+      polygonOffset: true,
+      polygonOffsetFactor: -1.0,
+      polygonOffsetUnits: -1.0,
+      roughness: 0.85,
+      metalness: 0.05,
+      side: DoubleSide,
+    });
+    const mesh = new Mesh(geom, mat);
+    mesh.matrixAutoUpdate = false;
+    return mesh;
   }
 
   getCount(): number {

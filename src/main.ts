@@ -617,7 +617,7 @@ async function boot(): Promise<void> {
     }
     lastRenderTime = now;
 
-    const dt = Math.min((now - lastTime) / 1000, 0.1);
+    const dt = Math.min((now - lastTime) / 1000, 0.05);
     const dtMs = dt * 1000;
     lastTime = now;
 

@@ -66,6 +66,18 @@ export class PlayerMotor {
   static readonly WADE_FACTOR = 0.68;
   static readonly DEEP_WADE_FACTOR = 0.55;
 
+  // Prompt 5B Parkour Tuning Constants
+  static readonly PARKOUR_STAND_HEIGHT = 1.75;
+  static readonly PARKOUR_EYE_STAND = 1.58;
+  static readonly PARKOUR_DRY_SPEED = 5.5;
+  static readonly PARKOUR_WADE_SPEED = 3.4;
+  static readonly PARKOUR_JUMP_V = 6.3;
+  static readonly PARKOUR_GRAVITY = 16.8;
+  static readonly PARKOUR_COYOTE = 0.12;
+  static readonly PARKOUR_JUMP_BUFFER = 0.12;
+
+  public parkourMode = false;
+
   onGround = true;
   crouchT = 0; // 0 (standing) -> 1 (crouched)
   stamina = 100.0;
@@ -104,10 +116,14 @@ export class PlayerMotor {
 
   private readonly previousState: PlayerMotorState;
 
-  constructor(playerId: PlayerId, spawnPos: Vec3) {
+  constructor(playerId: PlayerId, spawnPos: Vec3, options?: { parkourMode?: boolean }) {
     this.playerId = playerId;
     this.pos = { x: spawnPos.x, y: spawnPos.y, z: spawnPos.z };
     this.vel = { x: 0, y: 0, z: 0 };
+    if (options?.parkourMode) {
+      this.parkourMode = true;
+      this.coyoteDuration = PlayerMotor.PARKOUR_COYOTE;
+    }
     this.previousState = this.getState();
   }
 
@@ -229,8 +245,8 @@ export class PlayerMotor {
     }
     this.wasWet = this.wet;
 
-    // 6. Check for Mantle trigger while in water or airborne facing a ledge
-    if ((this.wet || !this.onGround) && intent.jump && this.tryStartMantle(ground, colliders, waterY, simTime, events)) {
+    // 6. Check for Mantle trigger while in water or airborne facing a ledge (legacy/classic mode)
+    if (!this.parkourMode && (this.wet || !this.onGround) && intent.jump && this.tryStartMantle(ground, colliders, waterY, simTime, events)) {
       return;
     }
 
@@ -258,13 +274,17 @@ export class PlayerMotor {
     }
 
     // 8. Movement speeds and acceleration
-    let targetSpeed = PlayerMotor.SPEED_WALK;
-    if (isSprinting) targetSpeed = PlayerMotor.SPEED_SPRINT;
+    let targetSpeed = this.parkourMode ? PlayerMotor.PARKOUR_WADE_SPEED : PlayerMotor.SPEED_WALK;
+    if (isSprinting) targetSpeed = this.parkourMode ? PlayerMotor.PARKOUR_DRY_SPEED : PlayerMotor.SPEED_SPRINT;
     else if (intent.crouch) targetSpeed = PlayerMotor.SPEED_CROUCH;
 
     const effectiveWadeFactor = profile?.wadeFactor ?? PlayerMotor.WADE_FACTOR;
     if (this.wet) {
-      targetSpeed *= this.depth > 1.2 ? PlayerMotor.DEEP_WADE_FACTOR : effectiveWadeFactor;
+      if (this.parkourMode) {
+        targetSpeed = PlayerMotor.PARKOUR_WADE_SPEED;
+      } else {
+        targetSpeed *= this.depth > 1.2 ? PlayerMotor.DEEP_WADE_FACTOR : effectiveWadeFactor;
+      }
     }
 
     // Normalize diagonal inputs
@@ -296,14 +316,20 @@ export class PlayerMotor {
     }
 
     // 9. Jump & Gravity logic (Coyote time & Jump buffer)
+    const effectiveCoyoteDuration = this.parkourMode ? PlayerMotor.PARKOUR_COYOTE : this.coyoteDuration;
+    const effectiveJumpBuffer = this.parkourMode ? PlayerMotor.PARKOUR_JUMP_BUFFER : 0.15;
+    const effectiveGravity = this.parkourMode ? PlayerMotor.PARKOUR_GRAVITY : PlayerMotor.GRAVITY;
+    const effectiveJumpV = this.parkourMode ? PlayerMotor.PARKOUR_JUMP_V : (this.wet ? 6.2 : PlayerMotor.JUMP_V);
+    const effectiveStandHeight = this.parkourMode ? PlayerMotor.PARKOUR_STAND_HEIGHT : PlayerMotor.STAND_HEIGHT;
+
     if (this.onGround || this.wet) {
-      this.coyoteTimer = this.coyoteDuration;
+      this.coyoteTimer = effectiveCoyoteDuration;
     } else {
       this.coyoteTimer = Math.max(0, this.coyoteTimer - dt);
     }
 
     if (intent.jump) {
-      this.jumpBufferTimer = 0.15;
+      this.jumpBufferTimer = effectiveJumpBuffer;
     } else {
       this.jumpBufferTimer = Math.max(0, this.jumpBufferTimer - dt);
     }
@@ -316,8 +342,8 @@ export class PlayerMotor {
           this.exhausted = true;
         }
       }
-      const jumpImpulse = this.wet ? 6.2 : PlayerMotor.JUMP_V;
-      this.vel.y = jumpImpulse - PlayerMotor.GRAVITY * dt * 0.5;
+      const jumpImpulse = effectiveJumpV;
+      this.vel.y = jumpImpulse - effectiveGravity * dt * 0.5;
       this.onGround = false;
       this.coyoteTimer = 0;
       this.jumpBufferTimer = 0;
@@ -329,99 +355,146 @@ export class PlayerMotor {
         this.recordLoudness(0.4);
       }
     } else if (!this.onGround) {
-      this.vel.y -= PlayerMotor.GRAVITY * dt;
+      this.vel.y -= effectiveGravity * dt;
     }
 
-    // 10. Horizontal Position Update & Push-out Collision (Swept axis-separated)
-    let newX = this.pos.x + this.vel.x * dt;
-    const destGroundYX = this.sampleGroundHeight(newX, this.pos.z, ground, colliders);
-    const stepDiffX = destGroundYX - this.pos.y;
-    if (stepDiffX > PlayerMotor.STEP_LIMIT) {
-      newX = this.pos.x;
-      this.vel.x = 0;
-    }
+    // 10. 3 Sub-steps per frame: Swept capsule pushout & vertical resolution
+    const subSteps = 3;
+    const subDt = dt / subSteps;
 
-    let newZ = this.pos.z + this.vel.z * dt;
-    const destGroundYZ = this.sampleGroundHeight(newX, newZ, ground, colliders);
-    const stepDiffZ = destGroundYZ - this.pos.y;
-    if (stepDiffZ > PlayerMotor.STEP_LIMIT) {
-      newZ = this.pos.z;
-      this.vel.z = 0;
-    }
+    for (let s = 0; s < subSteps; s++) {
+      // 10a. Horizontal Movement on X with swept wall/step limit detection
+      let newX = this.pos.x + this.vel.x * subDt;
+      const destGroundYX = this.sampleGroundHeight(newX, this.pos.z, ground, colliders);
+      const stepDiffX = destGroundYX - this.pos.y;
+      if (stepDiffX > PlayerMotor.STEP_LIMIT) {
+        newX = this.pos.x;
+        this.vel.x = 0;
+      }
 
-    // Auto-step-up: automatically step up ledges/stairs <= STEP_LIMIT
-    const stepGroundY = this.sampleGroundHeight(newX, newZ, ground, colliders);
-    const stepDiff = stepGroundY - this.pos.y;
-    if (stepDiff > 0.02 && stepDiff <= PlayerMotor.STEP_LIMIT && (this.onGround || this.wet)) {
-      this.pos.y = stepGroundY;
-      this.vel.y = 0;
-      this.onGround = true;
-    }
+      // 10b. Horizontal Movement on Z with swept wall/step limit detection
+      let newZ = this.pos.z + this.vel.z * subDt;
+      const destGroundYZ = this.sampleGroundHeight(newX, newZ, ground, colliders);
+      const stepDiffZ = destGroundYZ - this.pos.y;
+      if (stepDiffZ > PlayerMotor.STEP_LIMIT) {
+        newZ = this.pos.z;
+        this.vel.z = 0;
+      }
 
-    // Pushout vs Box & Cylinder Colliders (3 iterations with normal deflection for smooth wall sliding)
-    colliders.queryCircle(newX, newZ, PlayerMotor.RADIUS + 1.0, this.colliderCandidates);
-    for (let iter = 0; iter < 3; iter++) {
-      const pushed = colliders.resolveCirclePushout(
-        newX,
-        newZ,
-        PlayerMotor.RADIUS,
-        this.pos.y,
-        PlayerMotor.STAND_HEIGHT,
-        this.colliderCandidates,
-        this.pushOut,
-      );
-      if (pushed) {
-        newX += this.pushOut.x;
-        newZ += this.pushOut.z;
-        const pushDist = dHypot(this.pushOut.x, this.pushOut.z);
-        if (pushDist > 1e-4) {
-          const nx = this.pushOut.x / pushDist;
-          const nz = this.pushOut.z / pushDist;
-          const vDotN = this.vel.x * nx + this.vel.z * nz;
-          if (vDotN < 0) {
-            this.vel.x -= vDotN * nx;
-            this.vel.z -= vDotN * nz;
+      // Auto-step-up: automatically step up ledges/stairs <= STEP_LIMIT
+      const stepGroundY = this.sampleGroundHeight(newX, newZ, ground, colliders);
+      const stepDiff = stepGroundY - this.pos.y;
+      if (stepDiff > 0.02 && stepDiff <= PlayerMotor.STEP_LIMIT && (this.onGround || this.wet)) {
+        this.pos.y = stepGroundY;
+        this.vel.y = 0;
+        this.onGround = true;
+      }
+
+      // 10c. Pushout vs Box & Cylinder Colliders (Pillars, walls, arch jambs)
+      colliders.queryCircle(newX, newZ, PlayerMotor.RADIUS + 1.0, this.colliderCandidates);
+      for (let iter = 0; iter < 3; iter++) {
+        const pushed = colliders.resolveCirclePushout(
+          newX,
+          newZ,
+          PlayerMotor.RADIUS,
+          this.pos.y,
+          effectiveStandHeight,
+          this.colliderCandidates,
+          this.pushOut,
+        );
+        if (pushed) {
+          newX += this.pushOut.x;
+          newZ += this.pushOut.z;
+          const pushDist = dHypot(this.pushOut.x, this.pushOut.z);
+          if (pushDist > 1e-4) {
+            const nx = this.pushOut.x / pushDist;
+            const nz = this.pushOut.z / pushDist;
+            const vDotN = this.vel.x * nx + this.vel.z * nz;
+            if (vDotN < 0) {
+              this.vel.x -= vDotN * nx;
+              this.vel.z -= vDotN * nz;
+            }
+          }
+        } else {
+          break;
+        }
+      }
+
+      // Flow drift while wading
+      if (this.wet && flowField) {
+        const drift = flowField.computeWadeDrift(this.pos, subDt);
+        newX += drift.dx;
+        newZ += drift.dz;
+      }
+
+      // Clamp inside map bounds
+      newX = Math.max(ground.bounds.minX + PlayerMotor.RADIUS, Math.min(ground.bounds.maxX - PlayerMotor.RADIUS, newX));
+      newZ = Math.max(ground.bounds.minZ + PlayerMotor.RADIUS, Math.min(ground.bounds.maxZ - PlayerMotor.RADIUS, newZ));
+
+      this.pos.x = newX;
+      this.pos.z = newZ;
+
+      // 10d. Auto-Mantle Ledge Assist:
+      // Smoothly step/mantle up onto dry platform (y = 0.38m) when jumping from water within 0.18m of top surface (y >= 0.20m).
+      if (this.wet || !this.onGround) {
+        const fX = dSin(this.yaw);
+        const fZ = -dCos(this.yaw);
+        const probeDist = 0.45;
+        const probeX = this.pos.x + fX * probeDist;
+        const probeZ = this.pos.z + fZ * probeDist;
+        const probeGroundY = this.sampleGroundHeight(probeX, probeZ, ground, colliders);
+
+        if (probeGroundY >= 0.30 && probeGroundY <= 0.48) {
+          const distToTop = probeGroundY - this.pos.y;
+          if (distToTop <= 0.18 && distToTop >= -0.10 && this.pos.y >= 0.20) {
+            this.pos.x = probeX;
+            this.pos.z = probeZ;
+            this.pos.y = probeGroundY;
+            this.vel.x = 0;
+            this.vel.y = 0;
+            this.vel.z = 0;
+            this.onGround = true;
+            this.wet = false;
+            events.pushNoise(`noise_automantle_${simTime}`, 'mantle', this.pos.x, this.pos.y, this.pos.z, 0.25, this.playerId, simTime);
           }
         }
-      } else {
-        break;
       }
-    }
 
-    // Flow drift while wading
-    if (this.wet && flowField) {
-      const drift = flowField.computeWadeDrift(this.pos, dt);
-      newX += drift.dx;
-      newZ += drift.dz;
-    }
+      // 11. Vertical Position Update & Ground/Ceiling Snapping
+      let newY = this.pos.y + this.vel.y * subDt;
+      const finalGroundY = this.sampleGroundHeight(this.pos.x, this.pos.z, ground, colliders);
 
-    // Clamp inside map bounds
-    newX = Math.max(ground.bounds.minX + PlayerMotor.RADIUS, Math.min(ground.bounds.maxX - PlayerMotor.RADIUS, newX));
-    newZ = Math.max(ground.bounds.minZ + PlayerMotor.RADIUS, Math.min(ground.bounds.maxZ - PlayerMotor.RADIUS, newZ));
+      // Low tunnel ceiling collision (y = 1.65m to 16.0m)
+      const headY = newY + effectiveStandHeight;
+      for (let i = 0; i < this.colliderCandidates.length; i++) {
+        const col = this.colliderCandidates[i]!;
+        if (col.type === 'box' && col.min.y >= 1.65 && col.min.y <= 16.0) {
+          if (this.pos.x >= col.min.x && this.pos.x <= col.max.x && this.pos.z >= col.min.z && this.pos.z <= col.max.z) {
+            if (headY > col.min.y && this.pos.y < col.min.y) {
+              newY = col.min.y - effectiveStandHeight;
+              if (this.vel.y > 0) this.vel.y = 0;
+            }
+          }
+        }
+      }
 
-    this.pos.x = newX;
-    this.pos.z = newZ;
-
-    // 11. Vertical Position Update & Ground Snapping
-    let newY = this.pos.y + this.vel.y * dt;
-    const finalGroundY = this.sampleGroundHeight(this.pos.x, this.pos.z, ground, colliders);
-
-    if (newY <= finalGroundY) {
-      newY = finalGroundY;
-      this.vel.y = 0;
-      this.onGround = true;
-    } else {
-      // Airborne ground landing snap
-      if (newY - finalGroundY < 0.10 && this.vel.y <= 0) {
+      if (newY <= finalGroundY) {
         newY = finalGroundY;
         this.vel.y = 0;
         this.onGround = true;
       } else {
-        this.onGround = false;
+        // Airborne ground landing snap
+        if (newY - finalGroundY < 0.10 && this.vel.y <= 0) {
+          newY = finalGroundY;
+          this.vel.y = 0;
+          this.onGround = true;
+        } else {
+          this.onGround = false;
+        }
       }
-    }
 
-    this.pos.y = newY;
+      this.pos.y = newY;
+    }
 
     if (!this.wasOnGround && this.onGround) {
       const perch = perchSystem ? perchSystem.findSurfaceAt(this.pos.x, this.pos.z, this.pos.y, 0.0) : null;

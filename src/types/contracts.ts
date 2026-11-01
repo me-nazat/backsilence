@@ -182,7 +182,12 @@ export type MonsterState =
   | 'ATTACK'
   | 'BLOCKED'
   | 'LURK'
-  | 'STUNNED';
+  | 'STUNNED'
+  | 'PATROL'
+  | 'ALERT_AND_CHARGE'
+  | 'ARRIVE_AND_ROAR'
+  | 'RETREAT_PROWL'
+  | 'TRENCH_CLAW_LUNGE';
 
 export interface PuzzleOp {
   puzzleId: string;

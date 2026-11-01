@@ -44,7 +44,7 @@ export function defaultSettings(): Settings {
       reducedMotion: 'system',
       showFps: false,
       photosensitiveSafe: false,
-      vhsOsd: true,
+      vhsOsd: false,
       vhsLines: 240,
       fpsCap: 0,
       toneMapping: 'AgX',

@@ -43,7 +43,8 @@ export class SettingsPanel {
   mount(container: HTMLElement): void {
     const el = document.createElement('div');
     el.id = 'settings-panel-view';
-    el.className = 'bs-screen';
+    el.className = 'bs-screen modal';
+    el.setAttribute('aria-hidden', 'true');
     el.style.cssText = `
       position: absolute;
       inset: 0;
@@ -447,11 +448,7 @@ export class SettingsPanel {
     });
 
     this.el.querySelector('#btn-save-close')?.addEventListener('click', () => {
-      engine.play('ui_confirm');
-      saveSettings(this.settings);
-      this.callbacks.onApplySettings(this.settings);
-      ToastManager.getInstance().show('Settings saved successfully', { type: 'success' });
-      this.callbacks.onBack();
+      this.saveAndExitConfiguration();
     });
 
     // Tab switcher
@@ -815,8 +812,49 @@ export class SettingsPanel {
     this.callbacks.onApplySettings(this.settings);
   }
 
+  saveAndExitConfiguration(): void {
+    const engine = AudioEngine.getInstance();
+    engine.play('ui_confirm');
+
+    // 1. First, synchronously close the Configuration modal and restore focus/pointer-events to Main Menu container
+    this.hide();
+    const mainMenuEl = document.getElementById('screen-home') ?? document.getElementById('main-menu-view');
+    if (mainMenuEl) {
+      mainMenuEl.style.display = 'flex';
+      mainMenuEl.style.visibility = 'visible';
+      mainMenuEl.style.pointerEvents = 'auto';
+      mainMenuEl.removeAttribute('inert');
+      mainMenuEl.removeAttribute('aria-hidden');
+    }
+    const appEl = document.getElementById('app');
+    if (appEl) {
+      appEl.style.pointerEvents = 'auto';
+      appEl.removeAttribute('inert');
+    }
+
+    // 2. Second, apply renderer/material updates in-place on existing Three.js renderer and cached materials
+    saveSettings(this.settings);
+    this.callbacks.onApplySettings(this.settings);
+
+    // 3. Inform user with non-blocking toast
+    ToastManager.getInstance().show('Settings saved successfully', { type: 'success' });
+
+    // 4. Return to previous menu view
+    this.callbacks.onBack();
+
+    // 5. Restore focus to Main Menu controls
+    if (mainMenuEl) {
+      mainMenuEl.style.pointerEvents = 'auto';
+      mainMenuEl.removeAttribute('inert');
+      mainMenuEl.removeAttribute('aria-hidden');
+      const firstBtn = mainMenuEl.querySelector<HTMLElement>('#btn-descend, #btn-play-solo, .analog-btn, .bs-btn');
+      firstBtn?.focus();
+    }
+  }
+
   show(): void {
     if (this.el) {
+      this.el.classList.add('is-open');
       this.el.style.display = 'flex';
       this.el.style.visibility = 'visible';
       this.el.style.pointerEvents = 'auto';
@@ -827,6 +865,7 @@ export class SettingsPanel {
 
   hide(): void {
     if (this.el) {
+      this.el.classList.remove('is-open');
       this.el.style.display = 'none';
       this.el.style.visibility = 'hidden';
       this.el.style.pointerEvents = 'none';

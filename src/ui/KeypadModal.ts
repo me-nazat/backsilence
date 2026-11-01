@@ -62,8 +62,16 @@ export class KeypadModal {
       ">
         <!-- Title & Status -->
         <div style="display: flex; justify-content: space-between; width: 100%; font-size: 11px; letter-spacing: 0.15em;">
-          <span style="color: var(--water, #86cfa0);">DOOR ACCESS SEC-1</span>
+          <span style="color: var(--water, #86cfa0);">4-COLOR CONSOLE SEC-1</span>
           <span id="keypad-status" style="color: #ff8a80;">READY</span>
+        </div>
+
+        <!-- 4-Color Pillar Clue Channel Bar (Blue #1, Green #2, Yellow #3, Red #4) -->
+        <div style="display: flex; justify-content: space-between; width: 100%; gap: 8px;">
+          <div style="flex: 1; height: 6px; background: #1e88e5; border-radius: 2px;" title="Blue Clue #1"></div>
+          <div style="flex: 1; height: 6px; background: #43a047; border-radius: 2px;" title="Green Clue #2"></div>
+          <div style="flex: 1; height: 6px; background: #fbc02d; border-radius: 2px;" title="Yellow Clue #3"></div>
+          <div style="flex: 1; height: 6px; background: #e53935; border-radius: 2px;" title="Red Clue #4"></div>
         </div>
 
         <!-- 4-Digit Display Screen -->

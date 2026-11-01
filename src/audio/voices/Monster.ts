@@ -72,162 +72,271 @@ function getDistortion(): Float32Array {
 /**
  * Monster Roar (ALERT sound): Glottal pulse glide + period doubling + throat AM + 3 formants.
  */
+/**
+ * High-Speed Water-Thrashing Gallop (Section 4.1):
+ * Heavy low-end water slam (85 Hz -> 35 Hz sine punch, 0.14s, gain: 0.75) + violent white-water churn (bandpass noise 280 Hz – 2200 Hz, 0.22s, gain: 0.80).
+ */
+export function playMonsterGallopSlam(cx: MonsterVoiceContext): RawVoiceHandle {
+  const ctx = cx.ctx;
+  const now = ctx.currentTime;
+  const intensity = Math.max(0.2, Math.min(2.0, cx.intensity ?? 1.0));
+  const pitchMult = cx.pitch ?? 1.0;
+
+  const voiceGain = ctx.createGain();
+  voiceGain.gain.setValueAtTime(0.0001, now);
+  voiceGain.gain.linearRampToValueAtTime(1.0, now + 0.003);
+  voiceGain.connect(cx.destination);
+
+  const revGain = ctx.createGain();
+  revGain.gain.setValueAtTime(0.40, now);
+  voiceGain.connect(revGain);
+  revGain.connect(cx.reverbSend);
+
+  const nodesToDisconnect: AudioNode[] = [voiceGain, revGain];
+
+  // 1. Heavy low-end water slam: 85 Hz -> 35 Hz sine punch, 0.14s, gain: 0.75
+  const slamOsc = ctx.createOscillator();
+  const slamGain = ctx.createGain();
+  slamOsc.type = 'sine';
+  slamOsc.frequency.setValueAtTime(85 * pitchMult, now);
+  slamOsc.frequency.exponentialRampToValueAtTime(Math.max(25, 35 * pitchMult), now + 0.14);
+
+  slamGain.gain.setValueAtTime(0.0001, now);
+  slamGain.gain.linearRampToValueAtTime(0.75 * intensity, now + 0.003);
+  slamGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.14);
+
+  slamOsc.connect(slamGain);
+  slamGain.connect(voiceGain);
+  slamOsc.start(now);
+  slamOsc.stop(now + 0.15);
+  nodesToDisconnect.push(slamOsc, slamGain);
+
+  // 2. Violent white-water churn: bandpass noise 280 Hz – 2200 Hz, 0.22s, gain: 0.80
+  const churnNoise = ctx.createBufferSource();
+  churnNoise.buffer = cx.noise.pink;
+  churnNoise.loop = true;
+
+  const churnBp = ctx.createBiquadFilter();
+  churnBp.type = 'bandpass';
+  churnBp.frequency.setValueAtTime(750 * pitchMult, now);
+  churnBp.Q.setValueAtTime(0.75, now);
+
+  const churnGain = ctx.createGain();
+  churnGain.gain.setValueAtTime(0.0001, now);
+  churnGain.gain.linearRampToValueAtTime(0.80 * intensity, now + 0.005);
+  churnGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.22);
+
+  churnNoise.connect(churnBp);
+  churnBp.connect(churnGain);
+  churnGain.connect(voiceGain);
+  churnNoise.start(now);
+  churnNoise.stop(now + 0.23);
+  nodesToDisconnect.push(churnNoise, churnBp, churnGain);
+
+  let endedResolve: () => void;
+  const ended = new Promise<void>((r) => { endedResolve = r; });
+
+  const cleanup = () => {
+    for (const node of nodesToDisconnect) {
+      try { node.disconnect(); } catch { /* ignore */ }
+    }
+  };
+
+  setTimeout(() => {
+    cleanup();
+    endedResolve();
+  }, 240);
+
+  return {
+    stop(fade = 0.02): void {
+      const t = ctx.currentTime;
+      voiceGain.gain.cancelScheduledValues(t);
+      voiceGain.gain.linearRampToValueAtTime(0.0001, t + fade);
+      setTimeout(() => {
+        cleanup();
+        endedResolve();
+      }, fade * 1000);
+    },
+    setParam(): void {},
+    ended,
+  };
+}
+
+/**
+ * Guttural Monster Roar (Section 4.2):
+ * Layered, monstrous, organic roar (duration: 1.45s):
+ * - Voice 1 (Sub-Chest Growl): Sawtooth + triangle pair (58 Hz and 87 Hz) FM by 24 Hz growl LFO, low-pass filter at 320 Hz.
+ * - Voice 2 (Vocal Formant Roar): Pink noise + detuned pulse oscillators (145 Hz, 210 Hz) through 3 parallel formant filters with WaveShaperNode.
+ * - Voice 3 (Wet Jaws & Spray): High-density water thrash burst at onset (0.0s – 0.4s).
+ * - Brickwall low-pass roll-off at 2900 Hz.
+ */
 export function playMonsterRoar(cx: MonsterVoiceContext): RawVoiceHandle {
   const ctx = cx.ctx;
   const now = ctx.currentTime;
-  const duration = 2.0;
+  const duration = 1.45;
   const intensity = Math.max(0.2, Math.min(2.5, cx.intensity ?? 1.25));
   const pitchMult = cx.pitch ?? 1.0;
 
-  // Prompt 3.5: Distance-dependent roar ducking (deep near, shallow far)
   if (cx.mixer) {
     const dist = cx.monsterDistance ?? 10.0;
-    const far = Math.min(1, Math.max(0, (dist - 12) / 28)); // 0 near, 1 far
-    const depth = 0.50 + (0.95 - 0.50) * far; // deep duck near, shallow far
-    cx.mixer.duck('ambient', depth, 0.05, 2.0);
+    const far = Math.min(1, Math.max(0, (dist - 12) / 28));
+    const depth = 0.50 + (0.95 - 0.50) * far;
+    cx.mixer.duck('ambient', depth, 0.05, 1.45);
   }
 
   const voiceGain = ctx.createGain();
-  // Ear-safe max peak gain capped at -10 dBFS (~0.316)
-  const peakRoarGain = Math.min(0.316, 0.316 * intensity);
   voiceGain.gain.setValueAtTime(0.0001, now);
-  voiceGain.gain.linearRampToValueAtTime(peakRoarGain, now + 0.12);
-  voiceGain.gain.setValueAtTime(peakRoarGain, now + 1.15);
+  voiceGain.gain.linearRampToValueAtTime(intensity, now + 0.08);
+  voiceGain.gain.setValueAtTime(intensity, now + 0.95);
   voiceGain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
 
-  // Smooth high-frequency roll-off above 3200 Hz for ear-safe subterranean acoustics
-  const earSafeFilter = ctx.createBiquadFilter();
-  earSafeFilter.type = 'lowpass';
-  earSafeFilter.frequency.setValueAtTime(3200, now);
-  earSafeFilter.Q.setValueAtTime(0.707, now);
+  // Master brickwall low-pass filter at 2900 Hz
+  const brickwall = ctx.createBiquadFilter();
+  brickwall.type = 'lowpass';
+  brickwall.frequency.setValueAtTime(2900, now);
+  brickwall.Q.setValueAtTime(0.707, now);
 
-  voiceGain.connect(earSafeFilter);
-  earSafeFilter.connect(cx.destination);
-  earSafeFilter.connect(cx.reverbSend);
+  voiceGain.connect(brickwall);
+  brickwall.connect(cx.destination);
+  brickwall.connect(cx.reverbSend);
 
-  const nodesToDisconnect: AudioNode[] = [voiceGain, earSafeFilter];
+  const nodesToDisconnect: AudioNode[] = [voiceGain, brickwall];
 
-  // 1. Primary Glottal Pulse Generator (Prompt 3.12: 74 -> 46 Hz)
-  const glottalOsc = ctx.createOscillator();
-  glottalOsc.setPeriodicWave(getGlottalPeriodicWave(ctx));
-  glottalOsc.frequency.setValueAtTime(74 * pitchMult, now);
-  glottalOsc.frequency.exponentialRampToValueAtTime(46 * pitchMult, now + duration);
+  // ── Voice 1: Sub-Chest Growl ──
+  const v1Saw = ctx.createOscillator();
+  v1Saw.type = 'sawtooth';
+  v1Saw.frequency.setValueAtTime(58 * pitchMult, now);
+  v1Saw.frequency.exponentialRampToValueAtTime(Math.max(25, 42 * pitchMult), now + duration);
 
-  // 2. Period Doubling Subharmonic (triangle wave - zero harsh buzzing sawtooth)
-  const subOsc = ctx.createOscillator();
-  subOsc.type = 'triangle';
-  subOsc.frequency.setValueAtTime(37 * pitchMult, now);
-  subOsc.frequency.exponentialRampToValueAtTime(23 * pitchMult, now + duration);
-  const subGain = ctx.createGain();
-  subGain.gain.setValueAtTime(0.55, now);
+  const v1Tri = ctx.createOscillator();
+  v1Tri.type = 'triangle';
+  v1Tri.frequency.setValueAtTime(87 * pitchMult, now);
+  v1Tri.frequency.exponentialRampToValueAtTime(Math.max(30, 62 * pitchMult), now + duration);
 
-  subOsc.connect(subGain);
-  nodesToDisconnect.push(subOsc, subGain);
+  const v1Lfo = ctx.createOscillator();
+  v1Lfo.type = 'sine';
+  v1Lfo.frequency.setValueAtTime(24, now);
 
-  // 3. Throat AM Flutter LFO (Prompt 3.12: 26 Hz, +-16 Hz)
-  const throatLfo = ctx.createOscillator();
-  const throatGain = ctx.createGain();
-  throatLfo.type = 'sine';
-  throatLfo.frequency.setValueAtTime(26, now);
-  throatGain.gain.setValueAtTime(16, now);
-  throatLfo.connect(throatGain);
-  throatGain.connect(glottalOsc.frequency);
-  nodesToDisconnect.push(throatLfo, throatGain);
+  const v1LfoGain = ctx.createGain();
+  v1LfoGain.gain.setValueAtTime(14 * pitchMult, now);
+  v1Lfo.connect(v1LfoGain);
+  v1LfoGain.connect(v1Saw.frequency);
+  v1LfoGain.connect(v1Tri.frequency);
 
-  // 4. Wet breath aspiration layer (pink noise, Prompt 3.12: 900 Hz, Q 1.4)
-  const breathSrc = ctx.createBufferSource();
-  breathSrc.buffer = cx.noise.pink;
-  breathSrc.loop = true;
+  const v1Lp = ctx.createBiquadFilter();
+  v1Lp.type = 'lowpass';
+  v1Lp.frequency.setValueAtTime(320 * pitchMult, now);
+  v1Lp.Q.setValueAtTime(0.707, now);
 
-  const breathFilter = ctx.createBiquadFilter();
-  breathFilter.type = 'bandpass';
-  breathFilter.frequency.setValueAtTime(900 * pitchMult, now);
-  breathFilter.Q.setValueAtTime(1.4, now);
+  const v1Gain = ctx.createGain();
+  v1Gain.gain.setValueAtTime(0.0001, now);
+  v1Gain.gain.linearRampToValueAtTime(0.75, now + 0.05);
+  v1Gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
 
-  const breathGain = ctx.createGain();
-  breathGain.gain.setValueAtTime(0.0001, now);
-  breathGain.gain.linearRampToValueAtTime(0.18, now + 0.1);
-  breathGain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+  v1Saw.connect(v1Lp);
+  v1Tri.connect(v1Lp);
+  v1Lp.connect(v1Gain);
+  v1Gain.connect(voiceGain);
 
-  breathSrc.connect(breathFilter);
-  breathFilter.connect(breathGain);
-  nodesToDisconnect.push(breathSrc, breathFilter, breathGain);
+  v1Saw.start(now);
+  v1Tri.start(now);
+  v1Lfo.start(now);
+  v1Saw.stop(now + duration);
+  v1Tri.stop(now + duration);
+  v1Lfo.stop(now + duration);
+  nodesToDisconnect.push(v1Saw, v1Tri, v1Lfo, v1LfoGain, v1Lp, v1Gain);
 
-  // Mix raw sound generators into pre-vocal tract gain
-  const preMix = ctx.createGain();
-  glottalOsc.connect(preMix);
-  subGain.connect(preMix);
-  breathGain.connect(preMix);
-  nodesToDisconnect.push(glottalOsc, preMix);
+  // ── Voice 2: Vocal Formant Roar ──
+  const v2Osc1 = ctx.createOscillator();
+  v2Osc1.type = 'sawtooth';
+  v2Osc1.frequency.setValueAtTime(145 * pitchMult, now);
+  v2Osc1.frequency.exponentialRampToValueAtTime(Math.max(50, 95 * pitchMult), now + duration);
 
-  // 5. 4x Oversampled WaveShaper for rich harmonic warmth without aliasing
-  const shaper = ctx.createWaveShaper();
-  shaper.curve = getDistortion();
-  shaper.oversample = '4x';
-  preMix.connect(shaper);
-  nodesToDisconnect.push(shaper);
+  const v2Osc2 = ctx.createOscillator();
+  v2Osc2.type = 'sawtooth';
+  v2Osc2.frequency.setValueAtTime(210 * pitchMult, now);
+  v2Osc2.frequency.exponentialRampToValueAtTime(Math.max(70, 138 * pitchMult), now + duration);
 
-  // 6. Three Parallel Resonant Vocal Tract Formants (Prompt 3.12):
-  // F1: 640 -> 380 Hz, Q 2.6
+  const v2Noise = ctx.createBufferSource();
+  v2Noise.buffer = cx.noise.pink;
+  v2Noise.loop = true;
+
+  const v2Mix = ctx.createGain();
+  v2Mix.gain.setValueAtTime(0.65, now);
+  v2Osc1.connect(v2Mix);
+  v2Osc2.connect(v2Mix);
+  v2Noise.connect(v2Mix);
+
+  // Formant filters
   const f1 = ctx.createBiquadFilter();
   f1.type = 'bandpass';
-  f1.Q.setValueAtTime(2.6, now);
-  f1.frequency.setValueAtTime(640 * pitchMult, now);
-  f1.frequency.exponentialRampToValueAtTime(380 * pitchMult, now + duration);
+  f1.frequency.setValueAtTime(380 * pitchMult, now);
+  f1.frequency.exponentialRampToValueAtTime(Math.max(100, 260 * pitchMult), now + duration);
+  f1.Q.setValueAtTime(3.8, now);
 
-  const f1Gain = ctx.createGain();
-  f1Gain.gain.setValueAtTime(1.85, now);
-  f1.connect(f1Gain);
-  f1Gain.connect(voiceGain);
-
-  // F2: 1150 -> 780 Hz, Q 3.0
   const f2 = ctx.createBiquadFilter();
   f2.type = 'bandpass';
-  f2.Q.setValueAtTime(3.0, now);
-  f2.frequency.setValueAtTime(1150 * pitchMult, now);
-  f2.frequency.exponentialRampToValueAtTime(780 * pitchMult, now + duration);
+  f2.frequency.setValueAtTime(920 * pitchMult, now);
+  f2.frequency.exponentialRampToValueAtTime(Math.max(200, 640 * pitchMult), now + duration);
+  f2.Q.setValueAtTime(4.2, now);
 
-  const f2Gain = ctx.createGain();
-  f2Gain.gain.setValueAtTime(1.15, now);
-  f2.connect(f2Gain);
-  f2Gain.connect(voiceGain);
-
-  // F3: ~2350 Hz, Q 3.5
   const f3 = ctx.createBiquadFilter();
   f3.type = 'bandpass';
+  f3.frequency.setValueAtTime(1850 * pitchMult, now);
+  f3.frequency.exponentialRampToValueAtTime(Math.max(400, 1200 * pitchMult), now + duration);
   f3.Q.setValueAtTime(3.5, now);
-  f3.frequency.setValueAtTime(2350 * pitchMult, now);
 
-  const f3Gain = ctx.createGain();
-  f3Gain.gain.setValueAtTime(0.32, now);
-  f3.connect(f3Gain);
-  f3Gain.connect(voiceGain);
+  const formantSum = ctx.createGain();
+  v2Mix.connect(f1);
+  v2Mix.connect(f2);
+  v2Mix.connect(f3);
+  f1.connect(formantSum);
+  f2.connect(formantSum);
+  f3.connect(formantSum);
 
-  shaper.connect(f1);
-  shaper.connect(f2);
-  shaper.connect(f3);
-  nodesToDisconnect.push(f1, f1Gain, f2, f2Gain, f3, f3Gain);
+  const shaper = ctx.createWaveShaper();
+  shaper.curve = getDistortion() as unknown as Float32Array;
+  shaper.oversample = '4x';
 
-  // Direct throat body blend through lowpass to preserve vocal tract acoustic fidelity
-  const directBodyGain = ctx.createGain();
-  directBodyGain.gain.setValueAtTime(0.22, now);
-  const directBodyFilter = ctx.createBiquadFilter();
-  directBodyFilter.type = 'lowpass';
-  directBodyFilter.frequency.setValueAtTime(800 * pitchMult, now);
-  shaper.connect(directBodyFilter);
-  directBodyFilter.connect(directBodyGain);
-  directBodyGain.connect(voiceGain);
-  nodesToDisconnect.push(directBodyFilter, directBodyGain);
+  const v2Gain = ctx.createGain();
+  v2Gain.gain.setValueAtTime(0.0001, now);
+  v2Gain.gain.linearRampToValueAtTime(0.85, now + 0.06);
+  v2Gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
 
-  glottalOsc.start(now);
-  subOsc.start(now);
-  throatLfo.start(now);
-  breathSrc.start(now);
+  formantSum.connect(shaper);
+  shaper.connect(v2Gain);
+  v2Gain.connect(voiceGain);
 
-  glottalOsc.stop(now + duration + 0.05);
-  subOsc.stop(now + duration + 0.05);
-  throatLfo.stop(now + duration + 0.05);
-  breathSrc.stop(now + duration + 0.05);
+  v2Osc1.start(now);
+  v2Osc2.start(now);
+  v2Noise.start(now);
+  v2Osc1.stop(now + duration);
+  v2Osc2.stop(now + duration);
+  v2Noise.stop(now + duration);
+  nodesToDisconnect.push(v2Osc1, v2Osc2, v2Noise, v2Mix, f1, f2, f3, formantSum, shaper, v2Gain);
+
+  // ── Voice 3: Wet Jaws & Spray ──
+  const sprayNoise = ctx.createBufferSource();
+  sprayNoise.buffer = cx.noise.white;
+  sprayNoise.loop = true;
+
+  const sprayBp = ctx.createBiquadFilter();
+  sprayBp.type = 'bandpass';
+  sprayBp.frequency.setValueAtTime(1400 * pitchMult, now);
+  sprayBp.Q.setValueAtTime(1.2, now);
+
+  const sprayGain = ctx.createGain();
+  sprayGain.gain.setValueAtTime(0.0001, now);
+  sprayGain.gain.linearRampToValueAtTime(0.65, now + 0.02);
+  sprayGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.40);
+
+  sprayNoise.connect(sprayBp);
+  sprayBp.connect(sprayGain);
+  sprayGain.connect(voiceGain);
+
+  sprayNoise.start(now);
+  sprayNoise.stop(now + 0.42);
+  nodesToDisconnect.push(sprayNoise, sprayBp, sprayGain);
 
   let endedResolve: () => void;
   const ended = new Promise<void>((r) => { endedResolve = r; });
@@ -241,7 +350,7 @@ export function playMonsterRoar(cx: MonsterVoiceContext): RawVoiceHandle {
   const timer = setTimeout(() => {
     cleanup();
     endedResolve();
-  }, (duration + 0.12) * 1000);
+  }, Math.floor(duration * 1000) + 50);
 
   return {
     stop(fade = 0.05): void {
