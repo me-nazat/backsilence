@@ -15,7 +15,7 @@ export class ChangelogScreen {
   constructor(private callbacks: ChangelogCallbacks) {
     this.element = document.createElement('div');
     this.element.id = 'screen-changelog';
-    this.element.className = 'bs-root bs-screen';
+    this.element.className = 'bs-root bs-screen subpage-modal';
     this.element.style.cssText = `
       position: absolute;
       inset: 0;

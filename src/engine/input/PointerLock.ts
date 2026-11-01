@@ -57,6 +57,11 @@ export async function safeRequestPointerLock(
 
   initPointerLockListeners();
 
+  // Strictly block if UI state is not ACTIVE_GAMEPLAY
+  if (typeof document !== 'undefined' && document.body?.dataset?.uiState && document.body.dataset.uiState !== 'ACTIVE_GAMEPLAY') {
+    return false;
+  }
+
   // 1. Strictly block if a custom state validator reports non-playable
   if (canLock && !canLock()) {
     return false;

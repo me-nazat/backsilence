@@ -4,288 +4,64 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#0d0b06">
-  <meta name="description" content="BackSilence — It cannot see you. It hears the water. A browser-based found-footage 3D survival-horror tape archive.">
-  <meta name="robots" content="index, follow">
-  <meta property="og:title" content="BackSilence — Found-Footage Analog Survival Horror">
-  <meta property="og:description" content="It cannot see you. It hears the water. Navigate flooded municipal archives and escape the blind lurker.">
-  <meta property="og:type" content="website">
+  <meta name="description" content="BackSilence — It cannot see you. It hears the water.">
   <title>BackSilence</title>
   <link rel="manifest" href="/manifest.webmanifest">
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' fill='%230d0b06' rx='96'/%3E%3Crect x='76' y='96' width='360' height='240' rx='16' fill='none' stroke='%235b4526' stroke-width='8'/%3E%3Crect x='116' y='136' width='280' height='120' rx='8' fill='%2314120c' stroke='%2386cfa0' stroke-width='6'/%3E%3Ccircle cx='186' cy='196' r='32' fill='%230d0b06' stroke='%23e9dca8' stroke-width='6'/%3E%3Ccircle cx='186' cy='196' r='12' fill='%2386cfa0'/%3E%3Ccircle cx='326' cy='196' r='32' fill='%230d0b06' stroke='%23e9dca8' stroke-width='6'/%3E%3Ccircle cx='326' cy='196' r='12' fill='%2386cfa0'/%3E%3Cline x1='186' y1='228' x2='326' y2='228' stroke='%235b4526' stroke-width='6'/%3E%3Cellipse cx='256' cy='390' rx='140' ry='32' fill='none' stroke='%2386cfa0' stroke-width='6' opacity='0.4'/%3E%3Cellipse cx='256' cy='390' rx='90' ry='20' fill='none' stroke='%2386cfa0' stroke-width='6' opacity='0.7'/%3E%3Cellipse cx='256' cy='390' rx='40' ry='10' fill='none' stroke='%2386cfa0' stroke-width='6'/%3E%3Cpath d='M256 310 C256 310, 244 330, 244 342 C244 349, 249 354, 256 354 C263 354, 268 349, 268 342 C268 330, 256 310, 256 310 Z' fill='%2386cfa0'/%3E%3C/svg%3E">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230d0b06'/%3E%3Ccircle cx='16' cy='16' r='8' fill='%2386cfa0'/%3E%3C/svg%3E">
   <style>
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    :root{
-      --ink:#0d0b06;--fog:#d9d3a2;--water:#86cfa0;--water-deep:#3f9c6b;
-      --tile-platform:#d8b36a;--tile-wall:#e9dca8;--grout:#5b4526;--danger:#b3261e;
-      --ui-scale:1;
-      font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
-    }
-    html,body{
-      width:100%;min-height:100dvh;margin:0;padding:0;
-      background:var(--ink);color:var(--fog);
-      overscroll-behavior:contain;
-      font-size:calc(16px * var(--ui-scale));
-    }
-
-    /* 3D Canvas Mount Point */
-    #canvas-container{
-      position:fixed;inset:0;z-index:1;overflow:hidden;background:var(--ink);pointer-events:none;
-    }
-    #canvas-container canvas{
-      display:block;width:100%!important;height:100%!important;pointer-events:none;
-    }
-
-    /* Enforce click-through on full-screen HUD, toast containers & overlays */
-    #toast-container,
-    .bs-toast-container,
-    .toast-container,
-    #vhs-overlay,
-    #vhs-css-fallback,
-    #hud-overlay,
-    #hud,
-    .bs-hud,
-    #damage-vignette,
-    .bs-vignette,
-    #debug-overlay,
-    .bs-scanlines {
-      pointer-events: none !important;
-    }
-    #toast-container > *,
-    .bs-toast-container > *,
-    .toast-container > * {
-      pointer-events: auto !important;
-    }
-
-    /* Strict invisible modal interception elimination */
-    .modal[aria-hidden="true"],
-    .modal:not(.is-open),
-    .bs-modal[aria-hidden="true"],
-    .bs-modal:not(.is-open),
-    .bs-modal-backdrop:not(.bs-open),
-    .bs-modal-backdrop[aria-hidden="true"],
-    .bs-modal-layer[aria-hidden="true"],
-    [role="dialog"][aria-hidden="true"],
-    [role="dialog"]:not(.is-open):not(.bs-open),
-    [role="alertdialog"][aria-hidden="true"],
-    [role="alertdialog"]:not(.is-open):not(.bs-open),
-    #settings-panel-view[aria-hidden="true"],
-    #settings-panel-view:not(.is-open),
-    #mode-select-view[aria-hidden="true"],
-    #room-link-view[aria-hidden="true"],
-    #how-to-play-view[aria-hidden="true"],
-    #pause-menu-view[aria-hidden="true"],
-    #death-screen-view[aria-hidden="true"],
-    #results-screen[aria-hidden="true"],
-    #keypad-modal-overlay[aria-hidden="true"],
-    #keypad-modal-overlay:not(.is-open) {
-      display: none !important;
-      pointer-events: none !important;
-      visibility: hidden !important;
-    }
-
-    /* Splash Screen */
-    #splash{
-      position:fixed;inset:0;display:flex;flex-direction:column;
-      align-items:center;justify-content:center;z-index:9999;
-      background:var(--ink);transition:opacity 0.6s ease-out;
-      padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom);
-    }
+    :root{--ink:#0d0b06;--fog:#d9d3a2;--water:#86cfa0;--water-deep:#3f9c6b;--tile-platform:#d8b36a;--tile-wall:#e9dca8;--grout:#5b4526;--danger:#b3261e;--ui-scale:1;font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}
+    html,body{width:100%;min-height:100dvh;margin:0;padding:0;background:var(--ink);color:var(--fog);overscroll-behavior:contain;font-size:calc(16px * var(--ui-scale))}
+    #canvas-container{position:fixed;inset:0;z-index:1;overflow:hidden;background:var(--ink);pointer-events:none}
+    #canvas-container canvas{display:block;width:100%!important;height:100%!important;pointer-events:none}
+    :is(#toast-container,.bs-toast-container,.toast-container,#vhs-overlay,#vhs-css-fallback,#hud-overlay,#hud,.bs-hud,#damage-vignette,.bs-vignette,#debug-overlay,.bs-scanlines){pointer-events:none!important}
+    :is(#toast-container,.bs-toast-container,.toast-container)>*{pointer-events:auto!important}
+    :is(.modal,.bs-modal,[role="dialog"],[role="alertdialog"],#settings-panel-view,#keypad-modal-overlay):is([aria-hidden="true"],:not(.is-open):not(.bs-open)),.bs-modal-backdrop:is(:not(.bs-open),[aria-hidden="true"]),.bs-modal-layer[aria-hidden="true"],:is(#mode-select-view,#room-link-view,#how-to-play-view,#pause-menu-view,#death-screen-view,#results-screen)[aria-hidden="true"]{display:none!important;pointer-events:none!important;visibility:hidden!important}
+    body[data-ui-state="ACTIVE_GAMEPLAY"] :is(#main-menu-card,.hero-panel,#top-navbar,.top-bar,#bottom-dossier-bar,.dossier-strip,#play-hub-modal,.subpage-modal,#objective-panel,#hud-objective-container,.sector-briefing-box,#hud-ping-hint,#hud-noise-minimal,#hud-bottom-center,#hud-pointer-lock-hint){display:none!important;opacity:0!important;pointer-events:none!important;visibility:hidden!important}
+    :is(body[data-ui-state="PLAY_HUB"],body[data-ui-state="MODAL_SUBPAGE"]) :is(#main-menu-card,.hero-panel,#bottom-dossier-bar,.dossier-strip){display:none!important;opacity:0!important;pointer-events:none!important;visibility:hidden!important}
+    body[data-ui-state="MAIN_MENU"] :is(#main-menu-card,.hero-panel,#top-navbar,.top-bar){pointer-events:auto!important}
+    #splash{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;background:var(--ink);transition:opacity .6s ease-out;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
     #splash.fade-out{opacity:0;pointer-events:none}
-    .splash-title{
-      font-family:ui-serif,Georgia,'Times New Roman',serif;
-      font-size:clamp(1.6rem,5vw,3rem);letter-spacing:0.08em;
-      color:var(--fog);text-align:center;margin-bottom:0.5em;
-      text-shadow:0 0 20px rgba(134,207,160,0.3);
-    }
-    .splash-tagline{
-      font-family:ui-serif,Georgia,'Times New Roman',serif;
-      font-size:clamp(0.8rem,2.5vw,1.2rem);color:var(--water);
-      text-align:center;opacity:0.8;margin-bottom:2em;
-    }
-    .boot-bar-wrap{
-      width:min(280px,70vw);height:3px;background:rgba(217,211,162,0.15);
-      border-radius:2px;overflow:hidden;position:relative;
-    }
-    #boot-bar{
-      width:0%;height:100%;background:var(--water);
-      border-radius:2px;transition:width 0.3s ease-out;
-    }
-
-    /* CSS-only water drop ripple animation */
-    .ripple-container{
-      position:relative;width:60px;height:60px;margin-bottom:1.5em;
-    }
-    .ripple-drop{
-      position:absolute;top:0;left:50%;width:4px;height:12px;
-      background:var(--water);border-radius:50%;
-      transform:translateX(-50%);
-      animation:drop-fall 2.4s ease-in infinite;
-    }
-    .ripple-ring{
-      position:absolute;bottom:8px;left:50%;
-      width:8px;height:4px;border:1.5px solid var(--water);
-      border-radius:50%;transform:translateX(-50%) scale(0);opacity:0;
-    }
+    .splash-title{font-family:ui-serif,Georgia,'Times New Roman',serif;font-size:clamp(1.6rem,5vw,3rem);letter-spacing:.08em;color:var(--fog);text-align:center;margin-bottom:.5em;text-shadow:0 0 20px rgba(134,207,160,.3)}
+    .splash-tagline{font-family:ui-serif,Georgia,'Times New Roman',serif;font-size:clamp(.8rem,2.5vw,1.2rem);color:var(--water);text-align:center;opacity:.8;margin-bottom:2em}
+    .boot-bar-wrap{width:min(280px,70vw);height:3px;background:rgba(217,211,162,.15);border-radius:2px;overflow:hidden;position:relative}
+    #boot-bar{width:0%;height:100%;background:var(--water);border-radius:2px;transition:width .3s ease-out}
+    .ripple-container{position:relative;width:60px;height:60px;margin-bottom:1.5em}
+    .ripple-drop{position:absolute;top:0;left:50%;width:4px;height:12px;background:var(--water);border-radius:50%;transform:translateX(-50%);animation:drop-fall 2.4s ease-in infinite}
+    .ripple-ring{position:absolute;bottom:8px;left:50%;width:8px;height:4px;border:1.5px solid var(--water);border-radius:50%;transform:translateX(-50%) scale(0);opacity:0}
     .ripple-ring:nth-child(2){animation:ring-expand 2.4s ease-out 1.2s infinite}
     .ripple-ring:nth-child(3){animation:ring-expand 2.4s ease-out 1.5s infinite}
     .ripple-ring:nth-child(4){animation:ring-expand 2.4s ease-out 1.8s infinite}
-    @keyframes drop-fall{
-      0%{top:0;opacity:1}
-      45%{top:36px;opacity:1}
-      50%{top:40px;opacity:0;transform:translateX(-50%) scaleY(0.5) scaleX(1.5)}
-      100%{top:40px;opacity:0}
-    }
-    @keyframes ring-expand{
-      0%{transform:translateX(-50%) scale(0);opacity:0.8}
-      100%{transform:translateX(-50%) scale(6);opacity:0}
-    }
-    @media(prefers-reduced-motion:reduce){
-      .ripple-drop,.ripple-ring{animation:none!important}
-      .flicker-title{animation:none!important;opacity:1!important;text-shadow:0 0 25px rgba(134,207,160,0.35)!important}
-    }
-
-    /* UI Layer Root */
-    #app{
-      position:fixed;inset:0;z-index:50;display:none;pointer-events:none;
-      max-height:100dvh;overflow-y:auto;
-      padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom);
-    }
+    @keyframes drop-fall{0%{top:0;opacity:1}45%{top:36px;opacity:1}50%{top:40px;opacity:0;transform:translateX(-50%) scaleY(.5) scaleX(1.5)}100%{top:40px;opacity:0}}
+    @keyframes ring-expand{0%{transform:translateX(-50%) scale(0);opacity:.8}100%{transform:translateX(-50%) scale(6);opacity:0}}
+    @media (prefers-reduced-motion:reduce){.ripple-drop,.ripple-ring{animation:none!important}.flicker-title{animation:none!important;opacity:1!important;text-shadow:0 0 25px rgba(134,207,160,.35)!important}}
+    #app{position:fixed;inset:0;z-index:50;display:none;pointer-events:none;max-height:100dvh;overflow-y:auto;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
     #app.visible{display:block}
-    /* Uniform Screen Pointer Events Architecture (Phase D) */
-    .bs-screen{pointer-events:auto}
-    .bs-interactive{pointer-events:auto}
-    #hud,.bs-hud{pointer-events:none}
-
-    /* Analog Horror Title Flicker */
-    .flicker-title{
-      animation:title-flicker 5s infinite;
-    }
-    @keyframes title-flicker{
-      0%, 19.99%, 22%, 62.99%, 64%, 64.99%, 70%, 100%{
-        opacity:1;
-        text-shadow:0 0 25px rgba(134,207,160,0.35);
-      }
-      20%, 21.99%{
-        opacity:0.75;
-        text-shadow:0 0 10px rgba(134,207,160,0.15);
-      }
-      63%, 63.99%{
-        opacity:0.5;
-        text-shadow:none;
-      }
-      65%, 69.99%{
-        opacity:0.9;
-        text-shadow:0 0 30px rgba(134,207,160,0.5);
-      }
-    }
-
-    /* Analog Buttons */
-    .analog-btn{
-      background:rgba(13, 11, 6, 0.85);
-      border:1px solid rgba(134, 207, 160, 0.4);
-      color:var(--fog);
-      font-family:monospace;
-      font-size:0.9rem;
-      padding:11px 18px;
-      min-height:44px;
-      cursor:pointer;
-      letter-spacing:0.12em;
-      text-transform:uppercase;
-      border-radius:2px;
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      gap:8px;
-      transition:all 0.15s ease-out;
-      box-shadow:0 2px 8px rgba(0,0,0,0.5);
-    }
-    .analog-btn:hover,.analog-btn:focus-visible{
-      background:rgba(134, 207, 160, 0.18);
-      border-color:var(--water);
-      color:var(--water);
-      text-shadow:0 0 8px rgba(134,207,160,0.5);
-      box-shadow:0 0 14px rgba(134,207,160,0.25);
-      outline:none;
-    }
-    .analog-btn.primary{
-      border-color:var(--water);
-      color:var(--water);
-      font-weight:600;
-    }
-    .analog-btn.primary:hover{
-      background:rgba(134, 207, 160, 0.28);
-    }
-    .analog-btn.danger{
-      border-color:rgba(179,38,30,0.7);
-      color:#ff8a80;
-    }
-    .analog-btn.danger:hover{
-      background:rgba(179,38,30,0.25);
-      border-color:var(--danger);
-      color:#ffffff;
-      box-shadow:0 0 14px rgba(179,38,30,0.4);
-    }
-    .analog-btn:disabled{
-      opacity:0.4;
-      cursor:not-allowed;
-      border-color:rgba(217,211,162,0.2);
-    }
-
-    /* Debug Overlay */
-    #debug-overlay{
-      position:fixed;top:10px;right:10px;z-index:800;
-      background:rgba(13,11,6,0.85);border:1px solid rgba(134,207,160,0.3);
-      padding:8px 12px;font-family:monospace;font-size:11px;
-      color:var(--fog);pointer-events:none;line-height:1.4;
-      display:none;
-    }
-
-    /* High-contrast Mode */
-    html.high-contrast{
-      --ink:#000000!important;
-      --fog:#ffffff!important;
-      --water:#00ff88!important;
-      --danger:#ff0000!important;
-    }
-    html.high-contrast .analog-btn{
-      border-width:2px;
-    }
-
-    /* Skip link */
-    .bs-skip-link{
-      position:absolute;top:-100px;left:16px;z-index:10000;
-      padding:10px 16px;background:var(--ink);color:var(--water);
-      border:2px solid var(--water);font-family:monospace;font-weight:700;
-      border-radius:2px;transition:top 0.15s ease-out;
-    }
-    .bs-skip-link:focus-visible{
-      top:16px;outline:2px solid var(--water);
-    }
-
-    /* Screen reader utility */
-    .sr-only{
-      position:absolute;width:1px;height:1px;padding:0;margin:-1px;
-      overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;
-    }
-
-    /* Prefers-contrast & forced-colors */
-    @media (prefers-contrast: more){
-      :root{--ink:#000000!important;--fog:#ffffff!important;--water:#00ff88!important;--danger:#ff0000!important}
-    }
-    @media (forced-colors: active){
-      :root{--ink:Canvas!important;--fog:CanvasText!important;--water:Highlight!important;--danger:Highlight!important}
-      .analog-btn,.bs-btn{border:2px solid ButtonBorder!important}
-    }
-    @media (prefers-reduced-transparency: reduce){
-      #app,.bs-card,.bs-modal,.analog-btn{background-color:var(--ink)!important;backdrop-filter:none!important}
-    }
-
-    /* Accessibility: focus-visible */
+    .bs-screen { pointer-events: auto; }
+    .bs-hud { pointer-events: none; }
+    .flicker-title{animation:title-flicker 5s infinite}
+    @keyframes title-flicker{0%,19.99%,22%,62.99%,64%,64.99%,70%,100%{opacity:1;text-shadow:0 0 25px rgba(134,207,160,.35)}20%,21.99%{opacity:.75;text-shadow:0 0 10px rgba(134,207,160,.15)}63%,63.99%{opacity:.5;text-shadow:none}65%,69.99%{opacity:.9;text-shadow:0 0 30px rgba(134,207,160,.5)}}
+    .analog-btn{background:rgba(13,11,6,.85);border:1px solid rgba(134,207,160,.4);color:var(--fog);font-family:monospace;font-size:.9rem;padding:11px 18px;min-height:44px;cursor:pointer;letter-spacing:.12em;text-transform:uppercase;border-radius:2px;display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:all .15s ease-out;box-shadow:0 2px 8px rgba(0,0,0,.5)}
+    .analog-btn:hover,.analog-btn:focus-visible{background:rgba(134,207,160,.18);border-color:var(--water);color:var(--water);text-shadow:0 0 8px rgba(134,207,160,.5);box-shadow:0 0 14px rgba(134,207,160,.25);outline:none}
+    .analog-btn.primary{border-color:var(--water);color:var(--water);font-weight:600}
+    .analog-btn.primary:hover{background:rgba(134,207,160,.28)}
+    .analog-btn.danger{border-color:rgba(179,38,30,.7);color:#ff8a80}
+    .analog-btn.danger:hover{background:rgba(179,38,30,.25);border-color:var(--danger);color:#fff;box-shadow:0 0 14px rgba(179,38,30,.4)}
+    .analog-btn:disabled{opacity:.4;cursor:not-allowed;border-color:rgba(217,211,162,.2)}
+    #debug-overlay{position:fixed;top:10px;right:10px;z-index:800;background:rgba(13,11,6,.85);border:1px solid rgba(134,207,160,.3);padding:8px 12px;font-family:monospace;font-size:11px;color:var(--fog);pointer-events:none;line-height:1.4;display:none}
+    html.high-contrast{--ink:#000!important;--fog:#fff!important;--water:#00ff88!important;--danger:#ff0000!important}
+    html.high-contrast .analog-btn{border-width:2px}
+    .bs-skip-link{position:absolute;top:-100px;left:16px;z-index:10000;padding:10px 16px;background:var(--ink);color:var(--water);border:2px solid var(--water);font-family:monospace;font-weight:700;border-radius:2px;transition:top .15s ease-out}
+    .bs-skip-link:focus-visible{top:16px;outline:2px solid var(--water)}
+    .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+    @media (prefers-contrast: more){:root{--ink:#000!important;--fog:#fff!important;--water:#00ff88!important;--danger:#ff0000!important}}
+    @media (forced-colors: active){:root{--ink:Canvas!important;--fog:CanvasText!important;--water:Highlight!important;--danger:Highlight!important}.analog-btn,.bs-btn{border:2px solid ButtonBorder!important}}
+    @media (prefers-reduced-transparency: reduce){#app,.bs-card,.bs-modal,.analog-btn{background-color:var(--ink)!important;backdrop-filter:none!important}}
     :focus-visible{outline:2px solid var(--water);outline-offset:2px}
     a,button{color:inherit;text-decoration:none}
   </style>
 </head>
-<body>
+<body data-ui-state="MAIN_MENU">
   <a href="#btn-play-solo" class="bs-skip-link" id="skip-to-play">Skip to Descend (Play)</a>
   <div id="canvas-container" role="img" aria-label="Decorative hero scene"></div>
   <div id="debug-overlay"></div>

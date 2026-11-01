@@ -46,6 +46,13 @@ import { ChangelogScreen } from './screens/ChangelogScreen.js';
 import { UiLabPage } from './kit/UiLabPage.js';
 import { UiLayerManager } from './UiLayerManager.js';
 
+export type UIState =
+  | 'MAIN_MENU'
+  | 'PLAY_HUB'
+  | 'MODAL_SUBPAGE'
+  | 'ACTIVE_GAMEPLAY'
+  | 'PAUSED';
+
 export type UIView =
   | 'MENU'
   | 'PLAY_HUB'
@@ -86,6 +93,29 @@ export class UIManager {
 
   private currentView: UIView = 'MENU';
   private viewStack: UIView[] = ['MENU'];
+  private uiState: UIState = 'MAIN_MENU';
+
+  getUIState(): UIState {
+    return this.uiState;
+  }
+
+  setUIState(newState: UIState): void {
+    this.uiState = newState;
+    if (typeof document !== 'undefined' && document.body) {
+      if (document.body.dataset) {
+        document.body.dataset.uiState = newState;
+      } else {
+        (document.body as unknown as Record<string, Record<string, string>>).dataset = { uiState: newState };
+      }
+      if (typeof document.body.setAttribute === 'function') {
+        document.body.setAttribute('data-ui-state', newState);
+      }
+    }
+
+    if (newState !== 'ACTIVE_GAMEPLAY') {
+      safeExitPointerLock();
+    }
+  }
 
   // Subcomponents
   private audioUnlock: AudioUnlock | null = null;
@@ -134,6 +164,7 @@ export class UIManager {
 
     // 1. Initialize Archive Screens
     const handleSelectMode = (modeId: string) => {
+      this.setUIState('ACTIVE_GAMEPLAY');
       this.isAudioUnlocked = true;
       const engine = AudioEngine.getInstance();
       void engine.init().then(() => engine.startAmbience());
@@ -210,6 +241,7 @@ export class UIManager {
 
     this.homeScreen = new HomeScreen({
       onDescend: () => {
+        this.setUIState('ACTIVE_GAMEPLAY');
         // Direct user gesture unlocks AudioContext immediately
         this.isAudioUnlocked = true;
         const engine = AudioEngine.getInstance();
@@ -343,6 +375,7 @@ export class UIManager {
       {
         onBack: () => this.goBack(),
         onLaunchGame: (session, mapId, difficulty, seed) => {
+          this.setUIState('ACTIVE_GAMEPLAY');
           this.navigateTo('GAME');
           this.hud.show();
           this.bus.emit('game:start:net' as unknown as 'game:start', {
@@ -435,6 +468,7 @@ export class UIManager {
     this.bindGlobalKeyboard();
     this.applySettings(initialSettings);
     this.initDeepLinkRoute();
+    this.setUIState(this.currentView === 'GAME' ? 'ACTIVE_GAMEPLAY' : this.currentView === 'PLAY_HUB' ? 'PLAY_HUB' : this.currentView === 'MENU' ? 'MAIN_MENU' : 'MODAL_SUBPAGE');
   }
 
   private mountAll(): void {
@@ -612,6 +646,10 @@ export class UIManager {
     this.viewStack.push(view);
     this.currentView = view;
 
+    this.setUIState(
+      view === 'GAME' ? 'ACTIVE_GAMEPLAY' : view === 'PLAY_HUB' ? 'PLAY_HUB' : view === 'PAUSE' ? 'PAUSED' : view === 'MENU' ? 'MAIN_MENU' : 'MODAL_SUBPAGE',
+    );
+
     if (view !== 'GAME') {
       safeExitPointerLock();
       if (typeof document !== 'undefined') {
@@ -695,6 +733,7 @@ export class UIManager {
       if (this.currentView === 'MENU') {
         this.stateMachine.goTo('MENU');
         setMenuRoute();
+        this.setUIState('MAIN_MENU');
       } else {
         this.navigateTo(this.currentView, true);
         return;
@@ -705,6 +744,7 @@ export class UIManager {
       this.viewStack = ['MENU'];
       this.stateMachine.goTo('MENU');
       setMenuRoute();
+      this.setUIState('MAIN_MENU');
       this.updateViewVisibility();
     }
 
@@ -921,6 +961,7 @@ export class UIManager {
   }
 
   private startGame(config: { mode: 'single' | 'multi'; mapId: MapId; difficulty: number; seed: number; room?: string; subMode?: string | undefined }): void {
+    this.setUIState('ACTIVE_GAMEPLAY');
     this.lastConfig = config;
     try {
       localStorage.setItem('backsilence_last_tape', config.mapId);
@@ -1008,6 +1049,7 @@ export class UIManager {
     if (this.currentView === 'GAME') {
       this.currentView = 'PAUSE';
       this.viewStack.push('PAUSE');
+      this.setUIState('PAUSED');
       this.updateViewVisibility();
       this.stateMachine.goTo('PAUSED');
     }
@@ -1016,12 +1058,14 @@ export class UIManager {
   resumeGame(): void {
     this.currentView = 'GAME';
     this.viewStack = ['GAME'];
+    this.setUIState('ACTIVE_GAMEPLAY');
     this.updateViewVisibility();
     this.stateMachine.goTo('PLAYING');
   }
 
   quitToMenu(): void {
     safeExitPointerLock();
+    this.setUIState('MAIN_MENU');
     if (typeof document !== 'undefined') {
       if (document.pointerLockElement && typeof document.exitPointerLock === 'function') {
         try {

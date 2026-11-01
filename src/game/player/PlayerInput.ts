@@ -79,11 +79,11 @@ export class PlayerInput {
       this.touchControls.mount(canvas.parentElement || document.body);
     }
 
-    // Synchronous user click / pointerdown on game canvas immediately requests pointer lock
+    // Synchronous user click / pointerdown on game canvas requests pointer lock if in active gameplay
     const onCanvasActivate = (e: MouseEvent | PointerEvent) => {
       if (this.freezeInput) return;
       if (e.button === 0 && !this.isLocked) {
-        this.requestPointerLock();
+        this.tryLockPointer(e as MouseEvent);
       }
     };
     canvas.addEventListener('pointerdown', onCanvasActivate);
@@ -163,8 +163,8 @@ export class PlayerInput {
         this.throwHoldTime = 0;
       } else if (e.button === 0) {
         if (!this.isLocked && this.canvas) {
-          // Left click anywhere in active window locks mouse
-          this.requestPointerLock();
+          // Guarded left click: only lock when in active gameplay and not clicking interactive UI
+          this.tryLockPointer(e);
         } else if (this.isLocked && !this.isSpectating) {
           this.callbacks.onLeftClickInGame?.();
         }
@@ -236,7 +236,25 @@ export class PlayerInput {
     });
   }
 
+  tryLockPointer(event?: MouseEvent): void {
+    if (typeof document !== 'undefined') {
+      if (document.body?.dataset?.uiState && document.body.dataset.uiState !== 'ACTIVE_GAMEPLAY') return;
+      if (
+        event &&
+        (event.target as HTMLElement)?.closest?.(
+          'button, a, input, select, .modal, .subpage-modal, #top-navbar, #main-menu-card, .bs-contrast-panel, .bs-btn',
+        )
+      ) {
+        return;
+      }
+    }
+    this.requestPointerLock();
+  }
+
   requestPointerLock(): void {
+    if (typeof document !== 'undefined') {
+      if (document.body?.dataset?.uiState && document.body.dataset.uiState !== 'ACTIVE_GAMEPLAY') return;
+    }
     if (this.freezeInput || !this.canvas) return;
     const wantUnadjusted = this.settings.controls.unadjustedMovement !== false;
     const cooldown = getPointerLockCooldownRemaining();

@@ -110,8 +110,9 @@ export class PlayHubScreen {
 
   constructor(private callbacks: PlayHubCallbacks) {
     this.element = document.createElement('div');
-    this.element.id = 'screen-playhub';
-    this.element.className = 'bs-root bs-screen';
+    this.element.id = 'play-hub-modal';
+    this.element.className = 'bs-root bs-screen subpage-modal';
+    this.element.setAttribute('data-screen', 'playhub');
     this.element.style.cssText = `
       position: absolute;
       inset: 0;

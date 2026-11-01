@@ -61,7 +61,7 @@ export class HomeScreen {
       <section style="min-height: 100vh; width: 100%; display: flex; flex-direction: column; justify-content: space-between; align-items: center; padding: clamp(20px, 4vw, 48px) 24px; box-sizing: border-box; position: relative;">
         
         <!-- Top Nav Bar with High-Contrast Backdrop -->
-        <nav class="bs-contrast-panel" style="width: min(1200px, 95vw); display: flex; justify-content: space-between; align-items: center; pointer-events: auto; flex-wrap: wrap; gap: 8px; padding: 10px 18px; border-radius: 6px;">
+        <nav id="top-navbar" class="bs-contrast-panel top-bar" style="width: min(1200px, 95vw); display: flex; justify-content: space-between; align-items: center; pointer-events: auto; flex-wrap: wrap; gap: 8px; padding: 10px 18px; border-radius: 6px;">
           <div class="bs-high-contrast-text" style="font-family: var(--bs-font-mono); font-size: var(--bs-text-xs); letter-spacing: 0.12em; display: flex; align-items: center; gap: 8px;">
             ${renderIcon('tape', 16)} <span>01. NATATORIUM // MENU</span>
           </div>
@@ -79,7 +79,7 @@ export class HomeScreen {
         </nav>
 
         <!-- Center Hero Wordmark & High-Contrast Backdrop -->
-        <div class="bs-contrast-panel" style="text-align: center; max-width: 840px; width: min(840px, 94vw); display: flex; flex-direction: column; align-items: center; pointer-events: auto; margin: auto 0; padding: clamp(24px, 5vw, 40px) clamp(20px, 5vw, 44px); border-radius: 8px;">
+        <div id="main-menu-card" class="bs-contrast-panel hero-panel" style="text-align: center; max-width: 840px; width: min(840px, 94vw); display: flex; flex-direction: column; align-items: center; pointer-events: auto; margin: auto 0; padding: clamp(24px, 5vw, 40px) clamp(20px, 5vw, 44px); border-radius: 8px;">
           <svg id="hero-logo-svg" viewBox="0 0 460 70" width="460" height="70" style="width: min(520px, 85vw); height: auto; display: block; overflow: visible; filter: drop-shadow(0 0 20px rgba(0,0,0,0.95)) drop-shadow(0 0 16px rgba(134,207,160,0.4));">
             <!-- Coded stroke-font wordmark for BACKSILENCE -->
             <text x="50%" y="54" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="52" fill="#F4F6F0" stroke="#000000" stroke-width="3" letter-spacing="8">
@@ -115,14 +115,14 @@ export class HomeScreen {
         </div>
 
         <!-- Scroll Cue with High Contrast -->
-        <a href="#archive-dossier" class="bs-contrast-panel" style="text-decoration: none; padding: 6px 14px; border-radius: 16px; font-family: var(--bs-font-mono); font-size: 11px; font-weight: 700; color: #F4F6F0; display: flex; align-items: center; gap: 6px; -webkit-text-stroke: 1px rgba(0,0,0,0.8); text-shadow: 0 1px 3px #000;">
+        <a id="bottom-dossier-bar" href="#archive-dossier" class="bs-contrast-panel dossier-strip" style="text-decoration: none; padding: 6px 14px; border-radius: 16px; font-family: var(--bs-font-mono); font-size: 11px; font-weight: 700; color: #F4F6F0; display: flex; align-items: center; gap: 6px; -webkit-text-stroke: 1px rgba(0,0,0,0.8); text-shadow: 0 1px 3px #000;">
           <span>SCROLL FOR ARCHIVE DOSSIER</span>
           <span style="font-size: 14px;">↓</span>
         </a>
       </section>
 
       <!-- Below the Fold Strip -->
-      <section id="archive-dossier" style="width: min(1200px, 92vw); padding: 48px 0 80px 0; display: flex; flex-direction: column; gap: 48px;">
+      <section id="archive-dossier" class="dossier-strip" style="width: min(1200px, 92vw); padding: 48px 0 80px 0; display: flex; flex-direction: column; gap: 48px;">
         
         <!-- 8 Classified Modes Dossier Grid -->
         <div class="bs-contrast-panel" style="padding: 28px; border-radius: 8px;">
@@ -142,26 +142,26 @@ export class HomeScreen {
 
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px;">
             ${GAME_MODES.map((mode) => `
-              <div class="bs-card" style="background: rgba(13, 11, 6, 0.92); border: 1px solid rgba(255, 255, 255, 0.22); border-radius: 6px; padding: 18px; display: flex; flex-direction: column; justify-content: space-between; gap: 14px; transition: transform 0.15s, border-color 0.15s;">
+              <div class="bs-card" style="background:rgba(13,11,6,.92);border:1px solid rgba(255,255,255,.22);border-radius:6px;padding:18px;display:flex;flex-direction:column;justify-content:space-between;gap:14px;">
                 <div>
-                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                    <span style="color: #86cfa0;">${renderIcon(mode.icon, 22)}</span>
-                    <span style="font-family: var(--bs-font-mono); font-size: 10px; padding: 2px 6px; background: rgba(134,207,160,0.15); border: 1px solid rgba(134,207,160,0.3); border-radius: 2px; color: #86cfa0; font-weight: 600;">
+                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                    <span style="color:#86cfa0;">${renderIcon(mode.icon, 22)}</span>
+                    <span style="font-family:var(--bs-font-mono);font-size:10px;padding:2px 6px;background:rgba(134,207,160,.15);border:1px solid rgba(134,207,160,.3);border-radius:2px;color:#86cfa0;font-weight:600;">
                       ${mode.players}
                     </span>
                   </div>
-                  <h3 class="bs-high-contrast-text" style="font-family: var(--bs-font-mono); font-size: 1rem; font-weight: 700; color: #F4F6F0; margin: 0 0 6px 0;">
+                  <h3 class="bs-high-contrast-text" style="font-family:var(--bs-font-mono);font-size:1rem;font-weight:700;color:#F4F6F0;margin:0 0 6px 0;">
                     ${mode.title}
                   </h3>
-                  <p style="font-size: var(--bs-text-xs); color: #d9d3a2; opacity: 0.88; line-height: 1.5; margin: 0;">
+                  <p style="font-size:var(--bs-text-xs);color:#d9d3a2;opacity:.88;line-height:1.5;margin:0;">
                     ${mode.subtitle}
                   </p>
                 </div>
-                <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px;">
-                  <span style="font-family: var(--bs-font-mono); font-size: 11px; color: #d8b36a; font-weight: 600;">
+                <div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid rgba(255,255,255,.1);padding-top:10px;">
+                  <span style="font-family:var(--bs-font-mono);font-size:11px;color:#d8b36a;font-weight:600;">
                     ${mode.duration}
                   </span>
-                  <button class="bs-btn bs-btn-primary btn-launch-mode" data-mode="${mode.id}" style="padding: 6px 14px; font-size: 11px; font-weight: 700;">
+                  <button class="bs-btn bs-btn-primary btn-launch-mode" data-mode="${mode.id}" style="padding:6px 14px;font-size:11px;font-weight:700;">
                     LAUNCH ▶
                   </button>
                 </div>
@@ -191,29 +191,17 @@ export class HomeScreen {
           <h2 class="bs-high-contrast-text" style="font-family: var(--bs-font-mono); font-size: var(--bs-text-xl); font-weight: 800; color: #F4F6F0; margin: 0 0 24px 0;">HOW TO SURVIVE IN THREE BEATS</h2>
           
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
-            <div style="background: rgba(13, 11, 6, 0.85); border: 1px solid rgba(255, 255, 255, 0.2); padding: 24px; border-radius: var(--bs-radius-sm);">
-              <div style="color: var(--bs-tan); margin-bottom: 12px;">${renderIcon('drop', 28)}</div>
-              <h3 class="bs-high-contrast-text" style="font-family: var(--bs-font-mono); font-size: var(--bs-text-md); color: #F4F6F0; margin: 0 0 8px 0;">1. STAY DRY</h3>
-              <p style="font-size: var(--bs-text-sm); opacity: 0.88; line-height: 1.6; margin: 0; color: #d9d3a2;">
-                The entity cannot reach platforms or perches. Step onto tiles to stay completely safe. Water is where danger lives.
-              </p>
-            </div>
-
-            <div style="background: rgba(13, 11, 6, 0.85); border: 1px solid rgba(255, 255, 255, 0.2); padding: 24px; border-radius: var(--bs-radius-sm);">
-              <div style="color: var(--bs-danger); margin-bottom: 12px;">${renderIcon('wave', 28)}</div>
-              <h3 class="bs-high-contrast-text" style="font-family: var(--bs-font-mono); font-size: var(--bs-text-md); color: #F4F6F0; margin: 0 0 8px 0;">2. WATER IS LOUD</h3>
-              <p style="font-size: var(--bs-text-sm); opacity: 0.88; line-height: 1.6; margin: 0; color: #d9d3a2;">
-                Every step in water radiates acoustic ripple waves. Running echoes across entire halls. Move slowly or crouch to stay silent.
-              </p>
-            </div>
-
-            <div style="background: rgba(13, 11, 6, 0.85); border: 1px solid rgba(255, 255, 255, 0.2); padding: 24px; border-radius: var(--bs-radius-sm);">
-              <div style="color: var(--bs-water); margin-bottom: 12px;">${renderIcon('ear', 28)}</div>
-              <h3 class="bs-high-contrast-text" style="font-family: var(--bs-font-mono); font-size: var(--bs-text-md); color: #F4F6F0; margin: 0 0 8px 0;">3. LISTEN</h3>
-              <p style="font-size: var(--bs-text-sm); opacity: 0.88; line-height: 1.6; margin: 0; color: #d9d3a2;">
-                Wear headphones. Procedural HRTF audio lets you hear heavy splashing, breathing, and distance through reverberating concrete.
-              </p>
-            </div>
+            ${[
+              { icon: 'drop' as const, color: 'var(--bs-tan)', title: '1. STAY DRY', desc: 'The entity cannot reach platforms or perches. Step onto tiles to stay completely safe. Water is where danger lives.' },
+              { icon: 'wave' as const, color: 'var(--bs-danger)', title: '2. WATER IS LOUD', desc: 'Every step in water radiates acoustic ripple waves. Running echoes across entire halls. Move slowly or crouch to stay silent.' },
+              { icon: 'ear' as const, color: 'var(--bs-water)', title: '3. LISTEN', desc: 'Wear headphones. Procedural HRTF audio lets you hear heavy splashing, breathing, and distance through reverberating concrete.' },
+            ].map((b) => `
+              <div style="background: rgba(13, 11, 6, 0.85); border: 1px solid rgba(255, 255, 255, 0.2); padding: 24px; border-radius: var(--bs-radius-sm);">
+                <div style="color: ${b.color}; margin-bottom: 12px;">${renderIcon(b.icon, 28)}</div>
+                <h3 class="bs-high-contrast-text" style="font-family: var(--bs-font-mono); font-size: var(--bs-text-md); color: #F4F6F0; margin: 0 0 8px 0;">${b.title}</h3>
+                <p style="font-size: var(--bs-text-sm); opacity: 0.88; line-height: 1.6; margin: 0; color: #d9d3a2;">${b.desc}</p>
+              </div>
+            `).join('')}
           </div>
         </div>
 
@@ -338,23 +326,29 @@ export class HomeScreen {
           qualityBtn.textContent = `QUALITY: ${qm.getEffectiveTier().toUpperCase()}`;
         };
         updateText();
-        qualityBtn.addEventListener('click', () => {
+        qualityBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
           qm.cycleTier();
           updateText();
         });
       }).catch(() => { });
     }
 
-    this.element.querySelector('#nav-btn-play')?.addEventListener('click', () => this.callbacks.onOpenPlayHub());
-    this.element.querySelector('#btn-open-play-hub-bottom')?.addEventListener('click', () => this.callbacks.onOpenPlayHub());
-    this.element.querySelector('#nav-btn-leaderboards')?.addEventListener('click', () => this.callbacks.onOpenLeaderboards());
-    this.element.querySelector('#nav-btn-bestiary')?.addEventListener('click', () => this.callbacks.onOpenBestiary());
-    this.element.querySelector('#nav-btn-champions')?.addEventListener('click', () => this.callbacks.onOpenChampions());
-    this.element.querySelector('#nav-btn-profile')?.addEventListener('click', () => this.callbacks.onOpenProfile());
-    this.element.querySelector('#nav-btn-settings')?.addEventListener('click', () => this.callbacks.onOpenSettings());
-
-    this.element.querySelector('#btn-daily-action')?.addEventListener('click', () => this.callbacks.onDailyDescent());
-    this.element.querySelector('#btn-race-ghost')?.addEventListener('click', () => this.callbacks.onOpenChampions());
+    const wire = (id: string, cb: () => void) => {
+      this.element.querySelector(id)?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        cb();
+      });
+    };
+    wire('#nav-btn-play', () => this.callbacks.onOpenPlayHub());
+    wire('#btn-open-play-hub-bottom', () => this.callbacks.onOpenPlayHub());
+    wire('#nav-btn-leaderboards', () => this.callbacks.onOpenLeaderboards());
+    wire('#nav-btn-bestiary', () => this.callbacks.onOpenBestiary());
+    wire('#nav-btn-champions', () => this.callbacks.onOpenChampions());
+    wire('#nav-btn-profile', () => this.callbacks.onOpenProfile());
+    wire('#nav-btn-settings', () => this.callbacks.onOpenSettings());
+    wire('#btn-daily-action', () => this.callbacks.onDailyDescent());
+    wire('#btn-race-ghost', () => this.callbacks.onOpenChampions());
 
     // Wire instant Launch buttons in the 8-mode Dossier grid
     this.element.querySelectorAll<HTMLButtonElement>('.btn-launch-mode').forEach((btn) => {

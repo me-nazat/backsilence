@@ -190,6 +190,24 @@ export class Hud {
   private pebbleCountEl: HTMLElement | null = null;
   private slot1El: HTMLElement | null = null;
   private checkpointTimeout: ReturnType<typeof setTimeout> | null = null;
+  private sectorToastEl: HTMLElement | null = null;
+  private sectorToastTimeout: ReturnType<typeof setTimeout> | null = null;
+  private lastSectorTitle = '';
+
+  showSectorToast(title: string, durationMs = 2000): void {
+    if (!this.sectorToastEl) return;
+    this.sectorToastEl.textContent = title;
+    this.sectorToastEl.style.opacity = '1';
+    if (this.sectorToastTimeout !== null) {
+      clearTimeout(this.sectorToastTimeout);
+    }
+    this.sectorToastTimeout = setTimeout(() => {
+      if (this.sectorToastEl) {
+        this.sectorToastEl.style.opacity = '0';
+      }
+      this.sectorToastTimeout = null;
+    }, durationMs);
+  }
 
   getReticleElement(): HTMLElement | null {
     return this.reticleEl;
@@ -646,6 +664,9 @@ export class Hud {
         z-index: 110;
       ">Progress saved</div>
 
+      <!-- Sleek Sector Title Center Toast (2.0s Fade) -->
+      <div id="hud-sector-toast" style="position: absolute; top: 38%; left: 50%; transform: translate(-50%, -50%); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 22px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #ffffff; text-shadow: 0 2px 14px rgba(0,0,0,0.95), 0 0 20px rgba(134,207,160,0.3); opacity: 0; pointer-events: none; transition: opacity 0.4s ease-out; z-index: 120; text-align: center; white-space: nowrap;"></div>
+
       <!-- Bottom-Center Hotbar & Control Hint (Prompt 4B Section 1) -->
       <div id="hud-throwable-hotbar" style="
         position: absolute;
@@ -939,7 +960,7 @@ export class Hud {
       </div>
 
       <!-- Top-Left Objective Line with Risk Tag & Telemetry Checklist -->
-      <div id="hud-objective-container" style="
+      <div id="hud-objective-container" class="sector-briefing-box" style="
         position: absolute;
         top: max(20px, env(safe-area-inset-top, 20px));
         left: max(20px, env(safe-area-inset-left, 20px));
@@ -1434,6 +1455,7 @@ export class Hud {
     this.throwableHotbarEl = el.querySelector('#hud-throwable-hotbar');
     this.pebbleCountEl = el.querySelector('#hud-pebble-count');
     this.slot1El = el.querySelector('#hud-slot-1');
+    this.sectorToastEl = el.querySelector('#hud-sector-toast');
 
     el.querySelector('#btn-spectate-prev')?.addEventListener('click', () => {
       this.onSpectatorCyclePrevCallback?.();
@@ -1600,8 +1622,14 @@ export class Hud {
       }
     }
 
-    if (this.sectorTitleEl && data.sectorTitle) {
-      this.sectorTitleEl.textContent = data.sectorTitle;
+    if (data.sectorTitle) {
+      if (this.sectorTitleEl) {
+        this.sectorTitleEl.textContent = data.sectorTitle;
+      }
+      if (data.sectorTitle !== this.lastSectorTitle) {
+        this.lastSectorTitle = data.sectorTitle;
+        this.showSectorToast(data.sectorTitle);
+      }
     }
 
     if (this.checklistEl) {

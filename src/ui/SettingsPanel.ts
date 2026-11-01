@@ -43,7 +43,7 @@ export class SettingsPanel {
   mount(container: HTMLElement): void {
     const el = document.createElement('div');
     el.id = 'settings-panel-view';
-    el.className = 'bs-screen modal';
+    el.className = 'bs-screen modal subpage-modal';
     el.setAttribute('aria-hidden', 'true');
     el.style.cssText = `
       position: absolute;
