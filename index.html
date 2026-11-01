@@ -20,6 +20,7 @@
     body[data-ui-state="ACTIVE_GAMEPLAY"] :is(#main-menu-card,.hero-panel,#top-navbar,.top-bar,#bottom-dossier-bar,.dossier-strip,#play-hub-modal,.subpage-modal,#objective-panel,#hud-objective-container,.sector-briefing-box,#hud-ping-hint,#hud-noise-minimal,#hud-bottom-center,#hud-pointer-lock-hint){display:none!important;opacity:0!important;pointer-events:none!important;visibility:hidden!important}
     :is(body[data-ui-state="PLAY_HUB"],body[data-ui-state="MODAL_SUBPAGE"]) :is(#main-menu-card,.hero-panel,#bottom-dossier-bar,.dossier-strip){display:none!important;opacity:0!important;pointer-events:none!important;visibility:hidden!important}
     body[data-ui-state="MAIN_MENU"] :is(#main-menu-card,.hero-panel,#top-navbar,.top-bar){pointer-events:auto!important}
+    #main-menu-card,.hero-card{background:rgba(8, 14, 11, 0.26)!important;backdrop-filter:blur(2.5px) saturate(1.15)!important}
     #splash{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;background:var(--ink);transition:opacity .6s ease-out;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
     #splash.fade-out{opacity:0;pointer-events:none}
     .splash-title{font-family:ui-serif,Georgia,'Times New Roman',serif;font-size:clamp(1.6rem,5vw,3rem);letter-spacing:.08em;color:var(--fog);text-align:center;margin-bottom:.5em;text-shadow:0 0 20px rgba(134,207,160,.3)}

@@ -344,12 +344,17 @@ export class AnimationLabPanel {
     });
   }
 
+  getMonsterSkin(): MonsterSkin | null {
+    return this.monsterSkin;
+  }
+
   setMode(mode: string): void {
     this.monsterSkin?.setMode(mode);
   }
 
   update(dt: number, simTime: number): void {
     if (!this.monsterSkin) return;
+    if (this.isMenuMode) return;
 
     const actualDt = this.isPaused ? 0 : dt;
     const currentSimTime = this.isPaused ? this.manualAnimTime : simTime;

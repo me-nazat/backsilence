@@ -79,19 +79,19 @@ export class HomeScreen {
         </nav>
 
         <!-- Center Hero Wordmark & High-Contrast Backdrop -->
-        <div id="main-menu-card" class="bs-contrast-panel hero-panel" style="text-align: center; max-width: 840px; width: min(840px, 94vw); display: flex; flex-direction: column; align-items: center; pointer-events: auto; margin: auto 0; padding: clamp(24px, 5vw, 40px) clamp(20px, 5vw, 44px); border-radius: 8px;">
-          <svg id="hero-logo-svg" viewBox="0 0 460 70" width="460" height="70" style="width: min(520px, 85vw); height: auto; display: block; overflow: visible; filter: drop-shadow(0 0 20px rgba(0,0,0,0.95)) drop-shadow(0 0 16px rgba(134,207,160,0.4));">
+        <div id="main-menu-card" class="bs-contrast-panel hero-panel hero-card" style="text-align: center; max-width: 840px; width: min(840px, 94vw); display: flex; flex-direction: column; align-items: center; pointer-events: auto; margin: auto 0; padding: 36px 44px; border-radius: 10px;">
+          <svg id="hero-logo-svg" class="hero-title" viewBox="0 0 460 70" width="460" height="70" style="width: min(520px, 85vw); height: auto; display: block; overflow: visible; filter: drop-shadow(0 0 20px rgba(0,0,0,0.95)) drop-shadow(0 0 16px rgba(134,207,160,0.4));">
             <!-- Coded stroke-font wordmark for BACKSILENCE -->
-            <text x="50%" y="54" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="52" fill="#F4F6F0" stroke="#000000" stroke-width="3" letter-spacing="8">
+            <text x="50%" y="54" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="52" fill="#f4f7f0" stroke="#000000" stroke-width="3" letter-spacing="8">
               BACKSILENCE
             </text>
           </svg>
 
-          <p class="bs-menu-breathing bs-high-contrast-text" style="font-family: var(--bs-font-mono); font-size: clamp(0.85rem, 2.2vw, 1.2rem); font-weight: 800; color: #86cfa0; letter-spacing: 0.20em; margin-top: 14px; text-transform: uppercase;">
+          <p class="hero-tagline bs-menu-breathing bs-high-contrast-text" style="font-family: var(--bs-font-mono); font-size: 1.05rem; font-weight: 700; color: #e8f5ec; letter-spacing: 0.20em; margin-top: 14px; text-transform: uppercase;">
             IT CAN'T SEE YOU. IT HEARS THE WATER.
           </p>
 
-          <div class="bs-high-contrast-text" style="font-size: var(--bs-text-xs); color: #e9dca8; opacity: 0.95; margin-top: 8px; font-family: var(--bs-font-mono); letter-spacing: 0.05em;">
+          <div class="hero-description bs-high-contrast-text" style="font-size: 0.92rem; color: #cfe3d6; font-weight: 500; opacity: 0.95; margin-top: 8px; font-family: var(--bs-font-mono); letter-spacing: 0.05em;">
             Found-footage acoustic survival in drowned municipal architecture.
           </div>
 
@@ -266,6 +266,7 @@ export class HomeScreen {
       onClick: () => this.callbacks.onDescend(),
     });
     descendBtn.element.id = 'btn-play-solo';
+    descendBtn.element.classList.add('hero-btn');
     descendBtn.element.style.minHeight = '50px';
     descendBtn.element.style.width = '100%';
     descendBtn.element.style.fontSize = '0.98rem';
@@ -281,13 +282,12 @@ export class HomeScreen {
       onClick: () => this.callbacks.onOpenPlayHub(),
     });
     playHubBtn.element.id = 'btn-hero-playhub';
+    playHubBtn.element.classList.add('hero-btn');
     playHubBtn.element.style.minHeight = '50px';
     playHubBtn.element.style.width = '100%';
     playHubBtn.element.style.fontSize = '0.98rem';
     playHubBtn.element.style.fontWeight = '800';
     playHubBtn.element.style.letterSpacing = '0.12em';
-    playHubBtn.element.style.background = 'rgba(26, 45, 34, 0.85)';
-    playHubBtn.element.style.borderColor = 'var(--bs-water)';
     playHubBtn.element.style.boxShadow = '0 0 20px rgba(134,207,160,0.25)';
     this.motion.attachHoverRipple(playHubBtn.element);
     playhubWrap.appendChild(playHubBtn.element);
@@ -298,6 +298,7 @@ export class HomeScreen {
       onClick: () => this.callbacks.onDiveOnline(),
     });
     diveBtn.element.id = 'btn-play-online';
+    diveBtn.element.classList.add('hero-btn');
     diveBtn.element.style.width = '100%';
     diveBtn.element.style.minHeight = '42px';
     diveBtn.element.style.fontWeight = '700';
@@ -310,6 +311,7 @@ export class HomeScreen {
       onClick: () => this.callbacks.onDailyDescent(),
     });
     dailyBtn.element.id = 'btn-daily-descent';
+    dailyBtn.element.classList.add('hero-btn');
     dailyBtn.element.style.width = '100%';
     dailyBtn.element.style.minHeight = '42px';
     dailyBtn.element.style.fontWeight = '700';

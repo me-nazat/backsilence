@@ -135,6 +135,62 @@
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.75) !important;
 }
 
+#main-menu-card, .hero-card {
+  background: rgba(8, 14, 11, 0.26) !important;
+  backdrop-filter: blur(2.5px) saturate(1.15) !important;
+  -webkit-backdrop-filter: blur(2.5px) saturate(1.15) !important;
+  border: 1px solid rgba(165, 215, 185, 0.28) !important;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+  border-radius: 10px !important;
+  padding: 36px 44px !important;
+}
+
+.hero-title {
+  color: #f4f7f0 !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.22em !important;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.95), 0 0 24px rgba(120, 220, 165, 0.35) !important;
+}
+
+.hero-tagline {
+  color: #e8f5ec !important;
+  font-size: 1.05rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.20em !important;
+  opacity: 1 !important;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.95), 0 0 12px rgba(0, 0, 0, 0.85) !important;
+}
+
+.hero-description {
+  color: #cfe3d6 !important;
+  font-size: 0.92rem !important;
+  font-weight: 500 !important;
+  opacity: 0.95 !important;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.95) !important;
+}
+
+#main-menu-card .bs-btn, #main-menu-card .analog-btn, .hero-card .bs-btn, .hero-card .hero-btn {
+  background: rgba(12, 20, 16, 0.62) !important;
+  border: 1.5px solid rgba(210, 230, 195, 0.55) !important;
+  color: #ffffff !important;
+  backdrop-filter: blur(4px) !important;
+  -webkit-backdrop-filter: blur(4px) !important;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4) !important;
+  transition: all 0.2s ease-out !important;
+}
+
+#main-menu-card .bs-btn:hover:not(:disabled),
+#main-menu-card .bs-btn:focus-visible:not(:disabled),
+#main-menu-card .analog-btn:hover:not(:disabled),
+.hero-card .bs-btn:hover:not(:disabled),
+.hero-card .hero-btn:hover:not(:disabled) {
+  background: rgba(32, 64, 48, 0.78) !important;
+  border-color: #a8e6c3 !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 18px rgba(134, 207, 160, 0.45), 0 4px 20px rgba(0, 0, 0, 0.5) !important;
+}
+
 .bs-btn-danger {
   background: rgba(179, 38, 30, 0.2);
   border-color: rgba(179, 38, 30, 0.6);

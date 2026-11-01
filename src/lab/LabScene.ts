@@ -123,6 +123,13 @@ export class LabScene {
   private lastWakeTime = 0;
   private isDisposed = false;
 
+  // Dedicated menu attract prowl state
+  private menuProwlU = 0;
+  private menuProwlTimer = 0;
+  private menuProwlState: 'PATROL' | 'PAUSE' = 'PATROL';
+  private pauseTimer = 0;
+  private pauseRippleTimer = 0;
+
   constructor(
     container: HTMLElement,
     settings: Settings,
@@ -172,23 +179,23 @@ export class LabScene {
   }
 
   private setupAtmosphere(): void {
-    const fogHex = this.isMenuMode ? '#0a100d' : '#b3bb9f';
+    const fogHex = this.isMenuMode ? '#0a1410' : '#b3bb9f';
     const fogColor = new Color(fogHex);
     this.scene.background = fogColor;
-    this.scene.fog = new FogExp2(fogColor, this.isMenuMode ? 0.055 : 0.045);
+    this.scene.fog = new FogExp2(fogColor, this.isMenuMode ? 0.040 : 0.045);
 
     // Warm-cream or deep-analog hemisphere light with subtle bounce
     const skyColor = this.isMenuMode ? '#18241e' : '#b3bb9f';
     const gndColor = this.isMenuMode ? '#050a08' : '#7c9e5b';
-    const hemiIntensity = this.isMenuMode ? 0.65 : 0.95;
+    const hemiIntensity = this.isMenuMode ? 0.75 : 0.95;
     this.hemiLight = new HemisphereLight(skyColor, gndColor, hemiIntensity);
     this.scene.add(this.hemiLight);
 
     // Directional light casting soft PCF shadows
-    const dirColor = this.isMenuMode ? '#c8f0db' : '#fff8e7';
-    const dirIntensity = this.isMenuMode ? 0.85 : 1.25;
+    const dirColor = this.isMenuMode ? '#fff8e7' : '#fff8e7';
+    const dirIntensity = this.isMenuMode ? 1.25 : 1.25;
     this.dirLight = new DirectionalLight(dirColor, dirIntensity);
-    this.dirLight.position.set(8, 12, 6);
+    this.dirLight.position.set(this.isMenuMode ? 6 : 8, 12, this.isMenuMode ? 2 : 6);
     this.dirLight.castShadow = true;
     this.dirLight.shadow.mapSize.width = 1024;
     this.dirLight.shadow.mapSize.height = 1024;
@@ -201,6 +208,13 @@ export class LabScene {
     this.pointLight = new PointLight(this.isMenuMode ? '#4ade80' : '#b3bb9f', this.isMenuMode ? 0.4 : 0.6, 25);
     this.pointLight.position.set(0, 3.2, 0);
     this.scene.add(this.pointLight);
+
+    // Overhead poolroom skylight/point light illuminating creature & water channel in menu attract
+    if (this.isMenuMode) {
+      const menuSkylight = new PointLight(0xfff6dd, 1.6, 28);
+      menuSkylight.position.set(0, 4.2, -6.0);
+      this.scene.add(menuSkylight);
+    }
   }
 
   private setupSet(): void {
@@ -228,23 +242,25 @@ export class LabScene {
       metalness: 0.05,
     });
 
-    // 1. Platform Slabs (6 x 0.3 x 6 m) separated by 1.5m trench
-    const slabGeo = new BoxGeometry(6.0, 0.3, 6.0);
+    // 1. Platform Slabs separated by water channel
+    const slabGeo = this.isMenuMode
+      ? new BoxGeometry(5.5, 0.35, 32.0)
+      : new BoxGeometry(6.0, 0.3, 6.0);
 
     const slab1 = new Mesh(slabGeo, platMat);
-    slab1.position.set(-3.75, 0.15, 0);
+    slab1.position.set(this.isMenuMode ? -4.5 : -3.75, 0.15, this.isMenuMode ? -3.0 : 0);
     slab1.receiveShadow = true;
     this.scene.add(slab1);
 
     const slab2 = new Mesh(slabGeo, platMat);
-    slab2.position.set(3.75, 0.15, 0);
+    slab2.position.set(this.isMenuMode ? 4.5 : 3.75, 0.15, this.isMenuMode ? -3.0 : 0);
     slab2.receiveShadow = true;
     this.scene.add(slab2);
 
     // 2. Square Pillar (1 x 4 x 1 m) with Wall Tiles
     const pillarGeo = new BoxGeometry(1.0, 4.0, 1.0);
     const pillar = new Mesh(pillarGeo, wallMat);
-    pillar.position.set(-2.0, 2.0, -1.2);
+    pillar.position.set(this.isMenuMode ? -2.2 : -2.0, 2.0, -1.2);
     pillar.castShadow = true;
     pillar.receiveShadow = true;
     this.scene.add(pillar);
@@ -261,13 +277,13 @@ export class LabScene {
     });
     const numDecalGeo = new PlaneGeometry(0.85, 1.275);
     this.pillarDecalMesh = new Mesh(numDecalGeo, numDecalMat);
-    this.pillarDecalMesh.position.set(-2.0, 2.0, -0.698);
+    this.pillarDecalMesh.position.set(this.isMenuMode ? -2.2 : -2.0, 2.0, -0.698);
     this.scene.add(this.pillarDecalMesh);
 
-    // 3. Tiled Wall (8 x 3 x 0.3 m) with Tagline Decal
+    // 3. Tiled Wall with Tagline Decal
     const backWallGeo = new BoxGeometry(8.0, 3.2, 0.3);
     const backWall = new Mesh(backWallGeo, wallMat);
-    backWall.position.set(0, 1.6, -3.2);
+    backWall.position.set(0, 1.6, this.isMenuMode ? -14.0 : -3.2);
     backWall.receiveShadow = true;
     this.scene.add(backWall);
 
@@ -282,7 +298,7 @@ export class LabScene {
     });
     const taglineGeo = new PlaneGeometry(4.2, 2.1);
     const tagMesh = new Mesh(tagGeoOrDefault(taglineGeo), taglineMat);
-    tagMesh.position.set(0, 1.6, -3.048);
+    tagMesh.position.set(0, 1.6, this.isMenuMode ? -13.84 : -3.048);
     this.scene.add(tagMesh);
 
     // 4. Extruded Archway (Half-circle opening)
@@ -302,7 +318,7 @@ export class LabScene {
       bevelEnabled: false,
     });
     const archMesh = new Mesh(archGeo, wallMat);
-    archMesh.position.set(2.8, 0.0, -1.8);
+    archMesh.position.set(this.isMenuMode ? 0 : 2.8, 0.0, this.isMenuMode ? -8.0 : -1.8);
     archMesh.castShadow = true;
     this.scene.add(archMesh);
 
@@ -338,16 +354,16 @@ export class LabScene {
       this.waterFloorMat.userData.shader = shader;
     };
 
-    const floorGeo = new PlaneGeometry(16.0, 16.0);
+    const floorGeo = this.isMenuMode ? new PlaneGeometry(36.0, 36.0) : new PlaneGeometry(16.0, 16.0);
     const floorMesh = new Mesh(floorGeo, this.waterFloorMat);
     floorMesh.rotation.x = -Math.PI / 2;
-    floorMesh.position.set(0, WORLD.POOL_FLOOR_Y, 0);
+    floorMesh.position.set(0, WORLD.POOL_FLOOR_Y, this.isMenuMode ? -3.0 : 0);
     floorMesh.receiveShadow = true;
     this.scene.add(floorMesh);
 
     // 6. Water Plane
     const waterMat = new MeshStandardMaterial({
-      color: new Color('#7c9e5b'),
+      color: new Color(this.isMenuMode ? '#36996d' : '#7c9e5b'),
       normalMap: this.waterNormalTex,
       transparent: true,
       opacity: 0.82,
@@ -356,10 +372,10 @@ export class LabScene {
       side: DoubleSide,
     });
 
-    const waterGeo = new PlaneGeometry(16.0, 16.0);
+    const waterGeo = this.isMenuMode ? new PlaneGeometry(36.0, 36.0) : new PlaneGeometry(16.0, 16.0);
     this.waterMesh = new Mesh(waterGeo, waterMat);
     this.waterMesh.rotation.x = -Math.PI / 2;
-    this.waterMesh.position.set(0, WORLD.WATER_Y, 0);
+    this.waterMesh.position.set(0, WORLD.WATER_Y, this.isMenuMode ? -3.0 : 0);
     this.scene.add(this.waterMesh);
   }
 
@@ -587,17 +603,18 @@ export class LabScene {
     }
 
     if (this.isMenuMode) {
-      // Menu Mode: Slow cinematic dolly drift past the slab and pillar
-      const driftX = Math.sin(this.time * 0.12) * 1.8;
-      const driftZ = 3.6 + Math.cos(this.time * 0.08) * 0.8;
-      const driftY = 1.45 + Math.sin(this.time * 0.15) * 0.12;
-      this.camera.position.set(driftX, driftY, driftZ);
-      this.camera.lookAt(-0.8, 1.2, -0.6);
+      // Menu Mode: Position Main Menu camera at position: (0, 1.85, 8.5) looking slightly downward toward (0, 0.65, -6.0)
+      const driftX = Math.sin(this.time * 0.12) * 0.15;
+      const driftY = Math.sin(this.time * 0.16) * 0.04;
+      this.camera.position.set(driftX, 1.85 + driftY, 8.5);
+      this.camera.lookAt(driftX * 0.15, 0.65, -6.0);
 
       // Gentle fog breathing (+-8% density modulation)
       if (this.scene.fog && this.scene.fog instanceof FogExp2) {
-        this.scene.fog.density = 0.045 * (1.0 + Math.sin(this.time * 0.4) * 0.08);
+        this.scene.fog.density = 0.040 * (1.0 + Math.sin(this.time * 0.4) * 0.08);
       }
+
+      this.updateMenuProwl(dt);
     } else {
       // Lab Mode: Free-fly movement controls
       const moveSpeed = (this.input.isKeyDown('ShiftLeft') ? 7.0 : 3.2) * dt;
@@ -636,6 +653,88 @@ export class LabScene {
     this.animLabPanel.update(dt, this.time);
     this.renderer.render(this.scene, this.camera);
     this.input.flushFrame();
+  }
+
+  private updateMenuProwl(dt: number): void {
+    const skin = this.animLabPanel.getMonsterSkin();
+    if (!skin) return;
+
+    if (this.menuProwlState === 'PATROL') {
+      this.menuProwlTimer += dt;
+
+      // Dedicated figure-8 patrol path centered between z = -3.5m and z = -11.0m, x = -4.5m to +4.5m
+      const u = this.menuProwlU;
+      const vx = 3.8 * Math.cos(u);
+      const vz = 7.5 * Math.cos(2 * u);
+      const tangentSpeed = Math.hypot(vx, vz);
+      const du = (1.5 / Math.max(0.1, tangentSpeed)) * dt;
+      this.menuProwlU = (this.menuProwlU + du) % (Math.PI * 2);
+
+      const posX = 3.8 * Math.sin(this.menuProwlU);
+      const posZ = -7.25 + 3.75 * Math.sin(2 * this.menuProwlU);
+      const posY = WORLD.WATER_Y;
+
+      skin.root.position.set(posX, posY, posZ);
+
+      // Smooth heading yaw towards velocity vector
+      const targetYaw = Math.atan2(vx, vz);
+      let diff = targetYaw - skin.root.rotation.y;
+      while (diff < -Math.PI) diff += Math.PI * 2;
+      while (diff > Math.PI) diff -= Math.PI * 2;
+      skin.root.rotation.y += diff * Math.min(1.0, dt * 6.0);
+
+      skin.setMode('STALK');
+      skin.update(dt, {
+        speed: 1.5,
+        isGrounded: true,
+        isWading: true,
+        waterDepth: 0.75,
+      });
+
+      // Periodic pause check: every 6 to 9 seconds (7.5s), when crossing near center channel
+      if (this.menuProwlTimer >= 7.5 && Math.abs(posX) < 1.3 && posZ > -7.5 && posZ < -4.5) {
+        this.menuProwlState = 'PAUSE';
+        this.pauseTimer = 0;
+        this.pauseRippleTimer = 0.55;
+        skin.root.position.set(0, WORLD.WATER_Y, -5.5);
+        skin.root.rotation.y = 0;
+        skin.setMode('ALERTED');
+      }
+    } else {
+      // Pause in center water channel (z = -5.5m), rear up slightly to scan left and right
+      this.pauseTimer += dt;
+      this.pauseRippleTimer += dt;
+
+      // Scanning look target left and right
+      const scanAngle = Math.sin(this.pauseTimer * 2.2) * 0.75;
+      const headTarget = new Vector3(
+        Math.sin(scanAngle) * 5.0,
+        1.8,
+        -5.5 + Math.cos(scanAngle) * 5.0,
+      );
+
+      skin.setMode('ALERTED');
+      skin.update(dt, {
+        speed: 0.0,
+        isGrounded: true,
+        isWading: true,
+        waterDepth: 0.75,
+      }, headTarget);
+
+      // Concentric white water ripples around claws every 0.6s
+      if (this.pauseRippleTimer >= 0.6) {
+        this.pauseRippleTimer = 0;
+        this.spawnRipple(-0.48, -5.5 + 0.35, 0.95, 2.8, 3.2);
+        this.spawnRipple(0.48, -5.5 + 0.35, 0.95, 2.8, 3.2);
+      }
+
+      // Resume stalking after 2.6 seconds
+      if (this.pauseTimer >= 2.6) {
+        this.menuProwlState = 'PATROL';
+        this.menuProwlTimer = 0;
+        skin.setMode('STALK');
+      }
+    }
   }
 
   dispose(): void {
