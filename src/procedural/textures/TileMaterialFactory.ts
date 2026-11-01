@@ -33,6 +33,62 @@ export interface TileMaterialKit {
   ceilingTileMaterial: MeshStandardMaterial;
 }
 
+export type SectorThemeId = 'natatorium' | 'station' | 'school' | 'default';
+
+export interface SectorThemeConfig {
+  id: SectorThemeId;
+  name: string;
+  platformTop: { base: string; grout: string; roughness: number; metalness: number; checkered?: string; safetyStripe?: string };
+  platformSide: { base: string; grout: string; roughness: number; metalness: number };
+  wall: { base: string; grout: string; roughness: number; metalness: number; lowerBase?: string; stripeBase?: string };
+  poolFloor: { base: string; grout: string; roughness: number; metalness: number };
+  ceiling: { base: string; grout: string; roughness: number; metalness: number };
+}
+
+export const SECTOR_THEMES: Record<SectorThemeId, SectorThemeConfig> = {
+  natatorium: {
+    id: 'natatorium',
+    name: 'Natatorium / Poolrooms',
+    platformTop: { base: '#d6b878', grout: '#45361e', roughness: 0.28, metalness: 0.02 },
+    platformSide: { base: '#d6b878', grout: '#45361e', roughness: 0.28, metalness: 0.03 },
+    wall: { base: '#eae2c6', grout: '#5c533e', roughness: 0.22, metalness: 0.04 },
+    poolFloor: { base: '#c8d4ba', grout: '#566852', roughness: 0.28, metalness: 0.04 },
+    ceiling: { base: '#eae2c6', grout: '#5c533e', roughness: 0.45, metalness: 0.03 },
+  },
+  station: {
+    id: 'station',
+    name: 'Drowned Metro / Drainage Core / Municipal Station',
+    platformTop: { base: '#e4e6df', grout: '#3d4540', roughness: 0.24, metalness: 0.04, safetyStripe: '#d9a738' },
+    platformSide: { base: '#e4e6df', grout: '#3d4540', roughness: 0.24, metalness: 0.04 },
+    wall: { base: '#f0f2ec', grout: '#464e49', roughness: 0.18, metalness: 0.04, stripeBase: '#2b5c47' },
+    poolFloor: { base: '#bac2b8', grout: '#3d4540', roughness: 0.28, metalness: 0.04 },
+    ceiling: { base: '#d8deda', grout: '#3d4540', roughness: 0.45, metalness: 0.03 },
+  },
+  school: {
+    id: 'school',
+    name: 'Flooded School / Institutional Archive',
+    platformTop: { base: '#dfd7be', grout: '#4a4436', roughness: 0.28, metalness: 0.02, checkered: '#c7b68b' },
+    platformSide: { base: '#dfd7be', grout: '#4a4436', roughness: 0.28, metalness: 0.03 },
+    wall: { base: '#eeeadd', grout: '#434d45', roughness: 0.22, metalness: 0.03, lowerBase: '#a8c2ad' },
+    poolFloor: { base: '#98a89c', grout: '#4a4436', roughness: 0.28, metalness: 0.04 },
+    ceiling: { base: '#eeeadd', grout: '#434d45', roughness: 0.45, metalness: 0.03 },
+  },
+  default: {
+    id: 'default',
+    name: 'Default Ceramic Natatorium',
+    platformTop: { base: '#d6b878', grout: '#45361e', roughness: 0.28, metalness: 0.02 },
+    platformSide: { base: '#d6b878', grout: '#45361e', roughness: 0.28, metalness: 0.03 },
+    wall: { base: '#eae2c6', grout: '#5c533e', roughness: 0.22, metalness: 0.04 },
+    poolFloor: { base: '#c8d4ba', grout: '#566852', roughness: 0.28, metalness: 0.04 },
+    ceiling: { base: '#eae2c6', grout: '#5c533e', roughness: 0.45, metalness: 0.03 },
+  },
+};
+
+function parseHexRgb(hex: string): [number, number, number] {
+  const c = parseInt(hex.replace('#', ''), 16);
+  return [(c >> 16) & 255, (c >> 8) & 255, c & 255];
+}
+
 export class TileMaterialFactory {
   private static instance: TileMaterialFactory | null = null;
 
@@ -42,8 +98,12 @@ export class TileMaterialFactory {
   readonly poolFloorMaterial: MeshStandardMaterial;
   readonly ceilingTileMaterial: MeshStandardMaterial;
 
+  private readonly themeKits = new Map<SectorThemeId, TileMaterialKit>();
+  private readonly maxAnisotropy: number;
+
   private constructor(renderer?: WebGLRenderer) {
     const maxAnisotropy = renderer?.capabilities?.getMaxAnisotropy?.() ?? 16;
+    this.maxAnisotropy = maxAnisotropy;
 
     // 1. Wall Tile Material (0.25m x 0.25m tiles, #ebe4c8 glaze, #6e6550 grout)
     const wallTextures = this.generateWallTileTextures(maxAnisotropy);
@@ -98,6 +158,17 @@ export class TileMaterialFactory {
       envMapIntensity: 0.35,
     });
     this.poolFloorMaterial.name = 'PoolFloorMaterial';
+
+    // Seed default natatorium theme kit
+    const defaultKit: TileMaterialKit = {
+      wallTileMaterial: this.wallTileMaterial,
+      platformTopMaterial: this.platformTopMaterial,
+      platformSideMaterial: this.platformSideMaterial,
+      poolFloorMaterial: this.poolFloorMaterial,
+      ceilingTileMaterial: this.ceilingTileMaterial,
+    };
+    this.themeKits.set('natatorium', defaultKit);
+    this.themeKits.set('default', defaultKit);
   }
 
   static getInstance(renderer?: WebGLRenderer): TileMaterialFactory {
@@ -105,6 +176,90 @@ export class TileMaterialFactory {
       TileMaterialFactory.instance = new TileMaterialFactory(renderer);
     }
     return TileMaterialFactory.instance;
+  }
+
+  resolveThemeId(themeOrMapId: string): SectorThemeId {
+    const id = themeOrMapId.toLowerCase();
+    if (id === 'school' || id === 'drowned_school') return 'school';
+    if (
+      id === 'station' ||
+      id === 'drowned_metro' ||
+      id === 'drainage_core' ||
+      id === 'utility_tunnels' ||
+      id === 'neon_flood' ||
+      id === 'hydro_maze'
+    ) {
+      return 'station';
+    }
+    return 'natatorium';
+  }
+
+  getThemeKit(themeOrMapId = 'natatorium'): TileMaterialKit {
+    const themeId = this.resolveThemeId(themeOrMapId);
+    if (this.themeKits.has(themeId)) {
+      return this.themeKits.get(themeId)!;
+    }
+
+    const cfg = SECTOR_THEMES[themeId] ?? SECTOR_THEMES.natatorium;
+    const wallTex = this.generateThemedWallTileTextures(cfg.wall, this.maxAnisotropy, themeId);
+    const platTopTex = this.generateThemedPlatformTopTextures(cfg.platformTop, this.maxAnisotropy);
+    const platSideTex = this.generateThemedPlatformSideTextures(cfg.platformSide, this.maxAnisotropy);
+    const floorTex = this.generateThemedPoolFloorTextures(cfg.poolFloor, this.maxAnisotropy);
+
+    const wallTileMaterial = new MeshStandardMaterial({
+      map: wallTex.albedo,
+      normalMap: wallTex.normal,
+      roughness: cfg.wall.roughness,
+      metalness: cfg.wall.metalness,
+      envMapIntensity: 0.45,
+    });
+    wallTileMaterial.name = `WallTileMaterial_${themeId}`;
+
+    const ceilingTileMaterial = new MeshStandardMaterial({
+      map: wallTex.albedo,
+      normalMap: wallTex.normal,
+      roughness: cfg.ceiling.roughness,
+      metalness: cfg.ceiling.metalness,
+      envMapIntensity: 0.35,
+    });
+    ceilingTileMaterial.name = `CeilingTileMaterial_${themeId}`;
+
+    const platformTopMaterial = new MeshStandardMaterial({
+      map: platTopTex.albedo,
+      normalMap: platTopTex.normal,
+      roughness: cfg.platformTop.roughness,
+      metalness: cfg.platformTop.metalness,
+      envMapIntensity: 0.4,
+    });
+    platformTopMaterial.name = `PlatformTopMaterial_${themeId}`;
+
+    const platformSideMaterial = new MeshStandardMaterial({
+      map: platSideTex.albedo,
+      normalMap: platSideTex.normal,
+      roughness: cfg.platformSide.roughness,
+      metalness: cfg.platformSide.metalness,
+      envMapIntensity: 0.4,
+    });
+    platformSideMaterial.name = `PlatformSideMaterial_${themeId}`;
+
+    const poolFloorMaterial = new MeshStandardMaterial({
+      map: floorTex.albedo,
+      normalMap: floorTex.normal,
+      roughness: cfg.poolFloor.roughness,
+      metalness: cfg.poolFloor.metalness,
+      envMapIntensity: 0.35,
+    });
+    poolFloorMaterial.name = `PoolFloorMaterial_${themeId}`;
+
+    const kit: TileMaterialKit = {
+      wallTileMaterial,
+      platformTopMaterial,
+      platformSideMaterial,
+      poolFloorMaterial,
+      ceilingTileMaterial,
+    };
+    this.themeKits.set(themeId, kit);
+    return kit;
   }
 
   /**
@@ -766,4 +921,541 @@ export class TileMaterialFactory {
     mesh.updateMatrix();
     return mesh;
   }
+
+  private generateThemedWallTileTextures(
+    cfg: SectorThemeConfig['wall'],
+    anisotropy: number,
+    themeId: SectorThemeId,
+  ): { albedo: CanvasTexture; normal: CanvasTexture } {
+    const size = 512;
+    const grid = 8;
+    const tileSize = size / grid;
+    const groutPx = 2;
+
+    const albedoHandle = acquireCanvas(size, size);
+    const normalHandle = acquireCanvas(size, size);
+    const aCtx = albedoHandle.ctx;
+    const nCtx = normalHandle.ctx;
+
+    const aImg = aCtx.createImageData(size, size);
+    const nImg = nCtx.createImageData(size, size);
+    const aData = aImg.data;
+    const nData = nImg.data;
+
+    const [baseR, baseG, baseB] = parseHexRgb(cfg.base);
+    const [groutR, groutG, groutB] = parseHexRgb(cfg.grout);
+    const lowerRgb = cfg.lowerBase ? parseHexRgb(cfg.lowerBase) : null;
+    const stripeRgb = cfg.stripeBase ? parseHexRgb(cfg.stripeBase) : null;
+
+    const rng = new Rng(101);
+    const tileJitters = new Float32Array(grid * grid);
+    for (let i = 0; i < grid * grid; i++) {
+      tileJitters[i] = (rng.next() - 0.5) * 0.05;
+    }
+
+    for (let y = 0; y < size; y++) {
+      const tileY = Math.floor(y / tileSize);
+      const localY = y % tileSize;
+      const isGroutY = localY < groutPx;
+
+      const isLowerSchoolTile = themeId === 'school' && tileY >= 5;
+      const isStationStripe = themeId === 'station' && tileY === 5;
+
+      for (let x = 0; x < size; x++) {
+        const tileX = Math.floor(x / tileSize);
+        const localX = x % tileSize;
+        const isGrout = localX < groutPx || isGroutY;
+        const idx = (y * size + x) * 4;
+
+        if (isGrout) {
+          aData[idx + 0] = groutR;
+          aData[idx + 1] = groutG;
+          aData[idx + 2] = groutB;
+          aData[idx + 3] = 255;
+
+          nData[idx + 0] = 128;
+          nData[idx + 1] = 128;
+          nData[idx + 2] = 235;
+          nData[idx + 3] = 255;
+        } else {
+          let r = baseR;
+          let g = baseG;
+          let b = baseB;
+
+          if (isStationStripe && stripeRgb) {
+            [r, g, b] = stripeRgb;
+          } else if (isLowerSchoolTile && lowerRgb) {
+            [r, g, b] = lowerRgb;
+          }
+
+          const jitter = tileJitters[tileY * grid + tileX]!;
+          const microNoise = (rng.next() - 0.5) * 3;
+          aData[idx + 0] = Math.min(255, Math.max(0, Math.round(r * (1.0 + jitter) + microNoise)));
+          aData[idx + 1] = Math.min(255, Math.max(0, Math.round(g * (1.0 + jitter) + microNoise)));
+          aData[idx + 2] = Math.min(255, Math.max(0, Math.round(b * (1.0 + jitter) + microNoise)));
+          aData[idx + 3] = 255;
+
+          let nx = 0;
+          let ny = 0;
+          const distLeft = localX - groutPx;
+          const distRight = tileSize - localX;
+          const distTop = localY - groutPx;
+          const distBottom = tileSize - localY;
+
+          if (distLeft < 3) nx += (3 - distLeft) * 14;
+          if (distRight < 3) nx -= (3 - distRight) * 14;
+          if (distTop < 3) ny -= (3 - distTop) * 14;
+          if (distBottom < 3) ny += (3 - distBottom) * 14;
+
+          nData[idx + 0] = Math.min(255, Math.max(0, 128 + nx));
+          nData[idx + 1] = Math.min(255, Math.max(0, 128 + ny));
+          nData[idx + 2] = 255;
+          nData[idx + 3] = 255;
+        }
+      }
+    }
+
+    aCtx.putImageData(aImg, 0, 0);
+    nCtx.putImageData(nImg, 0, 0);
+
+    const albedo = new CanvasTexture(albedoHandle.canvas as HTMLCanvasElement);
+    albedo.wrapS = RepeatWrapping;
+    albedo.wrapT = RepeatWrapping;
+    albedo.colorSpace = SRGBColorSpace;
+    albedo.anisotropy = anisotropy;
+    albedo.needsUpdate = true;
+
+    const normal = new CanvasTexture(normalHandle.canvas as HTMLCanvasElement);
+    normal.wrapS = RepeatWrapping;
+    normal.wrapT = RepeatWrapping;
+    normal.anisotropy = anisotropy;
+    normal.needsUpdate = true;
+
+    return { albedo, normal };
+  }
+
+  private generateThemedPlatformTopTextures(
+    cfg: SectorThemeConfig['platformTop'],
+    anisotropy: number,
+  ): { albedo: CanvasTexture; normal: CanvasTexture } {
+    const size = 512;
+    const grid = 8;
+    const tileSize = size / grid;
+    const groutPx = 2;
+
+    const albedoHandle = acquireCanvas(size, size);
+    const normalHandle = acquireCanvas(size, size);
+    const aCtx = albedoHandle.ctx;
+    const nCtx = normalHandle.ctx;
+
+    const aImg = aCtx.createImageData(size, size);
+    const nImg = nCtx.createImageData(size, size);
+    const aData = aImg.data;
+    const nData = nImg.data;
+
+    const [baseR, baseG, baseB] = parseHexRgb(cfg.base);
+    const [groutR, groutG, groutB] = parseHexRgb(cfg.grout);
+    const checkeredRgb = cfg.checkered ? parseHexRgb(cfg.checkered) : null;
+    const safetyRgb = cfg.safetyStripe ? parseHexRgb(cfg.safetyStripe) : null;
+
+    const rng = new Rng(202);
+    const tileJitters = new Float32Array(grid * grid);
+    for (let i = 0; i < grid * grid; i++) {
+      tileJitters[i] = (rng.next() - 0.5) * 0.05;
+    }
+
+    for (let y = 0; y < size; y++) {
+      const tileY = Math.floor(y / tileSize);
+      const localY = y % tileSize;
+      const isGroutY = localY < groutPx;
+
+      for (let x = 0; x < size; x++) {
+        const tileX = Math.floor(x / tileSize);
+        const localX = x % tileSize;
+        const isGrout = localX < groutPx || isGroutY;
+        const idx = (y * size + x) * 4;
+
+        if (isGrout) {
+          aData[idx + 0] = groutR;
+          aData[idx + 1] = groutG;
+          aData[idx + 2] = groutB;
+          aData[idx + 3] = 255;
+
+          nData[idx + 0] = 128;
+          nData[idx + 1] = 128;
+          nData[idx + 2] = 230;
+          nData[idx + 3] = 255;
+        } else {
+          let r = baseR;
+          let g = baseG;
+          let b = baseB;
+
+          if (checkeredRgb && (tileX + tileY) % 2 === 1) {
+            [r, g, b] = checkeredRgb;
+          } else if (safetyRgb && tileY === 7) {
+            [r, g, b] = safetyRgb;
+          }
+
+          const jitter = tileJitters[tileY * grid + tileX]!;
+          const microNoise = (rng.next() - 0.5) * 4;
+          aData[idx + 0] = Math.min(255, Math.max(0, Math.round(r * (1.0 + jitter) + microNoise)));
+          aData[idx + 1] = Math.min(255, Math.max(0, Math.round(g * (1.0 + jitter) + microNoise)));
+          aData[idx + 2] = Math.min(255, Math.max(0, Math.round(b * (1.0 + jitter) + microNoise)));
+          aData[idx + 3] = 255;
+
+          let nx = 0;
+          let ny = 0;
+          const distLeft = localX - groutPx;
+          const distRight = tileSize - localX;
+          const distTop = localY - groutPx;
+          const distBottom = tileSize - localY;
+
+          if (distLeft < 3) nx += (3 - distLeft) * 14;
+          if (distRight < 3) nx -= (3 - distRight) * 14;
+          if (distTop < 3) ny -= (3 - distTop) * 14;
+          if (distBottom < 3) ny += (3 - distBottom) * 14;
+
+          nData[idx + 0] = Math.min(255, Math.max(0, 128 + nx));
+          nData[idx + 1] = Math.min(255, Math.max(0, 128 + ny));
+          nData[idx + 2] = 255;
+          nData[idx + 3] = 255;
+        }
+      }
+    }
+
+    aCtx.putImageData(aImg, 0, 0);
+    nCtx.putImageData(nImg, 0, 0);
+
+    const albedo = new CanvasTexture(albedoHandle.canvas as HTMLCanvasElement);
+    albedo.wrapS = RepeatWrapping;
+    albedo.wrapT = RepeatWrapping;
+    albedo.colorSpace = SRGBColorSpace;
+    albedo.anisotropy = anisotropy;
+    albedo.needsUpdate = true;
+
+    const normal = new CanvasTexture(normalHandle.canvas as HTMLCanvasElement);
+    normal.wrapS = RepeatWrapping;
+    normal.wrapT = RepeatWrapping;
+    normal.anisotropy = anisotropy;
+    normal.needsUpdate = true;
+
+    return { albedo, normal };
+  }
+
+  private generateThemedPlatformSideTextures(
+    cfg: SectorThemeConfig['platformSide'],
+    anisotropy: number,
+  ): { albedo: CanvasTexture; normal: CanvasTexture } {
+    const size = 512;
+    const albedoHandle = acquireCanvas(size, size);
+    const normalHandle = acquireCanvas(size, size);
+    const aCtx = albedoHandle.ctx;
+    const nCtx = normalHandle.ctx;
+
+    const aImg = aCtx.createImageData(size, size);
+    const nImg = nCtx.createImageData(size, size);
+    const aData = aImg.data;
+    const nData = nImg.data;
+
+    const waterlineRow = Math.round(size * (1.0 - 0.75 / 1.13));
+    const watermarkHalfH = Math.round((0.04 / 1.13) * size);
+    const dryRowH = waterlineRow / 3.0;
+
+    const tileW = size / 16;
+    const groutPx = 2;
+
+    const [tanR, tanG, tanB] = parseHexRgb(cfg.base);
+    const [groutR, groutG, groutB] = parseHexRgb(cfg.grout);
+    const wetDarken = 0.52;
+
+    const rng = new Rng(303);
+
+    for (let py = 0; py < size; py++) {
+      const isAboveWater = py < waterlineRow;
+      const distToWaterline = Math.abs(py - waterlineRow);
+      const isWatermark = distToWaterline <= watermarkHalfH;
+
+      let isGroutV = false;
+      if (isAboveWater) {
+        const localDryY = py % dryRowH;
+        isGroutV = localDryY < groutPx;
+      } else {
+        const subY = (py - waterlineRow) % dryRowH;
+        isGroutV = subY < groutPx;
+      }
+
+      for (let px = 0; px < size; px++) {
+        const localX = px % tileW;
+        const isGroutH = localX < groutPx;
+        const isGrout = isGroutH || isGroutV;
+
+        const idx = (py * size + px) * 4;
+
+        if (isWatermark) {
+          const markFade = 1.0 - distToWaterline / watermarkHalfH;
+          const markR = Math.round(45 * markFade + (isGrout ? groutR : tanR * wetDarken) * (1 - markFade));
+          const markG = Math.round(36 * markFade + (isGrout ? groutG : tanG * wetDarken) * (1 - markFade));
+          const markB = Math.round(22 * markFade + (isGrout ? groutB : tanB * wetDarken) * (1 - markFade));
+
+          aData[idx + 0] = markR;
+          aData[idx + 1] = markG;
+          aData[idx + 2] = markB;
+          aData[idx + 3] = 255;
+
+          nData[idx + 0] = 128;
+          nData[idx + 1] = 128;
+          nData[idx + 2] = 240;
+          nData[idx + 3] = 255;
+        } else if (isGrout) {
+          const dark = isAboveWater ? 1.0 : wetDarken;
+          aData[idx + 0] = Math.round(groutR * dark);
+          aData[idx + 1] = Math.round(groutG * dark);
+          aData[idx + 2] = Math.round(groutB * dark);
+          aData[idx + 3] = 255;
+
+          nData[idx + 0] = 128;
+          nData[idx + 1] = 128;
+          nData[idx + 2] = 230;
+          nData[idx + 3] = 255;
+        } else {
+          const dark = isAboveWater ? 1.0 : wetDarken;
+          const clayGrain = (rng.next() - 0.5) * 4;
+          const r = Math.min(255, Math.max(0, Math.round((tanR + clayGrain) * dark)));
+          const g = Math.min(255, Math.max(0, Math.round((tanG + clayGrain) * dark)));
+          const b = Math.min(255, Math.max(0, Math.round((tanB + clayGrain) * dark)));
+
+          aData[idx + 0] = r;
+          aData[idx + 1] = g;
+          aData[idx + 2] = b;
+          aData[idx + 3] = 255;
+
+          let nx = 0;
+          let ny = 0;
+          const distLeft = localX - groutPx;
+          const distRight = tileW - localX;
+          if (distLeft < 3) nx += (3 - distLeft) * 14;
+          if (distRight < 3) nx -= (3 - distRight) * 14;
+
+          const rowStep = dryRowH;
+          const localY = isAboveWater ? (py % rowStep) : ((py - waterlineRow) % rowStep);
+          if (localY < 3) ny -= (3 - localY) * 14;
+          if (rowStep - localY < 3) ny += (3 - (rowStep - localY)) * 14;
+
+          nData[idx + 0] = Math.min(255, Math.max(0, 128 + nx));
+          nData[idx + 1] = Math.min(255, Math.max(0, 128 + ny));
+          nData[idx + 2] = 255;
+          nData[idx + 3] = 255;
+        }
+      }
+    }
+
+    aCtx.putImageData(aImg, 0, 0);
+    nCtx.putImageData(nImg, 0, 0);
+
+    const albedo = new CanvasTexture(albedoHandle.canvas as HTMLCanvasElement);
+    albedo.wrapS = RepeatWrapping;
+    albedo.wrapT = RepeatWrapping;
+    albedo.colorSpace = SRGBColorSpace;
+    albedo.anisotropy = anisotropy;
+    albedo.needsUpdate = true;
+
+    const normal = new CanvasTexture(normalHandle.canvas as HTMLCanvasElement);
+    normal.wrapS = RepeatWrapping;
+    normal.wrapT = RepeatWrapping;
+    normal.anisotropy = anisotropy;
+    normal.needsUpdate = true;
+
+    return { albedo, normal };
+  }
+
+  private generateThemedPoolFloorTextures(
+    cfg: SectorThemeConfig['poolFloor'],
+    anisotropy: number,
+  ): { albedo: CanvasTexture; normal: CanvasTexture } {
+    const size = 512;
+    const grid = 8;
+    const tileSize = size / grid;
+    const groutPx = 2;
+
+    const albedoHandle = acquireCanvas(size, size);
+    const normalHandle = acquireCanvas(size, size);
+    const aCtx = albedoHandle.ctx;
+    const nCtx = normalHandle.ctx;
+
+    const aImg = aCtx.createImageData(size, size);
+    const nImg = nCtx.createImageData(size, size);
+    const aData = aImg.data;
+    const nData = nImg.data;
+
+    const [baseR, baseG, baseB] = parseHexRgb(cfg.base);
+    const [groutR, groutG, groutB] = parseHexRgb(cfg.grout);
+
+    const rng = new Rng(404);
+    const tileJitters = new Float32Array(grid * grid);
+    for (let i = 0; i < grid * grid; i++) {
+      tileJitters[i] = (rng.next() - 0.5) * 0.04;
+    }
+
+    for (let y = 0; y < size; y++) {
+      const tileY = Math.floor(y / tileSize);
+      const localY = y % tileSize;
+      const isGroutY = localY < groutPx;
+
+      for (let x = 0; x < size; x++) {
+        const tileX = Math.floor(x / tileSize);
+        const localX = x % tileSize;
+        const isGrout = localX < groutPx || isGroutY;
+
+        const idx = (y * size + x) * 4;
+
+        if (isGrout) {
+          aData[idx + 0] = groutR;
+          aData[idx + 1] = groutG;
+          aData[idx + 2] = groutB;
+          aData[idx + 3] = 255;
+
+          nData[idx + 0] = 128;
+          nData[idx + 1] = 128;
+          nData[idx + 2] = 230;
+          nData[idx + 3] = 255;
+        } else {
+          const jitter = tileJitters[tileY * grid + tileX]!;
+          const microNoise = (rng.next() - 0.5) * 4;
+          const r = Math.min(255, Math.max(0, Math.round(baseR * (1.0 + jitter) + microNoise)));
+          const g = Math.min(255, Math.max(0, Math.round(baseG * (1.0 + jitter) + microNoise)));
+          const b = Math.min(255, Math.max(0, Math.round(baseB * (1.0 + jitter) + microNoise)));
+
+          aData[idx + 0] = r;
+          aData[idx + 1] = g;
+          aData[idx + 2] = b;
+          aData[idx + 3] = 255;
+
+          let nx = 0;
+          let ny = 0;
+          const distLeft = localX - groutPx;
+          const distRight = tileSize - localX;
+          const distTop = localY - groutPx;
+          const distBottom = tileSize - localY;
+
+          if (distLeft < 3) nx += (3 - distLeft) * 14;
+          if (distRight < 3) nx -= (3 - distRight) * 14;
+          if (distTop < 3) ny -= (3 - distTop) * 14;
+          if (distBottom < 3) ny += (3 - distBottom) * 14;
+
+          nData[idx + 0] = Math.min(255, Math.max(0, 128 + nx));
+          nData[idx + 1] = Math.min(255, Math.max(0, 128 + ny));
+          nData[idx + 2] = 255;
+          nData[idx + 3] = 255;
+        }
+      }
+    }
+
+    aCtx.putImageData(aImg, 0, 0);
+    nCtx.putImageData(nImg, 0, 0);
+
+    const albedo = new CanvasTexture(albedoHandle.canvas as HTMLCanvasElement);
+    albedo.wrapS = RepeatWrapping;
+    albedo.wrapT = RepeatWrapping;
+    albedo.colorSpace = SRGBColorSpace;
+    albedo.anisotropy = anisotropy;
+    albedo.needsUpdate = true;
+
+    const normal = new CanvasTexture(normalHandle.canvas as HTMLCanvasElement);
+    normal.wrapS = RepeatWrapping;
+    normal.wrapT = RepeatWrapping;
+    normal.anisotropy = anisotropy;
+    normal.needsUpdate = true;
+
+    return { albedo, normal };
+  }
+}
+
+/**
+ * World-space UV mapping for Box geometries so that 1 tile = 0.25m x 0.25m everywhere in the game.
+ * Vertical platform side faces (0.40m above water) map 3 crisp rows of square/brick ceramic tiles with a dark watermark line at water level.
+ */
+export function applyWorldSpaceBoxUVs(
+  geometry: BufferGeometry,
+  tileSize = 0.25,
+  options?: { isPlatformSide?: boolean; topY?: number; floorY?: number },
+): void {
+  const uvAttr = geometry.getAttribute('uv') as Float32BufferAttribute | undefined;
+  if (!uvAttr) return;
+
+  geometry.computeBoundingBox();
+  const bb = geometry.boundingBox;
+  const w = bb ? Math.max(0.01, bb.max.x - bb.min.x) : 1.0;
+  const h = bb ? Math.max(0.01, bb.max.y - bb.min.y) : 1.0;
+  const d = bb ? Math.max(0.01, bb.max.z - bb.min.z) : 1.0;
+
+  const uvArray = uvAttr.array as Float32Array;
+
+  // Box faces:
+  // 0: +X (d, h), 1: -X (d, h)
+  // 2: +Y (w, d), 3: -Y (w, d)
+  // 4: +Z (w, h), 5: -Z (w, h)
+  const faceDims: [number, number][] = [
+    [d, h],
+    [d, h],
+    [w, d],
+    [w, d],
+    [w, h],
+    [w, h],
+  ];
+
+  // 8 tiles across canvas: 8 * tileSize = 2.0m per repeat
+  const texMeters = 8.0 * tileSize;
+
+  for (let face = 0; face < 6; face++) {
+    const isSide = face === 0 || face === 1 || face === 4 || face === 5;
+    const [dimU, dimV] = faceDims[face]!;
+
+    let repeatU = dimU / texMeters;
+    let repeatV = dimV / texMeters;
+
+    if (options?.isPlatformSide && isSide) {
+      repeatV = 1.0;
+      repeatU = dimU / texMeters;
+    }
+
+    const baseVertex = face * 4;
+    if ((baseVertex + 3) * 2 + 1 >= uvArray.length) continue;
+
+    uvArray[(baseVertex + 0) * 2 + 0] = 0;
+    uvArray[(baseVertex + 0) * 2 + 1] = repeatV;
+    uvArray[(baseVertex + 1) * 2 + 0] = repeatU;
+    uvArray[(baseVertex + 1) * 2 + 1] = repeatV;
+    uvArray[(baseVertex + 2) * 2 + 0] = 0;
+    uvArray[(baseVertex + 2) * 2 + 1] = 0;
+    uvArray[(baseVertex + 3) * 2 + 0] = repeatU;
+    uvArray[(baseVertex + 3) * 2 + 1] = 0;
+  }
+
+  uvAttr.needsUpdate = true;
+}
+
+/**
+ * World-space UV mapping for Cylinder geometries so that 1 tile = 0.25m x 0.25m across columns and pillars.
+ */
+export function applyWorldSpaceCylinderUVs(
+  geometry: BufferGeometry,
+  radius: number,
+  height: number,
+  tileSize = 0.25,
+): void {
+  const uvAttr = geometry.getAttribute('uv') as Float32BufferAttribute | undefined;
+  if (!uvAttr) return;
+
+  const uvArray = uvAttr.array as Float32Array;
+  const texMeters = 8.0 * tileSize;
+  const circumference = 2 * Math.PI * radius;
+  const repeatU = circumference / texMeters;
+  const repeatV = height / texMeters;
+
+  for (let i = 0; i < uvAttr.count; i++) {
+    uvArray[i * 2 + 0] = uvArray[i * 2 + 0]! * repeatU;
+    uvArray[i * 2 + 1] = uvArray[i * 2 + 1]! * repeatV;
+  }
+
+  uvAttr.needsUpdate = true;
 }

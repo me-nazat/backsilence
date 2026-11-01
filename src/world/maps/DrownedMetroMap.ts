@@ -6,7 +6,6 @@
  * ──────────────────────────────────────────────────────────────────────── */
 
 import {
-  MeshStandardMaterial,
   Vector3,
   Color,
 } from 'three';
@@ -21,11 +20,10 @@ import type {
 } from '../MapTypes.js';
 import type { Vec3 } from '../../types/contracts.js';
 import type { MapInstance } from './MapInstance.js';
-import { TextureRegistry } from '../../procedural/textures/TextureRegistry.js';
+import { TileMaterialFactory } from '../../procedural/textures/TileMaterialFactory.js';
 import { WATER_PROFILES } from '../../game/water/WaterProfile.js';
 import { buildStandardMapInstance } from './CommonMapBuilder.js';
 import { GhostTrain } from '../../sim/GhostTrain.js';
-import { applyWetDarkening } from '../../game/rendering/WetDarkening.js';
 import type { LightStreak } from '../../game/water/WaterMaterial.js';
 
 export const DrownedMetroMap: MapDefinition = {
@@ -357,46 +355,14 @@ export const DrownedMetroMap: MapDefinition = {
   },
 
   async build(layout: LayoutData, env: BuildEnv): Promise<MapInstance> {
-    const tex = TextureRegistry.getInstance();
-    const subwayTileTex = tex.getTileSet('wall', layout.seed);
-    const concreteTex = tex.getConcreteSet('tunnel', layout.seed);
-
-    const platformMat = new MeshStandardMaterial({
-      map: concreteTex.albedo,
-      roughnessMap: concreteTex.roughness,
-      normalMap: concreteTex.normal,
-      roughness: 0.5,
-      metalness: 0.05,
-      envMapIntensity: 0.35,
-      vertexColors: true,
-    });
-    applyWetDarkening(platformMat, { waterY: 0.0 });
-
-    const wallMat = new MeshStandardMaterial({
-      map: subwayTileTex.albedo,
-      roughnessMap: subwayTileTex.roughness,
-      normalMap: subwayTileTex.normal,
-      aoMap: subwayTileTex.ao,
-      aoMapIntensity: 0.85,
-      roughness: 0.25,
-      metalness: 0.02,
-      envMapIntensity: 0.35,
-      vertexColors: true,
-    });
-    applyWetDarkening(wallMat, { waterY: 0.0 });
-
-    const floorMat = new MeshStandardMaterial({
-      map: concreteTex.albedo,
-      roughnessMap: concreteTex.roughness,
-      normalMap: concreteTex.normal,
-      roughness: 0.35,
-      metalness: 0.1,
-      envMapIntensity: 0.35,
-      vertexColors: true,
-    });
+    const stationKit = TileMaterialFactory.getInstance(env.renderer as import('three').WebGLRenderer | undefined).getThemeKit('station');
+    const platformMat = stationKit.platformTopMaterial;
+    const wallMat = stationKit.wallTileMaterial;
+    const floorMat = stationKit.poolFloorMaterial;
 
     const instance = buildStandardMapInstance(layout, env, {
       platformMat,
+      platformSideMat: stationKit.platformSideMaterial,
       wallMat,
       floorMat,
     });

@@ -21,6 +21,7 @@ import {
   Mesh,
   InstancedMesh,
   BufferGeometry,
+  SphereGeometry,
   Float32BufferAttribute,
   Uint16BufferAttribute,
   MeshStandardMaterial,
@@ -34,10 +35,24 @@ import type { MonsterJoints } from './MonsterMesh.js';
 
 export type SkullVariant = 'splitShell' | 'mutatedSkull';
 
+function addGridIndices(indices: number[], rings: number, segments: number, flip = false): void {
+  const stride = segments + 1;
+  for (let r = 0; r < rings; r++) {
+    for (let s = 0; s < segments; s++) {
+      const a = r * stride + s;
+      const b = (r + 1) * stride + s;
+      const c = (r + 1) * stride + (s + 1);
+      const d = r * stride + (s + 1);
+      if (flip) indices.push(a, d, b, b, d, c);
+      else indices.push(a, b, d, b, c, d);
+    }
+  }
+}
+
 /**
- * Builds a curved claw / talon geometry (0.28m length) hooked inward.
+ * Builds a curved claw / talon geometry (0.32m length) hooked inward.
  */
-export function buildCurvedClawGeometry(length = 0.28, baseRadius = 0.024): BufferGeometry {
+export function buildCurvedClawGeometry(length = 0.32, baseRadius = 0.024): BufferGeometry {
   const geom = new BufferGeometry();
   const positions: number[] = [];
   const indices: number[] = [];
@@ -61,17 +76,7 @@ export function buildCurvedClawGeometry(length = 0.28, baseRadius = 0.024): Buff
     }
   }
 
-  const stride = segments + 1;
-  for (let r = 0; r < rings; r++) {
-    for (let s = 0; s < segments; s++) {
-      const a = r * stride + s;
-      const b = (r + 1) * stride + s;
-      const c = (r + 1) * stride + (s + 1);
-      const d = r * stride + (s + 1);
-      indices.push(a, b, d);
-      indices.push(b, c, d);
-    }
-  }
+  addGridIndices(indices, rings, segments);
 
   geom.setAttribute('position', new Float32BufferAttribute(positions, 3));
   geom.setIndex(new Uint16BufferAttribute(indices, 1));
@@ -126,17 +131,7 @@ export function buildMuscularSegmentGeometry(
     }
   }
 
-  const stride = segments + 1;
-  for (let r = 0; r < rings; r++) {
-    for (let s = 0; s < segments; s++) {
-      const a = r * stride + s;
-      const b = (r + 1) * stride + s;
-      const c = (r + 1) * stride + (s + 1);
-      const d = r * stride + (s + 1);
-      indices.push(a, b, d);
-      indices.push(b, c, d);
-    }
-  }
+  addGridIndices(indices, rings, segments);
 
   geom.setAttribute('position', new Float32BufferAttribute(positions, 3));
   geom.setIndex(new Uint16BufferAttribute(indices, 1));
@@ -197,17 +192,7 @@ export function buildSculptedTorsoGeometry(): BufferGeometry {
     }
   }
 
-  const stride = segments + 1;
-  for (let r = 0; r < rings; r++) {
-    for (let s = 0; s < segments; s++) {
-      const a = r * stride + s;
-      const b = (r + 1) * stride + s;
-      const c = (r + 1) * stride + (s + 1);
-      const d = r * stride + (s + 1);
-      indices.push(a, b, d);
-      indices.push(b, c, d);
-    }
-  }
+  addGridIndices(indices, rings, segments);
 
   geom.setAttribute('position', new Float32BufferAttribute(positions, 3));
   geom.setIndex(new Uint16BufferAttribute(indices, 1));
@@ -251,17 +236,7 @@ export function buildSculptedPelvisGeometry(): BufferGeometry {
     }
   }
 
-  const stride = segments + 1;
-  for (let r = 0; r < rings; r++) {
-    for (let s = 0; s < segments; s++) {
-      const a = r * stride + s;
-      const b = (r + 1) * stride + s;
-      const c = (r + 1) * stride + (s + 1);
-      const d = r * stride + (s + 1);
-      indices.push(a, b, d);
-      indices.push(b, c, d);
-    }
-  }
+  addGridIndices(indices, rings, segments);
 
   geom.setAttribute('position', new Float32BufferAttribute(positions, 3));
   geom.setIndex(new Uint16BufferAttribute(indices, 1));
@@ -296,17 +271,7 @@ export function buildVertebralProcessGeometry(): BufferGeometry {
     }
   }
 
-  const stride = segments + 1;
-  for (let r = 0; r < rings; r++) {
-    for (let s = 0; s < segments; s++) {
-      const a = r * stride + s;
-      const b = (r + 1) * stride + s;
-      const c = (r + 1) * stride + (s + 1);
-      const d = r * stride + (s + 1);
-      indices.push(a, b, d);
-      indices.push(b, c, d);
-    }
-  }
+  addGridIndices(indices, rings, segments);
 
   geom.setAttribute('position', new Float32BufferAttribute(positions, 3));
   geom.setIndex(new Uint16BufferAttribute(indices, 1));
@@ -318,7 +283,15 @@ export function buildVertebralProcessGeometry(): BufferGeometry {
  * Builds the hemispherical split-shell jaw lobe (left or right).
  * Outer ridged shell with vertical dark grooves and smooth organic interior.
  */
-export function buildJawLobeGeometry(isLeft: boolean): BufferGeometry {
+/**
+ * Builds the 4-petal split jaw lobe (left, right, top, or bottom).
+ * Outer ridged shell with vertical dark grooves and smooth organic interior.
+ */
+export function buildJawLobeGeometry(dir: 'left' | 'right' | 'top' | 'bottom' | boolean): BufferGeometry {
+  const isLeft = dir === true || dir === 'left';
+  const isRight = dir === false || dir === 'right';
+  const isTop = dir === 'top';
+
   const geom = new BufferGeometry();
   const positions: number[] = [];
   const indices: number[] = [];
@@ -326,7 +299,7 @@ export function buildJawLobeGeometry(isLeft: boolean): BufferGeometry {
   const rings = 10;
   const segments = 12;
   const radius = 0.24;
-  const sideSign = isLeft ? 1 : -1;
+  const sideSign = isLeft ? 1 : isRight ? -1 : 1;
 
   for (let r = 0; r <= rings; r++) {
     const v = r / rings; // 0 = base / back, 1 = apex / front
@@ -335,37 +308,34 @@ export function buildJawLobeGeometry(isLeft: boolean): BufferGeometry {
     const sinPhi = Math.sin(phi);
 
     for (let s = 0; s <= segments; s++) {
-      const u = s / segments; // 0 = center vertical split seam, 1 = outer lateral edge
-      const theta = u * Math.PI * 0.5 * sideSign;
+      const u = s / segments;
+      const theta = u * Math.PI * 0.5;
 
       // Vertical fluting/groove modulation on outer shell
       const flute = Math.sin(u * Math.PI * 5.0) * 0.008 * sinPhi;
       const rMod = radius * (1.0 + flute);
 
-      const px = Math.sin(theta) * cosPhi * rMod;
-      const py = Math.sin(phi) * rMod * 0.85;
+      let px = 0;
+      let py = 0;
       const pz = -Math.cos(theta) * cosPhi * rMod * 1.25;
+
+      if (isLeft || isRight) {
+        px = Math.sin(theta * sideSign) * cosPhi * rMod;
+        py = Math.sin(phi) * rMod * 0.85;
+      } else if (isTop) {
+        px = Math.sin(phi) * rMod * 0.85 * (1.0 - u * 0.3);
+        py = Math.sin(theta) * cosPhi * rMod;
+      } else {
+        // bottom
+        px = Math.sin(phi) * rMod * 0.85 * (1.0 - u * 0.3);
+        py = -Math.sin(theta) * cosPhi * rMod;
+      }
 
       positions.push(px, py, pz);
     }
   }
 
-  const stride = segments + 1;
-  for (let r = 0; r < rings; r++) {
-    for (let s = 0; s < segments; s++) {
-      const a = r * stride + s;
-      const b = (r + 1) * stride + s;
-      const c = (r + 1) * stride + (s + 1);
-      const d = r * stride + (s + 1);
-      if (isLeft) {
-        indices.push(a, b, d);
-        indices.push(b, c, d);
-      } else {
-        indices.push(a, d, b);
-        indices.push(b, d, c);
-      }
-    }
-  }
+  addGridIndices(indices, rings, segments, !(isLeft || isTop));
 
   geom.setAttribute('position', new Float32BufferAttribute(positions, 3));
   geom.setIndex(new Uint16BufferAttribute(indices, 1));
@@ -399,17 +369,7 @@ export function buildNeedleToothGeometry(length = 0.075, rad = 0.012): BufferGeo
     }
   }
 
-  const stride = segments + 1;
-  for (let r = 0; r < rings; r++) {
-    for (let s = 0; s < segments; s++) {
-      const a = r * stride + s;
-      const b = (r + 1) * stride + s;
-      const c = (r + 1) * stride + (s + 1);
-      const d = r * stride + (s + 1);
-      indices.push(a, b, d);
-      indices.push(b, c, d);
-    }
-  }
+  addGridIndices(indices, rings, segments);
 
   geom.setAttribute('position', new Float32BufferAttribute(positions, 3));
   geom.setIndex(new Uint16BufferAttribute(indices, 1));
@@ -448,17 +408,7 @@ export function buildTatteredPelvisWrapGeometry(): BufferGeometry {
     }
   }
 
-  const stride = segments + 1;
-  for (let r = 0; r < rings; r++) {
-    for (let s = 0; s < segments; s++) {
-      const a = r * stride + s;
-      const b = (r + 1) * stride + s;
-      const c = (r + 1) * stride + (s + 1);
-      const d = r * stride + (s + 1);
-      indices.push(a, b, d);
-      indices.push(b, c, d);
-    }
-  }
+  addGridIndices(indices, rings, segments);
 
   geom.setAttribute('position', new Float32BufferAttribute(positions, 3));
   geom.setIndex(new Uint16BufferAttribute(indices, 1));
@@ -476,6 +426,8 @@ export class MonsterRig {
   readonly jawGroup = new Group();
   readonly leftJawLobe = new Group();
   readonly rightJawLobe = new Group();
+  readonly topJawLobe = new Group();
+  readonly bottomJawLobe = new Group();
 
   // Limbs
   readonly shoulderL = new Group();
@@ -516,7 +468,7 @@ export class MonsterRig {
   readonly dorsalSpineGroup = new Group();
   readonly dorsalRidges: Mesh[] = [];
 
-  // Teeth ring: 28 sharp inward-curving off-white teeth
+  // Teeth ring: double concentric ring of 36 sharp teeth
   readonly teethMesh: InstancedMesh;
 
   // Variants
@@ -538,7 +490,7 @@ export class MonsterRig {
   private readonly agitationUniform = { value: 0.0 };
   private currentJawSplitRad = 0.15; // default ~18° prowl gap
 
-  constructor(scale = 1.0, tintHex = '#2b211b', _seed = 54321) {
+  constructor(scale = 1.0, tintHex = '#221916', _seed = 54321) {
     this.rootGroup.name = 'MonsterRigRoot';
     this.rootGroup.scale.set(scale, scale, scale);
 
@@ -627,23 +579,24 @@ export class MonsterRig {
       );
     };
 
-    // Leathery wet skin material (#2b211b in Video 1 / #4a4233 in Video 2)
+    // Gaunt necrotic charcoal-brown flesh (#221916, roughness 0.22, clearcoat 0.70 wet slime sheen)
+    const isLegacySkin = tintHex.toLowerCase() === '#2b211b';
     this.monsterSkinMat = new MeshStandardMaterial({
       color: new Color(tintHex),
-      roughness: 0.24,
+      roughness: isLegacySkin ? 0.24 : 0.22,
       metalness: 0.08,
       envMapIntensity: 0.4,
     });
     // Add clearcoat if available in Three.js standard material
-    (this.monsterSkinMat as unknown as { clearcoat?: number; clearcoatRoughness?: number }).clearcoat = 0.65;
-    (this.monsterSkinMat as unknown as { clearcoatRoughness?: number }).clearcoatRoughness = 0.2;
+    (this.monsterSkinMat as unknown as { clearcoat?: number; clearcoatRoughness?: number }).clearcoat = isLegacySkin ? 0.65 : 0.70;
+    (this.monsterSkinMat as unknown as { clearcoatRoughness?: number }).clearcoatRoughness = isLegacySkin ? 0.2 : 0.18;
     this.monsterSkinMat.onBeforeCompile = applyCreatureShaderHooks;
     this.materials.push(this.monsterSkinMat);
 
-    // Shell material: bulbous orange-brown outer shell (#965028)
+    // Shell material: outer carapace (#732a1e)
     this.shellMat = new MeshStandardMaterial({
-      color: new Color('#965028'),
-      roughness: 0.32,
+      color: new Color('#732a1e'),
+      roughness: 0.30,
       metalness: 0.05,
     });
     this.shellMat.onBeforeCompile = applyCreatureShaderHooks;
@@ -730,13 +683,13 @@ export class MonsterRig {
     torsoMesh.name = 'TorsoMesh';
     this.upperChest.add(torsoMesh);
 
-    // Dorsal Spine Ridge: 9 protruding bony vertebral ridges running down back from neck to pelvis
+    // Dorsal Spine Ridge: 10 protruding bony vertebral ridges running down back from neck to pelvis
     this.dorsalSpineGroup.name = 'DorsalSpineRidgeGroup';
     this.upperChest.add(this.dorsalSpineGroup);
 
     const vertGeom = buildVertebralProcessGeometry();
-    for (let i = 0; i < 9; i++) {
-      const vProgress = i / 8.0;
+    for (let i = 0; i < 10; i++) {
+      const vProgress = i / 9.0;
       const vertMesh = new Mesh(vertGeom, this.boneMat);
       // Positioned along spine curve from neck (front) to pelvis (back)
       const vz = 0.25 - vProgress * 0.65;
@@ -814,67 +767,106 @@ export class MonsterRig {
     this.jawGroup.name = 'Rig_Jaw';
     this.headGroup.add(this.jawGroup);
 
-    // Left and Right Jaw Lobes (split vertically down center seam)
+    // 4-Petal Split Jaws (left, right, top, bottom petals)
     this.leftJawLobe.name = 'LeftJawLobe';
     this.leftJawLobe.position.set(0.04, 0, 0);
-    const leftLobeGeom = buildJawLobeGeometry(true);
+    const leftLobeGeom = buildJawLobeGeometry('left');
     const leftLobeMesh = new Mesh(leftLobeGeom, this.shellMat);
     this.leftJawLobe.add(leftLobeMesh);
     this.jawGroup.add(this.leftJawLobe);
 
     this.rightJawLobe.name = 'RightJawLobe';
     this.rightJawLobe.position.set(-0.04, 0, 0);
-    const rightLobeGeom = buildJawLobeGeometry(false);
+    const rightLobeGeom = buildJawLobeGeometry('right');
     const rightLobeMesh = new Mesh(rightLobeGeom, this.shellMat);
     this.rightJawLobe.add(rightLobeMesh);
     this.jawGroup.add(this.rightJawLobe);
 
-    // Concentric Teeth Ring: 28 sharp inward-curving off-white teeth (#e8dec5)
+    this.topJawLobe.name = 'TopJawLobe';
+    this.topJawLobe.position.set(0, 0.04, 0);
+    const topLobeGeom = buildJawLobeGeometry('top');
+    const topLobeMesh = new Mesh(topLobeGeom, this.shellMat);
+    this.topJawLobe.add(topLobeMesh);
+    this.jawGroup.add(this.topJawLobe);
+
+    this.bottomJawLobe.name = 'BottomJawLobe';
+    this.bottomJawLobe.position.set(0, -0.04, 0);
+    const bottomLobeGeom = buildJawLobeGeometry('bottom');
+    const bottomLobeMesh = new Mesh(bottomLobeGeom, this.shellMat);
+    this.bottomJawLobe.add(bottomLobeMesh);
+    this.jawGroup.add(this.bottomJawLobe);
+
+    // Double Concentric Teeth Ring: 36 sharp inward-curving off-white teeth (#e8dec5)
     const toothGeom = buildNeedleToothGeometry(0.068, 0.011);
-    this.teethMesh = new InstancedMesh(toothGeom, this.boneMat, 28);
+    this.teethMesh = new InstancedMesh(toothGeom, this.boneMat, 36);
     this.teethMesh.name = 'ConcentricTeethRing';
     this.teethMesh.instanceMatrix.setUsage(DynamicDrawUsage);
 
     const m = new Matrix4();
     const rotM = new Matrix4();
     const scaleM = new Matrix4();
+    const rake = new Matrix4();
 
-    // 14 Upper teeth arch
-    for (let i = 0; i < 14; i++) {
-      const angle = (i / 13) * Math.PI - Math.PI * 0.5;
-      const tx = Math.sin(angle) * 0.16;
-      const tz = -Math.cos(angle) * 0.19 - 0.02;
-      const ty = 0.075;
-      const toothScale = 0.85 + Math.abs(Math.sin(i * 1.5)) * 0.35;
+    const teethConfig = [
+      { count: 10, start: 0, rx: 0.17, rz: 0.20, zOff: -0.02, y: 0.078, flip: true, rakeAngle: 0.22, baseScale: 0.88, varScale: 0.35, freq: 1.5, useSin: true },
+      { count: 10, start: 10, rx: 0.16, rz: 0.19, zOff: -0.02, y: -0.068, flip: false, rakeAngle: -0.25, baseScale: 0.88, varScale: 0.35, freq: 1.7, useSin: false },
+      { count: 8, start: 20, rx: 0.11, rz: 0.13, zOff: -0.06, y: 0.052, flip: true, rakeAngle: 0.30, baseScale: 0.70, varScale: 0.25, freq: 1.8, useSin: true },
+      { count: 8, start: 28, rx: 0.10, rz: 0.12, zOff: -0.06, y: -0.045, flip: false, rakeAngle: -0.32, baseScale: 0.70, varScale: 0.25, freq: 1.9, useSin: false },
+    ];
 
-      m.makeTranslation(tx, ty, tz);
-      rotM.makeRotationZ(Math.PI); // point down
-      m.multiply(rotM);
-      const rake = new Matrix4().makeRotationX(0.22);
-      m.multiply(rake);
-      scaleM.makeScale(toothScale, toothScale, toothScale);
-      m.multiply(scaleM);
-      this.teethMesh.setMatrixAt(i, m);
-    }
+    for (const cfg of teethConfig) {
+      for (let i = 0; i < cfg.count; i++) {
+        const angle = (i / (cfg.count - 1)) * Math.PI - Math.PI * 0.5;
+        const tx = Math.sin(angle) * cfg.rx;
+        const tz = -Math.cos(angle) * cfg.rz + cfg.zOff;
+        const toothScale = cfg.baseScale + Math.abs(cfg.useSin ? Math.sin(i * cfg.freq) : Math.cos(i * cfg.freq)) * cfg.varScale;
 
-    // 14 Lower teeth arch
-    for (let i = 14; i < 28; i++) {
-      const idx = i - 14;
-      const angle = (idx / 13) * Math.PI - Math.PI * 0.5;
-      const tx = Math.sin(angle) * 0.15;
-      const tz = -Math.cos(angle) * 0.18 - 0.02;
-      const ty = -0.065;
-      const toothScale = 0.85 + Math.abs(Math.cos(idx * 1.7)) * 0.35;
-
-      m.makeTranslation(tx, ty, tz);
-      const rake = new Matrix4().makeRotationX(-0.25);
-      m.multiply(rake);
-      scaleM.makeScale(toothScale, toothScale, toothScale);
-      m.multiply(scaleM);
-      this.teethMesh.setMatrixAt(i, m);
+        m.makeTranslation(tx, cfg.y, tz);
+        if (cfg.flip) {
+          rotM.makeRotationZ(Math.PI);
+          m.multiply(rotM);
+        }
+        rake.makeRotationX(cfg.rakeAngle);
+        m.multiply(rake);
+        scaleM.makeScale(toothScale, toothScale, toothScale);
+        m.multiply(scaleM);
+        this.teethMesh.setMatrixAt(cfg.start + i, m);
+      }
     }
     this.teethMesh.instanceMatrix.needsUpdate = true;
     this.jawGroup.add(this.teethMesh);
+
+    // Dripping wet slimy tendrils around jaw perimeter
+    const tendrilMat = new MeshStandardMaterial({
+      color: new Color('#1c0c09'),
+      roughness: 0.10,
+      metalness: 0.08,
+    });
+    this.materials.push(tendrilMat);
+    const tendrilGeom = buildCurvedClawGeometry(0.14, 0.008);
+    for (let ti = 0; ti < 6; ti++) {
+      const tMesh = new Mesh(tendrilGeom, tendrilMat);
+      const tAngle = (ti / 5) * Math.PI - Math.PI * 0.5;
+      tMesh.position.set(Math.sin(tAngle) * 0.12, -0.06, -0.08 - Math.cos(tAngle) * 0.05);
+      tMesh.scale.set(0.65, 0.9, 0.65);
+      this.jawGroup.add(tMesh);
+    }
+
+    // Subtle pale bio-luminescent specular catchlights in throat (#a0f0d0)
+    const catchlightMat = new MeshStandardMaterial({
+      color: new Color('#a0f0d0'),
+      emissive: new Color('#a0f0d0'),
+      emissiveIntensity: 0.45,
+      roughness: 0.15,
+      metalness: 0.10,
+    });
+    this.materials.push(catchlightMat);
+    const catchlightGeom = new SphereGeometry(0.012, 6, 6);
+    for (const cOff of [-0.045, 0.045]) {
+      const clMesh = new Mesh(catchlightGeom, catchlightMat);
+      clMesh.position.set(cOff, 0.015, -0.09);
+      this.splitShellMeshGroup.add(clMesh);
+    }
 
     // Initial 18° prowl gap
     this.setJawSplit(0.15);
@@ -1081,13 +1073,15 @@ export class MonsterRig {
   }
 
   /**
-   * Sets the vertical split flare of the left and right jaw lobes:
-   * 0 rad = closed, 0.15 rad = ~18° prowl gap, 0.65 rad = ~75° roar/lunge flare.
+   * Sets the 4-petal split flare of all four jaw lobes:
+   * 0 rad = closed, 0.15 rad = ~18° prowl gap, 0.65 to 1.31 rad = ~75° roar/lunge flare.
    */
   setJawSplit(angleRad: number): void {
     this.currentJawSplitRad = angleRad;
     this.leftJawLobe.rotation.y = angleRad;
     this.rightJawLobe.rotation.y = -angleRad;
+    this.topJawLobe.rotation.x = -angleRad;
+    this.bottomJawLobe.rotation.x = angleRad;
   }
 
   getJawSplit(): number {

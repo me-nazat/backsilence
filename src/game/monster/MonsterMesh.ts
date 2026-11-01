@@ -714,6 +714,11 @@ export class MonsterMeshHierarchy {
   }
 
   setLOD(distToCamera: number): void {
+    if (!this.skinnedMesh.visible) {
+      this.lod0.visible = false;
+      this.lod1.visible = false;
+      return;
+    }
     const useLod1 = distToCamera > 35.0;
     this.lod0.visible = !useLod1;
     this.lod1.visible = useLod1;

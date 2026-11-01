@@ -6,7 +6,6 @@
  * ──────────────────────────────────────────────────────────────────────── */
 
 import {
-  MeshStandardMaterial,
   Vector3,
   Color,
 } from 'three';
@@ -21,11 +20,10 @@ import type {
 } from '../MapTypes.js';
 import type { MapInstance } from './MapInstance.js';
 import { Rng } from '../../procedural/core/prng.js';
-import { TextureRegistry } from '../../procedural/textures/TextureRegistry.js';
+import { TileMaterialFactory } from '../../procedural/textures/TileMaterialFactory.js';
 import { WATER_PROFILES } from '../../game/water/WaterProfile.js';
 import { buildStandardMapInstance } from './CommonMapBuilder.js';
 import { PerchSystem } from '../../sim/PerchSystem.js';
-import { applyWetDarkening } from '../../game/rendering/WetDarkening.js';
 import type { LightStreak } from '../../game/water/WaterMaterial.js';
 
 const PASSWORD_WORDS = ['HUSH', 'DRIP', 'MUTE', 'TIDE', 'WADE', 'SILT'];
@@ -365,48 +363,14 @@ export const DrownedSchoolMap: MapDefinition = {
   },
 
   async build(layout: LayoutData, env: BuildEnv): Promise<MapInstance> {
-    const tex = TextureRegistry.getInstance();
-    const linoleumTiles = tex.getTileSet('platform', layout.seed);
-    const concreteTex = tex.getConcreteSet('tunnel', layout.seed);
-
-    const platformMat = new MeshStandardMaterial({
-      map: linoleumTiles.albedo,
-      roughnessMap: linoleumTiles.roughness,
-      normalMap: linoleumTiles.normal,
-      aoMap: linoleumTiles.ao,
-      aoMapIntensity: 0.85,
-      roughness: 0.4,
-      metalness: 0.02,
-      envMapIntensity: 0.35,
-      vertexColors: true,
-    });
-    applyWetDarkening(platformMat, { waterY: 0.0 });
-
-    const wallMat = new MeshStandardMaterial({
-      map: concreteTex.albedo,
-      roughnessMap: concreteTex.roughness,
-      normalMap: concreteTex.normal,
-      roughness: 0.6,
-      metalness: 0.02,
-      envMapIntensity: 0.35,
-      vertexColors: true,
-    });
-    applyWetDarkening(wallMat, { waterY: 0.0 });
-
-    const floorMat = new MeshStandardMaterial({
-      map: linoleumTiles.albedo,
-      roughnessMap: linoleumTiles.roughness,
-      normalMap: linoleumTiles.normal,
-      aoMap: linoleumTiles.ao,
-      aoMapIntensity: 0.85,
-      roughness: 0.25,
-      metalness: 0.04,
-      envMapIntensity: 0.35,
-      vertexColors: true,
-    });
+    const schoolKit = TileMaterialFactory.getInstance(env.renderer as import('three').WebGLRenderer | undefined).getThemeKit('school');
+    const platformMat = schoolKit.platformTopMaterial;
+    const wallMat = schoolKit.wallTileMaterial;
+    const floorMat = schoolKit.poolFloorMaterial;
 
     const instance = buildStandardMapInstance(layout, env, {
       platformMat,
+      platformSideMat: schoolKit.platformSideMaterial,
       wallMat,
       floorMat,
     });

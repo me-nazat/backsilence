@@ -41,6 +41,10 @@ import { createSkylightAssembly } from '../../game/rendering/LightShafts.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { createFarSilhouettes } from '../../game/rendering/FarSilhouettes.js';
 import { applyMapLevelArtPass } from '../levelart/MapLevelArtPass.js';
+import {
+  applyWorldSpaceBoxUVs,
+  applyWorldSpaceCylinderUVs,
+} from '../../procedural/textures/TileMaterialFactory.js';
 
 export interface CustomBuilderHook {
   onPlatformMesh?: (mesh: Mesh, def: LayoutData['platforms'][0]) => void;
@@ -221,6 +225,7 @@ export function buildStandardMapInstance(
   _env: BuildEnv,
   customMaterials: {
     platformMat: MeshStandardMaterial;
+    platformSideMat?: MeshStandardMaterial;
     wallMat: MeshStandardMaterial;
     floorMat: MeshStandardMaterial;
     ceilingMat?: MeshStandardMaterial;
@@ -232,6 +237,8 @@ export function buildStandardMapInstance(
 ): MapInstance {
   const root = new Group();
   root.name = `Map_${layout.mapId}`;
+
+  const platformSideMat = customMaterials.platformSideMat;
 
   const reg = TextureRegistry.getInstance();
   const ceilingMat = customMaterials.ceilingMat ?? new MeshStandardMaterial({
@@ -302,6 +309,7 @@ export function buildStandardMapInstance(
 
   const materialsToDispose: (MeshStandardMaterial | MeshBasicMaterial)[] = [
     customMaterials.platformMat,
+    ...(platformSideMat ? [platformSideMat] : []),
     customMaterials.wallMat,
     customMaterials.floorMat,
     ceilingMat,
@@ -312,6 +320,7 @@ export function buildStandardMapInstance(
 
   // Apply wet darkening and tidemark gloss strictly within waterline meniscus
   applyWetDarkening(customMaterials.platformMat, { waterY: 0.0 });
+  if (platformSideMat) applyWetDarkening(platformSideMat, { waterY: 0.0 });
   applyWetDarkening(customMaterials.wallMat, { waterY: 0.0 });
   applyWetDarkening(customMaterials.floorMat, { waterY: 0.0 });
   applyWetDarkening(trimMat, { waterY: 0.0 });
@@ -319,6 +328,7 @@ export function buildStandardMapInstance(
 
   // Apply height fog to floor, wall, platform, and ceiling materials (Prompt 5.7)
   applyHeightFog(customMaterials.platformMat, { height: 0.0, falloff: 0.85, density: 0.32, color: '#d6dccd' });
+  if (platformSideMat) applyHeightFog(platformSideMat, { height: 0.0, falloff: 0.85, density: 0.32, color: '#d6dccd' });
   applyHeightFog(customMaterials.wallMat, { height: 0.0, falloff: 0.85, density: 0.32, color: '#d6dccd' });
   applyHeightFog(customMaterials.floorMat, { height: 0.0, falloff: 0.85, density: 0.32, color: '#d6dccd' });
   applyHeightFog(ceilingMat, { height: 0.0, falloff: 0.85, density: 0.32, color: '#d6dccd' });
@@ -545,13 +555,19 @@ export function buildStandardMapInstance(
 
     if (mergePlatforms && !plat.dynamic && !hooks?.onPlatformMesh) {
       const geom = createTiledBoxGeometry({ w, h: depth, d, uvOffsetSeed: plat.id.charCodeAt(0) });
+      applyWorldSpaceBoxUVs(geom, 0.25, { isPlatformSide: true, topY, floorY: -0.75 });
       geom.translate(cx, topY - depth * 0.5, cz);
       hydroPlatformGeoms.push(geom);
     } else {
-      // Visual Mesh with consistent 0.15m tile grid UV scaling
+      // Visual Mesh with consistent 0.25m tile grid UV scaling
       const geom = createTiledBoxGeometry({ w, h: depth, d, uvOffsetSeed: plat.id.charCodeAt(0) });
+      applyWorldSpaceBoxUVs(geom, 0.25, { isPlatformSide: true, topY, floorY: -0.75 });
       geometriesToDispose.push(geom);
-      const platMaterial = plat.kind === 'metal' ? metalMat : customMaterials.platformMat;
+      const platMaterial = plat.kind === 'metal'
+        ? metalMat
+        : platformSideMat
+          ? [platformSideMat, platformSideMat, customMaterials.platformMat, platformSideMat, platformSideMat, platformSideMat]
+          : customMaterials.platformMat;
       const mesh = new Mesh(geom, platMaterial);
       mesh.position.set(cx, topY - depth * 0.5, cz);
       mesh.castShadow = true;
@@ -562,8 +578,11 @@ export function buildStandardMapInstance(
 
       // Architectural coping / edge trim based on platform style or map theme
       if (!plat.dynamic && w >= 2.5 && d >= 2.5) {
-        if (layout.mapId === 'drowned_metro' && (plat.id.startsWith('plat_p') || plat.id === 'plat_mezzanine')) {
-          // Yellow tactile safety edge strips along metro passenger platforms
+        if (
+          (layout.mapId === 'drowned_metro' || layout.mapId === 'drainage_core') &&
+          (plat.id.startsWith('plat_p') || plat.id === 'plat_mezzanine' || plat.id.startsWith('pad_') || plat.id.startsWith('hub_') || plat.id.startsWith('outer_ring_') || plat.id.startsWith('mid_ring_'))
+        ) {
+          // Yellow tactile safety edge strips along metro & drainage station passenger platforms
           const northStrip = new BoxGeometry(w, 0.04, 0.38);
           northStrip.translate(cx, topY + 0.02, maxZ - 0.22);
           accentGeoms.push(northStrip);
@@ -640,18 +659,23 @@ export function buildStandardMapInstance(
       const hShaft = Math.max(0.4, h - hBase - hCap - hGap * 2);
 
       const baseGeom = createTiledCylinderGeometry({ r: rBase, h: hBase, radialSegments: 24, uvOffsetSeed: seed });
+      applyWorldSpaceCylinderUVs(baseGeom, rBase, hBase, 0.25);
       baseGeom.translate(0, -0.9 + hBase * 0.5, 0);
 
       const gap1Geom = createTiledCylinderGeometry({ r: rGap, h: hGap, radialSegments: 24, uvOffsetSeed: seed });
+      applyWorldSpaceCylinderUVs(gap1Geom, rGap, hGap, 0.25);
       gap1Geom.translate(0, -0.9 + hBase + hGap * 0.5, 0);
 
       const shaftGeom = createTiledCylinderGeometry({ r, h: hShaft, radialSegments: 24, uvOffsetSeed: seed });
+      applyWorldSpaceCylinderUVs(shaftGeom, r, hShaft, 0.25);
       shaftGeom.translate(0, -0.9 + hBase + hGap + hShaft * 0.5, 0);
 
       const gap2Geom = createTiledCylinderGeometry({ r: rGap, h: hGap, radialSegments: 24, uvOffsetSeed: seed });
+      applyWorldSpaceCylinderUVs(gap2Geom, rGap, hGap, 0.25);
       gap2Geom.translate(0, -0.9 + h - hCap - hGap * 0.5, 0);
 
       const capGeom = createTiledCylinderGeometry({ r: rCap, h: hCap, radialSegments: 24, uvOffsetSeed: seed });
+      applyWorldSpaceCylinderUVs(capGeom, rCap, hCap, 0.25);
       capGeom.translate(0, -0.9 + h - hCap * 0.5, 0);
 
       const merged = mergeGeometries([baseGeom, gap1Geom, shaftGeom, gap2Geom, capGeom]);
@@ -728,6 +752,7 @@ export function buildStandardMapInstance(
         wallWidth: wallLength,
         wallHeight: h,
       });
+      applyWorldSpaceBoxUVs(archGeom, 0.25);
       geometriesToDispose.push(archGeom);
       const archMat = customMaterials.wallMat.clone();
       materialsToDispose.push(archMat);
@@ -744,6 +769,7 @@ export function buildStandardMapInstance(
       root.add(archMesh);
     } else {
       const geom = createTiledBoxGeometry({ w, h, d, uvOffsetSeed: wall.id.charCodeAt(0) });
+      applyWorldSpaceBoxUVs(geom, 0.25);
       geom.translate(cx, cy, cz);
       standardWallGeoms.push(geom);
 
@@ -801,6 +827,7 @@ export function buildStandardMapInstance(
       ground.setRectHeight(minX, minZ, maxX, maxZ, floorY);
 
       const floorGeom = createTiledBoxGeometry({ w, h: 0.2, d, uvOffsetSeed: wb.id.charCodeAt(0) });
+      applyWorldSpaceBoxUVs(floorGeom, 0.25);
       geometriesToDispose.push(floorGeom);
       // Shallow crossing (floorY >= -0.5) uses warm yellow ceramic tile platformMat; deep uses floorMat
       const floorMat = floorY >= -0.5 ? customMaterials.platformMat : customMaterials.floorMat;
@@ -821,6 +848,7 @@ export function buildStandardMapInstance(
     ground.setRectHeight(layout.bounds.minX, layout.bounds.minZ, layout.bounds.maxX, layout.bounds.maxZ, floorY);
 
     const floorGeom = createTiledBoxGeometry({ w: mapW, h: 0.2, d: mapD });
+    applyWorldSpaceBoxUVs(floorGeom, 0.25);
     geometriesToDispose.push(floorGeom);
     const floorMesh = new Mesh(floorGeom, customMaterials.floorMat);
     floorMesh.position.set(mapCx, floorY - 0.1, mapCz);

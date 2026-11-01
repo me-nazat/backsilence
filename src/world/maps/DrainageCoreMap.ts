@@ -4,11 +4,10 @@
  *  nested concentric ring corridors, 3 generators in corner pump rooms, and 3 distinct monsters.
  * ──────────────────────────────────────────────────────────────────────── */
 
-import { MeshStandardMaterial } from 'three';
 import type { LayoutCtx, LayoutData, MapDefinition, PlatformDef, BoxDef, PropDef, StairDef, BuildEnv } from '../MapTypes.js';
 import type { MapInstance } from './MapInstance.js';
-import { TextureRegistry } from '../../procedural/textures/TextureRegistry.js';
 import { MaterialCache } from '../../graphics/MaterialCache.js';
+import { TileMaterialFactory } from '../../procedural/textures/TileMaterialFactory.js';
 import { WATER_PROFILES } from '../../game/water/WaterProfile.js';
 import { buildStandardMapInstance } from './CommonMapBuilder.js';
 
@@ -23,8 +22,8 @@ export const DrainageCoreMap: MapDefinition = {
   },
   atmosphere: {
     fog: {
-      color: '#040d0b',
-      density: 0.026,
+      color: '#cfe0d5',
+      density: 0.013,
     },
     exposure: 1.3,
     hemisphere: {
@@ -315,50 +314,19 @@ export const DrainageCoreMap: MapDefinition = {
 
   async build(layout: LayoutData, env: BuildEnv): Promise<MapInstance> {
     const cache = MaterialCache.getInstance(env.renderer as import('three').WebGLRenderer | undefined);
-    const platformMat = cache.getOrCreateMaterial('drainage_core:platform', () => {
-      const reg = TextureRegistry.getInstance();
-      const metal = reg.getRustMetalSet(42, 512);
-      return new MeshStandardMaterial({
-        map: metal.albedo,
-        roughnessMap: metal.roughness,
-        normalMap: metal.normal,
-        metalnessMap: metal.metalness,
-        roughness: 0.45,
-        metalness: 0.85,
-        envMapIntensity: 0.35,
-        vertexColors: true,
-      });
-    });
+    const tileFactory = TileMaterialFactory.getInstance(env.renderer as import('three').WebGLRenderer | undefined);
+    const stationKit = tileFactory.getThemeKit('station');
 
-    const wallMat = cache.getOrCreateMaterial('drainage_core:wall', () => {
-      const reg = TextureRegistry.getInstance();
-      const concrete = reg.getConcreteSet('tunnel', 42, 512);
-      return new MeshStandardMaterial({
-        map: concrete.albedo,
-        roughnessMap: concrete.roughness,
-        normalMap: concrete.normal,
-        roughness: 0.85,
-        metalness: 0.05,
-        envMapIntensity: 0.35,
-        vertexColors: true,
-      });
-    });
+    const platformMat = cache.getOrCreateMaterial('drainage_core:platform', () => stationKit.platformTopMaterial);
+    const wallMat = cache.getOrCreateMaterial('drainage_core:wall', () => stationKit.wallTileMaterial);
+    const floorMat = cache.getOrCreateMaterial('drainage_core:floor', () => stationKit.poolFloorMaterial);
 
-    const floorMat = cache.getOrCreateMaterial('drainage_core:floor', () => {
-      const reg = TextureRegistry.getInstance();
-      const concrete = reg.getConcreteSet('tunnel', 42, 512);
-      return new MeshStandardMaterial({
-        map: concrete.albedo,
-        roughnessMap: concrete.roughness,
-        normalMap: concrete.normal,
-        roughness: 0.6,
-        metalness: 0.05,
-        envMapIntensity: 0.35,
-        vertexColors: true,
-      });
+    return buildStandardMapInstance(layout, env, {
+      platformMat,
+      platformSideMat: stationKit.platformSideMaterial,
+      wallMat,
+      floorMat,
     });
-
-    return buildStandardMapInstance(layout, env, { platformMat, wallMat, floorMat });
   },
 
   drawThumbnail(g: CanvasRenderingContext2D, layout: LayoutData, w: number, h: number): void {

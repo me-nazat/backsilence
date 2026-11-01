@@ -149,14 +149,16 @@ export class MonsterAnimator {
         // Hunched low over water
         this.chestPitch = MathUtils.damp(this.chestPitch, 0.65, 8.0, dt);
         this.chestRoll = MathUtils.damp(this.chestRoll, 0.0, 8.0, dt);
-        this.jawSplit = MathUtils.damp(this.jawSplit, 0.15, 6.0, dt); // 18° gap
+        // Breathing rhythm pulsing jaw petals open and shut (0.12 to 0.28 rad)
+        this.jawSplit = 0.12 + (Math.sin(t * 1.8) * 0.5 + 0.5) * 0.16;
 
         this.rig.upperChest.rotation.x = this.chestPitch + Math.sin(t * 1.8) * 0.02; // breathing
         this.rig.upperChest.rotation.z = this.chestRoll;
         this.rig.upperChest.rotation.y = 0.0;
+        this.rig.lowerSpine.rotation.y = 0.0;
 
-        // Head slowly pans left and right listening to water
-        this.rig.neck.rotation.y = Math.sin(t * 1.5) * 0.35;
+        // Head slowly pans left and right listening to water (±28° = 0.49 rad)
+        this.rig.neck.rotation.y = Math.sin(t * 1.5) * 0.49;
         this.rig.neck.rotation.x = -0.15;
         this.rig.headGroup.rotation.z = Math.cos(t * 1.1) * 0.18;
         this.rig.headGroup.rotation.x = 0.10;
@@ -179,40 +181,44 @@ export class MonsterAnimator {
       }
 
       case 'PROWL_WALK': {
-        // 4-beat diagonal gait (leftArm + rightLeg alternating with rightArm + leftLeg)
-        this.phase += speed * dt * 2.4;
+        // Velocity-locked 4-beat diagonal gait (stride frequency locked to world speed)
+        this.phase += speed * dt * 2.1;
         const p = this.phase;
 
         this.chestPitch = MathUtils.damp(this.chestPitch, 0.65, 8.0, dt);
-        this.chestRoll = Math.sin(p) * 0.08;
-        this.jawSplit = MathUtils.damp(this.jawSplit, 0.18, 6.0, dt);
+        // Heavy shoulder and hip roll (±0.45 rad)
+        this.chestRoll = Math.sin(p) * 0.45;
+        // Breathing jaw rhythm
+        this.jawSplit = 0.12 + (Math.sin(t * 1.8) * 0.5 + 0.5) * 0.16;
 
         this.rig.upperChest.rotation.x = this.chestPitch;
         this.rig.upperChest.rotation.z = this.chestRoll;
-        this.rig.upperChest.rotation.y = Math.sin(p) * 0.06;
+        // Lateral spine undulation (sin x 0.18)
+        this.rig.upperChest.rotation.y = Math.sin(p) * 0.18;
+        this.rig.lowerSpine.rotation.y = Math.sin(p - 0.75) * 0.18;
 
-        // Head pans listening to water
-        this.rig.neck.rotation.y = Math.sin(t * 1.5) * 0.35;
+        // Head pans listening to water (±28° = 0.49 rad)
+        this.rig.neck.rotation.y = Math.sin(t * 1.5) * 0.49;
         this.rig.neck.rotation.x = -0.12;
         this.rig.headGroup.rotation.z = Math.cos(t * 1.1) * 0.18;
         this.rig.headGroup.rotation.x = 0.08;
 
-        // Diagonal gait arm rotations
+        // Diagonal gait arm rotations with roll coupling
         const armSwingL = Math.sin(p) * 0.45;
         const armSwingR = -armSwingL;
 
-        this.rig.shoulderL.rotation.set(0.25 + armSwingL, 0, 0.08);
+        this.rig.shoulderL.rotation.set(0.25 + armSwingL, 0, 0.08 + Math.sin(p) * 0.45);
         this.rig.elbowL.rotation.set(-0.45 + Math.max(0, -armSwingL) * 0.35, 0, 0);
-        this.rig.shoulderR.rotation.set(0.25 + armSwingR, 0, -0.08);
+        this.rig.shoulderR.rotation.set(0.25 + armSwingR, 0, -0.08 - Math.sin(p) * 0.45);
         this.rig.elbowR.rotation.set(-0.45 + Math.max(0, -armSwingR) * 0.35, 0, 0);
 
-        // Hindleg alternating swing
+        // Hindleg alternating swing with hip roll (±0.45 rad)
         const legSwingL = -armSwingL * 0.75;
         const legSwingR = -legSwingL;
 
-        this.rig.hipL.rotation.set(-0.20 + legSwingL, 0, 0.08);
+        this.rig.hipL.rotation.set(-0.20 + legSwingL, 0, 0.08 + Math.sin(p) * 0.45);
         this.rig.kneeL.rotation.set(0.50 + Math.max(0, -legSwingL) * 0.30, 0, 0);
-        this.rig.hipR.rotation.set(-0.20 + legSwingR, 0, -0.08);
+        this.rig.hipR.rotation.set(-0.20 + legSwingR, 0, -0.08 - Math.sin(p) * 0.45);
         this.rig.kneeR.rotation.set(0.50 + Math.max(0, -legSwingR) * 0.30, 0, 0);
 
         this.rig.pelvis.position.y = 0.70 + Math.abs(Math.sin(p * 2.0)) * 0.04;
@@ -235,9 +241,9 @@ export class MonsterAnimator {
         this.rig.shoulderR.rotation.set(shoulderPitch + Math.sin(p + 0.35) * 0.15, 0, -0.12);
         this.rig.elbowR.rotation.set(armCycle > 0 ? -0.15 : -0.75, 0, 0);
 
-        // Torso heave: pelvis.y = baseWaterY + abs(sin(phase)) * 0.22
-        this.pelvisHeave = Math.abs(Math.sin(p)) * 0.22;
-        this.rig.pelvis.position.y = 0.70 + this.pelvisHeave;
+        // Torso heave: pelvis.y = baseWaterY + abs(sin(phase)) * 0.26
+        this.pelvisHeave = Math.sin(p) * 0.26;
+        this.rig.pelvis.position.y = 0.70 + Math.abs(this.pelvisHeave);
 
         this.chestPitch = MathUtils.damp(this.chestPitch, 0.45 + Math.sin(p) * 0.22, 12.0, dt);
         this.rig.upperChest.rotation.x = this.chestPitch;

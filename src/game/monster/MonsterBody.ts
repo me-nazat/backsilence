@@ -72,6 +72,8 @@ export class MonsterBody {
     this.scale = scale;
     this.tint = tint;
     this.mesh = new MonsterMeshHierarchy(scale, tint);
+    this.mesh.lod0.visible = false;
+    this.mesh.lod1.visible = false;
     this.rig = new MonsterRig(scale, tint);
     this.mesh.root.add(this.rig.rootGroup);
     if (this.mesh.skinnedMesh) {
@@ -285,19 +287,17 @@ export class MonsterBody {
     this.lastGoodPos.copy(this.mesh.root.position);
     this.lastGoodYaw = this.currentYaw;
 
-    // Dynamic water wake / foam displacement while monster wades
+    // Concentric white water ripple rings and splash droplets while monster wades (Prompt 4B)
     if (this.water && speed > 0.3 && finalRootY < waterLevel + 0.6) {
-      this.water.wakes.updateSource(
-        `monster_${snapshot.id}`,
-        finalPosX,
-        finalPosZ,
-        snapshot.vel.x,
-        snapshot.vel.z,
-        speed,
-        1.2,
-        0.9,
-        4.5,
-      );
+      this.wakeTimer += dt;
+      const strideInterval = speed > 3.5 ? 0.18 : 0.35;
+      if (this.wakeTimer >= strideInterval) {
+        this.wakeTimer = 0.0;
+        this.water.rippleManager?.spawnMonsterStride(finalPosX, finalPosZ);
+        this.water.onSplash(this.mesh.root.position, Math.min(1.0, speed * 0.2), true);
+      }
+    } else {
+      this.wakeTimer = 0.0;
     }
 
     // 2. Gait update & Limb target placement

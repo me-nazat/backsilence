@@ -442,6 +442,7 @@ export class GameSession {
         textures: undefined,
         audio: this.audio,
         difficulty: this.difficulty,
+        renderer: this.renderer.renderer,
       });
       this.scene.add(this.mapInstance.root);
 
@@ -848,8 +849,18 @@ export class GameSession {
   }
 
   private setupAtmosphere(def: MapDefinition): void {
-    const fogColor = parseInt(def.atmosphere.fog.color.replace('#', '0x'), 16);
-    this.scene.fog = new FogExp2(fogColor, def.atmosphere.fog.density);
+    let fogDensity = def.atmosphere.fog.density;
+    let fogColorHex = def.atmosphere.fog.color;
+    if (def.id === 'drainage_core' || this.subMode === 'endless') {
+      if (fogDensity > 0.014) {
+        fogDensity = 0.013;
+      }
+      if (fogColorHex === '#040d0b' || fogColorHex === '#555555') {
+        fogColorHex = '#cfe0d5';
+      }
+    }
+    const fogColor = parseInt(fogColorHex.replace('#', '0x'), 16);
+    this.scene.fog = new FogExp2(fogColor, fogDensity);
     this.scene.background = new Color(fogColor);
     this.renderer.renderer.setClearColor(fogColor, 1.0);
     this.renderer.renderer.toneMapping = 4; // THREE.ACESFilmicToneMapping
@@ -857,7 +868,7 @@ export class GameSession {
     this.renderer.renderer.shadowMap.enabled = true;
     this.renderer.renderer.shadowMap.type = 2; // THREE.PCFSoftShadowMap
     if (this.simWorld?.director) {
-      this.simWorld.director.setFogDensity(def.atmosphere.fog.density);
+      this.simWorld.director.setFogDensity(fogDensity);
     }
 
     // Prompt 4.3: Build PMREM environment from fogColor

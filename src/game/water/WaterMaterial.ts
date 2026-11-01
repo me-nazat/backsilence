@@ -626,9 +626,8 @@ void main() {
   // 12. Bioluminescence (Map 5: Abyssal Drainage Core)
   if (uBiolumRipple > 0.0) {
     float rippleEnergy = abs(vRippleHeight) * 14.0;
-    float wakeEnergy = wakeFoam * 1.5;
     float ambientPulse = (sin(p.x * 1.5 + uTime * 0.8) * cos(p.y * 1.5 - uTime * 0.6) * 0.5 + 0.5);
-    float glow = clamp(rippleEnergy * uBiolumRipple + wakeEnergy * 0.8 + ambientPulse * uBiolumAmbient, 0.0, 2.5);
+    float glow = clamp(rippleEnergy * uBiolumRipple + ambientPulse * uBiolumAmbient, 0.0, 2.5);
     waterColor += uBiolumColor * glow;
   }
 

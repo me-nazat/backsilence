@@ -7,7 +7,6 @@
  * ────────────────────────────────────────────────────────────────────────── */
 
 import {
-  MeshStandardMaterial,
   BoxGeometry,
   CylinderGeometry,
   CanvasTexture,
@@ -112,44 +111,18 @@ export class MaterialCache {
 
     // 2. Core procedural texture sets from TextureRegistry with canonical seed 42
     const texReg = TextureRegistry.getInstance();
-    const concrete = texReg.getConcreteSet('tunnel', 42, 512);
-    const metal = texReg.getRustMetalSet(42, 512);
+    texReg.getConcreteSet('tunnel', 42, 512);
+    texReg.getRustMetalSet(42, 512);
     texReg.getTileSet('ceiling', 42, 512);
     texReg.getTileSet('platform', 42, 512);
     texReg.getPbrSet('wood', 42, 128);
     texReg.getMarbleSet(42, 512);
 
     // 3. Pre-create standard sector materials
-    this.getOrCreateMaterial('drainage_core:platform', () => new MeshStandardMaterial({
-      map: metal.albedo,
-      roughnessMap: metal.roughness,
-      normalMap: metal.normal,
-      metalnessMap: metal.metalness,
-      roughness: 0.45,
-      metalness: 0.85,
-      envMapIntensity: 0.35,
-      vertexColors: true,
-    }));
-
-    this.getOrCreateMaterial('drainage_core:wall', () => new MeshStandardMaterial({
-      map: concrete.albedo,
-      roughnessMap: concrete.roughness,
-      normalMap: concrete.normal,
-      roughness: 0.85,
-      metalness: 0.05,
-      envMapIntensity: 0.35,
-      vertexColors: true,
-    }));
-
-    this.getOrCreateMaterial('drainage_core:floor', () => new MeshStandardMaterial({
-      map: concrete.albedo,
-      roughnessMap: concrete.roughness,
-      normalMap: concrete.normal,
-      roughness: 0.6,
-      metalness: 0.05,
-      envMapIntensity: 0.35,
-      vertexColors: true,
-    }));
+    const stationKit = TileMaterialFactory.getInstance(renderer).getThemeKit('station');
+    this.getOrCreateMaterial('drainage_core:platform', () => stationKit.platformTopMaterial);
+    this.getOrCreateMaterial('drainage_core:wall', () => stationKit.wallTileMaterial);
+    this.getOrCreateMaterial('drainage_core:floor', () => stationKit.poolFloorMaterial);
   }
 
   /**
