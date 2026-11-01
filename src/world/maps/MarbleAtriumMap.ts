@@ -149,7 +149,7 @@ export const MarbleAtriumMap: MapDefinition = {
     for (const st of steppingLocs) {
       platforms.push({
         id: st.id,
-        rect: [st.x - 1.5, st.z - 1.5, st.x + 1.5, st.z + 1.5],
+        rect: [st.x - 0.65, st.z - 0.65, st.x + 0.65, st.z + 0.65],
         topY: 0.3,
         kind: 'marble',
         dynamic: {

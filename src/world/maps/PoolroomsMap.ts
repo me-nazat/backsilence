@@ -113,6 +113,13 @@ export const PoolroomsMap: MapDefinition = {
 
       // Ensure min gap 1.2m and max overlap 0
       let overlaps = false;
+      // Keep monster spawn zones clear of platforms (radius 2.5m)
+      if (
+        (rect[0] - 2.5 < 22 && rect[2] + 2.5 > 22 && rect[1] - 2.5 < -25 && rect[3] + 2.5 > -25) ||
+        (rect[0] - 2.5 < -38 && rect[2] + 2.5 > -38 && rect[1] - 2.5 < -13 && rect[3] + 2.5 > -13)
+      ) {
+        overlaps = true;
+      }
       for (const p of platforms) {
         if (!(rect[2] + 1.2 <= p.rect[0] || rect[0] >= p.rect[2] + 1.2 || rect[3] + 1.2 <= p.rect[1] || rect[1] >= p.rect[3] + 1.2)) {
           overlaps = true;
@@ -307,7 +314,7 @@ export const PoolroomsMap: MapDefinition = {
             id: 'monster_standard',
             variant: 'standard',
             spawn: monsterPos,
-            sleeperSpawn: { x: -20, y: -0.9, z: -20 },
+            sleeperSpawn: { x: -38, y: -0.9, z: -13 },
             hearingMul: 1.0,
           },
         ],

@@ -156,24 +156,14 @@ export class UiLayerManager {
       const canvasContainer = document.getElementById('canvas-container');
       if (canvasContainer) {
         canvasContainer.removeAttribute('inert');
-        canvasContainer.style.pointerEvents = 'none';
       }
       const uiLayer = document.getElementById('ui-layer');
       if (uiLayer) {
         uiLayer.removeAttribute('inert');
-        uiLayer.style.pointerEvents = 'auto';
       }
       const app = document.getElementById('app');
       if (app) {
         app.removeAttribute('inert');
-      }
-      const homeScreen = document.getElementById('screen-home');
-      if (homeScreen) {
-        homeScreen.removeAttribute('inert');
-        homeScreen.removeAttribute('aria-hidden');
-        homeScreen.style.pointerEvents = 'auto';
-        homeScreen.style.visibility = 'visible';
-        homeScreen.style.display = 'flex';
       }
       // Remove any leftover modal backdrops
       document.querySelectorAll('#bs-confirmation-modal, .bs-modal-backdrop, #bs-calibration-modal').forEach((el) => {

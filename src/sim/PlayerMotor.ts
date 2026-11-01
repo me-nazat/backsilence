@@ -436,7 +436,7 @@ export class PlayerMotor {
 
       // 10d. Auto-Mantle Ledge Assist:
       // Smoothly step/mantle up onto dry platform (y = 0.38m) when jumping from water within 0.18m of top surface (y >= 0.20m).
-      if (this.wet || !this.onGround) {
+      if (this.wet) {
         const fX = dSin(this.yaw);
         const fZ = -dCos(this.yaw);
         const probeDist = 0.45;

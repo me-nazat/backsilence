@@ -229,7 +229,7 @@ export const SunkenJungleMap: MapDefinition = {
         id: 'monster_jungle_1',
         variant: 'standard',
         spawn: monsterSpawn,
-        sleeperSpawn: { x: -38, y: -0.85, z: -38 },
+        sleeperSpawn: { x: -50, y: -0.85, z: -31 },
       },
     ];
 

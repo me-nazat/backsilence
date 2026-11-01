@@ -384,65 +384,82 @@ async function boot(): Promise<void> {
   const { SightingLogger } = await import('./engine/SightingLogger.js');
   let activeGameSession: InstanceType<typeof GameSession> | null = null;
   let activeSightingLogger: InstanceType<typeof SightingLogger> | null = null;
+  let isStartingGame = false;
 
   bus.on('game:start', (cfg) => {
-    store.set('session', {
-      mode: 'single',
-      mapId: cfg.mapId,
-      seed: cfg.seed,
-      room: null,
-    });
-    if (activeSightingLogger) {
-      activeSightingLogger.stop();
-      activeSightingLogger = null;
-      g.__backsilence_sightlog = undefined;
+    if (isStartingGame) {
+      console.warn('[main] Duplicate game:start suppressed');
+      return;
     }
-    if (activeGameSession) {
-      activeGameSession.dispose();
-      activeGameSession = null;
-    }
-    labScene.renderer.canvas.style.display = 'none';
+    isStartingGame = true;
+    try {
+      store.set('session', {
+        mode: 'single',
+        mapId: cfg.mapId,
+        seed: cfg.seed,
+        room: null,
+      });
+      if (activeSightingLogger) {
+        activeSightingLogger.stop();
+        activeSightingLogger = null;
+        g.__backsilence_sightlog = undefined;
+      }
+      if (activeGameSession) {
+        activeGameSession.dispose();
+        activeGameSession = null;
+      }
+      // Ensure canvasContainer has no orphan gameplay canvases
+      const canvases = canvasContainer.querySelectorAll('canvas');
+      canvases.forEach((c) => {
+        if (c !== labScene.renderer.canvas) {
+          c.remove();
+        }
+      });
+      labScene.renderer.canvas.style.display = 'none';
 
-    const diffStr = cfg.difficulty <= 0.75 || cfg.difficulty === 0 ? 'whisper' : cfg.difficulty >= 1.3 || cfg.difficulty === 2 ? 'deafening' : 'normal';
-    activeGameSession = new GameSession(
-      canvasContainer,
-      settings,
-      ui.getHud(),
-      {
-        onPause: () => ui.showPause(),
-        onDeath: (stats) => {
-          const dist = Math.max(1.2, stats.closestCall < 999 ? stats.closestCall : 6.2);
-          const reason = `You splashed ${dist.toFixed(1)} m from it.`;
-          ui.showDeath(reason);
-          const cause = stats.cause ?? 'Sprint-wade';
-          const carryDist = stats.soundRadius ?? Math.round(dist * 2);
-          ui.getDeathScreen().setCause(cause, carryDist);
-          ui.getDeathScreen().setStats(stats.timeSurvived, stats.noisesMade, stats.closestCall);
+      const diffStr = cfg.difficulty <= 0.75 || cfg.difficulty === 0 ? 'whisper' : cfg.difficulty >= 1.3 || cfg.difficulty === 2 ? 'deafening' : 'normal';
+      activeGameSession = new GameSession(
+        canvasContainer,
+        settings,
+        ui.getHud(),
+        {
+          onPause: () => ui.showPause(),
+          onDeath: (stats) => {
+            const dist = Math.max(1.2, stats.closestCall < 999 ? stats.closestCall : 6.2);
+            const reason = `You splashed ${dist.toFixed(1)} m from it.`;
+            ui.showDeath(reason);
+            const cause = stats.cause ?? 'Sprint-wade';
+            const carryDist = stats.soundRadius ?? Math.round(dist * 2);
+            ui.getDeathScreen().setCause(cause, carryDist);
+            ui.getDeathScreen().setStats(stats.timeSurvived, stats.noisesMade, stats.closestCall);
+          },
+          onWin: (results) => {
+            ui.showResults(results);
+          },
+          onExit: () => {
+            bus.emit('game:leave', undefined);
+            ui.navigateTo('MENU');
+          },
         },
-        onWin: (results) => {
-          ui.showResults(results);
-        },
-        onExit: () => {
-          bus.emit('game:leave', undefined);
-          ui.navigateTo('MENU');
-        },
-      },
-      diffStr,
-      cfg.seed,
-      cfg.mapId,
-      ui.getKeypadModal(),
-      undefined,
-      (cfg as { subMode?: string }).subMode,
-    );
-    g.__backsilence_session = activeGameSession;
-    if (route.sightlog || (typeof location !== 'undefined' && location.search.includes('sightlog=1'))) {
-      activeSightingLogger = new SightingLogger(activeGameSession);
-      activeSightingLogger.start();
-      g.__backsilence_sightlog = activeSightingLogger;
+        diffStr,
+        cfg.seed,
+        cfg.mapId,
+        ui.getKeypadModal(),
+        undefined,
+        (cfg as { subMode?: string }).subMode,
+      );
+      g.__backsilence_session = activeGameSession;
+      if (route.sightlog || (typeof location !== 'undefined' && location.search.includes('sightlog=1'))) {
+        activeSightingLogger = new SightingLogger(activeGameSession);
+        activeSightingLogger.start();
+        g.__backsilence_sightlog = activeSightingLogger;
+      }
+      stateMachine.goTo('PLAYING');
+      ui.navigateTo('GAME');
+      ui.getHud().show();
+    } finally {
+      isStartingGame = false;
     }
-    stateMachine.goTo('PLAYING');
-    ui.navigateTo('GAME');
-    ui.getHud().show();
   });
 
   bus.on('game:start:net' as unknown as 'game:start', (rawCfg: unknown) => {
@@ -529,6 +546,12 @@ async function boot(): Promise<void> {
       activeGameSession = null;
       g.__backsilence_session = undefined;
     }
+    const canvases = canvasContainer.querySelectorAll('canvas');
+    canvases.forEach((c) => {
+      if (c !== labScene.renderer.canvas) {
+        c.remove();
+      }
+    });
     labScene.renderer.canvas.style.display = 'block';
   });
 

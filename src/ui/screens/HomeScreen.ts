@@ -80,7 +80,7 @@ export class HomeScreen {
 
         <!-- Center Hero Wordmark & High-Contrast Backdrop -->
         <div class="bs-contrast-panel" style="text-align: center; max-width: 840px; width: min(840px, 94vw); display: flex; flex-direction: column; align-items: center; pointer-events: auto; margin: auto 0; padding: clamp(24px, 5vw, 40px) clamp(20px, 5vw, 44px); border-radius: 8px;">
-          <svg id="hero-logo-svg" viewBox="0 0 460 70" style="width: min(520px, 85vw); height: auto; overflow: visible; filter: drop-shadow(0 0 20px rgba(0,0,0,0.95)) drop-shadow(0 0 16px rgba(134,207,160,0.4));">
+          <svg id="hero-logo-svg" viewBox="0 0 460 70" width="460" height="70" style="width: min(520px, 85vw); height: auto; display: block; overflow: visible; filter: drop-shadow(0 0 20px rgba(0,0,0,0.95)) drop-shadow(0 0 16px rgba(134,207,160,0.4));">
             <!-- Coded stroke-font wordmark for BACKSILENCE -->
             <text x="50%" y="54" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="52" fill="#F4F6F0" stroke="#000000" stroke-width="3" letter-spacing="8">
               BACKSILENCE

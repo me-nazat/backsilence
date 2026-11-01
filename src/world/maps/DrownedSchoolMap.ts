@@ -335,7 +335,7 @@ export const DrownedSchoolMap: MapDefinition = {
             id: 'monster_school_1',
             variant: 'standard' as const,
             spawn: monsterSpawn,
-            sleeperSpawn: { x: 14, y: -0.50, z: -16 },
+            sleeperSpawn: { x: 14, y: -0.50, z: 0 },
           },
         ],
       },

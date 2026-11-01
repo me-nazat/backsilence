@@ -5,7 +5,7 @@
  *  3. After reloadProceduralSkin() the body root remains a descendant of the scene.
  * ────────────────────────────────────────────────────────────────────────── */
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { Scene, Object3D } from 'three';
 import { PoolroomsMap } from '../src/world/maps/PoolroomsMap.js';
 import { UtilityTunnelsMap } from '../src/world/maps/UtilityTunnelsMap.js';
@@ -42,7 +42,10 @@ const MAPS: Record<MapId, MapDefinition> = {
 describe('Monster Spawn Integrity (Prompt 1)', () => {
   const mapIds = Object.keys(MAPS) as MapId[];
 
-  it('asserts every map monster spawn and sleeperSpawn resolve to a walkable NavGrid cell in SimWorld', () => {
+  it('asserts every map monster spawn and sleeperSpawn resolve to a walkable NavGrid cell in SimWorld with zero [SpawnRepair] warnings', () => {
+    const warnSpy = vi.spyOn(console, 'warn');
+    const errorSpy = vi.spyOn(console, 'error');
+
     for (const mapId of mapIds) {
       const def = MAPS[mapId];
       const seed = 42;
@@ -83,6 +86,72 @@ describe('Monster Spawn Integrity (Prompt 1)', () => {
         expect(compSize, `${mapId} monster ${brain.id} connected component must be > 0`).toBeGreaterThan(0);
       }
     }
+
+    const spawnRepairWarnings = warnSpy.mock.calls
+      .map((c) => c.join(' '))
+      .filter((msg) => msg.includes('[SpawnRepair]'));
+    const spawnRepairErrors = errorSpy.mock.calls
+      .map((c) => c.join(' '))
+      .filter((msg) => msg.includes('[SpawnRepair]'));
+
+    expect(spawnRepairWarnings, `Zero [SpawnRepair] warnings expected, got: ${spawnRepairWarnings.join('\n')}`).toHaveLength(0);
+    expect(spawnRepairErrors, `Zero [SpawnRepair] errors expected, got: ${spawnRepairErrors.join('\n')}`).toHaveLength(0);
+
+    warnSpy.mockRestore();
+    errorSpy.mockRestore();
+  });
+
+  it('asserts zero [SpawnRepair] warnings across 200 seeded runs', () => {
+    const warnSpy = vi.spyOn(console, 'warn');
+    const errorSpy = vi.spyOn(console, 'error');
+
+    for (let i = 0; i < 200; i++) {
+      const mapId = mapIds[i % mapIds.length]!;
+      const def = MAPS[mapId];
+      const seed = 1000 + i * 37;
+      const layout = def.generateLayout({ seed, difficulty: 'normal', playerCount: 1 });
+      const bounds = layout.bounds;
+      const ground = new GroundGrid(bounds, 0.25);
+      ground.fill(-0.9);
+
+      for (const p of layout.platforms) {
+        ground.setRectHeight(p.rect[0], p.rect[1], p.rect[2], p.rect[3], p.topY);
+      }
+
+      const colliders = new ColliderSet(4.0);
+      for (const w of layout.walls) {
+        colliders.addBox(w.id, w.min, w.max);
+      }
+
+      const simWorld = new SimWorld({
+        seed,
+        bounds,
+        playerSpawn: layout.spawns.player[0] ?? { x: 0, y: 0.3, z: 0 },
+        waterY: layout.waterBodies[0]?.waterY ?? 0.0,
+        difficulty: 'normal',
+        ground,
+        colliders,
+        mapId,
+      });
+      simWorld.finalizeTerrain();
+
+      for (const mDef of layout.spawns.monsters) {
+        simWorld.addMonster(mDef, seed);
+      }
+    }
+
+    const warnings = warnSpy.mock.calls
+      .map((c) => c.join(' '))
+      .filter((msg) => msg.includes('[SpawnRepair]'));
+    const errors = errorSpy.mock.calls
+      .map((c) => c.join(' '))
+      .filter((msg) => msg.includes('[SpawnRepair]'));
+
+    expect(warnings).toHaveLength(0);
+    expect(errors).toHaveLength(0);
+
+    warnSpy.mockRestore();
+    errorSpy.mockRestore();
   });
 
   it('asserts the natatorium spawn yaw faces the sleeper monster within 30° after opening turn', () => {

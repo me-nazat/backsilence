@@ -150,7 +150,9 @@ export class LeaderboardsScreen {
       this.currentMode = (e.target as HTMLSelectElement).value;
       void this.fetchAndRenderBoard();
     });
+  }
 
+  public refresh(): void {
     void this.fetchAndRenderBoard();
   }
 

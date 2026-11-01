@@ -779,6 +779,7 @@ export class UIManager {
         break;
       case 'LEADERBOARDS':
         showScreen(this.leaderboardsScreen.element, 'flex');
+        this.leaderboardsScreen.refresh();
         this.hud.hide();
         break;
       case 'CHAMPIONS':
@@ -872,6 +873,10 @@ export class UIManager {
       canvases.forEach((c) => {
         c.style.pointerEvents = isInGameplay ? 'auto' : 'none';
       });
+      const canvasContainer = document.getElementById('canvas-container');
+      if (canvasContainer) {
+        canvasContainer.style.pointerEvents = isInGameplay ? 'auto' : 'none';
+      }
     }
 
     const activeEl = this.getActiveScreenElement();
