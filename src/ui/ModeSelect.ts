@@ -7,7 +7,8 @@
 
 import type { MapId } from '../types/contracts.js';
 import { AudioEngine } from '../audio/AudioEngine.js';
-import { getMapPreviewLayout, FEATURED_MAP_IDS, ARCHIVE_MAP_IDS } from '../world/MapRegistry.js';
+import { FEATURED_MAP_IDS, ARCHIVE_MAP_IDS } from '../world/MapRegistry.js';
+import { renderMapThumbnailWithFallback } from '../world/MapThumbnails.js';
 import { loadProgress } from './ResultsScreen.js';
 
 export interface ModeSelectCallbacks {
@@ -285,17 +286,7 @@ export class ModeSelect {
     for (const m of currentMaps) {
       const canvas = this.el.querySelector(`#thumb-${m.id}`) as HTMLCanvasElement;
       if (!canvas) continue;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) continue;
-      const w = canvas.width;
-      const h = canvas.height;
-
-      void getMapPreviewLayout(m.id).then(({ def, layout }) => {
-        if (!ctx) return;
-        def.drawThumbnail(ctx, layout, w, h);
-      }).catch((err: unknown) => {
-        console.warn(`[ModeSelect] Thumbnail error for ${m.id}:`, err);
-      });
+      void renderMapThumbnailWithFallback(canvas, m.id, m.name, 2000);
     }
   }
 

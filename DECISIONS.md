@@ -1744,3 +1744,28 @@ After locking the reference pack in Prompt 1, the verification pipeline still ha
    - Added `tests/waterline-legibility.test.ts` measuring Michelson luminance contrast ($\ge 0.24$ vs threshold $\ge 0.12$) and hue contrast ($\ge 45^\circ$) across Low, Medium, and High tiers, monotonic wet tidemark darkening ($y \in [0.0, 0.22]$ m), and determinism.
    - Produced `reports/water/water_calibration.md` with before/after parameter comparisons, FFT spectral power table, and colour target probe deltas.
 
+## D126 — World-taught acoustic rule, enforced rulebook table, HUD restraint, and synchronous first paint (Prompt 8)
+
+**Date:** 2026-11-02
+**Changes:**
+1. **Acoustic Contract & Freeze Rule (`src/sim/AcousticBus.ts`, `src/sim/MonsterAI.ts`, `tests/acoustic-table.test.ts`, `reports/ux/player_contract.md`):**
+   - Added public helper `emitRulebookNoise(key, pos, simTime, priority)` to `AcousticBus` implementing all 29 canonical noise actions from `ACOUSTIC_RULEBOOK.md`.
+   - Verified exact loudness and hearing radius across all 29 rows (`tests/acoustic-table.test.ts`).
+   - Enforced that dry platform locomotion emits zero water noise (`effectiveLoudness = 0`, `currentHearingRadius = 0`) and never alerts the monster (`MonsterAI` remains in `PATROL`).
+   - Enforced the in-water Freeze Rule: halting movement in water locks `AcousticBus.targetSoundPos` at the last splash coordinate without tracking live player position; blind predator navigates to the splash and searches without tracking motionless player.
+   - Produced `reports/ux/player_contract.md` with 29 rows citing exact `file:line` for every noise source, emitted loudness, hearing radius, and HUD consequence.
+2. **Diegetic In-World Teaching & Overlay Removal (`src/ui/Hud.ts`, `src/game/GameSession.ts`):**
+   - Verified the first playable frame in Natatorium spawns facing the tagline wall note (*"IT CAN'T SEE YOU. IT HEARS THE WATER."*) at ~2.4 m distance, eye height 1.65 m, camera yaw $\pi$, water visible at bottom edge (`f_001`–`f_003`).
+   - Removed `#hud-first-water-modal` and deleted `showFirstWaterNotice()` in favor of subtle in-world diegetic hints (*"Dry tiles are silent."*, *"Water is loud."*) constrained to the first 90 seconds of exploration (`timeSurvived <= 90`).
+   - Disconnected `#hud-throwable-hint` after first equip or throw (`dismissThrowableHint`) and synced with persistent storage.
+3. **HUD Restraint & Overlap Elimination (`src/ui/Hud.ts`, `src/game/objectives/ObjectiveDirector.ts`, `tests/hud-default-elements.test.ts`, `tests/hud-layout.test.ts`):**
+   - Reduced default gameplay view to at most three elements: the objective line (`#hud-objective-pill`), minimal noise meter (`#hud-noise-minimal`), and interaction prompt (`#hud-prompt`). All status chips, checklists, and inventory strips remain behind "Show more HUD".
+   - Added `beaconsEnabled: boolean` to `ObjectiveDirector` defaulting to `false` in `natatorium`. Verified 3D beacon meshes (`tokenMesh`, `pedGeo`, `auraMesh`, `PointLight`, `pingSonarMesh`) are not constructed when disabled (`root.children.length === 0`).
+   - Unified bottom-center elements into a non-overlapping vertical flex stack (`#hud-bottom-stack`: minimal noise meter $\to$ objective line $\to$ quiet hint).
+   - Added `tests/hud-layout.test.ts` verifying zero bounding box intersections across 4 key viewports: 390×844, 1080×1920, 1440×900, 2560×1440. Produced HUD boards report at `reports/ux/hud_boards.md`.
+4. **Data-Only Map Previews & Synchronous First Paint (`src/world/MapThumbnails.ts`, `src/ui/ModeSelect.ts`, `src/ui/screens/ProfileScreen.ts`, `tests/first-paint.test.ts`, `tests/mode-select-thumbnail.test.ts`):**
+   - Created data-only map metadata (`MAP_VISUAL_METAS`) and procedural placeholder renderer (`drawProceduralMapPlaceholder`) with zero Three.js imports.
+   - Added `renderMapThumbnailWithFallback()` racing map module imports against a 2000 ms timeout to prevent blank cards on slow or failed imports (`tests/mode-select-thumbnail.test.ts`).
+   - Refactored `ProfileScreen` to render its HTML shell synchronously in the constructor, decoupling first paint from async identity / crypto resolution. Added 2000 ms fallback to `"LOCAL IDENTITY UNAVAILABLE"`.
+   - Added `tests/first-paint.test.ts` verifying all 11 screens render non-empty `innerHTML` synchronously on construction, resolving pre-existing failure in `tests/ui-kit-components.test.ts:496`.
+

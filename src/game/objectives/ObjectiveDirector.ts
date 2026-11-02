@@ -38,12 +38,14 @@ export interface ObjectiveDirectorConfig {
   seed: number;
   hud: Hud;
   audio: AudioEngine;
+  beaconsEnabled?: boolean;
   onAdvanceEndlessSector?: (sectorIndex: number) => void;
   onAllObjectivesMet?: () => void;
 }
 
 export class ObjectiveDirector {
   readonly root = new Group();
+  public readonly beaconsEnabled: boolean;
   private waypoints: ObjectiveWaypoint[] = [];
   private hud: Hud;
   private audio: AudioEngine;
@@ -82,8 +84,11 @@ export class ObjectiveDirector {
     this.config = config;
     this.hud = config.hud;
     this.audio = config.audio;
+    this.beaconsEnabled = config.beaconsEnabled ?? (config.mapId !== 'natatorium');
     this.root.name = 'ObjectiveDirector';
-    this.initSonarMesh();
+    if (this.beaconsEnabled) {
+      this.initSonarMesh();
+    }
   }
 
   private initSonarMesh(): void {
@@ -103,6 +108,20 @@ export class ObjectiveDirector {
   }
 
   addKeyBeacon(pos: Vec3, label = 'Conductor Key'): ObjectiveWaypoint {
+    if (!this.beaconsEnabled) {
+      const wp: ObjectiveWaypoint = {
+        id: `key_${pos.x.toFixed(0)}_${pos.z.toFixed(0)}`,
+        kind: 'key',
+        pos,
+        label,
+        checklistText: 'Locate Conductor Key',
+        completed: false,
+        pulseTimer: 0,
+      };
+      this.waypoints.push(wp);
+      return wp;
+    }
+
     const group = new Group();
     group.position.set(pos.x, pos.y, pos.z);
 
@@ -158,6 +177,20 @@ export class ObjectiveDirector {
   }
 
   addTapeBeacon(pos: Vec3, index: number): ObjectiveWaypoint {
+    if (!this.beaconsEnabled) {
+      const wp: ObjectiveWaypoint = {
+        id: `tape_${index}`,
+        kind: 'tape',
+        pos,
+        label: `Archive Tape #${index}`,
+        checklistText: `Recover Archive Tape #${index}`,
+        completed: false,
+        pulseTimer: index * 0.4,
+      };
+      this.waypoints.push(wp);
+      return wp;
+    }
+
     const group = new Group();
     group.position.set(pos.x, pos.y, pos.z);
 
@@ -197,6 +230,20 @@ export class ObjectiveDirector {
   }
 
   addLeverStatusLight(pos: Vec3, leverIndex: number): ObjectiveWaypoint {
+    if (!this.beaconsEnabled) {
+      const wp: ObjectiveWaypoint = {
+        id: `lever_${leverIndex}`,
+        kind: 'lever',
+        pos,
+        label: `Track Switch Lever #${leverIndex}`,
+        checklistText: `Pull Track Lever #${leverIndex}`,
+        completed: false,
+        pulseTimer: 0,
+      };
+      this.waypoints.push(wp);
+      return wp;
+    }
+
     const group = new Group();
     group.position.set(pos.x, pos.y + 0.9, pos.z);
 
@@ -228,6 +275,20 @@ export class ObjectiveDirector {
   }
 
   addExitBeacon(pos: Vec3, label = 'Extraction Gate'): ObjectiveWaypoint {
+    if (!this.beaconsEnabled) {
+      const wp: ObjectiveWaypoint = {
+        id: `exit_${pos.x.toFixed(0)}_${pos.z.toFixed(0)}`,
+        kind: 'exit',
+        pos,
+        label,
+        checklistText: `Board ${label}`,
+        completed: false,
+        pulseTimer: 0,
+      };
+      this.waypoints.push(wp);
+      return wp;
+    }
+
     const group = new Group();
     group.position.set(pos.x, pos.y, pos.z);
 
@@ -261,6 +322,20 @@ export class ObjectiveDirector {
   }
 
   addEndlessFloodgateBeacon(pos: Vec3): ObjectiveWaypoint {
+    if (!this.beaconsEnabled) {
+      const wp: ObjectiveWaypoint = {
+        id: 'endless_floodgate',
+        kind: 'beacon',
+        pos,
+        label: 'Emergency Floodgate Ascent Lock',
+        checklistText: 'Reach Emergency Floodgate Beacon',
+        completed: false,
+        pulseTimer: 0,
+      };
+      this.waypoints.push(wp);
+      return wp;
+    }
+
     const group = new Group();
     group.position.set(pos.x, pos.y, pos.z);
 
@@ -301,6 +376,20 @@ export class ObjectiveDirector {
   }
 
   addCanisterBeacon(pos: Vec3, index: number): ObjectiveWaypoint {
+    if (!this.beaconsEnabled) {
+      const wp: ObjectiveWaypoint = {
+        id: `canister_${index}`,
+        kind: 'canister',
+        pos,
+        label: 'Acoustic Decoy Canister',
+        checklistText: 'Recover Decoy Canister',
+        completed: false,
+        pulseTimer: index * 0.5,
+      };
+      this.waypoints.push(wp);
+      return wp;
+    }
+
     const group = new Group();
     group.position.set(pos.x, pos.y, pos.z);
 
@@ -332,6 +421,20 @@ export class ObjectiveDirector {
   }
 
   addDataCacheBeacon(pos: Vec3, index: number): ObjectiveWaypoint {
+    if (!this.beaconsEnabled) {
+      const wp: ObjectiveWaypoint = {
+        id: `cache_${index}`,
+        kind: 'cache',
+        pos,
+        label: 'Archive Data Cache',
+        checklistText: 'Secure Archive Data Cache',
+        completed: false,
+        pulseTimer: index * 0.7,
+      };
+      this.waypoints.push(wp);
+      return wp;
+    }
+
     const group = new Group();
     group.position.set(pos.x, pos.y, pos.z);
 

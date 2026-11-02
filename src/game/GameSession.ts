@@ -2378,15 +2378,14 @@ export class GameSession {
       this.mapDef?.atmosphere?.fog?.density ?? 0.045,
     );
 
-    // 5c. Quiet in-world hints and first-run water notice
-    if (!this.isDead) {
-      if (!this.hasShownDryHint && !currSnap.wet && currSnap.onGround && this.timeSurvived <= 90) {
+    // 5c. Quiet in-world hints (first 90s only, small & diegetic, no modals)
+    if (!this.isDead && this.timeSurvived <= 90) {
+      if (!this.hasShownDryHint && !currSnap.wet && currSnap.onGround) {
         this.hasShownDryHint = true;
         this.hud.showQuietHint('Dry tiles are silent.', 3000);
       } else if (!this.hasShownWaterHintThisLevel && currSnap.wet) {
         this.hasShownWaterHintThisLevel = true;
         this.hud.showQuietHint('Water is loud.', 3000);
-        this.hud.showFirstWaterNotice();
       }
 
       // Natatorium opening: subtle hint to turn from the tagline wall towards the flooded hall
@@ -3109,6 +3108,7 @@ export class GameSession {
       },
       onDryHit: (pos) => {
         this.audio.play('pebble_clack', { position: pos, gain: 0.6 });
+        this.simWorld.acousticBus.emitRulebookNoise('PEBBLE_DRY_STONE', pos, this.simWorld.simTime);
       },
       isPlatformAt: (x, z) => (this.simWorld.monsterNav ? this.simWorld.monsterNav.isPlatformAt(x, z) : false),
       acousticBus: this.simWorld.acousticBus,

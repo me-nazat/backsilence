@@ -674,6 +674,56 @@ export class AcousticBus {
     });
   }
 
+  /**
+   * Emits an acoustic event for any rulebook noise action by its constant key.
+   * Authoritative implementation obeying ACOUSTIC_RULEBOOK.md.
+   */
+  emitRulebookNoise(
+    key: keyof typeof RULEBOOK_CONSTANTS | (typeof RULEBOOK_NOISE_TABLE)[number]['key'],
+    pos: Vec3,
+    simTime: number,
+    priority = 6,
+  ): AcousticEvent {
+    let loudness = (RULEBOOK_CONSTANTS as Record<string, number>)[key];
+    if (loudness === undefined) {
+      const match = RULEBOOK_NOISE_TABLE.find((e) => e.key === key);
+      loudness = match ? match.loudness : 0;
+    }
+    let kind: AcousticSoundKind = 'WORLD_MECHANISM';
+    let source: 'player' | 'stone' | 'world' = 'world';
+
+    if (key === 'PEBBLE_WATER') {
+      kind = 'THROWN_STONE_SPLASH';
+      source = 'stone';
+    } else if (key === 'MANTLE_WATER_EDGE') {
+      kind = 'MANTLE';
+      source = 'player';
+    } else if (
+      key === 'JUMP_OR_DIVE_WATER' ||
+      key === 'CROUCH_WADE_WATER' ||
+      key === 'WADE_WALK_WATER' ||
+      key === 'WADE_SPRINT_WATER'
+    ) {
+      kind = 'WATER_SPLASH';
+      source = 'player';
+    } else if (key === 'PERCH_LANDING_CREAK' || key === 'PERCH_LANDING_HARD') {
+      kind = 'CREAK';
+      source = 'player';
+    } else if (key === 'DRY_PLATFORM_LOCOMOTION' || key === 'STANDING_STILL_ANY') {
+      kind = 'FOOTFALL_DRY';
+      source = 'player';
+    }
+
+    return this.emitSound({
+      kind,
+      pos: { x: pos.x, y: pos.y, z: pos.z },
+      loudness,
+      priority,
+      simTime,
+      source,
+    });
+  }
+
   private emitSound(params: {
     kind: AcousticSoundKind;
     pos: Vec3;
@@ -693,8 +743,10 @@ export class AcousticBus {
       source: params.source,
     };
 
-    // Update the locked target coordinate for the monster
-    this.lastSoundTarget = { x: params.pos.x, y: params.pos.y, z: params.pos.z };
+    // Update the locked target coordinate for the monster only if sound is audible
+    if (params.loudness > 0) {
+      this.lastSoundTarget = { x: params.pos.x, y: params.pos.y, z: params.pos.z };
+    }
 
     // Broadcast to subscribers
     for (let i = 0; i < this.listeners.length; i++) {

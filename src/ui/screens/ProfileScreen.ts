@@ -7,6 +7,10 @@
  *  - Cosmetics wardrobe with 3D avatar preview
  *  - Cryptographic Recovery Code export / import modal
  *  - "Claim Name" registration
+ *
+ *  Prompt 8 (D126): Never gate first paint on an async crypto or storage call.
+ *  The shell renders 100% synchronously on instantiation; the identity
+ *  resolves in the background with a 2s timeout fallback.
  * ──────────────────────────────────────────────────────────────────────── */
 
 import {
@@ -23,7 +27,7 @@ import { RatingSystem } from '../../meta/RatingElo.js';
 import { calculateLevelFromXp } from '../../meta/Progression.js';
 import { ACHIEVEMENTS } from '../../meta/Achievements.js';
 import { COSMETIC_CATALOG } from '../../meta/Cosmetics.js';
-import { IdentityManager } from '../../meta/Identity.js';
+import { IdentityManager, type IdentityProfile } from '../../meta/Identity.js';
 
 export interface ProfileCallbacks {
   onBack: () => void;
@@ -31,6 +35,12 @@ export interface ProfileCallbacks {
 
 export class ProfileScreen {
   readonly element: HTMLElement;
+  private identity: IdentityProfile = {
+    playerId: 'LOCAL-OPERATOR',
+    name: 'FIELD OPERATOR',
+    tag: '0000',
+    publicKeyJwk: '',
+  };
 
   constructor(private callbacks: ProfileCallbacks) {
     this.element = document.createElement('div');
@@ -49,14 +59,17 @@ export class ProfileScreen {
       box-sizing: border-box;
     `;
 
-    void this.render();
+    // 1. Synchronous First Paint (Prompt 8 D126)
+    this.renderSync();
+
+    // 2. Background Async Identity Resolution with 2s timeout fallback
+    void this.loadIdentityWithTimeout();
   }
 
-  private async render(): Promise<void> {
+  private renderSync(): void {
     const profile = ProfileStore.load();
     const levelInfo = calculateLevelFromXp(profile.xp);
     const tier = RatingSystem.getTier(profile.silenceRating);
-    const identity = await IdentityManager.getIdentity();
 
     let emblemName: 'whisper' | 'echo' | 'current' | 'depth' | 'phantom' = 'whisper';
     if (tier.includes('Echo')) emblemName = 'echo';
@@ -64,11 +77,11 @@ export class ProfileScreen {
     else if (tier.includes('Depth')) emblemName = 'depth';
     else if (tier.includes('Phantom')) emblemName = 'phantom';
 
-    const isAuthenticated = Boolean(identity.email);
+    const isAuthenticated = Boolean(this.identity.email);
     const statusBadgeHtml = isAuthenticated
       ? `<span id="account-status-badge" style="display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 3px; background: rgba(74, 222, 128, 0.12); border: 1px solid rgba(74, 222, 128, 0.4); color: #4ade80; font-family: var(--bs-font-mono); font-size: 11px; letter-spacing: 0.05em;">
            <span style="width: 7px; height: 7px; border-radius: 50%; background: #4ade80; display: inline-block; box-shadow: 0 0 6px #4ade80;"></span>
-           VERIFIED ACCOUNT // ${identity.email}
+           VERIFIED ACCOUNT // ${this.identity.email}
          </span>`
       : `<span id="account-status-badge" style="display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 3px; background: rgba(217, 155, 38, 0.12); border: 1px solid rgba(217, 155, 38, 0.4); color: var(--bs-amber, #d99b26); font-family: var(--bs-font-mono); font-size: 11px; letter-spacing: 0.05em;">
            UNREGISTERED FIELD OPERATOR (LOCAL ONLY)
@@ -88,8 +101,8 @@ export class ProfileScreen {
             <h1 style="font-family: var(--bs-font-mono); font-size: var(--bs-text-2xl); color: var(--bs-cream); margin: 0; letter-spacing: 0.08em;">
               OPERATOR DOSSIER // SERVICE RECORD
             </h1>
-            <div style="font-family: var(--bs-font-mono); font-size: var(--bs-text-xs); color: var(--bs-tan); margin-top: 4px;">
-              CRYPTOGRAPHIC IDENTITY: ${identity.playerId}
+            <div id="operator-identity-id" style="font-family: var(--bs-font-mono); font-size: var(--bs-text-xs); color: var(--bs-tan); margin-top: 4px;">
+              CRYPTOGRAPHIC IDENTITY: ${this.identity.playerId}
             </div>
           </div>
           <div id="btn-back-wrap"></div>
@@ -102,8 +115,8 @@ export class ProfileScreen {
               <div>${renderRankEmblem(emblemName, 64)}</div>
               <div>
                 <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-                  <h2 style="font-family: var(--bs-font-mono); font-size: var(--bs-text-xl); color: var(--bs-cream); margin: 0;">
-                    ${identity.name}<span style="opacity: 0.5;">#${identity.tag}</span>
+                  <h2 id="operator-name-tag" style="font-family: var(--bs-font-mono); font-size: var(--bs-text-xl); color: var(--bs-cream); margin: 0;">
+                    ${this.identity.name}<span style="opacity: 0.5;">#${this.identity.tag}</span>
                   </h2>
                   <span id="btn-rename-wrap">
                     <button id="btn-claim-name" class="bs-btn bs-btn-ghost" style="padding: 2px 8px; min-height: 24px; font-size: 11px;">RENAME</button>
@@ -119,7 +132,7 @@ export class ProfileScreen {
                 </div>
               </div>
             </div>
-            <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
+            <div id="primary-account-actions-wrap" style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
               ${primaryAccountActionsHtml}
             </div>
           </div>
@@ -203,7 +216,7 @@ export class ProfileScreen {
           }
           ProfileStore.save(profile);
           Toast.show(`Equipped: ${cos.name}`, 'success');
-          void this.render();
+          this.renderSync();
         },
       });
       wardrobeGrid.appendChild(tile.element);
@@ -222,9 +235,13 @@ export class ProfileScreen {
       achGrid.appendChild(card.element);
     });
 
+    this.bindActionEvents();
+  }
+
+  private bindActionEvents(): void {
     // Official Email & Password Account Handlers
     this.element.querySelector('#btn-create-account')?.addEventListener('click', () => {
-      this.openCreateAccountModal(identity.name);
+      this.openCreateAccountModal(this.identity.name);
     });
 
     this.element.querySelector('#btn-sign-in')?.addEventListener('click', () => {
@@ -248,7 +265,8 @@ export class ProfileScreen {
       void (async () => {
         await IdentityManager.logoutAccount();
         Toast.show('Signed out. Switched to local field operator profile.', 'info');
-        void this.render();
+        this.renderSync();
+        void this.loadIdentityWithTimeout();
       })();
     });
 
@@ -314,7 +332,8 @@ export class ProfileScreen {
             await IdentityManager.importRecoveryCode(code, pass);
             Toast.show('Identity restored successfully!', 'success');
             modal.close();
-            void this.render();
+            this.renderSync();
+            void this.loadIdentityWithTimeout();
           } catch {
             Toast.show('Invalid recovery code or wrong passphrase.', 'danger');
           }
@@ -325,18 +344,73 @@ export class ProfileScreen {
     // Rename Handler
     this.element.querySelector('#btn-claim-name')?.addEventListener('click', () => {
       void (async () => {
-        const newName = prompt('Enter new operator name (3–16 letters):', identity.name);
+        const newName = prompt('Enter new operator name (3–16 letters):', this.identity.name);
         if (newName && newName.trim().length >= 3) {
           try {
             await IdentityManager.rename(newName.trim());
             Toast.show(`Name updated to ${newName.trim()}!`, 'success');
-            void this.render();
+            this.renderSync();
+            void this.loadIdentityWithTimeout();
           } catch {
             Toast.show('Could not update name on remote registry.', 'warning');
           }
         }
       })();
     });
+  }
+
+  private async loadIdentityWithTimeout(): Promise<void> {
+    const timeoutPromise = new Promise<null>((resolve) => setTimeout(() => resolve(null), 2000));
+    try {
+      const resolved = await Promise.race([IdentityManager.getIdentity(), timeoutPromise]);
+      if (!resolved) {
+        // Timed out after 2s: update badge to local identity unavailable
+        const badge = this.element.querySelector('#account-status-badge');
+        if (badge) {
+          badge.outerHTML = `<span id="account-status-badge" style="display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 3px; background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.4); color: #f87171; font-family: var(--bs-font-mono); font-size: 11px; letter-spacing: 0.05em;">
+             LOCAL IDENTITY UNAVAILABLE
+           </span>`;
+        }
+        return;
+      }
+
+      this.identity = resolved;
+      // Update DOM with resolved identity
+      const idEl = this.element.querySelector('#operator-identity-id');
+      if (idEl) idEl.textContent = `CRYPTOGRAPHIC IDENTITY: ${resolved.playerId}`;
+
+      const nameEl = this.element.querySelector('#operator-name-tag');
+      if (nameEl) nameEl.innerHTML = `${resolved.name}<span style="opacity: 0.5;">#${resolved.tag}</span>`;
+
+      const badge = this.element.querySelector('#account-status-badge');
+      if (badge) {
+        badge.outerHTML = resolved.email
+          ? `<span id="account-status-badge" style="display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 3px; background: rgba(74, 222, 128, 0.12); border: 1px solid rgba(74, 222, 128, 0.4); color: #4ade80; font-family: var(--bs-font-mono); font-size: 11px; letter-spacing: 0.05em;">
+               <span style="width: 7px; height: 7px; border-radius: 50%; background: #4ade80; display: inline-block; box-shadow: 0 0 6px #4ade80;"></span>
+               VERIFIED ACCOUNT // ${resolved.email}
+             </span>`
+          : `<span id="account-status-badge" style="display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 3px; background: rgba(217, 155, 38, 0.12); border: 1px solid rgba(217, 155, 38, 0.4); color: var(--bs-amber, #d99b26); font-family: var(--bs-font-mono); font-size: 11px; letter-spacing: 0.05em;">
+               UNREGISTERED FIELD OPERATOR (LOCAL ONLY)
+             </span>`;
+      }
+
+      const actionsWrap = this.element.querySelector('#primary-account-actions-wrap');
+      if (actionsWrap) {
+        actionsWrap.innerHTML = resolved.email
+          ? `<button id="btn-sync-now" class="bs-btn bs-btn-primary">SYNC NOW</button>
+             <button id="btn-sign-out" class="bs-btn bs-btn-ghost">SIGN OUT</button>`
+          : `<button id="btn-create-account" class="bs-btn bs-btn-primary">CREATE ACCOUNT (EMAIL)</button>
+             <button id="btn-sign-in" class="bs-btn bs-btn-ghost" style="border-color: var(--bs-border);">SIGN IN</button>`;
+        this.bindActionEvents();
+      }
+    } catch {
+      const badge = this.element.querySelector('#account-status-badge');
+      if (badge) {
+        badge.outerHTML = `<span id="account-status-badge" style="display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 3px; background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.4); color: #f87171; font-family: var(--bs-font-mono); font-size: 11px; letter-spacing: 0.05em;">
+           LOCAL IDENTITY UNAVAILABLE
+         </span>`;
+      }
+    }
   }
 
   private openCreateAccountModal(defaultCallsign: string): void {
@@ -426,7 +500,8 @@ export class ProfileScreen {
           await IdentityManager.syncProfileNow(currentProfile);
           Toast.show('Official Operator Account created & synced.', 'success');
           modal.close();
-          void this.render();
+          this.renderSync();
+          void this.loadIdentityWithTimeout();
         } catch (err: unknown) {
           const msg = err instanceof Error ? err.message : 'Failed to create account.';
           showError(msg);
@@ -497,7 +572,8 @@ export class ProfileScreen {
           }
           Toast.show(`Welcome back, ${restoredIdentity.name}. Service record restored.`, 'success');
           modal.close();
-          void this.render();
+          this.renderSync();
+          void this.loadIdentityWithTimeout();
         } catch (err: unknown) {
           const msg = err instanceof Error ? err.message : 'Invalid email or password';
           showError(msg);

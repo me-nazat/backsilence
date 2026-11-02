@@ -120,9 +120,17 @@ export class MonsterAI {
 
   /**
    * Handle incoming acoustic events from AcousticBus.
+   * Silent events (loudness <= 0) are completely ignored.
    */
   onAcousticEvent(ev: AcousticEvent): void {
-    if (ev.kind === 'WATER_SPLASH' || ev.kind === 'THROWN_STONE_SPLASH') {
+    if (ev.loudness <= 0) return;
+    if (
+      ev.kind === 'WATER_SPLASH' ||
+      ev.kind === 'THROWN_STONE_SPLASH' ||
+      ev.kind === 'WORLD_MECHANISM' ||
+      ev.kind === 'CREAK' ||
+      ev.kind === 'MANTLE'
+    ) {
       this.originalSoundPos = { x: ev.pos.x, y: ev.pos.y, z: ev.pos.z };
       const snapTarget = this.nav.snapTargetPos(ev.pos.x, ev.pos.z);
       this.targetSoundPos = { x: snapTarget.x, y: ev.pos.y, z: snapTarget.z };

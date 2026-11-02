@@ -150,6 +150,10 @@ export class Hud {
   private minimalNoiseFillEl: HTMLElement | null = null;
   private quietHintEl: HTMLElement | null = null;
   private quietHintTimeout: ReturnType<typeof setTimeout> | null = null;
+  private objectivePillEl: HTMLElement | null = null;
+  private objectivePillTextEl: HTMLElement | null = null;
+  private bottomStackEl: HTMLElement | null = null;
+  private throwableHintEl: HTMLElement | null = null;
   private showMoreHud = false;
   private cinematic = false;
   private streamerMode = false;
@@ -211,6 +215,14 @@ export class Hud {
 
   getReticleElement(): HTMLElement | null {
     return this.reticleEl;
+  }
+
+  getBottomStackElement(): HTMLElement | null {
+    return this.bottomStackEl;
+  }
+
+  getObjectivePillElement(): HTMLElement | null {
+    return this.objectivePillEl;
   }
 
   getHotbarElement(): HTMLElement | null {
@@ -337,34 +349,6 @@ export class Hud {
     }, durationMs + 1500);
   }
 
-  showFirstWaterNotice(): void {
-    if (!this.el) return;
-    if (typeof localStorage !== 'undefined' && localStorage.getItem('backsilence_first_water_notice')) {
-      return;
-    }
-    const modal = this.el.querySelector<HTMLElement>('#hud-first-water-modal');
-    if (!modal) return;
-    modal.style.display = 'block';
-
-    const dismiss = () => {
-      modal.style.display = 'none';
-      if (typeof localStorage !== 'undefined') {
-        localStorage.setItem('backsilence_first_water_notice', 'true');
-      }
-      window.removeEventListener('keydown', onKey);
-    };
-
-    const onKey = (e: KeyboardEvent) => {
-      if (e.code === 'Space' || e.code === 'Escape' || e.code === 'Enter') {
-        dismiss();
-      }
-    };
-
-    window.addEventListener('keydown', onKey, { once: true });
-    const btn = modal.querySelector('#btn-dismiss-first-water');
-    btn?.addEventListener('click', dismiss, { once: true });
-  }
-
   hideQuietHint(): void {
     if (this.quietHintTimeout !== null) {
       clearTimeout(this.quietHintTimeout);
@@ -373,6 +357,19 @@ export class Hud {
     if (this.quietHintEl) {
       this.quietHintEl.style.opacity = '0';
       this.quietHintEl.style.display = 'none';
+    }
+  }
+
+  dismissThrowableHint(): void {
+    if (this.throwableHintEl) {
+      this.throwableHintEl.style.display = 'none';
+    }
+    if (typeof localStorage !== 'undefined') {
+      try {
+        localStorage.setItem('backsilence_throwable_hint_used', 'true');
+      } catch {
+        /* ignore */
+      }
     }
   }
 
@@ -517,6 +514,11 @@ export class Hud {
           display: none !important;
         }
 
+        .bs-hud.show-more-hud #hud-objective-pill {
+          display: none !important;
+        }
+
+        .bs-hud.cinematic #hud-bottom-stack,
         .bs-hud.cinematic #hud-noise-minimal {
           display: none !important;
         }
@@ -1232,64 +1234,90 @@ export class Hud {
         max-width: min(85vw, 360px);
       "></div>
 
-      <!-- Minimal Noise Indicator (220x6 px with numeric radius readout) -->
-      <div id="hud-noise-minimal" style="
+      <!-- Bottom-Center Unified Vertical Stack (Non-Overlapping Flex Column) -->
+      <div id="hud-bottom-stack" style="
         position: absolute;
         bottom: max(16px, env(safe-area-inset-bottom, 16px));
         left: 50%;
         transform: translateX(-50%);
         display: flex;
+        flex-direction: column-reverse;
         align-items: center;
-        gap: 10px;
+        gap: 8px;
         pointer-events: none;
         z-index: 60;
+        width: max-content;
+        max-width: min(92vw, 560px);
       ">
-        <div style="
-          width: 220px;
-          height: 6px;
-          background: rgba(238, 222, 194, 0.18);
-          border-radius: 3px;
-          overflow: hidden;
-          box-shadow: 0 1px 4px rgba(0,0,0,0.5);
+        <!-- Minimal Noise Indicator (220x6 px with numeric radius readout) -->
+        <div id="hud-noise-minimal" style="
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          pointer-events: none;
         ">
-          <div id="hud-noise-minimal-fill" style="
-            width: 0%;
-            height: 100%;
-            background: #eedec2;
+          <div style="
+            width: 220px;
+            height: 6px;
+            background: rgba(238, 222, 194, 0.18);
             border-radius: 3px;
-            transition: width 0.08s ease-out, background-color 0.15s;
-          "></div>
+            overflow: hidden;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.5);
+          ">
+            <div id="hud-noise-minimal-fill" style="
+              width: 0%;
+              height: 100%;
+              background: #eedec2;
+              border-radius: 3px;
+              transition: width 0.08s ease-out, background-color 0.15s;
+            "></div>
+          </div>
+          <span id="hud-noise-minimal-radius" style="
+            font-size: 11px;
+            font-weight: bold;
+            font-family: monospace;
+            color: rgba(238, 222, 194, 0.9);
+            letter-spacing: 0.05em;
+            white-space: nowrap;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+          ">RADIUS ~0m</span>
         </div>
-        <span id="hud-noise-minimal-radius" style="
-          font-size: 11px;
-          font-weight: bold;
-          font-family: monospace;
-          color: rgba(238, 222, 194, 0.9);
+
+        <!-- Minimal Objective Line Pill -->
+        <div id="hud-objective-pill" style="
+          font-size: 12px;
+          color: var(--fog, #d9d3a2);
+          background: rgba(8, 6, 3, 0.85);
+          border: 1px solid rgba(217, 211, 162, 0.22);
+          padding: 4px 12px;
+          border-radius: 12px;
           letter-spacing: 0.05em;
           white-space: nowrap;
-          text-shadow: 0 1px 3px rgba(0,0,0,0.8);
-        ">RADIUS ~0m</span>
-      </div>
+          max-width: min(90vw, 520px);
+          overflow: hidden;
+          text-overflow: ellipsis;
+          text-align: center;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.6);
+        ">
+          <span id="hud-objective-text">Find the numbered pillars. Avoid making splashes.</span>
+        </div>
 
-      <!-- Quiet In-World Hint -->
-      <div id="hud-quiet-hint" style="
-        position: absolute;
-        bottom: max(32px, env(safe-area-inset-bottom, 32px));
-        left: 50%;
-        transform: translateX(-50%);
-        font-family: var(--bs-font-mono, monospace);
-        font-size: 13px;
-        color: rgba(242, 236, 220, 0.92);
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
-        pointer-events: none;
-        opacity: 0;
-        transition: opacity 1.5s ease;
-        text-align: center;
-        white-space: nowrap;
-        text-shadow: 0 2px 8px rgba(0,0,0,0.85);
-        z-index: 50;
-      "></div>
+        <!-- Quiet In-World Hint -->
+        <div id="hud-quiet-hint" style="
+          font-family: var(--bs-font-mono, monospace);
+          font-size: 12px;
+          color: rgba(242, 236, 220, 0.92);
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
+          pointer-events: none;
+          opacity: 0;
+          display: none;
+          transition: opacity 1.5s ease;
+          text-align: center;
+          white-space: nowrap;
+          text-shadow: 0 2px 8px rgba(0,0,0,0.85);
+        "></div>
+      </div>
 
       <!-- Persistent Ping Control Hint -->
       <div id="hud-ping-hint" style="
@@ -1307,58 +1335,6 @@ export class Hud {
         pointer-events: none;
         z-index: 20;
       ">[V] MARK LOCATION</div>
-
-      <!-- First-Run Water Mechanics Overlay -->
-      <div id="hud-first-water-modal" style="
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background: rgba(13, 11, 6, 0.96);
-        border: 2px solid #5b4526;
-        border-radius: 6px;
-        padding: 20px 28px;
-        max-width: 440px;
-        text-align: center;
-        box-shadow: 0 8px 32px rgba(0,0,0,0.85);
-        display: none;
-        z-index: 500;
-        pointer-events: auto;
-      ">
-        <div style="font-size: 11px; letter-spacing: 0.15em; color: var(--danger, #b3261e); font-weight: bold; margin-bottom: 8px;">
-          CRITICAL ACOUSTIC ADVISORY
-        </div>
-        <div style="font-size: 15px; font-weight: bold; color: var(--fog, #d9d3a2); letter-spacing: 0.08em; line-height: 1.4; margin-bottom: 14px;">
-          THE CREATURE IS BLIND.<br/>IT HUNTS BY SOUND.<br/><span style="color: var(--water, #86cfa0);">MOVE ON DRY TILE.</span>
-        </div>
-        <svg width="280" height="60" viewBox="0 0 280 60" style="margin: 0 auto 12px; display: block;">
-          <rect x="10" y="25" width="80" height="20" fill="#3d2f18" stroke="#86cfa0" stroke-width="1.5" rx="2"/>
-          <text x="50" y="39" fill="#86cfa0" font-size="10" font-family="monospace" text-anchor="middle" font-weight="bold">DRY TILE</text>
-          <text x="50" y="55" fill="#86cfa0" font-size="9" font-family="monospace" text-anchor="middle">SILENT</text>
-
-          <rect x="110" y="25" width="80" height="20" fill="#1b2a22" stroke="#00e5ff" stroke-width="1.5" rx="2"/>
-          <text x="150" y="39" fill="#00e5ff" font-size="10" font-family="monospace" text-anchor="middle" font-weight="bold">WATER</text>
-          <path d="M195 28 Q205 35 195 42 M202 24 Q215 35 202 46 M209 20 Q225 35 209 50" fill="none" stroke="#ff1744" stroke-width="1.5"/>
-          <text x="150" y="55" fill="#ff5252" font-size="9" font-family="monospace" text-anchor="middle">LOUD SPLASH</text>
-
-          <circle cx="250" cy="35" r="14" fill="#200" stroke="#ff1744" stroke-width="1.5"/>
-          <path d="M246 27 C254 27 256 35 250 42" fill="none" stroke="#ff5252" stroke-width="2"/>
-          <text x="250" y="55" fill="#ff5252" font-size="9" font-family="monospace" text-anchor="middle">HUNTS</text>
-        </svg>
-        <div style="font-size: 11px; color: var(--fog, #d9d3a2); opacity: 0.7; margin-bottom: 14px;">
-          Press [SPACE] or click below to dismiss
-        </div>
-        <button id="btn-dismiss-first-water" class="analog-btn" style="
-          background: #3d2f18;
-          border: 1px solid #86cfa0;
-          color: #86cfa0;
-          padding: 6px 20px;
-          font-family: monospace;
-          font-size: 12px;
-          cursor: pointer;
-          border-radius: 2px;
-        ">UNDERSTOOD</button>
-      </div>
 
       <!-- Debug Sighting Line (only visible with ?debug=1) -->
       <div id="hud-debug-sighting" style="
@@ -1404,6 +1380,9 @@ export class Hud {
     this.debugSightingEl = el.querySelector('#hud-debug-sighting');
     this.nearMissEl = el.querySelector('#hud-near-miss');
     this.pointerLockHintEl = el.querySelector('#hud-pointer-lock-hint');
+    this.bottomStackEl = el.querySelector('#hud-bottom-stack');
+    this.objectivePillEl = el.querySelector('#hud-objective-pill');
+    this.objectivePillTextEl = el.querySelector('#hud-objective-text');
     this.minimalNoiseFillEl = el.querySelector('#hud-noise-minimal-fill');
     this.minimalNoiseRadiusEl = el.querySelector('#hud-noise-minimal-radius');
     this.compassArcEl = el.querySelector('#hud-compass-arc');
@@ -1453,6 +1432,16 @@ export class Hud {
     this.reticleEl = el.querySelector('#hud-reticle');
     this.checkpointSavedEl = el.querySelector('#hud-checkpoint-saved');
     this.throwableHotbarEl = el.querySelector('#hud-throwable-hotbar');
+    this.throwableHintEl = el.querySelector('#hud-throwable-hint');
+    if (typeof localStorage !== 'undefined') {
+      try {
+        if (localStorage.getItem('backsilence_throwable_hint_used')) {
+          if (this.throwableHintEl) this.throwableHintEl.style.display = 'none';
+        }
+      } catch {
+        /* ignore */
+      }
+    }
     this.pebbleCountEl = el.querySelector('#hud-pebble-count');
     this.slot1El = el.querySelector('#hud-slot-1');
     this.sectorToastEl = el.querySelector('#hud-sector-toast');
@@ -1594,8 +1583,13 @@ export class Hud {
     }
 
     // 4. Objective with Risk Tag & Screen Reader Announcement
-    if (this.objectiveEl && data.objective) {
-      this.objectiveEl.textContent = data.objective;
+    if (data.objective) {
+      if (this.objectiveEl) {
+        this.objectiveEl.textContent = data.objective;
+      }
+      if (this.objectivePillTextEl) {
+        this.objectivePillTextEl.textContent = data.objective;
+      }
 
       if (this.riskTagEl) {
         let tag = data.riskTag;
@@ -2127,6 +2121,9 @@ export class Hud {
     if (data.pebbleEquipped !== undefined && this.slot1El) {
       this.slot1El.style.borderColor = data.pebbleEquipped ? '#00e5ff' : 'rgba(255, 255, 255, 0.6)';
       this.slot1El.style.boxShadow = data.pebbleEquipped ? '0 0 10px rgba(0, 229, 255, 0.6)' : '0 2px 10px rgba(0,0,0,0.5)';
+      if (data.pebbleEquipped) {
+        this.dismissThrowableHint();
+      }
     }
     if (data.checkpointSaved) {
       this.showCheckpointSaved();
