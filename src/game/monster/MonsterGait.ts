@@ -35,7 +35,7 @@ export class MonsterGaitGenerator {
     rootPos: Vector3,
     rootYaw: number,
     ground: GroundGrid,
-    onPlant?: (pos: Vector3, force: number) => void,
+    onPlant?: (pos: Vector3, force: number, isFoot?: boolean) => void,
   ): void {
     const isSprint = speed > 4.0;
     const clampedSpeed = Math.min(14.0, speed);
@@ -75,16 +75,16 @@ export class MonsterGaitGenerator {
       // Check plants (heavy splash plumes on every high-speed claw plant)
       const armPlanted = armLift < 0.04;
       if (armPlanted && !this.wasPlantedHL && onPlant) {
-        onPlant(this.handL.pos, splashForce);
-        onPlant(this.handR.pos, splashForce);
+        onPlant(this.handL.pos, splashForce, false);
+        onPlant(this.handR.pos, splashForce, false);
       }
       this.wasPlantedHL = armPlanted;
       this.wasPlantedHR = armPlanted;
 
       const legPlanted = legLift < 0.04;
       if (legPlanted && !this.wasPlantedFL && onPlant) {
-        onPlant(this.footL.pos, splashForce);
-        onPlant(this.footR.pos, splashForce);
+        onPlant(this.footL.pos, splashForce, true);
+        onPlant(this.footR.pos, splashForce, true);
       }
       this.wasPlantedFL = legPlanted;
       this.wasPlantedFR = legPlanted;
@@ -109,10 +109,10 @@ export class MonsterGaitGenerator {
       const fwdFR = Math.cos(phaseL * Math.PI * 2) * 0.35;
       this.updateLimb(this.footR, rootPos, fwdX, fwdZ, rightX, rightZ, -0.35, -0.5 + fwdFR, liftFR, ground);
 
-      if (liftHL < 0.03 && !this.wasPlantedHL && onPlant) onPlant(this.handL.pos, 0.5);
-      if (liftHR < 0.03 && !this.wasPlantedHR && onPlant) onPlant(this.handR.pos, 0.5);
-      if (liftFL < 0.03 && !this.wasPlantedFL && onPlant) onPlant(this.footL.pos, 0.45);
-      if (liftFR < 0.03 && !this.wasPlantedFR && onPlant) onPlant(this.footR.pos, 0.45);
+      if (liftHL < 0.03 && !this.wasPlantedHL && onPlant) onPlant(this.handL.pos, 0.5, false);
+      if (liftHR < 0.03 && !this.wasPlantedHR && onPlant) onPlant(this.handR.pos, 0.5, false);
+      if (liftFL < 0.03 && !this.wasPlantedFL && onPlant) onPlant(this.footL.pos, 0.45, true);
+      if (liftFR < 0.03 && !this.wasPlantedFR && onPlant) onPlant(this.footR.pos, 0.45, true);
 
       this.wasPlantedHL = liftHL < 0.03;
       this.wasPlantedHR = liftHR < 0.03;

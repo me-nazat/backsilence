@@ -506,8 +506,8 @@ export class EncounterDirector {
       return;
     }
 
-    // Sighting telegraph (2-4s before scheduled sighting)
-    if (!this.sightingTelegraphTriggered && this.simTime >= this.nextSightingTargetTime - 3.0) {
+    // Sighting telegraph (Prompt 4C: 1–2s before scheduled sighting, wet footfall + low resonance)
+    if (!this.sightingTelegraphTriggered && this.simTime >= this.nextSightingTargetTime - 1.5) {
       this.sightingTelegraphTriggered = true;
       const yaw = primaryTarget.yaw ?? 0;
       const side = this.rng.next() < 0.5 ? 1 : -1;

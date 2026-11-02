@@ -49,6 +49,8 @@ export interface MonsterAISnapshot {
 export class MonsterAI {
   // Speeds
   static readonly SPEED_PATROL = 2.6;
+  static readonly SPEED_STALK = 2.4; // Prompt 4C: wading stalk speed 2.2–2.6 m/s
+  static readonly SPEED_TERMINAL_LUNGE = 7.2; // Prompt 4C: 7.2 m/s terminal lunge within <= 4m
   static readonly SPEED_CHARGE = 11.5;
   static readonly SPEED_RETREAT = 3.4;
 

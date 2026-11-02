@@ -128,17 +128,16 @@ describe('Phase B: Monster Loader & Presentation Hardening', () => {
     });
   });
 
-  describe('3. Depth Placement & Shoulder Clearance', () => {
-    it('raises root y on deep pools so shoulders clear water surface by at least 0.35m', () => {
+  describe('3. Depth Placement & Grounded Wading (Prompt 4A)', () => {
+    it('grounds root y on the pool floor so torso sits in water while wading and rises when rearing or on shallow ground', () => {
       const body = new MonsterBody('test_deep_pool_monster');
-      // Create ground grid with a deep trench (-2.5m)
       const ground = new GroundGrid({ minX: -20, maxX: 20, minZ: -20, maxZ: 20 }, 1.0);
-      ground.fill(-2.5);
+      ground.fill(-0.9);
       const camera = new PerspectiveCamera(60, 1, 0.1, 100);
 
       const snapshot: MonsterSnapshot = {
         id: 'test_deep_pool_monster',
-        pos: { x: 0, y: -2.5, z: 0 },
+        pos: { x: 0, y: -0.9, z: 0 },
         vel: { x: 0, y: 0, z: 0 },
         yaw: 0,
         state: 'WANDER',
@@ -154,12 +153,16 @@ describe('Phase B: Monster Loader & Presentation Hardening', () => {
 
       body.update(0.016, snapshot, ground, camera);
 
-      // Hunched shoulder height is 1.4m. At water level 0.0, shoulder must be >= +0.35m.
-      // Therefore root y must be >= -1.05m.
+      // Grounded on pool floor (-0.9m): rootY === -0.9m, hunched shoulder (1.4m) is at +0.50m above waterline (0.0m)
       const rootY = body.mesh.root.position.y;
       const shoulderY = rootY + 1.40;
+      expect(rootY).toBeCloseTo(-0.9, 3);
       expect(shoulderY).toBeGreaterThanOrEqual(0.35);
-      expect(rootY).toBeGreaterThanOrEqual(-1.05);
+
+      // Rearing lifts torso higher out of water
+      snapshot.rearingT = 1.0;
+      body.update(0.016, snapshot, ground, camera);
+      expect(body.mesh.root.position.y).toBeGreaterThan(rootY + 0.30);
     });
   });
 

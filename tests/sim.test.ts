@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { PlayerMotor, type PlayerIntent } from '../src/sim/PlayerMotor.js';
 import { GroundGrid } from '../src/sim/GroundGrid.js';
+import { NavGrid } from '../src/sim/NavGrid.js';
 import { ColliderSet, BoxCollider } from '../src/sim/Colliders.js';
 import { AStarPathfinder } from '../src/sim/AStar.js';
 import { canHearNoise, calculateEffectiveRadius, type HearingContext } from '../src/sim/Hearing.js';
@@ -632,6 +633,157 @@ describe('MonsterBrain State Machine & Determinism', () => {
     expect(brain.state).toBe('ATTACK');
     expect(killedAt).toBeGreaterThan(0);
     expect(killedAt).toBeLessThanOrEqual(1.85);
+  });
+
+  it('Prompt 4C: 2.0m and 2.4m trenches block the creature and trigger lip-pacing, while a 3.0m gap is crossed', () => {
+    function buildTrenchWorld(gapWidthM: number) {
+      const bounds = { minX: -20, maxX: 20, minZ: -20, maxZ: 20 };
+      const ground = new GroundGrid(bounds, 0.25);
+      ground.fill(WATER_FLOOR_Y);
+      const halfGap = gapWidthM / 2;
+      // Two slabs spanning z in [-6, 6] separated by `gapWidthM` along X
+      ground.rasterizePlatform(-18, -6, -halfGap, 6, PLATFORM_TOP_Y);
+      ground.rasterizePlatform(halfGap, -6, 18, 6, PLATFORM_TOP_Y);
+      ground.computeDistanceTransform(0);
+      const nav = new NavGrid(ground, 0, 0.25);
+      const colliders = new ColliderSet(4);
+      const events = new EventRingBuffer(64);
+      return { ground, nav, colliders, events };
+    }
+
+    // 1. 2.0 m trench blocks the creature and triggers lip-pacing + forelimb reach + vocalisation
+    const w20 = buildTrenchWorld(2.0);
+    expect(w20.nav.isWalkableWorld(0, 0)).toBe(false);
+    const brain20 = new MonsterBrain(
+      { id: 'm_20', variant: 'standard', spawn: { x: 0, y: WATER_FLOOR_Y, z: 12 }, spawnGrace: 0 },
+      w20.nav,
+      101,
+    );
+    const ctx: HearingContext = { difficultyHearing: 1.0 };
+    const targetAcross = { x: 0, y: WATER_FLOOR_Y, z: -12 };
+    brain20.onNoiseEvent(
+      { id: 'n_20', kind: 'splash', position: targetAcross, loudness: 0.9, sourcePlayerId: 'p1', t: 0.1 },
+      w20.colliders,
+      ctx,
+      0.1,
+    );
+    let sawBlocked20 = false;
+    let maxSwipe20 = 0;
+    for (let i = 1; i <= 300; i++) {
+      const t = 0.1 + i / 60;
+      brain20.step(1 / 60, targetAcross, w20.nav, w20.colliders, w20.events, ctx, t, false, true, false);
+      if (brain20.state === 'BLOCKED') {
+        sawBlocked20 = true;
+        if (brain20.swipeT > maxSwipe20) maxSwipe20 = brain20.swipeT;
+      }
+      // Never crosses z < 6.0 through the 2.0m trench
+      expect(brain20.pos.z).toBeGreaterThan(5.5);
+    }
+    expect(sawBlocked20).toBe(true);
+    expect(brain20.lipPaceCount).toBeGreaterThanOrEqual(1);
+    expect(maxSwipe20).toBeGreaterThan(0.5);
+
+    // 2. 2.4 m trench (WORLD.MONSTER.TRENCH_BLOCK_WIDTH) blocks the creature
+    const w24 = buildTrenchWorld(2.4);
+    expect(w24.nav.isWalkableWorld(0, 0)).toBe(false);
+    const brain24 = new MonsterBrain(
+      { id: 'm_24', variant: 'standard', spawn: { x: 0, y: WATER_FLOOR_Y, z: 12 }, spawnGrace: 0 },
+      w24.nav,
+      102,
+    );
+    brain24.onNoiseEvent(
+      { id: 'n_24', kind: 'splash', position: targetAcross, loudness: 0.9, sourcePlayerId: 'p1', t: 0.1 },
+      w24.colliders,
+      ctx,
+      0.1,
+    );
+    let sawBlocked24 = false;
+    for (let i = 1; i <= 240; i++) {
+      const t = 0.1 + i / 60;
+      brain24.step(1 / 60, targetAcross, w24.nav, w24.colliders, w24.events, ctx, t, false, true, false);
+      if (brain24.state === 'BLOCKED') sawBlocked24 = true;
+      expect(brain24.pos.z).toBeGreaterThan(5.5);
+    }
+    expect(sawBlocked24).toBe(true);
+
+    // 3. 3.0 m gap is walkable and crossed by the creature
+    const w30 = buildTrenchWorld(3.0);
+    expect(w30.nav.isWalkableWorld(0, 0)).toBe(true);
+    const brain30 = new MonsterBrain(
+      { id: 'm_30', variant: 'standard', spawn: { x: 0, y: WATER_FLOOR_Y, z: 12 }, spawnGrace: 0 },
+      w30.nav,
+      103,
+    );
+    brain30.onNoiseEvent(
+      { id: 'n_30', kind: 'splash', position: targetAcross, loudness: 0.9, sourcePlayerId: 'p1', t: 0.1 },
+      w30.colliders,
+      ctx,
+      0.1,
+    );
+    for (let i = 1; i <= 240; i++) {
+      const t = 0.1 + i / 60;
+      brain30.step(1 / 60, targetAcross, w30.nav, w30.colliders, w30.events, ctx, t, false, true, false);
+    }
+    // Crossed through the 3.0m gap (z < -6.0)
+    expect(brain30.pos.z).toBeLessThan(-6.0);
+  });
+
+  it('Prompt 4C: a silent player at 6 m in INVESTIGATE is not attacked over 30 s of sim time', () => {
+    const world = createProvingGroundsSim();
+    const brain = new MonsterBrain(
+      {
+        id: 'm_silent_investigate',
+        variant: 'standard',
+        spawn: { x: -20, y: WATER_FLOOR_Y, z: -28 },
+        spawnGrace: 0,
+      },
+      world.nav,
+      404,
+    );
+    const ctx: HearingContext = { difficultyHearing: 1.0 };
+    const silentPlayerPos = { x: -14, y: WATER_FLOOR_Y, z: -28 }; // Exactly 6.0m from monster
+
+    // Place monster directly in INVESTIGATE sniffing around (-20, -28)
+    brain.forceState('INVESTIGATE', {
+      stateTimer: 1.8,
+      investigatePhase: 'sniff',
+      searchTimer: 3.5,
+    });
+
+    let damageEvents = 0;
+    let maxAbsHeadScanYaw = 0;
+    let returnedToWander = false;
+
+    // Step 30.0 seconds (1800 ticks at 60Hz) with player completely silent and still at 6m
+    for (let i = 1; i <= 1800; i++) {
+      const t = i / 60;
+      brain.step(
+        1 / 60,
+        silentPlayerPos,
+        world.nav,
+        world.colliders,
+        world.events,
+        ctx,
+        t,
+        false,
+        true,
+        false, // isPlayerMoving = false (silent)
+      );
+      expect(brain.state).not.toBe('ATTACK');
+      if (Math.abs(brain.headScanYaw) > maxAbsHeadScanYaw) {
+        maxAbsHeadScanYaw = Math.abs(brain.headScanYaw);
+      }
+      if (brain.state === 'WANDER') {
+        returnedToWander = true;
+      }
+      world.events.drain((ev) => {
+        if (ev.type === 'damage') damageEvents++;
+      });
+    }
+
+    expect(damageEvents).toBe(0);
+    expect(maxAbsHeadScanYaw).toBeGreaterThan(0.2);
+    expect(returnedToWander).toBe(true);
   });
 });
 

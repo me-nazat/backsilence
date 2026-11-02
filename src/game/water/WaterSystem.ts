@@ -337,6 +337,24 @@ export class WaterSystem {
     this.splashes.burst(pos, strength, isMonster);
   }
 
+  onInkSplash(
+    pos: { x: number; y: number; z: number },
+    strength = 1.0,
+    isFoot = true,
+  ): { inkDropletsSpawned: number; inkRingSpawned: boolean; whiteFoamRingSpawned: boolean } {
+    return this.splashes.spawnInkSplash(pos, strength, isFoot);
+  }
+
+  /**
+   * Diegetic water-surface ring around the player's last noise point when `?debug=1`
+   * or "Sound Vision" accessibility mode is enabled (Prompt 4C).
+   */
+  spawnSoundVisionRing(pos: { x: number; y: number; z: number }, hearingRadius: number): void {
+    const strength = Math.max(0.25, Math.min(1.5, hearingRadius / 20.0));
+    this.ripples.addRipple(pos.x, pos.z, strength * 0.45, performance.now() * 0.001);
+    this.waveSim.injectImpulse(pos.x, pos.z, 0.75, strength * 0.05);
+  }
+
   update(dt: number, time: number, camera: Camera, sceneFog?: FogExp2, isMovingInWater = false, playerPos?: Vector3): void {
     // 1. Camera-following grid snapping to avoid vertex swimming
     const snapX = Math.floor(camera.position.x / this.segStep) * this.segStep;

@@ -26,12 +26,14 @@ export interface JumpscareStats {
   closestCall: number;
   cause?: string;
   soundRadius?: number;
+  caughtInWater?: boolean;
 }
 
 export interface JumpscareCallbacks {
   onFreezeInput: () => void;
   setTimeScale: (scale: number) => void;
   onPostFXGlitch?: (amount: number) => void; // BATCH-4
+  onWaterDrainSplash?: (pos: Vector3, rate: number) => void;
   onDeath: (stats: JumpscareStats) => void;
 }
 
@@ -58,6 +60,10 @@ export class JumpscareSequence {
   private jumpscareLight: PointLight | null = null;
   private joints?: MonsterJoints | undefined;
   private monsterRig?: MonsterRig | undefined;
+  public headWaterRiseOffset = 0;
+  public waterDrainingRate = 0;
+  public armsSpreadWide = false;
+  private readonly headWorldPos = new Vector3();
 
   constructor(callbacks: JumpscareCallbacks, audio?: AudioEngine) {
     this.callbacks = callbacks;
@@ -100,6 +106,10 @@ export class JumpscareSequence {
     this.initialFov = camera.fov;
     this.joints = monsterJoints;
     this.monsterRig = monsterRig;
+    this.headWaterRiseOffset = 0;
+    this.waterDrainingRate = 0;
+    this.armsSpreadWide = true;
+    this.headWorldPos.copy(headPos);
 
     // 1. Freeze player input & hit-stop (0.25x time-scale for 0.25s)
     this.callbacks.onFreezeInput();
@@ -226,19 +236,38 @@ export class JumpscareSequence {
       }
       if (this.monsterRig) {
         this.monsterRig.setJawSplit(Math.min(0.65, 0.35 + stageT * 0.30));
-        // Hands framing the screen borders
-        this.monsterRig.shoulderL.rotation.set(-0.85, 0.25, 0.45);
-        this.monsterRig.elbowL.rotation.set(-0.65, 0, 0);
-        this.monsterRig.handL.rotation.set(-0.45, 0, 0.35);
+        // f_037: Arms spread wide against pale fog while torso and head fill lower frame
+        this.monsterRig.shoulderL.rotation.set(-0.55, 0.42, 0.82);
+        this.monsterRig.elbowL.rotation.set(-0.42, 0, 0.18);
+        this.monsterRig.handL.rotation.set(-0.35, 0, 0.45);
 
-        this.monsterRig.shoulderR.rotation.set(-0.85, -0.25, -0.45);
-        this.monsterRig.elbowR.rotation.set(-0.65, 0, 0);
-        this.monsterRig.handR.rotation.set(-0.45, 0, -0.35);
+        this.monsterRig.shoulderR.rotation.set(-0.55, -0.42, -0.82);
+        this.monsterRig.elbowR.rotation.set(-0.42, 0, -0.18);
+        this.monsterRig.handR.rotation.set(-0.35, 0, -0.45);
       }
 
       // Chromatic aberration / VHS tear spike via PostFX
       if (this.callbacks.onPostFXGlitch) {
         this.callbacks.onPostFXGlitch(1.0 - stageT * 0.25);
+      }
+    }
+
+    // -------------------------------------------------------------
+    // Prompt 4D (Third video 81 s final beat):
+    // When caught in water, the last 0.8 s is the creature's head rising out
+    // of the water directly in front of the lens with water draining off it.
+    // -------------------------------------------------------------
+    const riseWindowStart = Math.max(0.05, this.duration - 0.80);
+    if (this.stats.caughtInWater !== false && t >= riseWindowStart) {
+      const riseT = Math.min(1.0, (t - riseWindowStart) / 0.80);
+      const smoothRise = riseT * riseT * (3.0 - 2.0 * riseT);
+      this.headWaterRiseOffset = smoothRise * 0.42;
+      this.waterDrainingRate = Math.sin(riseT * Math.PI) * 1.35;
+      if (this.monsterRig) {
+        this.monsterRig.headGroup.position.y = 0.08 + this.headWaterRiseOffset;
+      }
+      if (this.callbacks.onWaterDrainSplash && this.waterDrainingRate > 0.1) {
+        this.callbacks.onWaterDrainSplash(this.headWorldPos, this.waterDrainingRate);
       }
     }
 

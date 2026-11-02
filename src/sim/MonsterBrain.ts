@@ -45,6 +45,8 @@ export interface MonsterSnapshot {
   targetPos: Vec3 | null;
   path: readonly PathPoint[];
   isSighting?: boolean;
+  headScanYaw?: number;
+  lipPaceCount?: number;
 }
 
 export interface MonsterNetState {
@@ -68,7 +70,9 @@ export class MonsterBrain {
 
   // Speeds
   static readonly SPEED_WANDER = 3.2;
-  static readonly SPEED_INVESTIGATE = 5.2;
+  static readonly SPEED_STALK = 2.4; // Prompt 4C: wading stalk speed 2.2–2.6 m/s
+  static readonly SPEED_INVESTIGATE = 2.4; // Prompt 4C: slow stalk/search crawl 2.2–2.6 m/s
+  static readonly SPEED_TERMINAL_LUNGE = 7.2; // Prompt 4C: 7.2 m/s terminal lunge within <= 4m
   static readonly SPEED_HUNT = 10.4;
   static readonly SPEED_APEX_SPRINT = 13.8;
   static readonly TURN_RATE_WANDER = 7.5; // rad/s
@@ -117,6 +121,11 @@ export class MonsterBrain {
   rearingT = 0; // 0..1
   swipeT = 0; // 0..1
   earAngle = 0;
+  headScanYaw = 0;
+  lipPaceCount = 0;
+  private lipPacePoints: PathPoint[] = [];
+  private lipPaceIdx = 0;
+  private lipVocalized = false;
 
   private readonly rng: Rng;
 
@@ -226,6 +235,8 @@ export class MonsterBrain {
       targetPos: this.currentTarget ? { ...this.currentTarget } : null,
       path: this.currentPath,
       isSighting: this.isSighting,
+      headScanYaw: this.headScanYaw,
+      lipPaceCount: this.lipPaceCount,
     };
   }
 
@@ -476,7 +487,7 @@ export class MonsterBrain {
         this.stepHunt(dt, nav, hearingCtx, events, simTime, playerPos, isPlayerInWater, isPlayerPerched, isPlayerMoving);
         break;
       case 'INVESTIGATE':
-        this.stepInvestigate(dt, nav, events, simTime);
+        this.stepInvestigate(dt, nav, events, simTime, playerPos, isPlayerMoving);
         break;
       case 'BLOCKED':
         this.stepBlocked(dt, nav, events, simTime);
@@ -796,38 +807,60 @@ export class MonsterBrain {
     this.jawOpenT = 0;
   }
 
-  private stepInvestigate(dt: number, nav: NavGrid, events: EventRingBuffer, simTime: number): void {
+  private stepInvestigate(
+    dt: number,
+    nav: NavGrid,
+    events: EventRingBuffer,
+    simTime: number,
+    playerPos?: Vec3,
+    isPlayerMoving = false,
+  ): void {
     this.rearingT = 0; // head low, listening
     this.jawOpenT = Math.max(0, this.jawOpenT - dt * 2.0);
+    // Prompt 4C: Sniff/scan headYaw sweep visible to the player when silent
+    this.headScanYaw = dSin((this.stateTimer + this.searchTimer) * 3.4) * 0.65;
+    this.earAngle = this.yaw + this.headScanYaw;
+
     if (this.investigatePhase === 'sniff') {
       this.vel.x = 0;
       this.vel.z = 0;
       this.stateTimer -= dt;
       if (this.stateTimer <= 0) {
         this.investigatePhase = 'search';
-        this.pickSearchWaypoint(nav);
+        this.pickSearchWaypoint(nav, !isPlayerMoving ? playerPos : undefined);
       }
     } else {
-      // Slow search crawl around splash point (~5m radius); if silence continues, lose interest & return to PATROL/WANDER
+      // Slow search crawl around splash point at stalk speed (2.4 m/s); if silence continues, lose interest & return to WANDER
       this.searchTimer -= dt;
       if (this.searchTimer <= 0) {
-        this.enterWander(nav);
+        this.headScanYaw = 0;
+        this.enterWander(nav, playerPos);
         return;
       }
-      const speed = MonsterBrain.SPEED_INVESTIGATE * this.speedMul;
-      this.followPath(dt, speed, MonsterBrain.TURN_RATE_WANDER, nav, events, simTime);
+      const speed = MonsterBrain.SPEED_STALK * this.speedMul;
+      // Avoid accidentally stepping into a silent stationary player during blind search crawl
+      if (!isPlayerMoving && playerPos) {
+        const dSilent = dHypot(playerPos.x - this.pos.x, playerPos.z - this.pos.z);
+        if (dSilent < 2.2) {
+          this.pickSearchWaypoint(nav, playerPos);
+        }
+      }
+      this.followPath(dt, speed, MonsterBrain.TURN_RATE_WANDER, nav, events, simTime, !isPlayerMoving ? playerPos : undefined);
       if (this.currentPathIndex >= this.currentPath.length) {
-        this.pickSearchWaypoint(nav);
+        this.pickSearchWaypoint(nav, !isPlayerMoving ? playerPos : undefined);
       }
     }
   }
 
-  private pickSearchWaypoint(nav: NavGrid): void {
+  private pickSearchWaypoint(nav: NavGrid, silentPlayerPos?: Vec3): void {
     const origin = this.currentTarget ?? this.pos;
     const myComponent = nav.getComponentWorld(this.pos.x, this.pos.z);
-    for (let attempts = 0; attempts < 16; attempts++) {
+    for (let attempts = 0; attempts < 24; attempts++) {
       const rx = origin.x + this.rng.range(-5, 5);
       const rz = origin.z + this.rng.range(-5, 5);
+      if (silentPlayerPos && dHypot(rx - silentPlayerPos.x, rz - silentPlayerPos.z) < 2.4) {
+        continue;
+      }
       if (nav.isWalkableWorld(rx, rz) && nav.getComponentWorld(rx, rz) === myComponent) {
         this.currentPath = this.astar.findPath(this.pos.x, this.pos.z, rx, rz);
         this.currentPathIndex = 0;
@@ -838,7 +871,10 @@ export class MonsterBrain {
 
   private enterBlocked(nav: NavGrid): void {
     this.state = 'BLOCKED';
-    this.stateTimer = 8.0; // pace along edge for 6–10s
+    this.stateTimer = 8.0; // pace along opposite trench lip for 6–10s
+    this.lipPacePoints = [];
+    this.lipPaceIdx = 0;
+    this.lipVocalized = false;
 
     if (this.currentTarget) {
       const myComponent = nav.getComponentWorld(this.pos.x, this.pos.z);
@@ -846,16 +882,51 @@ export class MonsterBrain {
       if (nearest) {
         this.currentPath = this.astar.findPath(this.pos.x, this.pos.z, nearest.x, nearest.z);
         this.currentPathIndex = 0;
+
+        // Build lateral lip-pacing points perpendicular to the vector toward the blocked target
+        const toTargetX = this.currentTarget.x - nearest.x;
+        const toTargetZ = this.currentTarget.z - nearest.z;
+        const len = dHypot(toTargetX, toTargetZ) || 1.0;
+        const latX = -toTargetZ / len;
+        const latZ = toTargetX / len;
+
+        for (const offset of [2.0, -2.0, 1.2, -1.2]) {
+          const px = nearest.x + latX * offset;
+          const pz = nearest.z + latZ * offset;
+          const snap = nav.findNearestCellInComponent(px, pz, myComponent, 3.0);
+          if (snap) {
+            this.lipPacePoints.push({ x: snap.x, z: snap.z });
+          }
+        }
       }
     }
   }
 
   private stepBlocked(dt: number, nav: NavGrid, events: EventRingBuffer, simTime: number): void {
-    const speed = MonsterBrain.SPEED_WANDER * this.speedMul;
+    const speed = MonsterBrain.SPEED_STALK * this.speedMul;
     this.followPath(dt, speed, MonsterBrain.TURN_RATE_WANDER, nav, events, simTime);
+
+    // Prompt 4C (`f_035`/`f_036`): When blocked by a <= 2.4m trench, pace along opposite lip,
+    // reach across with a forelimb (`swipeT`), and vocalise!
+    this.swipeT = 0.65 + 0.35 * Math.abs(dSin(this.stateTimer * 3.5));
+    this.jawOpenT = 0.55;
+    if (!this.lipVocalized) {
+      this.lipVocalized = true;
+      events.pushNoise(`noise_blocked_roar_${this.id}_${simTime}`, 'roar', this.pos.x, this.pos.y, this.pos.z, 0.85, this.id, simTime);
+    }
+
+    if (this.currentPathIndex >= this.currentPath.length && this.lipPacePoints.length > 0) {
+      const nextPt = this.lipPacePoints[this.lipPaceIdx % this.lipPacePoints.length]!;
+      this.lipPaceIdx++;
+      this.lipPaceCount++;
+      const seg = this.astar.findPath(this.pos.x, this.pos.z, nextPt.x, nextPt.z);
+      this.currentPath = seg.length > 0 ? seg : [nextPt];
+      this.currentPathIndex = 0;
+    }
 
     this.stateTimer -= dt;
     if (this.stateTimer <= 0) {
+      this.swipeT = 0;
       this.enterInvestigate();
     }
   }

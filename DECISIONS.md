@@ -1668,6 +1668,31 @@ After locking the reference pack in Prompt 1, the verification pipeline still ha
 
 **Reason:** Aligns the creature's silhouette, anatomy, posture, and hide shaders with the reference footage (`f_010`, `f_018`, `f_021`, `f_037`) while adding physically grounded subsurface scattering and distance readability without orange-head or black-body artifacts.
 
+### D122: Grounded Waterline Placement, Viscous Ink/Foam Displacement, and Sound-First Readable Stalking (Batch 2/5 Prompt 4)
+**Date:** 2026-11-02
+**Context:**
+1. `MonsterBody.ts:258` previously applied a `minRootY` floating hack (`waterLevel + 1.25 - 1.40`) that lifted the creature's root off the pool floor in deep water instead of grounding it in the water column.
+2. `Splashes.ts` used a generic `#2c3a38` droplet burst rather than the viscous dark ink splash (`#1e1a14` with 4–6 droplet arcs + radial ring at hands and feet) paired with a short-lived white foam ring at the feet only (`f_010`, `f_018`).
+3. `MonsterBrain.ts` investigated at `5.2 m/s` and stopped once reaching a blocked trench lip rather than stalking at `2.2–2.6 m/s` (`2.4 m/s`) and pacing back and forth along blocked `≤ 2.4 m` trench lips with forelimb reach and vocalisation (`f_035`/`f_036`).
+4. `Jumpscare.ts` lacked the wide-arm spread of `f_037` and the third video's `81 s` final `0.8 s` beat where the creature's head rises out of the water in front of the lens with water draining off it.
+
+**Choice:**
+1. **Grounded Water Placement & Wave Displacement (`src/game/monster/MonsterBody.ts`, `src/game/monster/MonsterGait.ts`, `tests/monster-waterline.test.ts`):**
+   - Removed the `minRootY` floating clamp so the creature stands directly on the pool floor (`finalRootY = groundY + rearingLift`), with the waterline intersecting its torso at `0.45 m`, `0.75 m`, and `1.05 m` water depths and rising only when rearing or stepping onto shallow ground.
+   - Injected `GpuWaveSimulation` impulses (`waveSim.injectImpulse`) and trailing torso wakes (`wakes.addWake`) on every submerged limb plant.
+2. **Viscous Dark Ink & Foot-Only White Foam (`src/game/water/Splashes.ts`, `src/game/water/WaterSystem.ts`):**
+   - Added `SplashSystem.spawnInkSplash` (`WaterSystem.onInkSplash`) spawning `4–6` viscous dark droplet arcs (`#1e1a14`) and a spreading radial dark ink ring at both hands and feet, paired with a small, short-lived white foam ring (`#e8f2e6`, `maxRadius = 0.32 m`, `maxAge = 0.38 s`) at the feet only (`isFoot === true`), and suppressed all wakes/splashes when `isOnDryPlatform === true`.
+3. **Sound-First Approach, Lip-Pacing & Silence Fairness (`src/sim/Director.ts`, `src/sim/MonsterBrain.ts`, `src/sim/MonsterAI.ts`, `tests/sim.test.ts`):**
+   - Scheduled `sighting_telegraph` `1.5 s` (`1–2 s`) before `10–15 m` sightline crossings (`f_008` -> `f_010`–`f_012`).
+   - Set wading stalk/search speed to `SPEED_STALK = 2.4 m/s` (`2.2–2.6 m/s`) and `SPEED_TERMINAL_LUNGE = 7.2 m/s` (`≤ 4 m`).
+   - Updated `enterBlocked` and `stepBlocked` so trenches `≤ 2.4 m` (`WORLD.MONSTER.TRENCH_BLOCK_WIDTH`) trigger lateral pacing waypoints along the opposite trench lip (`lipPaceCount >= 1`), forelimb reaching (`swipeT > 0.5`), and vocalisation while `3.0 m` gaps are crossed.
+   - Added visible `headScanYaw` sniffing sweeps in `INVESTIGATE` and verified a silent player at `6 m` in `INVESTIGATE` is never attacked over `30 s` of sim time, plus `WaterSystem.spawnSoundVisionRing` for `?debug=1` / Sound Vision mode.
+4. **Jump-Scare Framing & Final Water-Rise Beat (`src/game/monster/Jumpscare.ts`, `tests/monster-phase-d.test.ts`, `reports/monster/approach_contract.md`):**
+   - Framed `f_037` with wide-spread forelimbs (`|shoulder.rotation.z| = 0.82 rad`) against pale fog and added the final `0.8 s` head rise out of water (`headWaterRiseOffset = 0.42 m`) with draining water droplets (`waterDrainingRate`).
+
+**Reason:** Grounds the creature physically in the water column with reference-accurate ink/foam displacement (`f_010`, `f_018`), sound-first readable stalking (`f_008`–`f_024`), trench lip-pacing (`f_035`/`f_036`), and the `f_037` + `81 s` jump-scare sequence.
+
+
 
 
 

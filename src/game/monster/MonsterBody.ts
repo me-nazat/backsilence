@@ -84,18 +84,20 @@ export class MonsterBody {
 
     this.animator = new MonsterAnimator(this.rig, {
       onForelimbSlam: (pos: Vector3, force: number) => {
-        if (this.water) {
+        if (this.water && !this.isOnDryPlatform) {
           this.water.rippleManager?.spawnMonsterGallopSlam(pos.x, pos.z);
-          this.water.onSplash(pos, force, true);
+          this.water.waveSim.injectImpulse(pos.x, pos.z, 0.65, force * 0.12);
+          this.water.onInkSplash(pos, force, false);
         }
         if (this.audio) {
           this.audio.play('monster_footfall', { position: pos, gain: force * 1.0 });
         }
       },
       onRearUpSplash: (pos: Vector3) => {
-        if (this.water) {
+        if (this.water && !this.isOnDryPlatform) {
           this.water.rippleManager?.spawnMonsterGallopSlam(pos.x, pos.z);
-          this.water.onSplash(pos, 1.25, true);
+          this.water.waveSim.injectImpulse(pos.x, pos.z, 0.85, 0.18);
+          this.water.onInkSplash(pos, 1.25, true);
         }
       },
     });
@@ -115,17 +117,36 @@ export class MonsterBody {
   };
   private plantCount = 0;
   private attackTimer = 0;
+  public isOnDryPlatform = false;
+  public lastPlantWaveDisplaced = false;
 
-  private readonly onGaitPlant = (plantPos: Vector3, force: number): void => {
-    // Plant callback: spawn ripple, splash, and audio footfall
-    if (this.water) {
+  private readonly onGaitPlant = (plantPos: Vector3, force: number, isFoot = true): void => {
+    // Prompt 4B: When the creature is on a dry platform, neither wake nor splash spawns.
+    if (this.water && !this.isOnDryPlatform) {
       this.rippleEvent.position.x = plantPos.x;
-      this.rippleEvent.position.y = 0;
+      this.rippleEvent.position.y = this.water.currentWaterY;
       this.rippleEvent.position.z = plantPos.z;
-      this.rippleEvent.strength = force * 0.8;
+      this.rippleEvent.strength = force * 0.85;
       this.rippleEvent.t = performance.now() * 0.001;
       this.water.onRipple(this.rippleEvent);
-      this.water.onSplash(plantPos, force, true);
+      // Prompt 4A: Displace water at foot/hand world (x, z) via GPU wave simulation
+      this.water.waveSim.injectImpulse(plantPos.x, plantPos.z, 0.65, force * 0.12);
+      // Prompt 4B: Dark viscous ink splash at hands/feet + white foam ring at feet only
+      this.water.onInkSplash(plantPos, force, isFoot);
+      // Trailing wake behind the torso
+      const fwdX = Math.sin(this.currentYaw);
+      const fwdZ = -Math.cos(this.currentYaw);
+      this.water.wakes.addWake(
+        this.mesh.root.position.x - fwdX * 0.35,
+        this.mesh.root.position.z - fwdZ * 0.35,
+        fwdX,
+        fwdZ,
+        Math.max(0.8, force * 2.5),
+        0.65,
+        0.95,
+        3.8,
+      );
+      this.lastPlantWaveDisplaced = true;
     }
     if (this.audio) {
       this.footfallAudioOpts.position.copy(plantPos);
@@ -133,12 +154,14 @@ export class MonsterBody {
       this.audio.play('monster_footfall', this.footfallAudioOpts);
 
       // Prompt 3.13: Wire monster_wade every 4th plant so the creature audibly wades
-      this.plantCount = (this.plantCount + 1) % 4;
-      if (this.plantCount === 0) {
-        this.audio.play('monster_wade', {
-          position: plantPos,
-          gain: force * 0.85,
-        });
+      if (!this.isOnDryPlatform) {
+        this.plantCount = (this.plantCount + 1) % 4;
+        if (this.plantCount === 0) {
+          this.audio.play('monster_wade', {
+            position: plantPos,
+            gain: force * 0.85,
+          });
+        }
       }
     }
   };
@@ -246,17 +269,19 @@ export class MonsterBody {
 
     const joints = this.mesh.joints;
 
-    // 1. Depth placement: root y follows GroundGrid.heightAt and sits so shoulders clear water by >= 0.35m
+    // 1. Grounded depth placement (Prompt 4A): creature stands on the pool floor;
+    //    torso sits at or below chest height in the water when wading, and rises
+    //    only when rearing or stepping onto a shallow area.
     const rawGroundY = ground.heightAt(snapshot.pos.x, snapshot.pos.z);
     const groundY = Number.isFinite(rawGroundY) ? rawGroundY : -0.9;
     const waterLevel = this.water ? this.water.currentWaterY : 0.0;
     this.mesh.setWaterLevel(waterLevel);
     this.rig.setWaterLevel(waterLevel);
-    
-    // Standing wade pose: torso + head sit >= 1.2m above waterline
-    const isWadeStand = snapshot.isSighting || ((snapshot.state === 'WANDER' || snapshot.state === 'DORMANT') && rawGroundY < waterLevel);
-    const minRootY = isWadeStand ? (waterLevel + 1.25 - 1.40) : (waterLevel + 0.35 - 1.40);
-    const finalRootY = Math.max(groundY, minRootY);
+
+    this.isOnDryPlatform = groundY >= waterLevel + 0.05;
+    const isWadeStand = false;
+    const rearingLift = Math.max(0, snapshot.rearingT ?? 0) * 0.35;
+    const finalRootY = groundY + rearingLift;
 
     const finalPosX = snapshot.pos.x;
     const finalPosZ = snapshot.pos.z;
@@ -287,14 +312,14 @@ export class MonsterBody {
     this.lastGoodPos.copy(this.mesh.root.position);
     this.lastGoodYaw = this.currentYaw;
 
-    // Concentric white water ripple rings and splash droplets while monster wades (Prompt 4B)
-    if (this.water && speed > 0.3 && finalRootY < waterLevel + 0.6) {
+    // Concentric water ripple rings and viscous ink splashes while monster wades (Prompt 4A/4B)
+    if (this.water && !this.isOnDryPlatform && speed > 0.3 && finalRootY < waterLevel + 0.05) {
       this.wakeTimer += dt;
       const strideInterval = speed > 3.5 ? 0.18 : 0.35;
       if (this.wakeTimer >= strideInterval) {
         this.wakeTimer = 0.0;
         this.water.rippleManager?.spawnMonsterStride(finalPosX, finalPosZ);
-        this.water.onSplash(this.mesh.root.position, Math.min(1.0, speed * 0.2), true);
+        this.water.onInkSplash(this.mesh.root.position, Math.min(1.0, speed * 0.22), true);
       }
     } else {
       this.wakeTimer = 0.0;
@@ -445,9 +470,9 @@ export class MonsterBody {
       joints.head.rotation.z = 0.0;
     }
 
-    // 8c. V-wake and ripple trail emission when moving in water (Prompt 7.8: 0.6 / 0.9 / 3.6)
+    // 8c. V-wake and ripple trail emission when moving in water (Prompt 4A/4B: zero wake/splash on dry platform)
     const isAttackingTelegraph = snapshot.state === 'ATTACK' && this.attackTimer < 0.8;
-    if (this.water && speed > 0.25 && !isAttackingTelegraph) {
+    if (this.water && !this.isOnDryPlatform && speed > 0.25 && !isAttackingTelegraph) {
       this.wakeTimer += dt;
       const isFast = speed > 1.8 || snapshot.state === 'ATTACK' || snapshot.state === 'HUNT';
       const wakeInterval = isFast ? 0.09 : 0.15;
@@ -471,10 +496,10 @@ export class MonsterBody {
         this.rippleEvent.t = performance.now() * 0.001;
         this.water.onRipple(this.rippleEvent);
 
-        // Emit dynamic water splashes when charging/sprinting
+        // Emit dynamic ink splashes when charging/sprinting
         if (isFast) {
           _tempMid.set(snapshot.pos.x, waterLevel, snapshot.pos.z);
-          this.water.onSplash(_tempMid, Math.min(1.0, speed * 0.22), true);
+          this.water.onInkSplash(_tempMid, Math.min(1.0, speed * 0.22), true);
           this.water.rippleManager?.spawnMonsterStride(snapshot.pos.x, snapshot.pos.z);
         }
       }

@@ -48,6 +48,7 @@ export interface FoamRing {
   maxRadius: number;
   age: number;
   maxAge: number;
+  isInk?: boolean;
 }
 
 export interface CrownSplash {
@@ -92,7 +93,11 @@ export class SplashSystem {
 
   private readonly dummy = new Object3D();
   private readonly defaultDropletColor = new Color('#dcefe4');
-  private readonly monsterDropletColor = new Color('#2c3a38'); // 30% ink tinted
+  private readonly monsterDropletColor = new Color('#1e1a14'); // Viscous dark ink (#1e1a14, f_010 / f_018)
+  private readonly whiteFoamRingColor = new Color('#e8f2e6');
+  private readonly inkRingColor = new Color('#1e1a14');
+  public lastInkSplashCount = 0;
+  public lastWhiteFoamFootCount = 0;
 
   private dropletHead = 0;
   private ringHead = 0;
@@ -186,9 +191,15 @@ export class SplashSystem {
         attribute float instanceAlpha;
         varying vec2 vUv;
         varying float vAlpha;
+        varying vec3 vColor;
         void main() {
           vUv = uv;
           vAlpha = instanceAlpha;
+          #ifdef USE_INSTANCING_COLOR
+            vColor = instanceColor;
+          #else
+            vColor = vec3(0.91, 0.95, 0.90);
+          #endif
           vec4 mvPosition = modelViewMatrix * instanceMatrix * vec4(position, 1.0);
           gl_Position = projectionMatrix * mvPosition;
         }
@@ -196,10 +207,9 @@ export class SplashSystem {
       fragmentShader: /* glsl */ `
         varying vec2 vUv;
         varying float vAlpha;
+        varying vec3 vColor;
         void main() {
-          // Soft '#e8f2e6' olive-water foam tint
-          vec3 col = vec3(0.91, 0.95, 0.90);
-          gl_FragColor = vec4(col, vAlpha * 0.7);
+          gl_FragColor = vec4(vColor, vAlpha * 0.78);
         }
       `,
       transparent: true,
@@ -221,13 +231,16 @@ export class SplashSystem {
         maxRadius: 1.8,
         age: 0,
         maxAge: 1.2,
+        isInk: false,
       };
       this.dummy.position.set(0, -100, 0);
       this.dummy.scale.set(0, 0, 0);
       this.dummy.updateMatrix();
       this.ringMesh.setMatrixAt(i, this.dummy.matrix);
+      this.ringMesh.setColorAt(i, this.whiteFoamRingColor);
       this.ringAlphaAttr.setX(i, 0);
     }
+    if (this.ringMesh.instanceColor) this.ringMesh.instanceColor.setUsage(DynamicDrawUsage);
     this.ringMesh.instanceMatrix.needsUpdate = true;
     this.ringAlphaAttr.needsUpdate = true;
     parent.add(this.ringMesh);
@@ -349,13 +362,103 @@ export class SplashSystem {
     parent.add(this.flashMesh);
   }
 
+  /**
+   * Prompt 4B (`f_010`, `f_018`): Spawns a dark, viscous `ink` splash variant (`#1e1a14`
+   * with low roughness, spreading radial ring + 4–6 dark droplet arcs) at the creature's
+   * hands and feet on contact with water, paired with a small, short-lived white foam ring
+   * at the feet only (`isFoot === true`).
+   */
+  spawnInkSplash(
+    pos: Vector3 | { x: number; y: number; z: number },
+    strength = 1.0,
+    isFoot = true,
+  ): { inkDropletsSpawned: number; inkRingSpawned: boolean; whiteFoamRingSpawned: boolean } {
+    const clampedStrength = Math.max(0.25, Math.min(1.5, strength));
+    // 4 to 6 viscous dark droplet arcs (#1e1a14)
+    const arcCount = Math.max(4, Math.min(6, Math.round(4 + 2 * Math.min(1.0, clampedStrength))));
+    const col = this.monsterDropletColor;
+
+    for (let i = 0; i < arcCount; i++) {
+      const p = this.particles[this.dropletHead]!;
+      p.active = true;
+      const baseAngle = (i / arcCount) * Math.PI * 2 + (Math.random() - 0.5) * 0.35;
+      const radialOffset = 0.08 + Math.random() * 0.12;
+      p.x = pos.x + Math.cos(baseAngle) * radialOffset;
+      p.y = this.waterY + 0.03;
+      p.z = pos.z + Math.sin(baseAngle) * radialOffset;
+
+      const hSpeed = (0.55 + Math.random() * 0.95) * clampedStrength;
+      p.vx = Math.cos(baseAngle) * hSpeed;
+      p.vz = Math.sin(baseAngle) * hSpeed;
+      p.vy = (1.35 + Math.random() * 1.15) * (0.65 + 0.35 * clampedStrength);
+
+      p.age = 0;
+      p.maxAge = 0.45 + Math.random() * 0.35;
+      p.scale = (0.20 + Math.random() * 0.16) * (0.85 + 0.3 * clampedStrength);
+      p.r = col.r;
+      p.g = col.g;
+      p.b = col.b;
+
+      this.mesh.setColorAt(this.dropletHead, col);
+      this.dropletHead = (this.dropletHead + 1) % SplashSystem.MAX_DROPLETS;
+    }
+    if (this.mesh.instanceColor) this.mesh.instanceColor.needsUpdate = true;
+
+    // 1. Spreading radial dark ink ring (#1e1a14) at both hands and feet
+    const inkRingIdx = this.ringHead;
+    const inkRing = this.rings[inkRingIdx]!;
+    inkRing.active = true;
+    inkRing.x = pos.x;
+    inkRing.y = this.waterY + 0.012;
+    inkRing.z = pos.z;
+    inkRing.radius = 0.14;
+    inkRing.maxRadius = (0.65 + 0.35 * clampedStrength);
+    inkRing.age = 0;
+    inkRing.maxAge = 0.75 + 0.25 * clampedStrength;
+    inkRing.isInk = true;
+    this.ringMesh.setColorAt(inkRingIdx, this.inkRingColor);
+    this.ringHead = (this.ringHead + 1) % SplashSystem.MAX_RINGS;
+    this.lastInkSplashCount++;
+
+    // 2. Small, short-lived white foam ring at the feet ONLY (f_018)
+    let whiteFoamSpawned = false;
+    if (isFoot) {
+      const foamIdx = this.ringHead;
+      const foamRing = this.rings[foamIdx]!;
+      foamRing.active = true;
+      foamRing.x = pos.x;
+      foamRing.y = this.waterY + 0.016;
+      foamRing.z = pos.z;
+      foamRing.radius = 0.08;
+      foamRing.maxRadius = 0.32 * Math.sqrt(clampedStrength);
+      foamRing.age = 0;
+      foamRing.maxAge = 0.38;
+      foamRing.isInk = false;
+      this.ringMesh.setColorAt(foamIdx, this.whiteFoamRingColor);
+      this.ringHead = (this.ringHead + 1) % SplashSystem.MAX_RINGS;
+      this.lastWhiteFoamFootCount++;
+      whiteFoamSpawned = true;
+    }
+    if (this.ringMesh.instanceColor) this.ringMesh.instanceColor.needsUpdate = true;
+
+    return {
+      inkDropletsSpawned: arcCount,
+      inkRingSpawned: true,
+      whiteFoamRingSpawned: whiteFoamSpawned,
+    };
+  }
+
   burst(
     pos: Vector3 | { x: number; y: number; z: number },
     strength = 1.0,
     isMonster = false,
   ): void {
+    if (isMonster) {
+      this.spawnInkSplash(pos, strength, true);
+      return;
+    }
     const count = Math.min(SplashSystem.MAX_DROPLETS, Math.round(18 + 72 * strength));
-    const col = isMonster ? this.monsterDropletColor : this.defaultDropletColor;
+    const col = this.defaultDropletColor;
 
     // 1. Spawn motion-stretched droplets
     for (let i = 0; i < count; i++) {
@@ -384,7 +487,8 @@ export class SplashSystem {
     if (this.mesh.instanceColor) this.mesh.instanceColor.needsUpdate = true;
 
     // 2. Spawn expanding foam ring on water surface
-    const ring = this.rings[this.ringHead]!;
+    const ringIdx = this.ringHead;
+    const ring = this.rings[ringIdx]!;
     ring.active = true;
     ring.x = pos.x;
     ring.y = pos.y + 0.01;
@@ -393,6 +497,9 @@ export class SplashSystem {
     ring.maxRadius = (1.2 + Math.random() * 0.8) * Math.sqrt(strength);
     ring.age = 0;
     ring.maxAge = 1.1 + strength * 0.4;
+    ring.isInk = false;
+    this.ringMesh.setColorAt(ringIdx, this.whiteFoamRingColor);
+    if (this.ringMesh.instanceColor) this.ringMesh.instanceColor.needsUpdate = true;
     this.ringHead = (this.ringHead + 1) % SplashSystem.MAX_RINGS;
 
     // 3. Spawn crown splash on bigger impacts (strength >= 0.8)

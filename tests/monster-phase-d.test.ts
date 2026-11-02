@@ -13,6 +13,7 @@ import { Vector3, PerspectiveCamera } from 'three';
 import { SimWorld } from '../src/sim/SimWorld.js';
 import { GroundGrid } from '../src/sim/GroundGrid.js';
 import { JumpscareSequence } from '../src/game/monster/Jumpscare.js';
+import { MonsterRig } from '../src/game/monster/MonsterRig.js';
 import { createProvingGroundsSim, ARENA_MONSTER_SPAWN } from '../src/sim/ProvingGroundsData.js';
 import { PoolroomsMap } from '../src/world/maps/PoolroomsMap.js';
 import type { PlayerIntent } from '../src/sim/PlayerMotor.js';
@@ -177,6 +178,52 @@ describe('Phase D: Full Attack Chain & Jumpscare Framing Verification', () => {
 
     expect(deathTriggered).toBe(true);
     expect(jumpscare.isActive()).toBe(false);
+  });
+
+  it('Prompt 4D: frames f_037 wide arms and executes the final 0.8s head rise out of water with draining water', () => {
+    let drainSplashCount = 0;
+    const rig = new MonsterRig(1.0);
+    const jumpscare = new JumpscareSequence({
+      onFreezeInput: () => {},
+      setTimeScale: () => {},
+      onWaterDrainSplash: () => {
+        drainSplashCount++;
+      },
+      onDeath: () => {},
+    });
+
+    const camera = new PerspectiveCamera(72, 16 / 9, 0.1, 100);
+    camera.position.set(0, 1.2, 5);
+    const headPos = new Vector3(0, 0.4, 4);
+
+    jumpscare.trigger(
+      camera,
+      headPos,
+      Math.PI,
+      { timeSurvived: 35, noisesMade: 2, closestCall: 0.6, caughtInWater: true },
+      false,
+      undefined,
+      rig,
+    );
+
+    expect(jumpscare.armsSpreadWide).toBe(true);
+
+    let maxHeadRise = 0;
+    for (let i = 0; i < 45; i++) {
+      jumpscare.update(0.016);
+      if (jumpscare.headWaterRiseOffset > maxHeadRise) {
+        maxHeadRise = jumpscare.headWaterRiseOffset;
+      }
+    }
+
+    // Arms spread wide (|shoulder.rotation.z| > 0.7 rad) and head rose out of water with draining water
+    expect(Math.abs(rig.shoulderL.rotation.z)).toBeGreaterThan(0.7);
+    expect(Math.abs(rig.shoulderR.rotation.z)).toBeGreaterThan(0.7);
+    expect(maxHeadRise).toBeGreaterThan(0.25);
+    expect(drainSplashCount).toBeGreaterThan(5);
+
+    rig.dispose();
+    jumpscare.dispose();
   });
 
   it('guarantees retry restarts in < 1s with monster >= 60m away and visible within 45s', () => {
