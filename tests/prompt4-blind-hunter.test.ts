@@ -17,6 +17,7 @@
 
 import { describe, it, expect, vi } from 'vitest';
 import { createProvingGroundsSim, WATER_FLOOR_Y } from '../src/sim/ProvingGroundsData.js';
+import { AcousticBus, RULEBOOK_CONSTANTS } from '../src/sim/AcousticBus.js';
 import { SimBot } from '../src/sim/SimBot.js';
 import { EncounterDirector } from '../src/sim/Director.js';
 import { JumpscareSequence } from '../src/game/monster/Jumpscare.js';
@@ -254,11 +255,32 @@ describe('Prompt 4: The Blind Hunter AI, Encounter Pacing, and Death Loop', () =
       // Sprint-wade: 0.75 * 40m = 30.0m (test: 28.5m detected, 36.0m ignored)
       // Jump-in: 1.00 * 40m = 40.0m (test: 38.0m detected, 48.0m ignored)
 
+      const bus = new AcousticBus();
       const testCases = [
-        { name: 'crouch-wade', loudness: 0.12, insideDist: 4.5, outsideDist: 6.0 },
-        { name: 'walk-wade', loudness: 0.35, insideDist: 13.5, outsideDist: 17.0 },
-        { name: 'sprint-wade', loudness: 0.75, insideDist: 28.5, outsideDist: 36.0 },
-        { name: 'jump-in', loudness: 1.00, insideDist: 38.0, outsideDist: 48.0 },
+        {
+          name: 'crouch-wade',
+          loudness: RULEBOOK_CONSTANTS.CROUCH_WADE_WATER,
+          insideDist: bus.computeHearingRadius(RULEBOOK_CONSTANTS.CROUCH_WADE_WATER) * 0.94,
+          outsideDist: bus.computeHearingRadius(RULEBOOK_CONSTANTS.CROUCH_WADE_WATER) * 1.25,
+        },
+        {
+          name: 'walk-wade',
+          loudness: RULEBOOK_CONSTANTS.WADE_WALK_WATER,
+          insideDist: bus.computeHearingRadius(RULEBOOK_CONSTANTS.WADE_WALK_WATER) * 0.96,
+          outsideDist: bus.computeHearingRadius(RULEBOOK_CONSTANTS.WADE_WALK_WATER) * 1.21,
+        },
+        {
+          name: 'sprint-wade',
+          loudness: RULEBOOK_CONSTANTS.WADE_SPRINT_WATER,
+          insideDist: bus.computeHearingRadius(RULEBOOK_CONSTANTS.WADE_SPRINT_WATER) * 0.95,
+          outsideDist: bus.computeHearingRadius(RULEBOOK_CONSTANTS.WADE_SPRINT_WATER) * 1.20,
+        },
+        {
+          name: 'jump-in',
+          loudness: RULEBOOK_CONSTANTS.JUMP_OR_DIVE_WATER,
+          insideDist: bus.computeHearingRadius(RULEBOOK_CONSTANTS.JUMP_OR_DIVE_WATER) * 0.95,
+          outsideDist: bus.computeHearingRadius(RULEBOOK_CONSTANTS.JUMP_OR_DIVE_WATER) * 1.20,
+        },
       ];
 
       for (const tc of testCases) {

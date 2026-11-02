@@ -735,7 +735,7 @@ export class GameSession {
         }
       });
       this.interactions = new InteractionSystem();
-      this.acoustics = new AcousticSystem(this.audio, this.hud, this.settings);
+      this.acoustics = new AcousticSystem(this.audio, this.hud, this.settings, this.simWorld.acousticBus);
 
       this.setupNetSession();
 

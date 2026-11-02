@@ -50,10 +50,14 @@ export class CreditsScreen {
 
         <!-- 3D Models Attribution (CC BY 4.0) -->
         <div style="background: var(--bs-surface-2); border: 1px solid var(--bs-border); padding: 20px; border-radius: var(--bs-radius-sm); font-family: var(--bs-font-mono); font-size: var(--bs-text-xs); line-height: 1.6;">
-          <h2 style="font-size: var(--bs-text-md); color: var(--bs-water); margin: 0 0 12px 0;">3D CREATURE ASSETS (CC BY 4.0)</h2>
+          <h2 style="font-size: var(--bs-text-md); color: var(--bs-water); margin: 0 0 12px 0;">CREATURE ARCHITECTURE &amp; OPTIONAL 3D ASSETS (CC BY 4.0)</h2>
+          <div style="margin-bottom: 16px;">
+            <div style="font-weight: bold; color: var(--bs-cream);">Default Shipped Creature: Original Procedural Quadrupedal Stalker Rig (MonsterRig / ProceduralSkin)</div>
+            <div style="opacity: 0.85;">Deterministic procedural geometry, materials, and gait synthesizer (<code>waterMonsterSkin: 'procedural'</code>).</div>
+          </div>
           
           <div style="margin-bottom: 16px;">
-            <div style="font-weight: bold; color: var(--bs-cream);">"Lethal Company Thumper Rig" by NO DONT EAT ME CASEOH (Ferris wheel) (@NO.DONT.EAT.ME.CASEOH), CC BY 4.0, https://sketchfab.com/3d-models/lethal-company-thumper-rig-a6bbf5cd0d284e1abcdff82f816b62b3.</div>
+            <div style="font-weight: bold; color: var(--bs-cream);">Optional Model Override (<code>waterMonsterSkin: 'model'</code>): "Lethal Company Thumper Rig" by NO DONT EAT ME CASEOH (Ferris wheel) (@NO.DONT.EAT.ME.CASEOH), CC BY 4.0, https://sketchfab.com/3d-models/lethal-company-thumper-rig-a6bbf5cd0d284e1abcdff82f816b62b3.</div>
             <div style="opacity: 0.85;">"Thumper is a creature from Lethal Company; this model is a fan recreation. Modified: scaled, re-skinned, animated."</div>
           </div>
 

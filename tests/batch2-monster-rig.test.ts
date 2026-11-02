@@ -123,9 +123,9 @@ describe('Batch 2: Monster Rig, Locomotion, and Jumpscare', () => {
       expect(rig.wristL.position.y).toBeCloseTo(-0.70, 2);
       expect(rig.wristR.position.y).toBeCloseTo(-0.70, 2);
 
-      // 4 Claws on each hand
+      // DESIGN_RATIONALE: Quadrupedal beast forepaw anatomy has 4 curved talons per hand to match reference silhouette frames f_018-f_020.
       expect(rig.clawsL.children.length).toBe(4);
-      expect(rig.clawsR.children.length).toBe(4);
+      expect(rig.clawsR.children.length).toBe(rig.clawsL.children.length);
 
       rig.dispose();
     });

@@ -25,8 +25,8 @@ describe('Phase H: Zero-Allocation Particle Systems & Weather', () => {
     });
 
     expect(pool.capacity).toBe(64);
-    expect(pool.posX.length).toBe(64);
-    expect(pool.active.length).toBe(64);
+    expect(pool.posX.length).toBe(pool.capacity);
+    expect(pool.active.length).toBe(pool.capacity);
 
     // Spawn 10 particles
     for (let i = 0; i < 10; i++) {
@@ -66,8 +66,20 @@ describe('Phase H: Zero-Allocation Particle Systems & Weather', () => {
     expect(director.driftingPetals).toBeDefined();
     expect(director.sparks).toBeDefined();
 
-    // Verify 10 distinct pools attached to root
-    expect(director.root.children.length).toBe(10);
+    // Verify all distinct pools are attached to root
+    const allPools = [
+      director.rainStreaks,
+      director.dropRipples,
+      director.splashDroplets,
+      director.mistSheets,
+      director.dustMotes,
+      director.fireflies,
+      director.bubbles,
+      director.steamPlumes,
+      director.driftingPetals,
+      director.sparks,
+    ];
+    expect(director.root.children.length).toBe(allPools.length);
     director.dispose();
   });
 

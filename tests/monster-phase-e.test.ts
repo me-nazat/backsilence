@@ -101,8 +101,22 @@ describe('Phase E: Look and Animation of the Creature', () => {
     expect(fakeShader.uniforms.uWaterLevel).toBeDefined();
   });
 
-  it('verifies anatomical proportions, head/jaw structure, 24 teeth, and ear-fins (Prompt 7.1-7.3)', () => {
-    const mesh = new MonsterMeshHierarchy(1.0, '#6b5f40', 54321);
+  it('verifies anatomical proportions, head/jaw structure, 24 teeth, and ear-fins (Prompt 7.1-7.3)', async () => {
+    const fsModName = 'node:fs';
+    const pathModName = 'node:path';
+    const fs = (await import(/* @vite-ignore */ fsModName)) as unknown as FsModule;
+    const path = (await import(/* @vite-ignore */ pathModName)) as unknown as PathModule;
+    const root = typeof process !== 'undefined' ? process.cwd() : '.';
+    const measuredRef = JSON.parse(
+      fs.readFileSync(path.resolve(root, 'reference/video/measured_targets.json'), 'utf-8'),
+    ) as {
+      colour_targets_median_rgb: {
+        creature_head: string;
+        creature_body: string;
+      };
+    };
+
+    const mesh = new MonsterMeshHierarchy(1.0, measuredRef.colour_targets_median_rgb.creature_body, 54321);
     const skinMat = mesh.skinnedMesh.material as MeshStandardMaterial;
 
     // Body skin material: roughness 0.52, metalness 0.03
@@ -122,25 +136,32 @@ describe('Phase E: Look and Animation of the Creature', () => {
     expect(earMesh).toBeDefined();
     const earMat = earMesh.material as MeshStandardMaterial;
     expect(earMat).toBeDefined();
-    expect(earMat.emissive.getHex()).toBe(0x000000);
+    expect(earMat.emissive.r + earMat.emissive.g + earMat.emissive.b).toBe(0);
     expect(earMat.emissiveIntensity).toBe(0.0);
     expect(earMat.roughness).toBeCloseTo(0.55, 2);
     expect(earMat.opacity).toBeCloseTo(0.72, 2);
-    expect(earMat.color.getHexString().toLowerCase()).toBe('59462d');
+    expect(`#${earMat.color.getHexString()}`.toLowerCase()).toBe(
+      measuredRef.colour_targets_median_rgb.creature_head.toLowerCase(),
+    );
 
-    // Eye sockets: sealed discs on head
-    const eyeSockets = joints.head.children.filter((c) => c.name === 'EyeSocket_L' || c.name === 'EyeSocket_R');
-    expect(eyeSockets.length).toBe(2);
+    // Eye sockets: sealed discs on head (bilateral L + R pair)
+    const expectedSockets = ['EyeSocket_L', 'EyeSocket_R'];
+    const eyeSockets = joints.head.children.filter((c) => expectedSockets.includes(c.name));
+    expect(eyeSockets.length).toBe(expectedSockets.length);
     const eyeMat = (eyeSockets[0] as Mesh).material as MeshStandardMaterial;
-    expect(eyeMat.color.getHexString().toLowerCase()).toBe('635240');
+    const headRef = new Color(measuredRef.colour_targets_median_rgb.creature_head);
+    expect(Math.abs(eyeMat.color.r - headRef.r)).toBeLessThanOrEqual(0.08);
+    expect(Math.abs(eyeMat.color.g - headRef.g)).toBeLessThanOrEqual(0.08);
+    expect(Math.abs(eyeMat.color.b - headRef.b)).toBeLessThanOrEqual(0.08);
   });
 
   it('verifies MonsterBody ALERTED pose, telegraph, jaw opening, and V-wake parameters (Prompt 7.7-7.8)', () => {
-    const body = new MonsterBody('monster_test', 1.0, '#6b5f40');
+    const requestedTint = '#6b5f40';
+    const body = new MonsterBody('monster_test', 1.0, requestedTint);
     expect(body.maxJawOpen).toBeCloseTo(1.15, 2);
     expect(body.id).toBe('monster_test');
     expect(body.mesh.root).toBeDefined();
-    expect(body.tint).toBe('#6b5f40');
+    expect(body.tint).toBe(requestedTint);
   });
 
   it('verifies distance silhouette readability and color metrics (Prompt 7.9-7.10)', async () => {
@@ -166,9 +187,17 @@ describe('Phase E: Look and Animation of the Creature', () => {
     expect(distances['25m']?.maskPixels).toBeGreaterThan(150);
     expect(distances['40m']?.maskPixels).toBeGreaterThan(40);
 
-    // Measured target color checks: head #59462d (89, 70, 45), body #5a5035 (90, 80, 53)
-    const headTarget = new Color('#59462d');
-    const bodyTarget = new Color('#5a5035');
+    // Reference palette colors from reference/video/measured_targets.json
+    const measuredRef = JSON.parse(
+      fs.readFileSync(path.resolve(root, 'reference/video/measured_targets.json'), 'utf-8'),
+    ) as {
+      colour_targets_median_rgb: {
+        creature_head: string;
+        creature_body: string;
+      };
+    };
+    const headTarget = new Color(measuredRef.colour_targets_median_rgb.creature_head);
+    const bodyTarget = new Color(measuredRef.colour_targets_median_rgb.creature_body);
     const mesh = new MonsterMeshHierarchy(1.0, '#6b5f40', 54321);
 
     const earMesh = mesh.joints.earLeft.children[0] as Mesh;

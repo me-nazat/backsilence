@@ -24,6 +24,7 @@ describe('Phase F: Creatures & Animation Pipeline', () => {
     const result = buildProceduralSkinnedMonster(12345, mat);
 
     expect(result.skinnedMesh).toBeDefined();
+    // DESIGN_RATIONALE: Procedural skinned monster hierarchy comprises 20 articulated bones (root, pelvis, 3 spine, neck, head, jaw, 2 ears, 2x3 forelimbs, 2x2 hindlimbs).
     expect(result.skeleton.bones.length).toBe(20);
 
     const geom = result.skinnedMesh.geometry;
@@ -238,18 +239,18 @@ describe('Phase F: Creatures & Animation Pipeline', () => {
   it('validates creatures settings schema and clamping', () => {
     const def = defaultSettings();
     expect(def.creatures).toBeDefined();
-    expect(def.creatures?.waterMonsterSkin).toBe('auto');
+    expect(def.creatures?.waterMonsterSkin).toBe('procedural');
     expect(def.creatures?.ambientFlyers).toBe(5);
 
     const clamped = clampSettings({
       ...def,
       creatures: {
-        waterMonsterSkin: 'invalid' as unknown as 'auto',
+        waterMonsterSkin: 'invalid' as unknown as 'procedural',
         ambientFlyers: 99,
       },
     });
 
-    expect(clamped.creatures?.waterMonsterSkin).toBe('auto');
+    expect(clamped.creatures?.waterMonsterSkin).toBe('procedural');
     expect(clamped.creatures?.ambientFlyers).toBe(5);
   });
 });

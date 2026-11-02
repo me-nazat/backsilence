@@ -2,6 +2,7 @@
 
 > The canonical game rules for sound, noise, and the monster's hearing.
 > Every batch implementation must obey this rulebook.
+> **Authoritative Implementation:** `src/sim/AcousticBus.ts` is the single simulation emitter implementing this specification. `src/game/AcousticSystem.ts` is a presentation-only consumer subscribed to `AcousticBus` events.
 
 ## Noise Table
 

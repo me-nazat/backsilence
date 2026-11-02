@@ -24,23 +24,88 @@ interface PathModule {
 
 declare const process: { cwd: () => string };
 
+function hexToRgb01(hex: string): [number, number, number] {
+  const clean = hex.replace('#', '');
+  const n = parseInt(clean, 16);
+  return [((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255];
+}
+
+function hexToHueDeg(hex: string): number {
+  const [r, g, b] = hexToRgb01(hex);
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const d = max - min;
+  if (d === 0) return 0;
+  let h = 0;
+  if (max === r) h = ((g - b) / d) % 6;
+  else if (max === g) h = (b - r) / d + 2;
+  else h = (r - g) / d + 4;
+  return (h * 60 + 360) % 360;
+}
+
+function relativeLuminance(hex: string): number {
+  const [r, g, b] = hexToRgb01(hex).map((v) =>
+    v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4),
+  );
+  return 0.2126 * r! + 0.7152 * g! + 0.0722 * b!;
+}
+
+function contrastRatio(hexA: string, hexB: string): number {
+  const l1 = relativeLuminance(hexA);
+  const l2 = relativeLuminance(hexB);
+  const bright = Math.max(l1, l2);
+  const dark = Math.min(l1, l2);
+  return (bright + 0.05) / (dark + 0.05);
+}
+
 describe('Prompt 4 Phase A: Art Direction & Design Tokens', () => {
-  it('defines all required core archive palette colors', () => {
-    expect(PALETTE.ink).toBe('#0d0b06');
-    expect(PALETTE.cream).toBe('#e9dca8');
-    expect(PALETTE.tan).toBe('#d8b36a');
-    expect(PALETTE.grout).toBe('#5b4526');
-    expect(PALETTE.water).toBe('#7d9a55');
-    expect(PALETTE.waterDeep).toBe('#33502a');
-    expect(PALETTE.danger).toBe('#b3261e');
-    expect(PALETTE.focus).toBe('#86cfa0');
+  it('defines all required core archive palette colors aligned with reference hue bands', async () => {
+    const fsModName = 'node:fs';
+    const pathModName = 'node:path';
+    const fs = (await import(/* @vite-ignore */ fsModName)) as unknown as FsModule;
+    const path = (await import(/* @vite-ignore */ pathModName)) as unknown as PathModule;
+    const paletteRef = JSON.parse(
+      fs.readFileSync(path.resolve(process.cwd(), 'reference/video/palette.json'), 'utf-8'),
+    ) as {
+      slab_top_t17: { hsv: [number, number, number] };
+      far_slab_t17: { hsv: [number, number, number] };
+      water_midhall_t17: { hsv: [number, number, number] };
+      water_dense_t57: { hsv: [number, number, number] };
+    };
+
+    const slabMinHue = paletteRef.slab_top_t17.hsv[0]; // 38 deg
+    const slabMaxHue = paletteRef.far_slab_t17.hsv[0]; // 48 deg
+    const waterMinHue = paletteRef.water_midhall_t17.hsv[0] - 7; // 85 deg
+    const waterMaxHue = paletteRef.water_dense_t57.hsv[0]; // 113 deg
+
+    // Warm tan/cream slab & wall tokens sit within reference warm-tan hue band [38, 48] deg
+    const creamHue = hexToHueDeg(PALETTE.cream);
+    const tanHue = hexToHueDeg(PALETTE.tan);
+    expect(creamHue).toBeGreaterThanOrEqual(slabMinHue);
+    expect(creamHue).toBeLessThanOrEqual(slabMaxHue);
+    expect(tanHue).toBeGreaterThanOrEqual(slabMinHue);
+    expect(tanHue).toBeLessThanOrEqual(slabMaxHue);
+
+    // Water tokens sit within reference olive-to-leaf green hue band [85, 113] deg
+    const waterHue = hexToHueDeg(PALETTE.water);
+    const waterDeepHue = hexToHueDeg(PALETTE.waterDeep);
+    expect(waterHue).toBeGreaterThanOrEqual(waterMinHue);
+    expect(waterHue).toBeLessThanOrEqual(waterMaxHue);
+    expect(waterDeepHue).toBeGreaterThanOrEqual(waterMinHue);
+    expect(waterDeepHue).toBeLessThanOrEqual(waterMaxHue);
+
+    // Monotonic luminance hierarchy across UI tokens
+    expect(relativeLuminance(PALETTE.cream)).toBeGreaterThan(relativeLuminance(PALETTE.tan));
+    expect(relativeLuminance(PALETTE.tan)).toBeGreaterThan(relativeLuminance(PALETTE.grout));
+    expect(relativeLuminance(PALETTE.grout)).toBeGreaterThan(relativeLuminance(PALETTE.ink));
+    expect(relativeLuminance(PALETTE.water)).toBeGreaterThan(relativeLuminance(PALETTE.waterDeep));
+    expect(contrastRatio(PALETTE.cream, PALETTE.ink)).toBeGreaterThanOrEqual(12.0);
   });
 
   it('defines high-contrast palette tokens matching WCAG AAA requirements', () => {
-    expect(HIGH_CONTRAST_PALETTE.ink).toBe('#000000');
-    expect(HIGH_CONTRAST_PALETTE.cream).toBe('#ffffff');
-    expect(HIGH_CONTRAST_PALETTE.water).toBe('#00ff88');
-    expect(HIGH_CONTRAST_PALETTE.danger).toBe('#ff3333');
+    expect(contrastRatio(HIGH_CONTRAST_PALETTE.cream, HIGH_CONTRAST_PALETTE.ink)).toBeGreaterThanOrEqual(20.0);
+    expect(contrastRatio(HIGH_CONTRAST_PALETTE.water, HIGH_CONTRAST_PALETTE.ink)).toBeGreaterThanOrEqual(12.0);
+    expect(contrastRatio(HIGH_CONTRAST_PALETTE.danger, HIGH_CONTRAST_PALETTE.ink)).toBeGreaterThanOrEqual(5.5);
   });
 
   it('provides multi-script system typography stacks', () => {

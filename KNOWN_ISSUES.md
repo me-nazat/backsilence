@@ -1,15 +1,15 @@
 # Known Issues & Operational Considerations — BackSilence Release Candidate (Batch 8)
 
 ## [P2] Binary Model Assets (GLB) Unverified in Git (Zero-Asset Rule Safeguard)
-- **Status:** UNVERIFIED (Awaiting owner asset drop)
+- **Status:** RESOLVED / DETERMINISTIC PROCEDURAL DEFAULT
 - **Detail:** In accordance with the repo zero-asset rule and Sketchfab login requirements, `public/models/thumper.glb` and `public/models/skull.glb` are not committed to git.
-- **Mitigation & Fallback:** The engine features dual-track skins (`MonsterSkin` polymorphic interface). When `.glb` files are absent, the engine gracefully falls back to `ProceduralSkin` (the multi-joint segmented creature) and procedural wing-skulls. All tests and smoke bot runs pass completely on procedural fallbacks.
-- **Resolution:** Follow [MODELS_SETUP.md](MODELS_SETUP.md) to download, convert, optimize (`scripts/prepare-models.mjs`), and place GLBs into `public/models/`.
+- **Mitigation & Fallback:** `creatures.waterMonsterSkin` defaults to `'procedural'` (and `'auto'` resolves deterministically to `'procedural'`), ensuring the shipped creature appearance is identical on every machine regardless of whether `public/models/thumper.glb` is present on disk.
+- **Resolution:** Only explicit `waterMonsterSkin: 'model'` opts into local GLBs prepared via [MODELS_SETUP.md](MODELS_SETUP.md).
 
 ## [P3] Third-Party IP Notice for "Thumper" Fan Model
-- **Status:** DOCUMENTED
+- **Status:** MITIGATED BY DEFAULT
 - **Detail:** The Thumper creature is an original design from the game *Lethal Company* (Zeekerss). The 3D asset is a fan recreation by `@NO.DONT.EAT.ME.CASEOH` under CC BY 4.0. If BackSilence is ever commercialized, monetized, or released on commercial storefronts, using the Thumper skin carries intellectual property risk.
-- **Mitigation:** The game setting `creatures.waterMonsterSkin` defaults to `'auto'`, but can be explicitly set to `'procedural'` to completely disable any third-party likeness and use only original procedural procedural creatures.
+- **Mitigation:** The game setting `creatures.waterMonsterSkin` defaults to `'procedural'` (and migrates `'auto'` to `'procedural'`), so the shipped build uses only the original procedural creature unless the owner explicitly selects `'model'`.
 
 ## [P4] SwiftShader Software Emulation Performance in Headless CI
 - **Status:** MITIGATED / EXPECTED

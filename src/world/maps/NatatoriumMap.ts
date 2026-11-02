@@ -35,6 +35,7 @@ import type {
 import type { Vec3 } from '../../types/contracts.js';
 import type { MapInstance } from './MapInstance.js';
 import { Rng } from '../../procedural/core/prng.js';
+import { WORLD } from '../../app/Config.js';
 import { TextureRegistry } from '../../procedural/textures/TextureRegistry.js';
 import { WATER_PROFILES } from '../../game/water/WaterProfile.js';
 import { buildStandardMapInstance, scaleBoxUv, type CustomBuilderHook } from './CommonMapBuilder.js';
@@ -765,7 +766,7 @@ export const NatatoriumMap: MapDefinition = {
     ceilingArchMat.aoMapIntensity = 0.85;
 
     // Platform hook applies multi-material groups with world-space scaling
-    // Top: 0.22m square ceramic tile (#d5b676, #4a3b22 grout)
+    // Top: WORLD.TILE_METERS square ceramic tile (#d5b676, #4a3b22 grout)
     // Vertical Sides: 3 distinct horizontal rows above water + 0.08m wet-grout watermark at y=0.0
     // Completely eliminates UV stretching and cartoon black outlines
     const hooks: CustomBuilderHook = {
@@ -907,9 +908,9 @@ export const NatatoriumMap: MapDefinition = {
     ];
 
     for (const wp of warningPoints) {
-      // Snap positions to 0.15m tile grid
-      const gridX = Math.round(wp.x / 0.15) * 0.15;
-      const gridZ = Math.round(wp.z / 0.15) * 0.15;
+      // Snap positions to WORLD.TILE_METERS tile grid
+      const gridX = Math.round(wp.x / WORLD.TILE_METERS) * WORLD.TILE_METERS;
+      const gridZ = Math.round(wp.z / WORLD.TILE_METERS) * WORLD.TILE_METERS;
       const wTex = makeHandwrittenWarningGraffiti({
         text: wp.text ?? 'DONT SPLASH, IT KNOWS',
         arrowDir: wp.arrowDir,
@@ -955,8 +956,8 @@ export const NatatoriumMap: MapDefinition = {
     for (let i = 0; i < routeDecisions.length; i++) {
       const rd = routeDecisions[i]!;
       const validDir = validateArrowDirection(rd.x, rd.z, rd.targetDir, layout.walls);
-      const gridX = Math.round(rd.x / 0.15) * 0.15;
-      const gridZ = Math.round(rd.z / 0.15) * 0.15;
+      const gridX = Math.round(rd.x / WORLD.TILE_METERS) * WORLD.TILE_METERS;
+      const gridZ = Math.round(rd.z / WORLD.TILE_METERS) * WORLD.TILE_METERS;
       const arrowTex = makeRouteArrowDecal({ symbol: validDir, seed: layout.seed + i });
       const arrowMesh = DecalSystem.createWallDecalMesh(arrowTex, 1.2, 1.2);
       arrowMesh.rotation.x = -Math.PI * 0.5;
@@ -1206,7 +1207,7 @@ export const NatatoriumMap: MapDefinition = {
 
     // Foyer ceiling (encloses spawn area at height 6.0m)
     const foyerCeilingGeom = new BoxGeometry(22.0, 0.4, 15.0);
-    scaleBoxUv(foyerCeilingGeom, 22.0, 0.4, 15.0, 1.6);
+    scaleBoxUv(foyerCeilingGeom, 22.0, 0.4, 15.0, WORLD.TEXTURE_METERS);
     const foyerCeiling = new Mesh(foyerCeilingGeom, ceilingArchMat);
     foyerCeiling.position.set(0.0, 6.0, 48.0);
     foyerCeiling.castShadow = true;
@@ -1216,7 +1217,7 @@ export const NatatoriumMap: MapDefinition = {
 
     // Vaulted ceiling over grand pool hall (covers full map bounds, height 16.0m)
     const grandRoofGeom = new BoxGeometry(90.0, 0.5, 118.0);
-    scaleBoxUv(grandRoofGeom, 90.0, 0.5, 118.0, 1.6);
+    scaleBoxUv(grandRoofGeom, 90.0, 0.5, 118.0, WORLD.TEXTURE_METERS);
     const grandRoof = new Mesh(grandRoofGeom, ceilingArchMat);
     grandRoof.position.set(0.0, 16.0, 0.0);
     grandRoof.castShadow = true;

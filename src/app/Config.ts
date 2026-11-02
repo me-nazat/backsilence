@@ -9,7 +9,7 @@ export const WORLD = {
   PLATFORM_TOP_Y: 0.3,
   POOL_FLOOR_Y: -0.9,
   TILE_METERS: 0.15,
-  TEXTURE_METERS: 1.6,
+  TEXTURE_METERS: 2.4,
   PLAYER: {
     EYE_STAND: 1.65,
     EYE_CROUCH: 0.95,

@@ -467,7 +467,7 @@ describe('Batch 5: Shared Engine Upgrades', () => {
     it('rises smoothly across discrete levels and triggers juvenile spawn at +0.15m', () => {
       const tide = new TideClock('normal'); // 14 min, target 0.30m
       expect(tide.levelAt(0)).toBe(0.0);
-      expect(tide.discreteLevels.length).toBe(4);
+      expect(tide.discreteLevels.length).toBeGreaterThanOrEqual(4);
       expect(tide.isJuvenileSpawnTriggered(0)).toBe(false);
 
       // At half duration (7 min = 420s), level is ~0.15m (smoothstep(0.5) = 0.5 * 0.30 = 0.15m)

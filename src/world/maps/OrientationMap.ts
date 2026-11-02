@@ -17,6 +17,7 @@ import type {
   PuzzleDef,
 } from '../MapTypes.js';
 import type { MapInstance } from './MapInstance.js';
+import { WORLD } from '../../app/Config.js';
 import { WATER_PROFILES } from '../../game/water/WaterProfile.js';
 import { TextureRegistry } from '../../procedural/textures/TextureRegistry.js';
 import { buildStandardMapInstance, scaleBoxUv } from './CommonMapBuilder.js';
@@ -246,7 +247,7 @@ export const OrientationMap: MapDefinition = {
 
     // Ceiling enclosing the training pool (height 5.0m, Prompt 5.2 ceiling variant)
     const ceilingGeom = new BoxGeometry(34.0, 0.4, 42.0);
-    scaleBoxUv(ceilingGeom, 34.0, 0.4, 42.0, 1.6);
+    scaleBoxUv(ceilingGeom, 34.0, 0.4, 42.0, WORLD.TEXTURE_METERS);
     const ceilingTileSet = tex.getTileSet('ceiling', layout.seed);
     const ceilingMat = new MeshStandardMaterial({
       map: ceilingTileSet.albedo,

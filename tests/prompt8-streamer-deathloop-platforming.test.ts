@@ -33,6 +33,8 @@ import { JumpscareSequence } from '../src/game/monster/Jumpscare.js';
 import { Hud, formatRunTimer } from '../src/ui/Hud.js';
 import { NatatoriumMap } from '../src/world/maps/NatatoriumMap.js';
 import { defaultSettings } from '../src/app/Settings.js';
+import { WORLD } from '../src/app/Config.js';
+import { RULEBOOK_CONSTANTS } from '../src/sim/AcousticBus.js';
 import { Vector3, PerspectiveCamera } from 'three';
 
 // ── Minimal in-test DOM Mock ───────────────────────────────────────────────
@@ -351,9 +353,9 @@ describe('Prompt 8 — Death Loop Polish, Platforming Feel, Wayfinding Graffiti 
         });
       }
 
-      // Hard fall splash emits full sprint-wade radius loudness (0.75)
+      // Hard fall splash emits full sprint-wade radius loudness
       expect(splashNoiseKind).toBe('jump_in');
-      expect(splashLoudness).toBe(0.75);
+      expect(splashLoudness).toBe(RULEBOOK_CONSTANTS.WADE_SPRINT_WATER);
 
       // Water fall state is active
       const state = sim.player.getState();
@@ -436,12 +438,12 @@ describe('Prompt 8 — Death Loop Polish, Platforming Feel, Wayfinding Graffiti 
 
       expect(routeArrows.length).toBeGreaterThanOrEqual(6);
 
-      // Verify every route arrow respects 0.15m tile grid
+      // Verify every route arrow respects WORLD.TILE_METERS tile grid
       for (const arrow of routeArrows) {
-        const xMod = Math.abs(arrow.position.x % 0.15);
-        const zMod = Math.abs(arrow.position.z % 0.15);
-        const xAligned = xMod < 0.02 || Math.abs(xMod - 0.15) < 0.02;
-        const zAligned = zMod < 0.02 || Math.abs(zMod - 0.15) < 0.02;
+        const xMod = Math.abs(arrow.position.x % WORLD.TILE_METERS);
+        const zMod = Math.abs(arrow.position.z % WORLD.TILE_METERS);
+        const xAligned = xMod < 0.02 || Math.abs(xMod - WORLD.TILE_METERS) < 0.02;
+        const zAligned = zMod < 0.02 || Math.abs(zMod - WORLD.TILE_METERS) < 0.02;
         expect(xAligned || zAligned).toBe(true);
 
         // Verify arrow is not inside any solid wall at ground level

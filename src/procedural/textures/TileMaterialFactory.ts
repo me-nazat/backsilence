@@ -1,10 +1,12 @@
 /* ── TileMaterialFactory.ts ───────────────────────────────────────────────
  *  World-space ceramic tile materials and geometry generator.
- *  - 1024x1024 procedural canvas textures with anisotropic filtering & RepeatWrapping
- *  - Wall, pillar, ceiling & archway ceramic tile (#ebe4c8, #6e6550 grout, 0.25m x 0.25m)
- *  - Dry stepping-stone platform top (#d5b676, #4a3b22 grout, 0.22m x 0.22m)
+ *  - Procedural canvas textures with anisotropic filtering & RepeatWrapping
+ *  - Single authoritative tile pitch sourced from WORLD.TILE_METERS (0.15m)
+ *  - 2.4m texture repeat = 16 x 16 ceramic tiles at WORLD.TILE_METERS
+ *  - Wall, pillar, ceiling & archway ceramic tile (#ebe4c8, #6e6550 grout)
+ *  - Dry stepping-stone platform top (#d5b676, #4a3b22 grout)
  *  - Vertical side trim with 3 distinct rows above water & 0.08m wet-grout watermark at y=0
- *  - Submerged pool floor tile (#c8d4ba, #566852 grout, 0.25m x 0.25m at y=-0.75m)
+ *  - Submerged pool floor tile (#c8d4ba, #566852 grout at y=-0.75m)
  *  - Zero UV stretching, zero cartoon wireframe outlines
  * ──────────────────────────────────────────────────────────────────────── */
 
@@ -22,6 +24,7 @@ import {
   type WebGLRenderer,
 } from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { WORLD } from '../../app/Config.js';
 import { Rng } from '../core/prng.js';
 import { acquireCanvas } from '../core/canvasPool.js';
 
@@ -38,6 +41,8 @@ export type SectorThemeId = 'natatorium' | 'station' | 'school' | 'default';
 export interface SectorThemeConfig {
   id: SectorThemeId;
   name: string;
+  grid: number;
+  tileSize: number;
   platformTop: { base: string; grout: string; roughness: number; metalness: number; checkered?: string; safetyStripe?: string };
   platformSide: { base: string; grout: string; roughness: number; metalness: number };
   wall: { base: string; grout: string; roughness: number; metalness: number; lowerBase?: string; stripeBase?: string };
@@ -49,15 +54,19 @@ export const SECTOR_THEMES: Record<SectorThemeId, SectorThemeConfig> = {
   natatorium: {
     id: 'natatorium',
     name: 'Natatorium / Poolrooms',
+    grid: 16,
+    tileSize: WORLD.TILE_METERS,
     platformTop: { base: '#d6b878', grout: '#45361e', roughness: 0.28, metalness: 0.02 },
     platformSide: { base: '#d6b878', grout: '#45361e', roughness: 0.28, metalness: 0.03 },
-    wall: { base: '#eae2c6', grout: '#5c533e', roughness: 0.22, metalness: 0.04 },
+    wall: { base: '#eae2c6', grout: '#5c533e', roughness: 0.24, metalness: 0.04 },
     poolFloor: { base: '#c8d4ba', grout: '#566852', roughness: 0.28, metalness: 0.04 },
     ceiling: { base: '#eae2c6', grout: '#5c533e', roughness: 0.45, metalness: 0.03 },
   },
   station: {
     id: 'station',
     name: 'Drowned Metro / Drainage Core / Municipal Station',
+    grid: 16,
+    tileSize: WORLD.TILE_METERS,
     platformTop: { base: '#e4e6df', grout: '#3d4540', roughness: 0.24, metalness: 0.04, safetyStripe: '#d9a738' },
     platformSide: { base: '#e4e6df', grout: '#3d4540', roughness: 0.24, metalness: 0.04 },
     wall: { base: '#f0f2ec', grout: '#464e49', roughness: 0.18, metalness: 0.04, stripeBase: '#2b5c47' },
@@ -67,18 +76,22 @@ export const SECTOR_THEMES: Record<SectorThemeId, SectorThemeConfig> = {
   school: {
     id: 'school',
     name: 'Flooded School / Institutional Archive',
+    grid: 16,
+    tileSize: WORLD.TILE_METERS,
     platformTop: { base: '#dfd7be', grout: '#4a4436', roughness: 0.28, metalness: 0.02, checkered: '#c7b68b' },
     platformSide: { base: '#dfd7be', grout: '#4a4436', roughness: 0.28, metalness: 0.03 },
-    wall: { base: '#eeeadd', grout: '#434d45', roughness: 0.22, metalness: 0.03, lowerBase: '#a8c2ad' },
+    wall: { base: '#eeeadd', grout: '#434d45', roughness: 0.24, metalness: 0.03, lowerBase: '#a8c2ad' },
     poolFloor: { base: '#98a89c', grout: '#4a4436', roughness: 0.28, metalness: 0.04 },
     ceiling: { base: '#eeeadd', grout: '#434d45', roughness: 0.45, metalness: 0.03 },
   },
   default: {
     id: 'default',
     name: 'Default Ceramic Natatorium',
+    grid: 16,
+    tileSize: WORLD.TILE_METERS,
     platformTop: { base: '#d6b878', grout: '#45361e', roughness: 0.28, metalness: 0.02 },
     platformSide: { base: '#d6b878', grout: '#45361e', roughness: 0.28, metalness: 0.03 },
-    wall: { base: '#eae2c6', grout: '#5c533e', roughness: 0.22, metalness: 0.04 },
+    wall: { base: '#eae2c6', grout: '#5c533e', roughness: 0.24, metalness: 0.04 },
     poolFloor: { base: '#c8d4ba', grout: '#566852', roughness: 0.28, metalness: 0.04 },
     ceiling: { base: '#eae2c6', grout: '#5c533e', roughness: 0.45, metalness: 0.03 },
   },
@@ -92,6 +105,8 @@ function parseHexRgb(hex: string): [number, number, number] {
 export class TileMaterialFactory {
   private static instance: TileMaterialFactory | null = null;
 
+  readonly tileSize: number;
+  readonly grid: number = 16;
   readonly wallTileMaterial: MeshStandardMaterial;
   readonly platformTopMaterial: MeshStandardMaterial;
   readonly platformSideMaterial: MeshStandardMaterial;
@@ -101,11 +116,12 @@ export class TileMaterialFactory {
   private readonly themeKits = new Map<SectorThemeId, TileMaterialKit>();
   private readonly maxAnisotropy: number;
 
-  private constructor(renderer?: WebGLRenderer) {
+  private constructor(renderer?: WebGLRenderer, tileSize: number = WORLD.TILE_METERS) {
+    this.tileSize = tileSize;
     const maxAnisotropy = renderer?.capabilities?.getMaxAnisotropy?.() ?? 16;
     this.maxAnisotropy = maxAnisotropy;
 
-    // 1. Wall Tile Material (0.25m x 0.25m tiles, #ebe4c8 glaze, #6e6550 grout)
+    // 1. Wall Tile Material (WORLD.TILE_METERS tiles, #ebe4c8 glaze, #6e6550 grout)
     const wallTextures = this.generateWallTileTextures(maxAnisotropy);
     this.wallTileMaterial = new MeshStandardMaterial({
       map: wallTextures.albedo,
@@ -126,7 +142,7 @@ export class TileMaterialFactory {
     });
     this.ceilingTileMaterial.name = 'CeilingTileMaterial';
 
-    // 2. Platform Top Material (0.22m x 0.22m tiles, #d5b676 tan/ochre, #4a3b22 dark brown grout)
+    // 2. Platform Top Material (WORLD.TILE_METERS tiles, #d5b676 tan/ochre, #4a3b22 dark brown grout)
     const platformTopTextures = this.generatePlatformTopTextures(maxAnisotropy);
     this.platformTopMaterial = new MeshStandardMaterial({
       map: platformTopTextures.albedo,
@@ -148,7 +164,7 @@ export class TileMaterialFactory {
     });
     this.platformSideMaterial.name = 'PlatformSideMaterial';
 
-    // 4. Submerged Pool Floor Material (0.25m x 0.25m tiles, #c8d4ba cream-green, #566852 grout)
+    // 4. Submerged Pool Floor Material (WORLD.TILE_METERS tiles, #c8d4ba cream-green, #566852 grout)
     const poolFloorTextures = this.generatePoolFloorTextures(maxAnisotropy);
     this.poolFloorMaterial = new MeshStandardMaterial({
       map: poolFloorTextures.albedo,
@@ -171,9 +187,9 @@ export class TileMaterialFactory {
     this.themeKits.set('default', defaultKit);
   }
 
-  static getInstance(renderer?: WebGLRenderer): TileMaterialFactory {
-    if (!TileMaterialFactory.instance) {
-      TileMaterialFactory.instance = new TileMaterialFactory(renderer);
+  static getInstance(renderer?: WebGLRenderer, tileSize: number = WORLD.TILE_METERS): TileMaterialFactory {
+    if (!TileMaterialFactory.instance || TileMaterialFactory.instance.tileSize !== tileSize) {
+      TileMaterialFactory.instance = new TileMaterialFactory(renderer, tileSize);
     }
     return TileMaterialFactory.instance;
   }
@@ -263,13 +279,13 @@ export class TileMaterialFactory {
   }
 
   /**
-   * Generates Wall Tile textures (512x512, 8x8 grid = 4.0m world repeat).
+   * Generates Wall Tile textures (512x512, 16x16 grid = 2.4m world repeat at WORLD.TILE_METERS).
    * Base glaze #ebe4c8 with +/- 3% luminance jitter, #6e6550 2px grout, recessed normal map.
    */
   private generateWallTileTextures(anisotropy: number): { albedo: CanvasTexture; normal: CanvasTexture } {
     const size = 512;
-    const grid = 8;
-    const tileSize = size / grid; // 64px
+    const grid = this.grid;
+    const tileSize = size / grid; // 32px
     const groutPx = 2;
 
     const albedoHandle = acquireCanvas(size, size);
@@ -372,12 +388,12 @@ export class TileMaterialFactory {
   }
 
   /**
-   * Generates Platform Top textures (512x512, 8x8 grid = 3.52m world repeat).
+   * Generates Platform Top textures (512x512, 16x16 grid = 2.4m world repeat at WORLD.TILE_METERS).
    * Warm tan/ochre ceramic tiles (#d5b676), dark brown grout (#4a3b22).
    */
   private generatePlatformTopTextures(anisotropy: number): { albedo: CanvasTexture; normal: CanvasTexture } {
     const size = 512;
-    const grid = 8;
+    const grid = this.grid;
     const tileSize = size / grid;
     const groutPx = 2;
 
@@ -616,12 +632,12 @@ export class TileMaterialFactory {
   }
 
   /**
-   * Generates Submerged Pool Floor Tile textures (1024x1024, 16x16 grid = 4.0m world repeat).
+   * Generates Submerged Pool Floor Tile textures (512x512, 16x16 grid = 2.4m world repeat at WORLD.TILE_METERS).
    * Slightly desaturated cream-green tile grid (#c8d4ba) with #566852 grout lines.
    */
   private generatePoolFloorTextures(anisotropy: number): { albedo: CanvasTexture; normal: CanvasTexture } {
     const size = 512;
-    const grid = 8;
+    const grid = this.grid;
     const tileSize = size / grid;
     const groutPx = 2;
 
@@ -720,7 +736,7 @@ export class TileMaterialFactory {
 
   /**
    * Builds a dry stepping-stone platform mesh with world-space UV scaling.
-   * Top face: 0.22m square tiles.
+   * Top face: square tiles at WORLD.TILE_METERS.
    * Vertical sides: exact vertical mapping from floorY (-0.75m) to topY (+0.38m)
    * showing 3 distinct horizontal rows above water and watermark band at y = 0.0.
    * Completely omits EdgesGeometry and cartoon border outlines.
@@ -741,6 +757,7 @@ export class TileMaterialFactory {
     const geom = new BoxGeometry(w, h, d);
     const uvAttr = geom.getAttribute('uv') as Float32BufferAttribute;
     const uvArray = uvAttr.array as Float32Array;
+    const texMeters = this.grid * this.tileSize;
 
     // Box faces:
     // 0: +X (d x h) -> Side
@@ -750,9 +767,9 @@ export class TileMaterialFactory {
     // 4: +Z (w x h) -> Side
     // 5: -Z (w x h) -> Side
 
-    // Top face (+Y): 1 tile = 0.22m x 0.22m
-    const topRepeatU = w / 0.22;
-    const topRepeatV = d / 0.22;
+    // Top face (+Y): 16 tiles across texMeters (2.4m), so 1 tile = WORLD.TILE_METERS
+    const topRepeatU = w / texMeters;
+    const topRepeatV = d / texMeters;
     const topBase = 2 * 4;
     uvArray[(topBase + 0) * 2 + 0] = 0;
     uvArray[(topBase + 0) * 2 + 1] = topRepeatV;
@@ -777,7 +794,7 @@ export class TileMaterialFactory {
     // Side faces (+X, -X, +Z, -Z):
     // Vertical span corresponds to (topY - floorY) = 1.13m
     // Texture V is normalized 0..1 from floorY to topY.
-    // Horizontal repeat: dim / 0.22m
+    // Horizontal repeat: dim / texMeters (16 tiles per 2.4m = WORLD.TILE_METERS pitch)
     const sideFaces = [
       { face: 0, dim: d }, // +X
       { face: 1, dim: d }, // -X
@@ -786,7 +803,7 @@ export class TileMaterialFactory {
     ];
 
     for (const sf of sideFaces) {
-      const uCount = sf.dim / 0.22;
+      const uCount = sf.dim / texMeters;
       const base = sf.face * 4;
       // Standard quad UVs in Three.js BoxGeometry: (0, 1), (1, 1), (0, 0), (1, 0)
       uvArray[(base + 0) * 2 + 0] = 0;
@@ -817,13 +834,14 @@ export class TileMaterialFactory {
 
   /**
    * Creates a Giant Cylindrical Tiled Column (radius = 2.1m, height = 16m, 48 radial segments).
-   * Square world-space tile UVs (1 tile = 0.25m x 0.25m).
+   * Square world-space tile UVs at WORLD.TILE_METERS.
    */
   createGiantColumnGeometry(radius = 2.1, height = 16.0, radialSegments = 48): CylinderGeometry {
     const geom = new CylinderGeometry(radius, radius, height, radialSegments, 1, false);
+    const texMeters = this.grid * this.tileSize;
     const circumference = 2 * Math.PI * radius; // ~13.195m
-    const repeatU = Math.round(circumference / 0.25); // ~53 tiles around circumference
-    const repeatV = height / 0.25; // 64 tiles vertically
+    const repeatU = Math.round(circumference / this.tileSize) / this.grid;
+    const repeatV = height / texMeters;
 
     const uvAttr = geom.getAttribute('uv') as Float32BufferAttribute;
     const uvArray = uvAttr.array as Float32Array;
@@ -836,8 +854,8 @@ export class TileMaterialFactory {
       uvArray[i * 2 + 1] = v * repeatV;
     }
 
-    // Top and bottom caps (diameter / 0.25)
-    const capRepeat = (2 * radius) / 0.25;
+    // Top and bottom caps (diameter / texMeters)
+    const capRepeat = (2 * radius) / texMeters;
     for (let i = sideVertexCount; i < uvAttr.count; i++) {
       uvArray[i * 2 + 0] = uvArray[i * 2 + 0]! * capRepeat;
       uvArray[i * 2 + 1] = uvArray[i * 2 + 1]! * capRepeat;
@@ -854,6 +872,7 @@ export class TileMaterialFactory {
    */
   createPalmArchPillar(height = 4.2, ribSpan = 2.2): Mesh {
     const parts: BufferGeometry[] = [];
+    const texMeters = this.grid * this.tileSize;
 
     // 1. Central square column shaft
     const shaftH = height - 0.8;
@@ -861,8 +880,8 @@ export class TileMaterialFactory {
     const sUv = shaftGeom.getAttribute('uv') as Float32BufferAttribute;
     const sArr = sUv.array as Float32Array;
     for (let i = 0; i < sUv.count; i++) {
-      sArr[i * 2 + 0] = sArr[i * 2 + 0]! * (0.65 / 0.25);
-      sArr[i * 2 + 1] = sArr[i * 2 + 1]! * (shaftH / 0.25);
+      sArr[i * 2 + 0] = sArr[i * 2 + 0]! * (0.65 / texMeters);
+      sArr[i * 2 + 1] = sArr[i * 2 + 1]! * (shaftH / texMeters);
     }
     sUv.needsUpdate = true;
     shaftGeom.translate(0, shaftH * 0.5 - 0.75, 0);
@@ -928,7 +947,7 @@ export class TileMaterialFactory {
     themeId: SectorThemeId,
   ): { albedo: CanvasTexture; normal: CanvasTexture } {
     const size = 512;
-    const grid = 8;
+    const grid = this.grid;
     const tileSize = size / grid;
     const groutPx = 2;
 
@@ -958,8 +977,8 @@ export class TileMaterialFactory {
       const localY = y % tileSize;
       const isGroutY = localY < groutPx;
 
-      const isLowerSchoolTile = themeId === 'school' && tileY >= 5;
-      const isStationStripe = themeId === 'station' && tileY === 5;
+      const isLowerSchoolTile = themeId === 'school' && tileY >= Math.floor(grid * 0.625);
+      const isStationStripe = themeId === 'station' && tileY === Math.floor(grid * 0.625);
 
       for (let x = 0; x < size; x++) {
         const tileX = Math.floor(x / tileSize);
@@ -1039,7 +1058,7 @@ export class TileMaterialFactory {
     anisotropy: number,
   ): { albedo: CanvasTexture; normal: CanvasTexture } {
     const size = 512;
-    const grid = 8;
+    const grid = this.grid;
     const tileSize = size / grid;
     const groutPx = 2;
 
@@ -1092,7 +1111,7 @@ export class TileMaterialFactory {
 
           if (checkeredRgb && (tileX + tileY) % 2 === 1) {
             [r, g, b] = checkeredRgb;
-          } else if (safetyRgb && tileY === 7) {
+          } else if (safetyRgb && tileY === grid - 1) {
             [r, g, b] = safetyRgb;
           }
 
@@ -1273,7 +1292,7 @@ export class TileMaterialFactory {
     anisotropy: number,
   ): { albedo: CanvasTexture; normal: CanvasTexture } {
     const size = 512;
-    const grid = 8;
+    const grid = this.grid;
     const tileSize = size / grid;
     const groutPx = 2;
 
@@ -1371,12 +1390,12 @@ export class TileMaterialFactory {
 }
 
 /**
- * World-space UV mapping for Box geometries so that 1 tile = 0.25m x 0.25m everywhere in the game.
+ * World-space UV mapping for Box geometries so that 1 tile = WORLD.TILE_METERS everywhere in the game.
  * Vertical platform side faces (0.40m above water) map 3 crisp rows of square/brick ceramic tiles with a dark watermark line at water level.
  */
 export function applyWorldSpaceBoxUVs(
   geometry: BufferGeometry,
-  tileSize = 0.25,
+  tileSize = WORLD.TILE_METERS,
   options?: { isPlatformSide?: boolean; topY?: number; floorY?: number },
 ): void {
   const uvAttr = geometry.getAttribute('uv') as Float32BufferAttribute | undefined;
@@ -1403,8 +1422,8 @@ export function applyWorldSpaceBoxUVs(
     [w, h],
   ];
 
-  // 8 tiles across canvas: 8 * tileSize = 2.0m per repeat
-  const texMeters = 8.0 * tileSize;
+  // 16 tiles across canvas: 16 * tileSize = 2.4m per repeat at WORLD.TILE_METERS
+  const texMeters = 16.0 * tileSize;
 
   for (let face = 0; face < 6; face++) {
     const isSide = face === 0 || face === 1 || face === 4 || face === 5;
@@ -1435,26 +1454,35 @@ export function applyWorldSpaceBoxUVs(
 }
 
 /**
- * World-space UV mapping for Cylinder geometries so that 1 tile = 0.25m x 0.25m across columns and pillars.
+ * World-space UV mapping for Cylinder geometries so that 1 tile = WORLD.TILE_METERS across columns and pillars.
  */
 export function applyWorldSpaceCylinderUVs(
   geometry: BufferGeometry,
   radius: number,
   height: number,
-  tileSize = 0.25,
+  tileSize = WORLD.TILE_METERS,
 ): void {
   const uvAttr = geometry.getAttribute('uv') as Float32BufferAttribute | undefined;
   if (!uvAttr) return;
 
   const uvArray = uvAttr.array as Float32Array;
-  const texMeters = 8.0 * tileSize;
+  const texMeters = 16.0 * tileSize;
   const circumference = 2 * Math.PI * radius;
   const repeatU = circumference / texMeters;
   const repeatV = height / texMeters;
 
+  let maxU = 0;
+  let maxV = 0;
   for (let i = 0; i < uvAttr.count; i++) {
-    uvArray[i * 2 + 0] = uvArray[i * 2 + 0]! * repeatU;
-    uvArray[i * 2 + 1] = uvArray[i * 2 + 1]! * repeatV;
+    maxU = Math.max(maxU, Math.abs(uvArray[i * 2 + 0]!));
+    maxV = Math.max(maxV, Math.abs(uvArray[i * 2 + 1]!));
+  }
+  const normU = maxU > 1.001 ? maxU : 1.0;
+  const normV = maxV > 1.001 ? maxV : 1.0;
+
+  for (let i = 0; i < uvAttr.count; i++) {
+    uvArray[i * 2 + 0] = (uvArray[i * 2 + 0]! / normU) * repeatU;
+    uvArray[i * 2 + 1] = (uvArray[i * 2 + 1]! / normV) * repeatV;
   }
 
   uvAttr.needsUpdate = true;

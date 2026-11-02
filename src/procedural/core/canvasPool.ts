@@ -63,14 +63,25 @@ export function acquireCanvas(width: number, height: number): PooledCanvas {
     ctx = el.getContext('2d');
   } else {
     // Headless / Node testing environment stub
+    let lastData = new Uint8ClampedArray(width * height * 4);
+    const stubCanvas: { width: number; height: number; data: Uint8ClampedArray } = {
+      width,
+      height,
+      data: lastData,
+    };
     const stubCtx = {
       clearRect: () => {},
       fillRect: () => {},
       strokeRect: () => {},
       drawImage: () => {},
       createImageData: (w = width, h = height) => ({ data: new Uint8ClampedArray(w * h * 4) }),
-      getImageData: () => ({ data: new Uint8ClampedArray(width * height * 4) }),
-      putImageData: () => {},
+      getImageData: () => ({ data: lastData }),
+      putImageData: (img?: { data?: Uint8ClampedArray }) => {
+        if (img?.data) {
+          lastData = img.data;
+          stubCanvas.data = img.data;
+        }
+      },
       save: () => {},
       restore: () => {},
       translate: () => {},
@@ -95,7 +106,7 @@ export function acquireCanvas(width: number, height: number): PooledCanvas {
       createLinearGradient: () => ({ addColorStop: () => {} }),
     } as unknown as AnyCanvasRenderingContext2D;
     return {
-      canvas: { width, height } as unknown as AnyCanvas,
+      canvas: stubCanvas as unknown as AnyCanvas,
       ctx: stubCtx,
       width,
       height,

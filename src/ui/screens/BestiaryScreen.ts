@@ -124,16 +124,16 @@ export class BestiaryScreen {
             <div style="background: #080705; border: 1px solid var(--bs-border-subtle); padding: 12px; border-radius: var(--bs-radius-sm);">
               <div style="font-family: var(--bs-font-mono); font-size: 10px; color: var(--bs-tan); margin-bottom: 6px;">ACOUSTIC HEARING THRESHOLD:</div>
               <div style="display: flex; gap: 16px; font-family: var(--bs-font-mono); font-size: 11px;">
-                <div><span style="color: var(--bs-water);">Wading:</span> 8m radius</div>
-                <div><span style="color: var(--bs-tan);">Walking:</span> 18m radius</div>
-                <div><span style="color: var(--bs-danger);">Sprinting:</span> 35m (Full Alert)</div>
+                <div><span style="color: var(--bs-water);">Crouch-Wade:</span> 5m radius</div>
+                <div><span style="color: var(--bs-tan);">Wade (Walk):</span> 14m radius</div>
+                <div><span style="color: var(--bs-danger);">Wade (Sprint):</span> 30m (Full Alert)</div>
               </div>
             </div>
 
             <!-- Credits Link -->
             <div style="font-size: 11px; opacity: 0.7; margin-top: 4px;">
-              Model Attribution: Lethal Company Thumper rig / procedural variant. 
-              <a href="#" id="link-credits-thumper" style="color: var(--bs-water); text-decoration: underline;">View CC BY License</a>
+              Skin Resolution: Procedural Quadrupedal Stalker (default deterministic ship skin; optional external GLB override). 
+              <a href="#" id="link-credits-thumper" style="color: var(--bs-water); text-decoration: underline;">View Attribution &amp; License</a>
             </div>
           </div>
         </div>

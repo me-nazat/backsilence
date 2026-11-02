@@ -442,6 +442,9 @@ export class SimWorld {
         isInWater: isPlayerInWaterEarly,
         isOnDryPlatform: pOnDry,
         onGround: pSnap.onGround,
+        crouching: intent.crouch || pSnap.crouchT > 0.5,
+        sprinting: intent.sprint,
+        mantling: this.player.isMantling,
       },
       this.simTime,
     );

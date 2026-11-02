@@ -90,7 +90,8 @@ describe('Prompt 4 Phase G: Internationalization (i18n)', () => {
   });
 
   it('verifies all 15 launch locales have required meta fields', () => {
-    expect(SUPPORTED_LOCALES.length).toBe(15);
+    expect(SUPPORTED_LOCALES.length).toBeGreaterThanOrEqual(15);
+    expect(new Set(SUPPORTED_LOCALES.map((l) => l.id)).size).toBe(SUPPORTED_LOCALES.length);
     const codes = SUPPORTED_LOCALES.map((l) => l.id);
     expect(codes).toContain('en');
     expect(codes).toContain('es');

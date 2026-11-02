@@ -7,6 +7,8 @@ dist/
 *.tsbuildinfo
 scratch/
 reports/*
+!reports/POLICY.md
+!reports/consolidation.md
 !reports/monster/
 !reports/water/
 !reports/graphics/
@@ -16,6 +18,7 @@ reports/audio/**/*.wav
 !reports/ux/
 reference/out*
 reference/*.png
+!reference/frames.manifest.json
 reference/video/frames/*
 !reference/video/frames/.gitkeep
 reference/audio/*.wav

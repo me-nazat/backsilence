@@ -1597,6 +1597,33 @@ Final verification of Batch 9 Prompt 1 across the complete headless verification
 
 **Reason:** Satisfies all acceptance criteria and verification protocols of Batch 9 Prompt 1 while preserving determinism, performance budgets (draw calls $\le 220$), and the clean picture aesthetic.
 
+### D119: One World Model — Single Tile Scale (0.15 m), Single Acoustic Path (AcousticBus), Deterministic Procedural Skin, and Tracked Reference Manifest (Batch 1/5 Prompt 1)
+**Date:** 2026-11-02
+**Context:**
+Following the Natatorium rebuild and quadrupedal monster rig integration, four governance contradictions existed across the repository:
+1. Three ceramic tile scales coexisted (`0.15` m in `src/app/Config.ts`, `0.22` m in `src/world/maps/NatatoriumMap.ts`, and `0.25` m in `src/world/maps/CommonMapBuilder.ts` and `src/procedural/textures/TileMaterialFactory.ts` with `grid = 8`).
+2. Three authorities governed the acoustic rule (`ACOUSTIC_RULEBOOK.md`, `src/game/AcousticSystem.ts`, and `src/sim/AcousticBus.ts`), causing the monster simulation to hear one model while audio and HUD consumed another.
+3. `waterMonsterSkin` defaulted to `'auto'` in `src/app/Settings.ts` and resolved to `public/models/thumper.glb` whenever that file existed locally, making the creature's appearance machine-dependent.
+4. `scripts/reference/compare.mjs` contained a silent `useVisualBible` fallback to `reference/targets.json -> visualBibleMedians` when reference frames were missing, and several tests asserted hard-coded hex/tile/count literals copied from `src/`.
+
+**Choice:**
+1. **Single Tile Scale (`WORLD.TILE_METERS = 0.15`, `WORLD.TEXTURE_METERS = 2.4`):**
+   - Removed all `0.22` and `0.25` tile-scale literals from `CommonMapBuilder.ts`, `NatatoriumMap.ts`, `OrientationMap.ts`, and `TileMaterialFactory.ts`.
+   - Updated `TileMaterialFactory` and all `SECTOR_THEMES` to a `16 x 16` ceramic tile grid per `2.4` m texture tile (`2.4 / 16 = 0.15` m rendered tile pitch), verified by `tests/tile-scale-uniqueness.test.ts`.
+2. **Single Acoustic Path (`ACOUSTIC_RULEBOOK.md` -> `src/sim/AcousticBus.ts`):**
+   - Established `ACOUSTIC_RULEBOOK.md` as the sole specification and `src/sim/AcousticBus.ts` as the single simulation emitter exposing both continuous effective loudness (`0` dry/still, `0.12` crouch-wade, `0.35` wade, `0.75` sprint-wade, `0.50` mantle, `1.00` jump/dive), `computeHearingRadius(...)`, and discrete splash events.
+   - Reduced `src/game/AcousticSystem.ts` to a presentation-only consumer subscribed to `AcousticBus` events.
+   - Added `scripts/audit/rulebook-sync.mjs` and `tests/acoustic-rulebook-sync.test.ts` to enforce 1:1 sync across all 29 noise table rows.
+3. **Deterministic Creature Appearance (`waterMonsterSkin: 'procedural'`):**
+   - Defaulted `waterMonsterSkin` to `'procedural'` in `src/app/Settings.ts` and ensured both `'procedural'` and `'auto'` deterministically resolve to `'procedural'` regardless of whether `public/models/thumper.glb` is present, locked by `scripts/creature/appearance-lock.mjs`.
+4. **Tracked Reference Pack & Policy Governance:**
+   - Added `reference/frames.manifest.json` (37 frames `f_001`..`f_037` + audio clip metadata & SHA-256 hashes), `scripts/reference/verify-reference.mjs`, and `scripts/reference/fetch-reference.mjs`.
+   - Deleted the implicit `useVisualBible` fallback from `scripts/reference/compare.mjs` (exits `2` when frames are missing or `--allow-provisional` is used, and exits `1` when checks fail), renamed `visualBibleMedians` to `provisionalVisualBibleMedians` (marked `"provisional": true` and reported in a non-gating table), and added the top-level `"authoritative"` block to `reference/targets.json`.
+   - Added `scripts/audit/no-tautology.mjs`, `reports/POLICY.md`, and `reports/consolidation.md`, and rewrote tautological test assertions across `tests/`.
+
+**Reason:** Collapses parallel authorities into one governed world model where tile scale, acoustics, creature appearance, reference verification, and test assertions are deterministic and enforced at build time.
+
+
 
 
 

@@ -567,14 +567,54 @@ export class GlbSkin implements MonsterSkin {
   }
 }
 
+export const MONSTER_RIG_REVISION = 'procedural-quadruped-v2';
+
+export interface MonsterSkinDescriptor {
+  resolvedKind: 'procedural' | 'model';
+  skinPath: string;
+  tint: string;
+  scale: number;
+  rigRevision: string;
+}
+
+/**
+ * Deterministically resolves the monster skin descriptor.
+ * Both 'procedural' (default) and 'auto' resolve to 'procedural' regardless of
+ * whether public/models/thumper.glb exists on disk. Only explicit 'model' opts into GLB.
+ */
+export function resolveMonsterSkinDescriptor(
+  skin: 'auto' | 'model' | 'procedural' = 'procedural',
+  scale = 1.0,
+  tintHex = '#7a4a38',
+  glbPresent = isModelAvailable('thumper'),
+): MonsterSkinDescriptor {
+  if (skin === 'model' && glbPresent) {
+    return {
+      resolvedKind: 'model',
+      skinPath: 'models/thumper.glb',
+      tint: tintHex.toLowerCase(),
+      scale,
+      rigRevision: 'glb-thumper-v1',
+    };
+  }
+  return {
+    resolvedKind: 'procedural',
+    skinPath: 'procedural://MonsterRig',
+    tint: tintHex.toLowerCase(),
+    scale,
+    rigRevision: MONSTER_RIG_REVISION,
+  };
+}
+
 export function createMonsterSkin(
-  skin: 'auto' | 'model' | 'procedural' = 'auto',
+  skin: 'auto' | 'model' | 'procedural' = 'procedural',
   scale = 1.0,
   tintHex = '#7a4a38',
   seed = 54321,
   variant: MonsterVariant = 'standard',
 ): MonsterSkin {
-  if (skin === 'model' || (skin === 'auto' && isModelAvailable('thumper'))) {
+  const desc = resolveMonsterSkinDescriptor(skin, scale, tintHex);
+  if (desc.resolvedKind === 'model') {
     return new GlbSkin(scale, tintHex, seed, variant);
   }
   return new ProceduralSkin(scale, tintHex, seed, variant);

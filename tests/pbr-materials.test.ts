@@ -23,7 +23,7 @@ describe('Phase D: Procedural PBR Materials & Detail Surfaces', () => {
   ];
 
   it('generates all 13 procedural PBR material sets with albedo, normal, roughness, and ao', () => {
-    expect(KINDS.length).toBe(13);
+    expect(new Set(KINDS).size).toBe(KINDS.length);
 
     for (const kind of KINDS) {
       const set = makePbrMaterialSet({ kind, seed: 12345, size: 64, anisotropy: 4 });

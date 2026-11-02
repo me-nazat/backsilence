@@ -1,11 +1,13 @@
 /* ── AcousticSystem.ts ──────────────────────────────────────────────────────
- *  Presentation acoustic feedback and tension controller.
- *  Computes dynamic horror tension from monster states and proximity,
- *  drives sound-visualizer captions, and directional arcs around the crosshair.
+ *  Presentation-only acoustic consumer & tension controller.
+ *  Subscribes to AcousticBus events (src/sim/AcousticBus.ts) and monsters'
+ *  snapshots to drive audio tension, sound-visualizer captions, and HUD
+ *  directional arcs. Never generates loudness or simulation events of its own.
  * ──────────────────────────────────────────────────────────────────────── */
 
 import type { Vec3, NoiseEvent, Settings } from '../types/contracts.js';
 import type { MonsterBrain } from '../sim/MonsterBrain.js';
+import type { AcousticBus, AcousticEvent } from '../sim/AcousticBus.js';
 import type { AudioEngine } from '../audio/AudioEngine.js';
 import type { Hud } from '../ui/Hud.js';
 
@@ -16,11 +18,37 @@ export class AcousticSystem {
 
   private currentTension = 0;
   private lastRippleTickTime = 0;
+  private unsubscribeBus: (() => void) | null = null;
+  private readonly pendingBusEvents: AcousticEvent[] = [];
 
-  constructor(audio: AudioEngine, hud: Hud, settings: Settings) {
+  constructor(audio: AudioEngine, hud: Hud, settings: Settings, acousticBus?: AcousticBus) {
     this.audio = audio;
     this.hud = hud;
     this.settings = settings;
+    if (acousticBus) {
+      this.bindAcousticBus(acousticBus);
+    }
+  }
+
+  /**
+   * Subscribes this presentation consumer to the simulation's AcousticBus.
+   */
+  bindAcousticBus(acousticBus: AcousticBus): void {
+    if (this.unsubscribeBus) {
+      this.unsubscribeBus();
+      this.unsubscribeBus = null;
+    }
+    this.unsubscribeBus = acousticBus.subscribe((ev) => {
+      this.pendingBusEvents.push(ev);
+    });
+  }
+
+  dispose(): void {
+    if (this.unsubscribeBus) {
+      this.unsubscribeBus();
+      this.unsubscribeBus = null;
+    }
+    this.pendingBusEvents.length = 0;
   }
 
   setSettings(settings: Settings): void {
@@ -36,10 +64,9 @@ export class AcousticSystem {
     playerPos: Vec3,
     playerYaw: number,
     monsters: MonsterBrain[],
-    recentNoises: NoiseEvent[],
+    recentNoises: NoiseEvent[] = [],
   ): void {
     // 1. Compute target tension across all monsters
-    // tension = clamp(max over monsters of stateWeight * proximityWeight)
     let maxTension = 0;
     let minMonsterDist = Infinity;
 
@@ -70,7 +97,7 @@ export class AcousticSystem {
           break;
         case 'WANDER':
           if (dist <= 25.0) {
-            stateWeight = 0.15 + (1.0 - dist / 25.0) * 0.20; // 0.15 .. 0.35
+            stateWeight = 0.15 + (1.0 - dist / 25.0) * 0.20;
           }
           break;
         case 'DORMANT':
@@ -93,37 +120,51 @@ export class AcousticSystem {
     this.currentTension += (clampedTarget - this.currentTension) * Math.min(1.0, dt * rate);
     this.audio.setTension(this.currentTension);
 
-    // Prompt 3.5: Proximity ducking as monster closes inside 18m so creature footsteps dominate
+    // Proximity ducking as monster closes inside 18m so creature footsteps dominate
     if (minMonsterDist < 18.0) {
       const proxT = Math.max(0, Math.min(1.0, (18.0 - minMonsterDist) / 18.0));
       const ambientDuck = 1.0 - 0.65 * proxT;
       this.audio.duckBus('ambient', ambientDuck, 0.1, 0.5);
     }
 
-    // 2. Sound Visualizer processing for recent noises
+    // 2. Consume subscribed AcousticBus events alongside any presentation noise cues
+    const combinedCues: Array<{ position: Vec3; loudness: number; kind: string }> = [];
+    while (this.pendingBusEvents.length > 0) {
+      const ev = this.pendingBusEvents.shift()!;
+      combinedCues.push({
+        position: ev.pos,
+        loudness: ev.loudness,
+        kind: ev.kind === 'THROWN_STONE_SPLASH' ? 'pebble' : ev.kind === 'MANTLE' ? 'mantle' : 'splash',
+      });
+    }
+    for (let i = 0; i < recentNoises.length; i++) {
+      const n = recentNoises[i]!;
+      combinedCues.push({
+        position: n.position,
+        loudness: n.loudness,
+        kind: n.kind,
+      });
+    }
+
     const visualizerEnabled = this.settings.audio.soundVisualizer;
-    if (visualizerEnabled && recentNoises.length > 0) {
+    if (visualizerEnabled && combinedCues.length > 0) {
       const reducedMotion =
         this.settings.accessibility.reducedMotion === 'on' ||
         (this.settings.accessibility.reducedMotion === 'system' &&
           typeof window !== 'undefined' &&
           window.matchMedia('(prefers-reduced-motion: reduce)').matches);
 
-      for (let i = 0; i < recentNoises.length; i++) {
-        const noise = recentNoises[i]!;
+      for (let i = 0; i < combinedCues.length; i++) {
+        const noise = combinedCues[i]!;
         const dx = noise.position.x - playerPos.x;
         const dz = noise.position.z - playerPos.z;
         const dist = Math.hypot(dx, dz);
 
-        // Calculate relative direction angle
-        // World angle from player to noise
         const worldAngle = Math.atan2(-dx, -dz);
         let relAngle = worldAngle - playerYaw;
         while (relAngle > Math.PI) relAngle -= Math.PI * 2;
         while (relAngle < -Math.PI) relAngle += Math.PI * 2;
 
-        // Flash directional arc around crosshair for loud sounds (loudness >= 0.5)
-        // Prompt 3.13: Rate limit ripple_tick to 1 tick per 1.5s, drop gain to 0.08
         if (noise.loudness >= 0.5) {
           this.hud.flashDirectionArc(relAngle, noise.loudness, reducedMotion);
           const now = performance.now();
@@ -133,7 +174,6 @@ export class AcousticSystem {
           }
         }
 
-        // Generate caption with sound descriptor, rough distance, and relative angle
         const dir = this.getDirectionLabel(relAngle);
         const distM = Math.max(1, Math.round(dist));
         const kindLabel = this.formatKindLabel(noise.kind);

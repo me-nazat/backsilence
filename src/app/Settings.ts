@@ -91,7 +91,7 @@ export function defaultSettings(): Settings {
       showNetStats: false,
     },
     creatures: {
-      waterMonsterSkin: 'auto',
+      waterMonsterSkin: 'procedural',
       ambientFlyers: 5,
     },
   };
@@ -177,9 +177,9 @@ export function clampSettings(s: Settings): Settings {
       showNetStats: Boolean(n?.showNetStats),
     },
     creatures: {
-      waterMonsterSkin: (['auto', 'model', 'procedural'].includes(cr?.waterMonsterSkin as string)
-        ? cr?.waterMonsterSkin
-        : 'auto') as 'auto' | 'model' | 'procedural',
+      waterMonsterSkin: (cr?.waterMonsterSkin === 'model' || cr?.waterMonsterSkin === 'procedural'
+        ? cr.waterMonsterSkin
+        : 'procedural') as 'auto' | 'model' | 'procedural',
       ambientFlyers: clamp(typeof cr?.ambientFlyers === 'number' ? cr.ambientFlyers : 5, 0, 5),
     },
   };

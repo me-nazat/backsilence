@@ -16,6 +16,7 @@ import {
 } from 'three';
 import type { LayoutData, BuildEnv, StairDef, PlatformDef } from '../MapTypes.js';
 import type { MapInstance } from './MapInstance.js';
+import { WORLD } from '../../app/Config.js';
 import { GroundGrid } from '../../sim/GroundGrid.js';
 import { ColliderSet } from '../../sim/Colliders.js';
 import { SinkingPlatformNode } from '../../sim/SinkingPlatformNode.js';
@@ -51,7 +52,7 @@ export interface CustomBuilderHook {
   onPostBuild?: (root: Group, simWorld: { ground: GroundGrid; colliders: ColliderSet }) => void;
 }
 
-export function scaleBoxUv(geom: BoxGeometry, w: number, h: number, d: number, unit = 1.6): void {
+export function scaleBoxUv(geom: BoxGeometry, w: number, h: number, d: number, unit = WORLD.TEXTURE_METERS): void {
   const uvAttr = geom.getAttribute('uv');
   if (!uvAttr) return;
   const uvArray = uvAttr.array as Float32Array;
@@ -555,13 +556,13 @@ export function buildStandardMapInstance(
 
     if (mergePlatforms && !plat.dynamic && !hooks?.onPlatformMesh) {
       const geom = createTiledBoxGeometry({ w, h: depth, d, uvOffsetSeed: plat.id.charCodeAt(0) });
-      applyWorldSpaceBoxUVs(geom, 0.25, { isPlatformSide: true, topY, floorY: -0.75 });
+      applyWorldSpaceBoxUVs(geom, WORLD.TILE_METERS, { isPlatformSide: true, topY, floorY: -0.75 });
       geom.translate(cx, topY - depth * 0.5, cz);
       hydroPlatformGeoms.push(geom);
     } else {
-      // Visual Mesh with consistent 0.25m tile grid UV scaling
+      // Visual Mesh with consistent WORLD.TILE_METERS tile grid UV scaling
       const geom = createTiledBoxGeometry({ w, h: depth, d, uvOffsetSeed: plat.id.charCodeAt(0) });
-      applyWorldSpaceBoxUVs(geom, 0.25, { isPlatformSide: true, topY, floorY: -0.75 });
+      applyWorldSpaceBoxUVs(geom, WORLD.TILE_METERS, { isPlatformSide: true, topY, floorY: -0.75 });
       geometriesToDispose.push(geom);
       const platMaterial = plat.kind === 'metal'
         ? metalMat
@@ -659,23 +660,23 @@ export function buildStandardMapInstance(
       const hShaft = Math.max(0.4, h - hBase - hCap - hGap * 2);
 
       const baseGeom = createTiledCylinderGeometry({ r: rBase, h: hBase, radialSegments: 24, uvOffsetSeed: seed });
-      applyWorldSpaceCylinderUVs(baseGeom, rBase, hBase, 0.25);
+      applyWorldSpaceCylinderUVs(baseGeom, rBase, hBase, WORLD.TILE_METERS);
       baseGeom.translate(0, -0.9 + hBase * 0.5, 0);
 
       const gap1Geom = createTiledCylinderGeometry({ r: rGap, h: hGap, radialSegments: 24, uvOffsetSeed: seed });
-      applyWorldSpaceCylinderUVs(gap1Geom, rGap, hGap, 0.25);
+      applyWorldSpaceCylinderUVs(gap1Geom, rGap, hGap, WORLD.TILE_METERS);
       gap1Geom.translate(0, -0.9 + hBase + hGap * 0.5, 0);
 
       const shaftGeom = createTiledCylinderGeometry({ r, h: hShaft, radialSegments: 24, uvOffsetSeed: seed });
-      applyWorldSpaceCylinderUVs(shaftGeom, r, hShaft, 0.25);
+      applyWorldSpaceCylinderUVs(shaftGeom, r, hShaft, WORLD.TILE_METERS);
       shaftGeom.translate(0, -0.9 + hBase + hGap + hShaft * 0.5, 0);
 
       const gap2Geom = createTiledCylinderGeometry({ r: rGap, h: hGap, radialSegments: 24, uvOffsetSeed: seed });
-      applyWorldSpaceCylinderUVs(gap2Geom, rGap, hGap, 0.25);
+      applyWorldSpaceCylinderUVs(gap2Geom, rGap, hGap, WORLD.TILE_METERS);
       gap2Geom.translate(0, -0.9 + h - hCap - hGap * 0.5, 0);
 
       const capGeom = createTiledCylinderGeometry({ r: rCap, h: hCap, radialSegments: 24, uvOffsetSeed: seed });
-      applyWorldSpaceCylinderUVs(capGeom, rCap, hCap, 0.25);
+      applyWorldSpaceCylinderUVs(capGeom, rCap, hCap, WORLD.TILE_METERS);
       capGeom.translate(0, -0.9 + h - hCap * 0.5, 0);
 
       const merged = mergeGeometries([baseGeom, gap1Geom, shaftGeom, gap2Geom, capGeom]);
@@ -752,7 +753,7 @@ export function buildStandardMapInstance(
         wallWidth: wallLength,
         wallHeight: h,
       });
-      applyWorldSpaceBoxUVs(archGeom, 0.25);
+      applyWorldSpaceBoxUVs(archGeom, WORLD.TILE_METERS);
       geometriesToDispose.push(archGeom);
       const archMat = customMaterials.wallMat.clone();
       materialsToDispose.push(archMat);
@@ -769,7 +770,7 @@ export function buildStandardMapInstance(
       root.add(archMesh);
     } else {
       const geom = createTiledBoxGeometry({ w, h, d, uvOffsetSeed: wall.id.charCodeAt(0) });
-      applyWorldSpaceBoxUVs(geom, 0.25);
+      applyWorldSpaceBoxUVs(geom, WORLD.TILE_METERS);
       geom.translate(cx, cy, cz);
       standardWallGeoms.push(geom);
 
@@ -827,7 +828,7 @@ export function buildStandardMapInstance(
       ground.setRectHeight(minX, minZ, maxX, maxZ, floorY);
 
       const floorGeom = createTiledBoxGeometry({ w, h: 0.2, d, uvOffsetSeed: wb.id.charCodeAt(0) });
-      applyWorldSpaceBoxUVs(floorGeom, 0.25);
+      applyWorldSpaceBoxUVs(floorGeom, WORLD.TILE_METERS);
       geometriesToDispose.push(floorGeom);
       // Shallow crossing (floorY >= -0.5) uses warm yellow ceramic tile platformMat; deep uses floorMat
       const floorMat = floorY >= -0.5 ? customMaterials.platformMat : customMaterials.floorMat;
@@ -848,7 +849,7 @@ export function buildStandardMapInstance(
     ground.setRectHeight(layout.bounds.minX, layout.bounds.minZ, layout.bounds.maxX, layout.bounds.maxZ, floorY);
 
     const floorGeom = createTiledBoxGeometry({ w: mapW, h: 0.2, d: mapD });
-    applyWorldSpaceBoxUVs(floorGeom, 0.25);
+    applyWorldSpaceBoxUVs(floorGeom, WORLD.TILE_METERS);
     geometriesToDispose.push(floorGeom);
     const floorMesh = new Mesh(floorGeom, customMaterials.floorMat);
     floorMesh.position.set(mapCx, floorY - 0.1, mapCz);

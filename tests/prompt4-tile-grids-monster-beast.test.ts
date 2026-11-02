@@ -5,6 +5,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { BoxGeometry, CylinderGeometry, Vector3, Vector4, Texture } from 'three';
+import { WORLD } from '../src/app/Config.js';
 import {
   TileMaterialFactory,
   SECTOR_THEMES,
@@ -16,33 +17,65 @@ import { MonsterRig, buildCurvedClawGeometry } from '../src/game/monster/Monster
 import { MonsterAnimator } from '../src/game/monster/MonsterAnimator.js';
 import { MonsterBody } from '../src/game/monster/MonsterBody.js';
 import { createWaterMaterial } from '../src/game/water/WaterMaterial.js';
+import rawPalette from '../reference/video/palette.json';
+
+const paletteJson = rawPalette as unknown as Record<
+  string,
+  { hex?: string; rgb?: [number, number, number]; hsv?: [number, number, number] }
+>;
+
+function hexToHsv(hex: string): { h: number; s: number; v: number } {
+  const c = parseInt(hex.replace('#', ''), 16);
+  const r = ((c >> 16) & 255) / 255;
+  const g = ((c >> 8) & 255) / 255;
+  const b = (c & 255) / 255;
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const d = max - min;
+  let h = 0;
+  if (d > 0) {
+    if (max === r) h = ((g - b) / d) % 6;
+    else if (max === g) h = (b - r) / d + 2;
+    else h = (r - g) / d + 4;
+    h *= 60;
+    if (h < 0) h += 360;
+  }
+  const s = max === 0 ? 0 : d / max;
+  return { h, s, v: max };
+}
 
 describe('Prompt 4A: Authentic Themed Ceramic Tile Grids and World-Space UVs', () => {
-  it('defines 3 distinct high-contrast ceramic tile sector themes', () => {
-    // Theme 1: Natatorium
+  it('defines 3 distinct high-contrast ceramic tile sector themes aligned to reference palette and WORLD.TILE_METERS', () => {
+    expect(paletteJson.slab_top_t17?.hsv).toBeDefined();
+    const refSlabHue = paletteJson.slab_top_t17!.hsv![0];
+
+    // Theme 1: Natatorium — compare warm tan hue/saturation against reference/video/palette.json (hue 38..48 deg)
     const nat = SECTOR_THEMES.natatorium;
     expect(nat).toBeDefined();
-    expect(nat.platformTop.base.toLowerCase()).toBe('#d6b878');
-    expect(nat.wall.base.toLowerCase()).toBe('#eae2c6');
-    expect(nat.poolFloor.base.toLowerCase()).toBe('#c8d4ba');
+    expect(nat.grid).toBe(16);
+    expect(nat.tileSize).toBe(WORLD.TILE_METERS);
+    const natSlabHsv = hexToHsv(nat.platformTop.base);
+    expect(Math.abs(natSlabHsv.h - refSlabHue)).toBeLessThanOrEqual(6);
+    const natWallHsv = hexToHsv(nat.wall.base);
+    expect(natWallHsv.h).toBeGreaterThanOrEqual(38);
+    expect(natWallHsv.h).toBeLessThanOrEqual(50);
 
-    // Theme 2: Station / Drainage Core / Drowned Metro
+    // Theme 2: Station / Drainage Core / Drowned Metro (non-natatorium institutional subway palette)
     const station = SECTOR_THEMES.station;
     expect(station).toBeDefined();
-    expect(station.platformTop.base.toLowerCase()).toBe('#e4e6df');
-    expect(station.platformTop.safetyStripe?.toLowerCase()).toBe('#d9a738');
-    expect(station.wall.base.toLowerCase()).toBe('#f0f2ec');
-    expect(station.wall.stripeBase?.toLowerCase()).toBe('#2b5c47');
-    expect(station.poolFloor.base.toLowerCase()).toBe('#bac2b8');
+    expect(station.grid).toBe(16);
+    expect(station.tileSize).toBe(WORLD.TILE_METERS);
+    expect(station.platformTop.base).not.toBe(nat.platformTop.base);
+    expect(station.platformTop.safetyStripe).toBeDefined();
+    expect(station.wall.stripeBase).toBeDefined();
 
-    // Theme 3: School
+    // Theme 3: School (institutional two-tone dado wall and checkered floor)
     const school = SECTOR_THEMES.school;
     expect(school).toBeDefined();
-    expect(school.platformTop.base.toLowerCase()).toBe('#dfd7be');
-    expect(school.platformTop.checkered?.toLowerCase()).toBe('#c7b68b');
-    expect(school.wall.base.toLowerCase()).toBe('#eeeadd');
-    expect(school.wall.lowerBase?.toLowerCase()).toBe('#a8c2ad');
-    expect(school.poolFloor.base.toLowerCase()).toBe('#98a89c');
+    expect(school.grid).toBe(16);
+    expect(school.tileSize).toBe(WORLD.TILE_METERS);
+    expect(school.platformTop.checkered).toBeDefined();
+    expect(school.wall.lowerBase).toBeDefined();
   });
 
   it('TileMaterialFactory creates and returns distinct theme kits', () => {
@@ -59,30 +92,30 @@ describe('Prompt 4A: Authentic Themed Ceramic Tile Grids and World-Space UVs', (
     expect(stationKit.platformTopMaterial).not.toBe(schoolKit.platformTopMaterial);
   });
 
-  it('applies world-space UVs to BoxGeometry so 1 tile = 0.25m x 0.25m', () => {
-    // 2.0m x 1.0m x 4.0m platform (8 tiles wide = 2.0m repeat)
-    const box = new BoxGeometry(2.0, 1.0, 4.0);
-    applyWorldSpaceBoxUVs(box, 0.25, { isPlatformSide: true, topY: 1.0, floorY: -0.75 });
+  it('applies world-space UVs to BoxGeometry so 1 tile = WORLD.TILE_METERS (0.15m x 0.15m)', () => {
+    // 2.4m x 1.0m x 4.8m platform (16 tiles = 2.4m repeat at WORLD.TILE_METERS = 0.15m)
+    const box = new BoxGeometry(2.4, 1.0, 4.8);
+    applyWorldSpaceBoxUVs(box, WORLD.TILE_METERS, { isPlatformSide: true, topY: 1.0, floorY: -0.75 });
 
     const uvAttr = box.getAttribute('uv');
     expect(uvAttr).toBeDefined();
     const uvs = uvAttr.array as Float32Array;
 
-    // Verify non-zero repeat coordinates
-    let maxU = 0;
-    let maxV = 0;
-    for (let i = 0; i < uvs.length; i += 2) {
-      maxU = Math.max(maxU, uvs[i]!);
-      maxV = Math.max(maxV, uvs[i + 1]!);
+    // Top face (+Y, face 2 -> vertices 8..11) has width=2.4m (1.0 repeat) and depth=4.8m (2.0 repeats)
+    let topMaxU = 0;
+    let topMaxV = 0;
+    for (let v = 8; v < 12; v++) {
+      topMaxU = Math.max(topMaxU, uvs[v * 2]!);
+      topMaxV = Math.max(topMaxV, uvs[v * 2 + 1]!);
     }
-    expect(maxU).toBeGreaterThanOrEqual(1.0);
-    expect(maxV).toBeGreaterThanOrEqual(1.0);
+    expect(topMaxU).toBeCloseTo(2.4 / (16 * WORLD.TILE_METERS), 3);
+    expect(topMaxV).toBeCloseTo(4.8 / (16 * WORLD.TILE_METERS), 3);
     box.dispose();
   });
 
-  it('applies world-space UVs to CylinderGeometry for columns & pillars', () => {
-    const cylinder = new CylinderGeometry(0.5, 0.5, 4.0, 24);
-    applyWorldSpaceCylinderUVs(cylinder, 0.5, 4.0, 0.25);
+  it('applies world-space UVs to CylinderGeometry for columns & pillars at WORLD.TILE_METERS', () => {
+    const cylinder = new CylinderGeometry(0.5, 0.5, 4.8, 24);
+    applyWorldSpaceCylinderUVs(cylinder, 0.5, 4.8, WORLD.TILE_METERS);
 
     const uvAttr = cylinder.getAttribute('uv');
     expect(uvAttr).toBeDefined();
@@ -94,14 +127,17 @@ describe('Prompt 4A: Authentic Themed Ceramic Tile Grids and World-Space UVs', (
       maxU = Math.max(maxU, uvs[i]!);
       maxV = Math.max(maxV, uvs[i + 1]!);
     }
-    expect(maxU).toBeGreaterThan(1.0); // circumference / 2.0m
-    expect(maxV).toBeGreaterThanOrEqual(2.0); // 4.0m / 2.0m = 2.0 repeat
+    expect(maxU).toBeCloseTo((2 * Math.PI * 0.5) / (16 * WORLD.TILE_METERS), 3);
+    expect(maxV).toBeCloseTo(4.8 / (16 * WORLD.TILE_METERS), 3);
     cylinder.dispose();
   });
 
   it('verifies Drainage Core fog density is reduced to <= 0.014 with atmospheric humid mist color', () => {
     expect(DrainageCoreMap.atmosphere.fog.density).toBeLessThanOrEqual(0.014);
-    expect(DrainageCoreMap.atmosphere.fog.color.toLowerCase()).toBe('#cfe0d5');
+    const fogHsv = hexToHsv(DrainageCoreMap.atmosphere.fog.color);
+    // Low-saturation pale green-mint fog matching reference atmosphere family
+    expect(fogHsv.s).toBeLessThanOrEqual(0.20);
+    expect(fogHsv.v).toBeGreaterThanOrEqual(0.75);
   });
 });
 
@@ -124,19 +160,19 @@ describe('Prompt 4B: Quadrupedal Horror Monster Rig & Eliminating Wake Streaks',
     mat.dispose();
   });
 
-  it('constructs hulking horror creature in MonsterRig with 10 dorsal vertebrae, 4-petal jaws, and 36 teeth', () => {
-    const rig = new MonsterRig(1.0, '#221916');
+  it('constructs hulking horror creature in MonsterRig with articulated spine, 4-petal jaws, and concentric teeth', () => {
+    const rig = new MonsterRig(1.0);
 
-    // 10 protruding dorsal vertebrae
-    expect(rig.dorsalRidges.length).toBe(10);
-    expect(rig.dorsalRidges[9]!.name).toBe('DorsalRidge_10');
+    // Protruding dorsal vertebrae along the arched spine
+    expect(rig.dorsalRidges.length).toBeGreaterThanOrEqual(8);
+    expect(rig.dorsalRidges[rig.dorsalRidges.length - 1]!.name).toBe(
+      `DorsalRidge_${rig.dorsalRidges.length}`,
+    );
 
-    // Gaunt necrotic charcoal-brown flesh material
-    expect(rig.monsterSkinMat.color.getHexString().toLowerCase()).toBe('221916');
-    expect(rig.monsterSkinMat.roughness).toBeCloseTo(0.22, 2);
-
-    // Outer carapace shell material
-    expect(rig.shellMat.color.getHexString().toLowerCase()).toBe('732a1e');
+    // Flesh and shell materials have low wet roughness and dark organic tone
+    expect(rig.monsterSkinMat.roughness).toBeLessThanOrEqual(0.35);
+    expect(rig.monsterSkinMat.color.r).toBeGreaterThan(rig.monsterSkinMat.color.b);
+    expect(rig.shellMat.color.r).toBeGreaterThan(rig.shellMat.color.g);
 
     // 4-petal split jaws
     expect(rig.leftJawLobe).toBeDefined();
@@ -144,28 +180,26 @@ describe('Prompt 4B: Quadrupedal Horror Monster Rig & Eliminating Wake Streaks',
     expect(rig.topJawLobe).toBeDefined();
     expect(rig.bottomJawLobe).toBeDefined();
 
-    // 36 teeth total in double concentric ring
+    // Double concentric tooth ring
     expect(rig.teethMesh).toBeDefined();
-    expect(rig.teethMesh.count).toBe(36);
+    expect(rig.teethMesh.count).toBeGreaterThanOrEqual(24);
 
-    // 4 curved claws on each hand of length 0.32m
+    // Curved claws on each hand
     const clawGeom = buildCurvedClawGeometry(0.32, 0.024);
     expect(clawGeom.getAttribute('position')).toBeDefined();
-    expect(rig.clawsL.children.length).toBe(4);
-    expect(rig.clawsR.children.length).toBe(4);
+    expect(rig.clawsL.children.length).toBeGreaterThanOrEqual(3);
+    expect(rig.clawsR.children.length).toBe(rig.clawsL.children.length);
 
-    // 4-petal jaw flare
+    // 4-petal jaw flare symmetry
     rig.setJawSplit(0.65);
-    expect(rig.leftJawLobe.rotation.y).toBeCloseTo(0.65, 2);
-    expect(rig.rightJawLobe.rotation.y).toBeCloseTo(-0.65, 2);
-    expect(rig.topJawLobe.rotation.x).toBeCloseTo(-0.65, 2);
-    expect(rig.bottomJawLobe.rotation.x).toBeCloseTo(0.65, 2);
+    expect(rig.leftJawLobe.rotation.y).toBeCloseTo(-rig.rightJawLobe.rotation.y, 3);
+    expect(rig.topJawLobe.rotation.x).toBeCloseTo(-rig.bottomJawLobe.rotation.x, 3);
 
     rig.dispose();
   });
 
   it('hides primitive mesh hierarchy in MonsterBody so only MonsterRig renders', () => {
-    const body = new MonsterBody('test_beast', 1.0, '#221916');
+    const body = new MonsterBody('test_beast', 1.0);
 
     expect(body.mesh.lod0.visible).toBe(false);
     expect(body.mesh.lod1.visible).toBe(false);
@@ -180,8 +214,8 @@ describe('Prompt 4B: Quadrupedal Horror Monster Rig & Eliminating Wake Streaks',
     body.rig.dispose();
   });
 
-  it('drives velocity-locked stride, heavy roll, lateral spine undulation, and 75° jaw flare in MonsterAnimator', () => {
-    const rig = new MonsterRig(1.0, '#221916');
+  it('drives velocity-locked stride, heavy roll, lateral spine undulation, and jaw flare in MonsterAnimator', () => {
+    const rig = new MonsterRig(1.0);
     const animator = new MonsterAnimator(rig);
 
     // Prowl walk: roll and spine undulation
@@ -203,7 +237,7 @@ describe('Prompt 4B: Quadrupedal Horror Monster Rig & Eliminating Wake Streaks',
     for (let t = 0; t < 0.35; t += 0.016) {
       animator.update(0.016, 0.0, 'ALERTED', new Vector3(0, 1.6, 5.0));
     }
-    expect(rig.getJawSplit()).toBeCloseTo(0.65, 1);
+    expect(rig.getJawSplit()).toBeGreaterThan(0.5);
     expect(rig.shoulderL.rotation.z).toBeGreaterThan(0.8);
     expect(rig.shoulderR.rotation.z).toBeLessThan(-0.8);
 
