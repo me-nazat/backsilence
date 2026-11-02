@@ -50,52 +50,163 @@ export interface SectorThemeConfig {
   ceiling: { base: string; grout: string; roughness: number; metalness: number };
 }
 
+/**
+ * Measured reference medians (reference/video/measured_targets.json → colour_targets_median_rgb).
+ * `platformTop` is #c29a56 shifted by 1/255 in green so its hue (38.3°) sits inside the measured
+ * 38–48° band instead of on its edge (#c29a56 is 37.8°).
+ */
+export const MEASURED_PALETTE = {
+  platformTop: '#c29b56',
+  wall: '#c8b580',
+  poolFloor: '#cbba8b',
+  dryPlaster: '#ae9e6c',
+  ceilingArch: '#b7a775',
+} as const;
+
+/** HSV tint of a hex colour: hue in degrees, saturation / value as additive deltas. */
+export function tintHex(hex: string, dHue: number, dSat = 0, dVal = 0): string {
+  const [r8, g8, b8] = parseHexRgb(hex);
+  const r = r8 / 255, g = g8 / 255, b = b8 / 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b), d = max - min;
+  let h = 0;
+  if (d > 0) {
+    if (max === r) h = ((g - b) / d) % 6;
+    else if (max === g) h = (b - r) / d + 2;
+    else h = (r - g) / d + 4;
+    h *= 60;
+    if (h < 0) h += 360;
+  }
+  let sat = max === 0 ? 0 : d / max;
+  let val = max;
+  h = (h + dHue + 360) % 360;
+  sat = Math.min(1, Math.max(0, sat + dSat));
+  val = Math.min(1, Math.max(0, val + dVal));
+  const c = val * sat;
+  const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+  const m = val - c;
+  const [rp, gp, bp] =
+    h < 60 ? [c, x, 0] : h < 120 ? [x, c, 0] : h < 180 ? [0, c, x] : h < 240 ? [0, x, c] : h < 300 ? [x, 0, c] : [c, 0, x];
+  const to = (v: number) => Math.round((v + m) * 255).toString(16).padStart(2, '0');
+  return `#${to(rp)}${to(gp)}${to(bp)}`;
+}
+
+const M = MEASURED_PALETTE;
+const GROUT_DARK = '#45361e';
+const GROUT_WALL = '#5c533e';
+const GROUT_FLOOR = '#566852';
+
+/**
+ * Every theme is derived from the measured medians by a bounded HSV delta
+ * (hue ≤ ±4°, stays inside the 38–48° band). Nothing here is an invented palette.
+ */
 export const SECTOR_THEMES: Record<SectorThemeId, SectorThemeConfig> = {
   natatorium: {
     id: 'natatorium',
     name: 'Natatorium / Poolrooms',
     grid: 16,
     tileSize: WORLD.TILE_METERS,
-    platformTop: { base: '#c29b56', grout: '#45361e', roughness: 0.28, metalness: 0.02 },
-    platformSide: { base: '#c29b56', grout: '#45361e', roughness: 0.28, metalness: 0.03 },
-    wall: { base: '#c8b580', grout: '#5c533e', roughness: 0.24, metalness: 0.04 },
-    poolFloor: { base: '#cbba8b', grout: '#566852', roughness: 0.28, metalness: 0.04 },
-    ceiling: { base: '#c8b580', grout: '#5c533e', roughness: 0.45, metalness: 0.03 },
+    platformTop: { base: M.platformTop, grout: GROUT_DARK, roughness: 0.28, metalness: 0.02 },
+    platformSide: { base: M.platformTop, grout: GROUT_DARK, roughness: 0.28, metalness: 0.03 },
+    wall: { base: M.wall, grout: GROUT_WALL, roughness: 0.24, metalness: 0.04 },
+    poolFloor: { base: M.poolFloor, grout: GROUT_FLOOR, roughness: 0.28, metalness: 0.04 },
+    ceiling: { base: M.ceilingArch, grout: GROUT_WALL, roughness: 0.45, metalness: 0.03 },
   },
+  // Utility family: walls 3° cooler, 4 % darker, slightly glossier (wet municipal tile).
   station: {
     id: 'station',
-    name: 'Drowned Metro / Drainage Core / Municipal Station',
+    name: 'Drowned Metro / Drainage Core / Utility Tunnels',
     grid: 16,
     tileSize: WORLD.TILE_METERS,
-    platformTop: { base: '#e4e6df', grout: '#3d4540', roughness: 0.24, metalness: 0.04, safetyStripe: '#d9a738' },
-    platformSide: { base: '#e4e6df', grout: '#3d4540', roughness: 0.24, metalness: 0.04 },
-    wall: { base: '#f0f2ec', grout: '#464e49', roughness: 0.18, metalness: 0.04, stripeBase: '#2b5c47' },
-    poolFloor: { base: '#bac2b8', grout: '#3d4540', roughness: 0.28, metalness: 0.04 },
-    ceiling: { base: '#d8deda', grout: '#3d4540', roughness: 0.45, metalness: 0.03 },
+    platformTop: { base: tintHex(M.platformTop, 3, 0, -0.03), grout: GROUT_DARK, roughness: 0.24, metalness: 0.04, safetyStripe: '#d9a738' },
+    platformSide: { base: tintHex(M.platformTop, 3, 0, -0.03), grout: GROUT_DARK, roughness: 0.24, metalness: 0.04 },
+    wall: { base: tintHex(M.wall, 3, 0, -0.04), grout: GROUT_WALL, roughness: 0.18, metalness: 0.04, stripeBase: tintHex(M.wall, 40, 0.1, -0.38) },
+    poolFloor: { base: tintHex(M.poolFloor, 3, 0, -0.04), grout: GROUT_FLOOR, roughness: 0.28, metalness: 0.04 },
+    ceiling: { base: tintHex(M.ceilingArch, -2, 0, -0.04), grout: GROUT_WALL, roughness: 0.45, metalness: 0.03 },
   },
+  // School (Poolroom family variant): walls 2° warmer, wainscot derived from the wall tile.
   school: {
     id: 'school',
     name: 'Flooded School / Institutional Archive',
     grid: 16,
     tileSize: WORLD.TILE_METERS,
-    platformTop: { base: '#dfd7be', grout: '#4a4436', roughness: 0.28, metalness: 0.02, checkered: '#c7b68b' },
-    platformSide: { base: '#dfd7be', grout: '#4a4436', roughness: 0.28, metalness: 0.03 },
-    wall: { base: '#eeeadd', grout: '#434d45', roughness: 0.24, metalness: 0.03, lowerBase: '#a8c2ad' },
-    poolFloor: { base: '#98a89c', grout: '#4a4436', roughness: 0.28, metalness: 0.04 },
-    ceiling: { base: '#eeeadd', grout: '#434d45', roughness: 0.45, metalness: 0.03 },
+    platformTop: { base: tintHex(M.platformTop, 0, 0, 0.02), grout: GROUT_DARK, roughness: 0.28, metalness: 0.02, checkered: tintHex(M.platformTop, 0, 0, -0.06) },
+    platformSide: { base: tintHex(M.platformTop, 0, 0, 0.02), grout: GROUT_DARK, roughness: 0.28, metalness: 0.03 },
+    wall: { base: tintHex(M.wall, -2, 0, 0.0), grout: GROUT_WALL, roughness: 0.24, metalness: 0.03, lowerBase: tintHex(M.wall, 2, 0, -0.1) },
+    poolFloor: { base: tintHex(M.poolFloor, -2, 0, -0.02), grout: GROUT_FLOOR, roughness: 0.28, metalness: 0.04 },
+    ceiling: { base: M.ceilingArch, grout: GROUT_WALL, roughness: 0.45, metalness: 0.03 },
   },
   default: {
     id: 'default',
     name: 'Default Ceramic Natatorium',
     grid: 16,
     tileSize: WORLD.TILE_METERS,
-    platformTop: { base: '#c29b56', grout: '#45361e', roughness: 0.28, metalness: 0.02 },
-    platformSide: { base: '#c29b56', grout: '#45361e', roughness: 0.28, metalness: 0.03 },
-    wall: { base: '#c8b580', grout: '#5c533e', roughness: 0.24, metalness: 0.04 },
-    poolFloor: { base: '#cbba8b', grout: '#566852', roughness: 0.28, metalness: 0.04 },
-    ceiling: { base: '#c8b580', grout: '#5c533e', roughness: 0.45, metalness: 0.03 },
+    platformTop: { base: M.platformTop, grout: GROUT_DARK, roughness: 0.28, metalness: 0.02 },
+    platformSide: { base: M.platformTop, grout: GROUT_DARK, roughness: 0.28, metalness: 0.03 },
+    wall: { base: M.wall, grout: GROUT_WALL, roughness: 0.24, metalness: 0.04 },
+    poolFloor: { base: M.poolFloor, grout: GROUT_FLOOR, roughness: 0.28, metalness: 0.04 },
+    ceiling: { base: M.ceilingArch, grout: GROUT_WALL, roughness: 0.45, metalness: 0.03 },
   },
 };
+
+/** Which sector theme each of the 11 maps renders with (see reports/world/map_family_contract.md). */
+export const MAP_SECTOR_THEME: Record<string, SectorThemeId> = {
+  orientation: 'natatorium',
+  poolrooms: 'natatorium',
+  natatorium: 'natatorium',
+  hydro_maze: 'natatorium',
+  drowned_school: 'school',
+  utility_tunnels: 'station',
+  drainage_core: 'station',
+  drowned_metro: 'station',
+  marble_atrium: 'default',
+  neon_flood: 'default',
+  sunken_jungle: 'default',
+};
+
+/**
+ * Spidery cracked-grout fissures over a submerged pool floor (f_018–f_020: "floor tiles with spidery
+ * cracked grout"). Tileable: every stroke is also drawn at ±size offsets so wrapped edges match.
+ */
+function drawSpideryCracks(
+  ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
+  size: number,
+  rng: Rng,
+  rgb: [number, number, number],
+): void {
+  if (typeof ctx.beginPath !== 'function') return;
+  const origins = 7;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  for (let o = 0; o < origins; o++) {
+    const ox = rng.next() * size;
+    const oy = rng.next() * size;
+    const arms = 3 + Math.floor(rng.next() * 3);
+    for (let a = 0; a < arms; a++) {
+      let ang = ((a + rng.next() * 0.6) / arms) * Math.PI * 2;
+      let x = ox;
+      let y = oy;
+      const pts: [number, number][] = [[x, y]];
+      const segs = 5 + Math.floor(rng.next() * 5);
+      for (let k = 0; k < segs; k++) {
+        ang += (rng.next() - 0.5) * 0.9;
+        const len = 8 + rng.next() * 18;
+        x += Math.cos(ang) * len;
+        y += Math.sin(ang) * len;
+        pts.push([x, y]);
+      }
+      for (const dx of [-size, 0, size]) {
+        for (const dy of [-size, 0, size]) {
+          ctx.beginPath();
+          ctx.moveTo(pts[0]![0] + dx, pts[0]![1] + dy);
+          for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i]![0] + dx, pts[i]![1] + dy);
+          ctx.strokeStyle = `rgba(${rgb[0]},${rgb[1]},${rgb[2]},0.85)`;
+          ctx.lineWidth = 1.4;
+          ctx.stroke();
+        }
+      }
+    }
+  }
+}
 
 function parseHexRgb(hex: string): [number, number, number] {
   const c = parseInt(hex.replace('#', ''), 16);
@@ -717,6 +828,7 @@ export class TileMaterialFactory {
 
     aCtx.putImageData(aImg, 0, 0);
     nCtx.putImageData(nImg, 0, 0);
+    drawSpideryCracks(aCtx, size, new Rng(777), [groutR, groutG, groutB]);
 
     const albedo = new CanvasTexture(albedoHandle.canvas as HTMLCanvasElement);
     albedo.wrapS = RepeatWrapping;
@@ -1371,6 +1483,7 @@ export class TileMaterialFactory {
 
     aCtx.putImageData(aImg, 0, 0);
     nCtx.putImageData(nImg, 0, 0);
+    drawSpideryCracks(aCtx, size, new Rng(777), [groutR, groutG, groutB]);
 
     const albedo = new CanvasTexture(albedoHandle.canvas as HTMLCanvasElement);
     albedo.wrapS = RepeatWrapping;

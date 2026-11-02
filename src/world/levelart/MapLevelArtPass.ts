@@ -231,7 +231,7 @@ export function applyMapLevelArtPass(env: LevelArtEnv): void {
   });
   const signMat = new MeshStandardMaterial({
     color: new Color('#e8f4f8'),
-    emissive: new Color(mapId === 'neon_flood' ? '#00d8ff' : mapId === 'sunken_jungle' ? '#58e884' : '#1f3a4a'),
+    emissive: new Color(mapId === 'neon_flood' ? '#d9a738' : mapId === 'sunken_jungle' ? '#58e884' : '#1f3a4a'),
     emissiveIntensity: mapId === 'neon_flood' ? 0.65 : 0.35,
     roughness: 0.32,
     metalness: 0.12,
@@ -242,7 +242,7 @@ export function applyMapLevelArtPass(env: LevelArtEnv): void {
     metalness: 0.02,
   });
   const lockerMat = new MeshStandardMaterial({
-    color: new Color('#4a6978'),
+    color: new Color('#6b6a58'),
     roughness: 0.38,
     metalness: 0.65,
   });

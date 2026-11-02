@@ -1805,3 +1805,315 @@ export function buildPressureTankGeometry(): BufferGeometry {
   return mergeGeometries(parts);
 }
 
+
+/* ── Prompt 6 Shared Standard Fitting Builders ────────────────────────── */
+
+/** 75. Bullnose Slab Edge Bevel (catching top specular highlights) */
+export function buildBullnoseSlabEdgeGeometry(length = 3.6, radius = 0.04): BufferGeometry {
+  const parts: { geom: BufferGeometry; matrix: Matrix4 }[] = [];
+  const m = new Matrix4();
+
+  // Quarter-round tubular rail running along the platform edge
+  const bead = new CylinderGeometry(radius, radius, length, 8, 1, false, 0, Math.PI);
+  bead.rotateZ(Math.PI * 0.5);
+  m.makeTranslation(0, 0, 0);
+  parts.push({ geom: bead, matrix: m.clone() });
+
+  return mergeGeometries(parts);
+}
+
+/** 76. Pool Stainless-Steel Access Ladder */
+export function buildPoolLadderGeometry(): BufferGeometry {
+  const parts: { geom: BufferGeometry; matrix: Matrix4 }[] = [];
+  const m = new Matrix4();
+
+  const railRadius = 0.025;
+  const ladderWidth = 0.5;
+  const ladderHeight = 1.4;
+
+  // Left and right tubular uprights
+  for (const x of [-ladderWidth * 0.5, ladderWidth * 0.5]) {
+    const upright = new CylinderGeometry(railRadius, railRadius, ladderHeight, 8);
+    m.makeTranslation(x, ladderHeight * 0.5 - 0.7, 0);
+    parts.push({ geom: upright, matrix: m.clone() });
+
+    // Top grab loop
+    const loop = new TorusGeometry(0.15, railRadius, 6, 12, Math.PI);
+    loop.rotateY(Math.PI * 0.5);
+    m.makeTranslation(x, ladderHeight - 0.7, -0.15);
+    parts.push({ geom: loop, matrix: m.clone() });
+  }
+
+  // 4 horizontal rungs
+  for (let i = 0; i < 4; i++) {
+    const rungY = -0.5 + i * 0.32;
+    const rung = new CylinderGeometry(railRadius * 0.8, railRadius * 0.8, ladderWidth - 0.02, 6);
+    rung.rotateZ(Math.PI * 0.5);
+    m.makeTranslation(0, rungY, 0);
+    parts.push({ geom: rung, matrix: m.clone() });
+  }
+
+  return mergeGeometries(parts);
+}
+
+/** 77. Tubular Metal Handrail */
+export function buildHandrailGeometry(length = 3.0): BufferGeometry {
+  const parts: { geom: BufferGeometry; matrix: Matrix4 }[] = [];
+  const m = new Matrix4();
+
+  const r = 0.025;
+  const h = 0.95;
+
+  // Top horizontal rail
+  const rail = new CylinderGeometry(r, r, length, 8);
+  rail.rotateZ(Math.PI * 0.5);
+  m.makeTranslation(0, h, 0);
+  parts.push({ geom: rail, matrix: m.clone() });
+
+  // Intermediate knee rail
+  const knee = new CylinderGeometry(r * 0.7, r * 0.7, length, 8);
+  knee.rotateZ(Math.PI * 0.5);
+  m.makeTranslation(0, h * 0.5, 0);
+  parts.push({ geom: knee, matrix: m.clone() });
+
+  // Upright stanchions spaced ~1.0m
+  const posts = Math.max(2, Math.round(length / 1.0) + 1);
+  const step = (length - 0.1) / (posts - 1);
+  for (let i = 0; i < posts; i++) {
+    const x = -length * 0.5 + 0.05 + i * step;
+    const post = new CylinderGeometry(r, r, h, 8);
+    m.makeTranslation(x, h * 0.5, 0);
+    parts.push({ geom: post, matrix: m.clone() });
+  }
+
+  return mergeGeometries(parts);
+}
+
+/** 78. Wall-Mounted Industrial Pipe Run */
+export function buildPipeRunGeometry(length = 6.0, radius = 0.08): BufferGeometry {
+  const parts: { geom: BufferGeometry; matrix: Matrix4 }[] = [];
+  const m = new Matrix4();
+
+  // Primary pipe
+  const pipe = new CylinderGeometry(radius, radius, length, 10);
+  pipe.rotateZ(Math.PI * 0.5);
+  m.makeTranslation(0, 0, 0);
+  parts.push({ geom: pipe, matrix: m.clone() });
+
+  // Pipe flange rings and wall standoff brackets every 1.5m
+  const brackets = Math.max(2, Math.round(length / 1.5) + 1);
+  const step = (length - 0.4) / (brackets - 1);
+  for (let i = 0; i < brackets; i++) {
+    const x = -length * 0.5 + 0.2 + i * step;
+    const flange = new CylinderGeometry(radius * 1.35, radius * 1.35, 0.08, 10);
+    flange.rotateZ(Math.PI * 0.5);
+    m.makeTranslation(x, 0, 0);
+    parts.push({ geom: flange, matrix: m.clone() });
+
+    const bracket = new BoxGeometry(0.06, radius * 2.2, radius * 2.5);
+    m.makeTranslation(x, -radius * 0.3, -radius * 1.2);
+    parts.push({ geom: bracket, matrix: m.clone() });
+  }
+
+  return mergeGeometries(parts);
+}
+
+/** 79. Classical Wall Frieze / Dentil Moulding Strip */
+export function buildFriezeGeometry(length = 4.0, height = 0.45): BufferGeometry {
+  const parts: { geom: BufferGeometry; matrix: Matrix4 }[] = [];
+  const m = new Matrix4();
+
+  // Backing band
+  const band = new BoxGeometry(length, height, 0.08);
+  m.makeTranslation(0, height * 0.5, 0);
+  parts.push({ geom: band, matrix: m.clone() });
+
+  // Top cornice projection
+  const cornice = new BoxGeometry(length + 0.05, 0.08, 0.14);
+  m.makeTranslation(0, height - 0.04, 0.03);
+  parts.push({ geom: cornice, matrix: m.clone() });
+
+  // Dentils along the mid-band
+  const count = Math.floor(length / 0.16);
+  const dentilW = 0.09;
+  for (let i = 0; i < count; i++) {
+    const x = -length * 0.5 + 0.08 + i * 0.16;
+    const dentil = new BoxGeometry(dentilW, 0.12, 0.11);
+    m.makeTranslation(x, height * 0.5, 0.02);
+    parts.push({ geom: dentil, matrix: m.clone() });
+  }
+
+  return mergeGeometries(parts);
+}
+
+/** 80. Red Municipal Alarm Bell (video 64–66s) */
+export function buildRedAlarmBellGeometry(): BufferGeometry {
+  const parts: { geom: BufferGeometry; matrix: Matrix4 }[] = [];
+  const m = new Matrix4();
+
+  // Rectangular backplate
+  const backplate = new BoxGeometry(0.32, 0.38, 0.04);
+  m.makeTranslation(0, 0, 0);
+  parts.push({ geom: backplate, matrix: m.clone() });
+
+  // Bell gong dome
+  const gong = new SphereGeometry(0.14, 12, 8, 0, Math.PI * 2, 0, Math.PI * 0.5);
+  gong.rotateX(Math.PI * 0.5);
+  m.makeTranslation(0, 0.04, 0.08);
+  parts.push({ geom: gong, matrix: m.clone() });
+
+  // Striker clapper
+  const clapper = new CylinderGeometry(0.015, 0.015, 0.12, 6);
+  m.makeTranslation(0.08, -0.10, 0.05);
+  parts.push({ geom: clapper, matrix: m.clone() });
+
+  const merged = mergeGeometries(parts);
+  // Red vertex color for the bell gong
+  const pos = merged.attributes.position as BufferAttribute;
+  const colors = new Float32Array(pos.count * 3);
+  for (let i = 0; i < pos.count; i++) {
+    const z = pos.getZ(i);
+    if (z > 0.03) {
+      colors[i * 3 + 0] = 0.82; // Red
+      colors[i * 3 + 1] = 0.12;
+      colors[i * 3 + 2] = 0.10;
+    } else {
+      colors[i * 3 + 0] = 0.25; // Dark metal backplate
+      colors[i * 3 + 1] = 0.25;
+      colors[i * 3 + 2] = 0.25;
+    }
+  }
+  merged.setAttribute('color', new BufferAttribute(colors, 3));
+  return merged;
+}
+
+/** 81. Municipal Painted Green Door (video 64–66s) */
+export function buildGreenDoorGeometry(width = 1.1, height = 2.2): BufferGeometry {
+  const parts: { geom: BufferGeometry; matrix: Matrix4 }[] = [];
+  const m = new Matrix4();
+
+  // Outer frame
+  const frameThick = 0.08;
+  const jambL = new BoxGeometry(frameThick, height, 0.12);
+  m.makeTranslation(-width * 0.5 - frameThick * 0.5, height * 0.5, 0);
+  parts.push({ geom: jambL, matrix: m.clone() });
+
+  const jambR = new BoxGeometry(frameThick, height, 0.12);
+  m.makeTranslation(width * 0.5 + frameThick * 0.5, height * 0.5, 0);
+  parts.push({ geom: jambR, matrix: m.clone() });
+
+  const lintel = new BoxGeometry(width + frameThick * 2, frameThick, 0.12);
+  m.makeTranslation(0, height + frameThick * 0.5, 0);
+  parts.push({ geom: lintel, matrix: m.clone() });
+
+  // Main door leaf
+  const leaf = new BoxGeometry(width - 0.02, height - 0.02, 0.05);
+  m.makeTranslation(0, height * 0.5, 0);
+  parts.push({ geom: leaf, matrix: m.clone() });
+
+  // Push bar handle
+  const handle = new BoxGeometry(width * 0.7, 0.05, 0.08);
+  m.makeTranslation(0, 1.0, 0.05);
+  parts.push({ geom: handle, matrix: m.clone() });
+
+  const merged = mergeGeometries(parts);
+  const pos = merged.attributes.position as BufferAttribute;
+  const colors = new Float32Array(pos.count * 3);
+  for (let i = 0; i < pos.count; i++) {
+    const y = pos.getY(i);
+    const z = pos.getZ(i);
+    if (z > 0.03 && y >= 0.95 && y <= 1.05) {
+      colors[i * 3 + 0] = 0.75; // Silver push bar
+      colors[i * 3 + 1] = 0.75;
+      colors[i * 3 + 2] = 0.75;
+    } else {
+      colors[i * 3 + 0] = 0.18; // Municipal deep green
+      colors[i * 3 + 1] = 0.42;
+      colors[i * 3 + 2] = 0.28;
+    }
+  }
+  merged.setAttribute('color', new BufferAttribute(colors, 3));
+  return merged;
+}
+
+/** 82. Eroded Organic "Face" Plaster Formation */
+export function buildErodedFaceGeometry(radius = 0.65): BufferGeometry {
+  const parts: { geom: BufferGeometry; matrix: Matrix4 }[] = [];
+  const m = new Matrix4();
+
+  // Rounded base dome
+  const head = new SphereGeometry(radius, 12, 10);
+  head.scale(0.85, 1.15, 0.65);
+  m.makeTranslation(0, radius, 0);
+  parts.push({ geom: head, matrix: m.clone() });
+
+  // Brow ridge
+  const brow = new BoxGeometry(radius * 1.1, radius * 0.25, radius * 0.45);
+  m.makeTranslation(0, radius * 1.1, radius * 0.35);
+  parts.push({ geom: brow, matrix: m.clone() });
+
+  // Eroded eye hollow recesses
+  for (const x of [-radius * 0.32, radius * 0.32]) {
+    const eye = new SphereGeometry(radius * 0.18, 8, 6);
+    m.makeTranslation(x, radius * 0.95, radius * 0.4);
+    parts.push({ geom: eye, matrix: m.clone() });
+  }
+
+  return mergeGeometries(parts);
+}
+
+/** 83. Wooden Utility Cable Spool / Drum */
+export function buildCableSpoolGeometry(radius = 0.65, width = 0.75): BufferGeometry {
+  const parts: { geom: BufferGeometry; matrix: Matrix4 }[] = [];
+  const m = new Matrix4();
+
+  // Flanges (two circular wooden discs)
+  for (const z of [-width * 0.5, width * 0.5]) {
+    const flange = new CylinderGeometry(radius, radius, 0.06, 14);
+    flange.rotateX(Math.PI * 0.5);
+    m.makeTranslation(0, radius, z);
+    parts.push({ geom: flange, matrix: m.clone() });
+  }
+
+  // Central core cylinder with wound black cable
+  const core = new CylinderGeometry(radius * 0.45, radius * 0.45, width - 0.08, 12);
+  core.rotateX(Math.PI * 0.5);
+  m.makeTranslation(0, radius, 0);
+  parts.push({ geom: core, matrix: m.clone() });
+
+  return mergeGeometries(parts);
+}
+
+/** 84. Safety Traffic / Hazard Cone */
+export function buildOrangeConeGeometry(height = 0.75): BufferGeometry {
+  const parts: { geom: BufferGeometry; matrix: Matrix4 }[] = [];
+  const m = new Matrix4();
+
+  // Square base plate
+  const base = new BoxGeometry(0.42, 0.03, 0.42);
+  m.makeTranslation(0, 0.015, 0);
+  parts.push({ geom: base, matrix: m.clone() });
+
+  // Conical body
+  const cone = new ConeGeometry(0.18, height, 12, 1, true);
+  m.makeTranslation(0, height * 0.5, 0);
+  parts.push({ geom: cone, matrix: m.clone() });
+
+  const merged = mergeGeometries(parts);
+  const pos = merged.attributes.position as BufferAttribute;
+  const colors = new Float32Array(pos.count * 3);
+  for (let i = 0; i < pos.count; i++) {
+    const y = pos.getY(i);
+    if (y >= height * 0.45 && y <= height * 0.65) {
+      colors[i * 3 + 0] = 0.95; // Reflective white collar
+      colors[i * 3 + 1] = 0.95;
+      colors[i * 3 + 2] = 0.95;
+    } else {
+      colors[i * 3 + 0] = 0.92; // Safety Orange
+      colors[i * 3 + 1] = 0.42;
+      colors[i * 3 + 2] = 0.08;
+    }
+  }
+  merged.setAttribute('color', new BufferAttribute(colors, 3));
+  return merged;
+}

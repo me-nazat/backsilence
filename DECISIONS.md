@@ -1703,3 +1703,23 @@ After locking the reference pack in Prompt 1, the verification pipeline still ha
 5. **Test debt:** `tests/monster-phase-e.test.ts` asserted the pre-D121 creature (0.55 fog, 24-vertebra spine); updated to the D121 spec (full fog, no spine).
 
 **Not done / deferred:** fog transmittance has no reference value (frames have no calibrated distances) and is listed as a known gap; caustics, god rays and height fog move to Prompt 7 (D125); slab side tile-row count (4–6 in footage vs 2 above water at 0.15 m pitch) is unresolved.
+
+## D124 — Eleven maps unified into one measured poolroom language (Prompt 6)
+
+**Date:** 2026-11-02
+**Changes:**
+1. **Three Map Families Contract (`reports/world/map_family_contract.md`):**
+   - Defined **Poolroom** (`natatorium`, `poolrooms`, `orientation`, `hydro_maze`, `drowned_school`), **Utility** (`utility_tunnels`, `drainage_core`, `drowned_metro`), and **Derelict** (`marble_atrium`, `neon_flood`, `sunken_jungle`) families with shared slab grammar (0.30 m topY, 0.04 m bullnose, cracked floor at y = -0.75 m), 0.15 m tile pitch, ceiling vaults, and neutral fog.
+   - Identified canonical footage analogues (`natatorium` -> `f_001`–`f_037`, `poolrooms` -> `f_004`–`f_009`/`f_021`–`f_024`, `orientation` -> `f_001`–`f_003`/`f_013`–`f_015`). All non-analogue maps labeled `FAMILY VARIANT` in contract and UI (`ModeSelect.ts`, `MapsScreen.ts`).
+   - Explicitly re-scoped `neon_flood` (flooded commercial atrium with emergency tungsten lamps, not cyberpunk), `drainage_core` (subterranean cistern with dim olive bioluminescence `#8ea05a`, zero cyan), and `sunken_jungle` (flooded botanical conservatory with natural river foliage).
+2. **Measured Colour Bands Everywhere (`src/game/water/WaterProfile.ts`, `src/procedural/textures/TileMaterialFactory.ts`, `tests/map-colour-bands.test.ts`):**
+   - Retuned all 11 `WATER_PROFILES` into measured HSV bounds: hue `85°–113°`, saturation `0.32–0.52`, value `0.35–0.69`. Purged all cyan/teal hardcoded hex literals across maps and shaders.
+   - Re-anchored `SECTOR_THEMES` on measured medians (`platformTop #c29b56`, `wall #c8b580`, `poolFloor #cbba8b`, `dryPlaster #ae9e6c`, `ceilingArch #b7a775`). Added tileable spidery cracked-grout fissures (`drawSpideryCracks`) to all submerged pool floor textures (`f_018`–`f_020`).
+   - Added `tests/map-colour-bands.test.ts` asserting HSV bands for all 11 maps across 5 surfaces (78 tests; failed on pre-change tree with 23 failures).
+3. **Consolidated Prop Vocabulary (`src/world/levelart/LevelArtProps.ts`):**
+   - Added shared geometry builders: `buildBullnoseSlabEdgeGeometry`, `buildPoolLadderGeometry`, `buildHandrailGeometry`, `buildPipeRunGeometry`, `buildFriezeGeometry`, `buildRedAlarmBellGeometry`, `buildGreenDoorGeometry`, `buildErodedFaceGeometry`, `buildCableSpoolGeometry`, and `buildOrangeConeGeometry`.
+   - Guaranteed every Poolroom-family map contains the tagline wall (`makeSpawnWallMural`), spray numeral, '#1' marker, three-colour panel (`buildColorPanelGeometry`), creature-blockable trench (`<= 2.4 m`), and cracked-grout floor.
+4. **Deterministic Prop Audit & Review Pack (`scripts/world/prop-audit.mjs`, `reports/graphics/review_pack.md`):**
+   - Created `scripts/world/prop-audit.mjs` verifying all 11 maps load headlessly with zero console errors, present creature, solvable path (`validateLayout`), ≥ 12 prop types, 3 depth layers (foreground < 10m, midground 10–25m, background ≥ 25m), horizon silhouettes, and legible numeral.
+   - Rewrote `reports/graphics/review_pack.md` §3 with deterministic script-emitted tables; purged all unmeasured grades and hand-typed counts.
+

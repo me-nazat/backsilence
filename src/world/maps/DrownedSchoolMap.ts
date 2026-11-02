@@ -303,7 +303,19 @@ export const DrownedSchoolMap: MapDefinition = {
       bounds,
       platforms,
       walls,
-      pillars: [],
+      pillars: [
+        {
+          id: 'pil_school_numeral_1',
+          x: 30.0,
+          z: -12.0,
+          radius: 0.75,
+          height: 5.0,
+          decalNumber: 4,
+          decalWidth: 0.8,
+          decalY: 2.0,
+          kind: 'tile',
+        },
+      ],
       stairs: [],
       waterBodies: [
         {

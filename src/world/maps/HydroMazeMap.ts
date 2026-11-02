@@ -271,7 +271,19 @@ export const HydroMazeMap: MapDefinition = {
       bounds,
       platforms,
       walls,
-      pillars: [],
+      pillars: [
+        {
+          id: 'pil_maze_numeral_1',
+          x: -28.0,
+          z: -28.0,
+          radius: 0.75,
+          height: 5.5,
+          decalNumber: 2,
+          decalWidth: 0.8,
+          decalY: 2.0,
+          kind: 'tile',
+        },
+      ],
       stairs,
       waterBodies: [
         {
@@ -380,7 +392,7 @@ export const HydroMazeMap: MapDefinition = {
     const scaleY = h / 72.0;
 
     // Churning aqua-grey background
-    g.fillStyle = '#2f4f4f';
+    g.fillStyle = '#4f5a3c';
     g.fillRect(0, 0, w, h);
 
     // Platforms

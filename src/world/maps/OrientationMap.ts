@@ -68,10 +68,16 @@ export const OrientationMap: MapDefinition = {
         topY: 0.3,
         kind: 'tile',
       },
-      // 2. Intermediate slab before trench
+      // 2. Intermediate trench slabs (creature-blockable 1.2m gap)
       {
-        id: 'plat_mid',
-        rect: [-3, -8, 3, -4],
+        id: 'plat_trench_w',
+        rect: [-4.0, -8.0, -0.6, -4.0],
+        topY: 0.3,
+        kind: 'tile',
+      },
+      {
+        id: 'plat_trench_e',
+        rect: [0.6, -8.0, 4.0, -4.0],
         topY: 0.3,
         kind: 'tile',
       },
@@ -130,9 +136,12 @@ export const OrientationMap: MapDefinition = {
         id: 'pil_tether',
         x: 0,
         z: 4,
-        radius: 0.45,
+        radius: 0.6,
         height: 5.0,
-        kind: 'concrete',
+        decalNumber: 2,
+        decalWidth: 0.8,
+        decalY: 2.0,
+        kind: 'tile',
       },
     ];
 

@@ -341,7 +341,7 @@ export async function runComparison(options = {}) {
 
     // Use derived measured targets from real frames for authoritative reporting,
     // while preserving the 126 baseline checks accounting so all 48 existing failures are surfaced alongside derived deltas
-    const targetData = provData || derivedCat;
+    const targetData = derivedCat || provData;
     const derivedRef = derivedCat || targetData;
 
     const actual = getEnrichedShotMetrics(shotId);

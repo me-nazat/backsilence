@@ -353,7 +353,7 @@ export const MarbleAtriumMap: MapDefinition = {
     const scaleY = h / 80.0;
 
     // Clear pool water background
-    g.fillStyle = '#4a7572';
+    g.fillStyle = '#6a7a58';
     g.fillRect(0, 0, w, h);
 
     // Terraces and balconies (pale marble rings)

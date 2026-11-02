@@ -399,7 +399,7 @@ export const PoolroomsMap: MapDefinition = {
     const scaleY = h / 96.0;
 
     // Background water
-    g.fillStyle = '#2d544e';
+    g.fillStyle = '#4f6a3e';
     g.fillRect(0, 0, w, h);
 
     // Slabs

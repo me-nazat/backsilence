@@ -174,7 +174,7 @@ export class WaterSystem {
     if (motesCount > 0) {
       const moteGeom = new CircleGeometry(0.04, 6);
       const moteMat = new MeshBasicMaterial({
-        color: new Color(options.profile?.bioluminescence?.color ?? '#3ff2c8'),
+        color: new Color(options.profile?.bioluminescence?.color ?? '#8ea05a'),
         transparent: true,
         opacity: 0.7,
         depthWrite: false,

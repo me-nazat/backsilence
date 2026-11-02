@@ -23,7 +23,9 @@ function pitchFromTopFace(span: number): number {
 
 describe('tile pitch is WORLD.TILE_METERS everywhere', () => {
   it('config reference value is 0.15 m', () => {
+    // DESIGN_RATIONALE: Authoritative physical tile scale 0.15m per reference notes.md (1 tile per 6% of wall height).
     expect(WORLD.TILE_METERS).toBe(0.15);
+    // DESIGN_RATIONALE: Grid pitch must produce exactly 0.15m tiles across the 2.4m world texture repeat.
     expect(WORLD.TEXTURE_METERS / SECTOR_THEMES.natatorium.grid).toBeCloseTo(0.15, 6);
   });
   for (const span of [3, 10, 25]) {

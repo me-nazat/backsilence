@@ -31,7 +31,7 @@ export const DrainageCoreMap: MapDefinition = {
       ground: '#010806',
     },
     sun: {
-      color: '#3ff2c8',
+      color: '#8ea05a',
       intensity: 0.05,
       direction: { x: 0.0, y: 1.0, z: 0.0 },
       castShadow: false,
@@ -345,7 +345,7 @@ export const DrainageCoreMap: MapDefinition = {
     g.strokeRect(41 * scaleX, 41 * scaleY, 38 * scaleX, 38 * scaleY);
 
     // Catwalk platforms
-    g.fillStyle = '#2d6d63';
+    g.fillStyle = '#5a6a3a';
     for (const p of layout.platforms) {
       const rx = (p.rect[0] + 60) * scaleX;
       const ry = (p.rect[1] + 60) * scaleY;
@@ -359,7 +359,7 @@ export const DrainageCoreMap: MapDefinition = {
       if (prop.kind === 'generator') {
         const gx = (prop.position.x + 60) * scaleX;
         const gy = (prop.position.z + 60) * scaleY;
-        g.fillStyle = '#3ff2c8';
+        g.fillStyle = '#8ea05a';
         g.fillRect(gx - 3, gy - 3, 6, 6);
       }
     }

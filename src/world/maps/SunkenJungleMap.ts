@@ -247,7 +247,19 @@ export const SunkenJungleMap: MapDefinition = {
       bounds,
       platforms,
       walls,
-      pillars: [],
+      pillars: [
+        {
+          id: 'pil_jungle_totem_1',
+          x: -50.0,
+          z: -48.0,
+          radius: 0.75,
+          height: 5.0,
+          decalNumber: 3,
+          decalWidth: 0.8,
+          decalY: 2.0,
+          kind: 'marble',
+        },
+      ],
       stairs: [],
       waterBodies: [
         {

@@ -413,7 +413,7 @@ export const NeonFloodMap: MapDefinition = {
 
     // Up to 16 Neon LightStreaks reflecting on wet floodwater
     const neonStreaks: LightStreak[] = [
-      { pos: new Vector3(-25, 6.0, 20), dir: new Vector3(0, 0, 1), size: 12.0, color: new Color('#19f0ff'), intensity: 1.1 }, // Cyan
+      { pos: new Vector3(-25, 6.0, 20), dir: new Vector3(0, 0, 1), size: 12.0, color: new Color('#e0c070'), intensity: 1.1 }, // Cyan
       { pos: new Vector3(25, 8.0, 20), dir: new Vector3(0, 0, 1), size: 16.0, color: new Color('#ff2bd6'), intensity: 1.2 },  // Magenta
       { pos: new Vector3(0, 10.0, 48), dir: new Vector3(1, 0, 0), size: 24.0, color: new Color('#ffb02e'), intensity: 1.3 },  // Amber Transit Gate
       { pos: new Vector3(-20, 5.0, -25), dir: new Vector3(1, 0, 0), size: 10.0, color: new Color('#a6ff3d'), intensity: 0.9 }, // Lime
@@ -442,7 +442,7 @@ export const NeonFloodMap: MapDefinition = {
     }
 
     // Skyways and cars
-    g.fillStyle = '#19f0ff';
+    g.fillStyle = '#e0c070';
     for (const p of layout.platforms) {
       if (p.id.startsWith('skyway_')) {
         const rx = (p.rect[0] + 65) * scaleX;

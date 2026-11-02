@@ -669,16 +669,16 @@ export const NatatoriumMap: MapDefinition = {
     props.push({
       id: 'drain_wheel',
       kind: 'drain_wheel',
-      position: { x: 0.0, y: 0.38, z: -54.0 },
+      position: { x: 0.0, y: 0.30, z: -54.0 },
     });
 
     // Collectible pebble props on dry platforms (Prompt 4B Section 2)
     const pebbleSpawns = [
-      { id: 'pebble_prop_1', x: -0.5, y: 0.38, z: 8.5 },
-      { id: 'pebble_prop_2', x: 0.0, y: 0.38, z: -6.0 },
-      { id: 'pebble_prop_3', x: -12.5, y: 0.38, z: 9.5 },
-      { id: 'pebble_prop_4', x: 17.5, y: 0.38, z: 11.5 },
-      { id: 'pebble_prop_5', x: 0.0, y: 0.38, z: -18.0 },
+      { id: 'pebble_prop_1', x: -0.5, y: 0.30, z: 8.5 },
+      { id: 'pebble_prop_2', x: 0.0, y: 0.30, z: -6.0 },
+      { id: 'pebble_prop_3', x: -12.5, y: 0.30, z: 9.5 },
+      { id: 'pebble_prop_4', x: 17.5, y: 0.30, z: 11.5 },
+      { id: 'pebble_prop_5', x: 0.0, y: 0.30, z: -18.0 },
     ];
     for (const p of pebbleSpawns) {
       props.push({
@@ -692,11 +692,11 @@ export const NatatoriumMap: MapDefinition = {
     props.push({
       id: 'keypad_console_pedestal',
       kind: 'keypad_pedestal',
-      position: { x: 2.2, y: 0.38, z: -56.5 },
+      position: { x: 2.2, y: 0.30, z: -56.5 },
     });
 
-    const exitPos = { x: 0.0, y: 0.38, z: -58.0 };
-    const playerSpawn = { x: 0.0, y: 0.38, z: 50.0 };
+    const exitPos = { x: 0.0, y: 0.30, z: -58.0 };
+    const playerSpawn = { x: 0.0, y: 0.30, z: 50.0 };
     // Apex monster spawn in flooded hall, distance 51.5m >= 45m from player spawn
     const monsterSpawn = { x: 0.0, y: -0.75, z: -1.5 };
 
@@ -742,7 +742,7 @@ export const NatatoriumMap: MapDefinition = {
           position: exitPos,
           params: {
             code: digits.join(''),
-            drainWheelPos: { x: 0.0, y: 0.38, z: -54.0 },
+            drainWheelPos: { x: 0.0, y: 0.30, z: -54.0 },
           },
         },
       ],
@@ -826,7 +826,7 @@ export const NatatoriumMap: MapDefinition = {
     // Spawn Wall Mural: "IT CAN'T SEE YOU. IT HEARS THE WATER." + Ink Splash Crown (Video 2 00:00–00:04)
     const tagTex = makeSpawnWallMural({ width: 1024, height: 512 });
     const tagMesh = DecalSystem.createWallDecalMesh(tagTex, 4.8, 2.4);
-    tagMesh.position.set(0.0, 0.38 + 1.65, 52.38);
+    tagMesh.position.set(0.0, 0.30 + 1.65, 52.38);
     tagMesh.rotation.y = Math.PI; // facing -Z towards player at z=50
     tagMesh.name = 'SpawnTagline';
     instance.root.add(tagMesh);
@@ -842,7 +842,7 @@ export const NatatoriumMap: MapDefinition = {
     const foyerTurnMesh = DecalSystem.createWallDecalMesh(foyerTurnTex, 2.8, 1.4);
     foyerTurnMesh.rotation.x = -Math.PI / 2;
     foyerTurnMesh.rotation.z = Math.PI;
-    foyerTurnMesh.position.set(0.0, 0.385, 48.5);
+    foyerTurnMesh.position.set(0.0, 0.305, 48.5);
     foyerTurnMesh.name = 'FoyerTurnDecal';
     instance.root.add(foyerTurnMesh);
 
@@ -915,11 +915,11 @@ export const NatatoriumMap: MapDefinition = {
       // 1. Near spawn / Foyer deck boundary
       { id: 'Warning_Spawn', x: -7.85, y: 1.6, z: 46.5, isFloor: false, rotY: Math.PI / 2, arrowDir: 'right' },
       // 2. Before first deep water crossing (Zone A low arch/stepping-stone rim)
-      { id: 'Warning_FirstCrossing', x: 0.0, y: 0.385, z: 34.5, isFloor: true, rotY: Math.PI, arrowDir: 'up' },
+      { id: 'Warning_FirstCrossing', x: 0.0, y: 0.305, z: 34.5, isFloor: true, rotY: Math.PI, arrowDir: 'up' },
       // 3. Middle Pillar Hall entrance / Palm arch fork
       { id: 'Warning_PillarHall', x: -6.0, y: 1.6, z: 22.0, isFloor: false, rotY: 0, arrowDir: 'left' },
       // 4. At Trench Landmark (narrow trench rim where creature gets blocked)
-      { id: 'Warning_Trench', x: 0.0, y: 0.385, z: -11.5, isFloor: true, rotY: Math.PI, arrowDir: 'down' },
+      { id: 'Warning_Trench', x: 0.0, y: 0.305, z: -11.5, isFloor: true, rotY: Math.PI, arrowDir: 'down' },
       // 5. Approaching lit Arched Checkpoint / S-bend Corridor
       { id: 'Warning_ArchedCheckpoint', x: -2.0, y: 1.6, z: -43.48, isFloor: false, rotY: 0, arrowDir: 'right' },
       // 6. Near Floodgate / Plant Room exit keypad door
@@ -955,7 +955,7 @@ export const NatatoriumMap: MapDefinition = {
       seed: layout.seed + 77,
     });
     const hearsWaterMesh = DecalSystem.createWallDecalMesh(hearsWaterTex, 2.4, 1.2);
-    hearsWaterMesh.position.set(-4.5, 0.385, 20.0);
+    hearsWaterMesh.position.set(-4.5, 0.305, 20.0);
     hearsWaterMesh.rotation.x = -Math.PI * 0.5;
     hearsWaterMesh.rotation.z = Math.PI;
     hearsWaterMesh.name = 'Graffiti_Flavor_HearsWater';
@@ -980,7 +980,7 @@ export const NatatoriumMap: MapDefinition = {
       const arrowTex = makeRouteArrowDecal({ symbol: validDir, seed: layout.seed + i });
       const arrowMesh = DecalSystem.createWallDecalMesh(arrowTex, 1.2, 1.2);
       arrowMesh.rotation.x = -Math.PI * 0.5;
-      arrowMesh.position.set(gridX, 0.388, gridZ);
+      arrowMesh.position.set(gridX, 0.308, gridZ);
       arrowMesh.name = `RouteArrow_${i + 1}`;
       instance.root.add(arrowMesh);
     }
@@ -1002,7 +1002,7 @@ export const NatatoriumMap: MapDefinition = {
     // ──────────────────────────────────────────────────────────────────────────
     const pedestalGroup = new Group();
     pedestalGroup.name = 'KeypadConsolePedestal';
-    pedestalGroup.position.set(2.2, 0.38, -56.5);
+    pedestalGroup.position.set(2.2, 0.30, -56.5);
 
     const standMat = new MeshStandardMaterial({
       color: 0x22201d,
@@ -1317,10 +1317,10 @@ export const NatatoriumMap: MapDefinition = {
     const yFixtures = new InstancedMesh(yFixtureGeom, fixturePropMat, 2);
     yFixtures.name = 'YFixtures';
     const m4 = new Matrix4();
-    m4.makeTranslation(12, 0.38, 10);
+    m4.makeTranslation(12, 0.30, 10);
     yFixtures.setMatrixAt(0, m4);
     m4.makeRotationY(0.4);
-    m4.setPosition(18, 0.38, -5);
+    m4.setPosition(18, 0.30, -5);
     yFixtures.setMatrixAt(1, m4);
     yFixtures.instanceMatrix.needsUpdate = true;
     instance.root.add(yFixtures);
@@ -1366,7 +1366,7 @@ export const NatatoriumMap: MapDefinition = {
     const scaleY = h / 118.0;
 
     // Background water
-    g.fillStyle = '#265446';
+    g.fillStyle = '#4a5a34';
     g.fillRect(0, 0, w, h);
 
     // Platforms

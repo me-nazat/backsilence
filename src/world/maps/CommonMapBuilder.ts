@@ -1,3 +1,6 @@
+import { makeSpawnWallMural } from '../../procedural/textures/GraffitiDecals.js';
+import { DecalSystem } from '../../game/decals/DecalSystem.js';
+import { buildColorPanelGeometry } from '../levelart/LevelArtProps.js';
 /* ── CommonMapBuilder.ts ───────────────────────────────────────────────────
  *  Unified procedural 3D map builder translating pure LayoutData into
  *  Three.js visual scene meshes, GroundGrid heights, and ColliderSet colliders.
@@ -261,16 +264,16 @@ export function buildStandardMapInstance(
 
   const themePalette: Record<string, { trimColor: string; metalColor: string; accentColor: string; accentEmissive?: string; useWoodTrim?: boolean; useMarbleTrim?: boolean }> = {
     drowned_school: { trimColor: '#5b7863', metalColor: '#6d7b74', accentColor: '#4e3524', useWoodTrim: true },
-    drowned_metro: { trimColor: '#2c353d', metalColor: '#98a4ae', accentColor: '#d99b16', accentEmissive: '#3d2800' },
+    drowned_metro: { trimColor: '#4d4a3c', metalColor: '#8f8f7e', accentColor: '#d99b16', accentEmissive: '#3d2800' },
     sunken_jungle: { trimColor: '#4a5d3f', metalColor: '#5c5346', accentColor: '#b59449', useWoodTrim: true },
-    neon_flood: { trimColor: '#1b2234', metalColor: '#48546a', accentColor: '#00e5ff', accentEmissive: '#006b7d' },
+    neon_flood: { trimColor: '#4a4636', metalColor: '#6b6a58', accentColor: '#d9a738', accentEmissive: '#5a4410' },
     marble_atrium: { trimColor: '#d8cfc0', metalColor: '#b59449', accentColor: '#8c6d32', useMarbleTrim: true },
-    natatorium: { trimColor: '#8a6f3e', metalColor: '#b59449', accentColor: '#3d6b5e', useMarbleTrim: true },
+    natatorium: { trimColor: '#8a6f3e', metalColor: '#b59449', accentColor: '#6b7a44', useMarbleTrim: true },
     poolrooms: { trimColor: '#9c8b65', metalColor: '#a89058', accentColor: '#527a68' },
     orientation: { trimColor: '#7a8f7d', metalColor: '#98a69a', accentColor: '#d4a843' },
     utility_tunnels: { trimColor: '#4a3c31', metalColor: '#735c4d', accentColor: '#c85a32' },
-    hydro_maze: { trimColor: '#3a524e', metalColor: '#69807c', accentColor: '#d4882a' },
-    drainage_core: { trimColor: '#193833', metalColor: '#385954', accentColor: '#2ee6b8', accentEmissive: '#0b4f3e' },
+    hydro_maze: { trimColor: '#4f5a3c', metalColor: '#7d8269', accentColor: '#d4882a' },
+    drainage_core: { trimColor: '#4a4a30', metalColor: '#6b6b4c', accentColor: '#8ea05a', accentEmissive: '#2c3414' },
   };
   const pal = themePalette[layout.mapId] ?? { trimColor: '#6e6a5e', metalColor: '#7c8285', accentColor: '#b58d3d' };
 
@@ -1091,7 +1094,138 @@ export function buildStandardMapInstance(
     geometriesToDispose,
   });
 
-  // 7. Atmospheric Far Silhouettes in Fog (1 to 3 instanced layers outside playable rooms)
+  // 8. Poolroom-Family Signature Landmarks & Numeral Legibility (Prompt 6.8 & 6.10)
+  const isPoolroomFamily = ['natatorium', 'poolrooms', 'orientation', 'hydro_maze', 'drowned_school'].includes(layout.mapId);
+  const spawn = layout.spawns.player[0] ?? { x: 0, y: 0.3, z: 0 };
+  const wallsWithDist = layout.walls.map((w) => {
+    const cx = (w.min.x + w.max.x) * 0.5;
+    const cz = (w.min.z + w.max.z) * 0.5;
+    return { wall: w, cx, cz, dist: Math.hypot(cx - spawn.x, cz - spawn.z) };
+  }).sort((a, b) => a.dist - b.dist);
+
+  // Every map must have a numeral legible at 8..10m (Prompt 6.10)
+  const hasSprayNumeralOnPillar = layout.pillars.some((p) => p.decalNumber !== undefined);
+  if (!hasSprayNumeralOnPillar) {
+    const primaryWall = wallsWithDist[0]?.wall ?? layout.walls[0];
+    if (primaryWall) {
+      const pwW = primaryWall.max.x - primaryWall.min.x;
+      const pwD = primaryWall.max.z - primaryWall.min.z;
+      const isXAligned = pwW >= pwD;
+      const cx = (primaryWall.min.x + primaryWall.max.x) * 0.5;
+      const cz = (primaryWall.min.z + primaryWall.max.z) * 0.5;
+      const cy = Math.max(1.6, Math.min(3.0, (primaryWall.min.y + primaryWall.max.y) * 0.5));
+
+      const numTex = reg.getNumber(2, { style: 'spray' });
+      const numMat = new MeshBasicMaterial({ map: numTex, transparent: true, depthWrite: false });
+      const numGeom = new PlaneGeometry(0.8, 1.2);
+      const numMesh = new Mesh(numGeom, numMat);
+      numMesh.name = 'SprayNumeral_2';
+
+      if (isXAligned) {
+        const zOff = spawn.z >= cz ? (primaryWall.max.z + 0.02) : (primaryWall.min.z - 0.02);
+        numMesh.position.set(cx - 2.5, cy, zOff);
+        numMesh.rotation.y = spawn.z >= cz ? 0 : Math.PI;
+      } else {
+        const xOff = spawn.x >= cx ? (primaryWall.max.x + 0.02) : (primaryWall.min.x - 0.02);
+        numMesh.position.set(xOff, cy, cz - 2.5);
+        numMesh.rotation.y = spawn.x >= cx ? Math.PI * 0.5 : -Math.PI * 0.5;
+      }
+      root.add(numMesh);
+      materialsToDispose.push(numMat);
+      geometriesToDispose.push(numGeom);
+    }
+  }
+
+  if (isPoolroomFamily && layout.mapId !== 'natatorium') {
+
+
+    const primaryWall = wallsWithDist[0]?.wall ?? layout.walls[0];
+    if (primaryWall) {
+      const pwW = primaryWall.max.x - primaryWall.min.x;
+      const pwD = primaryWall.max.z - primaryWall.min.z;
+      const isXAligned = pwW >= pwD;
+      const cx = (primaryWall.min.x + primaryWall.max.x) * 0.5;
+      const cz = (primaryWall.min.z + primaryWall.max.z) * 0.5;
+      const cy = Math.max(1.6, Math.min(3.0, (primaryWall.min.y + primaryWall.max.y) * 0.5));
+
+      // 1. Tagline Wall Decal
+      const tagTex = makeSpawnWallMural({ width: 1024, height: 512 });
+      const tagMesh = DecalSystem.createWallDecalMesh(tagTex, 4.8, 2.4);
+      tagMesh.name = 'SpawnTagline';
+
+      // 2. Hand-painted '#1' marker
+      const marker1Mat = new MeshBasicMaterial({
+        map: reg.getNumber(1, { style: 'marker' }),
+        transparent: true,
+        depthWrite: false,
+      });
+      const marker1 = new Mesh(new PlaneGeometry(0.45, 0.675), marker1Mat);
+      marker1.name = 'HandPaintedMarker_1';
+
+      if (isXAligned) {
+        const zOff = spawn.z >= cz ? (primaryWall.max.z + 0.02) : (primaryWall.min.z - 0.02);
+        const rotY = spawn.z >= cz ? 0 : Math.PI;
+        tagMesh.position.set(cx, cy, zOff);
+        tagMesh.rotation.y = rotY;
+        root.add(tagMesh);
+        materialsToDispose.push(tagMesh.material as MeshStandardMaterial);
+        geometriesToDispose.push(tagMesh.geometry);
+
+        marker1.position.set(cx + (pwW > 8 ? 3.5 : 1.2), cy - 0.3, zOff);
+        marker1.rotation.y = rotY;
+        root.add(marker1);
+        materialsToDispose.push(marker1Mat);
+        geometriesToDispose.push(marker1.geometry);
+      } else {
+        const xOff = spawn.x >= cx ? (primaryWall.max.x + 0.02) : (primaryWall.min.x - 0.02);
+        const rotY = spawn.x >= cx ? Math.PI * 0.5 : -Math.PI * 0.5;
+        tagMesh.position.set(xOff, cy, cz);
+        tagMesh.rotation.y = rotY;
+        root.add(tagMesh);
+        materialsToDispose.push(tagMesh.material as MeshStandardMaterial);
+        geometriesToDispose.push(tagMesh.geometry);
+
+        marker1.position.set(xOff, cy - 0.3, cz + (pwD > 8 ? 3.5 : 1.2));
+        marker1.rotation.y = rotY;
+        root.add(marker1);
+        materialsToDispose.push(marker1Mat);
+        geometriesToDispose.push(marker1.geometry);
+      }
+    }
+
+    // 3. Three-colour panel on secondary or opposite wall
+    const secondaryWall = wallsWithDist[1]?.wall ?? primaryWall;
+    if (secondaryWall) {
+      const swW = secondaryWall.max.x - secondaryWall.min.x;
+      const swD = secondaryWall.max.z - secondaryWall.min.z;
+      const isXAligned = swW >= swD;
+      const cx = (secondaryWall.min.x + secondaryWall.max.x) * 0.5;
+      const cz = (secondaryWall.min.z + secondaryWall.max.z) * 0.5;
+      const cy = Math.max(1.8, Math.min(3.5, (secondaryWall.min.y + secondaryWall.max.y) * 0.5));
+
+      const panelGeom = buildColorPanelGeometry(3.6, 2.0);
+      const panelMat = new MeshStandardMaterial({
+        color: new Color('#ffffff'),
+        vertexColors: true,
+        roughness: 0.5,
+        metalness: 0.1,
+      });
+      const panelMesh = new Mesh(panelGeom, panelMat);
+      panelMesh.name = 'TricolorPanel';
+
+      if (isXAligned) {
+        panelMesh.position.set(cx, cy, secondaryWall.max.z + 0.05);
+      } else {
+        panelMesh.position.set(secondaryWall.max.x + 0.05, cy, cz);
+        panelMesh.rotation.y = Math.PI * 0.5;
+      }
+      root.add(panelMesh);
+      materialsToDispose.push(panelMat);
+      geometriesToDispose.push(panelGeom);
+    }
+  }
+
+    // 7. Atmospheric Far Silhouettes in Fog (1 to 3 instanced layers outside playable rooms)
   const farSilhouettes = createFarSilhouettes({
     tier: 'high',
     seed: layout.seed + 1234,

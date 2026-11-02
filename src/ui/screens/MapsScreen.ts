@@ -18,17 +18,17 @@ export interface MapEntryInfo {
 export const MAPS_CATALOG: MapEntryInfo[] = [
   // Featured (Batch 5)
   { id: 'natatorium', name: 'The Natatorium', difficulty: 2, tags: ['OLYMPIC BASIN', 'ECHOES', 'WIDE STEPS'], isFeatured: true, bestTimeMs: 42300 },
-  { id: 'drowned_school', name: 'Drowned School', difficulty: 3, tags: ['SUBMERGED DESKS', 'HALLWAYS', 'LOCKERS'], isFeatured: true, bestTimeMs: 51200 },
-  { id: 'sunken_jungle', name: 'Sunken Jungle', difficulty: 4, tags: ['ALGAE OVERGROWTH', 'MURKY WATER', 'FOLIAGE'], isFeatured: true, bestTimeMs: 83400 },
-  { id: 'neon_flood', name: 'Neon Flood', difficulty: 5, tags: ['ELECTRICAL SHORT', 'NEON REFLECTION', 'FAST CURRENT'], isFeatured: true, bestTimeMs: 91000 },
-  { id: 'drowned_metro', name: 'Drowned Metro', difficulty: 5, tags: ['TRAIN CARS', 'SUBMERGED TRACKS', 'DARK TUNNELS'], isFeatured: true, bestTimeMs: 104200 },
+  { id: 'drowned_school', name: 'Drowned School', difficulty: 3, tags: ['FAMILY VARIANT', 'SUBMERGED DESKS', 'HALLWAYS', 'LOCKERS'], isFeatured: true, bestTimeMs: 51200 },
+  { id: 'sunken_jungle', name: 'Sunken Jungle', difficulty: 4, tags: ['FAMILY VARIANT', 'ALGAE OVERGROWTH', 'MURKY WATER', 'FOLIAGE'], isFeatured: true, bestTimeMs: 83400 },
+  { id: 'neon_flood', name: 'Neon Flood', difficulty: 5, tags: ['FAMILY VARIANT', 'ELECTRICAL SHORT', 'NEON REFLECTION', 'FAST CURRENT'], isFeatured: true, bestTimeMs: 91000 },
+  { id: 'drowned_metro', name: 'Drowned Metro', difficulty: 5, tags: ['FAMILY VARIANT', 'TRAIN CARS', 'SUBMERGED TRACKS', 'DARK TUNNELS'], isFeatured: true, bestTimeMs: 104200 },
   // Archive & Training (Batch 3 & 7)
   { id: 'orientation', name: 'Orientation Facility', difficulty: 1, tags: ['TUTORIAL', 'GUIDED ACOUSTICS', 'CALM SHALLOWS'], isFeatured: false, bestTimeMs: 25000 },
   { id: 'poolrooms', name: 'Poolrooms Core', difficulty: 1, tags: ['CLASSIC TILES', 'SHALLOW TRENCH', 'SAFE LEDGES'], isFeatured: false, bestTimeMs: 34100 },
-  { id: 'marble_atrium', name: 'Marble Atrium', difficulty: 2, tags: ['ROMAN ARCHES', 'HIGH VAULT', 'PERCHES'], isFeatured: false, bestTimeMs: 48900 },
-  { id: 'utility_tunnels', name: 'Utility Tunnels', difficulty: 3, tags: ['NARROW PIPES', 'STEAM VENTS', 'LOW CEILING'], isFeatured: false, bestTimeMs: 58200 },
-  { id: 'hydro_maze', name: 'Hydro Maze', difficulty: 3, tags: ['T-JUNCTIONS', 'DEAD ENDS', 'HIGH REVERB'], isFeatured: false, bestTimeMs: 65400 },
-  { id: 'drainage_core', name: 'Drainage Core', difficulty: 4, tags: ['PUMP TURBINES', 'RAPID DRAINS', 'STRONG TIDE'], isFeatured: false, bestTimeMs: 72100 },
+  { id: 'marble_atrium', name: 'Marble Atrium', difficulty: 2, tags: ['FAMILY VARIANT', 'ROMAN ARCHES', 'HIGH VAULT', 'PERCHES'], isFeatured: false, bestTimeMs: 48900 },
+  { id: 'utility_tunnels', name: 'Utility Tunnels', difficulty: 3, tags: ['FAMILY VARIANT', 'NARROW PIPES', 'STEAM VENTS', 'LOW CEILING'], isFeatured: false, bestTimeMs: 58200 },
+  { id: 'hydro_maze', name: 'Hydro Maze', difficulty: 3, tags: ['FAMILY VARIANT', 'T-JUNCTIONS', 'DEAD ENDS', 'HIGH REVERB'], isFeatured: false, bestTimeMs: 65400 },
+  { id: 'drainage_core', name: 'Drainage Core', difficulty: 4, tags: ['FAMILY VARIANT', 'PUMP TURBINES', 'RAPID DRAINS', 'STRONG TIDE'], isFeatured: false, bestTimeMs: 72100 },
 ];
 
 export interface MapsScreenCallbacks {

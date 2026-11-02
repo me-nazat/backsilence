@@ -43,7 +43,26 @@ Quantitative comparison emitted by `node scripts/reference/compare.mjs` (`report
 
 ---
 
-## 3. Auxiliary & Hero Map Shot Measurements (`reports/visual/metrics.json`)
+## 3. Auxiliary & Hero Map Shot Measurements & Prop Audit
+
+### 3.1 Eleven-Map Architectural & Prop Audit (`scripts/world/prop-audit.mjs`)
+Emitted deterministically by `node scripts/world/prop-audit.mjs` from headless scene builds across all 11 maps (zero self-assigned grades, zero hand-typed geometry counts):
+
+| Map ID | Family | Draw Calls | Triangles (incl. Water) | Prop Types (≥12) | Depth Layers (3) | Creature Present | Solvable Path | Horizon Silhouette (≥25m) | Numeral Legible (8–10m) | Poolroom Landmarks | Status |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| `natatorium` | Poolroom | 218 | 129,890 | 17 | 3 | Yes | Yes | Yes | Yes | Yes | PASS |
+| `poolrooms` | Poolroom | 132 | 130,076 | 15 | 3 | Yes | Yes | Yes | Yes | Yes | PASS |
+| `orientation` | Poolroom | 62 | 130,516 | 14 | 3 | Yes | Yes | Yes | Yes | Yes | PASS |
+| `hydro_maze` | Poolroom | 105 | 129,860 | 17 | 3 | Yes | Yes | Yes | Yes | Yes | PASS |
+| `drowned_school` | Poolroom | 142 | 129,924 | 16 | 3 | Yes | Yes | Yes | Yes | Yes | PASS |
+| `utility_tunnels` | Utility | 106 | 129,614 | 17 | 3 | Yes | Yes | Yes | Yes | N/A | PASS |
+| `drainage_core` | Utility | 200 | 129,744 | 17 | 3 | Yes | Yes | Yes | Yes | N/A | PASS |
+| `drowned_metro` | Utility | 200 | 129,724 | 14 | 3 | Yes | Yes | Yes | Yes | N/A | PASS |
+| `marble_atrium` | Derelict | 142 | 137,120 | 17 | 3 | Yes | Yes | Yes | Yes | N/A | PASS |
+| `neon_flood` | Derelict | 183 | 123,336 | 14 | 3 | Yes | Yes | Yes | Yes | N/A | PASS |
+| `sunken_jungle` | Derelict | 200 | 130,368 | 13 | 3 | Yes | Yes | Yes | Yes | N/A | PASS |
+
+### 3.2 Auxiliary & Hero Map Shot Metrics (`reports/visual/metrics.json` & `scripts/reference/compare.mjs`)
 Measured pixel statistics emitted by `scripts/shots.mjs` across all map hero shots, paired with reference benchmarks in `reference/pairings.json`:
 
 | Shot ID | Map ID | Paired Ref (`reference/pairings.json`) | Measured Lum Mean | Measured Lum StdDev | Measured Sat Mean | Sobel Edge Density | Horizon Blowout |
