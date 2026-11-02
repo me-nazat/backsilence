@@ -148,11 +148,16 @@ export function drawProceduralMapPlaceholder(
   const archTop = h * 0.15;
   ctx.moveTo(archLeft, archTop + archH);
   ctx.lineTo(archLeft, archTop + archH * 0.4);
-  ctx.bezierCurveTo(
-    archLeft, archTop,
-    archLeft + archW, archTop,
-    archLeft + archW, archTop + archH * 0.4,
-  );
+  if (typeof ctx.bezierCurveTo === 'function') {
+    ctx.bezierCurveTo(
+      archLeft, archTop,
+      archLeft + archW, archTop,
+      archLeft + archW, archTop + archH * 0.4,
+    );
+  } else {
+    ctx.lineTo(archLeft + archW * 0.5, archTop);
+    ctx.lineTo(archLeft + archW, archTop + archH * 0.4);
+  }
   ctx.lineTo(archLeft + archW, archTop + archH);
   ctx.stroke();
 

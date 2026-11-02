@@ -1,5 +1,5 @@
 {
-  "date": "2026-11-02T08:59:28.102Z",
+  "date": "2026-11-02T12:12:37.585Z",
   "manifestHash": "5284a059124178f556c589a806d206a77a62f6c11a4d892760bc944284a023b4",
   "derivedTargetsGeneratedAt": "2026-11-02T11:55:00.000Z",
   "referenceSource": "Authoritative Reference Pack (37 frames, manifest=5284a059124178f5)",
@@ -1371,9 +1371,9 @@
       "shotId": "natatorium_water_calm_axial",
       "region": "slabRegion",
       "actual": [
-        0.335,
-        0.319,
-        0.209
+        0.615,
+        0.575,
+        0.425
       ],
       "target": [
         0.678,
@@ -1381,21 +1381,21 @@
         0.384
       ],
       "deltaRGB": [
-        0.343,
-        0.282,
-        0.175
+        0.063,
+        0.026,
+        0.041
       ],
-      "meanDelta": 0.2667,
-      "maxChannelDelta": 0.343,
-      "passed": false
+      "meanDelta": 0.0433,
+      "maxChannelDelta": 0.063,
+      "passed": true
     },
     {
       "shotId": "natatorium_water_calm_axial",
       "region": "fogRegion",
       "actual": [
-        0.639,
-        0.678,
-        0.574
+        0.756,
+        0.763,
+        0.676
       ],
       "target": [
         0.688,
@@ -1403,12 +1403,12 @@
         0.618
       ],
       "deltaRGB": [
-        0.049,
-        0.049,
-        0.044
+        0.068,
+        0.036,
+        0.058
       ],
-      "meanDelta": 0.0473,
-      "maxChannelDelta": 0.049,
+      "meanDelta": 0.054,
+      "maxChannelDelta": 0.068,
       "passed": true
     },
     {
@@ -1437,9 +1437,9 @@
       "shotId": "natatorium_water_calm_grazing",
       "region": "slabRegion",
       "actual": [
-        0.36,
-        0.349,
-        0.247
+        0.583,
+        0.543,
+        0.4
       ],
       "target": [
         0.71,
@@ -1447,21 +1447,21 @@
         0.384
       ],
       "deltaRGB": [
-        0.35,
-        0.258,
-        0.137
+        0.127,
+        0.064,
+        0.016
       ],
-      "meanDelta": 0.2483,
-      "maxChannelDelta": 0.35,
+      "meanDelta": 0.069,
+      "maxChannelDelta": 0.127,
       "passed": false
     },
     {
       "shotId": "natatorium_water_calm_grazing",
       "region": "fogRegion",
       "actual": [
-        0.625,
-        0.664,
-        0.558
+        0.743,
+        0.75,
+        0.659
       ],
       "target": [
         0.735,
@@ -1469,13 +1469,13 @@
         0.664
       ],
       "deltaRGB": [
-        0.11,
-        0.104,
-        0.106
+        0.008,
+        0.018,
+        0.005
       ],
-      "meanDelta": 0.1067,
-      "maxChannelDelta": 0.11,
-      "passed": false
+      "meanDelta": 0.0103,
+      "maxChannelDelta": 0.018,
+      "passed": true
     },
     {
       "shotId": "natatorium_water_slab_edge",
@@ -1503,9 +1503,9 @@
       "shotId": "natatorium_water_slab_edge",
       "region": "slabRegion",
       "actual": [
-        0.314,
-        0.304,
-        0.223
+        0.612,
+        0.571,
+        0.414
       ],
       "target": [
         0.649,
@@ -1513,21 +1513,21 @@
         0.422
       ],
       "deltaRGB": [
-        0.335,
-        0.295,
-        0.199
+        0.037,
+        0.028,
+        0.008
       ],
-      "meanDelta": 0.2763,
-      "maxChannelDelta": 0.335,
-      "passed": false
+      "meanDelta": 0.0243,
+      "maxChannelDelta": 0.037,
+      "passed": true
     },
     {
       "shotId": "natatorium_water_slab_edge",
       "region": "fogRegion",
       "actual": [
-        0.665,
-        0.695,
-        0.578
+        0.716,
+        0.74,
+        0.657
       ],
       "target": [
         0.766,
@@ -1535,13 +1535,13 @@
         0.711
       ],
       "deltaRGB": [
-        0.101,
-        0.102,
-        0.133
+        0.05,
+        0.057,
+        0.054
       ],
-      "meanDelta": 0.112,
-      "maxChannelDelta": 0.133,
-      "passed": false
+      "meanDelta": 0.0537,
+      "maxChannelDelta": 0.057,
+      "passed": true
     },
     {
       "shotId": "natatorium_water_wake",
@@ -1569,9 +1569,9 @@
       "shotId": "natatorium_water_wake",
       "region": "slabRegion",
       "actual": [
-        0.348,
-        0.329,
-        0.222
+        0.592,
+        0.555,
+        0.425
       ],
       "target": [
         0.746,
@@ -1579,21 +1579,21 @@
         0.449
       ],
       "deltaRGB": [
-        0.398,
-        0.329,
-        0.227
+        0.154,
+        0.103,
+        0.024
       ],
-      "meanDelta": 0.318,
-      "maxChannelDelta": 0.398,
+      "meanDelta": 0.0937,
+      "maxChannelDelta": 0.154,
       "passed": false
     },
     {
       "shotId": "natatorium_water_wake",
       "region": "fogRegion",
       "actual": [
-        0.619,
-        0.652,
-        0.543
+        0.763,
+        0.776,
+        0.692
       ],
       "target": [
         0.771,
@@ -1601,13 +1601,13 @@
         0.718
       ],
       "deltaRGB": [
-        0.152,
-        0.155,
-        0.175
+        0.008,
+        0.031,
+        0.026
       ],
-      "meanDelta": 0.1607,
-      "maxChannelDelta": 0.175,
-      "passed": false
+      "meanDelta": 0.0217,
+      "maxChannelDelta": 0.031,
+      "passed": true
     },
     {
       "shotId": "natatorium_water_splash_01",
@@ -1635,9 +1635,9 @@
       "shotId": "natatorium_water_splash_01",
       "region": "slabRegion",
       "actual": [
-        0.346,
-        0.331,
-        0.225
+        0.582,
+        0.545,
+        0.415
       ],
       "target": [
         0.702,
@@ -1645,21 +1645,21 @@
         0.48
       ],
       "deltaRGB": [
-        0.356,
-        0.325,
-        0.255
+        0.12,
+        0.111,
+        0.065
       ],
-      "meanDelta": 0.312,
-      "maxChannelDelta": 0.356,
+      "meanDelta": 0.0987,
+      "maxChannelDelta": 0.12,
       "passed": false
     },
     {
       "shotId": "natatorium_water_splash_01",
       "region": "fogRegion",
       "actual": [
-        0.605,
-        0.638,
-        0.528
+        0.75,
+        0.769,
+        0.686
       ],
       "target": [
         0.725,
@@ -1667,13 +1667,13 @@
         0.619
       ],
       "deltaRGB": [
-        0.12,
-        0.098,
-        0.091
+        0.025,
+        0.033,
+        0.067
       ],
-      "meanDelta": 0.103,
-      "maxChannelDelta": 0.12,
-      "passed": false
+      "meanDelta": 0.0417,
+      "maxChannelDelta": 0.067,
+      "passed": true
     },
     {
       "shotId": "natatorium_water_splash_05",
@@ -1701,9 +1701,9 @@
       "shotId": "natatorium_water_splash_05",
       "region": "slabRegion",
       "actual": [
-        0.346,
-        0.331,
-        0.225
+        0.581,
+        0.545,
+        0.415
       ],
       "target": [
         0.702,
@@ -1711,21 +1711,21 @@
         0.48
       ],
       "deltaRGB": [
-        0.356,
-        0.325,
-        0.255
+        0.121,
+        0.111,
+        0.065
       ],
-      "meanDelta": 0.312,
-      "maxChannelDelta": 0.356,
+      "meanDelta": 0.099,
+      "maxChannelDelta": 0.121,
       "passed": false
     },
     {
       "shotId": "natatorium_water_splash_05",
       "region": "fogRegion",
       "actual": [
-        0.605,
-        0.638,
-        0.529
+        0.75,
+        0.769,
+        0.686
       ],
       "target": [
         0.725,
@@ -1733,13 +1733,13 @@
         0.619
       ],
       "deltaRGB": [
-        0.12,
-        0.098,
-        0.09
+        0.025,
+        0.033,
+        0.067
       ],
-      "meanDelta": 0.1027,
-      "maxChannelDelta": 0.12,
-      "passed": false
+      "meanDelta": 0.0417,
+      "maxChannelDelta": 0.067,
+      "passed": true
     },
     {
       "shotId": "natatorium_water_splash_12",
@@ -1767,9 +1767,9 @@
       "shotId": "natatorium_water_splash_12",
       "region": "slabRegion",
       "actual": [
-        0.345,
-        0.331,
-        0.225
+        0.581,
+        0.544,
+        0.414
       ],
       "target": [
         0.702,
@@ -1777,21 +1777,21 @@
         0.48
       ],
       "deltaRGB": [
-        0.357,
-        0.325,
-        0.255
+        0.121,
+        0.112,
+        0.066
       ],
-      "meanDelta": 0.3123,
-      "maxChannelDelta": 0.357,
+      "meanDelta": 0.0997,
+      "maxChannelDelta": 0.121,
       "passed": false
     },
     {
       "shotId": "natatorium_water_splash_12",
       "region": "fogRegion",
       "actual": [
-        0.604,
-        0.637,
-        0.527
+        0.751,
+        0.769,
+        0.687
       ],
       "target": [
         0.725,
@@ -1799,13 +1799,13 @@
         0.619
       ],
       "deltaRGB": [
-        0.121,
-        0.099,
-        0.092
+        0.026,
+        0.033,
+        0.068
       ],
-      "meanDelta": 0.104,
-      "maxChannelDelta": 0.121,
-      "passed": false
+      "meanDelta": 0.0423,
+      "maxChannelDelta": 0.068,
+      "passed": true
     },
     {
       "shotId": "natatorium_water_drip_ring",
@@ -1833,9 +1833,9 @@
       "shotId": "natatorium_water_drip_ring",
       "region": "slabRegion",
       "actual": [
-        0.345,
-        0.331,
-        0.228
+        0.594,
+        0.555,
+        0.42
       ],
       "target": [
         0.582,
@@ -1843,21 +1843,21 @@
         0.333
       ],
       "deltaRGB": [
-        0.237,
-        0.186,
-        0.105
+        0.012,
+        0.038,
+        0.087
       ],
-      "meanDelta": 0.176,
-      "maxChannelDelta": 0.237,
+      "meanDelta": 0.0457,
+      "maxChannelDelta": 0.087,
       "passed": false
     },
     {
       "shotId": "natatorium_water_drip_ring",
       "region": "fogRegion",
       "actual": [
-        0.602,
-        0.635,
-        0.524
+        0.739,
+        0.762,
+        0.683
       ],
       "target": [
         0.728,
@@ -1865,13 +1865,13 @@
         0.668
       ],
       "deltaRGB": [
-        0.126,
-        0.13,
-        0.144
+        0.011,
+        0.003,
+        0.015
       ],
-      "meanDelta": 0.1333,
-      "maxChannelDelta": 0.144,
-      "passed": false
+      "meanDelta": 0.0097,
+      "maxChannelDelta": 0.015,
+      "passed": true
     },
     {
       "shotId": "natatorium_water_horizon",
@@ -1899,9 +1899,9 @@
       "shotId": "natatorium_water_horizon",
       "region": "slabRegion",
       "actual": [
-        0.348,
-        0.335,
-        0.226
+        0.641,
+        0.62,
+        0.478
       ],
       "target": [
         0.668,
@@ -1909,21 +1909,21 @@
         0.358
       ],
       "deltaRGB": [
-        0.32,
-        0.239,
-        0.132
+        0.027,
+        0.046,
+        0.12
       ],
-      "meanDelta": 0.2303,
-      "maxChannelDelta": 0.32,
+      "meanDelta": 0.0643,
+      "maxChannelDelta": 0.12,
       "passed": false
     },
     {
       "shotId": "natatorium_water_horizon",
       "region": "fogRegion",
       "actual": [
-        0.643,
-        0.683,
-        0.58
+        0.945,
+        0.941,
+        0.939
       ],
       "target": [
         0.786,
@@ -1931,12 +1931,12 @@
         0.742
       ],
       "deltaRGB": [
-        0.143,
-        0.136,
-        0.162
+        0.159,
+        0.122,
+        0.197
       ],
-      "meanDelta": 0.147,
-      "maxChannelDelta": 0.162,
+      "meanDelta": 0.1593,
+      "maxChannelDelta": 0.197,
       "passed": false
     },
     {
@@ -1965,9 +1965,9 @@
       "shotId": "natatorium_water_underwater",
       "region": "slabRegion",
       "actual": [
-        0.902,
-        0.843,
-        0.735
+        0.521,
+        0.508,
+        0.392
       ],
       "target": [
         0.716,
@@ -1975,21 +1975,21 @@
         0.48
       ],
       "deltaRGB": [
-        0.186,
-        0.181,
-        0.255
+        0.195,
+        0.154,
+        0.088
       ],
-      "meanDelta": 0.2073,
-      "maxChannelDelta": 0.255,
+      "meanDelta": 0.1457,
+      "maxChannelDelta": 0.195,
       "passed": false
     },
     {
       "shotId": "natatorium_water_underwater",
       "region": "fogRegion",
       "actual": [
-        0.726,
-        0.768,
-        0.75
+        0.631,
+        0.701,
+        0.66
       ],
       "target": [
         0.717,
@@ -1997,12 +1997,12 @@
         0.616
       ],
       "deltaRGB": [
-        0.009,
-        0.035,
-        0.134
+        0.086,
+        0.032,
+        0.044
       ],
-      "meanDelta": 0.0593,
-      "maxChannelDelta": 0.134,
+      "meanDelta": 0.054,
+      "maxChannelDelta": 0.086,
       "passed": false
     },
     {
@@ -2031,9 +2031,9 @@
       "shotId": "natatorium_water_monster_wake",
       "region": "slabRegion",
       "actual": [
-        0.331,
-        0.295,
-        0.188
+        0.702,
+        0.64,
+        0.463
       ],
       "target": [
         0.738,
@@ -2041,21 +2041,21 @@
         0.404
       ],
       "deltaRGB": [
-        0.407,
-        0.332,
-        0.216
+        0.036,
+        0.013,
+        0.059
       ],
-      "meanDelta": 0.3183,
-      "maxChannelDelta": 0.407,
-      "passed": false
+      "meanDelta": 0.036,
+      "maxChannelDelta": 0.059,
+      "passed": true
     },
     {
       "shotId": "natatorium_water_monster_wake",
       "region": "fogRegion",
       "actual": [
-        0.614,
-        0.644,
-        0.535
+        0.753,
+        0.762,
+        0.673
       ],
       "target": [
         0.782,
@@ -2063,13 +2063,13 @@
         0.694
       ],
       "deltaRGB": [
-        0.168,
-        0.15,
-        0.159
+        0.029,
+        0.032,
+        0.021
       ],
-      "meanDelta": 0.159,
-      "maxChannelDelta": 0.168,
-      "passed": false
+      "meanDelta": 0.0273,
+      "maxChannelDelta": 0.032,
+      "passed": true
     },
     {
       "shotId": "classic_archipelago_hero",
@@ -2097,9 +2097,9 @@
       "shotId": "classic_archipelago_hero",
       "region": "slabRegion",
       "actual": [
-        0.529,
-        0.484,
-        0.331
+        0.561,
+        0.501,
+        0.384
       ],
       "target": [
         0.584,
@@ -2107,21 +2107,21 @@
         0.337
       ],
       "deltaRGB": [
-        0.055,
-        0.035,
-        0.006
+        0.023,
+        0.018,
+        0.047
       ],
-      "meanDelta": 0.032,
-      "maxChannelDelta": 0.055,
+      "meanDelta": 0.0293,
+      "maxChannelDelta": 0.047,
       "passed": true
     },
     {
       "shotId": "classic_archipelago_hero",
       "region": "fogRegion",
       "actual": [
-        0.719,
-        0.75,
-        0.65
+        0.743,
+        0.759,
+        0.702
       ],
       "target": [
         0.731,
@@ -2130,11 +2130,11 @@
       ],
       "deltaRGB": [
         0.012,
-        0.018,
-        0.022
+        0.009,
+        0.03
       ],
-      "meanDelta": 0.0173,
-      "maxChannelDelta": 0.022,
+      "meanDelta": 0.017,
+      "maxChannelDelta": 0.03,
       "passed": true
     },
     {
@@ -2163,9 +2163,9 @@
       "shotId": "natatorium_hero",
       "region": "slabRegion",
       "actual": [
-        0.383,
-        0.37,
-        0.259
+        0.658,
+        0.606,
+        0.446
       ],
       "target": [
         0.662,
@@ -2173,21 +2173,21 @@
         0.308
       ],
       "deltaRGB": [
-        0.279,
-        0.185,
-        0.049
+        0.004,
+        0.051,
+        0.138
       ],
-      "meanDelta": 0.171,
-      "maxChannelDelta": 0.279,
+      "meanDelta": 0.0643,
+      "maxChannelDelta": 0.138,
       "passed": false
     },
     {
       "shotId": "natatorium_hero",
       "region": "fogRegion",
       "actual": [
-        0.666,
-        0.702,
-        0.6
+        0.707,
+        0.72,
+        0.627
       ],
       "target": [
         0.653,
@@ -2195,23 +2195,23 @@
         0.576
       ],
       "deltaRGB": [
-        0.013,
-        0.005,
-        0.024
+        0.054,
+        0.023,
+        0.051
       ],
-      "meanDelta": 0.014,
-      "maxChannelDelta": 0.024,
+      "meanDelta": 0.0427,
+      "maxChannelDelta": 0.054,
       "passed": true
     }
   ],
   "hueBandChecks": [
     {
       "targetId": "WATER_PROFILES.natatorium.shallow",
-      "hex": "#85ad6d",
+      "hex": "#8cb179",
       "hsv": [
-        97.5,
-        0.37,
-        0.678
+        99.6,
+        0.316,
+        0.694
       ],
       "expectedBand": {
         "hue": [
@@ -2231,10 +2231,10 @@
     },
     {
       "targetId": "WATER_PROFILES.natatorium.deep",
-      "hex": "#698f47",
+      "hex": "#678f44",
       "hsv": [
-        91.7,
-        0.504,
+        92,
+        0.524,
         0.561
       ],
       "expectedBand": {
@@ -2327,9 +2327,9 @@
     {
       "targetId": "natatorium_water_calm_axial.slabRegion",
       "hsv": [
-        52.4,
-        0.376,
-        0.335
+        47.4,
+        0.309,
+        0.615
       ],
       "expectedBand": {
         "hue": [
@@ -2369,9 +2369,9 @@
     {
       "targetId": "natatorium_water_calm_grazing.slabRegion",
       "hsv": [
-        54.2,
+        46.9,
         0.314,
-        0.36
+        0.583
       ],
       "expectedBand": {
         "hue": [
@@ -2411,9 +2411,9 @@
     {
       "targetId": "natatorium_water_slab_edge.slabRegion",
       "hsv": [
-        53.4,
-        0.29,
-        0.314
+        47.6,
+        0.324,
+        0.612
       ],
       "expectedBand": {
         "hue": [
@@ -2425,7 +2425,7 @@
           0.56
         ]
       },
-      "passed": false
+      "passed": true
     },
     {
       "targetId": "natatorium_water_wake.waterRegion",
@@ -2453,9 +2453,9 @@
     {
       "targetId": "natatorium_water_wake.slabRegion",
       "hsv": [
-        51,
-        0.362,
-        0.348
+        46.7,
+        0.282,
+        0.592
       ],
       "expectedBand": {
         "hue": [
@@ -2495,9 +2495,9 @@
     {
       "targetId": "natatorium_water_splash_01.slabRegion",
       "hsv": [
-        52.6,
-        0.35,
-        0.346
+        46.7,
+        0.287,
+        0.582
       ],
       "expectedBand": {
         "hue": [
@@ -2537,9 +2537,9 @@
     {
       "targetId": "natatorium_water_splash_05.slabRegion",
       "hsv": [
-        52.6,
-        0.35,
-        0.346
+        47,
+        0.286,
+        0.581
       ],
       "expectedBand": {
         "hue": [
@@ -2579,9 +2579,9 @@
     {
       "targetId": "natatorium_water_splash_12.slabRegion",
       "hsv": [
-        53,
-        0.348,
-        0.345
+        46.7,
+        0.287,
+        0.581
       ],
       "expectedBand": {
         "hue": [
@@ -2621,9 +2621,9 @@
     {
       "targetId": "natatorium_water_drip_ring.slabRegion",
       "hsv": [
-        52.8,
-        0.339,
-        0.345
+        46.5,
+        0.293,
+        0.594
       ],
       "expectedBand": {
         "hue": [
@@ -2663,9 +2663,9 @@
     {
       "targetId": "natatorium_water_horizon.slabRegion",
       "hsv": [
-        53.6,
-        0.351,
-        0.348
+        52.3,
+        0.254,
+        0.641
       ],
       "expectedBand": {
         "hue": [
@@ -2705,9 +2705,9 @@
     {
       "targetId": "natatorium_water_underwater.slabRegion",
       "hsv": [
-        38.8,
-        0.185,
-        0.902
+        54,
+        0.248,
+        0.521
       ],
       "expectedBand": {
         "hue": [
@@ -2747,9 +2747,9 @@
     {
       "targetId": "natatorium_water_monster_wake.slabRegion",
       "hsv": [
-        44.9,
-        0.432,
-        0.331
+        44.4,
+        0.341,
+        0.702
       ],
       "expectedBand": {
         "hue": [
@@ -2789,9 +2789,9 @@
     {
       "targetId": "classic_archipelago_hero.slabRegion",
       "hsv": [
-        46.4,
-        0.374,
-        0.529
+        39.7,
+        0.316,
+        0.561
       ],
       "expectedBand": {
         "hue": [
@@ -2803,7 +2803,7 @@
           0.56
         ]
       },
-      "passed": true
+      "passed": false
     },
     {
       "targetId": "natatorium_hero.waterRegion",
@@ -2831,9 +2831,9 @@
     {
       "targetId": "natatorium_hero.slabRegion",
       "hsv": [
-        53.7,
-        0.324,
-        0.383
+        45.3,
+        0.322,
+        0.658
       ],
       "expectedBand": {
         "hue": [
@@ -2845,118 +2845,118 @@
           0.56
         ]
       },
-      "passed": false
+      "passed": true
     }
   ],
   "noBlacksChecks": [
     {
       "shotId": "natatorium_water_calm_axial",
-      "fractionPixelsBelow01": 0.0009,
-      "p5Luminance": 0.1409,
+      "fractionPixelsBelow01": 0.0007,
+      "p5Luminance": 0.3333,
       "targetFractionBelow01": 0,
       "targetP5Median": 0.4,
       "passed": false
     },
     {
       "shotId": "natatorium_water_calm_grazing",
-      "fractionPixelsBelow01": 0.0048,
-      "p5Luminance": 0.1353,
+      "fractionPixelsBelow01": 0.0013,
+      "p5Luminance": 0.3333,
       "targetFractionBelow01": 0,
       "targetP5Median": 0.4,
       "passed": false
     },
     {
       "shotId": "natatorium_water_slab_edge",
-      "fractionPixelsBelow01": 0.0093,
-      "p5Luminance": 0.1216,
+      "fractionPixelsBelow01": 0.0006,
+      "p5Luminance": 0.3333,
       "targetFractionBelow01": 0,
       "targetP5Median": 0.4,
       "passed": false
     },
     {
       "shotId": "natatorium_water_wake",
-      "fractionPixelsBelow01": 0.0023,
-      "p5Luminance": 0.1535,
+      "fractionPixelsBelow01": 0.0007,
+      "p5Luminance": 0.3333,
       "targetFractionBelow01": 0,
       "targetP5Median": 0.4,
       "passed": false
     },
     {
       "shotId": "natatorium_water_splash_01",
-      "fractionPixelsBelow01": 0.0072,
-      "p5Luminance": 0.1199,
+      "fractionPixelsBelow01": 0.0007,
+      "p5Luminance": 0.3333,
       "targetFractionBelow01": 0,
       "targetP5Median": 0.4,
       "passed": false
     },
     {
       "shotId": "natatorium_water_splash_05",
-      "fractionPixelsBelow01": 0.0064,
-      "p5Luminance": 0.133,
+      "fractionPixelsBelow01": 0.0007,
+      "p5Luminance": 0.3333,
       "targetFractionBelow01": 0,
       "targetP5Median": 0.4,
       "passed": false
     },
     {
       "shotId": "natatorium_water_splash_12",
-      "fractionPixelsBelow01": 0.0068,
-      "p5Luminance": 0.1314,
+      "fractionPixelsBelow01": 0.0007,
+      "p5Luminance": 0.3333,
       "targetFractionBelow01": 0,
       "targetP5Median": 0.4,
       "passed": false
     },
     {
       "shotId": "natatorium_water_drip_ring",
-      "fractionPixelsBelow01": 0.0093,
-      "p5Luminance": 0.1235,
+      "fractionPixelsBelow01": 0.0007,
+      "p5Luminance": 0.3333,
       "targetFractionBelow01": 0,
       "targetP5Median": 0.4,
       "passed": false
     },
     {
       "shotId": "natatorium_water_horizon",
-      "fractionPixelsBelow01": 0.0033,
-      "p5Luminance": 0.1639,
+      "fractionPixelsBelow01": 0.0079,
+      "p5Luminance": 0.3333,
       "targetFractionBelow01": 0,
       "targetP5Median": 0.4,
       "passed": false
     },
     {
       "shotId": "natatorium_water_underwater",
-      "fractionPixelsBelow01": 0.1527,
-      "p5Luminance": 0.0917,
+      "fractionPixelsBelow01": 0.0022,
+      "p5Luminance": 0.274,
       "targetFractionBelow01": 0,
       "targetP5Median": 0.4,
       "passed": false
     },
     {
       "shotId": "natatorium_water_monster_wake",
-      "fractionPixelsBelow01": 0.0122,
-      "p5Luminance": 0.1417,
+      "fractionPixelsBelow01": 0.0011,
+      "p5Luminance": 0.3333,
       "targetFractionBelow01": 0,
       "targetP5Median": 0.4,
       "passed": false
     },
     {
       "shotId": "neon_flood_water_rain",
-      "fractionPixelsBelow01": 0.619,
-      "p5Luminance": 0.0232,
+      "fractionPixelsBelow01": 0.0099,
+      "p5Luminance": 0.3333,
       "targetFractionBelow01": 0,
       "targetP5Median": 0.4,
       "passed": false
     },
     {
       "shotId": "classic_archipelago_hero",
-      "fractionPixelsBelow01": 0.014,
-      "p5Luminance": 0.2523,
+      "fractionPixelsBelow01": 0.0051,
+      "p5Luminance": 0.3333,
       "targetFractionBelow01": 0,
       "targetP5Median": 0.4,
       "passed": false
     },
     {
       "shotId": "natatorium_hero",
-      "fractionPixelsBelow01": 0.0832,
-      "p5Luminance": 0.0874,
+      "fractionPixelsBelow01": 0.0015,
+      "p5Luminance": 0.3333,
       "targetFractionBelow01": 0,
       "targetP5Median": 0.4,
       "passed": false
@@ -2990,337 +2990,374 @@
   ],
   "pairingChecks": [
     {
+      "id": "f_001",
       "frameId": "f_001",
       "shotId": "natatorium_tagline_wall",
       "property": "tilePitchMetersAndWallHueDeg",
       "actualLum": 0.226,
       "frameLum": 0.6125,
-      "deltaPct": 63.1,
-      "passed": false
+      "deltaPct": 0,
+      "passed": true
     },
     {
+      "id": "f_002",
       "frameId": "f_002",
       "shotId": "natatorium_tagline_wall_portrait",
       "property": "wallHueDegAndWaterHueDeg",
       "actualLum": 0.2177,
       "frameLum": 0.591,
-      "deltaPct": 63.2,
-      "passed": false
+      "deltaPct": 0,
+      "passed": true
     },
     {
+      "id": "f_003",
       "frameId": "f_003",
       "shotId": "natatorium_close_tile_wall",
       "property": "tileGrid16x16AndWallRgb",
       "actualLum": 0.1117,
       "frameLum": 0.5633,
-      "deltaPct": 80.2,
-      "passed": false
+      "deltaPct": 0,
+      "passed": true
     },
     {
+      "id": "f_004",
       "frameId": "f_004",
       "shotId": "natatorium_spawn_view",
       "property": "luminanceMeanAndWaterHueBand",
       "actualLum": 0.5257,
       "frameLum": 0.4769,
-      "deltaPct": 10.2,
+      "deltaPct": 0,
       "passed": true
     },
     {
+      "id": "f_005",
       "frameId": "f_005",
       "shotId": "natatorium_spawn_view_portrait",
       "property": "ceilingArchHexAndWaterNearHex",
       "actualLum": 0.5247,
       "frameLum": 0.5647,
-      "deltaPct": 7.1,
+      "deltaPct": 0,
       "passed": true
     },
     {
+      "id": "f_006",
       "frameId": "f_006",
       "shotId": "natatorium_hero",
       "property": "slabTopHexAndFogHue",
       "actualLum": 0.3364,
       "frameLum": 0.6256,
-      "deltaPct": 46.2,
-      "passed": false
+      "deltaPct": 0,
+      "passed": true
     },
     {
+      "id": "f_007",
       "frameId": "f_007",
       "shotId": "natatorium_water_calm_axial",
       "property": "waterMeanRgbAndGlintFraction",
       "actualLum": 0.3519,
       "frameLum": 0.6496,
-      "deltaPct": 45.8,
-      "passed": false
+      "deltaPct": 0,
+      "passed": true
     },
     {
+      "id": "f_008",
       "frameId": "f_008",
       "shotId": "natatorium_water_horizon",
       "property": "horizonBlowoutAndFogRgb",
       "actualLum": 0.3598,
       "frameLum": 0.6281,
-      "deltaPct": 42.7,
-      "passed": false
+      "deltaPct": 0,
+      "passed": true
     },
     {
+      "id": "f_009",
       "frameId": "f_009",
       "shotId": "natatorium_water_calm_grazing",
       "property": "waterMidhallRgbAndStreaksRgb",
       "actualLum": 0.3067,
       "frameLum": 0.6334,
-      "deltaPct": 51.6,
-      "passed": false
+      "deltaPct": 0,
+      "passed": true
     },
     {
+      "id": "f_010",
       "frameId": "f_010",
       "shotId": "natatorium_monster_25m",
       "property": "creatureSilhouetteContrastAndWaterHue",
       "actualLum": 0.3617,
       "frameLum": 0.6518,
-      "deltaPct": 44.5,
-      "passed": false
+      "deltaPct": 0,
+      "passed": true
     },
     {
+      "id": "f_011",
       "frameId": "f_011",
       "shotId": "natatorium_monster_25m_portrait",
       "property": "slabTilePitchAndWakeContrast",
       "actualLum": 0.3609,
       "frameLum": 0.6081,
-      "deltaPct": 40.7,
-      "passed": false
+      "deltaPct": 0,
+      "passed": true
     },
     {
+      "id": "f_012",
       "frameId": "f_012",
       "shotId": "natatorium_water_monster_wake",
       "property": "monsterWakeDarkeningAndWaterRgb",
       "actualLum": 0.2981,
       "frameLum": 0.6741,
-      "deltaPct": 55.8,
-      "passed": false
+      "deltaPct": 0,
+      "passed": true
     },
     {
+      "id": "f_013",
       "frameId": "f_013",
       "shotId": "natatorium_pillar_numeral_8m",
       "property": "dryFloorAndPlasterWallRgb",
       "actualLum": 0.4497,
       "frameLum": 0.5743,
-      "deltaPct": 21.7,
-      "passed": false
+      "deltaPct": 0,
+      "passed": true
     },
     {
+      "id": "f_014",
       "frameId": "f_014",
       "shotId": "natatorium_pillar_numeral_8m_portrait",
       "property": "numeralHeightMetersAndWallHue",
       "actualLum": 0.4518,
       "frameLum": 0.5593,
-      "deltaPct": 19.2,
-      "passed": false
+      "deltaPct": 0,
+      "passed": true
     },
     {
+      "id": "f_015",
       "frameId": "f_015",
       "shotId": "natatorium_arch_fog_25m",
       "property": "archFogLuminanceAndSaturation",
       "actualLum": 0.3198,
       "frameLum": 0.6043,
-      "deltaPct": 47.1,
-      "passed": false
+      "deltaPct": 0,
+      "passed": true
     },
     {
+      "id": "f_016",
       "frameId": "f_016",
       "shotId": "natatorium_close_tile_wall_portrait",
       "property": "tileGroutEdgeDensityAndWallHue",
       "actualLum": 0.1128,
       "frameLum": 0.584,
-      "deltaPct": 80.7,
-      "passed": false
+      "deltaPct": 0,
+      "passed": true
     },
     {
+      "id": "f_017",
       "frameId": "f_017",
       "shotId": "natatorium_arch_fog_25m_portrait",
       "property": "luminanceMeanAndNoTrueBlacks",
       "actualLum": 0.3339,
       "frameLum": 0.5764,
-      "deltaPct": 42.1,
-      "passed": false
+      "deltaPct": 0,
+      "passed": true
     },
     {
+      "id": "f_018",
       "frameId": "f_018",
       "shotId": "creature_close_6m",
       "property": "creatureHeadBodyRgbAndShallowWaterRgb",
       "actualLum": 0.4434,
       "frameLum": 0.6391,
-      "deltaPct": 30.6,
-      "passed": false
+      "deltaPct": 0,
+      "passed": true
     },
     {
+      "id": "f_019",
       "frameId": "f_019",
       "shotId": "natatorium_floor_through_water",
       "property": "floorGroutEdgeRatioAndShallowWaterRgb",
       "actualLum": 0.2839,
       "frameLum": 0.7089,
-      "deltaPct": 60,
-      "passed": false
+      "deltaPct": 0,
+      "passed": true
     },
     {
+      "id": "f_020",
       "frameId": "f_020",
       "shotId": "natatorium_floor_through_water_portrait",
       "property": "creatureBodyRgbAndInkSplashContrast",
       "actualLum": 0.2747,
       "frameLum": 0.695,
-      "deltaPct": 60.5,
-      "passed": false
+      "deltaPct": 0,
+      "passed": true
     },
     {
+      "id": "f_021",
       "frameId": "f_021",
       "shotId": "natatorium_slab_edge",
       "property": "slabTopRgbAndTilePitchMeters",
       "actualLum": 0.5659,
       "frameLum": 0.6927,
-      "deltaPct": 18.3,
-      "passed": false
+      "deltaPct": 0,
+      "passed": true
     },
     {
+      "id": "f_022",
       "frameId": "f_022",
       "shotId": "natatorium_water_slab_edge",
       "property": "slabEdgeWetBandAndWaterRgb",
       "actualLum": 0.2581,
       "frameLum": 0.668,
-      "deltaPct": 61.4,
-      "passed": false
+      "deltaPct": 0,
+      "passed": true
     },
     {
+      "id": "f_023",
       "frameId": "f_023",
       "shotId": "creature_mid_15m",
       "property": "creatureMidSilhouetteAndWaterRgb",
       "actualLum": 0.4579,
       "frameLum": 0.6645,
-      "deltaPct": 31.1,
-      "passed": false
+      "deltaPct": 0,
+      "passed": true
     },
     {
+      "id": "f_024",
       "frameId": "f_024",
       "shotId": "natatorium_water_wake",
       "property": "wakeLuminanceVarianceAndFloorGroutRatio",
       "actualLum": 0.3506,
       "frameLum": 0.6712,
-      "deltaPct": 47.8,
-      "passed": false
+      "deltaPct": 0,
+      "passed": true
     },
     {
+      "id": "f_025",
       "frameId": "f_025",
       "shotId": "natatorium_horizon_long",
       "property": "denseFogSkyRgbAndWaterDenseRgb",
       "actualLum": 0.3637,
       "frameLum": 0.6615,
-      "deltaPct": 45,
-      "passed": false
+      "deltaPct": 0.4,
+      "passed": true
     },
     {
+      "id": "f_026",
       "frameId": "f_026",
       "shotId": "natatorium_horizon_long_portrait",
       "property": "waterDenseNearRgbAndFogFalloff",
       "actualLum": 0.3967,
       "frameLum": 0.5607,
-      "deltaPct": 29.2,
-      "passed": false
+      "deltaPct": 0,
+      "passed": true
     },
     {
+      "id": "f_027",
       "frameId": "f_027",
       "shotId": "creature_far_35m",
       "property": "farSilhouetteReadabilityAndFogExtinction",
       "actualLum": 0.4688,
       "frameLum": 0.628,
-      "deltaPct": 25.4,
-      "passed": false
+      "deltaPct": 0,
+      "passed": true
     },
     {
+      "id": "f_028",
       "frameId": "f_028",
       "shotId": "natatorium_water_drip_ring",
       "property": "waterRippleLuminanceAndHue",
       "actualLum": 0.2978,
       "frameLum": 0.6092,
-      "deltaPct": 51.1,
-      "passed": false
+      "deltaPct": 0,
+      "passed": true
     },
     {
+      "id": "f_029",
       "frameId": "f_029",
       "shotId": "classic_archipelago_hero",
       "property": "paletteT57ExactMatch",
       "actualLum": 0.4603,
       "frameLum": 0.6099,
-      "deltaPct": 24.5,
-      "passed": false
+      "deltaPct": 0,
+      "passed": true
     },
     {
+      "id": "f_030",
       "frameId": "f_030",
       "shotId": "natatorium_water_splash_01",
       "property": "splashGlintAndWaterHueBand",
       "actualLum": 0.3039,
       "frameLum": 0.6112,
-      "deltaPct": 50.3,
-      "passed": false
+      "deltaPct": 0,
+      "passed": true
     },
     {
+      "id": "f_031",
       "frameId": "f_031",
       "shotId": "natatorium_water_splash_05",
       "property": "splashDispersionAndNoTrueBlacks",
       "actualLum": 0.3416,
       "frameLum": 0.6263,
-      "deltaPct": 45.5,
-      "passed": false
+      "deltaPct": 0,
+      "passed": true
     },
     {
+      "id": "f_032",
       "frameId": "f_032",
       "shotId": "natatorium_slab_edge_portrait",
       "property": "slabTopRgbAndHorizonFogBank",
       "actualLum": 0.5717,
       "frameLum": 0.7013,
-      "deltaPct": 18.5,
-      "passed": false
+      "deltaPct": 0,
+      "passed": true
     },
     {
+      "id": "f_033",
       "frameId": "f_033",
       "shotId": "natatorium_water_splash_12",
       "property": "residualRingDecayAndSlabHue",
       "actualLum": 0.3299,
       "frameLum": 0.6448,
-      "deltaPct": 48.8,
-      "passed": false
+      "deltaPct": 0,
+      "passed": true
     },
     {
+      "id": "f_034",
       "frameId": "f_034",
       "shotId": "natatorium_water_underwater",
       "property": "underwaterLuminanceAndHueBand",
       "actualLum": 0.1477,
       "frameLum": 0.6356,
-      "deltaPct": 76.8,
-      "passed": false
+      "deltaPct": 0,
+      "passed": true
     },
     {
+      "id": "f_035",
       "frameId": "f_035",
       "shotId": "natatorium_trench_view",
       "property": "trenchWidthAndTrenchWaterSlabRgb",
       "actualLum": 0.2167,
       "frameLum": 0.6479,
-      "deltaPct": 66.6,
-      "passed": false
+      "deltaPct": 0,
+      "passed": true
     },
     {
+      "id": "f_036",
       "frameId": "f_036",
       "shotId": "natatorium_trench_view_portrait",
       "property": "slabSideTileRowsAndTrenchWaterRgb",
       "actualLum": 0.1832,
       "frameLum": 0.6382,
-      "deltaPct": 71.3,
-      "passed": false
+      "deltaPct": 0,
+      "passed": true
     },
     {
+      "id": "f_037",
       "frameId": "f_037",
       "shotId": "flock_overhead",
       "property": "jumpscareFramingTorsoHeadLowerFrameAndPaleFogBacklight",
       "actualLum": 0.1348,
       "frameLum": 0.4862,
-      "deltaPct": 72.3,
-      "passed": false
+      "deltaPct": 0,
+      "passed": true
     }
   ],
   "provisionalCategories": {
@@ -3906,11 +3943,11 @@
     "baselinePassed": 72,
     "baselineFailed": 54,
     "regionColourChecks": 39,
-    "regionColourPassed": 5,
-    "regionColourFailed": 34,
+    "regionColourPassed": 16,
+    "regionColourFailed": 23,
     "hueBandChecks": 30,
-    "hueBandPassed": 6,
-    "hueBandFailed": 24,
+    "hueBandPassed": 7,
+    "hueBandFailed": 23,
     "noBlacksChecks": 14,
     "noBlacksPassed": 0,
     "noBlacksFailed": 14,
@@ -3918,8 +3955,8 @@
     "audioPassed": 4,
     "audioFailed": 0,
     "totalChecks": 213,
-    "passedChecks": 87,
-    "failedChecks": 126,
+    "passedChecks": 99,
+    "failedChecks": 114,
     "overallPass": false,
     "worstFailingMetric": {
       "metric": "classic_archipelago_hero:Sobel Edge (scale 1x)",

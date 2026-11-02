@@ -10,7 +10,7 @@
     "secondSightingTime": 49.283,
     "exitReachable": true,
     "trenchViolations": 0,
-    "p95FrameTimeMs": 0.0412,
+    "p95FrameTimeMs": 0.0265,
     "finalSimHash": "e4ffad24",
     "checkpointsCount": 30
   },
@@ -56,7 +56,7 @@
     {
       "id": "p95_frame_time_budget",
       "passed": true,
-      "actual": "0.0412 ms",
+      "actual": "0.0265 ms",
       "expected": "<= 16.6 ms"
     },
     {

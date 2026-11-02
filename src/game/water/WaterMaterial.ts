@@ -68,6 +68,7 @@ uniform float uWaterY;
 uniform float uWaveScale;
 uniform vec4 uRipples[32];
 uniform int uRippleCount;
+uniform vec3 uMonsterPos;
 
 varying vec3 vWorldPos;
 varying vec3 vViewPos;

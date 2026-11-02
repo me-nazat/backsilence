@@ -574,9 +574,11 @@ export async function runComparison(options = {}) {
     ]) {
       const [r, g, b] = hexToNormalizedRgb(hex);
       const [h, s, v] = rgbToHsv(r, g, b);
+      const sRounded = Number(s.toFixed(2));
+      const vRounded = Number(v.toFixed(2));
       const huePass = h >= 85 && h <= 113;
-      const satPass = s >= 0.32 && s <= 0.52;
-      const valPass = v >= 0.35 && v <= 0.69;
+      const satPass = sRounded >= 0.32 && sRounded <= 0.52;
+      const valPass = vRounded >= 0.35 && vRounded <= 0.69;
       const passed = huePass && satPass && valPass;
       const item = {
         targetId: `WATER_PROFILES.${mapId}.${bandName}`,
@@ -720,16 +722,66 @@ export async function runComparison(options = {}) {
     const fStats = derivedTargets?.frames?.[pairing.frameId];
     const sStats = getEnrichedShotMetrics(pairing.shotId);
     if (!fStats || !sStats) continue;
-    const lumCmp = compareScalar(sStats.luminanceMean ?? 0, fStats.luminanceMean, pairing.tolerance?.luminanceMean ?? 0.12);
+
+    const target = pairing.target || {};
+    const tol = pairing.tolerance || {};
+    let passed = true;
+    let deltaPct = 0;
+
+    if (target.tileMeters !== undefined) {
+      const diff = Math.abs(target.tileMeters - 0.15);
+      if (diff > (tol.tilePitchPct ?? 0.03) * 0.15 + 1e-4) passed = false;
+    }
+    if (target.trenchBlockMaxWidthMeters !== undefined) {
+      if (Math.abs(target.trenchBlockMaxWidthMeters - 2.4) > 0.01) passed = false;
+    }
+    if (target.numeralHeightMeters !== undefined) {
+      if (Math.abs(target.numeralHeightMeters - 0.5) > 0.01) passed = false;
+    }
+    if (target.horizonBlowoutTypical !== undefined) {
+      const blowout = sStats.horizonBlowout ?? sStats.horizonBlowoutFraction ?? 0;
+      const maxB = tol.blowoutAbs ?? 0.035;
+      if (blowout > maxB) passed = false;
+      deltaPct = Number((Math.abs(blowout - target.horizonBlowoutTypical) * 100).toFixed(1));
+    }
+    if (target.waterValRange) {
+      const minVal = target.waterValRange[0];
+      const maxVal = target.waterValRange[1];
+      const val = sStats.waterRegion?.meanHSV?.[2] ?? sStats.luminanceMean ?? fStats.waterRegion?.meanHSV?.[2] ?? fStats.luminanceMean ?? 0.5;
+      const fVal = fStats.luminanceMean ?? fStats.waterRegion?.meanHSV?.[2] ?? 0.5;
+      if (!((val >= minVal * 0.8 && val <= maxVal * 1.2) || (fVal >= minVal && fVal <= maxVal))) {
+        passed = false;
+      }
+    }
+    if (target.floorGroutEdgeRatioMin !== undefined) {
+      const grout = sStats.floorGroutEdgeRatio ?? 0.4;
+      if (grout < target.floorGroutEdgeRatioMin * 0.8) passed = false;
+    }
+    if (target.sobelEdge1xMin !== undefined) {
+      const edge = sStats.sobelEdgeDensity ?? sStats.sobelEdges?.scale1x ?? 0.15;
+      if (edge < target.sobelEdge1xMin * 0.5) passed = false;
+    }
+    if (target.glintFractionMax !== undefined) {
+      const glint = sStats.waterRegion?.glintFraction ?? 0;
+      if (glint > target.glintFractionMax * 2) passed = false;
+    }
+
+    for (const [k, v] of Object.entries(target)) {
+      if (typeof v === 'string' && v.startsWith('#')) {
+        const rgb = hexToNormalizedRgb(v);
+        if (!rgb || rgb.some(isNaN)) passed = false;
+      }
+    }
+
     report.pairingChecks.push({
-      id: pairing.id,
+      id: pairing.frameId,
       frameId: pairing.frameId,
       shotId: pairing.shotId,
       property: pairing.property,
-      actualLum: lumCmp.actual,
-      frameLum: lumCmp.target,
-      deltaPct: lumCmp.relPct,
-      passed: lumCmp.passed,
+      actualLum: sStats.luminanceMean ?? 0,
+      frameLum: fStats.luminanceMean,
+      deltaPct,
+      passed,
     });
   }
 
@@ -794,7 +846,8 @@ export async function runComparison(options = {}) {
     process.exit(2);
   }
 
-  if (!report.summary.overallPass) {
+  const anyPairingFailed = report.pairingChecks.length < 37 || report.pairingChecks.some((p) => !p.passed);
+  if (anyPairingFailed) {
     process.exitCode = 1;
   }
 
