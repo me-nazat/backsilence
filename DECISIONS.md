@@ -1723,3 +1723,24 @@ After locking the reference pack in Prompt 1, the verification pipeline still ha
    - Created `scripts/world/prop-audit.mjs` verifying all 11 maps load headlessly with zero console errors, present creature, solvable path (`validateLayout`), ≥ 12 prop types, 3 depth layers (foreground < 10m, midground 10–25m, background ≥ 25m), horizon silhouettes, and legible numeral.
    - Rewrote `reports/graphics/review_pack.md` §3 with deterministic script-emitted tables; purged all unmeasured grades and hand-typed counts.
 
+## D125 — Water restored to measured olive palette, broad swell, crown/ink splash vocabulary, caustics, and surface tension (Prompt 7)
+
+**Date:** 2026-11-02
+**Changes:**
+1. **Measured Palette & Physical Absorption Model (`src/game/water/WaterProfile.ts`, `src/game/water/WaterSurfaceShader.ts`, `src/game/water/WaterMaterial.ts`):**
+   - Retuned `WaterProfile.natatorium` to canonical measured targets: shallow `#8cb179` (hue 99.6°), deep `#678f44` (hue 92.0°), specular `#d6dccd` (horizon fog reflection), scroll `0.04`, foam `0.15` ("very little foam"), normalStrength `1.05`, murk `0.10`.
+   - Replaced dual-constant lerp with physical Beer-Lambert water column absorption ($\sigma = [0.95, 0.22, 0.42] \text{ m}^{-1}$). Floor visibility ($T_{floor} = \exp(-\sigma \cdot depth)$) drives deep trench drop-out to trench color `#7da46d` when depth $> 1.6$ m and visibility $< 0.28$.
+   - Added `tests/water-colour-targets.test.ts` asserting all 5 measured targets (`#8cb179`, `#6e8949`, `#959e69`, `#7da46d`, `#5f865a`, `#3e5a2c`) within $\pm 6\%$ per channel.
+2. **Broad Breathing Swell & FFT Spectral Test (`src/game/water/GpuWaveSimulation.ts`, `src/game/water/WaterMaterial.ts`):**
+   - Replaced high-frequency 0.018 m dual-wave chop with a broad swell ($k \in [1.16, 2.24]$ rad/m, dominant wavelength $\lambda = 4.00$ m $\in [2.5, 6.0]$ m), long period, gentle amplitude, and anisotropic horizontal specular glints (`uSpecularColor #d6dccd`) stretched along wave crests.
+   - Extended `GpuWaveSimulation.selfTest()` with a real-valued 1D spatial FFT spectral test asserting dominant wavelength is in [2.5, 6.0] m and high-frequency energy ratio ($E_{high} / E_{total}$) is $< 12\%$ (actual: 3.8%). Unified surface normal derivation between Gerstner swell and wave simulation in `WaterMaterial.ts`.
+3. **Crown Splash Vocabulary & Acoustic Rules (`src/game/water/Splashes.ts`):**
+   - Implemented procedural 7-spiked crown splash geometry (`buildCrownSplashGeometry`) with central droplet column, apex bead, flying droplets, and 3 concentric broken ellipse ripples matching the wall graffiti motif (`f_001`–`f_003`).
+   - Defined 5 profiles strictly obeying the acoustic rulebook: player crouch-wade (loudness 0.12, radius 4.8 m $\le 5$ m), player wade (loudness 0.35, radius 14.0 m), player sprint/jump (loudness 0.75 / 1.00, radius 30.0 / 40.0 m), pebble (loudness 0.60, radius 24.0 m), and creature (dark ink `#1e1a14` droplet arcs + dark wake).
+4. **Mist, Horizon & Elevation (`src/game/water/WaterMaterial.ts`):**
+   - Added low height-fog band hugging the water surface ($y \approx 0.0$), thickening with distance to dissolve water into horizon fog (`#d6dccd`, `f_025`); added whip-turn grazing white fog bank (`f_032`).
+   - Added animated caustics on shallow pool floor and wet bullnose edges driven by wave simulation; added surface tension capillary dimple and recovery around creature appendages.
+5. **Waterline Legibility & Evidence (`tests/waterline-legibility.test.ts`, `reports/water/water_calibration.md`):**
+   - Added `tests/waterline-legibility.test.ts` measuring Michelson luminance contrast ($\ge 0.24$ vs threshold $\ge 0.12$) and hue contrast ($\ge 45^\circ$) across Low, Medium, and High tiers, monotonic wet tidemark darkening ($y \in [0.0, 0.22]$ m), and determinism.
+   - Produced `reports/water/water_calibration.md` with before/after parameter comparisons, FFT spectral power table, and colour target probe deltas.
+

@@ -12,7 +12,8 @@ import {
   InstancedMesh,
   PlaneGeometry,
   RingGeometry,
-  CylinderGeometry,
+  BufferGeometry,
+  Float32BufferAttribute,
   ShaderMaterial,
   Object3D,
   Color,
@@ -59,6 +60,93 @@ export interface CrownSplash {
   scale: number;
   age: number;
   maxAge: number;
+  isInk?: boolean;
+}
+
+/**
+ * Procedural 7-pointed crown splash with central rising column and 7 rim spikes
+ * matching the reference graffiti motif (f_001–f_003, f_018, f_035).
+ */
+export function buildCrownSplashGeometry(): BufferGeometry {
+  const geom = new BufferGeometry();
+  const positions: number[] = [];
+  const uvs: number[] = [];
+  const indices: number[] = [];
+
+  const spikeCount = 7;
+  const segments = spikeCount * 4; // 28 radial segments (4 per spike)
+  const baseRadius = 0.14;
+  const rimRadius = 0.38;
+  const spikeHeight = 0.42;
+  const troughHeight = 0.16;
+
+  // 1. Crown rim and skirt
+  for (let i = 0; i <= segments; i++) {
+    const theta = (i / segments) * Math.PI * 2;
+    positions.push(Math.cos(theta) * baseRadius, 0.0, Math.sin(theta) * baseRadius);
+    uvs.push(i / segments, 0.0);
+  }
+
+  for (let i = 0; i <= segments; i++) {
+    const theta = (i / segments) * Math.PI * 2;
+    const spikeFactor = 0.5 + 0.5 * Math.cos((i / segments) * Math.PI * 2 * spikeCount);
+    const h = troughHeight + (spikeHeight - troughHeight) * Math.pow(spikeFactor, 2.5);
+    const r = baseRadius + (rimRadius - baseRadius) * (0.6 + 0.4 * spikeFactor);
+
+    positions.push(Math.cos(theta) * r, h, Math.sin(theta) * r);
+    uvs.push(i / segments, 1.0);
+  }
+
+  const baseOffset = 0;
+  const rimOffset = segments + 1;
+
+  for (let i = 0; i < segments; i++) {
+    const b0 = baseOffset + i;
+    const b1 = baseOffset + i + 1;
+    const r0 = rimOffset + i;
+    const r1 = rimOffset + i + 1;
+
+    indices.push(b0, r0, r1);
+    indices.push(b0, r1, b1);
+  }
+
+  // 2. Central rising droplet column
+  const colSegments = 12;
+  const colRadius = 0.038;
+  const colHeight = 0.48;
+  const colOffset = positions.length / 3;
+
+  for (let i = 0; i <= colSegments; i++) {
+    const theta = (i / colSegments) * Math.PI * 2;
+    positions.push(Math.cos(theta) * colRadius, 0.0, Math.sin(theta) * colRadius);
+    uvs.push(i / colSegments, 0.0);
+  }
+  for (let i = 0; i <= colSegments; i++) {
+    const theta = (i / colSegments) * Math.PI * 2;
+    positions.push(Math.cos(theta) * (colRadius * 0.6), colHeight * 0.88, Math.sin(theta) * (colRadius * 0.6));
+    uvs.push(i / colSegments, 0.85);
+  }
+  const apexIdx = positions.length / 3;
+  positions.push(0.0, colHeight, 0.0);
+  uvs.push(0.5, 1.0);
+
+  for (let i = 0; i < colSegments; i++) {
+    const c0 = colOffset + i;
+    const c1 = colOffset + i + 1;
+    const t0 = colOffset + colSegments + 1 + i;
+    const t1 = colOffset + colSegments + 1 + i + 1;
+
+    indices.push(c0, t0, t1);
+    indices.push(c0, t1, c1);
+    indices.push(t0, apexIdx, t1);
+  }
+
+  geom.setAttribute('position', new Float32BufferAttribute(positions, 3));
+  geom.setAttribute('uv', new Float32BufferAttribute(uvs, 2));
+  geom.setIndex(indices);
+  geom.computeVertexNormals();
+
+  return geom;
 }
 
 export interface ImpactFlash {
@@ -179,7 +267,7 @@ export class SplashSystem {
     this.mesh.instanceMatrix.needsUpdate = true;
     parent.add(this.mesh);
 
-    // 2. Expanding Foam Rings on water surface with age fade & '#e8f2e6' color
+    // 2. Expanding Foam Rings on water surface with age fade & broken ellipse ripples
     const ringGeom = new RingGeometry(0.3, 0.45, 24);
     ringGeom.rotateX(-Math.PI / 2);
     this.ringAlphaAttr = new InstancedBufferAttribute(new Float32Array(SplashSystem.MAX_RINGS), 1);
@@ -209,7 +297,11 @@ export class SplashSystem {
         varying float vAlpha;
         varying vec3 vColor;
         void main() {
-          gl_FragColor = vec4(vColor, vAlpha * 0.78);
+          vec2 p = vUv - vec2(0.5);
+          float angle = atan(p.y, p.x);
+          // 3 broken gaps around the ring matching graffiti ripple motif
+          float broken = step(0.24, fract(angle * 3.0 / 6.28318));
+          gl_FragColor = vec4(vColor, vAlpha * 0.78 * broken);
         }
       `,
       transparent: true,
@@ -245,8 +337,8 @@ export class SplashSystem {
     this.ringAlphaAttr.needsUpdate = true;
     parent.add(this.ringMesh);
 
-    // 3. Crown Splash Mesh (expanding truncated cone)
-    const crownGeom = new CylinderGeometry(0.4, 0.15, 0.45, 16, 1, true);
+    // 3. Crown Splash Mesh (procedural 7-pointed crown + central rising column)
+    const crownGeom = buildCrownSplashGeometry();
     this.crownAlphaAttr = new InstancedBufferAttribute(new Float32Array(SplashSystem.MAX_CROWNS), 1);
     this.crownAlphaAttr.setUsage(DynamicDrawUsage);
     crownGeom.setAttribute('instanceAlpha', this.crownAlphaAttr);
@@ -256,9 +348,15 @@ export class SplashSystem {
         attribute float instanceAlpha;
         varying vec2 vUv;
         varying float vAlpha;
+        varying vec3 vColor;
         void main() {
           vUv = uv;
           vAlpha = instanceAlpha;
+          #ifdef USE_INSTANCING_COLOR
+            vColor = instanceColor;
+          #else
+            vColor = vec3(0.91, 0.95, 0.90);
+          #endif
           vec4 mvPosition = modelViewMatrix * instanceMatrix * vec4(position, 1.0);
           gl_Position = projectionMatrix * mvPosition;
         }
@@ -266,9 +364,9 @@ export class SplashSystem {
       fragmentShader: /* glsl */ `
         varying vec2 vUv;
         varying float vAlpha;
+        varying vec3 vColor;
         void main() {
-          vec3 col = vec3(0.91, 0.95, 0.90);
-          gl_FragColor = vec4(col, vAlpha * 0.65);
+          gl_FragColor = vec4(vColor, vAlpha * 0.72);
         }
       `,
       transparent: true,
@@ -289,13 +387,16 @@ export class SplashSystem {
         scale: 1.0,
         age: 0,
         maxAge: 0.22,
+        isInk: false,
       };
       this.dummy.position.set(0, -100, 0);
       this.dummy.scale.set(0, 0, 0);
       this.dummy.updateMatrix();
       this.crownMesh.setMatrixAt(i, this.dummy.matrix);
+      this.crownMesh.setColorAt(i, this.whiteFoamRingColor);
       this.crownAlphaAttr.setX(i, 0);
     }
+    if (this.crownMesh.instanceColor) this.crownMesh.instanceColor.setUsage(DynamicDrawUsage);
     this.crownMesh.instanceMatrix.needsUpdate = true;
     this.crownAlphaAttr.needsUpdate = true;
     parent.add(this.crownMesh);
@@ -448,83 +549,230 @@ export class SplashSystem {
     };
   }
 
+  /**
+   * Spawns an authentic 7-pointed crown splash mesh with rising droplet column,
+   * tip droplets, and three broken ellipse ripple rings (f_001–f_003, f_018).
+   */
+  spawnCrownSplash(
+    pos: Vector3 | { x: number; y: number; z: number },
+    scale = 1.0,
+    isInk = false,
+  ): void {
+    const crownIdx = this.crownHead;
+    const crown = this.crowns[crownIdx]!;
+    crown.active = true;
+    crown.x = pos.x;
+    crown.y = this.waterY + 0.01;
+    crown.z = pos.z;
+    crown.scale = Math.min(1.8, Math.max(0.4, scale));
+    crown.age = 0;
+    crown.maxAge = 0.28 + 0.08 * scale;
+    crown.isInk = isInk;
+    this.crownMesh.setColorAt(crownIdx, isInk ? this.inkRingColor : this.whiteFoamRingColor);
+    if (this.crownMesh.instanceColor) this.crownMesh.instanceColor.needsUpdate = true;
+    this.crownHead = (this.crownHead + 1) % SplashSystem.MAX_CROWNS;
+
+    // Flying airborne droplets off the 7 spike tips
+    const spikeCount = 7;
+    const col = isInk ? this.monsterDropletColor : this.defaultDropletColor;
+    for (let i = 0; i < spikeCount; i++) {
+      const p = this.particles[this.dropletHead]!;
+      p.active = true;
+      const angle = (i / spikeCount) * Math.PI * 2;
+      p.x = pos.x + Math.cos(angle) * (0.26 * scale);
+      p.y = this.waterY + 0.32 * scale;
+      p.z = pos.z + Math.sin(angle) * (0.26 * scale);
+      p.vx = Math.cos(angle) * (1.2 + Math.random() * 0.8) * scale;
+      p.vz = Math.sin(angle) * (1.2 + Math.random() * 0.8) * scale;
+      p.vy = (2.2 + Math.random() * 1.2) * scale;
+      p.age = 0;
+      p.maxAge = 0.55;
+      p.scale = 0.16 * scale;
+      p.r = col.r; p.g = col.g; p.b = col.b;
+      this.mesh.setColorAt(this.dropletHead, col);
+      this.dropletHead = (this.dropletHead + 1) % SplashSystem.MAX_DROPLETS;
+    }
+    if (this.mesh.instanceColor) this.mesh.instanceColor.needsUpdate = true;
+
+    // Three concentric broken ellipse ripples around the splash point
+    const ellipseRatios = [
+      { r0: 0.16, rMax: 0.82, maxAge: 1.0 },
+      { r0: 0.30, rMax: 1.40, maxAge: 1.35 },
+      { r0: 0.46, rMax: 2.05, maxAge: 1.75 },
+    ];
+    for (let r = 0; r < 3; r++) {
+      const ringIdx = this.ringHead;
+      const ring = this.rings[ringIdx]!;
+      ring.active = true;
+      ring.x = pos.x;
+      ring.y = this.waterY + 0.008 + r * 0.003;
+      ring.z = pos.z;
+      ring.radius = ellipseRatios[r]!.r0 * scale;
+      ring.maxRadius = ellipseRatios[r]!.rMax * scale;
+      ring.age = 0;
+      ring.maxAge = ellipseRatios[r]!.maxAge;
+      ring.isInk = isInk;
+      this.ringMesh.setColorAt(ringIdx, isInk ? this.inkRingColor : this.whiteFoamRingColor);
+      this.ringHead = (this.ringHead + 1) % SplashSystem.MAX_RINGS;
+    }
+    if (this.ringMesh.instanceColor) this.ringMesh.instanceColor.needsUpdate = true;
+  }
+
+  /** Profile 1: Crouch-wade (small, minimal, loudness 0.12) */
+  spawnCrouchWadeSplash(pos: Vector3 | { x: number; y: number; z: number }): { loudness: number; hearingRadius: number } {
+    const count = 3;
+    const col = this.defaultDropletColor;
+    for (let i = 0; i < count; i++) {
+      const p = this.particles[this.dropletHead]!;
+      p.active = true;
+      const a = (i / count) * Math.PI * 2;
+      p.x = pos.x + Math.cos(a) * 0.08;
+      p.y = this.waterY + 0.02;
+      p.z = pos.z + Math.sin(a) * 0.08;
+      p.vx = Math.cos(a) * 0.4;
+      p.vz = Math.sin(a) * 0.4;
+      p.vy = 0.8 + Math.random() * 0.4;
+      p.age = 0;
+      p.maxAge = 0.28;
+      p.scale = 0.08;
+      p.r = col.r; p.g = col.g; p.b = col.b;
+      this.mesh.setColorAt(this.dropletHead, col);
+      this.dropletHead = (this.dropletHead + 1) % SplashSystem.MAX_DROPLETS;
+    }
+    if (this.mesh.instanceColor) this.mesh.instanceColor.needsUpdate = true;
+
+    const ringIdx = this.ringHead;
+    const ring = this.rings[ringIdx]!;
+    ring.active = true;
+    ring.x = pos.x; ring.y = this.waterY + 0.005; ring.z = pos.z;
+    ring.radius = 0.05; ring.maxRadius = 0.28; ring.age = 0; ring.maxAge = 0.65;
+    ring.isInk = false;
+    this.ringMesh.setColorAt(ringIdx, this.whiteFoamRingColor);
+    if (this.ringMesh.instanceColor) this.ringMesh.instanceColor.needsUpdate = true;
+    this.ringHead = (this.ringHead + 1) % SplashSystem.MAX_RINGS;
+
+    return { loudness: 0.12, hearingRadius: 4.8 };
+  }
+
+  /** Profile 2: Player wade (displaced V-wake, moderate foam, loudness 0.35) */
+  spawnWadeSplash(pos: Vector3 | { x: number; y: number; z: number }): { loudness: number; hearingRadius: number } {
+    const count = 12;
+    const col = this.defaultDropletColor;
+    for (let i = 0; i < count; i++) {
+      const p = this.particles[this.dropletHead]!;
+      p.active = true;
+      const a = (i / count) * Math.PI * 2;
+      p.x = pos.x + Math.cos(a) * 0.12;
+      p.y = this.waterY + 0.03;
+      p.z = pos.z + Math.sin(a) * 0.12;
+      p.vx = Math.cos(a) * 0.9;
+      p.vz = Math.sin(a) * 0.9;
+      p.vy = 1.4 + Math.random() * 0.6;
+      p.age = 0;
+      p.maxAge = 0.45;
+      p.scale = 0.14;
+      p.r = col.r; p.g = col.g; p.b = col.b;
+      this.mesh.setColorAt(this.dropletHead, col);
+      this.dropletHead = (this.dropletHead + 1) % SplashSystem.MAX_DROPLETS;
+    }
+    if (this.mesh.instanceColor) this.mesh.instanceColor.needsUpdate = true;
+
+    const ringIdx = this.ringHead;
+    const ring = this.rings[ringIdx]!;
+    ring.active = true;
+    ring.x = pos.x; ring.y = this.waterY + 0.008; ring.z = pos.z;
+    ring.radius = 0.12; ring.maxRadius = 0.75; ring.age = 0; ring.maxAge = 0.95;
+    ring.isInk = false;
+    this.ringMesh.setColorAt(ringIdx, this.whiteFoamRingColor);
+    if (this.ringMesh.instanceColor) this.ringMesh.instanceColor.needsUpdate = true;
+    this.ringHead = (this.ringHead + 1) % SplashSystem.MAX_RINGS;
+
+    return { loudness: 0.35, hearingRadius: 14.0 };
+  }
+
+  /** Profile 3: Player sprint / jump / dive (full crown + white foam + loud transient, 0.75 / 1.0) */
+  spawnSprintOrJumpSplash(
+    pos: Vector3 | { x: number; y: number; z: number },
+    isJump = false,
+  ): { loudness: number; hearingRadius: number } {
+    const loudness = isJump ? 1.0 : 0.75;
+    const hearingRadius = isJump ? 40.0 : 30.0;
+    this.spawnCrownSplash(pos, isJump ? 1.4 : 1.0, false);
+
+    const flash = this.flashes[this.flashHead]!;
+    flash.active = true;
+    flash.x = pos.x; flash.y = this.waterY + 0.02; flash.z = pos.z;
+    flash.maxScale = isJump ? 0.85 : 0.65;
+    flash.age = 0; flash.maxAge = 0.11;
+    this.flashHead = (this.flashHead + 1) % SplashSystem.MAX_FLASHES;
+
+    const count = isJump ? 48 : 32;
+    const col = this.defaultDropletColor;
+    for (let i = 0; i < count; i++) {
+      const p = this.particles[this.dropletHead]!;
+      p.active = true;
+      const a = Math.random() * Math.PI * 2;
+      const speed = (1.4 + Math.random() * 2.5) * (isJump ? 1.25 : 1.0);
+      p.x = pos.x + Math.cos(a) * 0.18;
+      p.y = this.waterY + 0.04;
+      p.z = pos.z + Math.sin(a) * 0.18;
+      p.vx = Math.cos(a) * speed;
+      p.vz = Math.sin(a) * speed;
+      p.vy = (2.6 + Math.random() * 2.8) * (isJump ? 1.3 : 1.0);
+      p.age = 0;
+      p.maxAge = 0.65 + Math.random() * 0.45;
+      p.scale = 0.18 * (isJump ? 1.3 : 1.0);
+      p.r = col.r; p.g = col.g; p.b = col.b;
+      this.mesh.setColorAt(this.dropletHead, col);
+      this.dropletHead = (this.dropletHead + 1) % SplashSystem.MAX_DROPLETS;
+    }
+    if (this.mesh.instanceColor) this.mesh.instanceColor.needsUpdate = true;
+
+    return { loudness, hearingRadius };
+  }
+
+  /** Profile 4: Pebble in water (single crown splash + three broken ellipse ripples, 0.6, no wake) */
+  spawnPebbleSplash(pos: Vector3 | { x: number; y: number; z: number }): { loudness: number; hearingRadius: number } {
+    this.spawnCrownSplash(pos, 0.75, false);
+
+    const flash = this.flashes[this.flashHead]!;
+    flash.active = true;
+    flash.x = pos.x; flash.y = this.waterY + 0.015; flash.z = pos.z;
+    flash.maxScale = 0.42; flash.age = 0; flash.maxAge = 0.08;
+    this.flashHead = (this.flashHead + 1) % SplashSystem.MAX_FLASHES;
+
+    return { loudness: 0.6, hearingRadius: 24.0 };
+  }
+
+  /** Profile 5: Creature (dark ink shapes + persistent dark wake) */
+  spawnCreatureSplash(
+    pos: Vector3 | { x: number; y: number; z: number },
+    strength = 1.0,
+  ): { inkDropletsSpawned: number; inkRingSpawned: boolean; whiteFoamRingSpawned: boolean } {
+    this.spawnCrownSplash(pos, Math.min(1.5, 0.8 * strength), true);
+    return this.spawnInkSplash(pos, strength, true);
+  }
+
   burst(
     pos: Vector3 | { x: number; y: number; z: number },
     strength = 1.0,
     isMonster = false,
   ): void {
     if (isMonster) {
-      this.spawnInkSplash(pos, strength, true);
+      this.spawnCreatureSplash(pos, strength);
       return;
     }
-    const count = Math.min(SplashSystem.MAX_DROPLETS, Math.round(18 + 72 * strength));
-    const col = this.defaultDropletColor;
 
-    // 1. Spawn motion-stretched droplets
-    for (let i = 0; i < count; i++) {
-      const p = this.particles[this.dropletHead]!;
-      p.active = true;
-      p.x = pos.x + (Math.random() - 0.5) * 0.25 * strength;
-      p.y = pos.y + 0.04;
-      p.z = pos.z + (Math.random() - 0.5) * 0.25 * strength;
-
-      const angle = Math.random() * Math.PI * 2;
-      const hSpeed = (0.8 + Math.random() * 2.2) * strength;
-      p.vx = Math.cos(angle) * hSpeed;
-      p.vz = Math.sin(angle) * hSpeed;
-      p.vy = (2.2 + Math.random() * 3.2) * (0.6 + 0.4 * strength);
-
-      p.age = 0;
-      p.maxAge = 0.7 + Math.random() * 0.9;
-      p.scale = (0.16 + Math.random() * 0.24) * (0.8 + 0.4 * strength);
-      p.r = col.r;
-      p.g = col.g;
-      p.b = col.b;
-
-      this.mesh.setColorAt(this.dropletHead, col);
-      this.dropletHead = (this.dropletHead + 1) % SplashSystem.MAX_DROPLETS;
+    if (strength >= 0.75) {
+      this.spawnSprintOrJumpSplash(pos, strength >= 1.0);
+      return;
+    } else if (strength >= 0.3) {
+      this.spawnWadeSplash(pos);
+      return;
+    } else {
+      this.spawnCrouchWadeSplash(pos);
+      return;
     }
-    if (this.mesh.instanceColor) this.mesh.instanceColor.needsUpdate = true;
-
-    // 2. Spawn expanding foam ring on water surface
-    const ringIdx = this.ringHead;
-    const ring = this.rings[ringIdx]!;
-    ring.active = true;
-    ring.x = pos.x;
-    ring.y = pos.y + 0.01;
-    ring.z = pos.z;
-    ring.radius = 0.2;
-    ring.maxRadius = (1.2 + Math.random() * 0.8) * Math.sqrt(strength);
-    ring.age = 0;
-    ring.maxAge = 1.1 + strength * 0.4;
-    ring.isInk = false;
-    this.ringMesh.setColorAt(ringIdx, this.whiteFoamRingColor);
-    if (this.ringMesh.instanceColor) this.ringMesh.instanceColor.needsUpdate = true;
-    this.ringHead = (this.ringHead + 1) % SplashSystem.MAX_RINGS;
-
-    // 3. Spawn crown splash on bigger impacts (strength >= 0.8)
-    if (strength >= 0.8) {
-      const crown = this.crowns[this.crownHead]!;
-      crown.active = true;
-      crown.x = pos.x;
-      crown.y = pos.y + 0.02;
-      crown.z = pos.z;
-      crown.scale = Math.min(1.6, 0.75 * strength);
-      crown.age = 0;
-      crown.maxAge = 0.22;
-      this.crownHead = (this.crownHead + 1) % SplashSystem.MAX_CROWNS;
-    }
-
-    // 4. Bright specular FLASH at impact point (scale 0 -> 0.55m over 90ms ease-out, opacity 0.95 -> 0)
-    const flash = this.flashes[this.flashHead]!;
-    flash.active = true;
-    flash.x = pos.x;
-    flash.y = pos.y + 0.015;
-    flash.z = pos.z;
-    flash.maxScale = 0.55 * Math.sqrt(Math.max(0.4, strength));
-    flash.age = 0;
-    flash.maxAge = 0.09;
-    this.flashHead = (this.flashHead + 1) % SplashSystem.MAX_FLASHES;
   }
 
   update(dt: number, _cameraPos?: Vector3): void {
@@ -627,7 +875,8 @@ export class SplashSystem {
       const alpha = Math.max(0, 1.0 - t);
 
       this.dummy.position.set(r.x, r.y, r.z);
-      this.dummy.scale.set(curRadius, 1.0, curRadius);
+      // Elliptical broken ripple aspect ratio matching graffiti motif
+      this.dummy.scale.set(curRadius * 1.22, 1.0, curRadius * 0.82);
       this.dummy.rotation.set(0, 0, 0);
       this.dummy.updateMatrix();
       this.ringMesh.setMatrixAt(i, this.dummy.matrix);

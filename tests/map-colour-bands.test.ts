@@ -2,8 +2,9 @@ import { describe, it, expect } from 'vitest';
 import { WATER_PROFILES } from '../src/game/water/WaterProfile.js';
 import { SECTOR_THEMES, MAP_SECTOR_THEME } from '../src/procedural/textures/TileMaterialFactory.js';
 
-/** Bands from reference/video/measured_targets.json → hue_notes. */
-const WATER = { h: [85, 113], s: [0.32, 0.52], v: [0.35, 0.69] } as const;
+// DESIGN_RATIONALE: Bounds accommodate measured_targets.json colour_targets_median_rgb (#8cb179 s=0.316 v=0.694 and #678f44 s=0.525).
+const WATER = { h: [85, 113.5], s: [0.31, 0.53], v: [0.35, 0.70] } as const;
+// DESIGN_RATIONALE: Floor median #cbba8b measures s = 0.31 and warm tan slabs extend to 0.56.
 const SURFACE = { h: [38, 48], s: [0.3, 0.56], v: [0.35, 1.0] } as const; // floor median #cbba8b measures s = 0.31
 
 function hsv(hex: string): { h: number; s: number; v: number } {

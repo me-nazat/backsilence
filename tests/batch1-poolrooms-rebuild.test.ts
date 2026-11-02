@@ -245,7 +245,8 @@ describe('ANTIGRAVITY BATCH 1: Poolrooms Rebuild & Visuals', () => {
       expect(prof.opacityMin).toBe(0.62);
       expect(prof.opacityMax).toBe(0.86);
       expect(prof.specular).toMatch(/^#[0-9a-fA-F]{6}$/);
-      expect(prof.murk).toBe(0.0);
+      // DESIGN_RATIONALE: Prompt 7 D125 specifies murk: 0.10 for Natatorium olive optical water profile.
+      expect(prof.murk).toBe(0.10);
     });
   });
 

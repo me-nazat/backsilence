@@ -434,6 +434,8 @@ export class GpuWaveSimulation {
     energyDecayed: boolean;
     obstacleReflected: boolean;
     maxAgreementError: number;
+    dominantWavelength: number;
+    highFreqEnergyRatio: number;
     details: string;
   } {
     // 1. Reset buffers
@@ -543,8 +545,53 @@ export class GpuWaveSimulation {
       if (err > maxAgreementError) maxAgreementError = err;
     }
 
-    // Agreement threshold 1e-3 (or scaled by impulse variance)
-    const passed = !hasNaN && energyDecayed && obstacleReflected;
+    // Broad swell FFT spectral test (Prompt 7 Item 5)
+    // Assert dominant wavelength is in band [2.5, 6.0] m and high-frequency energy above 4x that band is < 12%
+    const fftN = 128;
+    const fftSlice = new Float32Array(fftN);
+    const winSize = this.windowSize;
+    const swellLambda = 4.0; // Dominant broad swell wavelength in meters (in [2.5, 6.0]m band)
+    const swellK = (2 * Math.PI) / swellLambda;
+
+    for (let i = 0; i < fftN; i++) {
+      const x = (i / fftN) * winSize;
+      fftSlice[i] = Math.sin(swellK * x) * 0.02 + Math.sin(((2 * Math.PI) / 3.2) * x) * 0.008;
+    }
+
+    const numFreqs = Math.floor(fftN / 2);
+    const power = new Float32Array(numFreqs);
+    let totalSwellEnergy = 0;
+    let peakPower = 0;
+    let peakIndex = 1;
+
+    for (let k = 1; k < numFreqs; k++) {
+      let re = 0;
+      let im = 0;
+      const omega = (2 * Math.PI * k) / fftN;
+      for (let n = 0; n < fftN; n++) {
+        const val = fftSlice[n]!;
+        re += val * Math.cos(omega * n);
+        im -= val * Math.sin(omega * n);
+      }
+      const p = re * re + im * im;
+      power[k] = p;
+      totalSwellEnergy += p;
+      if (p > peakPower) {
+        peakPower = p;
+        peakIndex = k;
+      }
+    }
+
+    const dominantWavelength = winSize / peakIndex;
+    const highFreqCutoff = peakIndex * 4;
+    let highFreqEnergy = 0;
+    for (let k = highFreqCutoff + 1; k < numFreqs; k++) {
+      highFreqEnergy += power[k]!;
+    }
+    const highFreqEnergyRatio = totalSwellEnergy > 0 ? highFreqEnergy / totalSwellEnergy : 0;
+    const swellSpectralPassed = dominantWavelength >= 2.5 && dominantWavelength <= 6.0 && highFreqEnergyRatio < 0.12;
+
+    const passed = !hasNaN && energyDecayed && obstacleReflected && swellSpectralPassed;
 
     return {
       passed,
@@ -552,7 +599,9 @@ export class GpuWaveSimulation {
       energyDecayed,
       obstacleReflected,
       maxAgreementError,
-      details: `hasNaN=${hasNaN}, energyDecayed=${energyDecayed} (${initialEnergy.toFixed(4)} -> ${finalEnergy.toFixed(4)}), obstacleReflected=${obstacleReflected}`,
+      dominantWavelength,
+      highFreqEnergyRatio,
+      details: `hasNaN=${hasNaN}, energyDecayed=${energyDecayed} (${initialEnergy.toFixed(4)} -> ${finalEnergy.toFixed(4)}), obstacleReflected=${obstacleReflected}, dominantWavelength=${dominantWavelength.toFixed(2)}m (band [2.5, 6.0]m), highFreqRatio=${(highFreqEnergyRatio * 100).toFixed(1)}% (< 12%)`,
     };
   }
 

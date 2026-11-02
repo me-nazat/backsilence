@@ -1,10 +1,9 @@
 /* ── WaterSurfaceShader.ts ──────────────────────────────────────────────────
- *  Translucent Emerald-Green Pool Water Shader.
- *  - Optical Properties: Shallow/Surface tint #48ab72, Deep/Grazing tint #338858
+ *  Translucent Olive-Green Pool Water Shader (measured hue 85–113°).
+ *  - Optical Properties: Shallow/Surface tint #8cb179, Deep/Grazing tint #678f44
  *  - Fresnel-modulated alpha: mix(0.62, 0.86, pow(1.0 - max(dot(viewDir, normal), 0.0), 2.5))
- *  - Dual-wave normal perturbation at orthogonal angles:
- *    speed1 = vec2(0.35, 0.22), speed2 = vec2(-0.28, 0.41), displacement +/-0.018m
- *  - Sharp specular highlight: step(0.92, specular) * 0.85 + pow(specular, 48.0)
+ *  - Broad swell normal perturbation: dominant wavelength 2.5–6m (k1=1.45, k2=1.95), long period
+ *  - Horizontal pale specular streaks: step(0.92, specular) * 0.85 + pow(specular, 48.0)
  *  - Subtle 0.06m white-green edge foam rim at geometry intersections
  *  - Transparent pool floor revealing submerged tile grid at y = -0.75m
  * ──────────────────────────────────────────────────────────────────────── */
@@ -19,7 +18,7 @@ export const WaterSurfaceShader = {
     uWaterY: { value: 0.0 },
     uColorShallow: { value: new Color(WATER_PROFILES.natatorium.shallow) },
     uColorDeep: { value: new Color(WATER_PROFILES.natatorium.deep) },
-    uSpecularColor: { value: new Color(WATER_PROFILES.natatorium.specular) },
+    uSpecularColor: { value: new Color('#d6dccd') },
     uSunDir: { value: new Vector3(0.35, 0.9, 0.25).normalize() },
     uSpeed1: { value: new Vector2(0.35, 0.22) },
     uSpeed2: { value: new Vector2(-0.28, 0.41) },
@@ -46,17 +45,17 @@ export const WaterSurfaceShader = {
       vec4 worldPosition = modelMatrix * vec4(position, 1.0);
       vec2 p = worldPosition.xz;
 
-      // Two overlapping Gerstner/wave layers scrolling at orthogonal angles
-      float ph1 = dot(p, normalize(uSpeed1)) * 3.8 + uTime * length(uSpeed1) * 2.8;
-      float ph2 = dot(p, normalize(uSpeed2)) * 4.6 + uTime * length(uSpeed2) * 2.5;
+      // Broad swell: dominant wavelengths in 2.5–6m band (k1=1.45 -> 4.33m, k2=1.95 -> 3.22m)
+      float ph1 = dot(p, normalize(uSpeed1)) * 1.45 + uTime * length(uSpeed1) * 1.6;
+      float ph2 = dot(p, normalize(uSpeed2)) * 1.95 + uTime * length(uSpeed2) * 1.4;
 
       float wave1 = sin(ph1) * uWaveAmp;
       float wave2 = sin(ph2) * (uWaveAmp * 0.8);
       float totalH = wave1 + wave2;
 
       // Wave slopes for normal computation
-      float s1 = cos(ph1) * 3.8 * uWaveAmp;
-      float s2 = cos(ph2) * 4.6 * (uWaveAmp * 0.8);
+      float s1 = cos(ph1) * 1.45 * uWaveAmp;
+      float s2 = cos(ph2) * 1.95 * (uWaveAmp * 0.8);
       vec2 d1 = normalize(uSpeed1) * s1;
       vec2 d2 = normalize(uSpeed2) * s2;
       vWaveSlope = d1 + d2;
@@ -103,13 +102,14 @@ export const WaterSurfaceShader = {
       // Graded water body tint: shallow green at normal viewing, deeper grazing
       vec3 waterTint = mix(uColorShallow, uColorDeep, fresnel);
 
-      // 2. White Wavy Specular Glints
+      // 2. Horizontal Pale Specular Streaks (anisotropic highlights along wave crests)
       vec3 L = normalize(uSunDir);
       vec3 H = normalize(viewDir + L);
-      float NdotH = max(0.0, dot(normal, H));
-      float specular = pow(NdotH, 64.0);
+      vec3 anisoNormal = normalize(vec3(normal.x * 0.35, normal.y, normal.z));
+      float NdotH = max(0.0, dot(anisoNormal, H));
+      float specular = pow(NdotH, 48.0);
 
-      // Signature bright white wavy streak reflections
+      // Signature bright pale horizontal specular streak reflections (#d6dccd)
       float sharpGlint = step(0.92, specular) * 0.85 + pow(specular, 48.0);
       vec3 glintColor = uSpecularColor * (sharpGlint * 1.35);
 

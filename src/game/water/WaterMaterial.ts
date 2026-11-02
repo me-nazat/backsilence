@@ -97,36 +97,37 @@ float ripple(vec2 p, vec4 r, float time, inout vec2 grad) {
   return h;
 }
 
-// 4-wave Gerstner wave displacement and analytic normal slope accumulator
+// 4-wave Gerstner broad swell displacement and analytic normal slope accumulator (Phase G / Prompt 7 D125)
+// Dominant wavelengths in 2.5–6m band: 4.70m, 3.60m, 5.40m, 2.80m with long-period gentle breathing motion.
 void evaluateGerstner(vec2 pos, float time, float scale, out vec3 disp, out vec2 slope) {
   disp = vec3(0.0);
   slope = vec2(0.0);
 
-  // Wavelengths from Phase B2: 4.7m, 2.3m, 1.1m, 0.6m
-  float k1 = 1.33685;
-  float k2 = 2.73182;
-  float k3 = 5.71199;
-  float k4 = 10.47198;
+  // Broad swell wavenumbers in [2.5, 6.0]m band
+  float k1 = 1.33685; // 2pi / 4.70m
+  float k2 = 1.74533; // 2pi / 3.60m
+  float k3 = 1.16355; // 2pi / 5.40m
+  float k4 = 2.24399; // 2pi / 2.80m
 
-  // Directions spread over 60 degrees (0.15 rad to 1.15 rad)
+  // Directions spread over gentle forward swell
   vec2 d1 = vec2(0.9888, 0.1494);
   vec2 d2 = vec2(0.8870, 0.4618);
-  vec2 d3 = vec2(0.6822, 0.7311);
+  vec2 d3 = vec2(0.7071, 0.7071);
   vec2 d4 = vec2(0.4085, 0.9128);
 
-  // Amplitudes: 0.022, 0.013, 0.007, 0.004
-  float a1 = 0.022 * scale;
-  float a2 = 0.013 * scale;
+  // Amplitudes: low gentle amplitude broad swell
+  float a1 = 0.014 * scale;
+  float a2 = 0.009 * scale;
   float a3 = 0.007 * scale;
-  float a4 = 0.004 * scale;
+  float a4 = 0.003 * scale;
 
-  // Frequencies: pool speed multiplier 0.55
-  float w1 = 3.623 * 0.55;
-  float w2 = 5.176 * 0.55;
-  float w3 = 7.485 * 0.55;
-  float w4 = 10.135 * 0.55;
+  // Frequencies: long period, speed multiplier 0.35
+  float w1 = 3.623 * 0.35;
+  float w2 = 5.176 * 0.35;
+  float w3 = 7.485 * 0.35;
+  float w4 = 10.135 * 0.35;
 
-  float q = 0.55;
+  float q = 0.45;
 
   float ph1 = dot(d1, pos) * k1 + time * w1;
   float ph2 = dot(d2, pos) * k2 + time * w2;
@@ -169,11 +170,20 @@ void main() {
     totalRippleH += ripple(p, uRipples[i], uTime, dummyGrad);
   }
 
+  // Surface tension dimple around monster appendages
+  float distToMonsterXZ = length(p - uMonsterPos.xz);
+  float monsterDimple = 0.0;
+  if (distToMonsterXZ < 2.5 && abs(uWaterY - uMonsterPos.y) < 2.0) {
+    float mRad = 1.25;
+    float mEnv = exp(-(distToMonsterXZ * distToMonsterXZ) / (mRad * mRad));
+    monsterDimple = -0.024 * mEnv * cos(distToMonsterXZ * 3.8 - uTime * 2.2);
+  }
+
   worldPosition.x += gDisp.x;
   worldPosition.z += gDisp.z;
-  worldPosition.y = uWaterY + gDisp.y + totalRippleH;
+  worldPosition.y = uWaterY + gDisp.y + totalRippleH + monsterDimple;
 
-  vRippleHeight = totalRippleH;
+  vRippleHeight = totalRippleH + monsterDimple;
   vWorldPos = worldPosition.xyz;
 
   vec4 mvPosition = viewMatrix * worldPosition;
@@ -479,18 +489,30 @@ void main() {
     }
   }
 
-  // 6. Beer-Lambert Spectral Absorption: sigma = (0.90, 0.25, 0.45) per meter
-  vec3 sigma = vec3(0.90, 0.25, 0.45);
+  // 6. Physical Water Absorption & Depth Visibility (Prompt 7 D125)
+  // Floor visibility through water column drives trench detection as a physical signal.
+  // Beer-Lambert spectral extinction: red absorbed fastest (0.95), blue (0.42), green least (0.22)
+  vec3 sigma = vec3(0.95, 0.22, 0.42);
   vec3 T = exp(-sigma * thickness);
-  float lumT = dot(T, vec3(0.299, 0.587, 0.114));
-  // Depth-graded in-scatter: shallow tint near the surface, deep tint at depth.
+  float floorVisibility = dot(T, vec3(0.299, 0.587, 0.114));
+
+  // Depth-graded in-scatter:
+  // Shallow: #8cb179, Near-Deep: #6e8949, Mid-hall Deep: #678f44
   float deepMix = 1.0 - exp(-thickness * 0.85);
   vec3 scatter = mix(uColorShallow, uColorDeep, deepMix);
+
+  // Trench optical signature: when floor drops out (floorVisibility < 0.25 and thickness > 1.8m),
+  // bulk absorption through un-illuminated deep water column produces trench color #7da46d
+  vec3 cTrench = vec3(0.490, 0.643, 0.427); // #7da46d
+  float trenchFactor = smoothstep(0.28, 0.02, floorVisibility) * smoothstep(1.6, 2.6, thickness);
+  scatter = mix(scatter, cTrench, trenchFactor * 0.75);
+
   // Suspended-silt scattering (uMurk)
   scatter = mix(scatter, vec3(0.42, 0.55, 0.30), clamp(uMurk * (1.0 - exp(-thickness * 0.5)), 0.0, 0.85));
+
   // Veil must be gated by optical path length or it becomes a flat white sheet.
-  float veilGate = (1.0 - exp(-thickness * 1.6)) * (1.0 - lumT);
-  vec3 milkyVeil = vec3(0.85, 0.94, 0.88) * (0.07 * veilGate);
+  float veilGate = (1.0 - exp(-thickness * 1.6)) * (1.0 - floorVisibility);
+  vec3 milkyVeil = vec3(0.85, 0.94, 0.88) * (0.05 * veilGate);
   vec3 absorbedWater = sceneSample * T + scatter * (1.0 - T) + milkyVeil;
 
   // 7. Schlick Fresnel reflection with F0 = 0.02 & reflection tiers (World Space)
@@ -499,7 +521,7 @@ void main() {
   float fresnel = 0.02 + 0.98 * pow(1.0 - NdotV, 5.0);
 
   vec3 reflectDir = reflect(-viewDir, normal);
-  vec3 skyHazeColor = vec3(0.702, 0.733, 0.624);
+  vec3 skyHazeColor = uSpecularColor;
   vec3 reflectColor = skyHazeColor;
 
   if (uReflectionTier > 1.5) {
@@ -516,7 +538,7 @@ void main() {
     reflectColor = mix(skyHazeColor * 0.92, skyHazeColor * 1.08, max(0.0, reflectDir.y));
   }
 
-  vec3 waterColor = mix(absorbedWater, reflectColor, fresnel * 0.48);
+  vec3 waterColor = mix(absorbedWater, reflectColor, fresnel * 0.45);
 
   // 8. Animated Caustics on shallow floor and waterline walls
   if (thickness < 2.5) {
@@ -527,18 +549,19 @@ void main() {
     float caustic = pow(min(c1, c2), 1.6) * 1.8;
     float causticFade = smoothstep(2.5, 0.15, thickness) * (1.0 - fresnel * 0.75);
     vec3 causticCol = mix(vec3(0.9, 1.0, 0.95), vec3(1.0, 0.98, 0.9), 0.5);
-    waterColor += causticCol * caustic * causticFade * 0.14;
+    waterColor += causticCol * caustic * causticFade * 0.18;
   }
 
-  // 9. Sun GGX Specular Glint (balanced intensity for crisp wave glints without blowout)
+  // 9. Sun GGX Specular Glint & Horizontal Pale Specular Streaks (#d6dccd)
   vec3 sunSpec = evalGGX(normal, viewDir, uSunDir, uSpecularColor, 0.55, roughness);
   vec3 sparkleNormal = normalize(normal + vec3(sparkle * 0.25, 0.0, sparkle * 0.25));
   sunSpec += evalGGX(sparkleNormal, viewDir, uSunDir, uSpecularColor, 26.0 * sparkle, roughness * 0.6);
   waterColor += clamp(sunSpec, 0.0, 0.65);
 
-  // White Wavy Specular Glints: sharp highlight term rendering bright white wavy streak reflections
+  // Horizontal Pale Specular Streaks (anisotropic highlights along wave crests)
   vec3 H_glint = normalize(viewDir + uSunDir);
-  float specBase = max(0.0, dot(normal, H_glint));
+  vec3 anisoNormal = normalize(vec3(normal.x * 0.32, normal.y, normal.z));
+  float specBase = max(0.0, dot(anisoNormal, H_glint));
   float specWave = step(0.92, specBase) * 0.85 + pow(specBase, 48.0);
   waterColor += uSpecularColor * (specWave * 0.75);
 
@@ -646,14 +669,17 @@ void main() {
       float baseFogFactor = smoothstep( fogNear, fogFar, vFogDepth );
     #endif
 
-    // Height mist hugging the water surface and grazing haziness
+    // Low height-fog band hugging the water surface (thicker with distance, f_025)
     float hDist = max(0.0, abs(vWorldPos.y - uWaterY));
-    float hMist = exp(-hDist * 0.85) * 0.32;
-    float grazingMist = pow(1.0 - max(0.0, dot(normal, viewDir)), 2.5) * 0.22 * smoothstep(1.0, 12.0, vFogDepth);
+    float hMist = exp(-hDist * 1.2) * smoothstep(6.0, 32.0, vFogDepth) * 0.45;
+    float grazingMist = pow(1.0 - max(0.0, dot(normal, viewDir)), 2.5) * 0.28 * smoothstep(1.0, 15.0, vFogDepth);
     float finalFogFactor = clamp(baseFogFactor + (hMist + grazingMist) * (1.0 - baseFogFactor) * smoothstep(0.0, 5.0, vFogDepth), 0.0, 1.0);
 
-    // Smooth dissolution into atmospheric horizon fog (pale grey-green, no blowout)
-    vec3 horizonColor = mix(fogColor, vec3(1.55, 1.48, 1.32), smoothstep(0.60, 1.0, finalFogFactor));
+    // Fast whip-turn bright white fog bank at water surface (f_032)
+    float whipSurfaceBank = pow(1.0 - max(0.0, dot(vec3(0.0, 1.0, 0.0), viewDir)), 3.0) * smoothstep(4.0, 18.0, vFogDepth) * 0.18;
+    vec3 horizonColor = mix(fogColor, vec3(0.96, 0.98, 0.96), whipSurfaceBank);
+    horizonColor = mix(horizonColor, uSpecularColor, smoothstep(0.70, 1.0, finalFogFactor) * 0.55);
+
     gl_FragColor.rgb = mix( waterColor, horizonColor, finalFogFactor );
     gl_FragColor.a = mix( alpha, 1.0, finalFogFactor );
   #else
@@ -701,8 +727,8 @@ export function createWaterMaterial(options: WaterMaterialOptions): ShaderMateri
       uWakeParams: { value: options.wakeParams },
       uColorShallow: { value: new Color(prof?.shallow ?? '#8cb179') },
       uColorDeep: { value: new Color(prof?.deep ?? '#678f44') },
-      uSpecularColor: { value: new Color(prof?.specular ?? '#fff3d8') },
-      uFoamStrength: { value: prof?.foam ?? 0.45 },
+      uSpecularColor: { value: new Color(prof?.specular ?? '#d6dccd') },
+      uFoamStrength: { value: prof?.foam ?? 0.15 },
       uSunDir: { value: (options.sunDir ?? new Vector3(0.4, 0.8, 0.4)).clone().normalize() },
       uMonsterPos: { value: new Vector3(0, -999, 0) },
       uOpacityMin: { value: prof?.opacityMin ?? 0.55 },
