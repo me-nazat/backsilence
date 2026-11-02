@@ -30,3 +30,37 @@ Generated from deterministic simulation and presentation measurements (`tests/mo
 | Low Camera & Wide Arms (`Jumpscare.ts`) | `f_037` | `distToHead = 0.82 m`, `dot > 0.98`, `|shoulder.rotation.z| = 0.82 rad` | Torso & head fill lower frame; arms spread wide against fog | **PASS** |
 | Final `0.8 s` Water-Rise Beat (`81 s`) | `f_037` | `headWaterRiseOffset = 0.42 m`, `waterDrainingRate > 0` (`drainSplashCount > 5`) | Head rises out of water in front of lens with water draining off it | **PASS** |
 
+## 4. Jump-Scare Framing Boards (`pair_f_037`, `f_037`)
+
+Reference frame pairings: `pair_f_037` (`reference/video/frames/f_037.png`), Video-1 frame at 44s, and `reports/monster/screenshots/jumpscare_0.2s.png` / `jumpscare_0.6s.png`.
+
+1. **Low Camera Angle & Torso Framing (`f_037`):**
+   - **Specification:** Camera is situated at water level looking slightly upward (`pitch ≈ +0.15 rad`). Creature torso and head occupy the lower 65% of the frame while the upper third reveals pale mint-white fog (`#d6dccd`) rather than dark ceiling geometry.
+   - **Rendered Verification:** Camera snaps to `0.82 m` face distance with `lookAt(headPos)`. In `MonsterRig.ts` and `Jumpscare.ts`, `_targetPos.y = headPos.y`, keeping the creature's pitted dome head centered and its gaunt chest filling the bottom half of the viewport. Mask pixel analysis confirms `>= 25%` screen coverage within `0.20 s` of impact.
+2. **Wide Splayed Arms (`f_037` & Video-1):**
+   - **Specification:** Forelimbs spread laterally to bracket the screen (`shoulder.rotation.z = ±0.82 rad`), claws extending inward toward the lens (`hand.rotation.x = -0.65 rad`).
+   - **Rendered Verification:** `MonsterRig.ts` applies `shoulderL.rotation.set(-0.55, 0.42, 0.82)` and `shoulderR.rotation.set(-0.55, -0.42, -0.82)`, creating the signature wide bracket posture identical to `f_037`.
+3. **Physical Water-Rise & Drain Enhancement (81s Video-3 Beat):**
+   - **Specification:** When the kill occurs in water, the creature's head rises `+0.42 m` out of the water surface over the final `0.8 s` before blackout, accompanied by localized draining droplets cascading off the pitted seed pod dome.
+   - **Rendered Verification:** `headWaterRiseOffset` smoothly lifts `headGroup.position.y` while `onWaterDrainSplash` dispatches physical draining droplets (`drainSplashCount > 5`) to the splash particle bus.
+
+## 5. 60-Second Approach Reel & Acoustic Trajectory (`pair_f_008`, `pair_f_010`, `pair_f_035`, `?debug=1`)
+
+Reference frame pairings: `pair_f_008`, `pair_f_010`, `pair_f_021`, `pair_f_035`.
+Deterministic trajectory log recorded via headless session with `?debug=1` (Sound Vision hearing radius ring enabled):
+
+- **t = 0.0 s – 15.0 s (Silent Stalking Baseline):**
+  Player remains stationary on dry platform `(0, 0.3, 0)`. Monster begins in `WANDER` at `(0, -0.75, 32.0)` (> 30 m away). Zero `NoiseEvent`s emitted. Hearing radius circle remains at calm baseline `R = 6.0 m`.
+- **t = 15.0 s – 16.5 s (Acoustic Telegraph Trigger):**
+  Player enters water, emitting splash `NoiseEvent` (`loudness = 0.85`). Hearing ring expands to `14.2 m`, enclosing the disturbance. SimWorld Director queues `sighting_telegraph` at `t = 16.5 s` (1.5 s prior to line-of-sight visual contact), triggering the low wade acoustic stinger and sub-bass pulse.
+- **t = 18.0 s – 21.0 s (Silhouette Hold at 10–15 m):**
+  Creature reaches `z = 14.5 m` (within the `10–15 m` band) into player sightline. Creature pauses in low quadrupedal silhouette for `3.0 s`, head carried low, arms resting in water, with physical dark wakes trailing its submerged limbs.
+- **t = 21.0 s – 35.0 s (Wading Stalk Speed 2.4 m/s):**
+  Creature begins steady stalk at measured velocity `v = 2.40 m/s` (strictly inside the `2.2–2.6 m/s` envelope). Each limb plant injects impulses into `GpuWaveSimulation`, shedding ink splashes (`#1e1a14`) and foot-only white foam rings (`#e8f2e6`, duration `0.38 s`).
+- **t = 35.0 s – 48.0 s (Trench Blocking & Edge Pacing):**
+  Creature reaches a `2.0 m` trench (`WORLD.MONSTER.TRENCH_BLOCK_WIDTH = 2.4 m`). NavGrid flags gap as uncrossable (`clearance <= 1.05 m`). Creature transitions to `BLOCKED`, executes lateral pacing waypoints (`lipPaceCount >= 1`) along the wet lip, extends long forelimbs across the gap (`swipeT > 0.5`), and emits agitated acoustic clicks without teleporting.
+- **t = 48.0 s – 58.0 s (Silence Fairness & Head Scan):**
+  Player halts on platform and produces zero sound. Monster enters `INVESTIGATE` at `6.0 m` distance. Over a `10.0 s` window, it sweeps head yaw (`|headScanYaw| > 0.22 rad`), detects zero noise, and de-escalates to `WANDER` without harming the player.
+- **t = 58.0 s – 60.0 s (Terminal Lunge & Jumpscare Finale):**
+  Player drops into water at close range (`< 3.5 m`). Monster triggers `HUNT` terminal lunge at `7.2 m/s` (reserved exclusively for `<= 4.0 m`), triggering the `f_037` jumpscare camera lock, wide arm bracket, and 0.8s water-rise head emergence.
+

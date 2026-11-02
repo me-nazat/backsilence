@@ -9,6 +9,8 @@
 
 ## 1. Executive Summary
 
+Reference frame pairings: `pair_f_001` (cracked tile floor under shallow water), `pair_f_004` (calm olive-green flooded hall), `pair_f_010` (wading creature wake and water tint), and `pair_f_018` (close shallow water floor legibility).
+
 The previous water implementation suffered from three critical defects:
 1. **Opaque Paint Appearance:** Minimum opacities of 0.52–0.98 prevented the pool floor from ever showing through shallow water.
 2. **Ambient Crest Foam on Calm Water:** A hardcoded `crestFoam` term generated continuous white noise across calm surfaces, masking floor detail.
@@ -55,6 +57,7 @@ The cracked grout fissures and tile boundaries produce strong edge gradients thr
 
 ## 4. Recalibrated WATER_PROFILES Across All 11 Maps
 
+Reference frame pairings: `pair_f_004`, `pair_f_008`, `pair_f_018`.
 Every map's shallow and deep water colors sit strictly within the measured olive-to-leaf green band (hue $85^\circ - 113.5^\circ$, saturation $0.31 - 0.53$, value $0.35 - 0.70$):
 
 | Map ID | Shallow Hex | Shallow HSV | Deep Hex | Deep HSV | Specular | Opacity Range | Murk | Hue Band Status |
@@ -85,6 +88,8 @@ The following look-dev frames were captured using Headless Chrome with the Water
 ---
 
 ## 6. Architecture & Code Changes
+
+Reference frame pairings: `pair_f_001`, `pair_f_004`, `pair_f_010`, `pair_f_018`.
 
 1. **`src/game/water/WaterProfile.ts`:**
    - `natatorium` & `poolrooms`: `shallow: '#8cb179'`, `deep: '#678f44'`, `far: '#959e69'`, `specular: '#7b9e5e'`, `opacityMin: 0.20`, `opacityMax: 0.86`, `murk: 0.0`.
