@@ -258,7 +258,9 @@ export class GameSession {
   private sunLight: DirectionalLight | null = null;
   private envTexture: Texture | null = null;
   private autoExposureFrameCount = 0;
-  private currentExposure = 0.95;
+  private currentExposure = 1.12;
+  private stillnessTimer = 0;
+  private lastSplashPos: { x: number; y: number; z: number } | null = null;
 
   // First minute reference flow & quiet hints
   private hasShownDryHint = false;
@@ -863,7 +865,7 @@ export class GameSession {
     this.scene.fog = new FogExp2(fogColor, fogDensity);
     this.scene.background = new Color(fogColor);
     this.renderer.renderer.setClearColor(fogColor, 1.0);
-    this.renderer.renderer.toneMapping = 4; // THREE.ACESFilmicToneMapping
+    this.renderer.setToneMapping(this.settings.graphics.toneMapping ?? 'agx');
     this.renderer.renderer.toneMappingExposure = def.atmosphere.exposure ?? 1.12;
     this.renderer.renderer.shadowMap.enabled = true;
     this.renderer.renderer.shadowMap.type = 2; // THREE.PCFSoftShadowMap
@@ -2518,6 +2520,17 @@ export class GameSession {
         }
         const soundRadius = Math.round((currSnap.agitation || 0.7) * 40);
         const cause = this.lastNoiseCause || (currSnap.wet && currSnap.exhausted ? 'Sprint-wade' : currSnap.wet ? 'Water splash' : 'Acoustic trigger');
+        const creatureDist = Math.hypot(currSnap.pos.x - mSnap.pos.x, currSnap.pos.z - mSnap.pos.z);
+        let mistakeExplanation = 'You splashed in the water while the predator was within earshot.';
+        if (currSnap.wet && currSnap.exhausted) {
+          mistakeExplanation = `Sprinted through water while exhausted ${creatureDist.toFixed(1)}m from predator.`;
+        } else if (currSnap.wet && Math.hypot(currSnap.vel.x, currSnap.vel.z) > 1.0) {
+          mistakeExplanation = `Moved through water too fast while the predator was ${creatureDist.toFixed(1)}m away.`;
+        } else if (currSnap.wet) {
+          mistakeExplanation = `Waded into water while the blind predator was ${creatureDist.toFixed(1)}m away.`;
+        } else if (this.lastNoiseCause) {
+          mistakeExplanation = `${this.lastNoiseCause} alerted the predator from ${creatureDist.toFixed(1)}m away.`;
+        }
         body?.animator.triggerJumpscareGrab();
         this.jumpscare.trigger(
           this.camera,
@@ -2529,6 +2542,9 @@ export class GameSession {
             closestCall: this.closestCall,
             cause,
             soundRadius,
+            splashPos: this.lastSplashPos ?? { x: currSnap.pos.x, y: this.water?.currentWaterY ?? 0, z: currSnap.pos.z },
+            creatureDistance: creatureDist,
+            mistakeExplanation,
           },
           isReducedMotion,
           body?.mesh.joints,
@@ -2558,6 +2574,7 @@ export class GameSession {
         if (this.wadeSplashTimer > 0.35) {
           this.wadeSplashTimer = 0;
           this.water.splashes.burst({ x: currSnap.pos.x, y: this.water.currentWaterY, z: currSnap.pos.z }, hSpeed * 0.45);
+          this.lastSplashPos = { x: currSnap.pos.x, y: this.water.currentWaterY, z: currSnap.pos.z };
         }
       }
     }
@@ -2999,24 +3016,38 @@ export class GameSession {
       this.renderer.render(this.scene, this.camera);
     }
 
+    // Stillness duck (Prompt 9 Item 13): 40% (-8 dB) ambient duck over 500ms when player stops moving
+    const pSnap = this.simWorld.player.getState();
+    const speed = Math.hypot(pSnap.vel.x, pSnap.vel.z);
+    if (speed < 0.05) {
+      this.stillnessTimer += dt;
+      if (this.stillnessTimer >= 0.50) {
+        this.audio.setListeningDip(true);
+      }
+    } else {
+      this.stillnessTimer = 0;
+      this.audio.setListeningDip(false);
+    }
+
     // Auto exposure adaptation (1.2s time constant) & stable directional shadow texel snapping
     if (++this.autoExposureFrameCount % 4 === 0) {
-      const pSnap = this.simWorld.player.getState();
       const inWater = pSnap.pos.y < (this.water?.currentWaterY ?? 0) + 0.1;
-      const targetExposure = inWater ? 1.15 : 0.95;
+      const targetExposure = inWater ? 1.18 : 1.08;
       const blend = 1.0 - Math.exp(-(dt * 4) / 1.2);
       this.currentExposure += (targetExposure - this.currentExposure) * blend;
       const boost = this.weatherDirector?.getExposureBoost() ?? 0;
       const brightnessFactor = (0.8 + (this.settings.graphics.brightness / 2.0) * 0.6) / 1.1;
       const totalExposure = (this.currentExposure + boost) * brightnessFactor;
-      this.renderer.renderer.toneMappingExposure = Math.max(0.55, Math.min(1.45, totalExposure));
+      this.renderer.renderer.toneMappingExposure = Math.max(0.60, Math.min(1.40, totalExposure));
 
       if (this.sunLight && this.sunLight.castShadow) {
-        const shadowWorldSize = 50.0;
-        const shadowRes = this.sunLight.shadow.mapSize.width || 1024;
+        const shadowWorldSize = 36.0;
+        const shadowRes = this.sunLight.shadow.mapSize.width || 2048;
         const texelSize = shadowWorldSize / shadowRes;
         const snappedX = Math.floor(pSnap.pos.x / texelSize) * texelSize;
         const snappedZ = Math.floor(pSnap.pos.z / texelSize) * texelSize;
+        const dir = this.mapDef.atmosphere.sun?.direction ?? { x: 0.6, y: 0.8, z: 0.4 };
+        this.sunLight.position.set(snappedX + dir.x * 30, dir.y * 30, snappedZ + dir.z * 30);
         this.sunLight.target.position.set(snappedX, 0, snappedZ);
         this.sunLight.target.updateMatrixWorld();
       }

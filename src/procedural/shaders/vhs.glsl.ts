@@ -36,6 +36,9 @@ export const VHSShader = {
     uRewind: { value: 0.0 },
     uSignalLost: { value: 0.0 },
     uVelocity: { value: new Vector2(0, 0) },
+    uGodRays: { value: 1.0 },
+    uSunScreen: { value: new Vector2(0.5, 0.35) },
+    uFarDof: { value: 1.0 },
   },
 
   vertexShader: /* glsl */ `
@@ -66,6 +69,9 @@ export const VHSShader = {
     uniform float uRewind;
     uniform float uSignalLost;
     uniform vec2 uVelocity;
+    uniform float uGodRays;
+    uniform vec2 uSunScreen;
+    uniform float uFarDof;
 
     varying vec2 vUv;
 
@@ -174,16 +180,49 @@ export const VHSShader = {
 
       vec3 color = vec3(colR.r, colG.g, colB.b);
 
-      // Camera motion blur: 8 directional samples along velocity vector
+      // Camera motion blur: 6 directional samples along velocity vector
       float velMag = length(uVelocity);
       if (isSafe < 0.5 && velMag > 0.0005) {
         vec2 velDir = clamp(uVelocity, vec2(-0.06), vec2(0.06));
         vec3 accum = color;
-        for (int s = 1; s <= 7; s++) {
-          float stepFrac = float(s) / 7.0;
+        for (int s = 1; s <= 5; s++) {
+          float stepFrac = float(s) / 5.0;
           accum += texture2D(tDiffuse, clamp(uvG - velDir * stepFrac, 0.0, 1.0)).rgb;
         }
-        color = accum / 8.0;
+        color = accum / 6.0;
+      }
+
+      // Far-field Depth of Field (subtle horizon / distance defocus)
+      if (uFarDof > 0.5 && isSafe < 0.5) {
+        float dofBand = smoothstep(0.38, 0.52, uv.y) * smoothstep(0.70, 0.52, uv.y);
+        if (dofBand > 0.02) {
+          vec2 dofOff = vec2(1.2 / max(uResolution.x, 640.0), 1.2 / max(uResolution.y, 480.0)) * dofBand;
+          vec3 t1 = texture2D(tDiffuse, clamp(uv + vec2(dofOff.x, dofOff.y), 0.0, 1.0)).rgb;
+          vec3 t2 = texture2D(tDiffuse, clamp(uv + vec2(-dofOff.x, dofOff.y), 0.0, 1.0)).rgb;
+          vec3 t3 = texture2D(tDiffuse, clamp(uv + vec2(dofOff.x, -dofOff.y), 0.0, 1.0)).rgb;
+          vec3 t4 = texture2D(tDiffuse, clamp(uv + vec2(-dofOff.x, -dofOff.y), 0.0, 1.0)).rgb;
+          vec3 blurCol = (t1 + t2 + t3 + t4) * 0.25;
+          color = mix(color, blurCol, dofBand * 0.40);
+        }
+      }
+
+      // Volumetric God Rays (screen-space radial light scattering from skylight/window)
+      if (uGodRays > 0.5 && isSafe < 0.5) {
+        vec2 rayStep = (uSunScreen - uv) * (1.0 / 8.0) * 0.45;
+        vec2 rayPos = uv;
+        float raySum = 0.0;
+        float w = 0.45;
+        for (int r = 0; r < 8; r++) {
+          rayPos += rayStep;
+          vec3 sCol = texture2D(tDiffuse, clamp(rayPos, 0.0, 1.0)).rgb;
+          float sLum = dot(sCol, vec3(0.299, 0.587, 0.114));
+          raySum += smoothstep(0.72, 0.98, sLum) * w;
+          w *= 0.88;
+        }
+        // Fog-aware: preserve mint horizon value (~0.86), attenuate directly at horizon
+        float horizonPreserve = smoothstep(0.015, 0.20, abs(uv.y - 0.52));
+        vec3 rayTint = vec3(1.0, 0.96, 0.86);
+        color += rayTint * (raySum * 0.24 * horizonPreserve);
       }
 
       // 5. Chroma Bleed (YIQ horizontal blur)
@@ -241,7 +280,7 @@ export const VHSShader = {
         color += vec3(staticNoise * 0.8, staticNoise, staticNoise * 1.2);
         // Desaturate slightly under panic
         float luma = dot(color, vec3(0.299, 0.587, 0.114));
-        color = mix(color, vec3(luma), tDanger * 0.35 * uIntensity);
+        color = mix(vec3(luma), color, tDanger * 0.35 * uIntensity);
       }
 
       // 11. Rewind Overlay Static
@@ -256,16 +295,29 @@ export const VHSShader = {
         color = mix(color, vec3(lostNoise * 0.7), uSignalLost);
       }
 
-      // 13. Per-map Color Grade (Lift, Gamma, Gain, Saturation, Tint)
+      // 13. Per-map Color Grade & Procedural 3D LUT (Lift, Gamma, Gain, Saturation, Tint)
+      // Warm cream lift and teal-ish shadow base
+      vec3 warmCreamLift = vec3(0.024, 0.020, 0.012);
+      float shadowMask = 1.0 - smoothstep(0.0, 0.35, dot(color, vec3(0.299, 0.587, 0.114)));
+      vec3 tealShadow = vec3(0.0, 0.012, 0.015) * shadowMask;
+
       // Gain & Lift
-      color = (color - 0.5) * uGain + 0.5 + uLift;
+      color = (color - 0.5) * uGain + 0.5 + uLift + warmCreamLift + tealShadow;
       // Gamma
       color = pow(max(color, vec3(0.0)), 1.0 / max(uGamma, vec3(0.001)));
-      // Saturation
+      // Saturation (+7% baseline)
       float lum = dot(color, vec3(0.299, 0.587, 0.114));
-      color = mix(vec3(lum), color, uSaturation);
+      color = mix(vec3(lum), color, uSaturation * 1.07);
       // Tint
       color *= uTint;
+
+      // Tension response: as creature closes, grade drifts cooler and contrast tightens by <= 12%
+      if (uTension > 0.001) {
+        vec3 coolDrift = mix(vec3(1.0), vec3(0.95, 0.98, 1.03), uTension * 0.12);
+        color *= coolDrift;
+        float contrastTighten = 1.0 + min(0.12, uTension * 0.12);
+        color = (color - 0.5) * contrastTighten + 0.5;
+      }
 
       // 14. Vignette
       vec2 centeredVig = uv - 0.5;

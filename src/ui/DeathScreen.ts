@@ -31,6 +31,8 @@ export class DeathScreen {
       inset: 0;
       background: rgba(13, 11, 6, 0.95);
       display: none;
+      opacity: 0;
+      transition: opacity 0.35s ease-out;
       flex-direction: column;
       justify-content: center;
       align-items: center;
@@ -96,6 +98,13 @@ export class DeathScreen {
             margin-top: 6px;
             letter-spacing: 0.08em;
             text-transform: uppercase;
+            display: none;
+          "></div>
+          <div id="death-mistake-details" style="
+            font-size: 11px;
+            color: #ffb74d;
+            margin-top: 6px;
+            letter-spacing: 0.05em;
             display: none;
           "></div>
         </div>
@@ -183,6 +192,26 @@ export class DeathScreen {
     if (sub) sub.textContent = reason;
   }
 
+  setMistake(info: { splashPos?: { x: number; y: number; z: number } | null | undefined; distanceMeters?: number | undefined; explanation?: string | undefined }): void {
+    if (info.explanation) {
+      this.setReason(info.explanation);
+    }
+    const details = this.el?.querySelector<HTMLElement>('#death-mistake-details');
+    if (details) {
+      const parts: string[] = [];
+      if (info.splashPos) {
+        parts.push(`SPLASH: (X: ${info.splashPos.x.toFixed(1)}m, Z: ${info.splashPos.z.toFixed(1)}m)`);
+      }
+      if (info.distanceMeters !== undefined && info.distanceMeters > 0) {
+        parts.push(`PREDATOR: ${info.distanceMeters.toFixed(1)}m`);
+      }
+      if (parts.length > 0) {
+        details.textContent = parts.join('  ·  ');
+        details.style.display = 'block';
+      }
+    }
+  }
+
   setCause(cause: string, soundRadiusMeters?: number): void {
     const el = this.el?.querySelector<HTMLElement>('#death-cause-line');
     if (el) {
@@ -212,6 +241,7 @@ export class DeathScreen {
 
     if (this.el) {
       this.el.style.display = 'flex';
+      this.el.style.opacity = '1';
       const retryBtn = this.el.querySelector<HTMLButtonElement>('#death-btn-retry');
       retryBtn?.focus();
     }
@@ -242,6 +272,7 @@ export class DeathScreen {
   hide(): void {
     this.isVisible = false;
     if (this.el) {
+      this.el.style.opacity = '0';
       this.el.style.display = 'none';
     }
     if (this.keyHandler && typeof window !== 'undefined') {

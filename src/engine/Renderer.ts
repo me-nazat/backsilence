@@ -70,7 +70,7 @@ export class EngineRenderer {
     this.renderer.toneMappingExposure = 1.12;
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = PCFSoftShadowMap;
-    this.setToneMapping(settings.graphics.toneMapping ?? 'acesfilmic');
+    this.setToneMapping(settings.graphics.toneMapping ?? 'agx');
     this.applySettings(settings);
 
     this.setupContextHandlers();

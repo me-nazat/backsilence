@@ -27,6 +27,9 @@ export interface JumpscareStats {
   cause?: string;
   soundRadius?: number;
   caughtInWater?: boolean;
+  splashPos?: { x: number; y: number; z: number } | null;
+  creatureDistance?: number;
+  mistakeExplanation?: string;
 }
 
 export interface JumpscareCallbacks {

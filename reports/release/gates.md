@@ -1,6 +1,6 @@
 # Release & Verification Gate Summary
 
-- **Git Commit SHA:** `f2c85e9`
+- **Git Commit SHA:** `62c9110`
 - **Reference Manifest SHA-256:** `5284a059124178f556c589a806d206a77a62f6c11a4d892760bc944284a023b4`
 - **Reference Pairings Verified:** `f_001` .. `f_037` (`reference/pairings.json` & `reference/derived_targets.json`)
 - **Overall Gate Verdict:** **PASS**
@@ -23,6 +23,6 @@
 | `i18n:check` | **PASS** | all locale keys aligned | none |
 | `reference:verify` | **PASS** | 37 SHA-256 reference frames + 3 WAVs verified against manifest | none |
 | `shots:check` | **PASS** | 46/46 shots match golden baselines (zero drift) | none |
-| `gates:play` | **PASS** | 8/8 checks passed (1st=15.283s @ 12m, 2nd=49.283s, p95=0.0265ms, hash=e4ffad24) | none |
+| `gates:play` | **PASS** | 8/8 checks passed (1st=15.283s @ 12m, 2nd=49.283s, p95=0.033ms, hash=e4ffad24) | none |
 | `reference:compare` | **PASS** | baseline 72 PASS / 54 FAIL (126); total 99 PASS / 114 FAIL (213) | classic_archipelago_hero:Sobel Edge (scale 1x): actual=0.419 target=0.0203 (delta 1964%, pairing f_007) |
 | `audio:compare` | **PASS** | procedural audio within measured reference envelope | none |

@@ -90,6 +90,16 @@ export function tintHex(hex: string, dHue: number, dSat = 0, dVal = 0): string {
   return `#${to(rp)}${to(gp)}${to(bp)}`;
 }
 
+/**
+ * Anisotropic filtering configuration by quality tier (Prompt 9 Item 4):
+ * High: max supported (e.g. 16), Medium: 4, Low: 1.
+ */
+export function resolveAnisotropy(quality: string, renderer?: WebGLRenderer): number {
+  if (quality === 'low') return 1;
+  if (quality === 'medium') return 4;
+  return renderer?.capabilities?.getMaxAnisotropy?.() ?? 16;
+}
+
 const M = MEASURED_PALETTE;
 const GROUT_DARK = '#45361e';
 const GROUT_WALL = '#5c533e';
@@ -286,6 +296,11 @@ export class TileMaterialFactory {
     });
     this.poolFloorMaterial.name = 'PoolFloorMaterial';
 
+    this.hookCausticsAndContact(this.platformSideMaterial, { caustics: true, contactDarkening: true });
+    this.hookCausticsAndContact(this.poolFloorMaterial, { caustics: true, contactDarkening: true });
+    this.hookCausticsAndContact(this.platformTopMaterial, { caustics: true, contactDarkening: false });
+    this.hookCausticsAndContact(this.wallTileMaterial, { caustics: false, contactDarkening: true });
+
     // Seed default natatorium theme kit
     const defaultKit: TileMaterialKit = {
       wallTileMaterial: this.wallTileMaterial,
@@ -378,6 +393,11 @@ export class TileMaterialFactory {
     });
     poolFloorMaterial.name = `PoolFloorMaterial_${themeId}`;
 
+    this.hookCausticsAndContact(platformSideMaterial, { caustics: true, contactDarkening: true });
+    this.hookCausticsAndContact(poolFloorMaterial, { caustics: true, contactDarkening: true });
+    this.hookCausticsAndContact(platformTopMaterial, { caustics: true, contactDarkening: false });
+    this.hookCausticsAndContact(wallTileMaterial, { caustics: false, contactDarkening: true });
+
     const kit: TileMaterialKit = {
       wallTileMaterial,
       platformTopMaterial,
@@ -387,6 +407,66 @@ export class TileMaterialFactory {
     };
     this.themeKits.set(themeId, kit);
     return kit;
+  }
+
+  private hookCausticsAndContact(
+    mat: MeshStandardMaterial,
+    options: { caustics?: boolean; contactDarkening?: boolean },
+  ): void {
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    const origCompile = mat.onBeforeCompile;
+    mat.onBeforeCompile = (shader, renderer) => {
+      origCompile?.call(mat, shader, renderer);
+      shader.uniforms.uTileTime = { value: 0 };
+
+      shader.vertexShader = shader.vertexShader.replace(
+        '#include <common>',
+        `#include <common>
+         varying vec3 vTileWorldPos;`
+      );
+      shader.vertexShader = shader.vertexShader.replace(
+        '#include <worldpos_vertex>',
+        `#include <worldpos_vertex>
+         vTileWorldPos = (modelMatrix * vec4(transformed, 1.0)).xyz;`
+      );
+
+      shader.fragmentShader = shader.fragmentShader.replace(
+        '#include <common>',
+        `#include <common>
+         varying vec3 vTileWorldPos;
+         uniform float uTileTime;`
+      );
+
+      shader.fragmentShader = shader.fragmentShader.replace(
+        '#include <map_fragment>',
+        `#include <map_fragment>
+         ${options.caustics ? `
+         // Prompt 9 Item 2: Caustics touching pool floor and slab edges (-1.0m <= y <= 0.35m)
+         if (vTileWorldPos.y <= 0.35 && vTileWorldPos.y >= -1.0) {
+           float edgeFade = smoothstep(0.35, 0.18, vTileWorldPos.y);
+           vec2 cUv = vTileWorldPos.xz * 1.6;
+           float c1 = sin(cUv.x * 3.14 + uTileTime * 1.5) * cos(cUv.y * 3.14 + uTileTime * 1.1);
+           float c2 = cos(cUv.x * 2.4 - uTileTime * 1.3) * sin(cUv.y * 2.4 + uTileTime * 1.8);
+           float causticLum = pow(clamp(min(c1, c2) * 0.5 + 0.5, 0.0, 1.0), 2.0) * 0.28;
+           diffuseColor.rgb += vec3(causticLum * edgeFade * 0.35);
+         }
+         ` : ''}
+
+         ${options.contactDarkening ? `
+         // Prompt 9 Item 3: Contact darkening at slab bases, wall/floor junctions, and pillar feet
+         if (vTileWorldPos.y <= -0.65) {
+           float floorOcc = smoothstep(-0.75, -0.65, vTileWorldPos.y);
+           diffuseColor.rgb *= mix(0.76, 1.0, floorOcc);
+         }
+         // Waterline contact band
+         if (abs(vTileWorldPos.y) < 0.05) {
+           float waterOcc = smoothstep(0.05, 0.0, abs(vTileWorldPos.y));
+           diffuseColor.rgb *= mix(1.0, 0.88, waterOcc);
+         }
+         ` : ''}
+        `
+      );
+    };
   }
 
   /**

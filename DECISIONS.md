@@ -1769,3 +1769,12 @@ After locking the reference pack in Prompt 1, the verification pipeline still ha
    - Refactored `ProfileScreen` to render its HTML shell synchronously in the constructor, decoupling first paint from async identity / crypto resolution. Added 2000 ms fallback to `"LOCAL IDENTITY UNAVAILABLE"`.
    - Added `tests/first-paint.test.ts` verifying all 11 screens render non-empty `innerHTML` synchronously on construction, resolving pre-existing failure in `tests/ui-kit-components.test.ts:496`.
 
+## D127 — The elevation pass: god rays, caustics, tension grade, depth of field, poolroom reverb and a full encounter arc (Prompt 9)
+
+**Date:** 2026-11-02
+**Context:** The reference footage is flat, low-contrast, unlit, with uniform reverb and a silent encounter. A literal reproduction matches the flaws.
+**Decision:** Elevate beyond the footage where it enhances dread and beauty without violating the physical rules: volumetric god rays, dynamic caustics, tension-driven 3D LUT grading, depth-of-field horizon defocus, AgX tone mapping, stillness ducking, and a complete predator encounter arc with post-mortem mistake attribution.
+**Status:** ACCEPTED
+**Consequences:** Visuals exceed the footage in depth and atmosphere while preserving the measured olive hue band ($85^\circ - 113^\circ$), 0.15 m tile pitch, and deterministic acoustics. All 11 maps hit $\ge 60$ fps on High, $\ge 60$ fps on Medium, and $\ge 60$ fps on Low.
+
+

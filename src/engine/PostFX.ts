@@ -73,6 +73,9 @@ interface VHSUniforms {
   uSaturation: { value: number };
   uTint: { value: Vector3 };
   uVelocity?: { value: Vector2 };
+  uGodRays?: { value: number };
+  uSunScreen?: { value: Vector2 };
+  uFarDof?: { value: number };
   tDiffuse: { value: unknown };
 }
 
@@ -283,6 +286,13 @@ export class PostFX {
     if (this.tapeSmearPass) {
       this.tapeSmearPass.enabled = (this.currentTier === 'high' || this.currentTier === 'medium') && !isSafe;
     }
+
+    if (u.uGodRays) {
+      u.uGodRays.value = (this.currentTier === 'high' || this.currentTier === 'medium') && !isSafe ? 1.0 : 0.0;
+    }
+    if (u.uFarDof) {
+      u.uFarDof.value = (this.currentTier === 'high' || this.currentTier === 'medium') && !isSafe ? 1.0 : 0.0;
+    }
   }
 
   private getVhsUniforms(): VHSUniforms | null {
@@ -344,6 +354,27 @@ export class PostFX {
         const dynamicGrade = baseIntensity * (0.6 + 0.4 * this.tension);
         u.uIntensity.value = this.isSafeMode() ? Math.min(0.25, dynamicGrade) : dynamicGrade;
       }
+    }
+  }
+
+  setGodRays(enabled: boolean, sunScreenPos?: Vector2): void {
+    const u = this.getVhsUniforms();
+    if (!u) return;
+    const isSafe = this.isSafeMode();
+    if (u.uGodRays) {
+      u.uGodRays.value = enabled && this.currentTier !== 'low' && !isSafe ? 1.0 : 0.0;
+    }
+    if (sunScreenPos && u.uSunScreen) {
+      u.uSunScreen.value.copy(sunScreenPos);
+    }
+  }
+
+  setDepthOfField(enabled: boolean): void {
+    const u = this.getVhsUniforms();
+    if (!u) return;
+    const isSafe = this.isSafeMode();
+    if (u.uFarDof) {
+      u.uFarDof.value = enabled && this.currentTier !== 'low' && !isSafe ? 1.0 : 0.0;
     }
   }
 

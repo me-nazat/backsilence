@@ -676,9 +676,9 @@ void main() {
     float grazingMist = pow(1.0 - max(0.0, dot(normal, viewDir)), 2.5) * 0.28 * smoothstep(1.0, 15.0, vFogDepth);
     float finalFogFactor = clamp(baseFogFactor + (hMist + grazingMist) * (1.0 - baseFogFactor) * smoothstep(0.0, 5.0, vFogDepth), 0.0, 1.0);
 
-    // Fast whip-turn bright white fog bank at water surface (f_032)
+    // Fast whip-turn surface haze at water surface (f_032)
     float whipSurfaceBank = pow(1.0 - max(0.0, dot(vec3(0.0, 1.0, 0.0), viewDir)), 3.0) * smoothstep(4.0, 18.0, vFogDepth) * 0.18;
-    vec3 horizonColor = mix(fogColor, vec3(0.96, 0.98, 0.96), whipSurfaceBank);
+    vec3 horizonColor = mix(fogColor, uSpecularColor, whipSurfaceBank * 0.5);
     horizonColor = mix(horizonColor, uSpecularColor, smoothstep(0.70, 1.0, finalFogFactor) * 0.55);
 
     gl_FragColor.rgb = mix( waterColor, horizonColor, finalFogFactor );

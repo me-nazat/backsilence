@@ -342,14 +342,14 @@ export class Mixer {
   }
 
   /**
-   * Player stillness listening dip (Prompt 4 Section 8 D.2):
-   * When player remains still for >= 1.5s, drops ambience bed to 40% so subtle sounds emerge.
+   * Player stillness listening dip (Prompt 9 Item 13):
+   * 40% (-8 dB) ambient duck over 500ms when the player stops moving, so distant sounds emerge.
    */
   setListeningDip(active: boolean): void {
     this.listeningDipActive = active;
     const now = this.ctx.currentTime;
     const target = active ? this.baseVolumes.ambient * 0.40 : this.baseVolumes.ambient;
-    this.ambientGain.gain.setTargetAtTime(target, now, 0.05);
+    this.ambientGain.gain.setTargetAtTime(target, now, 0.50);
   }
 
   /**
