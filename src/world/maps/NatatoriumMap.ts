@@ -21,6 +21,7 @@ import {
   Vector3,
   Color,
   PointLight,
+  Float32BufferAttribute,
   MeshBasicMaterial,
 } from 'three';
 import type {
@@ -107,10 +108,21 @@ export const NatatoriumMap: MapDefinition = {
     // ──────────────────────────────────────────────────────────────────────────
 
     // 1. Entry Foyer / Spawn Deck (+WORLD.PLATFORM_TOP_Y above water)
+    // Player spawns at (0.0, 0.30, 49.5) standing on this dry slab facing -Z
     platforms.push({
       id: 'plat_foyer',
-      rect: [-8, 44, 8, 54],
+      rect: [-4.0, 47.5, 4.0, 54.0],
       topY: WORLD.PLATFORM_TOP_Y,
+      kind: 'tile',
+    });
+
+    // Shallow water pool floor between spawn slab and tagline wall (z: 43.8 to 47.5)
+    // Water level is at y = 0.0, pool floor is at y = -0.30 (depth 0.30m)
+    // Cracked floor tile is clearly visible through the shallow translucent water (f_001–f_003)
+    platforms.push({
+      id: 'plat_spawn_pool_floor',
+      rect: [-7.0, 43.8, 6.5, 47.5],
+      topY: -0.30,
       kind: 'tile',
     });
 
@@ -557,25 +569,49 @@ export const NatatoriumMap: MapDefinition = {
       isWall: true,
     });
 
-    // Spawn Tagline Wall at z = 52.4 (facing player spawn at z = 50)
+    // Spawn Tagline Wall at z = 44.0 (facing player spawn at z = 49.5, distance 5.3m)
+    // Covers x: -7.0 to 0.8; height -0.75 to 6.0
     walls.push({
       id: 'wall_spawn_tagline',
-      min: { x: -10.0, y: -0.75, z: 52.4 },
-      max: { x: 10.0, y: 6.0, z: 53.0 },
+      min: { x: -7.0, y: -0.75, z: 43.8 },
+      max: { x: 0.8, y: 6.0, z: 44.2 },
+      isWall: true,
+    });
+
+    // Arch opening connecting foyer to grand pool hall (x: 0.8 to 6.5, z = 44.0)
+    // Left jamb is wall_spawn_tagline (x = 0.8).
+    // Right jamb:
+    walls.push({
+      id: 'wall_foyer_arch_e',
+      min: { x: 6.5, y: -0.75, z: 43.8 },
+      max: { x: 12.0, y: 6.0, z: 44.2 },
+      isWall: true,
+    });
+    // Arch lintel above the opening:
+    walls.push({
+      id: 'wall_foyer_arch_lintel',
+      min: { x: 0.8, y: 4.5, z: 43.8 },
+      max: { x: 6.5, y: 6.0, z: 44.2 },
       isWall: true,
     });
 
     // Foyer Side Enclosure Walls
     walls.push({
       id: 'wall_foyer_w',
-      min: { x: -10.5, y: -0.75, z: 44.0 },
-      max: { x: -10.0, y: 6.0, z: 53.0 },
+      min: { x: -14.6, y: -0.75, z: 43.8 },
+      max: { x: -14.0, y: 6.0, z: 57.5 },
       isWall: true,
     });
     walls.push({
       id: 'wall_foyer_e',
-      min: { x: 12.0, y: -0.75, z: 43.0 },
+      min: { x: 12.0, y: -0.75, z: 43.8 },
       max: { x: 12.6, y: 6.0, z: 57.5 },
+      isWall: true,
+    });
+    walls.push({
+      id: 'wall_foyer_s',
+      min: { x: -14.6, y: -0.75, z: 57.0 },
+      max: { x: 12.6, y: 6.0, z: 57.6 },
       isWall: true,
     });
 
@@ -696,7 +732,7 @@ export const NatatoriumMap: MapDefinition = {
     });
 
     const exitPos = { x: 0.0, y: 0.30, z: -58.0 };
-    const playerSpawn = { x: 0.0, y: 0.30, z: 50.0 };
+    const playerSpawn = { x: 0.0, y: 0.30, z: 49.5 };
     // Apex monster spawn in flooded hall, distance 51.5m >= 45m from player spawn
     const monsterSpawn = { x: 0.0, y: -0.75, z: -1.5 };
 
@@ -782,6 +818,7 @@ export const NatatoriumMap: MapDefinition = {
     const ceilingArchMat = tileFactory.ceilingTileMaterial;
     ceilingArchMat.envMapIntensity = 0.35;
     ceilingArchMat.vertexColors = true;
+    ceilingArchMat.color.set('#b7a775');
     ceilingArchMat.aoMapIntensity = 0.85;
 
     // Platform hook applies multi-material groups with world-space scaling
@@ -823,28 +860,14 @@ export const NatatoriumMap: MapDefinition = {
     // 0. Hand-Painted Wall Graffiti & Decals (DecalSystem)
     // ──────────────────────────────────────────────────────────────────────────
 
-    // Spawn Wall Mural: "IT CAN'T SEE YOU. IT HEARS THE WATER." + Ink Splash Crown (Video 2 00:00–00:04)
+    // Spawn Wall Mural: "IT CAN'T SEE YOU. IT HEARS THE WATER." + Ink Splash Crown (f_001–f_003)
     const tagTex = makeSpawnWallMural({ width: 1024, height: 512 });
     const tagMesh = DecalSystem.createWallDecalMesh(tagTex, 4.8, 2.4);
-    tagMesh.position.set(0.0, 0.30 + 1.65, 52.38);
-    tagMesh.rotation.y = Math.PI; // facing -Z towards player at z=50
+    tagMesh.position.set(-2.8, 1.95, 44.22);
+    tagMesh.rotation.y = 0; // facing +Z towards player at z=49.5
+    tagMesh.updateMatrix();
     tagMesh.name = 'SpawnTagline';
     instance.root.add(tagMesh);
-
-    // Foyer floor guide decal ("TURN BACK -> POOL HALL")
-    const foyerTurnTex = tex.getPaintedLabel({
-      text: 'TURN BACK ->',
-      subtext: 'POOL HALL',
-      color: '#3a4430',
-      width: 512,
-      height: 256,
-    });
-    const foyerTurnMesh = DecalSystem.createWallDecalMesh(foyerTurnTex, 2.8, 1.4);
-    foyerTurnMesh.rotation.x = -Math.PI / 2;
-    foyerTurnMesh.rotation.z = Math.PI;
-    foyerTurnMesh.position.set(0.0, 0.305, 48.5);
-    foyerTurnMesh.name = 'FoyerTurnDecal';
-    instance.root.add(foyerTurnMesh);
 
     // Exit & Checkpoint Warnings: "DON'T SPLASH, / IT KNOWS" with hand-drawn brush arrows (Video 1 02:50–02:52)
     const exitWarningTex = makeExitWarningDecal({ width: 1024, height: 512 });
@@ -1220,6 +1243,34 @@ export const NatatoriumMap: MapDefinition = {
       instance.root.add(light);
     }
 
+    // Foyer Ceiling Warm Illumination (Spawn Area)
+    const spawnLight = new PointLight(0xfff7e6, 3.5, 25.0, 1.2);
+    spawnLight.position.set(0.0, 5.2, 48.0);
+    spawnLight.name = 'SpawnCeilingLight';
+    instance.root.add(spawnLight);
+
+    // Warm fill light directed at tagline wall and shallow pool
+    const tagFillLight = new PointLight(0xfffbe8, 2.5, 16.0, 1.2);
+    tagFillLight.position.set(-2.8, 3.2, 46.5);
+    tagFillLight.name = 'SpawnTagFillLight';
+    instance.root.add(tagFillLight);
+
+    // Grand Hall Vaulted Ceiling Lights (Soft cream illumination, no dark voids)
+    const grandCeilingPositions = [
+      { x: -12.0, y: 8.6, z: 22.0 },
+      { x: 12.0, y: 8.6, z: 22.0 },
+      { x: 0.0, y: 8.6, z: 0.0 },
+      { x: -12.0, y: 8.6, z: -22.0 },
+      { x: 12.0, y: 8.6, z: -22.0 },
+    ];
+    for (let i = 0; i < grandCeilingPositions.length; i++) {
+      const pos = grandCeilingPositions[i]!;
+      const light = new PointLight(0xfff5e0, 2.0, 32.0, 1.1);
+      light.position.set(pos.x, pos.y - 0.4, pos.z);
+      light.name = `GrandCeilingLight_${i}`;
+      instance.root.add(light);
+    }
+
     // ──────────────────────────────────────────────────────────────────────────
     // 5. Ceilings & Roof Assemblies (Foyer + Grand Natatorium)
     // ──────────────────────────────────────────────────────────────────────────
@@ -1227,6 +1278,10 @@ export const NatatoriumMap: MapDefinition = {
     // Foyer ceiling (encloses spawn area at height 6.0m)
     const foyerCeilingGeom = new BoxGeometry(27.0, 0.4, 15.5);
     scaleBoxUv(foyerCeilingGeom, 27.0, 0.4, 15.5, WORLD.TEXTURE_METERS);
+    const fCount = foyerCeilingGeom.attributes['position']?.count ?? 0;
+    const fColors = new Float32Array(fCount * 3);
+    fColors.fill(1.0);
+    foyerCeilingGeom.setAttribute('color', new Float32BufferAttribute(fColors, 3));
     const foyerCeiling = new Mesh(foyerCeilingGeom, ceilingArchMat);
     foyerCeiling.position.set(-1.0, 6.0, 50.75);
     foyerCeiling.castShadow = true;
@@ -1237,6 +1292,10 @@ export const NatatoriumMap: MapDefinition = {
     // Vaulted ceiling over grand pool hall (covers full map bounds, height 9.0m)
     const grandRoofGeom = new BoxGeometry(90.0, 0.5, 118.0);
     scaleBoxUv(grandRoofGeom, 90.0, 0.5, 118.0, WORLD.TEXTURE_METERS);
+    const gCount = grandRoofGeom.attributes['position']?.count ?? 0;
+    const gColors = new Float32Array(gCount * 3);
+    gColors.fill(1.0);
+    grandRoofGeom.setAttribute('color', new Float32BufferAttribute(gColors, 3));
     const grandRoof = new Mesh(grandRoofGeom, ceilingArchMat);
     grandRoof.position.set(0.0, 9.0, 0.0);
     grandRoof.castShadow = true;

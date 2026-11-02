@@ -29,6 +29,8 @@ export interface ParsedRoute {
   mode?: string | null | undefined;
   /** Archive tape identifier if ?tape=<id> */
   tape?: string | null | undefined;
+  /** HUD mode override (?hud=full | minimal | clean) */
+  hud?: 'clean' | 'full' | 'minimal' | undefined;
 }
 
 /**
@@ -77,8 +79,10 @@ export function parseRoute(search?: string): ParsedRoute {
   const god = params.get('god') === '1';
   const mode = params.get('mode');
   const tape = params.get('tape');
+  const hudRaw = params.get('hud')?.toLowerCase();
+  const hud = hudRaw === 'full' ? 'full' : hudRaw === 'minimal' ? 'minimal' : hudRaw === 'clean' ? 'clean' : undefined;
 
-  return { room, lab, labMode, debug, view, map: mapRaw, seed, sightlog, god, mode, tape };
+  return { room, lab, labMode, debug, view, map: mapRaw, seed, sightlog, god, mode, tape, hud };
 }
 
 /**

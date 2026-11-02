@@ -1,0 +1,33 @@
+[debug] [vite] connecting...
+[log] [boot] 1. route/settings
+[log] [boot] 2. store/bus
+[log] [boot] 3. importing UIManager
+[debug] [vite] connected.
+[log] [boot] 4. constructing UIManager
+[log] [boot] 5. UIManager constructed
+[log] [BackSilence] Menu interactive in 2436.7 ms
+[log] [BackSilence] Debug API installed: window.__backsilence = { audioSelfTest, textureSelfTest, perfReport, sim }
+[log] [BackSilence] Procedural textures warmed up in 2349 ms
+[log] [GameSession] initAsync complete, isLoaded = true
+[debug] [vite] connecting...
+[log] [boot] 1. route/settings
+[log] [boot] 2. store/bus
+[log] [boot] 3. importing UIManager
+[log] [boot] 4. constructing UIManager
+[log] [boot] 5. UIManager constructed
+[log] [BackSilence] Menu interactive in 2238.7 ms
+[debug] [vite] connected.
+[log] [BackSilence] Debug API installed: window.__backsilence = { audioSelfTest, textureSelfTest, perfReport, sim }
+[log] [BackSilence] Procedural textures warmed up in 2748 ms
+[log] [GameSession] initAsync complete, isLoaded = true
+[debug] [vite] connecting...
+[log] [boot] 1. route/settings
+[log] [boot] 2. store/bus
+[log] [boot] 3. importing UIManager
+[debug] [vite] connected.
+[log] [boot] 4. constructing UIManager
+[log] [boot] 5. UIManager constructed
+[log] [BackSilence] Menu interactive in 2021.1 ms
+[log] [BackSilence] Debug API installed: window.__backsilence = { audioSelfTest, textureSelfTest, perfReport, sim }
+[log] [BackSilence] Procedural textures warmed up in 2119 ms
+[log] [GameSession] initAsync complete, isLoaded = true

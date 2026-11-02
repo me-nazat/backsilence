@@ -145,6 +145,13 @@
   padding: 36px 44px !important;
 }
 
+#top-navbar, #bottom-dossier-bar {
+  background: rgba(18, 28, 22, 0.25) !important;
+  backdrop-filter: blur(4px) saturate(1.15) !important;
+  -webkit-backdrop-filter: blur(4px) saturate(1.15) !important;
+  border: 1px solid rgba(165, 215, 185, 0.28) !important;
+}
+
 .hero-title {
   color: #f4f7f0 !important;
   font-weight: 800 !important;

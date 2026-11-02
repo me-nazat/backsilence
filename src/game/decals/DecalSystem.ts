@@ -197,7 +197,7 @@ export class DecalSystem {
       side: DoubleSide,
     });
     const mesh = new Mesh(geom, mat);
-    mesh.matrixAutoUpdate = false;
+    mesh.matrixAutoUpdate = true;
     return mesh;
   }
 
@@ -228,7 +228,7 @@ export class DecalSystem {
       side: DoubleSide,
     });
     const mesh = new Mesh(geom, mat);
-    mesh.matrixAutoUpdate = false;
+    mesh.matrixAutoUpdate = true;
     return mesh;
   }
 

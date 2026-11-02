@@ -41,13 +41,14 @@ export const NeonFloodMap: MapDefinition = {
   },
   atmosphere: {
     fog: {
-      color: '#0b1020',
-      density: 0.04,
+      color: '#28324a',
+      density: 0.035,
     },
     exposure: 1.25,
     hemisphere: {
-      sky: '#12182c',
-      ground: '#050810',
+      sky: '#3d4d70',
+      ground: '#1c2438',
+      intensity: 1.35,
     },
   },
   waterProfile: WATER_PROFILES.neon_flood,

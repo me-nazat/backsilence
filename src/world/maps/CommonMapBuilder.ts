@@ -15,6 +15,7 @@ import {
   BoxGeometry,
   CylinderGeometry,
   BufferGeometry,
+  Float32BufferAttribute,
   Color,
 } from 'three';
 import type { LayoutData, BuildEnv, StairDef, PlatformDef } from '../MapTypes.js';
@@ -246,6 +247,7 @@ export function buildStandardMapInstance(
 
   const reg = TextureRegistry.getInstance();
   const ceilingMat = customMaterials.ceilingMat ?? new MeshStandardMaterial({
+    color: new Color('#b7a775'),
     map: reg.getTileSet('ceiling', 42).albedo,
     roughnessMap: reg.getTileSet('ceiling', 42).roughness,
     normalMap: reg.getTileSet('ceiling', 42).normal,
@@ -882,6 +884,10 @@ export function buildStandardMapInstance(
     const mapCz = (layout.bounds.minZ + layout.bounds.maxZ) * 0.5;
     const ceilingY = (layout.meta['ceilingY'] as number) ?? 5.0;
     const ceilingGeom = createTiledBoxGeometry({ w: mapW, h: 0.2, d: mapD });
+    const ceilPosCount = ceilingGeom.attributes['position']?.count ?? 0;
+    const ceilColors = new Float32Array(ceilPosCount * 3);
+    ceilColors.fill(1.0);
+    ceilingGeom.setAttribute('color', new Float32BufferAttribute(ceilColors, 3));
     geometriesToDispose.push(ceilingGeom);
     const ceilingMesh = new Mesh(ceilingGeom, ceilingMat);
     ceilingMesh.position.set(mapCx, ceilingY + 0.1, mapCz);

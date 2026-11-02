@@ -24,17 +24,18 @@ export const UtilityTunnelsMap: MapDefinition = {
   },
   atmosphere: {
     fog: {
-      color: '#2a281b',
-      density: 0.06,
+      color: '#484232',
+      density: 0.05,
     },
-    exposure: 0.95,
+    exposure: 1.05,
     hemisphere: {
-      sky: '#3d392a',
-      ground: '#1f1e16',
+      sky: '#685f4c',
+      ground: '#383226',
+      intensity: 1.25,
     },
     sun: {
-      color: '#ff6644',
-      intensity: 0.35,
+      color: '#ff7755',
+      intensity: 0.5,
       direction: { x: 0.0, y: 1.0, z: 0.0 },
       castShadow: false,
     },

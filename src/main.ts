@@ -307,7 +307,9 @@ async function boot(): Promise<void> {
     (window as unknown as { __backsilence_warmup_ms?: number; __poolrooms_warmup_ms?: number }).__poolrooms_warmup_ms = totalWarmupMs;
     console.log(`[BackSilence] Procedural textures warmed up in ${totalWarmupMs} ms`);
     ui?.setCalibrationProgress(1.0);
-    ui?.showToast('Procedural assets ready', 'info');
+    if (route.debug) {
+      ui?.showToast('Procedural assets ready', 'info');
+    }
   }).catch((err: unknown) => {
     console.warn('[BackSilence] Warmup issue:', err);
   });
@@ -655,7 +657,7 @@ async function boot(): Promise<void> {
     }
     lastRenderTime = now;
 
-    const dt = Math.min((now - lastTime) / 1000, 0.05);
+    const dt = Math.min((now - lastTime) / 1000, 0.25);
     const dtMs = dt * 1000;
     lastTime = now;
 

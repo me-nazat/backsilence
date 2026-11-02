@@ -84,7 +84,6 @@ import { ObjectiveDirector } from './objectives/ObjectiveDirector.js';
 import { OperatorBotDirector } from './bots/OperatorBotDirector.js';
 import { GhostTrajectory } from '../meta/Ghost.js';
 
-const _scratchEuler = new Euler();
 const _scratchVecA = new Vector3();
 const _scratchVecB = new Vector3();
 
@@ -245,6 +244,9 @@ export class GameSession {
   // Stats tracking
   private timeSurvived = 0;
   private sessionRunTime = 0;
+  private sessionStartTimeMs = 0;
+  private totalPausedMs = 0;
+  private pauseStartMs = 0;
   private voidHoldTimeout: ReturnType<typeof setTimeout> | null = null;
   private respawnFadeEl: HTMLElement | null = null;
   private noisesMade = 0;
@@ -270,7 +272,6 @@ export class GameSession {
   private hasShownTurnHint = false;
   private isShowingTurnHint = false;
   private firstCreatureSightingTime: number | null = null;
-  private openingTurn: { active: boolean; t: number; from: number; to: number } | null = null;
   private readonly listenerForward = new Vector3();
   private readonly listenerUp = new Vector3();
 
@@ -741,34 +742,11 @@ export class GameSession {
 
       this.setupNetSession();
 
-      // Orient player towards map center on spawn (or spawn tagline wall for natatorium)
+      // Orient player towards map center on spawn (or 0 facing tagline wall and pool hall for natatorium)
       const pSpawn = this.layout.spawns.player[0] ?? { x: 0, y: 1.0, z: 0 };
       const centerZ = (this.layout.bounds.minZ + this.layout.bounds.maxZ) / 2;
-      const initialYaw = this.mapId === 'natatorium' ? Math.PI : Math.atan2(-(0 - pSpawn.x), -(centerZ - pSpawn.z));
+      const initialYaw = this.mapId === 'natatorium' ? 0 : Math.atan2(-(0 - pSpawn.x), -(centerZ - pSpawn.z));
       this.simWorld.player.setYaw(initialYaw);
-
-      if (this.mapId === 'natatorium') {
-        // Tagline wall beat: hold at Math.PI for 2.2s, smooth lerp to 0 (facing the pool hall) by 4.0s
-        this.openingTurn = { active: true, t: 0, from: Math.PI, to: 0 };
-      } else {
-        // Audit initial forward vector against sleeper spawn / first objective (must be within 100 deg)
-        const sleeper = this.layout.spawns.monsters[0]?.sleeperSpawn ?? this.layout.spawns.monsters[0]?.spawn;
-        if (sleeper) {
-          const fwdX = Math.sin(initialYaw);
-          const fwdZ = -Math.cos(initialYaw);
-          const toX = sleeper.x - pSpawn.x;
-          const toZ = sleeper.z - pSpawn.z;
-          const len = Math.hypot(toX, toZ);
-          if (len > 0.001) {
-            const dot = (fwdX * toX + fwdZ * toZ) / len;
-            const angleDeg = Math.acos(Math.max(-1, Math.min(1, dot))) * (180 / Math.PI);
-            if (angleDeg > 100) {
-              const targetYaw = Math.atan2(toX, -toZ);
-              this.openingTurn = { active: true, t: 0, from: initialYaw, to: targetYaw };
-            }
-          }
-        }
-      }
 
       // 7. Flashlight Setup (Map 5)
       if (this.mapId === 'drainage_core') {
@@ -2086,6 +2064,9 @@ export class GameSession {
     this.isPaused = false;
     this.isWon = false;
     this.isDead = false;
+    this.sessionStartTimeMs = performance.now();
+    this.totalPausedMs = 0;
+    this.pauseStartMs = 0;
 
     this.hasShownDryHint = false;
     this.hasShownWaterHintThisLevel = false;
@@ -2093,11 +2074,10 @@ export class GameSession {
     this.hasShownTurnHint = false;
     this.isShowingTurnHint = false;
     this.firstCreatureSightingTime = null;
-    this.openingTurn = this.mapId === 'natatorium' ? { active: true, t: 0, from: Math.PI, to: 0 } : null;
 
     const spawn = this.layout.spawns.player[0] ?? { x: 0, y: 1.0, z: 0 };
     const centerZ = (this.layout.bounds.minZ + this.layout.bounds.maxZ) / 2;
-    const initialYaw = this.mapId === 'natatorium' ? Math.PI : Math.atan2(-(0 - spawn.x), -(centerZ - spawn.z));
+    const initialYaw = this.mapId === 'natatorium' ? 0 : Math.atan2(-(0 - spawn.x), -(centerZ - spawn.z));
     this.simWorld.player.teleport(spawn, initialYaw);
     this.simWorld.resetOnRetry(spawn);
     for (const m of this.simWorld.monsters) {
@@ -2123,26 +2103,58 @@ export class GameSession {
     this.playerInput.requestPointerLock();
   }
 
+  getRunTimeMs(): number {
+    if (this.sessionStartTimeMs === 0) return 0;
+    const now = (this.isPaused && this.pauseStartMs > 0) ? this.pauseStartMs : performance.now();
+    return Math.max(0, now - this.sessionStartTimeMs - this.totalPausedMs);
+  }
+
   togglePause(): void {
     this.isPaused = !this.isPaused;
     if (this.isPaused) {
+      this.pauseStartMs = performance.now();
       this.playerInput.exitPointerLock();
       this.callbacks.onPause();
     } else {
+      if (this.pauseStartMs > 0) {
+        this.totalPausedMs += (performance.now() - this.pauseStartMs);
+        this.pauseStartMs = 0;
+      }
       this.playerInput.setFreeze(false);
       this.playerInput.requestPointerLock();
     }
   }
 
   resume(): void {
+    if (this.isPaused && this.pauseStartMs > 0) {
+      this.totalPausedMs += (performance.now() - this.pauseStartMs);
+      this.pauseStartMs = 0;
+    }
     this.isPaused = false;
     this.playerInput.setFreeze(false);
     this.playerInput.requestPointerLock();
   }
 
   update(dt: number): void {
-    if (this.isDisposed || this.isPaused || !this.isLoaded) return;
-    dt = Math.min(dt, 0.05);
+    if (this.isDisposed || this.isPaused) return;
+
+    if (!this.isLoaded) {
+      // Render initial composition frame while async pipeline warmup completes
+      // Prevents startup black void freeze!
+      this.renderer.beginFrame();
+      this.renderer.renderer.render(this.scene, this.camera);
+      this.renderer.endFrame();
+      return;
+    }
+
+    if (this.sessionStartTimeMs === 0) {
+      this.sessionStartTimeMs = performance.now();
+    }
+    const realRunTimeMs = this.getRunTimeMs();
+    this.sessionRunTime = realRunTimeMs / 1000;
+    this.timeSurvived = this.sessionRunTime;
+
+    dt = Math.min(dt, 0.25);
 
     const pVel = this.simWorld?.player ? this.simWorld.player.getState().vel : { x: 0, y: 0, z: 0 };
     const cameraSpeed = Math.hypot(pVel.x, pVel.z);
@@ -2205,23 +2217,6 @@ export class GameSession {
     this.playerInput.updateThrowHold(dt);
     const intent = this.playerInput.pollIntent();
 
-    const hasPlayerInput =
-      Math.abs(intent.moveX) > 0.01 ||
-      Math.abs(intent.moveZ) > 0.01 ||
-      intent.jump ||
-      intent.crouch ||
-      intent.sprint ||
-      Math.abs(intent.lookDeltaYaw) > 0.0001 ||
-      Math.abs(intent.lookDeltaPitch) > 0.0001;
-
-    if (hasPlayerInput && this.openingTurn?.active) {
-      if (this.openingTurn.t > 2.2) {
-        _scratchEuler.setFromQuaternion(this.camera.quaternion, 'YXZ');
-        this.simWorld.player.setYaw(_scratchEuler.y);
-      }
-      this.openingTurn.active = false;
-    }
-
     // 2. Fixed Timestep Physics Simulation
     this.frameNoises.length = 0;
 
@@ -2275,8 +2270,6 @@ export class GameSession {
 
       this.stepSubsystems(this.FIXED_DT);
 
-      this.timeSurvived += this.FIXED_DT;
-      this.sessionRunTime += this.FIXED_DT;
       this.accumulator -= this.FIXED_DT;
     }
 
@@ -2297,28 +2290,6 @@ export class GameSession {
     }
 
     this.playerCamera.update(dt, prevSnap, currSnap, renderAlpha, undefined, this.water.currentWaterY);
-    if (this.openingTurn?.active) {
-      this.openingTurn.t += dt;
-      if (this.openingTurn.t < 2.2) {
-        _scratchEuler.setFromQuaternion(this.camera.quaternion, 'YXZ');
-        _scratchEuler.y = this.openingTurn.from;
-        this.camera.quaternion.setFromEuler(_scratchEuler);
-      } else if (this.openingTurn.t <= 4.0) {
-        const p = Math.min(1.0, (this.openingTurn.t - 2.2) / 1.8);
-        const smoothP = p * p * (3.0 - 2.0 * p);
-        const curYaw = this.openingTurn.from + (this.openingTurn.to - this.openingTurn.from) * smoothP;
-        _scratchEuler.setFromQuaternion(this.camera.quaternion, 'YXZ');
-        _scratchEuler.y = curYaw;
-        this.camera.quaternion.setFromEuler(_scratchEuler);
-        if (p >= 1.0) {
-          this.simWorld.player.setYaw(this.openingTurn.to);
-          this.openingTurn = null;
-        }
-      } else {
-        this.simWorld.player.setYaw(this.openingTurn.to);
-        this.openingTurn = null;
-      }
-    }
     this.footsteps.update(currSnap, this.playerCamera.getBobPhase(), this.camera, this.simWorld.waterY);
 
     this.listenerForward.set(0, 0, -1).applyQuaternion(this.camera.quaternion);
@@ -4058,10 +4029,6 @@ export class GameSession {
 
       switch (e.code) {
         case 'KeyH': {
-          if (this.openingTurn) {
-            this.openingTurn.active = false;
-            this.openingTurn = null;
-          }
           const forward = this.camera.getWorldDirection(new Vector3());
           forward.y = 0;
           if (forward.lengthSq() > 0.001) forward.normalize();

@@ -526,7 +526,7 @@ async function main() {
     });
 
     // ── S4: HUD count ────────────────────────────────────────────────────────
-    await recordScenario('S4', 'HUD count (at most 2 HUD elements on the default frame)', async () => {
+    await recordScenario('S4', 'HUD count (0 visible HUD elements on default frame)', async () => {
       const hudDetails = await cdp.evaluate(`(() => {
         const session = window.__backsilence_session;
         if (session) {
@@ -584,9 +584,9 @@ async function main() {
       })()`);
 
       if (!hudDetails.ok) throw new Error(hudDetails.error);
-      if (hudDetails.visibleCount > 2) {
+      if (hudDetails.visibleCount > 0) {
         console.log('HUD debugStyles:', hudDetails.debugStyles);
-        throw new Error(`HUD has ${hudDetails.visibleCount} visible elements on default frame (maximum allowed: 2). Visible: ${hudDetails.visibleElements.join(', ')}`);
+        throw new Error(`HUD has ${hudDetails.visibleCount} visible elements on default frame (maximum allowed: 0). Visible: ${hudDetails.visibleElements.join(', ')}`);
       }
 
       const shot = await cdp.screenshot('s4_hud_count');

@@ -179,21 +179,21 @@ export class LabScene {
   }
 
   private setupAtmosphere(): void {
-    const fogHex = this.isMenuMode ? '#0a1410' : '#b3bb9f';
+    const fogHex = this.isMenuMode ? '#d6dccd' : '#b3bb9f';
     const fogColor = new Color(fogHex);
     this.scene.background = fogColor;
-    this.scene.fog = new FogExp2(fogColor, this.isMenuMode ? 0.040 : 0.045);
+    this.scene.fog = new FogExp2(fogColor, this.isMenuMode ? 0.020 : 0.045);
 
-    // Warm-cream or deep-analog hemisphere light with subtle bounce
-    const skyColor = this.isMenuMode ? '#18241e' : '#b3bb9f';
-    const gndColor = this.isMenuMode ? '#050a08' : '#7c9e5b';
-    const hemiIntensity = this.isMenuMode ? 0.75 : 0.95;
+    // Warm-cream / pale-mint hemisphere light matching reference video (f_004–f_007)
+    const skyColor = this.isMenuMode ? '#fffdf0' : '#b3bb9f';
+    const gndColor = this.isMenuMode ? '#8ec8a8' : '#7c9e5b';
+    const hemiIntensity = this.isMenuMode ? 1.65 : 0.95;
     this.hemiLight = new HemisphereLight(skyColor, gndColor, hemiIntensity);
     this.scene.add(this.hemiLight);
 
     // Directional light casting soft PCF shadows
-    const dirColor = this.isMenuMode ? '#fff8e7' : '#fff8e7';
-    const dirIntensity = this.isMenuMode ? 1.25 : 1.25;
+    const dirColor = '#fff8e7';
+    const dirIntensity = this.isMenuMode ? 1.75 : 1.25;
     this.dirLight = new DirectionalLight(dirColor, dirIntensity);
     this.dirLight.position.set(this.isMenuMode ? 6 : 8, 12, this.isMenuMode ? 2 : 6);
     this.dirLight.castShadow = true;
@@ -205,15 +205,24 @@ export class LabScene {
     this.scene.add(this.dirLight);
 
     // Faint atmospheric point light
-    this.pointLight = new PointLight(this.isMenuMode ? '#4ade80' : '#b3bb9f', this.isMenuMode ? 0.4 : 0.6, 25);
+    this.pointLight = new PointLight(this.isMenuMode ? '#86cfa0' : '#b3bb9f', this.isMenuMode ? 0.6 : 0.6, 25);
     this.pointLight.position.set(0, 3.2, 0);
     this.scene.add(this.pointLight);
 
-    // Overhead poolroom skylight/point light illuminating creature & water channel in menu attract
+    // Overhead poolroom skylight/point lights illuminating creature, water, and ceiling vault
     if (this.isMenuMode) {
-      const menuSkylight = new PointLight(0xfff6dd, 1.6, 28);
-      menuSkylight.position.set(0, 4.2, -6.0);
+      const menuSkylight = new PointLight(0xfff6dd, 3.5, 36);
+      menuSkylight.position.set(0, 4.8, -6.0);
       this.scene.add(menuSkylight);
+
+      // Dedicated upward bounce lights illuminating the cream vaulted ceiling
+      const ceilingLight1 = new PointLight(0xfff8e8, 3.8, 28, 1.0);
+      ceilingLight1.position.set(0, 3.5, 4.0);
+      this.scene.add(ceilingLight1);
+
+      const ceilingLight2 = new PointLight(0xfff8e8, 3.2, 28, 1.0);
+      ceilingLight2.position.set(0, 3.5, -6.0);
+      this.scene.add(ceilingLight2);
     }
   }
 
@@ -363,10 +372,10 @@ export class LabScene {
 
     // 6. Water Plane
     const waterMat = new MeshStandardMaterial({
-      color: new Color(this.isMenuMode ? '#36996d' : '#7c9e5b'),
+      color: new Color(this.isMenuMode ? '#8cb179' : '#7c9e5b'),
       normalMap: this.waterNormalTex,
       transparent: true,
-      opacity: 0.82,
+      opacity: this.isMenuMode ? 0.35 : 0.82,
       roughness: 0.08,
       metalness: 0.1,
       side: DoubleSide,
@@ -377,6 +386,24 @@ export class LabScene {
     this.waterMesh.rotation.x = -Math.PI / 2;
     this.waterMesh.position.set(0, WORLD.WATER_Y, this.isMenuMode ? -3.0 : 0);
     this.scene.add(this.waterMesh);
+
+    // 7. Cream Vaulted Ceiling (f_004–f_007)
+    const ceilingTex = reg.getTileSet('ceiling', 42, 512);
+    const ceilingMat = new MeshStandardMaterial({
+      color: new Color('#b7a775'),
+      emissive: new Color('#b7a775'),
+      emissiveIntensity: 0.35,
+      map: ceilingTex.albedo,
+      normalMap: ceilingTex.normal,
+      roughnessMap: ceilingTex.roughness,
+      roughness: 0.45,
+      metalness: 0.03,
+    });
+    const ceilingGeo = new BoxGeometry(20.0, 0.4, 36.0);
+    const ceilingMesh = new Mesh(ceilingGeo, ceilingMat);
+    ceilingMesh.position.set(0, 5.2, this.isMenuMode ? -3.0 : 0);
+    ceilingMesh.receiveShadow = true;
+    this.scene.add(ceilingMesh);
   }
 
   private setupEvents(): void {

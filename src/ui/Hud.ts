@@ -189,6 +189,7 @@ export class Hud {
   // Batch 4 Prompt 4B Elements
   private runTimerEl: HTMLElement | null = null;
   private reticleEl: HTMLElement | null = null;
+  private minimalNoiseEl: HTMLElement | null = null;
   private checkpointSavedEl: HTMLElement | null = null;
   private throwableHotbarEl: HTMLElement | null = null;
   private pebbleCountEl: HTMLElement | null = null;
@@ -282,6 +283,10 @@ export class Hud {
     } else {
       this.el.classList.remove('show-more-hud');
     }
+    if (this.runTimerEl) this.runTimerEl.style.display = (show || this.streamerMode) ? 'block' : 'none';
+    if (this.reticleEl) this.reticleEl.style.display = (show || this.streamerMode) ? 'block' : 'none';
+    if (this.throwableHotbarEl) this.throwableHotbarEl.style.display = (show || this.streamerMode) ? 'flex' : 'none';
+    if (this.minimalNoiseEl) this.minimalNoiseEl.style.display = (show || this.streamerMode) ? 'flex' : 'none';
   }
 
   getShowMoreHud(): boolean {
@@ -310,11 +315,31 @@ export class Hud {
     } else {
       this.el.classList.remove('streamer-mode');
     }
+    if (this.runTimerEl) this.runTimerEl.style.display = (this.showMoreHud || streamer) ? 'block' : 'none';
+    if (this.reticleEl) this.reticleEl.style.display = (this.showMoreHud || streamer) ? 'block' : 'none';
+    if (this.throwableHotbarEl) this.throwableHotbarEl.style.display = (this.showMoreHud || streamer) ? 'flex' : 'none';
+    if (this.minimalNoiseEl) this.minimalNoiseEl.style.display = (this.showMoreHud || streamer) ? 'flex' : 'none';
     this.updateFacecamOverlayVisibility();
   }
 
   isStreamerMode(): boolean {
     return this.streamerMode;
+  }
+
+  private currentHudStyle: 'hidden' | 'minimal' | 'full' = 'hidden';
+
+  setHudStyle(style: 'hidden' | 'minimal' | 'full'): void {
+    this.currentHudStyle = style;
+    if (!this.el) return;
+    this.el.classList.remove('hud-style-hidden', 'hud-style-minimal', 'hud-style-full');
+    this.el.classList.add(`hud-style-${style}`);
+    if (style === 'full') {
+      this.setShowMoreHud(true);
+      this.setStreamerMode(true);
+    } else {
+      this.setShowMoreHud(false);
+      this.setStreamerMode(false);
+    }
   }
 
   private updateFacecamOverlayVisibility(): void {
@@ -520,6 +545,16 @@ export class Hud {
 
         .bs-hud.cinematic #hud-bottom-stack,
         .bs-hud.cinematic #hud-noise-minimal {
+          display: none !important;
+        }
+
+        /* Default zero-HUD presentation matching reference video (clean game footage) */
+        .bs-hud:not(.show-more-hud):not(.streamer-mode):not(.hud-style-full) #hud-run-timer,
+        .bs-hud:not(.show-more-hud):not(.streamer-mode):not(.hud-style-full) #hud-reticle,
+        .bs-hud:not(.show-more-hud):not(.streamer-mode):not(.hud-style-full) #hud-throwable-hotbar,
+        .bs-hud:not(.show-more-hud):not(.streamer-mode):not(.hud-style-full) #hud-noise-minimal,
+        .bs-hud:not(.show-more-hud):not(.streamer-mode):not(.hud-style-full) #hud-bottom-stack,
+        .bs-hud:not(.show-more-hud):not(.streamer-mode):not(.hud-style-full) #hud-pointer-lock-hint {
           display: none !important;
         }
 
@@ -1430,8 +1465,18 @@ export class Hud {
     // Batch 4 Prompt 4B Elements
     this.runTimerEl = el.querySelector('#hud-run-timer');
     this.reticleEl = el.querySelector('#hud-reticle');
+    this.minimalNoiseEl = el.querySelector('#hud-noise-minimal');
     this.checkpointSavedEl = el.querySelector('#hud-checkpoint-saved');
     this.throwableHotbarEl = el.querySelector('#hud-throwable-hotbar');
+
+    // Default zero-HUD presentation matching reference video
+    if (!this.showMoreHud && !this.streamerMode) {
+      if (this.runTimerEl) this.runTimerEl.style.display = 'none';
+      if (this.reticleEl) this.reticleEl.style.display = 'none';
+      if (this.throwableHotbarEl) this.throwableHotbarEl.style.display = 'none';
+      if (this.minimalNoiseEl) this.minimalNoiseEl.style.display = 'none';
+      if (this.pointerLockHintEl) this.pointerLockHintEl.style.display = 'none';
+    }
     this.throwableHintEl = el.querySelector('#hud-throwable-hint');
     if (typeof localStorage !== 'undefined') {
       try {
@@ -1532,6 +1577,15 @@ export class Hud {
     }
 
     // 1b. Minimal Noise Indicator (220x6 px, cream -> amber -> red)
+    if (this.minimalNoiseEl) {
+      if (this.currentHudStyle === 'hidden') {
+        this.minimalNoiseEl.style.display = 'none';
+      } else if (data.noiseLoudness > 0 || this.showMoreHud || this.streamerMode) {
+        this.minimalNoiseEl.style.display = 'flex';
+      } else {
+        this.minimalNoiseEl.style.display = 'none';
+      }
+    }
     if (this.minimalNoiseFillEl) {
       this.minimalNoiseFillEl.style.width = `${loudnessPct}%`;
       const minColor = data.noiseLoudness < 0.35 ? '#eedec2' : data.noiseLoudness < 0.75 ? '#e5c158' : '#ff3b30';

@@ -27,12 +27,13 @@ export const DrainageCoreMap: MapDefinition = {
     },
     exposure: 1.3,
     hemisphere: {
-      sky: '#061a15',
-      ground: '#010806',
+      sky: '#3a4e44',
+      ground: '#22322a',
+      intensity: 1.25,
     },
     sun: {
       color: '#8ea05a',
-      intensity: 0.05,
+      intensity: 0.25,
       direction: { x: 0.0, y: 1.0, z: 0.0 },
       castShadow: false,
     },

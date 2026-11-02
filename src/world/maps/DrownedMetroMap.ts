@@ -38,17 +38,18 @@ export const DrownedMetroMap: MapDefinition = {
   },
   atmosphere: {
     fog: {
-      color: '#131e1c',
+      color: '#384643',
       density: 0.024,
     },
-    exposure: 1.0,
+    exposure: 1.15,
     hemisphere: {
-      sky: '#7a8578',
-      ground: '#1f2520',
+      sky: '#98a69a',
+      ground: '#38423a',
+      intensity: 1.25,
     },
     sun: {
       color: '#e0eee5',
-      intensity: 0.8,
+      intensity: 1.1,
       direction: { x: 0.2, y: 0.9, z: 0.1 },
       castShadow: true,
     },

@@ -144,7 +144,7 @@ describe('Phase D: Clean Picture & Minimal HUD', () => {
     };
   });
 
-  it('counts visible HUD elements on a default first-run frame (maximum 2)', () => {
+  it('counts visible HUD elements on a default first-run frame (0 visible by default)', () => {
     const hud = new Hud();
     const container = new MockElement('div');
     hud.mount(container as unknown as HTMLElement);
@@ -158,11 +158,6 @@ describe('Phase D: Clean Picture & Minimal HUD', () => {
       interactionPrompt: null,
     });
 
-    // Check visible HUD elements on default frame:
-    // 1. #hud-noise-minimal is visible (thin horizontal line)
-    // 2. #hud-prompt is hidden (no interaction prompt)
-    // 3. #hud-pointer-lock-hint is hidden (pointer locked)
-    // 4. Clutter panels (#hud-vhs-osd, #hud-objective-container, #hud-bottom-center, #hud-notebook-container) are hidden by default
     const hudEl = container.children[0]!;
     expect(hudEl).toBeDefined();
 
@@ -176,28 +171,26 @@ describe('Phase D: Clean Picture & Minimal HUD', () => {
     const notebookContainer = hudEl.querySelector('#hud-notebook-container');
     const bottomCenter = hudEl.querySelector('#hud-bottom-center');
     const prompt = hudEl.querySelector('#hud-prompt');
+    const runTimer = hudEl.querySelector('#hud-run-timer');
+    const reticle = hudEl.querySelector('#hud-reticle');
+    const hotbar = hudEl.querySelector('#hud-throwable-hotbar');
+    const minimalNoise = hudEl.querySelector('#hud-noise-minimal');
 
-    // On default HUD without .show-more-hud, these are suppressed
     expect(vhsOsd).toBeDefined();
     expect(objectiveContainer).toBeDefined();
     expect(notebookContainer).toBeDefined();
     expect(bottomCenter).toBeDefined();
     expect(prompt?.style.display).toBe('none');
+    expect(runTimer?.style.display).toBe('none');
+    expect(reticle?.style.display).toBe('none');
+    expect(hotbar?.style.display).toBe('none');
+    expect(minimalNoise?.style.display).toBe('none');
 
-    // Count of elements visible on default frame:
-    // With pointer unlocked: at most 2 (#hud-noise-minimal and #hud-pointer-lock-hint)
-    // With pointer locked: exactly 1 (#hud-noise-minimal)
-    const minimalNoise = hudEl.querySelector('#hud-noise-minimal');
-    expect(minimalNoise).toBeDefined();
-
-    // Verify pointer lock hint when unlocked
-    hud.update({ pointerLockHint: true });
-    const pointerLock = hudEl.querySelector('#hud-pointer-lock-hint');
-    expect(pointerLock?.style.opacity).toBe('0.85');
-
-    // Max count is <= 2
-    const defaultVisibleElementsCount = 2; // minimalNoise + pointerLock
-    expect(defaultVisibleElementsCount).toBeLessThanOrEqual(2);
+    // On default HUD without .show-more-hud, all gameplay overlays are suppressed (0 visible elements)
+    const visibleElements = [
+      prompt, runTimer, reticle, hotbar, minimalNoise,
+    ].filter(el => el && el.style.display !== 'none');
+    expect(visibleElements.length).toBe(0);
   });
 
   it('hides even the minimal noise indicator when Cinematic mode is enabled', () => {
