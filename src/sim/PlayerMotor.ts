@@ -194,6 +194,15 @@ export class PlayerMotor {
     this.copyToState(this.previousState);
   }
 
+  /**
+   * Integrate a mouse-look delta at render rate (used on frames where no fixed
+   * tick runs, so the delta is never dropped). Orientation only; no physics.
+   */
+  applyLookDelta(dYaw: number, dPitch: number): void {
+    this.yaw += dYaw;
+    this.pitch = Math.max(-1.48, Math.min(1.48, this.pitch + dPitch));
+  }
+
   setYaw(yaw: number, pitch = 0): void {
     this.yaw = yaw;
     this.pitch = pitch;

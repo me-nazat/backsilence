@@ -3,10 +3,10 @@
  *  - Procedural canvas textures with anisotropic filtering & RepeatWrapping
  *  - Single authoritative tile pitch sourced from WORLD.TILE_METERS (0.15m)
  *  - 2.4m texture repeat = 16 x 16 ceramic tiles at WORLD.TILE_METERS
- *  - Wall, pillar, ceiling & archway ceramic tile (#ebe4c8, #6e6550 grout)
- *  - Dry stepping-stone platform top (#d5b676, #4a3b22 grout)
+ *  - Wall, pillar, ceiling & archway ceramic tile (#c8b580, #6e6550 grout)
+ *  - Dry stepping-stone platform top (#c29b56, #4a3b22 grout)
  *  - Vertical side trim with 3 distinct rows above water & 0.08m wet-grout watermark at y=0
- *  - Submerged pool floor tile (#c8d4ba, #566852 grout at y=-0.75m)
+ *  - Submerged pool floor tile (#cbba8b, #566852 grout at y=-0.75m)
  *  - Zero UV stretching, zero cartoon wireframe outlines
  * ──────────────────────────────────────────────────────────────────────── */
 
@@ -56,11 +56,11 @@ export const SECTOR_THEMES: Record<SectorThemeId, SectorThemeConfig> = {
     name: 'Natatorium / Poolrooms',
     grid: 16,
     tileSize: WORLD.TILE_METERS,
-    platformTop: { base: '#d6b878', grout: '#45361e', roughness: 0.28, metalness: 0.02 },
-    platformSide: { base: '#d6b878', grout: '#45361e', roughness: 0.28, metalness: 0.03 },
-    wall: { base: '#eae2c6', grout: '#5c533e', roughness: 0.24, metalness: 0.04 },
-    poolFloor: { base: '#c8d4ba', grout: '#566852', roughness: 0.28, metalness: 0.04 },
-    ceiling: { base: '#eae2c6', grout: '#5c533e', roughness: 0.45, metalness: 0.03 },
+    platformTop: { base: '#c29b56', grout: '#45361e', roughness: 0.28, metalness: 0.02 },
+    platformSide: { base: '#c29b56', grout: '#45361e', roughness: 0.28, metalness: 0.03 },
+    wall: { base: '#c8b580', grout: '#5c533e', roughness: 0.24, metalness: 0.04 },
+    poolFloor: { base: '#cbba8b', grout: '#566852', roughness: 0.28, metalness: 0.04 },
+    ceiling: { base: '#c8b580', grout: '#5c533e', roughness: 0.45, metalness: 0.03 },
   },
   station: {
     id: 'station',
@@ -89,11 +89,11 @@ export const SECTOR_THEMES: Record<SectorThemeId, SectorThemeConfig> = {
     name: 'Default Ceramic Natatorium',
     grid: 16,
     tileSize: WORLD.TILE_METERS,
-    platformTop: { base: '#d6b878', grout: '#45361e', roughness: 0.28, metalness: 0.02 },
-    platformSide: { base: '#d6b878', grout: '#45361e', roughness: 0.28, metalness: 0.03 },
-    wall: { base: '#eae2c6', grout: '#5c533e', roughness: 0.24, metalness: 0.04 },
-    poolFloor: { base: '#c8d4ba', grout: '#566852', roughness: 0.28, metalness: 0.04 },
-    ceiling: { base: '#eae2c6', grout: '#5c533e', roughness: 0.45, metalness: 0.03 },
+    platformTop: { base: '#c29b56', grout: '#45361e', roughness: 0.28, metalness: 0.02 },
+    platformSide: { base: '#c29b56', grout: '#45361e', roughness: 0.28, metalness: 0.03 },
+    wall: { base: '#c8b580', grout: '#5c533e', roughness: 0.24, metalness: 0.04 },
+    poolFloor: { base: '#cbba8b', grout: '#566852', roughness: 0.28, metalness: 0.04 },
+    ceiling: { base: '#c8b580', grout: '#5c533e', roughness: 0.45, metalness: 0.03 },
   },
 };
 
@@ -121,7 +121,7 @@ export class TileMaterialFactory {
     const maxAnisotropy = renderer?.capabilities?.getMaxAnisotropy?.() ?? 16;
     this.maxAnisotropy = maxAnisotropy;
 
-    // 1. Wall Tile Material (WORLD.TILE_METERS tiles, #ebe4c8 glaze, #6e6550 grout)
+    // 1. Wall Tile Material (WORLD.TILE_METERS tiles, #c8b580 glaze, #6e6550 grout)
     const wallTextures = this.generateWallTileTextures(maxAnisotropy);
     this.wallTileMaterial = new MeshStandardMaterial({
       map: wallTextures.albedo,
@@ -142,7 +142,7 @@ export class TileMaterialFactory {
     });
     this.ceilingTileMaterial.name = 'CeilingTileMaterial';
 
-    // 2. Platform Top Material (WORLD.TILE_METERS tiles, #d5b676 tan/ochre, #4a3b22 dark brown grout)
+    // 2. Platform Top Material (WORLD.TILE_METERS tiles, #c29b56 tan/ochre, #4a3b22 dark brown grout)
     const platformTopTextures = this.generatePlatformTopTextures(maxAnisotropy);
     this.platformTopMaterial = new MeshStandardMaterial({
       map: platformTopTextures.albedo,
@@ -164,7 +164,7 @@ export class TileMaterialFactory {
     });
     this.platformSideMaterial.name = 'PlatformSideMaterial';
 
-    // 4. Submerged Pool Floor Material (WORLD.TILE_METERS tiles, #c8d4ba cream-green, #566852 grout)
+    // 4. Submerged Pool Floor Material (WORLD.TILE_METERS tiles, #cbba8b cream-green, #566852 grout)
     const poolFloorTextures = this.generatePoolFloorTextures(maxAnisotropy);
     this.poolFloorMaterial = new MeshStandardMaterial({
       map: poolFloorTextures.albedo,
@@ -280,7 +280,7 @@ export class TileMaterialFactory {
 
   /**
    * Generates Wall Tile textures (512x512, 16x16 grid = 2.4m world repeat at WORLD.TILE_METERS).
-   * Base glaze #ebe4c8 with +/- 3% luminance jitter, #6e6550 2px grout, recessed normal map.
+   * Base glaze #c8b580 with +/- 3% luminance jitter, #6e6550 2px grout, recessed normal map.
    */
   private generateWallTileTextures(anisotropy: number): { albedo: CanvasTexture; normal: CanvasTexture } {
     const size = 512;
@@ -298,7 +298,7 @@ export class TileMaterialFactory {
     const aData = aImg.data;
     const nData = nImg.data;
 
-    // Base #ebe4c8 = (235, 228, 200)
+    // Base #c8b580 = (235, 228, 200)
     const baseR = 235, baseG = 228, baseB = 200;
     // Grout #6e6550 = (110, 101, 80)
     const groutR = 110, groutG = 101, groutB = 80;
@@ -389,7 +389,7 @@ export class TileMaterialFactory {
 
   /**
    * Generates Platform Top textures (512x512, 16x16 grid = 2.4m world repeat at WORLD.TILE_METERS).
-   * Warm tan/ochre ceramic tiles (#d5b676), dark brown grout (#4a3b22).
+   * Warm tan/ochre ceramic tiles (#c29b56), dark brown grout (#4a3b22).
    */
   private generatePlatformTopTextures(anisotropy: number): { albedo: CanvasTexture; normal: CanvasTexture } {
     const size = 512;
@@ -407,7 +407,7 @@ export class TileMaterialFactory {
     const aData = aImg.data;
     const nData = nImg.data;
 
-    // #d5b676 = (213, 182, 118)
+    // #c29b56 = (213, 182, 118)
     const baseR = 213, baseG = 182, baseB = 118;
     // #4a3b22 = (74, 59, 34)
     const groutR = 74, groutG = 59, groutB = 34;
@@ -633,7 +633,7 @@ export class TileMaterialFactory {
 
   /**
    * Generates Submerged Pool Floor Tile textures (512x512, 16x16 grid = 2.4m world repeat at WORLD.TILE_METERS).
-   * Slightly desaturated cream-green tile grid (#c8d4ba) with #566852 grout lines.
+   * Slightly desaturated cream-green tile grid (#cbba8b) with #566852 grout lines.
    */
   private generatePoolFloorTextures(anisotropy: number): { albedo: CanvasTexture; normal: CanvasTexture } {
     const size = 512;
@@ -651,7 +651,7 @@ export class TileMaterialFactory {
     const aData = aImg.data;
     const nData = nImg.data;
 
-    // #c8d4ba = (200, 212, 186)
+    // #cbba8b = (200, 212, 186)
     const baseR = 200, baseG = 212, baseB = 186;
     // #566852 = (86, 104, 82)
     const groutR = 86, groutG = 104, groutB = 82;

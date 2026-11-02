@@ -86,14 +86,14 @@ export const WATER_PROFILES: Record<MapId, WaterProfile> = {
     },
   },
   natatorium: {
-    shallow: '#48ab72',
-    deep: '#338858',
+    shallow: '#85ad6d',
+    deep: '#698f47',
     opacityMin: 0.62,
     opacityMax: 0.86,
     foam: 0.45,
     normalStrength: 1.35,
     scroll: 0.055,
-    specular: '#ffffff',
+    specular: '#d6dccd',
     murk: 0.0,
   },
   drowned_school: {

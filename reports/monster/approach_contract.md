@@ -29,3 +29,4 @@ Generated from deterministic simulation and presentation measurements (`tests/mo
 | :--- | :--- | :--- | :--- | :--- |
 | Low Camera & Wide Arms (`Jumpscare.ts`) | `f_037` | `distToHead = 0.82 m`, `dot > 0.98`, `|shoulder.rotation.z| = 0.82 rad` | Torso & head fill lower frame; arms spread wide against fog | **PASS** |
 | Final `0.8 s` Water-Rise Beat (`81 s`) | `f_037` | `headWaterRiseOffset = 0.42 m`, `waterDrainingRate > 0` (`drainSplashCount > 5`) | Head rises out of water in front of lens with water draining off it | **PASS** |
+

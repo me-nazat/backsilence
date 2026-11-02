@@ -187,7 +187,8 @@ export class PostFX {
 
       // 3. TapeSmearPass (AfterimagePass, enabled only in high tier)
       this.tapeSmearPass = new AfterimagePass(0.18);
-      this.tapeSmearPass.enabled = this.currentTier === 'high';
+      // whip-turn smear on Medium and High (f_032)
+      this.tapeSmearPass.enabled = this.currentTier === 'high' || this.currentTier === 'medium';
       this.composer.addPass(this.tapeSmearPass);
 
       // 4. VHSPass
@@ -280,7 +281,7 @@ export class PostFX {
       this.bloomPass.strength = isSafe ? 0.2 : 0.55;
     }
     if (this.tapeSmearPass) {
-      this.tapeSmearPass.enabled = this.currentTier === 'high' && !isSafe;
+      this.tapeSmearPass.enabled = (this.currentTier === 'high' || this.currentTier === 'medium') && !isSafe;
     }
   }
 
@@ -483,7 +484,7 @@ export class PostFX {
     }
 
     // Tape smear dynamic factor based on camera speed
-    if (this.tapeSmearPass && this.currentTier === 'high' && !this.isSafeMode()) {
+    if (this.tapeSmearPass && (this.currentTier === 'high' || this.currentTier === 'medium') && !this.isSafeMode()) {
       const uniforms = (this.tapeSmearPass as unknown as { uniforms: Record<string, { value: number }> }).uniforms;
       if (uniforms && uniforms['damp']) {
         // Base mix 0.14, scaled by camera speed up to 0.28
@@ -507,7 +508,6 @@ export class PostFX {
   private dropQualityTier(): void {
     if (this.currentTier === 'high') {
       this.currentTier = 'medium';
-      if (this.tapeSmearPass) this.tapeSmearPass.enabled = false;
     } else if (this.currentTier === 'medium' && !this.renderer.capabilities?.isWebGL2) {
       this.currentTier = 'low';
       this.disposeComposer();

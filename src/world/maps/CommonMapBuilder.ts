@@ -709,7 +709,8 @@ export function buildStandardMapInstance(
       const decalTex = reg.getNumber(pil.decalNumber, {
         subtext: pil.ordinal !== undefined ? `#${pil.ordinal}` : undefined,
       });
-      const decalGeom = new PlaneGeometry(1.4, 1.4);
+      const decalW = pil.decalWidth ?? 1.4;
+      const decalGeom = new PlaneGeometry(decalW, pil.decalWidth !== undefined ? decalW * 1.5 : 1.4);
       geometriesToDispose.push(decalGeom);
       const decalMat = new MeshBasicMaterial({
         map: decalTex,
@@ -718,7 +719,7 @@ export function buildStandardMapInstance(
       });
       materialsToDispose.push(decalMat);
       const decalMesh = new Mesh(decalGeom, decalMat);
-      decalMesh.position.set(pil.x, 1.6, pil.z + r + 0.015);
+      decalMesh.position.set(pil.x, pil.decalY ?? 1.6, pil.z + r + 0.015);
       root.add(decalMesh);
     }
   }

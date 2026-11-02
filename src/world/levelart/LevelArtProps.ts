@@ -15,6 +15,7 @@ import {
   Matrix4,
   Float32BufferAttribute,
   Uint32BufferAttribute,
+  BufferAttribute,
 } from 'three';
 import { bakeVertexAO } from '../../procedural/geometry/VertexAO.js';
 
@@ -880,7 +881,30 @@ export function buildColorPanelGeometry(width = 3.6, height = 2.0): BufferGeomet
     parts.push({ geom: sec, matrix: m.clone() });
   }
 
-  return mergeGeometries(parts);
+  const merged = mergeGeometries(parts);
+  // Measured reference panel (f_032–f_034): blue / yellow / green sections in a dark frame.
+  const sectionColors = [
+    [0x2c / 255, 0x6b / 255, 0xb2 / 255],
+    [0xd9 / 255, 0xb0 / 255, 0x36 / 255],
+    [0x3a / 255, 0x8c / 255, 0x52 / 255],
+  ];
+  const pos = merged.attributes.position as BufferAttribute;
+  const colors = new Float32Array(pos.count * 3);
+  for (let i = 0; i < pos.count; i++) {
+    const x = pos.getX(i);
+    const y = pos.getY(i);
+    const inFace = Math.abs(x) <= width * 0.5 - 0.02 && y >= 0.02 && y <= height - 0.02;
+    let c = [0.12, 0.11, 0.1];
+    if (inFace) {
+      const idx = Math.min(2, Math.max(0, Math.floor((x + width * 0.5) / secW)));
+      c = sectionColors[idx] as number[];
+    }
+    colors[i * 3] = c[0] as number;
+    colors[i * 3 + 1] = c[1] as number;
+    colors[i * 3 + 2] = c[2] as number;
+  }
+  merged.setAttribute('color', new BufferAttribute(colors, 3));
+  return merged;
 }
 
 /* ── Prompt 4/8 Sector-Specific Thematic Prop Builders ──────────────────── */

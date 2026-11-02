@@ -67,6 +67,10 @@ export interface PillarDef {
   ordinal?: number | undefined; // 1..4 for code pillars, undefined for decoys
   clueColor?: string | undefined; // Clue accent color (Blue = #1, Green = #2, Yellow = #3, Red = #4)
   kind?: 'tile' | 'marble' | 'concrete' | undefined;
+  /** Decal plane width in metres (height = 1.5 × width, texture is 512×768). Default 1.4 square. */
+  decalWidth?: number | undefined;
+  /** Decal centre height above water in metres. Default 1.6. */
+  decalY?: number | undefined;
 }
 
 export interface StairDef {

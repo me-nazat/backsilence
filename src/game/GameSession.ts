@@ -2223,7 +2223,15 @@ export class GameSession {
     // 2. Fixed Timestep Physics Simulation
     this.frameNoises.length = 0;
 
+    // Look deltas are consumed exactly once per render frame: applied on the first
+    // fixed tick, or integrated immediately when no tick runs this frame.
+    let lookPending = intent.lookDeltaYaw !== 0 || intent.lookDeltaPitch !== 0;
+    const tickIntent = { ...intent };
+
     while (this.accumulator >= this.FIXED_DT) {
+      tickIntent.lookDeltaYaw = lookPending ? intent.lookDeltaYaw : 0;
+      tickIntent.lookDeltaPitch = lookPending ? intent.lookDeltaPitch : 0;
+      lookPending = false;
       // Dynamic Water Level Step (Map 4)
       if (this.waterCycle) {
         const curWaterY = this.waterCycle.levelAt(this.simWorld.simTime);
@@ -2231,7 +2239,7 @@ export class GameSession {
       }
 
       // Step character motor and monster brains
-      this.simWorld.step(this.FIXED_DT, intent);
+      this.simWorld.step(this.FIXED_DT, tickIntent);
       this.simTicksStepped5s++;
       if (this.monstersFrozen) {
         for (const m of this.simWorld.monsters) {
@@ -2268,6 +2276,10 @@ export class GameSession {
       this.timeSurvived += this.FIXED_DT;
       this.sessionRunTime += this.FIXED_DT;
       this.accumulator -= this.FIXED_DT;
+    }
+
+    if (lookPending) {
+      this.simWorld.player.applyLookDelta(intent.lookDeltaYaw, intent.lookDeltaPitch);
     }
 
     const renderAlpha = this.accumulator / this.FIXED_DT;

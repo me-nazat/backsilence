@@ -21,6 +21,7 @@ import {
   Vector3,
   Color,
   PointLight,
+  MeshBasicMaterial,
 } from 'three';
 import type {
   LayoutCtx,
@@ -67,7 +68,7 @@ export const NatatoriumMap: MapDefinition = {
   },
   atmosphere: {
     fog: {
-      color: '#d8d0b0',
+      color: '#d6dccd',
       density: 0.0145,
     },
     exposure: 1.12,
@@ -105,37 +106,55 @@ export const NatatoriumMap: MapDefinition = {
     // ZONE A: The Skylight Spawn Pool & Swim-Under Tunnel (Video 2 00:00–00:07)
     // ──────────────────────────────────────────────────────────────────────────
 
-    // 1. Entry Foyer / Spawn Deck (+0.38m above water)
+    // 1. Entry Foyer / Spawn Deck (+WORLD.PLATFORM_TOP_Y above water)
     platforms.push({
       id: 'plat_foyer',
       rect: [-8, 44, 8, 54],
-      topY: 0.38,
+      topY: WORLD.PLATFORM_TOP_Y,
       kind: 'tile',
     });
+
+
+    // Dry Side Room (f_013–f_015): plaster walls, tiled round pillar with spray '2'
+    platforms.push({ id: 'plat_dry_room', rect: [-14.0, 44.0, -4.0, 57.5], topY: WORLD.PLATFORM_TOP_Y, kind: 'tile' });
+    platforms.push({ id: 'plat_foyer_south', rect: [-4.0, 54.0, 12.0, 57.5], topY: WORLD.PLATFORM_TOP_Y, kind: 'tile' });
+    pillars.push({
+      id: 'pil_dry_room_2',
+      x: -8.0,
+      z: 48.0,
+      radius: 0.75,
+      height: 6.0,
+      decalNumber: 2,
+      decalWidth: 0.8,
+      decalY: 2.0,
+      kind: 'tile',
+    });
+    walls.push({ id: 'wall_dry_room_w', min: { x: -14.6, y: -0.75, z: 44.0 }, max: { x: -14.0, y: 6.0, z: 57.5 }, isWall: true });
+    walls.push({ id: 'wall_dry_room_n', min: { x: -14.0, y: -0.75, z: 43.4 }, max: { x: -10.5, y: 6.0, z: 44.0 }, isWall: true });
 
     // Curved tan-tiled peninsula platforms in Zone A to the left (Video 2 00:05)
     platforms.push({
       id: 'plat_peninsula_1',
       rect: [-14, 44, -8.5, 49],
-      topY: 0.38,
+      topY: WORLD.PLATFORM_TOP_Y,
       kind: 'tile',
     });
     platforms.push({
       id: 'plat_peninsula_2',
       rect: [-18, 36, -11, 43],
-      topY: 0.38,
+      topY: WORLD.PLATFORM_TOP_Y,
       kind: 'tile',
     });
     platforms.push({
       id: 'plat_peninsula_3',
       rect: [-16, 28, -9, 35],
-      topY: 0.38,
+      topY: WORLD.PLATFORM_TOP_Y,
       kind: 'tile',
     });
     platforms.push({
       id: 'plat_peninsula_tip',
       rect: [-12, 22, -6, 27],
-      topY: 0.38,
+      topY: WORLD.PLATFORM_TOP_Y,
       kind: 'tile',
     });
 
@@ -143,13 +162,13 @@ export const NatatoriumMap: MapDefinition = {
     platforms.push({
       id: 'plat_a_step1',
       rect: [-2.0, 38.0, 2.0, 42.0],
-      topY: 0.38,
+      topY: WORLD.PLATFORM_TOP_Y,
       kind: 'tile',
     });
     platforms.push({
       id: 'plat_a_step2',
       rect: [-1.6, 33.0, 1.6, 36.5],
-      topY: 0.38,
+      topY: WORLD.PLATFORM_TOP_Y,
       kind: 'tile',
     });
 
@@ -157,19 +176,19 @@ export const NatatoriumMap: MapDefinition = {
     platforms.push({
       id: 'plat_a_east1',
       rect: [4.0, 38.0, 9.0, 43.0],
-      topY: 0.38,
+      topY: WORLD.PLATFORM_TOP_Y,
       kind: 'tile',
     });
     platforms.push({
       id: 'plat_a_east2',
       rect: [10.0, 31.0, 15.0, 37.0],
-      topY: 0.38,
+      topY: WORLD.PLATFORM_TOP_Y,
       kind: 'tile',
     });
     platforms.push({
       id: 'plat_a_east3',
       rect: [7.0, 24.0, 12.0, 29.0],
-      topY: 0.38,
+      topY: WORLD.PLATFORM_TOP_Y,
       kind: 'tile',
     });
 
@@ -181,25 +200,25 @@ export const NatatoriumMap: MapDefinition = {
     platforms.push({
       id: 'plat_b_entry',
       rect: [-1.6, 28.0, 1.6, 31.5],
-      topY: 0.38,
+      topY: WORLD.PLATFORM_TOP_Y,
       kind: 'tile',
     });
     platforms.push({
       id: 'plat_b_step_w1',
       rect: [-5.5, 23.5, -2.0, 26.5],
-      topY: 0.38,
+      topY: WORLD.PLATFORM_TOP_Y,
       kind: 'tile',
     });
     platforms.push({
       id: 'plat_b_step_w2',
       rect: [-11.0, 21.0, -7.0, 25.0],
-      topY: 0.38,
+      topY: WORLD.PLATFORM_TOP_Y,
       kind: 'tile',
     });
     platforms.push({
       id: 'plat_b_step_c1',
       rect: [-3.0, 18.0, 0.5, 21.5],
-      topY: 0.38,
+      topY: WORLD.PLATFORM_TOP_Y,
       kind: 'tile',
     });
 
@@ -207,50 +226,50 @@ export const NatatoriumMap: MapDefinition = {
     platforms.push({
       id: 'plat_b_cent_1',
       rect: [-2.0, 12.5, 2.0, 16.0],
-      topY: 0.38,
+      topY: WORLD.PLATFORM_TOP_Y,
       kind: 'tile',
     });
     platforms.push({
       id: 'plat_b_cent_2',
       rect: [-2.5, 7.0, 1.5, 10.5],
-      topY: 0.38,
+      topY: WORLD.PLATFORM_TOP_Y,
       kind: 'tile',
     });
     platforms.push({
       id: 'plat_b_cent_3',
       rect: [-2.0, 1.5, 2.0, 5.0],
-      topY: 0.38,
+      topY: WORLD.PLATFORM_TOP_Y,
       kind: 'tile',
     });
     // Offset island maintaining dry path while leaving (0, -1.5) open water for apex monster
     platforms.push({
       id: 'plat_b_cent_3b',
       rect: [-6.0, -1.5, -2.0, 1.0],
-      topY: 0.38,
+      topY: WORLD.PLATFORM_TOP_Y,
       kind: 'tile',
     });
     platforms.push({
       id: 'plat_b_cent_4',
       rect: [-2.0, -7.5, 2.0, -4.0],
-      topY: 0.38,
+      topY: WORLD.PLATFORM_TOP_Y,
       kind: 'tile',
     });
     platforms.push({
       id: 'plat_b_cent_5',
       rect: [-2.5, -14.0, 1.5, -9.5],
-      topY: 0.38,
+      topY: WORLD.PLATFORM_TOP_Y,
       kind: 'tile',
     });
     platforms.push({
       id: 'plat_b_cent_6',
       rect: [-2.0, -20.5, 2.0, -16.0],
-      topY: 0.38,
+      topY: WORLD.PLATFORM_TOP_Y,
       kind: 'tile',
     });
     platforms.push({
       id: 'plat_b_cent_7',
       rect: [-2.0, -26.0, 2.0, -22.5],
-      topY: 0.38,
+      topY: WORLD.PLATFORM_TOP_Y,
       kind: 'tile',
     });
 
@@ -258,37 +277,37 @@ export const NatatoriumMap: MapDefinition = {
     platforms.push({
       id: 'plat_b_west_lane1',
       rect: [-18.0, 14.0, -13.0, 19.0],
-      topY: 0.38,
+      topY: WORLD.PLATFORM_TOP_Y,
       kind: 'tile',
     });
     platforms.push({
       id: 'plat_b_west_lane2',
       rect: [-15.0, 7.0, -10.0, 12.0],
-      topY: 0.38,
+      topY: WORLD.PLATFORM_TOP_Y,
       kind: 'tile',
     });
     platforms.push({
       id: 'plat_b_west_lane3',
       rect: [-18.0, 0.0, -13.0, 5.0],
-      topY: 0.38,
+      topY: WORLD.PLATFORM_TOP_Y,
       kind: 'tile',
     });
     platforms.push({
       id: 'plat_b_west_lane4',
       rect: [-15.0, -7.0, -10.0, -2.0],
-      topY: 0.38,
+      topY: WORLD.PLATFORM_TOP_Y,
       kind: 'tile',
     });
     platforms.push({
       id: 'plat_b_west_lane5',
       rect: [-19.0, -15.0, -14.0, -9.0],
-      topY: 0.38,
+      topY: WORLD.PLATFORM_TOP_Y,
       kind: 'tile',
     });
     platforms.push({
       id: 'plat_b_west_lane6',
       rect: [-15.0, -23.0, -10.0, -17.0],
-      topY: 0.38,
+      topY: WORLD.PLATFORM_TOP_Y,
       kind: 'tile',
     });
 
@@ -296,43 +315,43 @@ export const NatatoriumMap: MapDefinition = {
     platforms.push({
       id: 'plat_b_east_lane1',
       rect: [8.0, 15.0, 13.0, 20.0],
-      topY: 0.38,
+      topY: WORLD.PLATFORM_TOP_Y,
       kind: 'tile',
     });
     platforms.push({
       id: 'plat_b_east_lane2',
       rect: [15.0, 9.0, 20.0, 14.0],
-      topY: 0.38,
+      topY: WORLD.PLATFORM_TOP_Y,
       kind: 'tile',
     });
     platforms.push({
       id: 'plat_b_east_lane3',
       rect: [9.0, 2.0, 14.0, 7.0],
-      topY: 0.38,
+      topY: WORLD.PLATFORM_TOP_Y,
       kind: 'tile',
     });
     platforms.push({
       id: 'plat_b_east_lane4',
       rect: [16.0, -5.0, 21.0, 0.0],
-      topY: 0.38,
+      topY: WORLD.PLATFORM_TOP_Y,
       kind: 'tile',
     });
     platforms.push({
       id: 'plat_b_east_lane5',
       rect: [9.0, -12.0, 14.0, -7.0],
-      topY: 0.38,
+      topY: WORLD.PLATFORM_TOP_Y,
       kind: 'tile',
     });
     platforms.push({
       id: 'plat_b_east_lane6',
       rect: [15.0, -19.0, 20.0, -14.0],
-      topY: 0.38,
+      topY: WORLD.PLATFORM_TOP_Y,
       kind: 'tile',
     });
     platforms.push({
       id: 'plat_b_east_lane7',
       rect: [8.0, -26.0, 13.0, -21.0],
-      topY: 0.38,
+      topY: WORLD.PLATFORM_TOP_Y,
       kind: 'tile',
     });
 
@@ -340,37 +359,37 @@ export const NatatoriumMap: MapDefinition = {
     platforms.push({
       id: 'plat_b_far_w1',
       rect: [-32.0, 12.0, -26.0, 18.0],
-      topY: 0.38,
+      topY: WORLD.PLATFORM_TOP_Y,
       kind: 'tile',
     });
     platforms.push({
       id: 'plat_b_far_w2',
       rect: [-33.0, -2.0, -27.0, 4.0],
-      topY: 0.38,
+      topY: WORLD.PLATFORM_TOP_Y,
       kind: 'tile',
     });
     platforms.push({
       id: 'plat_b_far_w3',
       rect: [-32.0, -16.0, -26.0, -10.0],
-      topY: 0.38,
+      topY: WORLD.PLATFORM_TOP_Y,
       kind: 'tile',
     });
     platforms.push({
       id: 'plat_b_far_e1',
       rect: [26.0, 12.0, 32.0, 18.0],
-      topY: 0.38,
+      topY: WORLD.PLATFORM_TOP_Y,
       kind: 'tile',
     });
     platforms.push({
       id: 'plat_b_far_e2',
       rect: [27.0, -2.0, 33.0, 4.0],
-      topY: 0.38,
+      topY: WORLD.PLATFORM_TOP_Y,
       kind: 'tile',
     });
     platforms.push({
       id: 'plat_b_far_e3',
       rect: [26.0, -16.0, 32.0, -10.0],
-      topY: 0.38,
+      topY: WORLD.PLATFORM_TOP_Y,
       kind: 'tile',
     });
 
@@ -378,13 +397,13 @@ export const NatatoriumMap: MapDefinition = {
     platforms.push({
       id: 'plat_trench_west',
       rect: [-7.05, -35.0, -1.05, -27.0],
-      topY: 0.38,
+      topY: WORLD.PLATFORM_TOP_Y,
       kind: 'tile',
     });
     platforms.push({
       id: 'plat_trench_east',
       rect: [0.0, -35.0, 6.0, -27.0],
-      topY: 0.38,
+      topY: WORLD.PLATFORM_TOP_Y,
       kind: 'tile',
     });
 
@@ -396,26 +415,26 @@ export const NatatoriumMap: MapDefinition = {
     platforms.push({
       id: 'plat_b_approach',
       rect: [-3.5, -40.0, 3.5, -37.0],
-      topY: 0.38,
+      topY: WORLD.PLATFORM_TOP_Y,
       kind: 'tile',
     });
     platforms.push({
       id: 'plat_corridor_ramp',
       rect: [-3.5, -45.0, 3.5, -42.0],
-      topY: 0.38,
+      topY: WORLD.PLATFORM_TOP_Y,
       kind: 'tile',
     });
     platforms.push({
       id: 'plat_corridor_sbend',
       rect: [-5.0, -51.0, 1.5, -47.0],
-      topY: 0.38,
+      topY: WORLD.PLATFORM_TOP_Y,
       kind: 'tile',
     });
     // Plant Room / Exit Platform
     platforms.push({
       id: 'plat_plant_room',
       rect: [-8.0, -58.0, 8.0, -53.0],
-      topY: 0.38,
+      topY: WORLD.PLATFORM_TOP_Y,
       kind: 'tile',
     });
 
@@ -480,7 +499,7 @@ export const NatatoriumMap: MapDefinition = {
       kind: 'tile',
     });
 
-    // Giant Cylindrical Tiled Columns (radius 2.1m, height 16.0m, square UVs)
+    // Giant Cylindrical Tiled Columns (radius 2.1m, height 9.0m, square UVs)
     // Also fulfill the requirement for >= 6 decoy pillars
     const giantPositions = [
       { id: 'pil_giant_1', x: -22.0, z: 18.0 },
@@ -501,7 +520,7 @@ export const NatatoriumMap: MapDefinition = {
         x: gp.x,
         z: gp.z,
         radius: 2.1,
-        height: 16.0,
+        height: 9.0,
         decalNumber: rng.int(0, 9),
         ordinal: undefined,
         kind: 'tile',
@@ -512,29 +531,29 @@ export const NatatoriumMap: MapDefinition = {
     // Walls, Arches, and Enclosures
     // ──────────────────────────────────────────────────────────────────────────
 
-    // Outer Natatorium Boundary Walls (90m x 118m, height 16m)
+    // Outer Natatorium Boundary Walls (90m x 118m, height 9m)
     walls.push({
       id: 'wall_outer_south',
-      min: { x: -45.0, y: -0.75, z: 54.5 },
-      max: { x: 45.0, y: 16.0, z: 55.5 },
+      min: { x: -45.0, y: -0.75, z: 57.5 },
+      max: { x: 45.0, y: 9.0, z: 58.5 },
       isWall: true,
     });
     walls.push({
       id: 'wall_outer_north',
       min: { x: -45.0, y: -0.75, z: -60.5 },
-      max: { x: 45.0, y: 16.0, z: -59.5 },
+      max: { x: 45.0, y: 9.0, z: -59.5 },
       isWall: true,
     });
     walls.push({
       id: 'wall_outer_west',
       min: { x: -45.5, y: -0.75, z: -60.0 },
-      max: { x: -44.5, y: 16.0, z: 55.0 },
+      max: { x: -44.5, y: 9.0, z: 58.5 },
       isWall: true,
     });
     walls.push({
       id: 'wall_outer_east',
       min: { x: 44.5, y: -0.75, z: -60.0 },
-      max: { x: 45.5, y: 16.0, z: 55.0 },
+      max: { x: 45.5, y: 9.0, z: 58.5 },
       isWall: true,
     });
 
@@ -555,8 +574,8 @@ export const NatatoriumMap: MapDefinition = {
     });
     walls.push({
       id: 'wall_foyer_e',
-      min: { x: 10.0, y: -0.75, z: 44.0 },
-      max: { x: 10.5, y: 6.0, z: 53.0 },
+      min: { x: 12.0, y: -0.75, z: 43.0 },
+      max: { x: 12.6, y: 6.0, z: 57.5 },
       isWall: true,
     });
 
@@ -565,13 +584,13 @@ export const NatatoriumMap: MapDefinition = {
     walls.push({
       id: 'wall_zone_a_div_w',
       min: { x: -45.0, y: -0.75, z: 34.6 },
-      max: { x: -1.6, y: 16.0, z: 35.4 },
+      max: { x: -1.6, y: 9.0, z: 35.4 },
       isWall: true,
     });
     walls.push({
       id: 'wall_zone_a_div_e',
       min: { x: 1.6, y: -0.75, z: 34.6 },
-      max: { x: 45.0, y: 16.0, z: 35.4 },
+      max: { x: 45.0, y: 9.0, z: 35.4 },
       isWall: true,
     });
     // Tunnel roof / lintel spanning across the swim-under opening
@@ -586,19 +605,19 @@ export const NatatoriumMap: MapDefinition = {
     walls.push({
       id: 'wall_arch1_w',
       min: { x: -45.0, y: -0.75, z: 7.6 },
-      max: { x: -3.25, y: 16.0, z: 8.4 },
+      max: { x: -3.25, y: 9.0, z: 8.4 },
       isWall: true,
     });
     walls.push({
       id: 'wall_arch1_e',
       min: { x: 3.25, y: -0.75, z: 7.6 },
-      max: { x: 45.0, y: 16.0, z: 8.4 },
+      max: { x: 45.0, y: 9.0, z: 8.4 },
       isWall: true,
     });
     walls.push({
       id: 'wall_arch1_lintel',
       min: { x: -3.25, y: 6.0, z: 7.6 },
-      max: { x: 3.25, y: 16.0, z: 8.4 },
+      max: { x: 3.25, y: 9.0, z: 8.4 },
       isWall: true,
     });
 
@@ -606,19 +625,19 @@ export const NatatoriumMap: MapDefinition = {
     walls.push({
       id: 'wall_arch2_w',
       min: { x: -45.0, y: -0.75, z: -14.4 },
-      max: { x: -3.25, y: 16.0, z: -13.6 },
+      max: { x: -3.25, y: 9.0, z: -13.6 },
       isWall: true,
     });
     walls.push({
       id: 'wall_arch2_e',
       min: { x: 3.25, y: -0.75, z: -14.4 },
-      max: { x: 45.0, y: 16.0, z: -13.6 },
+      max: { x: 45.0, y: 9.0, z: -13.6 },
       isWall: true,
     });
     walls.push({
       id: 'wall_arch2_lintel',
       min: { x: -3.25, y: 6.0, z: -14.4 },
-      max: { x: 3.25, y: 16.0, z: -13.6 },
+      max: { x: 3.25, y: 9.0, z: -13.6 },
       isWall: true,
     });
 
@@ -626,19 +645,19 @@ export const NatatoriumMap: MapDefinition = {
     walls.push({
       id: 'wall_corridor_div_w',
       min: { x: -45.0, y: -0.75, z: -44.5 },
-      max: { x: -1.75, y: 16.0, z: -43.5 },
+      max: { x: -1.75, y: 9.0, z: -43.5 },
       isWall: true,
     });
     walls.push({
       id: 'wall_corridor_div_e',
       min: { x: 1.75, y: -0.75, z: -44.5 },
-      max: { x: 45.0, y: 16.0, z: -43.5 },
+      max: { x: 45.0, y: 9.0, z: -43.5 },
       isWall: true,
     });
     walls.push({
       id: 'wall_corridor_div_lintel',
       min: { x: -1.75, y: 4.5, z: -44.5 },
-      max: { x: 1.75, y: 16.0, z: -43.5 },
+      max: { x: 1.75, y: 9.0, z: -43.5 },
       isWall: true,
     });
 
@@ -1206,20 +1225,20 @@ export const NatatoriumMap: MapDefinition = {
     // ──────────────────────────────────────────────────────────────────────────
 
     // Foyer ceiling (encloses spawn area at height 6.0m)
-    const foyerCeilingGeom = new BoxGeometry(22.0, 0.4, 15.0);
-    scaleBoxUv(foyerCeilingGeom, 22.0, 0.4, 15.0, WORLD.TEXTURE_METERS);
+    const foyerCeilingGeom = new BoxGeometry(27.0, 0.4, 15.5);
+    scaleBoxUv(foyerCeilingGeom, 27.0, 0.4, 15.5, WORLD.TEXTURE_METERS);
     const foyerCeiling = new Mesh(foyerCeilingGeom, ceilingArchMat);
-    foyerCeiling.position.set(0.0, 6.0, 48.0);
+    foyerCeiling.position.set(-1.0, 6.0, 50.75);
     foyerCeiling.castShadow = true;
     foyerCeiling.receiveShadow = true;
     foyerCeiling.name = 'FoyerCeiling';
     instance.root.add(foyerCeiling);
 
-    // Vaulted ceiling over grand pool hall (covers full map bounds, height 16.0m)
+    // Vaulted ceiling over grand pool hall (covers full map bounds, height 9.0m)
     const grandRoofGeom = new BoxGeometry(90.0, 0.5, 118.0);
     scaleBoxUv(grandRoofGeom, 90.0, 0.5, 118.0, WORLD.TEXTURE_METERS);
     const grandRoof = new Mesh(grandRoofGeom, ceilingArchMat);
-    grandRoof.position.set(0.0, 16.0, 0.0);
+    grandRoof.position.set(0.0, 9.0, 0.0);
     grandRoof.castShadow = true;
     grandRoof.receiveShadow = true;
     grandRoof.name = 'GrandHallCeiling';
@@ -1309,7 +1328,8 @@ export const NatatoriumMap: MapDefinition = {
     // Tricolor panel on far wall
     const panelGeom = buildColorPanelGeometry(3.6, 2.0);
     const panelMat = new MeshStandardMaterial({
-      color: new Color('#e0d5be'),
+      color: new Color('#ffffff'),
+      vertexColors: true,
       roughness: 0.5,
       metalness: 0.1,
     });
@@ -1317,6 +1337,18 @@ export const NatatoriumMap: MapDefinition = {
     panelMesh.position.set(-14.0, 5.0, -43.8);
     panelMesh.name = 'TricolorPanel';
     instance.root.add(panelMesh);
+
+    // Hand-painted '#1' marker on the tiled foyer wall corner (f_016 / f_017)
+    const marker1Mat = new MeshBasicMaterial({
+      map: tex.getNumber(1, { style: 'marker' }),
+      transparent: true,
+      depthWrite: false,
+    });
+    const marker1 = new Mesh(new PlaneGeometry(0.45, 0.675), marker1Mat);
+    marker1.position.set(11.98, 1.65, 45.2);
+    marker1.rotation.y = -Math.PI / 2;
+    marker1.name = 'HandPaintedMarker_1';
+    instance.root.add(marker1);
 
     // Freeze all matrices across the hierarchy
     instance.root.traverse((obj) => {

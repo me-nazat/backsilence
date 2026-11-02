@@ -1,3 +1,4 @@
+import { WORLD } from '../src/app/Config.js';
 /* ── batch1-poolrooms-rebuild.test.ts ─────────────────────────────────────────
  *  Comprehensive verification suite for ANTIGRAVITY BATCH 1:
  *  - PROMPT 1A: Poolrooms Architecture, Skylight Illumination, World-Space Ceramic Tiles
@@ -76,7 +77,7 @@ describe('ANTIGRAVITY BATCH 1: Poolrooms Rebuild & Visuals', () => {
     });
 
     it('creates platform geometry with multi-material groups and no EdgesGeometry outlines', () => {
-      const geom = factory.createPlatformGeometry(4.0, 1.13, 6.0, 0.38, -0.75);
+      const geom = factory.createPlatformGeometry(4.0, 1.13, 6.0, 0.30, -0.75);
       expect(geom).toBeInstanceOf(BoxGeometry);
       // DESIGN_RATIONALE: Three.js BoxGeometry always partitions a rectangular prism into 6 axial face groups (+X, -X, +Y, -Y, +Z, -Z).
       expect(geom.groups.length).toBe(6);
@@ -92,7 +93,7 @@ describe('ANTIGRAVITY BATCH 1: Poolrooms Rebuild & Visuals', () => {
       expect(sideGroup?.materialIndex).toBe(1);
 
       // Verify mesh creation
-      const mesh = factory.createPlatformMesh(4.0, 1.13, 6.0, 0.38, -0.75);
+      const mesh = factory.createPlatformMesh(4.0, 1.13, 6.0, 0.30, -0.75);
       expect(mesh).toBeInstanceOf(Mesh);
       expect(Array.isArray(mesh.material)).toBe(true);
       expect((mesh.material as unknown[])[0]).toBe(factory.platformTopMaterial);
@@ -100,7 +101,7 @@ describe('ANTIGRAVITY BATCH 1: Poolrooms Rebuild & Visuals', () => {
     });
 
     it('creates 48-segment giant cylindrical columns with square tile UVs', () => {
-      const colGeom = factory.createGiantColumnGeometry(2.1, 16.0, 48);
+      const colGeom = factory.createGiantColumnGeometry(2.1, 9.0, 48);
       expect(colGeom).toBeInstanceOf(CylinderGeometry);
       const uvAttr = colGeom.getAttribute('uv');
       expect(uvAttr).toBeDefined();
@@ -125,7 +126,7 @@ describe('ANTIGRAVITY BATCH 1: Poolrooms Rebuild & Visuals', () => {
     it('Zone A: includes spawn deck, curved peninsula, palm-arch pillars, and low swim-under tunnel', () => {
       const foyer = layout.platforms.find((p) => p.id === 'plat_foyer');
       expect(foyer).toBeDefined();
-      expect(foyer?.topY).toBe(0.38);
+      expect(foyer?.topY).toBe(WORLD.PLATFORM_TOP_Y);
 
       const peninsula = layout.platforms.filter((p) => p.id.startsWith('plat_peninsula'));
       expect(peninsula.length).toBeGreaterThanOrEqual(4);
@@ -159,7 +160,7 @@ describe('ANTIGRAVITY BATCH 1: Poolrooms Rebuild & Visuals', () => {
     });
 
     it('Zone B: Supported by giant 2.1m radius columns and Roman archways', () => {
-      const giantCols = layout.pillars.filter((p) => p.radius >= 2.0 && p.height >= 15.0);
+      const giantCols = layout.pillars.filter((p) => p.radius >= 2.0 && p.height >= 9.0);
       expect(giantCols.length).toBeGreaterThanOrEqual(8);
 
       // Roman arch openings in dividing walls

@@ -10,15 +10,16 @@
  * ──────────────────────────────────────────────────────────────────────── */
 
 import { Vector2, Vector3, Color } from 'three';
+import { WATER_PROFILES } from './WaterProfile.js';
 
 export const WaterSurfaceShader = {
   name: 'WaterSurfaceShader',
   uniforms: {
     uTime: { value: 0.0 },
     uWaterY: { value: 0.0 },
-    uColorShallow: { value: new Color('#48ab72') }, // vec3(0.282, 0.671, 0.447)
-    uColorDeep: { value: new Color('#338858') },    // vec3(0.200, 0.533, 0.345)
-    uSpecularColor: { value: new Color('#ffffff') },
+    uColorShallow: { value: new Color(WATER_PROFILES.natatorium.shallow) },
+    uColorDeep: { value: new Color(WATER_PROFILES.natatorium.deep) },
+    uSpecularColor: { value: new Color(WATER_PROFILES.natatorium.specular) },
     uSunDir: { value: new Vector3(0.35, 0.9, 0.25).normalize() },
     uSpeed1: { value: new Vector2(0.35, 0.22) },
     uSpeed2: { value: new Vector2(-0.28, 0.41) },

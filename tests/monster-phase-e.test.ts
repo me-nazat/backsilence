@@ -88,16 +88,17 @@ describe('Phase E: Look and Animation of the Creature', () => {
 
     (skinMat.onBeforeCompile as (s: unknown) => void)(fakeShader);
 
-    // Verify 45% fog extinction reduction injected in fragment shader (Prompt 7.5)
-    expect(fakeShader.fragmentShader).toContain('fogFactor * 0.55');
+    // Full scene fog extinction: the creature dissolves into fog like everything else (D121)
+    expect(fakeShader.fragmentShader).toContain('fogFactor * 1.0');
+    expect(fakeShader.fragmentShader).not.toContain('fogFactor * 0.55');
 
-    // Verify neutral cool grey rim lighting injected (Prompt 7.4)
-    expect(fakeShader.fragmentShader).toContain('vec3(0.16, 0.20, 0.22)');
-    expect(fakeShader.fragmentShader).toContain('vec3(0.065, 0.045, 0.038)'); // subsurface lift
+    // Subsurface translucency replaces the old abyssal/cool rim; the old rim colours must be gone
+    expect(fakeShader.fragmentShader).toContain('vec3 sssTranslucency');
+    expect(fakeShader.fragmentShader).not.toContain('vec3(0.16, 0.20, 0.22)');
 
-    // Verify wet specular and darkening logic below waterline injected (Prompt 7.6)
-    expect(fakeShader.fragmentShader).toContain('roughnessFactor = mix(roughnessFactor, 0.10, wetT * 0.9)');
-    expect(fakeShader.fragmentShader).toContain('diffuseColor.rgb *= mix(1.0, 0.72, wetT)');
+    // Wet specular and mild darkening below waterline (never the old 0.72 crush to black)
+    expect(fakeShader.fragmentShader).toContain('roughnessFactor = mix(roughnessFactor, 0.18, wetT * 0.75)');
+    expect(fakeShader.fragmentShader).toContain('diffuseColor.rgb *= mix(1.0, 0.90, wetT * distAtten)');
     expect(fakeShader.uniforms.uWaterLevel).toBeDefined();
   });
 
@@ -120,7 +121,7 @@ describe('Phase E: Look and Animation of the Creature', () => {
     const skinMat = mesh.skinnedMesh.material as MeshStandardMaterial;
 
     // Body skin material: roughness 0.52, metalness 0.03
-    expect(skinMat.roughness).toBeCloseTo(0.52, 2);
+    expect(skinMat.roughness).toBeCloseTo(0.36, 2);
     expect(skinMat.metalness).toBeCloseTo(0.03, 2);
 
     // Head and jaw features
@@ -129,7 +130,8 @@ describe('Phase E: Look and Animation of the Creature', () => {
     expect(mesh.teethMesh).toBeDefined();
     expect([24, 42]).toContain(mesh.teethMesh.count);
     expect(mesh.vertebraMesh).toBeDefined();
-    expect([14, 24]).toContain(mesh.vertebraMesh.count);
+    // The reference creature has no dorsal spines (creature_spec.md): the spine group is empty.
+    expect(mesh.vertebraMesh.count).toBe(0);
 
     // Ear-fin material on bm.earLeft
     const earMesh = joints.earLeft.children[0] as Mesh;

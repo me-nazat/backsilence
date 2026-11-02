@@ -1692,13 +1692,14 @@ After locking the reference pack in Prompt 1, the verification pipeline still ha
 
 **Reason:** Grounds the creature physically in the water column with reference-accurate ink/foam displacement (`f_010`, `f_018`), sound-first readable stalking (`f_008`–`f_024`), trench lip-pacing (`f_035`/`f_036`), and the `f_037` + `81 s` jump-scare sequence.
 
+## D123 — Natatorium rebuilt to measured dimensions (Prompt 5)
 
+**Date:** 2026-11-02
+**Changes:**
+1. **Palette:** `SECTOR_THEMES.natatorium/default` re-anchored to measured medians (`platformTop #c29b56`, `wall #c8b580`, `poolFloor #cbba8b`); header comment corrected; natatorium fog `#d6dccd`; water `#85ad6d`/`#698f47` (inside the 85–113° / 0.32–0.52 / 0.35–0.69 HSV band).
+2. **Architecture:** all natatorium slabs use `WORLD.PLATFORM_TOP_Y` (0.30 m); hall ceiling and walls 9.0 m; foyer 6.0 m; dry side room (`x -14..-4, z 44..57.5`) with tiled pillar `pil_dry_room_2` carrying a ≈0.5 m spray `'2'`; hand-painted `'#1'` at the foyer east wall; tri-colour panel coloured blue/yellow/green.
+3. **Camera/PostFX:** whip-turn smear (`tapeSmearPass`) on Medium and High; look deltas are applied exactly once per render frame (first fixed tick, or immediately via `PlayerMotor.applyLookDelta` when no tick runs).
+4. **Evidence:** `scripts/world/measure-natatorium.mjs` → `reports/world/natatorium_vs_footage.md`; `tests/tile-pitch.test.ts`, `tests/no-void.test.ts`.
+5. **Test debt:** `tests/monster-phase-e.test.ts` asserted the pre-D121 creature (0.55 fog, 24-vertebra spine); updated to the D121 spec (full fog, no spine).
 
-
-
-
-
-
-
-
-
+**Not done / deferred:** fog transmittance has no reference value (frames have no calibrated distances) and is listed as a known gap; caustics, god rays and height fog move to Prompt 7 (D125); slab side tile-row count (4–6 in footage vs 2 above water at 0.15 m pitch) is unresolved.

@@ -35,3 +35,4 @@ Every row in this specification table is sourced directly from `reference/video/
 | `wrap_lighting_peak` | `0.02` | `<= 0.02` | luminance | `reference/video/notes.md` `f_010`, `f_018`, `f_021` |
 | `min_pixel_luminance` | `0.05` | `>= 0.05` | luminance | `reference/video/notes.md` `f_010`, `f_018`, `f_021` (no crushed black pixels `< 0.05` outside jump-scare) |
 | `max_red_over_green_ratio` | `1.15` | `R <= G * 1.15` | ratio | `reference/video/palette.json` (`monster_body_t34` `R/G = 1.125`, `monster_head_t34` `R/G = 1.27` clamped in shader/albedo so rendered `R <= G * 1.15`) |
+
