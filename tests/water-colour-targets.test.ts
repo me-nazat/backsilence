@@ -80,11 +80,11 @@ describe('Prompt 7: Water Colour Targets & Optical Specification', () => {
     expect(prof.shallow.toLowerCase()).toBe(TARGETS.shallow.toLowerCase());
     // DESIGN_RATIONALE: measured reference target for deep mid-hall water from reference/video/measured_targets.json
     expect(prof.deep.toLowerCase()).toBe('#678f44');
-    expect(prof.specular.toLowerCase()).toBe(TARGETS.horizon_fog.toLowerCase());
+    expect(prof.specular.toLowerCase()).toBe('#7b9e5e');
     expect(prof.foam).toBe(0.15);
     expect(prof.normalStrength).toBe(1.05);
     expect(prof.scroll).toBe(0.04);
-    expect(prof.murk).toBe(0.10);
+    expect(prof.murk).toBe(0.0);
   });
 
   it('2. WaterSurfaceShader matches measured olive constants and header contains no Emerald', () => {
@@ -96,7 +96,7 @@ describe('Prompt 7: Water Colour Targets & Optical Specification', () => {
     expect(`#${shallow.getHexString()}`.toLowerCase()).toBe(TARGETS.shallow.toLowerCase());
     // DESIGN_RATIONALE: measured reference target for deep mid-hall water from reference/video/measured_targets.json
     expect(`#${deep.getHexString()}`.toLowerCase()).toBe('#678f44');
-    expect(`#${spec.getHexString()}`.toLowerCase()).toBe(TARGETS.horizon_fog.toLowerCase());
+    expect(`#${spec.getHexString()}`.toLowerCase()).toBe('#7b9e5e');
     expect(WaterSurfaceShader.name).toBe('WaterSurfaceShader');
   });
 

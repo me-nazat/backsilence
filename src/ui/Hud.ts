@@ -326,7 +326,7 @@ export class Hud {
     return this.streamerMode;
   }
 
-  private currentHudStyle: 'hidden' | 'minimal' | 'full' = 'hidden';
+  private currentHudStyle: 'hidden' | 'minimal' | 'full' = 'minimal';
 
   setHudStyle(style: 'hidden' | 'minimal' | 'full'): void {
     this.currentHudStyle = style;

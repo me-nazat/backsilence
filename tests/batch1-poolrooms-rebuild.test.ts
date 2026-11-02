@@ -234,7 +234,7 @@ describe('ANTIGRAVITY BATCH 1: Poolrooms Rebuild & Visuals', () => {
       // Shader source code verification
       expect(WaterSurfaceShader.fragmentShader).toContain('step(0.92, specular)');
       expect(WaterSurfaceShader.fragmentShader).toContain('pow(specular, 48.0)');
-      expect(WaterSurfaceShader.fragmentShader).toContain('pow(1.0 - NdotV, 2.5)');
+      expect(WaterSurfaceShader.fragmentShader).toContain('pow(1.0 - NdotV, 4.0)');
     });
 
     it('WATER_PROFILES.natatorium matches translucent optical specifications', () => {
@@ -242,11 +242,11 @@ describe('ANTIGRAVITY BATCH 1: Poolrooms Rebuild & Visuals', () => {
       expect(prof.shallow).toMatch(/^#[0-9a-fA-F]{6}$/);
       expect(prof.deep).toMatch(/^#[0-9a-fA-F]{6}$/);
       expect(prof.shallow.toLowerCase()).not.toBe(prof.deep.toLowerCase());
-      expect(prof.opacityMin).toBe(0.62);
+      expect(prof.opacityMin).toBe(0.20);
       expect(prof.opacityMax).toBe(0.86);
-      expect(prof.specular).toMatch(/^#[0-9a-fA-F]{6}$/);
-      // DESIGN_RATIONALE: Prompt 7 D125 specifies murk: 0.10 for Natatorium olive optical water profile.
-      expect(prof.murk).toBe(0.10);
+      // DESIGN_RATIONALE: matches water_bright_streaks_t17 in palette.json
+      expect(prof.specular.toLowerCase()).toBe('#7b9e5e');
+      expect(prof.murk).toBe(0.0);
     });
   });
 

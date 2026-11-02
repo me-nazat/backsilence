@@ -320,7 +320,13 @@ function evaluateRubric(shot, metrics) {
 
 async function main() {
   await mkdir(OUTPUT_DIR, { recursive: true });
-  const shotsDef = JSON.parse(readFileSync(resolve(ROOT, 'shots.json'), 'utf8'));
+  const args = process.argv.slice(2);
+  const shotsArg = args.find((a, i) => args[i - 1] === '--shots' || args[i - 1] === '--shot') || args.find((a) => !a.startsWith('-'));
+  let shotsDef = JSON.parse(readFileSync(resolve(ROOT, 'shots.json'), 'utf8'));
+  if (shotsArg) {
+    const list = shotsArg.split(',').map((s) => s.trim()).filter(Boolean);
+    shotsDef = shotsDef.filter((s) => list.some((l) => s.id === l || s.id.includes(l)));
+  }
 
   // Start Vite server
   const preview = spawn(process.execPath, ['node_modules/vite/bin/vite.js', '--host', '127.0.0.1', '--port', String(PORT), '--strictPort'], {

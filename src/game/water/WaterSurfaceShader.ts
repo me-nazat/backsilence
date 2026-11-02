@@ -18,7 +18,7 @@ export const WaterSurfaceShader = {
     uWaterY: { value: 0.0 },
     uColorShallow: { value: new Color(WATER_PROFILES.natatorium.shallow) },
     uColorDeep: { value: new Color(WATER_PROFILES.natatorium.deep) },
-    uSpecularColor: { value: new Color('#d6dccd') },
+    uSpecularColor: { value: new Color('#7b9e5e') },
     uSunDir: { value: new Vector3(0.35, 0.9, 0.25).normalize() },
     uSpeed1: { value: new Vector2(0.35, 0.22) },
     uSpeed2: { value: new Vector2(-0.28, 0.41) },
@@ -94,10 +94,10 @@ export const WaterSurfaceShader = {
       vec3 viewDir = normalize(cameraPosition - vWorldPos);
 
       // 1. Exact Optical Properties
-      // Fresnel-modulated alpha
+      // Fresnel-modulated alpha (translucent depth revealing cracked pool floor)
       float NdotV = max(0.0, dot(viewDir, normal));
-      float fresnel = pow(1.0 - NdotV, 2.5);
-      float alpha = mix(0.62, 0.86, fresnel);
+      float fresnel = pow(1.0 - NdotV, 4.0);
+      float alpha = mix(0.25, 0.85, fresnel);
 
       // Graded water body tint: shallow green at normal viewing, deeper grazing
       vec3 waterTint = mix(uColorShallow, uColorDeep, fresnel);

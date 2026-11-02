@@ -320,6 +320,7 @@ float G_Smith(float NdotV, float NdotL, float roughness) {
 vec3 evalGGX(vec3 N, vec3 V, vec3 L, vec3 lightColor, float intensity, float roughness) {
   vec3 H = normalize(V + L);
   float NdotH = max(0.0, dot(N, H));
+  if (NdotH < 0.5) return vec3(0.0);
   float NdotV = max(1e-4, dot(N, V));
   float NdotL = max(0.0, dot(N, L));
   float VdotH = max(0.0, dot(V, H));
@@ -329,16 +330,17 @@ vec3 evalGGX(vec3 N, vec3 V, vec3 L, vec3 lightColor, float intensity, float rou
   // Microfacet sharp glint lobe (roughness 0.06 - 0.09)
   float D1 = D_GGX(NdotH, roughness);
   float G1 = G_Smith(NdotV, NdotL, roughness);
-  float spec1 = (D1 * F * G1) / (4.0 * NdotV + 1e-4);
+  float spec1 = (D1 * F * G1) / (4.0 * NdotV * max(0.01, NdotL));
 
   // Broader streak highlight lobe
   float r2 = 0.16;
   float D2 = D_GGX(NdotH, r2);
   float G2 = G_Smith(NdotV, NdotL, r2);
-  float spec2 = (D2 * F * G2) / (4.0 * NdotV + 1e-4);
+  float spec2 = (D2 * F * G2) / (4.0 * NdotV * max(0.01, NdotL));
 
-  float totalSpec = spec1 * 1.5 + spec2 * 0.5;
-  return lightColor * (totalSpec * intensity);
+  float glintMask = smoothstep(0.5, 0.85, NdotH);
+  float totalSpec = (spec1 * 1.5 + spec2 * 0.5) * glintMask;
+  return lightColor * (totalSpec * intensity * NdotL);
 }
 
 void main() {
@@ -369,7 +371,8 @@ void main() {
     float sceneLinearDepth = -perspectiveDepthToLinearZ(rawSceneDepth, uCameraNear, uCameraFar);
     float diffZ = sceneLinearDepth - waterLinearDepth;
     // Discard water fragment if opaque geometry is closer than the water surface (above water / in front)
-    if (diffZ < -0.005) {
+    // 0.05m tolerance prevents grazing angles from punching holes in platform slab sides
+    if (diffZ < -0.05) {
       discard;
     }
     thickness = clamp(diffZ, 0.0, mapDepth * 1.5 + 0.1);
@@ -466,10 +469,12 @@ void main() {
     normal = -normal;
   }
 
+  vec3 viewDir = normalize(cameraPosition - vWorldPos);
+
   // 5. Refraction with foreground depth rejection
   vec3 sceneSample = uColorShallow;
   if (hasTrueDepth) {
-    float refractK = 0.075;
+    float refractK = 0.045; // gentle 1.02–1.08 scale
     float depthFalloff = 1.0 - exp(-thickness * 1.4);
     vec2 refractOffset = normal.xz * refractK * depthFalloff;
     float aspect = uResolution.x / max(uResolution.y, 1.0);
@@ -479,9 +484,11 @@ void main() {
     float refractLinearDepth = -perspectiveDepthToLinearZ(rawRefractDepth, uCameraNear, uCameraFar);
     
     // Foreground leak rejection: reject offset sample if depth nearer than water surface
-    if (refractLinearDepth >= waterLinearDepth - 0.02) {
-      vec2 uvR = clamp(screenUv + refractOffset * 1.06, 0.001, 0.999);
-      vec2 uvB = clamp(screenUv + refractOffset * 0.94, 0.001, 0.999);
+    if (refractLinearDepth >= waterLinearDepth - 0.05) {
+      // Gentle chromatic dispersion at grazing angles
+      float grazingDispersion = 1.0 + 0.06 * pow(1.0 - max(0.0, dot(normal, viewDir)), 2.0);
+      vec2 uvR = clamp(screenUv + refractOffset * grazingDispersion, 0.001, 0.999);
+      vec2 uvB = clamp(screenUv + refractOffset * (2.0 - grazingDispersion), 0.001, 0.999);
       sceneSample.r = texture2D(uSceneColor, uvR).r;
       sceneSample.g = texture2D(uSceneColor, refractedUv).g;
       sceneSample.b = texture2D(uSceneColor, uvB).b;
@@ -492,32 +499,67 @@ void main() {
 
   // 6. Physical Water Absorption & Depth Visibility (Prompt 7 D125)
   // Floor visibility through water column drives trench detection as a physical signal.
-  // Beer-Lambert spectral extinction: red absorbed fastest (0.95), blue (0.42), green least (0.22)
-  vec3 sigma = vec3(0.95, 0.22, 0.42);
+  // Beer-Lambert spectral extinction: red absorbed fastest (2.4), blue (1.1), green least (0.45)
+  vec3 sigma = vec3(2.4, 0.45, 1.1);
   vec3 T = exp(-sigma * thickness);
   float floorVisibility = dot(T, vec3(0.299, 0.587, 0.114));
 
   // Depth-graded in-scatter:
   // Shallow: #8cb179, Near-Deep: #6e8949, Mid-hall Deep: #678f44
-  float deepMix = 1.0 - exp(-thickness * 0.85);
-  vec3 scatter = mix(uColorShallow, uColorDeep, deepMix);
+  float deepMix = clamp(thickness / 0.85, 0.0, 1.0);
+  vec3 deepScatter = uColorDeep * vec3(0.85, 0.95, 0.80);
+  vec3 scatter = mix(uColorShallow, deepScatter, deepMix);
 
-  // Trench optical signature: when floor drops out (floorVisibility < 0.25 and thickness > 1.8m),
-  // bulk absorption through un-illuminated deep water column produces trench color #7da46d
+  // Dense fog water darkening: in dense fog areas water darkens per measured pair (#3e5a2c near, #5f865a far)
+  #ifdef USE_FOG
+    vec3 cFogWaterNear = vec3(0.243, 0.353, 0.173); // #3e5a2c
+    vec3 cFogWaterFar = vec3(0.373, 0.525, 0.353);  // #5f865a
+    float fogTransmittance = exp(-fogDensity * vFogDepth);
+    float denseFogMix = clamp((fogDensity - 0.012) / 0.015, 0.0, 1.0);
+    if (denseFogMix > 0.0) {
+      vec3 denseWater = mix(cFogWaterFar, cFogWaterNear, fogTransmittance);
+      scatter = mix(scatter, denseWater, denseFogMix * 0.65);
+    }
+  #endif
+
+  // Trench optical signature: when floor drops out (thickness > 1.1m),
+  // bulk absorption through deep water column produces trench color #7da46d
   vec3 cTrench = vec3(0.490, 0.643, 0.427); // #7da46d
-  float trenchFactor = smoothstep(0.28, 0.02, floorVisibility) * smoothstep(1.6, 2.6, thickness);
-  scatter = mix(scatter, cTrench, trenchFactor * 0.75);
+  float trenchFactor = smoothstep(1.0, 1.8, thickness);
+  scatter = mix(scatter, cTrench, trenchFactor);
 
   // Suspended-silt scattering (uMurk)
   scatter = mix(scatter, vec3(0.42, 0.55, 0.30), clamp(uMurk * (1.0 - exp(-thickness * 0.5)), 0.0, 0.85));
 
+  // Piecewise Beer-Lambert depth transmittance:
+  // (a) shallow water <= 0.35 m deep: effective surface alpha 0.20-0.35 revealing cracked pool floor
+  // (b) mid water 0.35-0.7 m: translucent green with floor faintly present
+  // (c) water deeper than ~0.7 m: approaches alpha 1.0
+  float depthRatio = clamp(thickness / 0.35, 0.0, 1.0);
+  float shallowAlpha = mix(uOpacityMin, 0.35, depthRatio);
+  float deepRatio = clamp((thickness - 0.35) / 0.35, 0.0, 1.0);
+  float depthAlpha = mix(shallowAlpha, 1.0, deepRatio);
+
+  // Animated Caustics: illuminates submerged floor in shallow water (< 1.5m), absorbed in deep water
+  vec3 causticLight = vec3(0.0);
+  if (thickness < 1.5) {
+    vec2 cUv1 = p * 0.85 + vec2(uTime * 0.08, uTime * 0.06) + normal.xz * 0.08;
+    vec2 cUv2 = p * 1.15 + vec2(-uTime * 0.07, uTime * 0.09) + normal.zx * 0.08;
+    float c1 = sin(cUv1.x * 7.0 + sin(cUv1.y * 5.0 + uTime * 0.6)) * 0.5 + 0.5;
+    float c2 = cos(cUv2.x * 6.5 + cos(cUv2.y * 7.5 - uTime * 0.5)) * 0.5 + 0.5;
+    float caustic = pow(min(c1, c2), 1.6) * 1.8;
+    float causticFade = smoothstep(1.5, 0.15, thickness);
+    vec3 causticCol = mix(vec3(0.9, 1.0, 0.95), vec3(1.0, 0.98, 0.9), 0.5);
+    causticLight = causticCol * caustic * causticFade * 0.15;
+  }
+
   // Veil must be gated by optical path length or it becomes a flat white sheet.
   float veilGate = (1.0 - exp(-thickness * 1.6)) * (1.0 - floorVisibility);
-  vec3 milkyVeil = vec3(0.85, 0.94, 0.88) * (0.05 * veilGate);
-  vec3 absorbedWater = sceneSample * T + scatter * (1.0 - T) + milkyVeil;
+  vec3 milkyVeil = vec3(0.85, 0.94, 0.88) * (0.005 * veilGate);
+  vec3 transmittedFloor = (sceneSample + causticLight) * T;
+  vec3 absorbedWater = mix(transmittedFloor, scatter, depthAlpha) + milkyVeil;
 
   // 7. Schlick Fresnel reflection with F0 = 0.02 & reflection tiers (World Space)
-  vec3 viewDir = normalize(cameraPosition - vWorldPos);
   float NdotV = max(0.0, dot(normal, viewDir));
   float fresnel = 0.02 + 0.98 * pow(1.0 - NdotV, 5.0);
 
@@ -539,19 +581,7 @@ void main() {
     reflectColor = mix(skyHazeColor * 0.92, skyHazeColor * 1.08, max(0.0, reflectDir.y));
   }
 
-  vec3 waterColor = mix(absorbedWater, reflectColor, fresnel * 0.45);
-
-  // 8. Animated Caustics on shallow floor and waterline walls
-  if (thickness < 2.5) {
-    vec2 cUv1 = p * 0.85 + vec2(uTime * 0.08, uTime * 0.06) + normal.xz * 0.08;
-    vec2 cUv2 = p * 1.15 + vec2(-uTime * 0.07, uTime * 0.09) + normal.zx * 0.08;
-    float c1 = sin(cUv1.x * 7.0 + sin(cUv1.y * 5.0 + uTime * 0.6)) * 0.5 + 0.5;
-    float c2 = cos(cUv2.x * 6.5 + cos(cUv2.y * 7.5 - uTime * 0.5)) * 0.5 + 0.5;
-    float caustic = pow(min(c1, c2), 1.6) * 1.8;
-    float causticFade = smoothstep(2.5, 0.15, thickness) * (1.0 - fresnel * 0.75);
-    vec3 causticCol = mix(vec3(0.9, 1.0, 0.95), vec3(1.0, 0.98, 0.9), 0.5);
-    waterColor += causticCol * caustic * causticFade * 0.18;
-  }
+  vec3 waterColor = mix(absorbedWater, reflectColor, fresnel * 0.18);
 
   // 9. Sun GGX Specular Glint & Horizontal Pale Specular Streaks (#d6dccd)
   vec3 sunSpec = evalGGX(normal, viewDir, uSunDir, uSpecularColor, 0.55, roughness);
@@ -563,8 +593,8 @@ void main() {
   vec3 H_glint = normalize(viewDir + uSunDir);
   vec3 anisoNormal = normalize(vec3(normal.x * 0.32, normal.y, normal.z));
   float specBase = max(0.0, dot(anisoNormal, H_glint));
-  float specWave = step(0.92, specBase) * 0.85 + pow(specBase, 48.0);
-  waterColor += uSpecularColor * (specWave * 0.75);
+  float specWave = pow(specBase, 32.0) * 0.35;
+  waterColor += uSpecularColor * specWave;
 
   // 10. LightStreaks (up to 16 area/line light proxies) evaluated via GGX
   for (int i = 0; i < 16; i++) {
@@ -621,23 +651,25 @@ void main() {
     waterColor = mix(waterColor, edgeRimColor, edgeRim * 0.75);
   }
 
-  // Wave crest foam (inverted: peaks on wave crest)
-  float crestFoam = smoothstep(0.006, 0.022, vWorldPos.y - uWaterY) * 0.55;
+  // Foam policy: NO ambient white foam on calm water (crestFoam = 0.0).
+  // Foam appears strictly on shore/contact, wake, ripples, and edge rim.
+  float crestFoam = 0.0;
   float rippleFoam = smoothstep(0.007, 0.026, abs(vRippleHeight)) * 0.8;
   float totalFoam = clamp(shoreFoam + meniscusFoam + wakeFoam + rippleFoam + crestFoam + edgeRim, 0.0, 1.0);
 
   vec3 foamColor = vec3(0.92, 0.95, 0.90);
   waterColor = mix(waterColor, foamColor, totalFoam * clamp(uFoamStrength * 1.95, 0.3, 1.0));
 
-  // Fresnel-modulated alpha (reveals submerged tile grid on floor at y = -0.75m and monster's limbs)
-  float fresnelTerm = pow(1.0 - max(dot(viewDir, normal), 0.0), 2.5);
-  float fresnelAlpha = mix(0.62, 0.86, fresnelTerm);
+  // Piecewise Beer-Lambert depth transmittance:
+  // (a) shallow water <= 0.35 m deep: effective surface alpha 0.20-0.35 revealing cracked pool floor
+  // (b) mid water 0.35-0.9 m: translucent green with floor faintly present
+  // (c) water deeper than ~1.2 m: approaches alpha 0.85+
+  float fresnelTerm = pow(1.0 - max(dot(viewDir, normal), 0.0), 4.0);
+  float fresnelAlpha = mix(depthAlpha, max(depthAlpha, 0.85), fresnelTerm);
 
   // Soft Edge Alpha: blend alpha to 0 over the last 3 cm of thickness
   float softEdge = clamp(thickness / 0.03, 0.0, 1.0);
-  float depthAlpha = mix(uOpacityMin, uOpacityMax, 1.0 - exp(-thickness * 1.8));
-  float blendedAlpha = mix(depthAlpha, fresnelAlpha, 0.75);
-  float alpha = hasTrueDepth ? softEdge * blendedAlpha : blendedAlpha;
+  float alpha = hasTrueDepth ? softEdge : (softEdge * fresnelAlpha);
   alpha = max(alpha, totalFoam * 0.92);
 
   // Readability: never let water opacity exceed 0.6 within 3m of monster waterline
@@ -672,8 +704,8 @@ void main() {
 
     // Low height-fog band hugging the water surface (thicker with distance, f_025)
     float hDist = max(0.0, abs(vWorldPos.y - uWaterY));
-    float hMist = exp(-hDist * 1.2) * smoothstep(6.0, 32.0, vFogDepth) * 0.45;
-    float grazingMist = pow(1.0 - max(0.0, dot(normal, viewDir)), 2.5) * 0.28 * smoothstep(1.0, 15.0, vFogDepth);
+    float hMist = exp(-hDist * 1.2) * smoothstep(16.0, 48.0, vFogDepth) * 0.35;
+    float grazingMist = pow(1.0 - max(0.0, dot(normal, viewDir)), 4.5) * 0.25 * smoothstep(5.0, 25.0, vFogDepth);
     float finalFogFactor = clamp(baseFogFactor + (hMist + grazingMist) * (1.0 - baseFogFactor) * smoothstep(0.0, 5.0, vFogDepth), 0.0, 1.0);
 
     // Fast whip-turn surface haze at water surface (f_032)

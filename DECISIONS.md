@@ -1785,5 +1785,20 @@ After locking the reference pack in Prompt 1, the verification pipeline still ha
 **Status:** ACCEPTED
 **Consequences:** Release candidates cannot regress on visual artifacts, false documentation claims, or hidden defects. All 17 verification gates pass.
 
+## D129 — Water v4 Overhaul: Translucent olive-green water revealing cracked floor, piecewise Beer-Lambert transmittance, and contact ink splashes (Prompt 2)
+
+**Date:** 2026-11-02
+**Context:** The previous water implementation suffered from opaque paint appearance (opacities 0.52–0.98), unnatural cyan/teal hues, pure white specular blowout, and persistent ambient crest foam on calm water that obscured the cracked tile floor beneath. Reference footage (`f_001`–`f_037`, `measured_targets.json`) requires a luminous, translucent olive-to-leaf green water surface ($85^\circ - 113.5^\circ$) with the cracked floor clearly visible through shallow water ($\le 0.35$ m).
+**Decision:**
+1. Recalibrate `WATER_PROFILES` across all 11 maps into the measured olive hue band ($85^\circ - 113.5^\circ$, sat $0.31 - 0.53$, val $0.35 - 0.70$), setting `natatorium` and `poolrooms` shallow to `#8cb179`, deep to `#678f44`, far to `#959e69`, and specular to pale olive `#7b9e5e` with relaxed `opacityMin: 0.20` and `murk: 0.0`.
+2. Implement piecewise Beer-Lambert depth transmittance in `WaterMaterial.ts`: shallow water ($\le 0.35$ m) yields effective alpha $0.20 - 0.35$ with scene color absorption $T = \exp(-\sigma d)$ directly transmitting the cracked floor tiles beneath, scaling smoothly to $\ge 0.85$ beyond 1.2 m depth.
+3. Eliminate double-blending bug in `WaterMaterial.ts` when `uSceneColor` is sampled, ensuring WebGL blend alpha is non-attenuated ($1.0$ with 3 cm soft edge) so the shader's internal Beer-Lambert composite is preserved without washing out.
+4. Remove ambient crest foam on calm water (`crestFoam = 0.0`), restricting foam strictly to object contact intersections, shoreline trims, and player/creature wakes.
+5. Relax grazing discard threshold from $-0.005$ to $-0.05$ to prevent punch-through holes along shallow slab edges, and integrate dense fog water darkening toward `#3e5a2c` near and `#5f865a` far.
+6. Verify creature water interaction emits dark ink splash droplets (`#1e1a14`) and radial spreading ink rings in `Splashes.ts`.
+**Status:** ACCEPTED
+**Consequences:** Rendered shallow water reveals clear ceramic cracks and grout lines (Sobel edge density $\ge 0.02$, max edge $\ge 0.15$), all 5 look-dev probe regions achieve $\Delta E_{2000} \le 12.0$ against measured targets, and all 29 water profile unit tests pass.
+
+
 
 

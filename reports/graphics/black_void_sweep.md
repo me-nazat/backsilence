@@ -2,9 +2,11 @@
 
 **Date:** 2026-11-02T14:55:05.205Z
 **Requirement:** Every map must sit above the 5th-percentile luminance floor (p5 >= 0.08) at t = 5s from spawn.
-**Quality Bar:** The reference videos show a bright, luminous complex — no true blacks (p5 0.08–0.59, median ~0.63).
+**Quality Bar:** The reference videos show a bright, luminous complex — no true blacks (p5 0.08–0.59, median ~0.63, reference pairings `f_001` through `f_037`).
 
 ## 11-Map Luminance Table (t = 5s from spawn)
+
+Reference pairings: `pair_f_001`, `pair_f_004`, `pair_f_013` (benchmarking spawn illumination against bright cream footage).
 
 | Map ID | Mean L | p5 (min >= 0.08) | Median L | p95 | Frac < 0.1 | Status |
 |---|---|---|---|---|---|---|
@@ -21,6 +23,8 @@
 | `utility_tunnels` | 0.4344 | **0.4157** | 0.4157 | 0.5235 | 0 | ✅ PASS |
 
 ## Main Menu Backdrop Verification (Phase F)
+
+Reference pairing: `pair_f_004` (luminous vaulted poolrooms hall backdrop).
 
 - **Mean Luminance:** 0.5566 (Required: >= 0.45) — ✅ PASS
 - **p5 Luminance:** 0.1984 (Required: >= 0.15) — ✅ PASS

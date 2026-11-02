@@ -107,7 +107,119 @@ export function compareRegionRgb(actualRgb, targetRgb, channelTolerance = 0.08) 
   };
 }
 
-function parseWaterProfilesFromSource() {
+export function rgbToXyz(r, g, b) {
+  const toLin = (c) => (c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4));
+  const rl = toLin(r);
+  const gl = toLin(g);
+  const bl = toLin(b);
+  const X = rl * 0.4124564 + gl * 0.3575761 + bl * 0.1804375;
+  const Y = rl * 0.2126729 + gl * 0.7151522 + bl * 0.0721750;
+  const Z = rl * 0.0193339 + gl * 0.1191920 + bl * 0.9503041;
+  return [X, Y, Z];
+}
+
+export function xyzToLab(X, Y, Z) {
+  const Xn = 0.95047, Yn = 1.00000, Zn = 1.08883;
+  const f = (t) => (t > Math.pow(6 / 29, 3) ? Math.cbrt(t) : t / (3 * Math.pow(6 / 29, 2)) + 4 / 29);
+  const fx = f(X / Xn);
+  const fy = f(Y / Yn);
+  const fz = f(Z / Zn);
+  const L = 116 * fy - 16;
+  const a = 500 * (fx - fy);
+  const b = 200 * (fy - fz);
+  return [L, a, b];
+}
+
+export function rgbToLab(r, g, b) {
+  const [X, Y, Z] = rgbToXyz(r, g, b);
+  return xyzToLab(X, Y, Z);
+}
+
+export function hexToLab(hex) {
+  const [r, g, b] = hexToNormalizedRgb(hex);
+  return rgbToLab(r, g, b);
+}
+
+export function computeCiede2000(lab1, lab2) {
+  const [L1, a1, b1] = lab1;
+  const [L2, a2, b2] = lab2;
+  const kL = 1.0, kC = 1.0, kH = 1.0;
+  const C1 = Math.sqrt(a1 * a1 + b1 * b1);
+  const C2 = Math.sqrt(a2 * a2 + b2 * b2);
+  const Cbar = (C1 + C2) / 2.0;
+  const Cbar7 = Math.pow(Cbar, 7);
+  const G = 0.5 * (1.0 - Math.sqrt(Cbar7 / (Cbar7 + 6103515625))); // 25^7 = 6103515625
+  const a1p = (1.0 + G) * a1;
+  const a2p = (1.0 + G) * a2;
+  const C1p = Math.sqrt(a1p * a1p + b1 * b1);
+  const C2p = Math.sqrt(a2p * a2p + b2 * b2);
+  const Cbarp = (C1p + C2p) / 2.0;
+
+  const deg = (rad) => (rad * 180) / Math.PI;
+  const rad = (deg) => (deg * Math.PI) / 180;
+
+  const getH = (ap, bp) => {
+    if (ap === 0 && bp === 0) return 0.0;
+    const h = deg(Math.atan2(bp, ap));
+    return h < 0 ? h + 360.0 : h;
+  };
+  const h1p = getH(a1p, b1);
+  const h2p = getH(a2p, b2);
+
+  let deltahp = 0;
+  if (Math.abs(h1p - h2p) <= 180.0) {
+    deltahp = h2p - h1p;
+  } else if (h2p <= h1p) {
+    deltahp = h2p - h1p + 360.0;
+  } else {
+    deltahp = h2p - h1p - 360.0;
+  }
+
+  const deltaLp = L2 - L1;
+  const deltaCp = C2p - C1p;
+  const deltaHp = 2.0 * Math.sqrt(C1p * C2p) * Math.sin(rad(deltahp / 2.0));
+
+  const Lbarp = (L1 + L2) / 2.0;
+  let hbarp = 0;
+  if (Math.abs(h1p - h2p) <= 180.0) {
+    hbarp = (h1p + h2p) / 2.0;
+  } else if (h1p + h2p < 360.0) {
+    hbarp = (h1p + h2p + 360.0) / 2.0;
+  } else {
+    hbarp = (h1p + h2p - 360.0) / 2.0;
+  }
+
+  const T =
+    1.0 -
+    0.17 * Math.cos(rad(hbarp - 30.0)) +
+    0.24 * Math.cos(rad(2.0 * hbarp)) +
+    0.32 * Math.cos(rad(3.0 * hbarp + 6.0)) -
+    0.20 * Math.cos(rad(4.0 * hbarp - 63.0));
+
+  const deltaTheta = 30.0 * Math.exp(-Math.pow((hbarp - 275.0) / 25.0, 2));
+  const Cbarp7 = Math.pow(Cbarp, 7);
+  const RC = 2.0 * Math.sqrt(Cbarp7 / (Cbarp7 + 6103515625));
+  const SL = 1.0 + (0.015 * Math.pow(Lbarp - 50.0, 2)) / Math.sqrt(20.0 + Math.pow(Lbarp - 50.0, 2));
+  const SC = 1.0 + 0.045 * Cbarp;
+  const SH = 1.0 + 0.015 * Cbarp * T;
+  const RT = -Math.sin(rad(2.0 * deltaTheta)) * RC;
+
+  const dE = Math.sqrt(
+    Math.pow(deltaLp / (kL * SL), 2) +
+    Math.pow(deltaCp / (kC * SC), 2) +
+    Math.pow(deltaHp / (kH * SH), 2) +
+    RT * (deltaCp / (kC * SC)) * (deltaHp / (kH * SH)),
+  );
+  return Number(dE.toFixed(3));
+}
+
+export function computeCiede2000FromRgb(rgb1, rgb2) {
+  const lab1 = rgbToLab(rgb1[0], rgb1[1], rgb1[2]);
+  const lab2 = rgbToLab(rgb2[0], rgb2[1], rgb2[2]);
+  return computeCiede2000(lab1, lab2);
+}
+
+export function parseWaterProfilesFromSource() {
   if (!existsSync(WATER_PROFILE_FILE)) return {};
   const src = readFileSync(WATER_PROFILE_FILE, 'utf-8');
   const profiles = {};
@@ -118,10 +230,18 @@ function parseWaterProfilesFromSource() {
     const body = m[2];
     const shallowMatch = body.match(/shallow\s*:\s*['"](#[0-9a-fA-F]{6})['"]/);
     const deepMatch = body.match(/deep\s*:\s*['"](#[0-9a-fA-F]{6})['"]/);
+    const specMatch = body.match(/specular\s*:\s*['"](#[0-9a-fA-F]{6})['"]/);
+    const opMinMatch = body.match(/opacityMin\s*:\s*([0-9.]+)/);
+    const opMaxMatch = body.match(/opacityMax\s*:\s*([0-9.]+)/);
+    const murkMatch = body.match(/murk\s*:\s*([0-9.]+)/);
     if (shallowMatch && deepMatch) {
       profiles[mapId] = {
         shallow: shallowMatch[1].toLowerCase(),
         deep: deepMatch[1].toLowerCase(),
+        specular: specMatch ? specMatch[1].toLowerCase() : '#7b9e5e',
+        opacityMin: opMinMatch ? parseFloat(opMinMatch[1]) : 0.20,
+        opacityMax: opMaxMatch ? parseFloat(opMaxMatch[1]) : 0.86,
+        murk: murkMatch ? parseFloat(murkMatch[1]) : 0.0,
       };
     }
   }

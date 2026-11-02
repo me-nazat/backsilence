@@ -38,6 +38,15 @@
     "description": "Vertical portrait view looking along the wet slab edge into the water expanse"
   },
   {
+    "id": "shallow_floor_view",
+    "name": "Shallow Floor Legibility Through Water",
+    "mapId": "natatorium",
+    "seed": 42,
+    "simTime": 2.0,
+    "camera": { "x": 0.0, "y": 1.2, "z": 46.5, "target": { "x": 0.0, "y": -0.30, "z": 46.5 }, "fov": 65 },
+    "description": "Downwards perspective viewing shallow cracked pool floor under 0.30m of translucent water"
+  },
+  {
     "id": "natatorium_pillar_numeral_8m",
     "name": "Pillar With Stenciled Numeral at 8m",
     "mapId": "natatorium",
@@ -100,7 +109,7 @@
     "mapId": "natatorium",
     "seed": 42,
     "simTime": 2.5,
-    "camera": { "x": -3.5, "y": 1.65, "z": 36.5, "target": { "x": -2.5, "y": -0.6, "z": 36.5 }, "fov": 65 },
+    "camera": { "x": -0.525, "y": 1.65, "z": -25.0, "target": { "x": -0.525, "y": -0.6, "z": -31.0 }, "fov": 65 },
     "description": "Looking down into a flooded 1.8m drainage trench between fractured platform slabs"
   },
   {
@@ -110,7 +119,7 @@
     "seed": 42,
     "simTime": 2.5,
     "isPortrait": true,
-    "camera": { "x": -3.5, "y": 1.65, "z": 36.5, "target": { "x": -2.5, "y": -0.6, "z": 36.5 }, "fov": 60 },
+    "camera": { "x": -0.525, "y": 1.65, "z": -25.0, "target": { "x": -0.525, "y": -0.6, "z": -31.0 }, "fov": 60 },
     "description": "Portrait angle showing trench depth, water surface, and tiled vertical sidewalls"
   },
   {
