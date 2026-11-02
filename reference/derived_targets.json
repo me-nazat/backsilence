@@ -1,0 +1,7051 @@
+{
+  "source": "measured",
+  "generatedAt": "2026-11-02T11:55:00.000Z",
+  "manifestHash": "5284a059124178f556c589a806d206a77a62f6c11a4d892760bc944284a023b4",
+  "frameCount": 37,
+  "aggregates": {
+    "luminanceMeanMedian": 0.628,
+    "p5LuminanceMedian": 0.3708,
+    "p50LuminanceMedian": 0.6633,
+    "p95LuminanceMedian": 0.8212,
+    "p99LuminanceMedian": 0.8618,
+    "saturationMeanMedian": 0.315,
+    "fractionPixelsBelow01Median": 0,
+    "horizonBlowoutFractionMedian": 0.0003,
+    "sobelEdgeScale1Median": 0.0893,
+    "waterMeanRGBMedian": [
+      0.489,
+      0.611,
+      0.414
+    ],
+    "slabMeanRGBMedian": [
+      0.714,
+      0.623,
+      0.414
+    ],
+    "fogMeanRGBMedian": [
+      0.761,
+      0.789,
+      0.694
+    ]
+  },
+  "categories": {
+    "calm_axial": {
+      "sourceFrames": [
+        "f_007",
+        "f_004"
+      ],
+      "luminanceMean": 0.5633,
+      "luminanceStdDev": 0.1034,
+      "horizonBlowoutFraction": 0.0002,
+      "fractionPixelsBelow01": 0,
+      "saturationMean": 0.3911,
+      "sobelEdgeDensity": {
+        "scale1": 0.0526,
+        "scale2": 0.1048,
+        "scale4": 0.1744
+      },
+      "waterRegion": {
+        "meanRGB": [
+          0.446,
+          0.55,
+          0.34
+        ],
+        "luminanceVariance": 0.01064,
+        "glintFraction": 0
+      },
+      "slabRegion": {
+        "meanRGB": [
+          0.678,
+          0.601,
+          0.384
+        ]
+      },
+      "fogRegion": {
+        "meanRGB": [
+          0.688,
+          0.727,
+          0.618
+        ]
+      },
+      "floorGroutEdgeRatio": 0.138,
+      "vignetteGradient": 0.1772,
+      "grainNoise": 0.0019
+    },
+    "calm_grazing": {
+      "sourceFrames": [
+        "f_009",
+        "f_005"
+      ],
+      "luminanceMean": 0.599,
+      "luminanceStdDev": 0.1304,
+      "horizonBlowoutFraction": 0.0001,
+      "fractionPixelsBelow01": 0,
+      "saturationMean": 0.4042,
+      "sobelEdgeDensity": {
+        "scale1": 0.0968,
+        "scale2": 0.1601,
+        "scale4": 0.2611
+      },
+      "waterRegion": {
+        "meanRGB": [
+          0.492,
+          0.599,
+          0.378
+        ],
+        "luminanceVariance": 0.01209,
+        "glintFraction": 0
+      },
+      "slabRegion": {
+        "meanRGB": [
+          0.71,
+          0.607,
+          0.384
+        ]
+      },
+      "fogRegion": {
+        "meanRGB": [
+          0.735,
+          0.768,
+          0.664
+        ]
+      },
+      "floorGroutEdgeRatio": 0.6354,
+      "vignetteGradient": 0.0413,
+      "grainNoise": 0.0019
+    },
+    "shoreline_foam": {
+      "sourceFrames": [
+        "f_022",
+        "f_021"
+      ],
+      "luminanceMean": 0.6804,
+      "luminanceStdDev": 0.1275,
+      "horizonBlowoutFraction": 0.023,
+      "fractionPixelsBelow01": 0,
+      "saturationMean": 0.2232,
+      "sobelEdgeDensity": {
+        "scale1": 0.0456,
+        "scale2": 0.0752,
+        "scale4": 0.1333
+      },
+      "waterRegion": {
+        "meanRGB": [
+          0.514,
+          0.635,
+          0.48
+        ],
+        "luminanceVariance": 0.0091,
+        "glintFraction": 0
+      },
+      "slabRegion": {
+        "meanRGB": [
+          0.649,
+          0.599,
+          0.422
+        ]
+      },
+      "fogRegion": {
+        "meanRGB": [
+          0.766,
+          0.797,
+          0.711
+        ]
+      },
+      "floorGroutEdgeRatio": 0.5222,
+      "vignetteGradient": 0.1321,
+      "grainNoise": 0.0016
+    },
+    "wading_wake": {
+      "sourceFrames": [
+        "f_024",
+        "f_008"
+      ],
+      "luminanceMean": 0.6497,
+      "luminanceStdDev": 0.1588,
+      "horizonBlowoutFraction": 0.0023,
+      "fractionPixelsBelow01": 0,
+      "saturationMean": 0.3322,
+      "sobelEdgeDensity": {
+        "scale1": 0.1283,
+        "scale2": 0.1983,
+        "scale4": 0.2998
+      },
+      "waterRegion": {
+        "meanRGB": [
+          0.516,
+          0.645,
+          0.443
+        ],
+        "luminanceVariance": 0.00987,
+        "glintFraction": 0
+      },
+      "slabRegion": {
+        "meanRGB": [
+          0.746,
+          0.658,
+          0.449
+        ]
+      },
+      "fogRegion": {
+        "meanRGB": [
+          0.771,
+          0.807,
+          0.718
+        ]
+      },
+      "floorGroutEdgeRatio": 0.9675,
+      "vignetteGradient": 0,
+      "grainNoise": 0.0019
+    },
+    "splash": {
+      "sourceFrames": [
+        "f_030",
+        "f_031",
+        "f_033"
+      ],
+      "luminanceMean": 0.6263,
+      "luminanceStdDev": 0.1567,
+      "horizonBlowoutFraction": 0,
+      "fractionPixelsBelow01": 0,
+      "saturationMean": 0.2996,
+      "sobelEdgeDensity": {
+        "scale1": 0.0241,
+        "scale2": 0.0579,
+        "scale4": 0.1273
+      },
+      "waterRegion": {
+        "meanRGB": [
+          0.472,
+          0.565,
+          0.414
+        ],
+        "luminanceVariance": 0.02131,
+        "glintFraction": 0
+      },
+      "slabRegion": {
+        "meanRGB": [
+          0.702,
+          0.656,
+          0.48
+        ]
+      },
+      "fogRegion": {
+        "meanRGB": [
+          0.725,
+          0.736,
+          0.619
+        ]
+      },
+      "floorGroutEdgeRatio": 0.518,
+      "vignetteGradient": 0.0322,
+      "grainNoise": 0.0015
+    },
+    "drip_ring": {
+      "sourceFrames": [
+        "f_028"
+      ],
+      "luminanceMean": 0.6092,
+      "luminanceStdDev": 0.1806,
+      "horizonBlowoutFraction": 0,
+      "fractionPixelsBelow01": 0,
+      "saturationMean": 0.2495,
+      "sobelEdgeDensity": {
+        "scale1": 0.0236,
+        "scale2": 0.0606,
+        "scale4": 0.128
+      },
+      "waterRegion": {
+        "meanRGB": [
+          0.467,
+          0.563,
+          0.415
+        ],
+        "luminanceVariance": 0.03109,
+        "glintFraction": 0
+      },
+      "slabRegion": {
+        "meanRGB": [
+          0.582,
+          0.517,
+          0.333
+        ]
+      },
+      "fogRegion": {
+        "meanRGB": [
+          0.728,
+          0.765,
+          0.668
+        ]
+      },
+      "floorGroutEdgeRatio": 0.4743,
+      "vignetteGradient": 0.2556,
+      "grainNoise": 0.001
+    },
+    "horizon_haze": {
+      "sourceFrames": [
+        "f_008",
+        "f_025"
+      ],
+      "luminanceMean": 0.6448,
+      "luminanceStdDev": 0.1556,
+      "horizonBlowoutFraction": 0.017,
+      "fractionPixelsBelow01": 0,
+      "saturationMean": 0.3358,
+      "sobelEdgeDensity": {
+        "scale1": 0.1093,
+        "scale2": 0.177,
+        "scale4": 0.2586
+      },
+      "waterRegion": {
+        "meanRGB": [
+          0.585,
+          0.675,
+          0.499
+        ],
+        "luminanceVariance": 0.00666,
+        "glintFraction": 0
+      },
+      "slabRegion": {
+        "meanRGB": [
+          0.668,
+          0.574,
+          0.358
+        ]
+      },
+      "fogRegion": {
+        "meanRGB": [
+          0.786,
+          0.819,
+          0.742
+        ]
+      },
+      "floorGroutEdgeRatio": 0.7119,
+      "vignetteGradient": 0,
+      "grainNoise": 0.0023
+    },
+    "underwater": {
+      "sourceFrames": [
+        "f_034"
+      ],
+      "luminanceMean": 0.6356,
+      "luminanceStdDev": 0.1333,
+      "horizonBlowoutFraction": 0,
+      "fractionPixelsBelow01": 0,
+      "saturationMean": 0.3224,
+      "sobelEdgeDensity": {
+        "scale1": 0.1489,
+        "scale2": 0.234,
+        "scale4": 0.3499
+      },
+      "waterRegion": {
+        "meanRGB": [
+          0.464,
+          0.563,
+          0.387
+        ],
+        "luminanceVariance": 0.00948,
+        "glintFraction": 0
+      },
+      "slabRegion": {
+        "meanRGB": [
+          0.716,
+          0.662,
+          0.48
+        ]
+      },
+      "fogRegion": {
+        "meanRGB": [
+          0.717,
+          0.733,
+          0.616
+        ]
+      },
+      "floorGroutEdgeRatio": 0.6466,
+      "vignetteGradient": 0,
+      "grainNoise": 0.0041
+    },
+    "monster_wake": {
+      "sourceFrames": [
+        "f_012",
+        "f_010"
+      ],
+      "luminanceMean": 0.663,
+      "luminanceStdDev": 0.1146,
+      "horizonBlowoutFraction": 0.0104,
+      "fractionPixelsBelow01": 0,
+      "saturationMean": 0.3455,
+      "sobelEdgeDensity": {
+        "scale1": 0.1121,
+        "scale2": 0.1783,
+        "scale4": 0.2853
+      },
+      "waterRegion": {
+        "meanRGB": [
+          0.601,
+          0.677,
+          0.516
+        ],
+        "luminanceVariance": 0.00446,
+        "glintFraction": 0
+      },
+      "slabRegion": {
+        "meanRGB": [
+          0.738,
+          0.627,
+          0.404
+        ]
+      },
+      "fogRegion": {
+        "meanRGB": [
+          0.782,
+          0.794,
+          0.694
+        ]
+      },
+      "floorGroutEdgeRatio": 0.5786,
+      "vignetteGradient": 0,
+      "grainNoise": 0.0025
+    },
+    "neon_flood_rain": {
+      "sourceFrames": [
+        "f_026"
+      ],
+      "luminanceMean": 0.5607,
+      "luminanceStdDev": 0.1972,
+      "horizonBlowoutFraction": 0.004,
+      "fractionPixelsBelow01": 0,
+      "saturationMean": 0.3165,
+      "sobelEdgeDensity": {
+        "scale1": 0.0088,
+        "scale2": 0.0174,
+        "scale4": 0.0407
+      },
+      "waterRegion": {
+        "meanRGB": [
+          0.373,
+          0.477,
+          0.31
+        ],
+        "luminanceVariance": 0.02696,
+        "glintFraction": 0
+      },
+      "slabRegion": {
+        "meanRGB": [
+          0.485,
+          0.43,
+          0.261
+        ]
+      },
+      "fogRegion": {
+        "meanRGB": [
+          0.76,
+          0.793,
+          0.715
+        ]
+      },
+      "floorGroutEdgeRatio": 0.1166,
+      "vignetteGradient": 0,
+      "grainNoise": 0.0011
+    },
+    "archipelago_calm": {
+      "sourceFrames": [
+        "f_029"
+      ],
+      "luminanceMean": 0.6099,
+      "luminanceStdDev": 0.182,
+      "horizonBlowoutFraction": 0,
+      "fractionPixelsBelow01": 0,
+      "saturationMean": 0.2476,
+      "sobelEdgeDensity": {
+        "scale1": 0.0203,
+        "scale2": 0.0528,
+        "scale4": 0.1169
+      },
+      "waterRegion": {
+        "meanRGB": [
+          0.467,
+          0.563,
+          0.416
+        ],
+        "luminanceVariance": 0.03098,
+        "glintFraction": 0
+      },
+      "slabRegion": {
+        "meanRGB": [
+          0.584,
+          0.519,
+          0.337
+        ]
+      },
+      "fogRegion": {
+        "meanRGB": [
+          0.731,
+          0.768,
+          0.672
+        ]
+      },
+      "floorGroutEdgeRatio": 0.5396,
+      "vignetteGradient": 0.2535,
+      "grainNoise": 0.0009
+    },
+    "natatorium_hero": {
+      "sourceFrames": [
+        "f_006",
+        "f_004"
+      ],
+      "luminanceMean": 0.5513,
+      "luminanceStdDev": 0.0861,
+      "horizonBlowoutFraction": 0.0001,
+      "fractionPixelsBelow01": 0,
+      "saturationMean": 0.4525,
+      "sobelEdgeDensity": {
+        "scale1": 0.089,
+        "scale2": 0.1511,
+        "scale4": 0.2213
+      },
+      "waterRegion": {
+        "meanRGB": [
+          0.518,
+          0.605,
+          0.438
+        ],
+        "luminanceVariance": 0.00777,
+        "glintFraction": 0
+      },
+      "slabRegion": {
+        "meanRGB": [
+          0.662,
+          0.555,
+          0.308
+        ]
+      },
+      "fogRegion": {
+        "meanRGB": [
+          0.653,
+          0.697,
+          0.576
+        ]
+      },
+      "floorGroutEdgeRatio": 0.3614,
+      "vignetteGradient": 0.0988,
+      "grainNoise": 0.0027
+    }
+  },
+  "shots": {
+    "natatorium_tagline_wall": {
+      "pairedFrameId": "f_001",
+      "timestamp": "t=1s",
+      "whatToLookAt": "wall_tile_pitch_and_graffiti_contrast",
+      "isJumpScare": false,
+      "luminanceMean": 0.6125,
+      "luminanceStdDev": 0.1669,
+      "percentiles": {
+        "p5": 0.1236,
+        "p50": 0.6868,
+        "p95": 0.7106,
+        "p99": 0.8473
+      },
+      "fractionPixelsBelow01": 0,
+      "horizonBlowoutFraction": 0.0093,
+      "saturationMean": 0.4272,
+      "sobelEdgeDensity": {
+        "scale1": 0.3264,
+        "scale2": 0.4156,
+        "scale4": 0.4856,
+        "tiledRegions": 0.2394
+      },
+      "waterRegion": {
+        "pixelCount": 46691,
+        "meanRGB": [
+          0.514,
+          0.607,
+          0.374
+        ],
+        "meanHSV": [
+          84.11,
+          0.3838,
+          0.6072
+        ],
+        "luminanceVariance": 0.00312,
+        "edgeDensity": 0.3101,
+        "glintFraction": 0
+      },
+      "slabRegion": {
+        "pixelCount": 753331,
+        "meanRGB": [
+          0.737,
+          0.652,
+          0.445
+        ],
+        "meanHSV": [
+          42.51,
+          0.3954,
+          0.7368
+        ]
+      },
+      "fogRegion": {
+        "pixelCount": 13037,
+        "meanRGB": [
+          0.895,
+          0.895,
+          0.873
+        ],
+        "meanHSV": [
+          59.78,
+          0.0248,
+          0.8949
+        ]
+      },
+      "floorGroutEdgeRatio": 0.5197,
+      "vignetteGradient": 0,
+      "grainNoise": 0.0041
+    },
+    "natatorium_tagline_wall_portrait": {
+      "pairedFrameId": "f_002",
+      "timestamp": "t=3s",
+      "whatToLookAt": "portrait_tagline_wall_and_waterline_contact",
+      "isJumpScare": false,
+      "luminanceMean": 0.591,
+      "luminanceStdDev": 0.1622,
+      "percentiles": {
+        "p5": 0.1261,
+        "p50": 0.6708,
+        "p95": 0.6992,
+        "p99": 0.847
+      },
+      "fractionPixelsBelow01": 0,
+      "horizonBlowoutFraction": 0.0094,
+      "saturationMean": 0.432,
+      "sobelEdgeDensity": {
+        "scale1": 0.3026,
+        "scale2": 0.4004,
+        "scale4": 0.4854,
+        "tiledRegions": 0.1605
+      },
+      "waterRegion": {
+        "pixelCount": 189679,
+        "meanRGB": [
+          0.471,
+          0.608,
+          0.371
+        ],
+        "meanHSV": [
+          94.7,
+          0.3895,
+          0.6084
+        ],
+        "luminanceVariance": 0.00237,
+        "edgeDensity": 0.2874,
+        "glintFraction": 0
+      },
+      "slabRegion": {
+        "pixelCount": 619728,
+        "meanRGB": [
+          0.729,
+          0.642,
+          0.438
+        ],
+        "meanHSV": [
+          42.02,
+          0.3998,
+          0.7294
+        ]
+      },
+      "fogRegion": {
+        "pixelCount": 12571,
+        "meanRGB": [
+          0.9,
+          0.903,
+          0.883
+        ],
+        "meanHSV": [
+          67.31,
+          0.0216,
+          0.9028
+        ]
+      },
+      "floorGroutEdgeRatio": 0.3746,
+      "vignetteGradient": 0,
+      "grainNoise": 0.0037
+    },
+    "natatorium_close_tile_wall": {
+      "pairedFrameId": "f_003",
+      "timestamp": "t=5s",
+      "whatToLookAt": "close_tile_grout_grid_and_ceramic_albedo",
+      "isJumpScare": false,
+      "luminanceMean": 0.5633,
+      "luminanceStdDev": 0.2453,
+      "percentiles": {
+        "p5": 0.0123,
+        "p50": 0.6634,
+        "p95": 0.7821,
+        "p99": 0.8597
+      },
+      "fractionPixelsBelow01": 0,
+      "horizonBlowoutFraction": 0.0046,
+      "saturationMean": 0.3556,
+      "sobelEdgeDensity": {
+        "scale1": 0.122,
+        "scale2": 0.1971,
+        "scale4": 0.3008,
+        "tiledRegions": 0.066
+      },
+      "waterRegion": {
+        "pixelCount": 207512,
+        "meanRGB": [
+          0.55,
+          0.685,
+          0.474
+        ],
+        "meanHSV": [
+          98.33,
+          0.3083,
+          0.6849
+        ],
+        "luminanceVariance": 0.00498,
+        "edgeDensity": 0.1159,
+        "glintFraction": 0
+      },
+      "slabRegion": {
+        "pixelCount": 422922,
+        "meanRGB": [
+          0.746,
+          0.697,
+          0.522
+        ],
+        "meanHSV": [
+          46.82,
+          0.2998,
+          0.746
+        ]
+      },
+      "fogRegion": {
+        "pixelCount": 79077,
+        "meanRGB": [
+          0.809,
+          0.773,
+          0.689
+        ],
+        "meanHSV": [
+          41.74,
+          0.148,
+          0.8091
+        ]
+      },
+      "floorGroutEdgeRatio": 0.3574,
+      "vignetteGradient": 0.481,
+      "grainNoise": 0.003
+    },
+    "natatorium_spawn_view": {
+      "pairedFrameId": "f_004",
+      "timestamp": "t=7s",
+      "whatToLookAt": "vaulted_hall_luminance_and_olive_water_hue",
+      "isJumpScare": false,
+      "luminanceMean": 0.4769,
+      "luminanceStdDev": 0.0979,
+      "percentiles": {
+        "p5": 0.3208,
+        "p50": 0.4924,
+        "p95": 0.6507,
+        "p99": 0.7336
+      },
+      "fractionPixelsBelow01": 0,
+      "horizonBlowoutFraction": 0.0003,
+      "saturationMean": 0.4483,
+      "sobelEdgeDensity": {
+        "scale1": 0.0829,
+        "scale2": 0.157,
+        "scale4": 0.2478,
+        "tiledRegions": 0.0157
+      },
+      "waterRegion": {
+        "pixelCount": 358891,
+        "meanRGB": [
+          0.385,
+          0.487,
+          0.317
+        ],
+        "meanHSV": [
+          95.77,
+          0.35,
+          0.4871
+        ],
+        "luminanceVariance": 0.01416,
+        "edgeDensity": 0.0788,
+        "glintFraction": 0
+      },
+      "slabRegion": {
+        "pixelCount": 254998,
+        "meanRGB": [
+          0.598,
+          0.508,
+          0.263
+        ],
+        "meanHSV": [
+          43.82,
+          0.5602,
+          0.5979
+        ]
+      },
+      "fogRegion": {
+        "pixelCount": 69808,
+        "meanRGB": [
+          0.619,
+          0.674,
+          0.555
+        ],
+        "meanHSV": [
+          87.96,
+          0.1766,
+          0.6742
+        ]
+      },
+      "floorGroutEdgeRatio": 0.1192,
+      "vignetteGradient": 0.1795,
+      "grainNoise": 0.0025
+    },
+    "natatorium_spawn_view_portrait": {
+      "pairedFrameId": "f_005",
+      "timestamp": "t=9s",
+      "whatToLookAt": "ceiling_arch_tan_and_near_water_swell",
+      "isJumpScare": false,
+      "luminanceMean": 0.5647,
+      "luminanceStdDev": 0.1096,
+      "percentiles": {
+        "p5": 0.4151,
+        "p50": 0.5746,
+        "p95": 0.7254,
+        "p99": 0.7659
+      },
+      "fractionPixelsBelow01": 0,
+      "horizonBlowoutFraction": 0,
+      "saturationMean": 0.4097,
+      "sobelEdgeDensity": {
+        "scale1": 0.0485,
+        "scale2": 0.0904,
+        "scale4": 0.1571,
+        "tiledRegions": 0.0257
+      },
+      "waterRegion": {
+        "pixelCount": 297623,
+        "meanRGB": [
+          0.47,
+          0.567,
+          0.354
+        ],
+        "meanHSV": [
+          87.14,
+          0.3755,
+          0.5666
+        ],
+        "luminanceVariance": 0.01231,
+        "edgeDensity": 0.046,
+        "glintFraction": 0
+      },
+      "slabRegion": {
+        "pixelCount": 296966,
+        "meanRGB": [
+          0.668,
+          0.591,
+          0.389
+        ],
+        "meanHSV": [
+          43.46,
+          0.418,
+          0.6681
+        ]
+      },
+      "fogRegion": {
+        "pixelCount": 102169,
+        "meanRGB": [
+          0.68,
+          0.719,
+          0.598
+        ],
+        "meanHSV": [
+          79.25,
+          0.1682,
+          0.7185
+        ]
+      },
+      "floorGroutEdgeRatio": 0.3007,
+      "vignetteGradient": 0.0827,
+      "grainNoise": 0.0015
+    },
+    "natatorium_hero": {
+      "pairedFrameId": "f_006",
+      "timestamp": "t=11s",
+      "whatToLookAt": "slab_bullnose_elevation_and_hall_fog_falloff",
+      "isJumpScare": false,
+      "luminanceMean": 0.6256,
+      "luminanceStdDev": 0.0743,
+      "percentiles": {
+        "p5": 0.5177,
+        "p50": 0.6007,
+        "p95": 0.7262,
+        "p99": 0.7571
+      },
+      "fractionPixelsBelow01": 0,
+      "horizonBlowoutFraction": 0,
+      "saturationMean": 0.4566,
+      "sobelEdgeDensity": {
+        "scale1": 0.0951,
+        "scale2": 0.1451,
+        "scale4": 0.1947,
+        "tiledRegions": 0.0895
+      },
+      "waterRegion": {
+        "pixelCount": 62140,
+        "meanRGB": [
+          0.651,
+          0.723,
+          0.558
+        ],
+        "meanHSV": [
+          86.42,
+          0.2278,
+          0.7232
+        ],
+        "luminanceVariance": 0.00137,
+        "edgeDensity": 0.0903,
+        "glintFraction": 0
+      },
+      "slabRegion": {
+        "pixelCount": 504277,
+        "meanRGB": [
+          0.726,
+          0.603,
+          0.354
+        ],
+        "meanHSV": [
+          40.2,
+          0.5132,
+          0.7264
+        ]
+      },
+      "fogRegion": {
+        "pixelCount": 93460,
+        "meanRGB": [
+          0.688,
+          0.72,
+          0.597
+        ],
+        "meanHSV": [
+          75.58,
+          0.1707,
+          0.7199
+        ]
+      },
+      "floorGroutEdgeRatio": 0.6037,
+      "vignetteGradient": 0.0182,
+      "grainNoise": 0.0029
+    },
+    "natatorium_water_calm_axial": {
+      "pairedFrameId": "f_007",
+      "timestamp": "t=13s",
+      "whatToLookAt": "calm_axial_water_swell_and_minimal_foam",
+      "isJumpScare": false,
+      "luminanceMean": 0.6496,
+      "luminanceStdDev": 0.1089,
+      "percentiles": {
+        "p5": 0.4971,
+        "p50": 0.67,
+        "p95": 0.8255,
+        "p99": 0.8658
+      },
+      "fractionPixelsBelow01": 0,
+      "horizonBlowoutFraction": 0.0001,
+      "saturationMean": 0.3338,
+      "sobelEdgeDensity": {
+        "scale1": 0.0223,
+        "scale2": 0.0527,
+        "scale4": 0.1009,
+        "tiledRegions": 0.0079
+      },
+      "waterRegion": {
+        "pixelCount": 332647,
+        "meanRGB": [
+          0.507,
+          0.614,
+          0.362
+        ],
+        "meanHSV": [
+          85.42,
+          0.4101,
+          0.6135
+        ],
+        "luminanceVariance": 0.00713,
+        "edgeDensity": 0.0212,
+        "glintFraction": 0
+      },
+      "slabRegion": {
+        "pixelCount": 164606,
+        "meanRGB": [
+          0.758,
+          0.695,
+          0.504
+        ],
+        "meanHSV": [
+          45.22,
+          0.3343,
+          0.7575
+        ]
+      },
+      "fogRegion": {
+        "pixelCount": 188332,
+        "meanRGB": [
+          0.757,
+          0.78,
+          0.68
+        ],
+        "meanHSV": [
+          73.8,
+          0.1277,
+          0.78
+        ]
+      },
+      "floorGroutEdgeRatio": 0.1567,
+      "vignetteGradient": 0.175,
+      "grainNoise": 0.0012
+    },
+    "natatorium_water_horizon": {
+      "pairedFrameId": "f_008",
+      "timestamp": "t=15s",
+      "whatToLookAt": "first_sighting_10_to_15m_and_pale_mint_horizon",
+      "isJumpScare": false,
+      "luminanceMean": 0.6281,
+      "luminanceStdDev": 0.1504,
+      "percentiles": {
+        "p5": 0.3161,
+        "p50": 0.6293,
+        "p95": 0.8406,
+        "p99": 0.8731
+      },
+      "fractionPixelsBelow01": 0,
+      "horizonBlowoutFraction": 0.0005,
+      "saturationMean": 0.4054,
+      "sobelEdgeDensity": {
+        "scale1": 0.129,
+        "scale2": 0.2003,
+        "scale4": 0.299,
+        "tiledRegions": 0.1816
+      },
+      "waterRegion": {
+        "pixelCount": 222726,
+        "meanRGB": [
+          0.506,
+          0.619,
+          0.379
+        ],
+        "meanHSV": [
+          88.17,
+          0.3881,
+          0.6187
+        ],
+        "luminanceVariance": 0.01087,
+        "edgeDensity": 0.1226,
+        "glintFraction": 0
+      },
+      "slabRegion": {
+        "pixelCount": 261759,
+        "meanRGB": [
+          0.756,
+          0.633,
+          0.389
+        ],
+        "meanHSV": [
+          39.87,
+          0.4861,
+          0.7563
+        ]
+      },
+      "fogRegion": {
+        "pixelCount": 155715,
+        "meanRGB": [
+          0.787,
+          0.817,
+          0.733
+        ],
+        "meanHSV": [
+          81.52,
+          0.1022,
+          0.8165
+        ]
+      },
+      "floorGroutEdgeRatio": 0.935,
+      "vignetteGradient": 0,
+      "grainNoise": 0.0018
+    },
+    "natatorium_water_calm_grazing": {
+      "pairedFrameId": "f_009",
+      "timestamp": "t=17s",
+      "whatToLookAt": "midhall_water_colour_and_specular_streaks",
+      "isJumpScare": false,
+      "luminanceMean": 0.6334,
+      "luminanceStdDev": 0.1511,
+      "percentiles": {
+        "p5": 0.3177,
+        "p50": 0.636,
+        "p95": 0.8451,
+        "p99": 0.8759
+      },
+      "fractionPixelsBelow01": 0,
+      "horizonBlowoutFraction": 0.0003,
+      "saturationMean": 0.3988,
+      "sobelEdgeDensity": {
+        "scale1": 0.1452,
+        "scale2": 0.2299,
+        "scale4": 0.365,
+        "tiledRegions": 0.2096
+      },
+      "waterRegion": {
+        "pixelCount": 191199,
+        "meanRGB": [
+          0.515,
+          0.631,
+          0.401
+        ],
+        "meanHSV": [
+          90.42,
+          0.364,
+          0.631
+        ],
+        "luminanceVariance": 0.01188,
+        "edgeDensity": 0.1379,
+        "glintFraction": 0
+      },
+      "slabRegion": {
+        "pixelCount": 262862,
+        "meanRGB": [
+          0.751,
+          0.623,
+          0.379
+        ],
+        "meanHSV": [
+          39.3,
+          0.4946,
+          0.7507
+        ]
+      },
+      "fogRegion": {
+        "pixelCount": 171843,
+        "meanRGB": [
+          0.79,
+          0.817,
+          0.73
+        ],
+        "meanHSV": [
+          78.68,
+          0.1059,
+          0.8168
+        ]
+      },
+      "floorGroutEdgeRatio": 0.9702,
+      "vignetteGradient": 0,
+      "grainNoise": 0.0024
+    },
+    "natatorium_monster_25m": {
+      "pairedFrameId": "f_010",
+      "timestamp": "t=19s",
+      "whatToLookAt": "hunched_creature_silhouette_and_dark_ink_splashes",
+      "isJumpScare": false,
+      "luminanceMean": 0.6518,
+      "luminanceStdDev": 0.1405,
+      "percentiles": {
+        "p5": 0.4596,
+        "p50": 0.6132,
+        "p95": 0.8776,
+        "p99": 0.914
+      },
+      "fractionPixelsBelow01": 0,
+      "horizonBlowoutFraction": 0.0208,
+      "saturationMean": 0.3775,
+      "sobelEdgeDensity": {
+        "scale1": 0.1652,
+        "scale2": 0.2606,
+        "scale4": 0.4096,
+        "tiledRegions": 0.2416
+      },
+      "waterRegion": {
+        "pixelCount": 197752,
+        "meanRGB": [
+          0.53,
+          0.634,
+          0.43
+        ],
+        "meanHSV": [
+          90.5,
+          0.3222,
+          0.634
+        ],
+        "luminanceVariance": 0.00833,
+        "edgeDensity": 0.1569,
+        "glintFraction": 0
+      },
+      "slabRegion": {
+        "pixelCount": 246459,
+        "meanRGB": [
+          0.75,
+          0.583,
+          0.326
+        ],
+        "meanHSV": [
+          36.39,
+          0.5654,
+          0.7499
+        ]
+      },
+      "fogRegion": {
+        "pixelCount": 228527,
+        "meanRGB": [
+          0.789,
+          0.826,
+          0.748
+        ],
+        "meanHSV": [
+          88.02,
+          0.0944,
+          0.8256
+        ]
+      },
+      "floorGroutEdgeRatio": 0.9944,
+      "vignetteGradient": 0,
+      "grainNoise": 0.0033
+    },
+    "natatorium_monster_25m_portrait": {
+      "pairedFrameId": "f_011",
+      "timestamp": "t=21s",
+      "whatToLookAt": "mid_distance_wading_wake_and_foreground_slab_grid",
+      "isJumpScare": false,
+      "luminanceMean": 0.6081,
+      "luminanceStdDev": 0.1467,
+      "percentiles": {
+        "p5": 0.407,
+        "p50": 0.5853,
+        "p95": 0.8957,
+        "p99": 1
+      },
+      "fractionPixelsBelow01": 0,
+      "horizonBlowoutFraction": 0.0489,
+      "saturationMean": 0.4539,
+      "sobelEdgeDensity": {
+        "scale1": 0.2012,
+        "scale2": 0.302,
+        "scale4": 0.411,
+        "tiledRegions": 0.1177
+      },
+      "waterRegion": {
+        "pixelCount": 0,
+        "meanRGB": [
+          0.404,
+          0.561,
+          0.267
+        ],
+        "meanHSV": [
+          92.04,
+          0.5241,
+          0.561
+        ],
+        "luminanceVariance": 0.012,
+        "edgeDensity": 0.1912,
+        "glintFraction": 0.001
+      },
+      "slabRegion": {
+        "pixelCount": 581188,
+        "meanRGB": [
+          0.682,
+          0.595,
+          0.37
+        ],
+        "meanHSV": [
+          43.27,
+          0.4571,
+          0.6823
+        ]
+      },
+      "fogRegion": {
+        "pixelCount": 51963,
+        "meanRGB": [
+          0.942,
+          0.923,
+          0.886
+        ],
+        "meanHSV": [
+          39.67,
+          0.0594,
+          0.9422
+        ]
+      },
+      "floorGroutEdgeRatio": 0.4036,
+      "vignetteGradient": 0,
+      "grainNoise": 0.0049
+    },
+    "natatorium_water_monster_wake": {
+      "pairedFrameId": "f_012",
+      "timestamp": "t=23s",
+      "whatToLookAt": "monster_hand_and_foot_ink_splashes_in_green_water",
+      "isJumpScare": false,
+      "luminanceMean": 0.6741,
+      "luminanceStdDev": 0.0887,
+      "percentiles": {
+        "p5": 0.5322,
+        "p50": 0.6835,
+        "p95": 0.82,
+        "p99": 0.8623
+      },
+      "fractionPixelsBelow01": 0,
+      "horizonBlowoutFraction": 0,
+      "saturationMean": 0.3135,
+      "sobelEdgeDensity": {
+        "scale1": 0.0591,
+        "scale2": 0.096,
+        "scale4": 0.1609,
+        "tiledRegions": 0.0163
+      },
+      "waterRegion": {
+        "pixelCount": 11332,
+        "meanRGB": [
+          0.671,
+          0.721,
+          0.602
+        ],
+        "meanHSV": [
+          85.29,
+          0.165,
+          0.721
+        ],
+        "luminanceVariance": 0.00058,
+        "edgeDensity": 0.0562,
+        "glintFraction": 0
+      },
+      "slabRegion": {
+        "pixelCount": 530264,
+        "meanRGB": [
+          0.726,
+          0.67,
+          0.483
+        ],
+        "meanHSV": [
+          46.34,
+          0.3345,
+          0.7257
+        ]
+      },
+      "fogRegion": {
+        "pixelCount": 92995,
+        "meanRGB": [
+          0.776,
+          0.763,
+          0.64
+        ],
+        "meanHSV": [
+          54.16,
+          0.1761,
+          0.7764
+        ]
+      },
+      "floorGroutEdgeRatio": 0.1629,
+      "vignetteGradient": 0,
+      "grainNoise": 0.0017
+    },
+    "natatorium_pillar_numeral_8m": {
+      "pairedFrameId": "f_013",
+      "timestamp": "t=25s",
+      "whatToLookAt": "round_tiled_pillar_numeral_2_and_dry_plaster_wall",
+      "isJumpScare": false,
+      "luminanceMean": 0.5743,
+      "luminanceStdDev": 0.093,
+      "percentiles": {
+        "p5": 0.452,
+        "p50": 0.5737,
+        "p95": 0.7014,
+        "p99": 0.8137
+      },
+      "fractionPixelsBelow01": 0,
+      "horizonBlowoutFraction": 0,
+      "saturationMean": 0.4658,
+      "sobelEdgeDensity": {
+        "scale1": 0.089,
+        "scale2": 0.1764,
+        "scale4": 0.252,
+        "tiledRegions": 0.0048
+      },
+      "waterRegion": {
+        "pixelCount": 2908,
+        "meanRGB": [
+          0.704,
+          0.735,
+          0.631
+        ],
+        "meanHSV": [
+          77.67,
+          0.1416,
+          0.7349
+        ],
+        "luminanceVariance": 0.00065,
+        "edgeDensity": 0.0846,
+        "glintFraction": 0
+      },
+      "slabRegion": {
+        "pixelCount": 589869,
+        "meanRGB": [
+          0.651,
+          0.561,
+          0.334
+        ],
+        "meanHSV": [
+          43.09,
+          0.4871,
+          0.6507
+        ]
+      },
+      "fogRegion": {
+        "pixelCount": 0,
+        "meanRGB": [
+          0.839,
+          0.863,
+          0.804
+        ],
+        "meanHSV": [
+          84.41,
+          0.0684,
+          0.863
+        ]
+      },
+      "floorGroutEdgeRatio": 0.0345,
+      "vignetteGradient": 0.0226,
+      "grainNoise": 0.0043
+    },
+    "natatorium_pillar_numeral_8m_portrait": {
+      "pairedFrameId": "f_014",
+      "timestamp": "t=27s",
+      "whatToLookAt": "pillar_numeral_stencil_height_and_distance_tile_fade",
+      "isJumpScare": false,
+      "luminanceMean": 0.5593,
+      "luminanceStdDev": 0.112,
+      "percentiles": {
+        "p5": 0.4007,
+        "p50": 0.5727,
+        "p95": 0.7219,
+        "p99": 0.8754
+      },
+      "fractionPixelsBelow01": 0,
+      "horizonBlowoutFraction": 0.0003,
+      "saturationMean": 0.3531,
+      "sobelEdgeDensity": {
+        "scale1": 0.0184,
+        "scale2": 0.0638,
+        "scale4": 0.1308,
+        "tiledRegions": 0
+      },
+      "waterRegion": {
+        "pixelCount": 293206,
+        "meanRGB": [
+          0.417,
+          0.542,
+          0.362
+        ],
+        "meanHSV": [
+          101.42,
+          0.3328,
+          0.542
+        ],
+        "luminanceVariance": 0.01182,
+        "edgeDensity": 0.0175,
+        "glintFraction": 0
+      },
+      "slabRegion": {
+        "pixelCount": 212762,
+        "meanRGB": [
+          0.642,
+          0.569,
+          0.357
+        ],
+        "meanHSV": [
+          44.65,
+          0.4451,
+          0.6425
+        ]
+      },
+      "fogRegion": {
+        "pixelCount": 132821,
+        "meanRGB": [
+          0.675,
+          0.727,
+          0.611
+        ],
+        "meanHSV": [
+          87.14,
+          0.1595,
+          0.727
+        ]
+      },
+      "floorGroutEdgeRatio": 0.001,
+      "vignetteGradient": 0,
+      "grainNoise": 0.0017
+    },
+    "natatorium_arch_fog_25m": {
+      "pairedFrameId": "f_015",
+      "timestamp": "t=29s",
+      "whatToLookAt": "arch_opening_into_flooded_hall_pale_fog",
+      "isJumpScare": false,
+      "luminanceMean": 0.6043,
+      "luminanceStdDev": 0.1016,
+      "percentiles": {
+        "p5": 0.4333,
+        "p50": 0.619,
+        "p95": 0.7691,
+        "p99": 0.8328
+      },
+      "fractionPixelsBelow01": 0,
+      "horizonBlowoutFraction": 0,
+      "saturationMean": 0.3911,
+      "sobelEdgeDensity": {
+        "scale1": 0.0815,
+        "scale2": 0.0983,
+        "scale4": 0.161,
+        "tiledRegions": 0.0224
+      },
+      "waterRegion": {
+        "pixelCount": 44744,
+        "meanRGB": [
+          0.474,
+          0.564,
+          0.399
+        ],
+        "meanHSV": [
+          92.59,
+          0.2929,
+          0.5636
+        ],
+        "luminanceVariance": 0.01945,
+        "edgeDensity": 0.0774,
+        "glintFraction": 0
+      },
+      "slabRegion": {
+        "pixelCount": 530710,
+        "meanRGB": [
+          0.669,
+          0.586,
+          0.384
+        ],
+        "meanHSV": [
+          42.5,
+          0.4257,
+          0.6695
+        ]
+      },
+      "fogRegion": {
+        "pixelCount": 51514,
+        "meanRGB": [
+          0.742,
+          0.748,
+          0.628
+        ],
+        "meanHSV": [
+          63.05,
+          0.1602,
+          0.7481
+        ]
+      },
+      "floorGroutEdgeRatio": 0.1725,
+      "vignetteGradient": 0,
+      "grainNoise": 0.0042
+    },
+    "natatorium_close_tile_wall_portrait": {
+      "pairedFrameId": "f_016",
+      "timestamp": "t=31s",
+      "whatToLookAt": "tiled_wall_corner_marker_1_and_grout_lines",
+      "isJumpScare": false,
+      "luminanceMean": 0.584,
+      "luminanceStdDev": 0.1314,
+      "percentiles": {
+        "p5": 0.3686,
+        "p50": 0.5875,
+        "p95": 0.8351,
+        "p99": 0.8612
+      },
+      "fractionPixelsBelow01": 0,
+      "horizonBlowoutFraction": 0,
+      "saturationMean": 0.4408,
+      "sobelEdgeDensity": {
+        "scale1": 0.0576,
+        "scale2": 0.0939,
+        "scale4": 0.1408,
+        "tiledRegions": 0.006
+      },
+      "waterRegion": {
+        "pixelCount": 203840,
+        "meanRGB": [
+          0.413,
+          0.527,
+          0.29
+        ],
+        "meanHSV": [
+          88.83,
+          0.4502,
+          0.5267
+        ],
+        "luminanceVariance": 0.00751,
+        "edgeDensity": 0.0547,
+        "glintFraction": 0
+      },
+      "slabRegion": {
+        "pixelCount": 405781,
+        "meanRGB": [
+          0.712,
+          0.623,
+          0.404
+        ],
+        "meanHSV": [
+          42.62,
+          0.4328,
+          0.712
+        ]
+      },
+      "fogRegion": {
+        "pixelCount": 43924,
+        "meanRGB": [
+          0.88,
+          0.846,
+          0.727
+        ],
+        "meanHSV": [
+          46.64,
+          0.1744,
+          0.8801
+        ]
+      },
+      "floorGroutEdgeRatio": 0.0615,
+      "vignetteGradient": 0,
+      "grainNoise": 0.0013
+    },
+    "natatorium_arch_fog_25m_portrait": {
+      "pairedFrameId": "f_017",
+      "timestamp": "t=33s",
+      "whatToLookAt": "camera_turn_transition_from_tiled_corner_to_pool",
+      "isJumpScare": false,
+      "luminanceMean": 0.5764,
+      "luminanceStdDev": 0.1649,
+      "percentiles": {
+        "p5": 0.2203,
+        "p50": 0.5947,
+        "p95": 0.8195,
+        "p99": 0.8636
+      },
+      "fractionPixelsBelow01": 0,
+      "horizonBlowoutFraction": 0,
+      "saturationMean": 0.3464,
+      "sobelEdgeDensity": {
+        "scale1": 0.1023,
+        "scale2": 0.1927,
+        "scale4": 0.3205,
+        "tiledRegions": 0.0682
+      },
+      "waterRegion": {
+        "pixelCount": 386504,
+        "meanRGB": [
+          0.494,
+          0.613,
+          0.403
+        ],
+        "meanHSV": [
+          94.01,
+          0.3436,
+          0.6134
+        ],
+        "luminanceVariance": 0.00821,
+        "edgeDensity": 0.0971,
+        "glintFraction": 0
+      },
+      "slabRegion": {
+        "pixelCount": 145401,
+        "meanRGB": [
+          0.645,
+          0.584,
+          0.414
+        ],
+        "meanHSV": [
+          44.2,
+          0.3576,
+          0.6445
+        ]
+      },
+      "fogRegion": {
+        "pixelCount": 108783,
+        "meanRGB": [
+          0.776,
+          0.803,
+          0.707
+        ],
+        "meanHSV": [
+          76.66,
+          0.1196,
+          0.803
+        ]
+      },
+      "floorGroutEdgeRatio": 0.4315,
+      "vignetteGradient": 0,
+      "grainNoise": 0.0029
+    },
+    "creature_close_6m": {
+      "pairedFrameId": "f_018",
+      "timestamp": "t=35s",
+      "whatToLookAt": "pitted_pod_head_mottled_hide_and_shallow_cracked_floor",
+      "isJumpScare": false,
+      "luminanceMean": 0.6391,
+      "luminanceStdDev": 0.1487,
+      "percentiles": {
+        "p5": 0.3024,
+        "p50": 0.6535,
+        "p95": 0.8524,
+        "p99": 0.8916
+      },
+      "fractionPixelsBelow01": 0,
+      "horizonBlowoutFraction": 0.0031,
+      "saturationMean": 0.312,
+      "sobelEdgeDensity": {
+        "scale1": 0.1057,
+        "scale2": 0.1834,
+        "scale4": 0.3051,
+        "tiledRegions": 0.0652
+      },
+      "waterRegion": {
+        "pixelCount": 398730,
+        "meanRGB": [
+          0.539,
+          0.663,
+          0.446
+        ],
+        "meanHSV": [
+          94.2,
+          0.3267,
+          0.6626
+        ],
+        "luminanceVariance": 0.00683,
+        "edgeDensity": 0.1004,
+        "glintFraction": 0
+      },
+      "slabRegion": {
+        "pixelCount": 130421,
+        "meanRGB": [
+          0.685,
+          0.625,
+          0.455
+        ],
+        "meanHSV": [
+          44.34,
+          0.3362,
+          0.685
+        ]
+      },
+      "fogRegion": {
+        "pixelCount": 136424,
+        "meanRGB": [
+          0.801,
+          0.824,
+          0.734
+        ],
+        "meanHSV": [
+          75.37,
+          0.1096,
+          0.8239
+        ]
+      },
+      "floorGroutEdgeRatio": 0.401,
+      "vignetteGradient": 0,
+      "grainNoise": 0.0028
+    },
+    "natatorium_floor_through_water": {
+      "pairedFrameId": "f_019",
+      "timestamp": "t=37s",
+      "whatToLookAt": "cracked_submerged_floor_tiles_and_white_foot_foam",
+      "isJumpScare": false,
+      "luminanceMean": 0.7089,
+      "luminanceStdDev": 0.1521,
+      "percentiles": {
+        "p5": 0.4281,
+        "p50": 0.7584,
+        "p95": 0.8815,
+        "p99": 0.8994
+      },
+      "fractionPixelsBelow01": 0,
+      "horizonBlowoutFraction": 0.0094,
+      "saturationMean": 0.2164,
+      "sobelEdgeDensity": {
+        "scale1": 0.041,
+        "scale2": 0.0924,
+        "scale4": 0.1658,
+        "tiledRegions": 0.0303
+      },
+      "waterRegion": {
+        "pixelCount": 237337,
+        "meanRGB": [
+          0.479,
+          0.613,
+          0.405
+        ],
+        "meanHSV": [
+          98.79,
+          0.3391,
+          0.6131
+        ],
+        "luminanceVariance": 0.00991,
+        "edgeDensity": 0.039,
+        "glintFraction": 0
+      },
+      "slabRegion": {
+        "pixelCount": 74308,
+        "meanRGB": [
+          0.727,
+          0.685,
+          0.53
+        ],
+        "meanHSV": [
+          47.32,
+          0.2703,
+          0.7265
+        ]
+      },
+      "fogRegion": {
+        "pixelCount": 343180,
+        "meanRGB": [
+          0.831,
+          0.832,
+          0.751
+        ],
+        "meanHSV": [
+          60.39,
+          0.0969,
+          0.8318
+        ]
+      },
+      "floorGroutEdgeRatio": 0.4018,
+      "vignetteGradient": 0.099,
+      "grainNoise": 0.0013
+    },
+    "natatorium_floor_through_water_portrait": {
+      "pairedFrameId": "f_020",
+      "timestamp": "t=39s",
+      "whatToLookAt": "close_forearms_splayed_claws_and_ink_splashes",
+      "isJumpScare": false,
+      "luminanceMean": 0.695,
+      "luminanceStdDev": 0.1261,
+      "percentiles": {
+        "p5": 0.4967,
+        "p50": 0.6768,
+        "p95": 0.8731,
+        "p99": 0.8955
+      },
+      "fractionPixelsBelow01": 0,
+      "horizonBlowoutFraction": 0.0064,
+      "saturationMean": 0.2319,
+      "sobelEdgeDensity": {
+        "scale1": 0.05,
+        "scale2": 0.0969,
+        "scale4": 0.1694,
+        "tiledRegions": 0.019
+      },
+      "waterRegion": {
+        "pixelCount": 308985,
+        "meanRGB": [
+          0.502,
+          0.631,
+          0.425
+        ],
+        "meanHSV": [
+          97.61,
+          0.3265,
+          0.6315
+        ],
+        "luminanceVariance": 0.00507,
+        "edgeDensity": 0.0475,
+        "glintFraction": 0
+      },
+      "slabRegion": {
+        "pixelCount": 71162,
+        "meanRGB": [
+          0.717,
+          0.679,
+          0.515
+        ],
+        "meanHSV": [
+          48.59,
+          0.2813,
+          0.7169
+        ]
+      },
+      "fogRegion": {
+        "pixelCount": 302547,
+        "meanRGB": [
+          0.811,
+          0.822,
+          0.737
+        ],
+        "meanHSV": [
+          68.09,
+          0.1035,
+          0.8224
+        ]
+      },
+      "floorGroutEdgeRatio": 0.2173,
+      "vignetteGradient": 0.0154,
+      "grainNoise": 0.0017
+    },
+    "natatorium_slab_edge": {
+      "pairedFrameId": "f_021",
+      "timestamp": "t=41s",
+      "whatToLookAt": "slab_edge_bullnose_tile_pitch_and_creature_at_8_to_20m",
+      "isJumpScare": false,
+      "luminanceMean": 0.6927,
+      "luminanceStdDev": 0.1463,
+      "percentiles": {
+        "p5": 0.43,
+        "p50": 0.6858,
+        "p95": 0.8989,
+        "p99": 0.9252
+      },
+      "fractionPixelsBelow01": 0,
+      "horizonBlowoutFraction": 0.0456,
+      "saturationMean": 0.2155,
+      "sobelEdgeDensity": {
+        "scale1": 0.0316,
+        "scale2": 0.0552,
+        "scale4": 0.1141,
+        "tiledRegions": 0.0276
+      },
+      "waterRegion": {
+        "pixelCount": 145057,
+        "meanRGB": [
+          0.502,
+          0.611,
+          0.464
+        ],
+        "meanHSV": [
+          104.34,
+          0.2408,
+          0.6111
+        ],
+        "luminanceVariance": 0.01073,
+        "edgeDensity": 0.03,
+        "glintFraction": 0
+      },
+      "slabRegion": {
+        "pixelCount": 227102,
+        "meanRGB": [
+          0.655,
+          0.603,
+          0.429
+        ],
+        "meanHSV": [
+          46.37,
+          0.3443,
+          0.6546
+        ]
+      },
+      "fogRegion": {
+        "pixelCount": 339492,
+        "meanRGB": [
+          0.789,
+          0.819,
+          0.747
+        ],
+        "meanHSV": [
+          85.21,
+          0.088,
+          0.8194
+        ]
+      },
+      "floorGroutEdgeRatio": 0.4406,
+      "vignetteGradient": 0.1315,
+      "grainNoise": 0.0016
+    },
+    "natatorium_water_slab_edge": {
+      "pairedFrameId": "f_022",
+      "timestamp": "t=43s",
+      "whatToLookAt": "wet_band_along_slab_edge_and_soft_swell_lines",
+      "isJumpScare": false,
+      "luminanceMean": 0.668,
+      "luminanceStdDev": 0.1088,
+      "percentiles": {
+        "p5": 0.4995,
+        "p50": 0.6633,
+        "p95": 0.8439,
+        "p99": 0.8731
+      },
+      "fractionPixelsBelow01": 0,
+      "horizonBlowoutFraction": 0.0004,
+      "saturationMean": 0.2308,
+      "sobelEdgeDensity": {
+        "scale1": 0.0595,
+        "scale2": 0.0953,
+        "scale4": 0.1525,
+        "tiledRegions": 0.0606
+      },
+      "waterRegion": {
+        "pixelCount": 289742,
+        "meanRGB": [
+          0.527,
+          0.658,
+          0.495
+        ],
+        "meanHSV": [
+          108.4,
+          0.248,
+          0.6582
+        ],
+        "luminanceVariance": 0.00747,
+        "edgeDensity": 0.0565,
+        "glintFraction": 0
+      },
+      "slabRegion": {
+        "pixelCount": 130346,
+        "meanRGB": [
+          0.643,
+          0.595,
+          0.415
+        ],
+        "meanHSV": [
+          47.32,
+          0.3547,
+          0.643
+        ]
+      },
+      "fogRegion": {
+        "pixelCount": 317738,
+        "meanRGB": [
+          0.744,
+          0.775,
+          0.675
+        ],
+        "meanHSV": [
+          78.68,
+          0.1292,
+          0.7755
+        ]
+      },
+      "floorGroutEdgeRatio": 0.6039,
+      "vignetteGradient": 0.1326,
+      "grainNoise": 0.0015
+    },
+    "creature_mid_15m": {
+      "pairedFrameId": "f_023",
+      "timestamp": "t=45s",
+      "whatToLookAt": "creature_stalking_at_15m_beside_slab",
+      "isJumpScare": false,
+      "luminanceMean": 0.6645,
+      "luminanceStdDev": 0.1616,
+      "percentiles": {
+        "p5": 0.3082,
+        "p50": 0.7065,
+        "p95": 0.853,
+        "p99": 0.8888
+      },
+      "fractionPixelsBelow01": 0,
+      "horizonBlowoutFraction": 0.0036,
+      "saturationMean": 0.2608,
+      "sobelEdgeDensity": {
+        "scale1": 0.1418,
+        "scale2": 0.2164,
+        "scale4": 0.3376,
+        "tiledRegions": 0.2014
+      },
+      "waterRegion": {
+        "pixelCount": 222354,
+        "meanRGB": [
+          0.504,
+          0.643,
+          0.476
+        ],
+        "meanHSV": [
+          110.03,
+          0.2595,
+          0.643
+        ],
+        "luminanceVariance": 0.01243,
+        "edgeDensity": 0.1347,
+        "glintFraction": 0
+      },
+      "slabRegion": {
+        "pixelCount": 233313,
+        "meanRGB": [
+          0.729,
+          0.678,
+          0.502
+        ],
+        "meanHSV": [
+          46.34,
+          0.3113,
+          0.7294
+        ]
+      },
+      "fogRegion": {
+        "pixelCount": 261647,
+        "meanRGB": [
+          0.757,
+          0.796,
+          0.698
+        ],
+        "meanHSV": [
+          83.6,
+          0.1232,
+          0.7958
+        ]
+      },
+      "floorGroutEdgeRatio": 0.9527,
+      "vignetteGradient": 0,
+      "grainNoise": 0.0023
+    },
+    "natatorium_water_wake": {
+      "pairedFrameId": "f_024",
+      "timestamp": "t=47s",
+      "whatToLookAt": "wading_swell_lines_and_submerged_floor_cracks",
+      "isJumpScare": false,
+      "luminanceMean": 0.6712,
+      "luminanceStdDev": 0.1673,
+      "percentiles": {
+        "p5": 0.2355,
+        "p50": 0.7108,
+        "p95": 0.8602,
+        "p99": 0.8894
+      },
+      "fractionPixelsBelow01": 0,
+      "horizonBlowoutFraction": 0.0041,
+      "saturationMean": 0.2589,
+      "sobelEdgeDensity": {
+        "scale1": 0.1275,
+        "scale2": 0.1963,
+        "scale4": 0.3006,
+        "tiledRegions": 0.2034
+      },
+      "waterRegion": {
+        "pixelCount": 216372,
+        "meanRGB": [
+          0.527,
+          0.671,
+          0.507
+        ],
+        "meanHSV": [
+          112.83,
+          0.2439,
+          0.671
+        ],
+        "luminanceVariance": 0.00887,
+        "edgeDensity": 0.1211,
+        "glintFraction": 0
+      },
+      "slabRegion": {
+        "pixelCount": 228528,
+        "meanRGB": [
+          0.736,
+          0.683,
+          0.508
+        ],
+        "meanHSV": [
+          46.02,
+          0.3099,
+          0.7363
+        ]
+      },
+      "fogRegion": {
+        "pixelCount": 265010,
+        "meanRGB": [
+          0.755,
+          0.798,
+          0.702
+        ],
+        "meanHSV": [
+          87.12,
+          0.1203,
+          0.7984
+        ]
+      },
+      "floorGroutEdgeRatio": 1,
+      "vignetteGradient": 0,
+      "grainNoise": 0.0019
+    },
+    "natatorium_horizon_long": {
+      "pairedFrameId": "f_025",
+      "timestamp": "t=49s",
+      "whatToLookAt": "water_dissolving_into_dense_fog_with_no_hard_horizon_edge",
+      "isJumpScare": false,
+      "luminanceMean": 0.6615,
+      "luminanceStdDev": 0.1607,
+      "percentiles": {
+        "p5": 0.4283,
+        "p50": 0.6224,
+        "p95": 0.8933,
+        "p99": 0.9185
+      },
+      "fractionPixelsBelow01": 0,
+      "horizonBlowoutFraction": 0.0336,
+      "saturationMean": 0.2662,
+      "sobelEdgeDensity": {
+        "scale1": 0.0896,
+        "scale2": 0.1537,
+        "scale4": 0.2182,
+        "tiledRegions": 0.0689
+      },
+      "waterRegion": {
+        "pixelCount": 68659,
+        "meanRGB": [
+          0.664,
+          0.732,
+          0.619
+        ],
+        "meanHSV": [
+          96.11,
+          0.1548,
+          0.732
+        ],
+        "luminanceVariance": 0.00246,
+        "edgeDensity": 0.0852,
+        "glintFraction": 0
+      },
+      "slabRegion": {
+        "pixelCount": 323414,
+        "meanRGB": [
+          0.58,
+          0.514,
+          0.326
+        ],
+        "meanHSV": [
+          44.38,
+          0.4389,
+          0.5803
+        ]
+      },
+      "fogRegion": {
+        "pixelCount": 325969,
+        "meanRGB": [
+          0.785,
+          0.822,
+          0.751
+        ],
+        "meanHSV": [
+          91.51,
+          0.0867,
+          0.8221
+        ]
+      },
+      "floorGroutEdgeRatio": 0.4888,
+      "vignetteGradient": 0,
+      "grainNoise": 0.0029
+    },
+    "natatorium_horizon_long_portrait": {
+      "pairedFrameId": "f_026",
+      "timestamp": "t=51s",
+      "whatToLookAt": "vertical_fog_falloff_and_calm_darker_green_water",
+      "isJumpScare": false,
+      "luminanceMean": 0.5607,
+      "luminanceStdDev": 0.1972,
+      "percentiles": {
+        "p5": 0.2873,
+        "p50": 0.5346,
+        "p95": 0.8771,
+        "p99": 0.8972
+      },
+      "fractionPixelsBelow01": 0,
+      "horizonBlowoutFraction": 0.004,
+      "saturationMean": 0.3165,
+      "sobelEdgeDensity": {
+        "scale1": 0.0088,
+        "scale2": 0.0174,
+        "scale4": 0.0407,
+        "tiledRegions": 0.0037
+      },
+      "waterRegion": {
+        "pixelCount": 163175,
+        "meanRGB": [
+          0.373,
+          0.477,
+          0.31
+        ],
+        "meanHSV": [
+          97.28,
+          0.3493,
+          0.4769
+        ],
+        "luminanceVariance": 0.02696,
+        "edgeDensity": 0.0084,
+        "glintFraction": 0
+      },
+      "slabRegion": {
+        "pixelCount": 220285,
+        "meanRGB": [
+          0.485,
+          0.43,
+          0.261
+        ],
+        "meanHSV": [
+          45.28,
+          0.4619,
+          0.4854
+        ]
+      },
+      "fogRegion": {
+        "pixelCount": 250201,
+        "meanRGB": [
+          0.76,
+          0.793,
+          0.715
+        ],
+        "meanHSV": [
+          85.39,
+          0.0983,
+          0.7926
+        ]
+      },
+      "floorGroutEdgeRatio": 0.1166,
+      "vignetteGradient": 0,
+      "grainNoise": 0.0011
+    },
+    "creature_far_35m": {
+      "pairedFrameId": "f_027",
+      "timestamp": "t=53s",
+      "whatToLookAt": "creature_dark_silhouette_at_15_to_30m_in_dense_mist",
+      "isJumpScare": false,
+      "luminanceMean": 0.628,
+      "luminanceStdDev": 0.1562,
+      "percentiles": {
+        "p5": 0.3667,
+        "p50": 0.6342,
+        "p95": 0.821,
+        "p99": 0.8378
+      },
+      "fractionPixelsBelow01": 0,
+      "horizonBlowoutFraction": 0,
+      "saturationMean": 0.2275,
+      "sobelEdgeDensity": {
+        "scale1": 0.0036,
+        "scale2": 0.0118,
+        "scale4": 0.0594,
+        "tiledRegions": 0
+      },
+      "waterRegion": {
+        "pixelCount": 448920,
+        "meanRGB": [
+          0.464,
+          0.588,
+          0.431
+        ],
+        "meanHSV": [
+          107.44,
+          0.2668,
+          0.5878
+        ],
+        "luminanceVariance": 0.01605,
+        "edgeDensity": 0.0034,
+        "glintFraction": 0
+      },
+      "slabRegion": {
+        "pixelCount": 0,
+        "meanRGB": [
+          0.761,
+          0.604,
+          0.337
+        ],
+        "meanHSV": [
+          37.78,
+          0.5572,
+          0.761
+        ]
+      },
+      "fogRegion": {
+        "pixelCount": 340038,
+        "meanRGB": [
+          0.727,
+          0.779,
+          0.689
+        ],
+        "meanHSV": [
+          94.67,
+          0.116,
+          0.7795
+        ]
+      },
+      "floorGroutEdgeRatio": 0,
+      "vignetteGradient": 0.0827,
+      "grainNoise": 0.0006
+    },
+    "natatorium_water_drip_ring": {
+      "pairedFrameId": "f_028",
+      "timestamp": "t=55s",
+      "whatToLookAt": "surface_mist_and_concentric_water_ripple_rings",
+      "isJumpScare": false,
+      "luminanceMean": 0.6092,
+      "luminanceStdDev": 0.1806,
+      "percentiles": {
+        "p5": 0.3023,
+        "p50": 0.6862,
+        "p95": 0.8171,
+        "p99": 0.8513
+      },
+      "fractionPixelsBelow01": 0,
+      "horizonBlowoutFraction": 0,
+      "saturationMean": 0.2495,
+      "sobelEdgeDensity": {
+        "scale1": 0.0236,
+        "scale2": 0.0606,
+        "scale4": 0.128,
+        "tiledRegions": 0.0246
+      },
+      "waterRegion": {
+        "pixelCount": 405164,
+        "meanRGB": [
+          0.467,
+          0.563,
+          0.415
+        ],
+        "meanHSV": [
+          98.85,
+          0.2635,
+          0.5632
+        ],
+        "luminanceVariance": 0.03109,
+        "edgeDensity": 0.0224,
+        "glintFraction": 0
+      },
+      "slabRegion": {
+        "pixelCount": 23506,
+        "meanRGB": [
+          0.582,
+          0.517,
+          0.333
+        ],
+        "meanHSV": [
+          44.29,
+          0.428,
+          0.5824
+        ]
+      },
+      "fogRegion": {
+        "pixelCount": 360402,
+        "meanRGB": [
+          0.728,
+          0.765,
+          0.668
+        ],
+        "meanHSV": [
+          82.71,
+          0.1264,
+          0.7651
+        ]
+      },
+      "floorGroutEdgeRatio": 0.4743,
+      "vignetteGradient": 0.2556,
+      "grainNoise": 0.001
+    },
+    "classic_archipelago_hero": {
+      "pairedFrameId": "f_029",
+      "timestamp": "t=57s",
+      "whatToLookAt": "dense_fog_sky_t57_and_water_dense_t57_palette_match",
+      "isJumpScare": false,
+      "luminanceMean": 0.6099,
+      "luminanceStdDev": 0.182,
+      "percentiles": {
+        "p5": 0.3015,
+        "p50": 0.6873,
+        "p95": 0.8232,
+        "p99": 0.8518
+      },
+      "fractionPixelsBelow01": 0,
+      "horizonBlowoutFraction": 0,
+      "saturationMean": 0.2476,
+      "sobelEdgeDensity": {
+        "scale1": 0.0203,
+        "scale2": 0.0528,
+        "scale4": 0.1169,
+        "tiledRegions": 0.0256
+      },
+      "waterRegion": {
+        "pixelCount": 406367,
+        "meanRGB": [
+          0.467,
+          0.563,
+          0.416
+        ],
+        "meanHSV": [
+          99.4,
+          0.2611,
+          0.5632
+        ],
+        "luminanceVariance": 0.03098,
+        "edgeDensity": 0.0193,
+        "glintFraction": 0
+      },
+      "slabRegion": {
+        "pixelCount": 24606,
+        "meanRGB": [
+          0.584,
+          0.519,
+          0.337
+        ],
+        "meanHSV": [
+          44.1,
+          0.423,
+          0.5842
+        ]
+      },
+      "fogRegion": {
+        "pixelCount": 360322,
+        "meanRGB": [
+          0.731,
+          0.768,
+          0.672
+        ],
+        "meanHSV": [
+          83.01,
+          0.1252,
+          0.768
+        ]
+      },
+      "floorGroutEdgeRatio": 0.5396,
+      "vignetteGradient": 0.2535,
+      "grainNoise": 0.0009
+    },
+    "natatorium_water_splash_01": {
+      "pairedFrameId": "f_030",
+      "timestamp": "t=59s",
+      "whatToLookAt": "crown_splash_eruption_in_olive_green_water",
+      "isJumpScare": false,
+      "luminanceMean": 0.6112,
+      "luminanceStdDev": 0.1809,
+      "percentiles": {
+        "p5": 0.302,
+        "p50": 0.6873,
+        "p95": 0.8213,
+        "p99": 0.8518
+      },
+      "fractionPixelsBelow01": 0,
+      "horizonBlowoutFraction": 0,
+      "saturationMean": 0.2448,
+      "sobelEdgeDensity": {
+        "scale1": 0.0203,
+        "scale2": 0.0535,
+        "scale4": 0.119,
+        "tiledRegions": 0.0246
+      },
+      "waterRegion": {
+        "pixelCount": 408277,
+        "meanRGB": [
+          0.47,
+          0.565,
+          0.419
+        ],
+        "meanHSV": [
+          99.13,
+          0.2577,
+          0.5651
+        ],
+        "luminanceVariance": 0.03063,
+        "edgeDensity": 0.0193,
+        "glintFraction": 0
+      },
+      "slabRegion": {
+        "pixelCount": 23683,
+        "meanRGB": [
+          0.585,
+          0.519,
+          0.339
+        ],
+        "meanHSV": [
+          43.93,
+          0.4208,
+          0.5845
+        ]
+      },
+      "fogRegion": {
+        "pixelCount": 360339,
+        "meanRGB": [
+          0.731,
+          0.768,
+          0.672
+        ],
+        "meanHSV": [
+          82.85,
+          0.1251,
+          0.768
+        ]
+      },
+      "floorGroutEdgeRatio": 0.518,
+      "vignetteGradient": 0.2556,
+      "grainNoise": 0.0009
+    },
+    "natatorium_water_splash_05": {
+      "pairedFrameId": "f_031",
+      "timestamp": "t=61s",
+      "whatToLookAt": "dispersing_splash_droplets_and_expanding_ring",
+      "isJumpScare": false,
+      "luminanceMean": 0.6263,
+      "luminanceStdDev": 0.1091,
+      "percentiles": {
+        "p5": 0.3729,
+        "p50": 0.6637,
+        "p95": 0.7418,
+        "p99": 0.7622
+      },
+      "fractionPixelsBelow01": 0,
+      "horizonBlowoutFraction": 0,
+      "saturationMean": 0.3029,
+      "sobelEdgeDensity": {
+        "scale1": 0.0241,
+        "scale2": 0.0579,
+        "scale4": 0.1273,
+        "tiledRegions": 0.0149
+      },
+      "waterRegion": {
+        "pixelCount": 185943,
+        "meanRGB": [
+          0.472,
+          0.585,
+          0.414
+        ],
+        "meanHSV": [
+          99.7,
+          0.2921,
+          0.5846
+        ],
+        "luminanceVariance": 0.02131,
+        "edgeDensity": 0.0229,
+        "glintFraction": 0
+      },
+      "slabRegion": {
+        "pixelCount": 360811,
+        "meanRGB": [
+          0.702,
+          0.656,
+          0.48
+        ],
+        "meanHSV": [
+          47.63,
+          0.3155,
+          0.7018
+        ]
+      },
+      "fogRegion": {
+        "pixelCount": 148379,
+        "meanRGB": [
+          0.683,
+          0.724,
+          0.595
+        ],
+        "meanHSV": [
+          78.95,
+          0.1774,
+          0.7236
+        ]
+      },
+      "floorGroutEdgeRatio": 0.2838,
+      "vignetteGradient": 0.0322,
+      "grainNoise": 0.0015
+    },
+    "natatorium_slab_edge_portrait": {
+      "pairedFrameId": "f_032",
+      "timestamp": "t=63s",
+      "whatToLookAt": "slab_standing_view_with_surface_fog_bank_and_distant_clue_prop",
+      "isJumpScare": false,
+      "luminanceMean": 0.7013,
+      "luminanceStdDev": 0.1281,
+      "percentiles": {
+        "p5": 0.5071,
+        "p50": 0.6856,
+        "p95": 0.9303,
+        "p99": 0.9538
+      },
+      "fractionPixelsBelow01": 0,
+      "horizonBlowoutFraction": 0.1213,
+      "saturationMean": 0.2309,
+      "sobelEdgeDensity": {
+        "scale1": 0.0932,
+        "scale2": 0.1409,
+        "scale4": 0.2083,
+        "tiledRegions": 0.0895
+      },
+      "waterRegion": {
+        "pixelCount": 239270,
+        "meanRGB": [
+          0.514,
+          0.657,
+          0.484
+        ],
+        "meanHSV": [
+          109.41,
+          0.2631,
+          0.6568
+        ],
+        "luminanceVariance": 0.00803,
+        "edgeDensity": 0.0886,
+        "glintFraction": 0
+      },
+      "slabRegion": {
+        "pixelCount": 186087,
+        "meanRGB": [
+          0.718,
+          0.662,
+          0.476
+        ],
+        "meanHSV": [
+          46.07,
+          0.3372,
+          0.7177
+        ]
+      },
+      "fogRegion": {
+        "pixelCount": 281062,
+        "meanRGB": [
+          0.793,
+          0.826,
+          0.75
+        ],
+        "meanHSV": [
+          85.66,
+          0.0917,
+          0.8259
+        ]
+      },
+      "floorGroutEdgeRatio": 0.6133,
+      "vignetteGradient": 0,
+      "grainNoise": 0.0023
+    },
+    "natatorium_water_splash_12": {
+      "pairedFrameId": "f_033",
+      "timestamp": "t=65s",
+      "whatToLookAt": "residual_foam_ring_decay_and_slab_edge_perspective",
+      "isJumpScare": false,
+      "luminanceMean": 0.6448,
+      "luminanceStdDev": 0.1567,
+      "percentiles": {
+        "p5": 0.3065,
+        "p50": 0.706,
+        "p95": 0.7844,
+        "p99": 0.7994
+      },
+      "fractionPixelsBelow01": 0,
+      "horizonBlowoutFraction": 0,
+      "saturationMean": 0.2996,
+      "sobelEdgeDensity": {
+        "scale1": 0.1826,
+        "scale2": 0.2633,
+        "scale4": 0.3863,
+        "tiledRegions": 0.2169
+      },
+      "waterRegion": {
+        "pixelCount": 81089,
+        "meanRGB": [
+          0.475,
+          0.557,
+          0.396
+        ],
+        "meanHSV": [
+          90.62,
+          0.289,
+          0.5569
+        ],
+        "luminanceVariance": 0.01237,
+        "edgeDensity": 0.1735,
+        "glintFraction": 0
+      },
+      "slabRegion": {
+        "pixelCount": 390137,
+        "meanRGB": [
+          0.725,
+          0.676,
+          0.5
+        ],
+        "meanHSV": [
+          46.77,
+          0.311,
+          0.7254
+        ]
+      },
+      "fogRegion": {
+        "pixelCount": 217341,
+        "meanRGB": [
+          0.725,
+          0.736,
+          0.619
+        ],
+        "meanHSV": [
+          65.53,
+          0.1584,
+          0.7357
+        ]
+      },
+      "floorGroutEdgeRatio": 0.8139,
+      "vignetteGradient": 0,
+      "grainNoise": 0.0035
+    },
+    "natatorium_water_underwater": {
+      "pairedFrameId": "f_034",
+      "timestamp": "t=67s",
+      "whatToLookAt": "water_meniscus_and_olive_green_submerged_grade",
+      "isJumpScare": false,
+      "luminanceMean": 0.6356,
+      "luminanceStdDev": 0.1333,
+      "percentiles": {
+        "p5": 0.3951,
+        "p50": 0.6709,
+        "p95": 0.7826,
+        "p99": 0.819
+      },
+      "fractionPixelsBelow01": 0,
+      "horizonBlowoutFraction": 0,
+      "saturationMean": 0.3224,
+      "sobelEdgeDensity": {
+        "scale1": 0.1489,
+        "scale2": 0.234,
+        "scale4": 0.3499,
+        "tiledRegions": 0.1429
+      },
+      "waterRegion": {
+        "pixelCount": 90740,
+        "meanRGB": [
+          0.464,
+          0.563,
+          0.387
+        ],
+        "meanHSV": [
+          93.9,
+          0.3118,
+          0.5628
+        ],
+        "luminanceVariance": 0.00948,
+        "edgeDensity": 0.1414,
+        "glintFraction": 0
+      },
+      "slabRegion": {
+        "pixelCount": 445824,
+        "meanRGB": [
+          0.716,
+          0.662,
+          0.48
+        ],
+        "meanHSV": [
+          46.27,
+          0.3302,
+          0.7159
+        ]
+      },
+      "fogRegion": {
+        "pixelCount": 137756,
+        "meanRGB": [
+          0.717,
+          0.733,
+          0.616
+        ],
+        "meanHSV": [
+          68.32,
+          0.1602,
+          0.7331
+        ]
+      },
+      "floorGroutEdgeRatio": 0.6466,
+      "vignetteGradient": 0,
+      "grainNoise": 0.0041
+    },
+    "natatorium_trench_view": {
+      "pairedFrameId": "f_035",
+      "timestamp": "t=69s",
+      "whatToLookAt": "narrow_trench_between_tan_slabs_and_blocked_creature_at_end",
+      "isJumpScare": false,
+      "luminanceMean": 0.6479,
+      "luminanceStdDev": 0.1111,
+      "percentiles": {
+        "p5": 0.458,
+        "p50": 0.6577,
+        "p95": 0.805,
+        "p99": 0.8151
+      },
+      "fractionPixelsBelow01": 0,
+      "horizonBlowoutFraction": 0,
+      "saturationMean": 0.2962,
+      "sobelEdgeDensity": {
+        "scale1": 0.1209,
+        "scale2": 0.1878,
+        "scale4": 0.2562,
+        "tiledRegions": 0.0928
+      },
+      "waterRegion": {
+        "pixelCount": 243997,
+        "meanRGB": [
+          0.465,
+          0.601,
+          0.403
+        ],
+        "meanHSV": [
+          101.1,
+          0.3302,
+          0.6011
+        ],
+        "luminanceVariance": 0.00818,
+        "edgeDensity": 0.1148,
+        "glintFraction": 0
+      },
+      "slabRegion": {
+        "pixelCount": 278331,
+        "meanRGB": [
+          0.73,
+          0.676,
+          0.493
+        ],
+        "meanHSV": [
+          46.51,
+          0.3247,
+          0.7297
+        ]
+      },
+      "fogRegion": {
+        "pixelCount": 150420,
+        "meanRGB": [
+          0.762,
+          0.785,
+          0.685
+        ],
+        "meanHSV": [
+          73.43,
+          0.1274,
+          0.7848
+        ]
+      },
+      "floorGroutEdgeRatio": 0.5066,
+      "vignetteGradient": 0,
+      "grainNoise": 0.0035
+    },
+    "natatorium_trench_view_portrait": {
+      "pairedFrameId": "f_036",
+      "timestamp": "t=71s",
+      "whatToLookAt": "near_slab_edge_4_to_6_tile_rows_and_cracked_trench_floor",
+      "isJumpScare": false,
+      "luminanceMean": 0.6382,
+      "luminanceStdDev": 0.1453,
+      "percentiles": {
+        "p5": 0.355,
+        "p50": 0.6802,
+        "p95": 0.7932,
+        "p99": 0.8085
+      },
+      "fractionPixelsBelow01": 0,
+      "horizonBlowoutFraction": 0,
+      "saturationMean": 0.2862,
+      "sobelEdgeDensity": {
+        "scale1": 0.1198,
+        "scale2": 0.1893,
+        "scale4": 0.2505,
+        "tiledRegions": 0.1054
+      },
+      "waterRegion": {
+        "pixelCount": 187387,
+        "meanRGB": [
+          0.484,
+          0.61,
+          0.437
+        ],
+        "meanHSV": [
+          103.89,
+          0.2843,
+          0.6105
+        ],
+        "luminanceVariance": 0.01838,
+        "edgeDensity": 0.1138,
+        "glintFraction": 0
+      },
+      "slabRegion": {
+        "pixelCount": 239526,
+        "meanRGB": [
+          0.692,
+          0.638,
+          0.45
+        ],
+        "meanHSV": [
+          46.45,
+          0.3498,
+          0.6923
+        ]
+      },
+      "fogRegion": {
+        "pixelCount": 268206,
+        "meanRGB": [
+          0.737,
+          0.766,
+          0.652
+        ],
+        "meanHSV": [
+          74.92,
+          0.1485,
+          0.7657
+        ]
+      },
+      "floorGroutEdgeRatio": 0.5798,
+      "vignetteGradient": 0,
+      "grainNoise": 0.0033
+    },
+    "flock_overhead": {
+      "pairedFrameId": "f_037",
+      "timestamp": "t=72s",
+      "whatToLookAt": "creature_looming_over_low_camera_arms_spread_wide_against_pale_fog",
+      "isJumpScare": true,
+      "luminanceMean": 0.4862,
+      "luminanceStdDev": 0.2076,
+      "percentiles": {
+        "p5": 0.0747,
+        "p50": 0.5684,
+        "p95": 0.7357,
+        "p99": 0.7559
+      },
+      "fractionPixelsBelow01": 0.0922,
+      "horizonBlowoutFraction": 0,
+      "saturationMean": 0.3171,
+      "sobelEdgeDensity": {
+        "scale1": 0.0181,
+        "scale2": 0.0477,
+        "scale4": 0.1048,
+        "tiledRegions": 0.0083
+      },
+      "waterRegion": {
+        "pixelCount": 86351,
+        "meanRGB": [
+          0.446,
+          0.492,
+          0.409
+        ],
+        "meanHSV": [
+          93.28,
+          0.1678,
+          0.4917
+        ],
+        "luminanceVariance": 0.01354,
+        "edgeDensity": 0.0172,
+        "glintFraction": 0
+      },
+      "slabRegion": {
+        "pixelCount": 243348,
+        "meanRGB": [
+          0.63,
+          0.609,
+          0.457
+        ],
+        "meanHSV": [
+          52.56,
+          0.2746,
+          0.63
+        ]
+      },
+      "fogRegion": {
+        "pixelCount": 105365,
+        "meanRGB": [
+          0.699,
+          0.691,
+          0.583
+        ],
+        "meanHSV": [
+          55.69,
+          0.1658,
+          0.6988
+        ]
+      },
+      "floorGroutEdgeRatio": 0.1873,
+      "vignetteGradient": 0.0322,
+      "grainNoise": 0.0012
+    }
+  },
+  "frames": {
+    "f_001": {
+      "file": "f_001.png",
+      "timestamp": "t=1s",
+      "sha256": "71091756f0841ed4f2a7da418ad323c63ec9c2d8aeddadb86f57e50192cc3a6d",
+      "width": 720,
+      "height": 1280,
+      "luminanceMean": 0.6125,
+      "luminanceMedian": 0.6868,
+      "luminanceStdDev": 0.1669,
+      "percentiles": {
+        "p5": 0.1236,
+        "p50": 0.6868,
+        "p95": 0.7106,
+        "p99": 0.8473
+      },
+      "fractionPixelsBelow01": 0.0205,
+      "horizonBlowoutFraction": 0.0093,
+      "saturationMean": 0.4272,
+      "hueHistogram": [
+        0.00248,
+        0.00045,
+        0.00489,
+        0.07011,
+        0.79035,
+        0.02916,
+        0.02962,
+        0.02575,
+        0.03189,
+        0.00741,
+        0.00104,
+        0.00016,
+        0.00038,
+        0.00052,
+        0.00019,
+        0.00011,
+        0.00051,
+        0.00023,
+        0.00099,
+        0.00022,
+        0.00032,
+        0.00026,
+        0.00038,
+        0.00026,
+        0.00009,
+        0.00029,
+        0.00042,
+        0.00017,
+        0.00024,
+        0.00007,
+        0.00034,
+        0.00007,
+        0.00008,
+        0.00044,
+        0.00012,
+        0.00001
+      ],
+      "sobelEdgeDensity": {
+        "scale1": 0.3264,
+        "scale2": 0.4156,
+        "scale4": 0.4856,
+        "tiledRegions": 0.2394
+      },
+      "waterRegion": {
+        "pixelCount": 46691,
+        "meanRGB": [
+          0.514,
+          0.607,
+          0.374
+        ],
+        "meanHSV": [
+          84.11,
+          0.3838,
+          0.6072
+        ],
+        "luminanceVariance": 0.00312,
+        "edgeDensity": 0.3101,
+        "glintFraction": 0
+      },
+      "slabRegion": {
+        "pixelCount": 753331,
+        "meanRGB": [
+          0.737,
+          0.652,
+          0.445
+        ],
+        "meanHSV": [
+          42.51,
+          0.3954,
+          0.7368
+        ]
+      },
+      "fogRegion": {
+        "pixelCount": 13037,
+        "meanRGB": [
+          0.895,
+          0.895,
+          0.873
+        ],
+        "meanHSV": [
+          59.78,
+          0.0248,
+          0.8949
+        ]
+      },
+      "floorGroutEdgeRatio": 0.5197,
+      "vignetteGradient": 0,
+      "grainNoise": 0.0041
+    },
+    "f_002": {
+      "file": "f_002.png",
+      "timestamp": "t=3s",
+      "sha256": "9556c10a39149af4a0b5f1e89b9efa3379ef75431d8c6a1aeea8a10203d51254",
+      "width": 720,
+      "height": 1280,
+      "luminanceMean": 0.591,
+      "luminanceMedian": 0.6708,
+      "luminanceStdDev": 0.1622,
+      "percentiles": {
+        "p5": 0.1261,
+        "p50": 0.6708,
+        "p95": 0.6992,
+        "p99": 0.847
+      },
+      "fractionPixelsBelow01": 0.0177,
+      "horizonBlowoutFraction": 0.0094,
+      "saturationMean": 0.432,
+      "hueHistogram": [
+        0.00253,
+        0.00043,
+        0.00394,
+        0.08959,
+        0.63361,
+        0.02575,
+        0.01736,
+        0.02556,
+        0.02594,
+        0.15112,
+        0.01749,
+        0.00012,
+        0.00039,
+        0.00054,
+        0.00021,
+        0.00012,
+        0.00061,
+        0.00027,
+        0.00112,
+        0.00025,
+        0.0004,
+        0.00025,
+        0.00041,
+        0.0002,
+        0.00011,
+        0.00035,
+        0.00032,
+        0.0001,
+        0.00016,
+        0.00006,
+        0.00025,
+        0.00007,
+        0.00003,
+        0.00031,
+        0.00002,
+        0
+      ],
+      "sobelEdgeDensity": {
+        "scale1": 0.3026,
+        "scale2": 0.4004,
+        "scale4": 0.4854,
+        "tiledRegions": 0.1605
+      },
+      "waterRegion": {
+        "pixelCount": 189679,
+        "meanRGB": [
+          0.471,
+          0.608,
+          0.371
+        ],
+        "meanHSV": [
+          94.7,
+          0.3895,
+          0.6084
+        ],
+        "luminanceVariance": 0.00237,
+        "edgeDensity": 0.2874,
+        "glintFraction": 0
+      },
+      "slabRegion": {
+        "pixelCount": 619728,
+        "meanRGB": [
+          0.729,
+          0.642,
+          0.438
+        ],
+        "meanHSV": [
+          42.02,
+          0.3998,
+          0.7294
+        ]
+      },
+      "fogRegion": {
+        "pixelCount": 12571,
+        "meanRGB": [
+          0.9,
+          0.903,
+          0.883
+        ],
+        "meanHSV": [
+          67.31,
+          0.0216,
+          0.9028
+        ]
+      },
+      "floorGroutEdgeRatio": 0.3746,
+      "vignetteGradient": 0,
+      "grainNoise": 0.0037
+    },
+    "f_003": {
+      "file": "f_003.png",
+      "timestamp": "t=5s",
+      "sha256": "c03f0daf2004bf12a2f97e8360ca13f0a6657e0cbc691748bafc50c8a73c2d5b",
+      "width": 720,
+      "height": 1280,
+      "luminanceMean": 0.5633,
+      "luminanceMedian": 0.6634,
+      "luminanceStdDev": 0.2453,
+      "percentiles": {
+        "p5": 0.0123,
+        "p50": 0.6634,
+        "p95": 0.7821,
+        "p99": 0.8597
+      },
+      "fractionPixelsBelow01": 0.1134,
+      "horizonBlowoutFraction": 0.0046,
+      "saturationMean": 0.3556,
+      "hueHistogram": [
+        0.08658,
+        0.03303,
+        0.04598,
+        0.02476,
+        0.39857,
+        0.07608,
+        0.01471,
+        0.02539,
+        0.03218,
+        0.06295,
+        0.12557,
+        0.00252,
+        0.00069,
+        0.00039,
+        0.0007,
+        0,
+        0.00001,
+        0,
+        0.00026,
+        0,
+        0.00007,
+        0,
+        0.00077,
+        0.00009,
+        0.00289,
+        0.00403,
+        0.00306,
+        0.00167,
+        0.00233,
+        0.00245,
+        0.0027,
+        0.00168,
+        0.00331,
+        0.00796,
+        0.01322,
+        0.02342
+      ],
+      "sobelEdgeDensity": {
+        "scale1": 0.122,
+        "scale2": 0.1971,
+        "scale4": 0.3008,
+        "tiledRegions": 0.066
+      },
+      "waterRegion": {
+        "pixelCount": 207512,
+        "meanRGB": [
+          0.55,
+          0.685,
+          0.474
+        ],
+        "meanHSV": [
+          98.33,
+          0.3083,
+          0.6849
+        ],
+        "luminanceVariance": 0.00498,
+        "edgeDensity": 0.1159,
+        "glintFraction": 0
+      },
+      "slabRegion": {
+        "pixelCount": 422922,
+        "meanRGB": [
+          0.746,
+          0.697,
+          0.522
+        ],
+        "meanHSV": [
+          46.82,
+          0.2998,
+          0.746
+        ]
+      },
+      "fogRegion": {
+        "pixelCount": 79077,
+        "meanRGB": [
+          0.809,
+          0.773,
+          0.689
+        ],
+        "meanHSV": [
+          41.74,
+          0.148,
+          0.8091
+        ]
+      },
+      "floorGroutEdgeRatio": 0.3574,
+      "vignetteGradient": 0.481,
+      "grainNoise": 0.003
+    },
+    "f_004": {
+      "file": "f_004.png",
+      "timestamp": "t=7s",
+      "sha256": "e66635a3faac77a683edfc6b9218a4912eda5decf0a397fbae7fb346a19d6168",
+      "width": 720,
+      "height": 910,
+      "luminanceMean": 0.4769,
+      "luminanceMedian": 0.4924,
+      "luminanceStdDev": 0.0979,
+      "percentiles": {
+        "p5": 0.3208,
+        "p50": 0.4924,
+        "p95": 0.6507,
+        "p99": 0.7336
+      },
+      "fractionPixelsBelow01": 0,
+      "horizonBlowoutFraction": 0.0003,
+      "saturationMean": 0.4483,
+      "hueHistogram": [
+        0,
+        0,
+        0,
+        0.00014,
+        0.37498,
+        0.01856,
+        0.02976,
+        0.07163,
+        0.13368,
+        0.17186,
+        0.1772,
+        0.02219,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "sobelEdgeDensity": {
+        "scale1": 0.0829,
+        "scale2": 0.157,
+        "scale4": 0.2478,
+        "tiledRegions": 0.0157
+      },
+      "waterRegion": {
+        "pixelCount": 358891,
+        "meanRGB": [
+          0.385,
+          0.487,
+          0.317
+        ],
+        "meanHSV": [
+          95.77,
+          0.35,
+          0.4871
+        ],
+        "luminanceVariance": 0.01416,
+        "edgeDensity": 0.0788,
+        "glintFraction": 0
+      },
+      "slabRegion": {
+        "pixelCount": 254998,
+        "meanRGB": [
+          0.598,
+          0.508,
+          0.263
+        ],
+        "meanHSV": [
+          43.82,
+          0.5602,
+          0.5979
+        ]
+      },
+      "fogRegion": {
+        "pixelCount": 69808,
+        "meanRGB": [
+          0.619,
+          0.674,
+          0.555
+        ],
+        "meanHSV": [
+          87.96,
+          0.1766,
+          0.6742
+        ]
+      },
+      "floorGroutEdgeRatio": 0.1192,
+      "vignetteGradient": 0.1795,
+      "grainNoise": 0.0025
+    },
+    "f_005": {
+      "file": "f_005.png",
+      "timestamp": "t=9s",
+      "sha256": "6fa0f9a33b255670e3c666ad79a212d47c6cb5ba249650639ba0d937cd636374",
+      "width": 720,
+      "height": 910,
+      "luminanceMean": 0.5647,
+      "luminanceMedian": 0.5746,
+      "luminanceStdDev": 0.1096,
+      "percentiles": {
+        "p5": 0.4151,
+        "p50": 0.5746,
+        "p95": 0.7254,
+        "p99": 0.7659
+      },
+      "fractionPixelsBelow01": 0,
+      "horizonBlowoutFraction": 0,
+      "saturationMean": 0.4097,
+      "hueHistogram": [
+        0,
+        0,
+        0,
+        0.16493,
+        0.2346,
+        0.08028,
+        0.02805,
+        0.11609,
+        0.22392,
+        0.11631,
+        0.03575,
+        0.00007,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "sobelEdgeDensity": {
+        "scale1": 0.0485,
+        "scale2": 0.0904,
+        "scale4": 0.1571,
+        "tiledRegions": 0.0257
+      },
+      "waterRegion": {
+        "pixelCount": 297623,
+        "meanRGB": [
+          0.47,
+          0.567,
+          0.354
+        ],
+        "meanHSV": [
+          87.14,
+          0.3755,
+          0.5666
+        ],
+        "luminanceVariance": 0.01231,
+        "edgeDensity": 0.046,
+        "glintFraction": 0
+      },
+      "slabRegion": {
+        "pixelCount": 296966,
+        "meanRGB": [
+          0.668,
+          0.591,
+          0.389
+        ],
+        "meanHSV": [
+          43.46,
+          0.418,
+          0.6681
+        ]
+      },
+      "fogRegion": {
+        "pixelCount": 102169,
+        "meanRGB": [
+          0.68,
+          0.719,
+          0.598
+        ],
+        "meanHSV": [
+          79.25,
+          0.1682,
+          0.7185
+        ]
+      },
+      "floorGroutEdgeRatio": 0.3007,
+      "vignetteGradient": 0.0827,
+      "grainNoise": 0.0015
+    },
+    "f_006": {
+      "file": "f_006.png",
+      "timestamp": "t=11s",
+      "sha256": "d74fa4715680e78ed52c438a6b27415debec29f520b1cfa97e2a4777724d21d0",
+      "width": 720,
+      "height": 910,
+      "luminanceMean": 0.6256,
+      "luminanceMedian": 0.6007,
+      "luminanceStdDev": 0.0743,
+      "percentiles": {
+        "p5": 0.5177,
+        "p50": 0.6007,
+        "p95": 0.7262,
+        "p99": 0.7571
+      },
+      "fractionPixelsBelow01": 0,
+      "horizonBlowoutFraction": 0,
+      "saturationMean": 0.4566,
+      "hueHistogram": [
+        0,
+        0,
+        0,
+        0.5007,
+        0.27812,
+        0.01054,
+        0.07972,
+        0.05515,
+        0.03603,
+        0.02931,
+        0.01044,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "sobelEdgeDensity": {
+        "scale1": 0.0951,
+        "scale2": 0.1451,
+        "scale4": 0.1947,
+        "tiledRegions": 0.0895
+      },
+      "waterRegion": {
+        "pixelCount": 62140,
+        "meanRGB": [
+          0.651,
+          0.723,
+          0.558
+        ],
+        "meanHSV": [
+          86.42,
+          0.2278,
+          0.7232
+        ],
+        "luminanceVariance": 0.00137,
+        "edgeDensity": 0.0903,
+        "glintFraction": 0
+      },
+      "slabRegion": {
+        "pixelCount": 504277,
+        "meanRGB": [
+          0.726,
+          0.603,
+          0.354
+        ],
+        "meanHSV": [
+          40.2,
+          0.5132,
+          0.7264
+        ]
+      },
+      "fogRegion": {
+        "pixelCount": 93460,
+        "meanRGB": [
+          0.688,
+          0.72,
+          0.597
+        ],
+        "meanHSV": [
+          75.58,
+          0.1707,
+          0.7199
+        ]
+      },
+      "floorGroutEdgeRatio": 0.6037,
+      "vignetteGradient": 0.0182,
+      "grainNoise": 0.0029
+    },
+    "f_007": {
+      "file": "f_007.png",
+      "timestamp": "t=13s",
+      "sha256": "21e95ceb9ffe84cb1c080de63cce6bbebebdc3aaa815a8946116a9e6a15cf290",
+      "width": 720,
+      "height": 910,
+      "luminanceMean": 0.6496,
+      "luminanceMedian": 0.67,
+      "luminanceStdDev": 0.1089,
+      "percentiles": {
+        "p5": 0.4971,
+        "p50": 0.67,
+        "p95": 0.8255,
+        "p99": 0.8658
+      },
+      "fractionPixelsBelow01": 0,
+      "horizonBlowoutFraction": 0.0001,
+      "saturationMean": 0.3338,
+      "hueHistogram": [
+        0,
+        0,
+        0,
+        0.00597,
+        0.22345,
+        0.02752,
+        0.1067,
+        0.16535,
+        0.33304,
+        0.11424,
+        0.0216,
+        0.00186,
+        0.00027,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "sobelEdgeDensity": {
+        "scale1": 0.0223,
+        "scale2": 0.0527,
+        "scale4": 0.1009,
+        "tiledRegions": 0.0079
+      },
+      "waterRegion": {
+        "pixelCount": 332647,
+        "meanRGB": [
+          0.507,
+          0.614,
+          0.362
+        ],
+        "meanHSV": [
+          85.42,
+          0.4101,
+          0.6135
+        ],
+        "luminanceVariance": 0.00713,
+        "edgeDensity": 0.0212,
+        "glintFraction": 0
+      },
+      "slabRegion": {
+        "pixelCount": 164606,
+        "meanRGB": [
+          0.758,
+          0.695,
+          0.504
+        ],
+        "meanHSV": [
+          45.22,
+          0.3343,
+          0.7575
+        ]
+      },
+      "fogRegion": {
+        "pixelCount": 188332,
+        "meanRGB": [
+          0.757,
+          0.78,
+          0.68
+        ],
+        "meanHSV": [
+          73.8,
+          0.1277,
+          0.78
+        ]
+      },
+      "floorGroutEdgeRatio": 0.1567,
+      "vignetteGradient": 0.175,
+      "grainNoise": 0.0012
+    },
+    "f_008": {
+      "file": "f_008.png",
+      "timestamp": "t=15s",
+      "sha256": "3f5347d08254301519de7e0bb5be38c535a850550e8053c19a09de9b015310af",
+      "width": 720,
+      "height": 910,
+      "luminanceMean": 0.6281,
+      "luminanceMedian": 0.6293,
+      "luminanceStdDev": 0.1504,
+      "percentiles": {
+        "p5": 0.3161,
+        "p50": 0.6293,
+        "p95": 0.8406,
+        "p99": 0.8731
+      },
+      "fractionPixelsBelow01": 0.0037,
+      "horizonBlowoutFraction": 0.0005,
+      "saturationMean": 0.4054,
+      "hueHistogram": [
+        0.00001,
+        0.0001,
+        0.00246,
+        0.32306,
+        0.1027,
+        0.03251,
+        0.023,
+        0.10445,
+        0.23155,
+        0.12006,
+        0.05816,
+        0.00192,
+        0.00001,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "sobelEdgeDensity": {
+        "scale1": 0.129,
+        "scale2": 0.2003,
+        "scale4": 0.299,
+        "tiledRegions": 0.1816
+      },
+      "waterRegion": {
+        "pixelCount": 222726,
+        "meanRGB": [
+          0.506,
+          0.619,
+          0.379
+        ],
+        "meanHSV": [
+          88.17,
+          0.3881,
+          0.6187
+        ],
+        "luminanceVariance": 0.01087,
+        "edgeDensity": 0.1226,
+        "glintFraction": 0
+      },
+      "slabRegion": {
+        "pixelCount": 261759,
+        "meanRGB": [
+          0.756,
+          0.633,
+          0.389
+        ],
+        "meanHSV": [
+          39.87,
+          0.4861,
+          0.7563
+        ]
+      },
+      "fogRegion": {
+        "pixelCount": 155715,
+        "meanRGB": [
+          0.787,
+          0.817,
+          0.733
+        ],
+        "meanHSV": [
+          81.52,
+          0.1022,
+          0.8165
+        ]
+      },
+      "floorGroutEdgeRatio": 0.935,
+      "vignetteGradient": 0,
+      "grainNoise": 0.0018
+    },
+    "f_009": {
+      "file": "f_009.png",
+      "timestamp": "t=17s",
+      "sha256": "144487a6d0bbe2e1d6aa93295b8757f4eed9cb3a5843d481d55f181af66254ae",
+      "width": 720,
+      "height": 910,
+      "luminanceMean": 0.6334,
+      "luminanceMedian": 0.636,
+      "luminanceStdDev": 0.1511,
+      "percentiles": {
+        "p5": 0.3177,
+        "p50": 0.636,
+        "p95": 0.8451,
+        "p99": 0.8759
+      },
+      "fractionPixelsBelow01": 0.0012,
+      "horizonBlowoutFraction": 0.0003,
+      "saturationMean": 0.3988,
+      "hueHistogram": [
+        0,
+        0.00018,
+        0.00291,
+        0.35356,
+        0.09128,
+        0.02955,
+        0.03555,
+        0.10688,
+        0.17871,
+        0.13101,
+        0.06645,
+        0.0036,
+        0.00033,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "sobelEdgeDensity": {
+        "scale1": 0.1452,
+        "scale2": 0.2299,
+        "scale4": 0.365,
+        "tiledRegions": 0.2096
+      },
+      "waterRegion": {
+        "pixelCount": 191199,
+        "meanRGB": [
+          0.515,
+          0.631,
+          0.401
+        ],
+        "meanHSV": [
+          90.42,
+          0.364,
+          0.631
+        ],
+        "luminanceVariance": 0.01188,
+        "edgeDensity": 0.1379,
+        "glintFraction": 0
+      },
+      "slabRegion": {
+        "pixelCount": 262862,
+        "meanRGB": [
+          0.751,
+          0.623,
+          0.379
+        ],
+        "meanHSV": [
+          39.3,
+          0.4946,
+          0.7507
+        ]
+      },
+      "fogRegion": {
+        "pixelCount": 171843,
+        "meanRGB": [
+          0.79,
+          0.817,
+          0.73
+        ],
+        "meanHSV": [
+          78.68,
+          0.1059,
+          0.8168
+        ]
+      },
+      "floorGroutEdgeRatio": 0.9702,
+      "vignetteGradient": 0,
+      "grainNoise": 0.0024
+    },
+    "f_010": {
+      "file": "f_010.png",
+      "timestamp": "t=19s",
+      "sha256": "7c289b6e591a46880c223cbc0ad045360b9417e433b407c386a29879f96cc124",
+      "width": 720,
+      "height": 910,
+      "luminanceMean": 0.6518,
+      "luminanceMedian": 0.6132,
+      "luminanceStdDev": 0.1405,
+      "percentiles": {
+        "p5": 0.4596,
+        "p50": 0.6132,
+        "p95": 0.8776,
+        "p99": 0.914
+      },
+      "fractionPixelsBelow01": 0,
+      "horizonBlowoutFraction": 0.0208,
+      "saturationMean": 0.3775,
+      "hueHistogram": [
+        0,
+        0.00007,
+        0.00341,
+        0.39696,
+        0.01625,
+        0.0103,
+        0.04527,
+        0.05163,
+        0.19552,
+        0.18687,
+        0.08589,
+        0.00755,
+        0.00029,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "sobelEdgeDensity": {
+        "scale1": 0.1652,
+        "scale2": 0.2606,
+        "scale4": 0.4096,
+        "tiledRegions": 0.2416
+      },
+      "waterRegion": {
+        "pixelCount": 197752,
+        "meanRGB": [
+          0.53,
+          0.634,
+          0.43
+        ],
+        "meanHSV": [
+          90.5,
+          0.3222,
+          0.634
+        ],
+        "luminanceVariance": 0.00833,
+        "edgeDensity": 0.1569,
+        "glintFraction": 0
+      },
+      "slabRegion": {
+        "pixelCount": 246459,
+        "meanRGB": [
+          0.75,
+          0.583,
+          0.326
+        ],
+        "meanHSV": [
+          36.39,
+          0.5654,
+          0.7499
+        ]
+      },
+      "fogRegion": {
+        "pixelCount": 228527,
+        "meanRGB": [
+          0.789,
+          0.826,
+          0.748
+        ],
+        "meanHSV": [
+          88.02,
+          0.0944,
+          0.8256
+        ]
+      },
+      "floorGroutEdgeRatio": 0.9944,
+      "vignetteGradient": 0,
+      "grainNoise": 0.0033
+    },
+    "f_011": {
+      "file": "f_011.png",
+      "timestamp": "t=21s",
+      "sha256": "4d96b85b6576b48eb6bb1d050f0e61b13ef769d8f04e750c8e07e84ef0408711",
+      "width": 720,
+      "height": 910,
+      "luminanceMean": 0.6081,
+      "luminanceMedian": 0.5853,
+      "luminanceStdDev": 0.1467,
+      "percentiles": {
+        "p5": 0.407,
+        "p50": 0.5853,
+        "p95": 0.8957,
+        "p99": 1
+      },
+      "fractionPixelsBelow01": 0.0062,
+      "horizonBlowoutFraction": 0.0489,
+      "saturationMean": 0.4539,
+      "hueHistogram": [
+        0.03165,
+        0.00137,
+        0.00549,
+        0.0381,
+        0.92114,
+        0.00008,
+        0.0004,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0.00003,
+        0,
+        0.00018,
+        0,
+        0.00054,
+        0,
+        0,
+        0.001,
+        0,
+        0.00002
+      ],
+      "sobelEdgeDensity": {
+        "scale1": 0.2012,
+        "scale2": 0.302,
+        "scale4": 0.411,
+        "tiledRegions": 0.1177
+      },
+      "waterRegion": {
+        "pixelCount": 0,
+        "meanRGB": [
+          0.404,
+          0.561,
+          0.267
+        ],
+        "meanHSV": [
+          92.04,
+          0.5241,
+          0.561
+        ],
+        "luminanceVariance": 0.012,
+        "edgeDensity": 0.1912,
+        "glintFraction": 0.001
+      },
+      "slabRegion": {
+        "pixelCount": 581188,
+        "meanRGB": [
+          0.682,
+          0.595,
+          0.37
+        ],
+        "meanHSV": [
+          43.27,
+          0.4571,
+          0.6823
+        ]
+      },
+      "fogRegion": {
+        "pixelCount": 51963,
+        "meanRGB": [
+          0.942,
+          0.923,
+          0.886
+        ],
+        "meanHSV": [
+          39.67,
+          0.0594,
+          0.9422
+        ]
+      },
+      "floorGroutEdgeRatio": 0.4036,
+      "vignetteGradient": 0,
+      "grainNoise": 0.0049
+    },
+    "f_012": {
+      "file": "f_012.png",
+      "timestamp": "t=23s",
+      "sha256": "7382a243cec9c796a72e83e3473920b9b644fbd8c468dea897f2b75ba2e1ebaf",
+      "width": 720,
+      "height": 910,
+      "luminanceMean": 0.6741,
+      "luminanceMedian": 0.6835,
+      "luminanceStdDev": 0.0887,
+      "percentiles": {
+        "p5": 0.5322,
+        "p50": 0.6835,
+        "p95": 0.82,
+        "p99": 0.8623
+      },
+      "fractionPixelsBelow01": 0,
+      "horizonBlowoutFraction": 0,
+      "saturationMean": 0.3135,
+      "hueHistogram": [
+        0,
+        0,
+        0,
+        0.00029,
+        0.81149,
+        0.04774,
+        0.08837,
+        0.03832,
+        0.00952,
+        0.00428,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "sobelEdgeDensity": {
+        "scale1": 0.0591,
+        "scale2": 0.096,
+        "scale4": 0.1609,
+        "tiledRegions": 0.0163
+      },
+      "waterRegion": {
+        "pixelCount": 11332,
+        "meanRGB": [
+          0.671,
+          0.721,
+          0.602
+        ],
+        "meanHSV": [
+          85.29,
+          0.165,
+          0.721
+        ],
+        "luminanceVariance": 0.00058,
+        "edgeDensity": 0.0562,
+        "glintFraction": 0
+      },
+      "slabRegion": {
+        "pixelCount": 530264,
+        "meanRGB": [
+          0.726,
+          0.67,
+          0.483
+        ],
+        "meanHSV": [
+          46.34,
+          0.3345,
+          0.7257
+        ]
+      },
+      "fogRegion": {
+        "pixelCount": 92995,
+        "meanRGB": [
+          0.776,
+          0.763,
+          0.64
+        ],
+        "meanHSV": [
+          54.16,
+          0.1761,
+          0.7764
+        ]
+      },
+      "floorGroutEdgeRatio": 0.1629,
+      "vignetteGradient": 0,
+      "grainNoise": 0.0017
+    },
+    "f_013": {
+      "file": "f_013.png",
+      "timestamp": "t=25s",
+      "sha256": "90c0189a8648bf7bd0ff34907a22e14e32d11dfb2801e70c8ce0903bdbf92fe7",
+      "width": 720,
+      "height": 910,
+      "luminanceMean": 0.5743,
+      "luminanceMedian": 0.5737,
+      "luminanceStdDev": 0.093,
+      "percentiles": {
+        "p5": 0.452,
+        "p50": 0.5737,
+        "p95": 0.7014,
+        "p99": 0.8137
+      },
+      "fractionPixelsBelow01": 0.0001,
+      "horizonBlowoutFraction": 0,
+      "saturationMean": 0.4658,
+      "hueHistogram": [
+        0,
+        0,
+        0,
+        0.01543,
+        0.85557,
+        0.04393,
+        0.05557,
+        0.02078,
+        0.00643,
+        0.00228,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "sobelEdgeDensity": {
+        "scale1": 0.089,
+        "scale2": 0.1764,
+        "scale4": 0.252,
+        "tiledRegions": 0.0048
+      },
+      "waterRegion": {
+        "pixelCount": 2908,
+        "meanRGB": [
+          0.704,
+          0.735,
+          0.631
+        ],
+        "meanHSV": [
+          77.67,
+          0.1416,
+          0.7349
+        ],
+        "luminanceVariance": 0.00065,
+        "edgeDensity": 0.0846,
+        "glintFraction": 0
+      },
+      "slabRegion": {
+        "pixelCount": 589869,
+        "meanRGB": [
+          0.651,
+          0.561,
+          0.334
+        ],
+        "meanHSV": [
+          43.09,
+          0.4871,
+          0.6507
+        ]
+      },
+      "fogRegion": {
+        "pixelCount": 0,
+        "meanRGB": [
+          0.839,
+          0.863,
+          0.804
+        ],
+        "meanHSV": [
+          84.41,
+          0.0684,
+          0.863
+        ]
+      },
+      "floorGroutEdgeRatio": 0.0345,
+      "vignetteGradient": 0.0226,
+      "grainNoise": 0.0043
+    },
+    "f_014": {
+      "file": "f_014.png",
+      "timestamp": "t=27s",
+      "sha256": "add603e327afdf6965746f11cb59168effe1b89ffd8424f25013eec34e014996",
+      "width": 720,
+      "height": 910,
+      "luminanceMean": 0.5593,
+      "luminanceMedian": 0.5727,
+      "luminanceStdDev": 0.112,
+      "percentiles": {
+        "p5": 0.4007,
+        "p50": 0.5727,
+        "p95": 0.7219,
+        "p99": 0.8754
+      },
+      "fractionPixelsBelow01": 0,
+      "horizonBlowoutFraction": 0.0003,
+      "saturationMean": 0.3531,
+      "hueHistogram": [
+        0,
+        0,
+        0.00002,
+        0.00325,
+        0.28538,
+        0.04152,
+        0.15329,
+        0.05748,
+        0.04452,
+        0.11423,
+        0.24187,
+        0.05595,
+        0.0025,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "sobelEdgeDensity": {
+        "scale1": 0.0184,
+        "scale2": 0.0638,
+        "scale4": 0.1308,
+        "tiledRegions": 0
+      },
+      "waterRegion": {
+        "pixelCount": 293206,
+        "meanRGB": [
+          0.417,
+          0.542,
+          0.362
+        ],
+        "meanHSV": [
+          101.42,
+          0.3328,
+          0.542
+        ],
+        "luminanceVariance": 0.01182,
+        "edgeDensity": 0.0175,
+        "glintFraction": 0
+      },
+      "slabRegion": {
+        "pixelCount": 212762,
+        "meanRGB": [
+          0.642,
+          0.569,
+          0.357
+        ],
+        "meanHSV": [
+          44.65,
+          0.4451,
+          0.6425
+        ]
+      },
+      "fogRegion": {
+        "pixelCount": 132821,
+        "meanRGB": [
+          0.675,
+          0.727,
+          0.611
+        ],
+        "meanHSV": [
+          87.14,
+          0.1595,
+          0.727
+        ]
+      },
+      "floorGroutEdgeRatio": 0.001,
+      "vignetteGradient": 0,
+      "grainNoise": 0.0017
+    },
+    "f_015": {
+      "file": "f_015.png",
+      "timestamp": "t=29s",
+      "sha256": "6612414de3c20086d1a81012ee4e5079e3f675c0991435954bbedac8188c26c0",
+      "width": 720,
+      "height": 910,
+      "luminanceMean": 0.6043,
+      "luminanceMedian": 0.619,
+      "luminanceStdDev": 0.1016,
+      "percentiles": {
+        "p5": 0.4333,
+        "p50": 0.619,
+        "p95": 0.7691,
+        "p99": 0.8328
+      },
+      "fractionPixelsBelow01": 0,
+      "horizonBlowoutFraction": 0,
+      "saturationMean": 0.3911,
+      "hueHistogram": [
+        0,
+        0,
+        0.00012,
+        0.15802,
+        0.59764,
+        0.06175,
+        0.08986,
+        0.01287,
+        0.02404,
+        0.04005,
+        0.01545,
+        0.00019,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "sobelEdgeDensity": {
+        "scale1": 0.0815,
+        "scale2": 0.0983,
+        "scale4": 0.161,
+        "tiledRegions": 0.0224
+      },
+      "waterRegion": {
+        "pixelCount": 44744,
+        "meanRGB": [
+          0.474,
+          0.564,
+          0.399
+        ],
+        "meanHSV": [
+          92.59,
+          0.2929,
+          0.5636
+        ],
+        "luminanceVariance": 0.01945,
+        "edgeDensity": 0.0774,
+        "glintFraction": 0
+      },
+      "slabRegion": {
+        "pixelCount": 530710,
+        "meanRGB": [
+          0.669,
+          0.586,
+          0.384
+        ],
+        "meanHSV": [
+          42.5,
+          0.4257,
+          0.6695
+        ]
+      },
+      "fogRegion": {
+        "pixelCount": 51514,
+        "meanRGB": [
+          0.742,
+          0.748,
+          0.628
+        ],
+        "meanHSV": [
+          63.05,
+          0.1602,
+          0.7481
+        ]
+      },
+      "floorGroutEdgeRatio": 0.1725,
+      "vignetteGradient": 0,
+      "grainNoise": 0.0042
+    },
+    "f_016": {
+      "file": "f_016.png",
+      "timestamp": "t=31s",
+      "sha256": "e6552844e4e5076944e94f1d6d3ad1b764e855ab5fbe2a48374a7119bbd58fca",
+      "width": 720,
+      "height": 910,
+      "luminanceMean": 0.584,
+      "luminanceMedian": 0.5875,
+      "luminanceStdDev": 0.1314,
+      "percentiles": {
+        "p5": 0.3686,
+        "p50": 0.5875,
+        "p95": 0.8351,
+        "p99": 0.8612
+      },
+      "fractionPixelsBelow01": 0,
+      "horizonBlowoutFraction": 0,
+      "saturationMean": 0.4408,
+      "hueHistogram": [
+        0,
+        0,
+        0,
+        0.01672,
+        0.63277,
+        0.01687,
+        0.01122,
+        0.03251,
+        0.17412,
+        0.09618,
+        0.01961,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "sobelEdgeDensity": {
+        "scale1": 0.0576,
+        "scale2": 0.0939,
+        "scale4": 0.1408,
+        "tiledRegions": 0.006
+      },
+      "waterRegion": {
+        "pixelCount": 203840,
+        "meanRGB": [
+          0.413,
+          0.527,
+          0.29
+        ],
+        "meanHSV": [
+          88.83,
+          0.4502,
+          0.5267
+        ],
+        "luminanceVariance": 0.00751,
+        "edgeDensity": 0.0547,
+        "glintFraction": 0
+      },
+      "slabRegion": {
+        "pixelCount": 405781,
+        "meanRGB": [
+          0.712,
+          0.623,
+          0.404
+        ],
+        "meanHSV": [
+          42.62,
+          0.4328,
+          0.712
+        ]
+      },
+      "fogRegion": {
+        "pixelCount": 43924,
+        "meanRGB": [
+          0.88,
+          0.846,
+          0.727
+        ],
+        "meanHSV": [
+          46.64,
+          0.1744,
+          0.8801
+        ]
+      },
+      "floorGroutEdgeRatio": 0.0615,
+      "vignetteGradient": 0,
+      "grainNoise": 0.0013
+    },
+    "f_017": {
+      "file": "f_017.png",
+      "timestamp": "t=33s",
+      "sha256": "cc6bc0804e7593e6966456a32e3b4fbf50630b7e1f42fe571ba13533e698a1e4",
+      "width": 720,
+      "height": 910,
+      "luminanceMean": 0.5764,
+      "luminanceMedian": 0.5947,
+      "luminanceStdDev": 0.1649,
+      "percentiles": {
+        "p5": 0.2203,
+        "p50": 0.5947,
+        "p95": 0.8195,
+        "p99": 0.8636
+      },
+      "fractionPixelsBelow01": 0.0066,
+      "horizonBlowoutFraction": 0,
+      "saturationMean": 0.3464,
+      "hueHistogram": [
+        0.00011,
+        0.00041,
+        0.00583,
+        0.0316,
+        0.20858,
+        0.03849,
+        0.05952,
+        0.05343,
+        0.21356,
+        0.24849,
+        0.12813,
+        0.01178,
+        0.00003,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0.00004,
+        0
+      ],
+      "sobelEdgeDensity": {
+        "scale1": 0.1023,
+        "scale2": 0.1927,
+        "scale4": 0.3205,
+        "tiledRegions": 0.0682
+      },
+      "waterRegion": {
+        "pixelCount": 386504,
+        "meanRGB": [
+          0.494,
+          0.613,
+          0.403
+        ],
+        "meanHSV": [
+          94.01,
+          0.3436,
+          0.6134
+        ],
+        "luminanceVariance": 0.00821,
+        "edgeDensity": 0.0971,
+        "glintFraction": 0
+      },
+      "slabRegion": {
+        "pixelCount": 145401,
+        "meanRGB": [
+          0.645,
+          0.584,
+          0.414
+        ],
+        "meanHSV": [
+          44.2,
+          0.3576,
+          0.6445
+        ]
+      },
+      "fogRegion": {
+        "pixelCount": 108783,
+        "meanRGB": [
+          0.776,
+          0.803,
+          0.707
+        ],
+        "meanHSV": [
+          76.66,
+          0.1196,
+          0.803
+        ]
+      },
+      "floorGroutEdgeRatio": 0.4315,
+      "vignetteGradient": 0,
+      "grainNoise": 0.0029
+    },
+    "f_018": {
+      "file": "f_018.png",
+      "timestamp": "t=35s",
+      "sha256": "500fcbceecfec19c00503c3a0cc68d7e9698c32c2cdf7a3c42ea448948df3c88",
+      "width": 720,
+      "height": 910,
+      "luminanceMean": 0.6391,
+      "luminanceMedian": 0.6535,
+      "luminanceStdDev": 0.1487,
+      "percentiles": {
+        "p5": 0.3024,
+        "p50": 0.6535,
+        "p95": 0.8524,
+        "p99": 0.8916
+      },
+      "fractionPixelsBelow01": 0.0012,
+      "horizonBlowoutFraction": 0.0031,
+      "saturationMean": 0.312,
+      "hueHistogram": [
+        0,
+        0,
+        0.00042,
+        0.01378,
+        0.1937,
+        0.03959,
+        0.05632,
+        0.05525,
+        0.22428,
+        0.30392,
+        0.09503,
+        0.01586,
+        0.00184,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "sobelEdgeDensity": {
+        "scale1": 0.1057,
+        "scale2": 0.1834,
+        "scale4": 0.3051,
+        "tiledRegions": 0.0652
+      },
+      "waterRegion": {
+        "pixelCount": 398730,
+        "meanRGB": [
+          0.539,
+          0.663,
+          0.446
+        ],
+        "meanHSV": [
+          94.2,
+          0.3267,
+          0.6626
+        ],
+        "luminanceVariance": 0.00683,
+        "edgeDensity": 0.1004,
+        "glintFraction": 0
+      },
+      "slabRegion": {
+        "pixelCount": 130421,
+        "meanRGB": [
+          0.685,
+          0.625,
+          0.455
+        ],
+        "meanHSV": [
+          44.34,
+          0.3362,
+          0.685
+        ]
+      },
+      "fogRegion": {
+        "pixelCount": 136424,
+        "meanRGB": [
+          0.801,
+          0.824,
+          0.734
+        ],
+        "meanHSV": [
+          75.37,
+          0.1096,
+          0.8239
+        ]
+      },
+      "floorGroutEdgeRatio": 0.401,
+      "vignetteGradient": 0,
+      "grainNoise": 0.0028
+    },
+    "f_019": {
+      "file": "f_019.png",
+      "timestamp": "t=37s",
+      "sha256": "b02d632d2e18dd8f9c4c75b45619419395a1bd27812f665bc664bbe72bae66be",
+      "width": 720,
+      "height": 910,
+      "luminanceMean": 0.7089,
+      "luminanceMedian": 0.7584,
+      "luminanceStdDev": 0.1521,
+      "percentiles": {
+        "p5": 0.4281,
+        "p50": 0.7584,
+        "p95": 0.8815,
+        "p99": 0.8994
+      },
+      "fractionPixelsBelow01": 0,
+      "horizonBlowoutFraction": 0.0094,
+      "saturationMean": 0.2164,
+      "hueHistogram": [
+        0,
+        0,
+        0,
+        0.0002,
+        0.12175,
+        0.13038,
+        0.27798,
+        0.06159,
+        0.05426,
+        0.1711,
+        0.16372,
+        0.01803,
+        0.0009,
+        0.0001,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "sobelEdgeDensity": {
+        "scale1": 0.041,
+        "scale2": 0.0924,
+        "scale4": 0.1658,
+        "tiledRegions": 0.0303
+      },
+      "waterRegion": {
+        "pixelCount": 237337,
+        "meanRGB": [
+          0.479,
+          0.613,
+          0.405
+        ],
+        "meanHSV": [
+          98.79,
+          0.3391,
+          0.6131
+        ],
+        "luminanceVariance": 0.00991,
+        "edgeDensity": 0.039,
+        "glintFraction": 0
+      },
+      "slabRegion": {
+        "pixelCount": 74308,
+        "meanRGB": [
+          0.727,
+          0.685,
+          0.53
+        ],
+        "meanHSV": [
+          47.32,
+          0.2703,
+          0.7265
+        ]
+      },
+      "fogRegion": {
+        "pixelCount": 343180,
+        "meanRGB": [
+          0.831,
+          0.832,
+          0.751
+        ],
+        "meanHSV": [
+          60.39,
+          0.0969,
+          0.8318
+        ]
+      },
+      "floorGroutEdgeRatio": 0.4018,
+      "vignetteGradient": 0.099,
+      "grainNoise": 0.0013
+    },
+    "f_020": {
+      "file": "f_020.png",
+      "timestamp": "t=39s",
+      "sha256": "46f2ed9377c5b0690d4296e825ae49f7c49e64902c4ebb022ab145ffc08531e5",
+      "width": 720,
+      "height": 910,
+      "luminanceMean": 0.695,
+      "luminanceMedian": 0.6768,
+      "luminanceStdDev": 0.1261,
+      "percentiles": {
+        "p5": 0.4967,
+        "p50": 0.6768,
+        "p95": 0.8731,
+        "p99": 0.8955
+      },
+      "fractionPixelsBelow01": 0,
+      "horizonBlowoutFraction": 0.0064,
+      "saturationMean": 0.2319,
+      "hueHistogram": [
+        0,
+        0,
+        0,
+        0,
+        0.07517,
+        0.07499,
+        0.26278,
+        0.07408,
+        0.05458,
+        0.28529,
+        0.15243,
+        0.01852,
+        0.00215,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "sobelEdgeDensity": {
+        "scale1": 0.05,
+        "scale2": 0.0969,
+        "scale4": 0.1694,
+        "tiledRegions": 0.019
+      },
+      "waterRegion": {
+        "pixelCount": 308985,
+        "meanRGB": [
+          0.502,
+          0.631,
+          0.425
+        ],
+        "meanHSV": [
+          97.61,
+          0.3265,
+          0.6315
+        ],
+        "luminanceVariance": 0.00507,
+        "edgeDensity": 0.0475,
+        "glintFraction": 0
+      },
+      "slabRegion": {
+        "pixelCount": 71162,
+        "meanRGB": [
+          0.717,
+          0.679,
+          0.515
+        ],
+        "meanHSV": [
+          48.59,
+          0.2813,
+          0.7169
+        ]
+      },
+      "fogRegion": {
+        "pixelCount": 302547,
+        "meanRGB": [
+          0.811,
+          0.822,
+          0.737
+        ],
+        "meanHSV": [
+          68.09,
+          0.1035,
+          0.8224
+        ]
+      },
+      "floorGroutEdgeRatio": 0.2173,
+      "vignetteGradient": 0.0154,
+      "grainNoise": 0.0017
+    },
+    "f_021": {
+      "file": "f_021.png",
+      "timestamp": "t=41s",
+      "sha256": "a032027fd2a6c79949eaa7bca83d18f68ce046ee05f5b43616aeb830423f80a5",
+      "width": 720,
+      "height": 910,
+      "luminanceMean": 0.6927,
+      "luminanceMedian": 0.6858,
+      "luminanceStdDev": 0.1463,
+      "percentiles": {
+        "p5": 0.43,
+        "p50": 0.6858,
+        "p95": 0.8989,
+        "p99": 0.9252
+      },
+      "fractionPixelsBelow01": 0,
+      "horizonBlowoutFraction": 0.0456,
+      "saturationMean": 0.2155,
+      "hueHistogram": [
+        0,
+        0,
+        0,
+        0.01688,
+        0.26532,
+        0.07248,
+        0.0095,
+        0.06931,
+        0.266,
+        0.06764,
+        0.1377,
+        0.09209,
+        0.00307,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "sobelEdgeDensity": {
+        "scale1": 0.0316,
+        "scale2": 0.0552,
+        "scale4": 0.1141,
+        "tiledRegions": 0.0276
+      },
+      "waterRegion": {
+        "pixelCount": 145057,
+        "meanRGB": [
+          0.502,
+          0.611,
+          0.464
+        ],
+        "meanHSV": [
+          104.34,
+          0.2408,
+          0.6111
+        ],
+        "luminanceVariance": 0.01073,
+        "edgeDensity": 0.03,
+        "glintFraction": 0
+      },
+      "slabRegion": {
+        "pixelCount": 227102,
+        "meanRGB": [
+          0.655,
+          0.603,
+          0.429
+        ],
+        "meanHSV": [
+          46.37,
+          0.3443,
+          0.6546
+        ]
+      },
+      "fogRegion": {
+        "pixelCount": 339492,
+        "meanRGB": [
+          0.789,
+          0.819,
+          0.747
+        ],
+        "meanHSV": [
+          85.21,
+          0.088,
+          0.8194
+        ]
+      },
+      "floorGroutEdgeRatio": 0.4406,
+      "vignetteGradient": 0.1315,
+      "grainNoise": 0.0016
+    },
+    "f_022": {
+      "file": "f_022.png",
+      "timestamp": "t=43s",
+      "sha256": "816ba3a096bfc41c1630bd113fc2a4e3f9cf748b786c922977d6a86396dcf498",
+      "width": 720,
+      "height": 910,
+      "luminanceMean": 0.668,
+      "luminanceMedian": 0.6633,
+      "luminanceStdDev": 0.1088,
+      "percentiles": {
+        "p5": 0.4995,
+        "p50": 0.6633,
+        "p95": 0.8439,
+        "p99": 0.8731
+      },
+      "fractionPixelsBelow01": 0,
+      "horizonBlowoutFraction": 0.0004,
+      "saturationMean": 0.2308,
+      "hueHistogram": [
+        0,
+        0,
+        0,
+        0,
+        0.13084,
+        0.0705,
+        0.15374,
+        0.14831,
+        0.07462,
+        0.03615,
+        0.15838,
+        0.20021,
+        0.02725,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "sobelEdgeDensity": {
+        "scale1": 0.0595,
+        "scale2": 0.0953,
+        "scale4": 0.1525,
+        "tiledRegions": 0.0606
+      },
+      "waterRegion": {
+        "pixelCount": 289742,
+        "meanRGB": [
+          0.527,
+          0.658,
+          0.495
+        ],
+        "meanHSV": [
+          108.4,
+          0.248,
+          0.6582
+        ],
+        "luminanceVariance": 0.00747,
+        "edgeDensity": 0.0565,
+        "glintFraction": 0
+      },
+      "slabRegion": {
+        "pixelCount": 130346,
+        "meanRGB": [
+          0.643,
+          0.595,
+          0.415
+        ],
+        "meanHSV": [
+          47.32,
+          0.3547,
+          0.643
+        ]
+      },
+      "fogRegion": {
+        "pixelCount": 317738,
+        "meanRGB": [
+          0.744,
+          0.775,
+          0.675
+        ],
+        "meanHSV": [
+          78.68,
+          0.1292,
+          0.7755
+        ]
+      },
+      "floorGroutEdgeRatio": 0.6039,
+      "vignetteGradient": 0.1326,
+      "grainNoise": 0.0015
+    },
+    "f_023": {
+      "file": "f_023.png",
+      "timestamp": "t=45s",
+      "sha256": "5299b74a7466a9eaa195da3f7e0618f8331870094e6e4c5d1509407338b09efc",
+      "width": 720,
+      "height": 910,
+      "luminanceMean": 0.6645,
+      "luminanceMedian": 0.7065,
+      "luminanceStdDev": 0.1616,
+      "percentiles": {
+        "p5": 0.3082,
+        "p50": 0.7065,
+        "p95": 0.853,
+        "p99": 0.8888
+      },
+      "fractionPixelsBelow01": 0.0128,
+      "horizonBlowoutFraction": 0.0036,
+      "saturationMean": 0.2608,
+      "hueHistogram": [
+        0,
+        0.00002,
+        0.00028,
+        0.00551,
+        0.34714,
+        0.04403,
+        0.07185,
+        0.07513,
+        0.06862,
+        0.07966,
+        0.13514,
+        0.12196,
+        0.0449,
+        0.00537,
+        0.0004,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "sobelEdgeDensity": {
+        "scale1": 0.1418,
+        "scale2": 0.2164,
+        "scale4": 0.3376,
+        "tiledRegions": 0.2014
+      },
+      "waterRegion": {
+        "pixelCount": 222354,
+        "meanRGB": [
+          0.504,
+          0.643,
+          0.476
+        ],
+        "meanHSV": [
+          110.03,
+          0.2595,
+          0.643
+        ],
+        "luminanceVariance": 0.01243,
+        "edgeDensity": 0.1347,
+        "glintFraction": 0
+      },
+      "slabRegion": {
+        "pixelCount": 233313,
+        "meanRGB": [
+          0.729,
+          0.678,
+          0.502
+        ],
+        "meanHSV": [
+          46.34,
+          0.3113,
+          0.7294
+        ]
+      },
+      "fogRegion": {
+        "pixelCount": 261647,
+        "meanRGB": [
+          0.757,
+          0.796,
+          0.698
+        ],
+        "meanHSV": [
+          83.6,
+          0.1232,
+          0.7958
+        ]
+      },
+      "floorGroutEdgeRatio": 0.9527,
+      "vignetteGradient": 0,
+      "grainNoise": 0.0023
+    },
+    "f_024": {
+      "file": "f_024.png",
+      "timestamp": "t=47s",
+      "sha256": "37166676def41def4c06657d3635fa309dcf03f14b3b8a151c993a91447abdf6",
+      "width": 720,
+      "height": 910,
+      "luminanceMean": 0.6712,
+      "luminanceMedian": 0.7108,
+      "luminanceStdDev": 0.1673,
+      "percentiles": {
+        "p5": 0.2355,
+        "p50": 0.7108,
+        "p95": 0.8602,
+        "p99": 0.8894
+      },
+      "fractionPixelsBelow01": 0.019,
+      "horizonBlowoutFraction": 0.0041,
+      "saturationMean": 0.2589,
+      "hueHistogram": [
+        0,
+        0.00014,
+        0.00073,
+        0.00866,
+        0.36533,
+        0.0308,
+        0.07111,
+        0.0716,
+        0.0789,
+        0.0578,
+        0.13491,
+        0.08601,
+        0.07463,
+        0.0193,
+        0.00007,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "sobelEdgeDensity": {
+        "scale1": 0.1275,
+        "scale2": 0.1963,
+        "scale4": 0.3006,
+        "tiledRegions": 0.2034
+      },
+      "waterRegion": {
+        "pixelCount": 216372,
+        "meanRGB": [
+          0.527,
+          0.671,
+          0.507
+        ],
+        "meanHSV": [
+          112.83,
+          0.2439,
+          0.671
+        ],
+        "luminanceVariance": 0.00887,
+        "edgeDensity": 0.1211,
+        "glintFraction": 0
+      },
+      "slabRegion": {
+        "pixelCount": 228528,
+        "meanRGB": [
+          0.736,
+          0.683,
+          0.508
+        ],
+        "meanHSV": [
+          46.02,
+          0.3099,
+          0.7363
+        ]
+      },
+      "fogRegion": {
+        "pixelCount": 265010,
+        "meanRGB": [
+          0.755,
+          0.798,
+          0.702
+        ],
+        "meanHSV": [
+          87.12,
+          0.1203,
+          0.7984
+        ]
+      },
+      "floorGroutEdgeRatio": 1,
+      "vignetteGradient": 0,
+      "grainNoise": 0.0019
+    },
+    "f_025": {
+      "file": "f_025.png",
+      "timestamp": "t=49s",
+      "sha256": "1f5584d5847ef0591975b2935cefedcb4b0ea16c60aa373707859ce95414c26a",
+      "width": 720,
+      "height": 910,
+      "luminanceMean": 0.6615,
+      "luminanceMedian": 0.6224,
+      "luminanceStdDev": 0.1607,
+      "percentiles": {
+        "p5": 0.4283,
+        "p50": 0.6224,
+        "p95": 0.8933,
+        "p99": 0.9185
+      },
+      "fractionPixelsBelow01": 0,
+      "horizonBlowoutFraction": 0.0336,
+      "saturationMean": 0.2662,
+      "hueHistogram": [
+        0,
+        0,
+        0,
+        0.00681,
+        0.4809,
+        0.00658,
+        0.00426,
+        0.03924,
+        0.23375,
+        0.12411,
+        0.08803,
+        0.01622,
+        0.00011,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "sobelEdgeDensity": {
+        "scale1": 0.0896,
+        "scale2": 0.1537,
+        "scale4": 0.2182,
+        "tiledRegions": 0.0689
+      },
+      "waterRegion": {
+        "pixelCount": 68659,
+        "meanRGB": [
+          0.664,
+          0.732,
+          0.619
+        ],
+        "meanHSV": [
+          96.11,
+          0.1548,
+          0.732
+        ],
+        "luminanceVariance": 0.00246,
+        "edgeDensity": 0.0852,
+        "glintFraction": 0
+      },
+      "slabRegion": {
+        "pixelCount": 323414,
+        "meanRGB": [
+          0.58,
+          0.514,
+          0.326
+        ],
+        "meanHSV": [
+          44.38,
+          0.4389,
+          0.5803
+        ]
+      },
+      "fogRegion": {
+        "pixelCount": 325969,
+        "meanRGB": [
+          0.785,
+          0.822,
+          0.751
+        ],
+        "meanHSV": [
+          91.51,
+          0.0867,
+          0.8221
+        ]
+      },
+      "floorGroutEdgeRatio": 0.4888,
+      "vignetteGradient": 0,
+      "grainNoise": 0.0029
+    },
+    "f_026": {
+      "file": "f_026.png",
+      "timestamp": "t=51s",
+      "sha256": "adaf4f7014c07c5b20002cfda0c4d4a4e6f53df30a0db564a333b365ebbf134f",
+      "width": 720,
+      "height": 910,
+      "luminanceMean": 0.5607,
+      "luminanceMedian": 0.5346,
+      "luminanceStdDev": 0.1972,
+      "percentiles": {
+        "p5": 0.2873,
+        "p50": 0.5346,
+        "p95": 0.8771,
+        "p99": 0.8972
+      },
+      "fractionPixelsBelow01": 0,
+      "horizonBlowoutFraction": 0.004,
+      "saturationMean": 0.3165,
+      "hueHistogram": [
+        0,
+        0,
+        0,
+        0.0587,
+        0.18645,
+        0.09578,
+        0.10884,
+        0.06612,
+        0.16153,
+        0.14945,
+        0.1185,
+        0.05349,
+        0.00105,
+        0.00009,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "sobelEdgeDensity": {
+        "scale1": 0.0088,
+        "scale2": 0.0174,
+        "scale4": 0.0407,
+        "tiledRegions": 0.0037
+      },
+      "waterRegion": {
+        "pixelCount": 163175,
+        "meanRGB": [
+          0.373,
+          0.477,
+          0.31
+        ],
+        "meanHSV": [
+          97.28,
+          0.3493,
+          0.4769
+        ],
+        "luminanceVariance": 0.02696,
+        "edgeDensity": 0.0084,
+        "glintFraction": 0
+      },
+      "slabRegion": {
+        "pixelCount": 220285,
+        "meanRGB": [
+          0.485,
+          0.43,
+          0.261
+        ],
+        "meanHSV": [
+          45.28,
+          0.4619,
+          0.4854
+        ]
+      },
+      "fogRegion": {
+        "pixelCount": 250201,
+        "meanRGB": [
+          0.76,
+          0.793,
+          0.715
+        ],
+        "meanHSV": [
+          85.39,
+          0.0983,
+          0.7926
+        ]
+      },
+      "floorGroutEdgeRatio": 0.1166,
+      "vignetteGradient": 0,
+      "grainNoise": 0.0011
+    },
+    "f_027": {
+      "file": "f_027.png",
+      "timestamp": "t=53s",
+      "sha256": "afeb2474ebe84c298510b9e281ec272b20bd68f415c5587c549853660dc98cdd",
+      "width": 720,
+      "height": 910,
+      "luminanceMean": 0.628,
+      "luminanceMedian": 0.6342,
+      "luminanceStdDev": 0.1562,
+      "percentiles": {
+        "p5": 0.3667,
+        "p50": 0.6342,
+        "p95": 0.821,
+        "p99": 0.8378
+      },
+      "fractionPixelsBelow01": 0,
+      "horizonBlowoutFraction": 0,
+      "saturationMean": 0.2275,
+      "hueHistogram": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0.00242,
+        0.20739,
+        0.03034,
+        0.12547,
+        0.33924,
+        0.25207,
+        0.04308,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "sobelEdgeDensity": {
+        "scale1": 0.0036,
+        "scale2": 0.0118,
+        "scale4": 0.0594,
+        "tiledRegions": 0
+      },
+      "waterRegion": {
+        "pixelCount": 448920,
+        "meanRGB": [
+          0.464,
+          0.588,
+          0.431
+        ],
+        "meanHSV": [
+          107.44,
+          0.2668,
+          0.5878
+        ],
+        "luminanceVariance": 0.01605,
+        "edgeDensity": 0.0034,
+        "glintFraction": 0
+      },
+      "slabRegion": {
+        "pixelCount": 0,
+        "meanRGB": [
+          0.761,
+          0.604,
+          0.337
+        ],
+        "meanHSV": [
+          37.78,
+          0.5572,
+          0.761
+        ]
+      },
+      "fogRegion": {
+        "pixelCount": 340038,
+        "meanRGB": [
+          0.727,
+          0.779,
+          0.689
+        ],
+        "meanHSV": [
+          94.67,
+          0.116,
+          0.7795
+        ]
+      },
+      "floorGroutEdgeRatio": 0,
+      "vignetteGradient": 0.0827,
+      "grainNoise": 0.0006
+    },
+    "f_028": {
+      "file": "f_028.png",
+      "timestamp": "t=55s",
+      "sha256": "7ecae83b2744aaebc4ee1673d988e5edcb7cf9e33c6f2194fcbc75c97f9f0c1b",
+      "width": 720,
+      "height": 910,
+      "luminanceMean": 0.6092,
+      "luminanceMedian": 0.6862,
+      "luminanceStdDev": 0.1806,
+      "percentiles": {
+        "p5": 0.3023,
+        "p50": 0.6862,
+        "p95": 0.8171,
+        "p99": 0.8513
+      },
+      "fractionPixelsBelow01": 0,
+      "horizonBlowoutFraction": 0,
+      "saturationMean": 0.2495,
+      "hueHistogram": [
+        0,
+        0,
+        0,
+        0.00007,
+        0.03741,
+        0.00086,
+        0.05013,
+        0.23885,
+        0.15777,
+        0.11562,
+        0.31418,
+        0.0744,
+        0.0107,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "sobelEdgeDensity": {
+        "scale1": 0.0236,
+        "scale2": 0.0606,
+        "scale4": 0.128,
+        "tiledRegions": 0.0246
+      },
+      "waterRegion": {
+        "pixelCount": 405164,
+        "meanRGB": [
+          0.467,
+          0.563,
+          0.415
+        ],
+        "meanHSV": [
+          98.85,
+          0.2635,
+          0.5632
+        ],
+        "luminanceVariance": 0.03109,
+        "edgeDensity": 0.0224,
+        "glintFraction": 0
+      },
+      "slabRegion": {
+        "pixelCount": 23506,
+        "meanRGB": [
+          0.582,
+          0.517,
+          0.333
+        ],
+        "meanHSV": [
+          44.29,
+          0.428,
+          0.5824
+        ]
+      },
+      "fogRegion": {
+        "pixelCount": 360402,
+        "meanRGB": [
+          0.728,
+          0.765,
+          0.668
+        ],
+        "meanHSV": [
+          82.71,
+          0.1264,
+          0.7651
+        ]
+      },
+      "floorGroutEdgeRatio": 0.4743,
+      "vignetteGradient": 0.2556,
+      "grainNoise": 0.001
+    },
+    "f_029": {
+      "file": "f_029.png",
+      "timestamp": "t=57s",
+      "sha256": "98d44aff636b1279dc3248dc7912e87c561d3eec2742ea51b002a99a3fe5d403",
+      "width": 720,
+      "height": 910,
+      "luminanceMean": 0.6099,
+      "luminanceMedian": 0.6873,
+      "luminanceStdDev": 0.182,
+      "percentiles": {
+        "p5": 0.3015,
+        "p50": 0.6873,
+        "p95": 0.8232,
+        "p99": 0.8518
+      },
+      "fractionPixelsBelow01": 0,
+      "horizonBlowoutFraction": 0,
+      "saturationMean": 0.2476,
+      "hueHistogram": [
+        0,
+        0,
+        0,
+        0.00007,
+        0.03908,
+        0.00136,
+        0.02911,
+        0.24836,
+        0.15659,
+        0.13251,
+        0.29605,
+        0.08387,
+        0.013,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "sobelEdgeDensity": {
+        "scale1": 0.0203,
+        "scale2": 0.0528,
+        "scale4": 0.1169,
+        "tiledRegions": 0.0256
+      },
+      "waterRegion": {
+        "pixelCount": 406367,
+        "meanRGB": [
+          0.467,
+          0.563,
+          0.416
+        ],
+        "meanHSV": [
+          99.4,
+          0.2611,
+          0.5632
+        ],
+        "luminanceVariance": 0.03098,
+        "edgeDensity": 0.0193,
+        "glintFraction": 0
+      },
+      "slabRegion": {
+        "pixelCount": 24606,
+        "meanRGB": [
+          0.584,
+          0.519,
+          0.337
+        ],
+        "meanHSV": [
+          44.1,
+          0.423,
+          0.5842
+        ]
+      },
+      "fogRegion": {
+        "pixelCount": 360322,
+        "meanRGB": [
+          0.731,
+          0.768,
+          0.672
+        ],
+        "meanHSV": [
+          83.01,
+          0.1252,
+          0.768
+        ]
+      },
+      "floorGroutEdgeRatio": 0.5396,
+      "vignetteGradient": 0.2535,
+      "grainNoise": 0.0009
+    },
+    "f_030": {
+      "file": "f_030.png",
+      "timestamp": "t=59s",
+      "sha256": "248f97239785c4bcb9c566b19ed6f880a0b03e86d2b3ccb03fb376cee3833a29",
+      "width": 720,
+      "height": 910,
+      "luminanceMean": 0.6112,
+      "luminanceMedian": 0.6873,
+      "luminanceStdDev": 0.1809,
+      "percentiles": {
+        "p5": 0.302,
+        "p50": 0.6873,
+        "p95": 0.8213,
+        "p99": 0.8518
+      },
+      "fractionPixelsBelow01": 0,
+      "horizonBlowoutFraction": 0,
+      "saturationMean": 0.2448,
+      "hueHistogram": [
+        0,
+        0,
+        0,
+        0.00004,
+        0.03759,
+        0.00123,
+        0.03891,
+        0.23849,
+        0.15554,
+        0.11959,
+        0.31654,
+        0.08098,
+        0.0111,
+        0.00001,
+        0.00001,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "sobelEdgeDensity": {
+        "scale1": 0.0203,
+        "scale2": 0.0535,
+        "scale4": 0.119,
+        "tiledRegions": 0.0246
+      },
+      "waterRegion": {
+        "pixelCount": 408277,
+        "meanRGB": [
+          0.47,
+          0.565,
+          0.419
+        ],
+        "meanHSV": [
+          99.13,
+          0.2577,
+          0.5651
+        ],
+        "luminanceVariance": 0.03063,
+        "edgeDensity": 0.0193,
+        "glintFraction": 0
+      },
+      "slabRegion": {
+        "pixelCount": 23683,
+        "meanRGB": [
+          0.585,
+          0.519,
+          0.339
+        ],
+        "meanHSV": [
+          43.93,
+          0.4208,
+          0.5845
+        ]
+      },
+      "fogRegion": {
+        "pixelCount": 360339,
+        "meanRGB": [
+          0.731,
+          0.768,
+          0.672
+        ],
+        "meanHSV": [
+          82.85,
+          0.1251,
+          0.768
+        ]
+      },
+      "floorGroutEdgeRatio": 0.518,
+      "vignetteGradient": 0.2556,
+      "grainNoise": 0.0009
+    },
+    "f_031": {
+      "file": "f_031.png",
+      "timestamp": "t=61s",
+      "sha256": "3d21f9f48b6375ca1fcf1cace5ffd38119d2abf1c28f4f9d0198f3874cab25f3",
+      "width": 720,
+      "height": 910,
+      "luminanceMean": 0.6263,
+      "luminanceMedian": 0.6637,
+      "luminanceStdDev": 0.1091,
+      "percentiles": {
+        "p5": 0.3729,
+        "p50": 0.6637,
+        "p95": 0.7418,
+        "p99": 0.7622
+      },
+      "fractionPixelsBelow01": 0,
+      "horizonBlowoutFraction": 0,
+      "saturationMean": 0.3029,
+      "hueHistogram": [
+        0,
+        0,
+        0,
+        0.00012,
+        0.37538,
+        0.17988,
+        0.13043,
+        0.04288,
+        0.03583,
+        0.09023,
+        0.08545,
+        0.05613,
+        0.00367,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "sobelEdgeDensity": {
+        "scale1": 0.0241,
+        "scale2": 0.0579,
+        "scale4": 0.1273,
+        "tiledRegions": 0.0149
+      },
+      "waterRegion": {
+        "pixelCount": 185943,
+        "meanRGB": [
+          0.472,
+          0.585,
+          0.414
+        ],
+        "meanHSV": [
+          99.7,
+          0.2921,
+          0.5846
+        ],
+        "luminanceVariance": 0.02131,
+        "edgeDensity": 0.0229,
+        "glintFraction": 0
+      },
+      "slabRegion": {
+        "pixelCount": 360811,
+        "meanRGB": [
+          0.702,
+          0.656,
+          0.48
+        ],
+        "meanHSV": [
+          47.63,
+          0.3155,
+          0.7018
+        ]
+      },
+      "fogRegion": {
+        "pixelCount": 148379,
+        "meanRGB": [
+          0.683,
+          0.724,
+          0.595
+        ],
+        "meanHSV": [
+          78.95,
+          0.1774,
+          0.7236
+        ]
+      },
+      "floorGroutEdgeRatio": 0.2838,
+      "vignetteGradient": 0.0322,
+      "grainNoise": 0.0015
+    },
+    "f_032": {
+      "file": "f_032.png",
+      "timestamp": "t=63s",
+      "sha256": "17a39dc8ec755db37a79873392b354586a4beac3c4cf57f2bcdb148015b5d71b",
+      "width": 720,
+      "height": 910,
+      "luminanceMean": 0.7013,
+      "luminanceMedian": 0.6856,
+      "luminanceStdDev": 0.1281,
+      "percentiles": {
+        "p5": 0.5071,
+        "p50": 0.6856,
+        "p95": 0.9303,
+        "p99": 0.9538
+      },
+      "fractionPixelsBelow01": 0,
+      "horizonBlowoutFraction": 0.1213,
+      "saturationMean": 0.2309,
+      "hueHistogram": [
+        0,
+        0,
+        0,
+        0.00003,
+        0.25505,
+        0.03956,
+        0.07957,
+        0.14707,
+        0.11743,
+        0.04796,
+        0.1184,
+        0.12991,
+        0.06469,
+        0.00032,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "sobelEdgeDensity": {
+        "scale1": 0.0932,
+        "scale2": 0.1409,
+        "scale4": 0.2083,
+        "tiledRegions": 0.0895
+      },
+      "waterRegion": {
+        "pixelCount": 239270,
+        "meanRGB": [
+          0.514,
+          0.657,
+          0.484
+        ],
+        "meanHSV": [
+          109.41,
+          0.2631,
+          0.6568
+        ],
+        "luminanceVariance": 0.00803,
+        "edgeDensity": 0.0886,
+        "glintFraction": 0
+      },
+      "slabRegion": {
+        "pixelCount": 186087,
+        "meanRGB": [
+          0.718,
+          0.662,
+          0.476
+        ],
+        "meanHSV": [
+          46.07,
+          0.3372,
+          0.7177
+        ]
+      },
+      "fogRegion": {
+        "pixelCount": 281062,
+        "meanRGB": [
+          0.793,
+          0.826,
+          0.75
+        ],
+        "meanHSV": [
+          85.66,
+          0.0917,
+          0.8259
+        ]
+      },
+      "floorGroutEdgeRatio": 0.6133,
+      "vignetteGradient": 0,
+      "grainNoise": 0.0023
+    },
+    "f_033": {
+      "file": "f_033.png",
+      "timestamp": "t=65s",
+      "sha256": "74634dbb9d016b765825db601ba2cf201f12fa040171d3b88421ee47b74a30da",
+      "width": 720,
+      "height": 910,
+      "luminanceMean": 0.6448,
+      "luminanceMedian": 0.706,
+      "luminanceStdDev": 0.1567,
+      "percentiles": {
+        "p5": 0.3065,
+        "p50": 0.706,
+        "p95": 0.7844,
+        "p99": 0.7994
+      },
+      "fractionPixelsBelow01": 0.0173,
+      "horizonBlowoutFraction": 0,
+      "saturationMean": 0.2996,
+      "hueHistogram": [
+        0.00004,
+        0.00019,
+        0.00484,
+        0.01207,
+        0.52355,
+        0.12758,
+        0.17872,
+        0.02407,
+        0.05574,
+        0.04196,
+        0.02238,
+        0.0034,
+        0.0012,
+        0.00075,
+        0.00012,
+        0.00012,
+        0.0001,
+        0.00001,
+        0.00009,
+        0.00016,
+        0.0002,
+        0.00184,
+        0.00085,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "sobelEdgeDensity": {
+        "scale1": 0.1826,
+        "scale2": 0.2633,
+        "scale4": 0.3863,
+        "tiledRegions": 0.2169
+      },
+      "waterRegion": {
+        "pixelCount": 81089,
+        "meanRGB": [
+          0.475,
+          0.557,
+          0.396
+        ],
+        "meanHSV": [
+          90.62,
+          0.289,
+          0.5569
+        ],
+        "luminanceVariance": 0.01237,
+        "edgeDensity": 0.1735,
+        "glintFraction": 0
+      },
+      "slabRegion": {
+        "pixelCount": 390137,
+        "meanRGB": [
+          0.725,
+          0.676,
+          0.5
+        ],
+        "meanHSV": [
+          46.77,
+          0.311,
+          0.7254
+        ]
+      },
+      "fogRegion": {
+        "pixelCount": 217341,
+        "meanRGB": [
+          0.725,
+          0.736,
+          0.619
+        ],
+        "meanHSV": [
+          65.53,
+          0.1584,
+          0.7357
+        ]
+      },
+      "floorGroutEdgeRatio": 0.8139,
+      "vignetteGradient": 0,
+      "grainNoise": 0.0035
+    },
+    "f_034": {
+      "file": "f_034.png",
+      "timestamp": "t=67s",
+      "sha256": "d1554b8d3e25aaa33399d96185c55d15a17d6760b9c7058de64e206ade814ad5",
+      "width": 720,
+      "height": 910,
+      "luminanceMean": 0.6356,
+      "luminanceMedian": 0.6709,
+      "luminanceStdDev": 0.1333,
+      "percentiles": {
+        "p5": 0.3951,
+        "p50": 0.6709,
+        "p95": 0.7826,
+        "p99": 0.819
+      },
+      "fractionPixelsBelow01": 0.008,
+      "horizonBlowoutFraction": 0,
+      "saturationMean": 0.3224,
+      "hueHistogram": [
+        0,
+        0,
+        0.00015,
+        0.00701,
+        0.62425,
+        0.07918,
+        0.13574,
+        0.02454,
+        0.04241,
+        0.04638,
+        0.03125,
+        0.00521,
+        0.00027,
+        0.00021,
+        0.00026,
+        0.00027,
+        0.00006,
+        0.00002,
+        0.00024,
+        0.00029,
+        0.00048,
+        0.00118,
+        0.00059,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "sobelEdgeDensity": {
+        "scale1": 0.1489,
+        "scale2": 0.234,
+        "scale4": 0.3499,
+        "tiledRegions": 0.1429
+      },
+      "waterRegion": {
+        "pixelCount": 90740,
+        "meanRGB": [
+          0.464,
+          0.563,
+          0.387
+        ],
+        "meanHSV": [
+          93.9,
+          0.3118,
+          0.5628
+        ],
+        "luminanceVariance": 0.00948,
+        "edgeDensity": 0.1414,
+        "glintFraction": 0
+      },
+      "slabRegion": {
+        "pixelCount": 445824,
+        "meanRGB": [
+          0.716,
+          0.662,
+          0.48
+        ],
+        "meanHSV": [
+          46.27,
+          0.3302,
+          0.7159
+        ]
+      },
+      "fogRegion": {
+        "pixelCount": 137756,
+        "meanRGB": [
+          0.717,
+          0.733,
+          0.616
+        ],
+        "meanHSV": [
+          68.32,
+          0.1602,
+          0.7331
+        ]
+      },
+      "floorGroutEdgeRatio": 0.6466,
+      "vignetteGradient": 0,
+      "grainNoise": 0.0041
+    },
+    "f_035": {
+      "file": "f_035.png",
+      "timestamp": "t=69s",
+      "sha256": "9cef7e3cf9e9593ad4b3b382aa72f4a3318010cae8af0661ed5d2e0f1d36b515",
+      "width": 720,
+      "height": 910,
+      "luminanceMean": 0.6479,
+      "luminanceMedian": 0.6577,
+      "luminanceStdDev": 0.1111,
+      "percentiles": {
+        "p5": 0.458,
+        "p50": 0.6577,
+        "p95": 0.805,
+        "p99": 0.8151
+      },
+      "fractionPixelsBelow01": 0,
+      "horizonBlowoutFraction": 0,
+      "saturationMean": 0.2962,
+      "hueHistogram": [
+        0,
+        0,
+        0,
+        0.00001,
+        0.38076,
+        0.06176,
+        0.14874,
+        0.03729,
+        0.03626,
+        0.14531,
+        0.13282,
+        0.04172,
+        0.01312,
+        0.00222,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "sobelEdgeDensity": {
+        "scale1": 0.1209,
+        "scale2": 0.1878,
+        "scale4": 0.2562,
+        "tiledRegions": 0.0928
+      },
+      "waterRegion": {
+        "pixelCount": 243997,
+        "meanRGB": [
+          0.465,
+          0.601,
+          0.403
+        ],
+        "meanHSV": [
+          101.1,
+          0.3302,
+          0.6011
+        ],
+        "luminanceVariance": 0.00818,
+        "edgeDensity": 0.1148,
+        "glintFraction": 0
+      },
+      "slabRegion": {
+        "pixelCount": 278331,
+        "meanRGB": [
+          0.73,
+          0.676,
+          0.493
+        ],
+        "meanHSV": [
+          46.51,
+          0.3247,
+          0.7297
+        ]
+      },
+      "fogRegion": {
+        "pixelCount": 150420,
+        "meanRGB": [
+          0.762,
+          0.785,
+          0.685
+        ],
+        "meanHSV": [
+          73.43,
+          0.1274,
+          0.7848
+        ]
+      },
+      "floorGroutEdgeRatio": 0.5066,
+      "vignetteGradient": 0,
+      "grainNoise": 0.0035
+    },
+    "f_036": {
+      "file": "f_036.png",
+      "timestamp": "t=71s",
+      "sha256": "53a6700e0afe8a4c399ca47904a7266ec68e988567ecef4d32b92136f5d448f5",
+      "width": 720,
+      "height": 910,
+      "luminanceMean": 0.6382,
+      "luminanceMedian": 0.6802,
+      "luminanceStdDev": 0.1453,
+      "percentiles": {
+        "p5": 0.355,
+        "p50": 0.6802,
+        "p95": 0.7932,
+        "p99": 0.8085
+      },
+      "fractionPixelsBelow01": 0.008,
+      "horizonBlowoutFraction": 0,
+      "saturationMean": 0.2862,
+      "hueHistogram": [
+        0,
+        0,
+        0.0001,
+        0.00283,
+        0.34643,
+        0.04438,
+        0.2654,
+        0.05029,
+        0.01794,
+        0.03969,
+        0.16886,
+        0.04896,
+        0.01246,
+        0.00266,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "sobelEdgeDensity": {
+        "scale1": 0.1198,
+        "scale2": 0.1893,
+        "scale4": 0.2505,
+        "tiledRegions": 0.1054
+      },
+      "waterRegion": {
+        "pixelCount": 187387,
+        "meanRGB": [
+          0.484,
+          0.61,
+          0.437
+        ],
+        "meanHSV": [
+          103.89,
+          0.2843,
+          0.6105
+        ],
+        "luminanceVariance": 0.01838,
+        "edgeDensity": 0.1138,
+        "glintFraction": 0
+      },
+      "slabRegion": {
+        "pixelCount": 239526,
+        "meanRGB": [
+          0.692,
+          0.638,
+          0.45
+        ],
+        "meanHSV": [
+          46.45,
+          0.3498,
+          0.6923
+        ]
+      },
+      "fogRegion": {
+        "pixelCount": 268206,
+        "meanRGB": [
+          0.737,
+          0.766,
+          0.652
+        ],
+        "meanHSV": [
+          74.92,
+          0.1485,
+          0.7657
+        ]
+      },
+      "floorGroutEdgeRatio": 0.5798,
+      "vignetteGradient": 0,
+      "grainNoise": 0.0033
+    },
+    "f_037": {
+      "file": "f_037.png",
+      "timestamp": "t=72s",
+      "sha256": "b3a570b7edf350e9b239664ebef91acd0bf47926ac1cc7108a7e02797304857d",
+      "width": 720,
+      "height": 910,
+      "luminanceMean": 0.4862,
+      "luminanceMedian": 0.5684,
+      "luminanceStdDev": 0.2076,
+      "percentiles": {
+        "p5": 0.0747,
+        "p50": 0.5684,
+        "p95": 0.7357,
+        "p99": 0.7559
+      },
+      "fractionPixelsBelow01": 0.0922,
+      "horizonBlowoutFraction": 0,
+      "saturationMean": 0.3171,
+      "hueHistogram": [
+        0,
+        0,
+        0,
+        0.00246,
+        0.17001,
+        0.38254,
+        0.24607,
+        0.08193,
+        0.04484,
+        0.01389,
+        0.02415,
+        0.02801,
+        0.00477,
+        0.00132,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "sobelEdgeDensity": {
+        "scale1": 0.0181,
+        "scale2": 0.0477,
+        "scale4": 0.1048,
+        "tiledRegions": 0.0083
+      },
+      "waterRegion": {
+        "pixelCount": 86351,
+        "meanRGB": [
+          0.446,
+          0.492,
+          0.409
+        ],
+        "meanHSV": [
+          93.28,
+          0.1678,
+          0.4917
+        ],
+        "luminanceVariance": 0.01354,
+        "edgeDensity": 0.0172,
+        "glintFraction": 0
+      },
+      "slabRegion": {
+        "pixelCount": 243348,
+        "meanRGB": [
+          0.63,
+          0.609,
+          0.457
+        ],
+        "meanHSV": [
+          52.56,
+          0.2746,
+          0.63
+        ]
+      },
+      "fogRegion": {
+        "pixelCount": 105365,
+        "meanRGB": [
+          0.699,
+          0.691,
+          0.583
+        ],
+        "meanHSV": [
+          55.69,
+          0.1658,
+          0.6988
+        ]
+      },
+      "floorGroutEdgeRatio": 0.1873,
+      "vignetteGradient": 0.0322,
+      "grainNoise": 0.0012
+    }
+  }
+}

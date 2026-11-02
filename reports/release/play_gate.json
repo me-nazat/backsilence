@@ -1,0 +1,69 @@
+{
+  "mapId": "natatorium",
+  "seed": 424242,
+  "totalTicks": 18000,
+  "durationSeconds": 300,
+  "status": "PASS",
+  "run1": {
+    "firstSightingTime": 15.283,
+    "firstSightingDist": 12,
+    "secondSightingTime": 49.283,
+    "exitReachable": true,
+    "trenchViolations": 0,
+    "p95FrameTimeMs": 0.0623,
+    "finalSimHash": "33e1f3d6",
+    "checkpointsCount": 30
+  },
+  "run2SimHash": "33e1f3d6",
+  "consoleErrors": [],
+  "checks": [
+    {
+      "id": "first_sighting_time_15_20s",
+      "passed": true,
+      "actual": 15.283,
+      "expected": "15.0..20.0 s"
+    },
+    {
+      "id": "first_sighting_dist_10_15m",
+      "passed": true,
+      "actual": 12,
+      "expected": "10.0..15.0 m"
+    },
+    {
+      "id": "second_sighting_within_60s",
+      "passed": true,
+      "actual": 49.283,
+      "expected": "<= 60.0 s"
+    },
+    {
+      "id": "exit_reachable",
+      "passed": true,
+      "actual": true,
+      "expected": true
+    },
+    {
+      "id": "trench_2_4m_never_crossed",
+      "passed": true,
+      "actual": 0,
+      "expected": 0
+    },
+    {
+      "id": "sim_hash_deterministic",
+      "passed": true,
+      "actual": "33e1f3d6 === 33e1f3d6",
+      "expected": "identical simHash across 2 runs"
+    },
+    {
+      "id": "p95_frame_time_budget",
+      "passed": true,
+      "actual": "0.0623 ms",
+      "expected": "<= 16.6 ms"
+    },
+    {
+      "id": "zero_console_errors",
+      "passed": true,
+      "actual": 0,
+      "expected": 0
+    }
+  ]
+}

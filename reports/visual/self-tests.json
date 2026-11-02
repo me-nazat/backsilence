@@ -1,0 +1,93 @@
+{
+  "timestamp": "2026-10-24T09:56:58.500Z",
+  "waterSelfTest": {
+    "passed": true,
+    "hasNaN": false,
+    "energyDecayed": true,
+    "obstacleReflected": true,
+    "maxAgreementError": 0.0258179331864245,
+    "details": "hasNaN=false, energyDecayed=true (3.2942 -> 0.0391), obstacleReflected=true"
+  },
+  "audioSelfTest": {
+    "passed": true,
+    "voiceCount": 92,
+    "failedCount": 0,
+    "failedVoices": [],
+    "sampleVoices": [
+      {
+        "voice": "splash_small",
+        "peakAmplitude": 0.08,
+        "nanInfFree": true,
+        "status": "PASS"
+      },
+      {
+        "voice": "splash_big",
+        "peakAmplitude": 0.536,
+        "nanInfFree": true,
+        "status": "PASS"
+      },
+      {
+        "voice": "splash_jump",
+        "peakAmplitude": 0.997,
+        "nanInfFree": true,
+        "status": "PASS"
+      },
+      {
+        "voice": "wade_step",
+        "peakAmplitude": 0.077,
+        "nanInfFree": true,
+        "status": "PASS"
+      },
+      {
+        "voice": "wade_loop",
+        "peakAmplitude": 0.157,
+        "nanInfFree": true,
+        "status": "PASS"
+      },
+      {
+        "voice": "pebble_plink",
+        "peakAmplitude": 0.761,
+        "nanInfFree": true,
+        "status": "PASS"
+      },
+      {
+        "voice": "step_dry",
+        "peakAmplitude": 0.244,
+        "nanInfFree": true,
+        "status": "PASS"
+      },
+      {
+        "voice": "step_squeak",
+        "peakAmplitude": 0.08,
+        "nanInfFree": true,
+        "status": "PASS"
+      },
+      {
+        "voice": "mantle",
+        "peakAmplitude": 0.787,
+        "nanInfFree": true,
+        "status": "PASS"
+      },
+      {
+        "voice": "drip",
+        "peakAmplitude": 0.616,
+        "nanInfFree": true,
+        "status": "PASS"
+      }
+    ]
+  },
+  "perfReport": {
+    "menuInteractiveMs": 1150,
+    "totalWarmupMs": 425,
+    "proceduralTextureMemoryEstimateBytes": 24810098,
+    "proceduralTextureMemoryEstimateMB": "23.66 MB",
+    "cachedTexturesCount": 17,
+    "jsHeapMB": 52.08,
+    "rendererInfo": {
+      "calls": 31,
+      "triangles": 3258,
+      "geometries": 24,
+      "textures": 17
+    }
+  }
+}

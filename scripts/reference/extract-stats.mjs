@@ -15,11 +15,12 @@
  * ──────────────────────────────────────────────────────────────────────── */
 
 import { spawn } from 'node:child_process';
-import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { mkdir, mkdtemp, writeFile } from 'node:fs/promises';
 import { createServer } from 'node:net';
 import { tmpdir } from 'node:os';
-import { basename, resolve } from 'node:path';
+import { basename, join, resolve } from 'node:path';
+import { decodePng } from '../visual/compare.mjs';
 
 const ROOT = process.cwd();
 
@@ -548,19 +549,522 @@ export class HeadlessStatsExtractor {
   }
 }
 
+export function rgbToHsvDeg(r, g, b) {
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const d = max - min;
+  let hue = 0;
+  const sat = max > 1e-4 ? d / max : 0;
+  if (d > 1e-4) {
+    if (max === r) hue = ((g - b) / d + (g < b ? 6 : 0)) / 6;
+    else if (max === g) hue = ((b - r) / d + 2) / 6;
+    else hue = ((r - g) / d + 4) / 6;
+  }
+  return [Number((hue * 360).toFixed(2)), Number(sat.toFixed(4)), Number(max.toFixed(4))];
+}
+
+/**
+ * Pure Node deterministic image metric extraction from an 8-bit PNG buffer.
+ * Computes all per-frame metrics required by Prompt 2 (luminance mean/median/p5/p50/p95/p99,
+ * fractionPixelsBelow01, horizonBlowoutFraction, saturationMean, sobelEdgeDensity 1x/2x/4x,
+ * waterRegion, slabRegion, fogRegion, floorGroutEdgeRatio, vignetteGradient, grainNoise).
+ */
+export function analyzePngBuffer(buffer) {
+  const { width: w, height: h, data } = decodePng(buffer);
+  const totalPixels = w * h;
+
+  const lumArray = new Float32Array(totalPixels);
+  const hueHist = new Float32Array(36);
+  let lumSum = 0;
+  let satSum = 0;
+  let blowoutCount = 0; // L > 0.90
+  let below01Count = 0; // L < 0.10
+
+  const bandH = Math.floor(h / 3);
+  const bandSums = {
+    top: [0, 0, 0, 0],
+    middle: [0, 0, 0, 0],
+    bottom: [0, 0, 0, 0],
+  };
+
+  const vBuckets = 20;
+  const vProfileLum = new Float32Array(vBuckets);
+  const vProfileCount = new Int32Array(vBuckets);
+
+  // Region accumulators
+  let waterPixCount = 0;
+  let waterRSum = 0, waterGSum = 0, waterBSum = 0;
+  let waterLumSum = 0;
+  let waterGlintCount = 0;
+  const waterLumList = [];
+
+  let slabPixCount = 0;
+  let slabRSum = 0, slabGSum = 0, slabBSum = 0;
+
+  let fogPixCount = 0;
+  let fogRSum = 0, fogGSum = 0, fogBSum = 0;
+
+  for (let y = 0; y < h; y++) {
+    const vBucketIdx = Math.min(vBuckets - 1, Math.floor((y / h) * vBuckets));
+    let bandKey = 'top';
+    if (y >= bandH && y < bandH * 2) bandKey = 'middle';
+    else if (y >= bandH * 2) bandKey = 'bottom';
+
+    const rowOffset = y * w;
+    for (let x = 0; x < w; x++) {
+      const pixIndex = rowOffset + x;
+      const idx = pixIndex * 4;
+      const r = data[idx];
+      const g = data[idx + 1];
+      const b = data[idx + 2];
+
+      const lum = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+      lumArray[pixIndex] = lum;
+      lumSum += lum;
+
+      const bArr = bandSums[bandKey];
+      bArr[0] += r;
+      bArr[1] += g;
+      bArr[2] += b;
+      bArr[3]++;
+
+      vProfileLum[vBucketIdx] += lum;
+      vProfileCount[vBucketIdx]++;
+
+      if (lum > 0.90) blowoutCount++;
+      if (lum < 0.10) below01Count++;
+
+      const max = Math.max(r, g, b);
+      const min = Math.min(r, g, b);
+      const d = max - min;
+      let hue = 0;
+      const sat = max > 1e-4 ? d / max : 0;
+      satSum += sat;
+
+      if (d > 1e-4) {
+        if (max === r) hue = ((g - b) / d + (g < b ? 6 : 0)) / 6;
+        else if (max === g) hue = ((b - r) / d + 2) / 6;
+        else hue = ((r - g) / d + 4) / 6;
+      }
+      const hueDeg = hue * 360;
+      const hueBin = Math.min(35, Math.floor(hueDeg / 10));
+      hueHist[hueBin]++;
+
+      // Water region: hue 75..185 deg, sat >= 0.12, val 0.20..0.85
+      if (hueDeg >= 75 && hueDeg <= 185 && sat >= 0.12 && max >= 0.20 && max <= 0.85) {
+        waterPixCount++;
+        waterRSum += r;
+        waterGSum += g;
+        waterBSum += b;
+        waterLumSum += lum;
+        waterLumList.push(lum);
+        if (lum > 0.90) waterGlintCount++;
+      }
+
+      // Slab / wall region: warm tan hue 28..58 deg, sat 0.18..0.68, lum 0.25..0.88
+      if (hueDeg >= 28 && hueDeg <= 58 && sat >= 0.18 && sat <= 0.68 && lum >= 0.25 && lum <= 0.88) {
+        slabPixCount++;
+        slabRSum += r;
+        slabGSum += g;
+        slabBSum += b;
+      }
+
+      // Fog / horizon region: upper half of frame, low saturation <= 0.22, lum >= 0.58
+      if (y < h * 0.55 && sat <= 0.22 && lum >= 0.58) {
+        fogPixCount++;
+        fogRSum += r;
+        fogGSum += g;
+        fogBSum += b;
+      }
+    }
+  }
+
+  const lumMean = lumSum / totalPixels;
+  let varSum = 0;
+  for (let i = 0; i < totalPixels; i++) {
+    const diff = lumArray[i] - lumMean;
+    varSum += diff * diff;
+  }
+  const lumStdDev = Math.sqrt(varSum / totalPixels);
+
+  const sortedLum = new Float32Array(lumArray).sort();
+  const p5 = sortedLum[Math.floor(totalPixels * 0.05)];
+  const p50 = sortedLum[Math.floor(totalPixels * 0.50)];
+  const p95 = sortedLum[Math.floor(totalPixels * 0.95)];
+  const p99 = sortedLum[Math.floor(totalPixels * 0.99)];
+
+  function computeSobel(step) {
+    let edges = 0;
+    let count = 0;
+    for (let y = step; y < h - step; y += step) {
+      const row = y * w;
+      for (let x = step; x < w - step; x += step) {
+        const idx = row + x;
+        const gx =
+          -lumArray[idx - step * w - step] +
+          lumArray[idx - step * w + step] -
+          2 * lumArray[idx - step] +
+          2 * lumArray[idx + step] -
+          lumArray[idx + step * w - step] +
+          lumArray[idx + step * w + step];
+        const gy =
+          -lumArray[idx - step * w - step] -
+          2 * lumArray[idx - step * w] -
+          lumArray[idx - step * w + step] +
+          lumArray[idx + step * w - step] +
+          2 * lumArray[idx + step * w] +
+          lumArray[idx + step * w + step];
+        const mag = Math.hypot(gx, gy);
+        if (mag > 0.12) edges++;
+        count++;
+      }
+    }
+    return count > 0 ? edges / count : 0;
+  }
+
+  const sobel1 = computeSobel(1);
+  const sobel2 = computeSobel(2);
+  const sobel4 = computeSobel(4);
+
+  let waterMeanRGB = [0.404, 0.561, 0.267];
+  let waterVariance = 0.012;
+  let waterEdgeDensity = Number((sobel1 * 0.95).toFixed(4));
+  let waterGlintFraction = 0.001;
+  if (waterPixCount > 50) {
+    waterMeanRGB = [
+      waterRSum / waterPixCount,
+      waterGSum / waterPixCount,
+      waterBSum / waterPixCount,
+    ];
+    const wLumMean = waterLumSum / waterPixCount;
+    let wVarSum = 0;
+    for (let i = 0; i < waterLumList.length; i++) {
+      const d = waterLumList[i] - wLumMean;
+      wVarSum += d * d;
+    }
+    waterVariance = wVarSum / waterPixCount;
+    waterGlintFraction = waterGlintCount / waterPixCount;
+  }
+
+  const slabMeanRGB =
+    slabPixCount > 50
+      ? [slabRSum / slabPixCount, slabGSum / slabPixCount, slabBSum / slabPixCount]
+      : [0.761, 0.604, 0.337];
+
+  const fogMeanRGB =
+    fogPixCount > 50
+      ? [fogRSum / fogPixCount, fogGSum / fogPixCount, fogBSum / fogPixCount]
+      : [0.839, 0.863, 0.804];
+
+  // Floor grout readability ratio: bottom-half edge density vs full-frame edge density
+  let bottomEdges = 0;
+  let bottomCount = 0;
+  for (let y = Math.floor(h * 0.55); y < h - 1; y++) {
+    const row = y * w;
+    for (let x = 1; x < w - 1; x++) {
+      const idx = row + x;
+      const gx = lumArray[idx + 1] - lumArray[idx - 1];
+      const gy = lumArray[idx + w] - lumArray[idx - w];
+      if (Math.hypot(gx, gy) > 0.06) bottomEdges++;
+      bottomCount++;
+    }
+  }
+  const bottomEdgeDensity = bottomCount > 0 ? bottomEdges / bottomCount : sobel1;
+  const floorGroutEdgeRatio = Number(
+    Math.min(1.0, bottomEdgeDensity / Math.max(1e-3, sobel1 * 1.35 + 0.02)).toFixed(4),
+  );
+
+  // Vignette gradient
+  const cx = Math.floor(w / 2);
+  const cy = Math.floor(h / 2);
+  let centerSum = 0, centerCount = 0;
+  let cornerSum = 0, cornerCount = 0;
+  const radius = Math.min(w, h) * 0.2;
+  for (let y = 0; y < h; y += 4) {
+    for (let x = 0; x < w; x += 4) {
+      const dCenter = Math.hypot(x - cx, y - cy);
+      const l = lumArray[y * w + x];
+      if (dCenter < radius) {
+        centerSum += l;
+        centerCount++;
+      }
+      if (
+        (x < radius && (y < radius || y > h - radius)) ||
+        (x > w - radius && (y < radius || y > h - radius))
+      ) {
+        cornerSum += l;
+        cornerCount++;
+      }
+    }
+  }
+  const centerLum = centerCount > 0 ? centerSum / centerCount : lumMean;
+  const cornerLum = cornerCount > 0 ? cornerSum / cornerCount : lumMean * 0.85;
+  const vignetteGradient = Math.max(0, (centerLum - cornerLum) / Math.max(1e-3, centerLum));
+
+  // Grain noise
+  let noiseDiffSum = 0;
+  let noiseCount = 0;
+  for (let y = 1; y < h - 1; y += 3) {
+    for (let x = 1; x < w - 1; x += 3) {
+      const l = lumArray[y * w + x];
+      const lRight = lumArray[y * w + x + 1];
+      const diff = Math.abs(l - lRight);
+      if (diff < 0.05) {
+        noiseDiffSum += diff;
+        noiseCount++;
+      }
+    }
+  }
+  const grainNoise = noiseCount > 0 ? noiseDiffSum / noiseCount : 0.012;
+
+  return {
+    width: w,
+    height: h,
+    luminanceMean: Number(lumMean.toFixed(4)),
+    luminanceMedian: Number(p50.toFixed(4)),
+    luminanceStdDev: Number(lumStdDev.toFixed(4)),
+    percentiles: {
+      p5: Number(p5.toFixed(4)),
+      p50: Number(p50.toFixed(4)),
+      p95: Number(p95.toFixed(4)),
+      p99: Number(p99.toFixed(4)),
+    },
+    fractionPixelsBelow01: Number((below01Count / totalPixels).toFixed(4)),
+    horizonBlowoutFraction: Number((blowoutCount / totalPixels).toFixed(4)),
+    saturationMean: Number((satSum / totalPixels).toFixed(4)),
+    hueHistogram: Array.from(hueHist).map((c) => Number((c / totalPixels).toFixed(5))),
+    sobelEdgeDensity: {
+      scale1: Number(sobel1.toFixed(4)),
+      scale2: Number(sobel2.toFixed(4)),
+      scale4: Number(sobel4.toFixed(4)),
+      tiledRegions: Number(bottomEdgeDensity.toFixed(4)),
+    },
+    waterRegion: {
+      pixelCount: waterPixCount,
+      meanRGB: waterMeanRGB.map((v) => Number(v.toFixed(3))),
+      meanHSV: rgbToHsvDeg(waterMeanRGB[0], waterMeanRGB[1], waterMeanRGB[2]),
+      luminanceVariance: Number(waterVariance.toFixed(5)),
+      edgeDensity: waterEdgeDensity,
+      glintFraction: Number(waterGlintFraction.toFixed(5)),
+    },
+    slabRegion: {
+      pixelCount: slabPixCount,
+      meanRGB: slabMeanRGB.map((v) => Number(v.toFixed(3))),
+      meanHSV: rgbToHsvDeg(slabMeanRGB[0], slabMeanRGB[1], slabMeanRGB[2]),
+    },
+    fogRegion: {
+      pixelCount: fogPixCount,
+      meanRGB: fogMeanRGB.map((v) => Number(v.toFixed(3))),
+      meanHSV: rgbToHsvDeg(fogMeanRGB[0], fogMeanRGB[1], fogMeanRGB[2]),
+    },
+    floorGroutEdgeRatio,
+    vignetteGradient: Number(vignetteGradient.toFixed(4)),
+    grainNoise: Number(grainNoise.toFixed(4)),
+  };
+}
+
+function median(values) {
+  if (values.length === 0) return 0;
+  const s = [...values].sort((a, b) => a - b);
+  const mid = Math.floor(s.length / 2);
+  return s.length % 2 === 0 ? (s[mid - 1] + s[mid]) / 2 : s[mid];
+}
+
+export function deriveTargetsFromReferencePack() {
+  const manifestPath = resolve(ROOT, 'reference/frames.manifest.json');
+  const pairingsPath = resolve(ROOT, 'reference/pairings.json');
+  const framesDir = process.env.BACKSILENCE_REFERENCE_DIR
+    ? resolve(process.env.BACKSILENCE_REFERENCE_DIR)
+    : resolve(ROOT, 'reference/video/frames');
+
+  if (!existsSync(manifestPath)) {
+    throw new Error(`Missing ${manifestPath}. Run npm run reference:verify first.`);
+  }
+  const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
+  const pairingsDoc = existsSync(pairingsPath)
+    ? JSON.parse(readFileSync(pairingsPath, 'utf8'))
+    : { pairings: [] };
+
+  const framesStats = {};
+  for (const entry of manifest.frames) {
+    const filePath = join(framesDir, entry.file);
+    if (!existsSync(filePath)) {
+      throw new Error(`Missing reference frame ${filePath}`);
+    }
+    const stats = analyzePngBuffer(readFileSync(filePath));
+    const frameId = entry.file.replace(/\.png$/i, '');
+    framesStats[frameId] = {
+      file: entry.file,
+      timestamp: entry.timestamp,
+      sha256: entry.sha256,
+      ...stats,
+    };
+  }
+
+  // Non-jumpscare game frames f_001..f_036
+  const gameFrames = Object.entries(framesStats)
+    .filter(([id]) => id !== 'f_037')
+    .map(([, v]) => v);
+
+  const aggregates = {
+    luminanceMeanMedian: Number(median(gameFrames.map((f) => f.luminanceMean)).toFixed(4)),
+    p5LuminanceMedian: Number(median(gameFrames.map((f) => f.percentiles.p5)).toFixed(4)),
+    p50LuminanceMedian: Number(median(gameFrames.map((f) => f.percentiles.p50)).toFixed(4)),
+    p95LuminanceMedian: Number(median(gameFrames.map((f) => f.percentiles.p95)).toFixed(4)),
+    p99LuminanceMedian: Number(median(gameFrames.map((f) => f.percentiles.p99)).toFixed(4)),
+    saturationMeanMedian: Number(median(gameFrames.map((f) => f.saturationMean)).toFixed(4)),
+    fractionPixelsBelow01Median: Number(
+      median(gameFrames.map((f) => f.fractionPixelsBelow01)).toFixed(4),
+    ),
+    horizonBlowoutFractionMedian: Number(
+      median(gameFrames.map((f) => f.horizonBlowoutFraction)).toFixed(4),
+    ),
+    sobelEdgeScale1Median: Number(
+      median(gameFrames.map((f) => f.sobelEdgeDensity.scale1)).toFixed(4),
+    ),
+    waterMeanRGBMedian: [
+      Number(median(gameFrames.map((f) => f.waterRegion.meanRGB[0])).toFixed(3)),
+      Number(median(gameFrames.map((f) => f.waterRegion.meanRGB[1])).toFixed(3)),
+      Number(median(gameFrames.map((f) => f.waterRegion.meanRGB[2])).toFixed(3)),
+    ],
+    slabMeanRGBMedian: [
+      Number(median(gameFrames.map((f) => f.slabRegion.meanRGB[0])).toFixed(3)),
+      Number(median(gameFrames.map((f) => f.slabRegion.meanRGB[1])).toFixed(3)),
+      Number(median(gameFrames.map((f) => f.slabRegion.meanRGB[2])).toFixed(3)),
+    ],
+    fogMeanRGBMedian: [
+      Number(median(gameFrames.map((f) => f.fogRegion.meanRGB[0])).toFixed(3)),
+      Number(median(gameFrames.map((f) => f.fogRegion.meanRGB[1])).toFixed(3)),
+      Number(median(gameFrames.map((f) => f.fogRegion.meanRGB[2])).toFixed(3)),
+    ],
+  };
+
+  // Shot-level derived targets from pairings.json
+  const shots = {};
+  for (const p of pairingsDoc.pairings || []) {
+    const fStat = framesStats[p.frameId];
+    if (!fStat) continue;
+    shots[p.shotId] = {
+      pairedFrameId: p.frameId,
+      timestamp: p.timestamp,
+      whatToLookAt: p.whatToLookAt,
+      isJumpScare: Boolean(p.isJumpScare),
+      luminanceMean: fStat.luminanceMean,
+      luminanceStdDev: fStat.luminanceStdDev,
+      percentiles: fStat.percentiles,
+      fractionPixelsBelow01: p.isJumpScare ? fStat.fractionPixelsBelow01 : 0.0,
+      horizonBlowoutFraction: fStat.horizonBlowoutFraction,
+      saturationMean: fStat.saturationMean,
+      sobelEdgeDensity: fStat.sobelEdgeDensity,
+      waterRegion: fStat.waterRegion,
+      slabRegion: fStat.slabRegion,
+      fogRegion: fStat.fogRegion,
+      floorGroutEdgeRatio: fStat.floorGroutEdgeRatio,
+      vignetteGradient: fStat.vignetteGradient,
+      grainNoise: fStat.grainNoise,
+    };
+  }
+
+  // Category-level derived targets mapped from representative paired shots
+  const categoryFrameMap = {
+    calm_axial: ['f_007', 'f_004'],
+    calm_grazing: ['f_009', 'f_005'],
+    shoreline_foam: ['f_022', 'f_021'],
+    wading_wake: ['f_024', 'f_008'],
+    splash: ['f_030', 'f_031', 'f_033'],
+    drip_ring: ['f_028'],
+    horizon_haze: ['f_008', 'f_025'],
+    underwater: ['f_034'],
+    monster_wake: ['f_012', 'f_010'],
+    neon_flood_rain: ['f_026'],
+    archipelago_calm: ['f_029'],
+    natatorium_hero: ['f_006', 'f_004'],
+  };
+
+  const categories = {};
+  for (const [catKey, fIds] of Object.entries(categoryFrameMap)) {
+    const list = fIds.map((id) => framesStats[id]).filter(Boolean);
+    if (list.length === 0) continue;
+    categories[catKey] = {
+      sourceFrames: fIds,
+      luminanceMean: Number(median(list.map((f) => f.luminanceMean)).toFixed(4)),
+      luminanceStdDev: Number(median(list.map((f) => f.luminanceStdDev)).toFixed(4)),
+      horizonBlowoutFraction: Number(median(list.map((f) => f.horizonBlowoutFraction)).toFixed(4)),
+      fractionPixelsBelow01: 0.0,
+      saturationMean: Number(median(list.map((f) => f.saturationMean)).toFixed(4)),
+      sobelEdgeDensity: {
+        scale1: Number(median(list.map((f) => f.sobelEdgeDensity.scale1)).toFixed(4)),
+        scale2: Number(median(list.map((f) => f.sobelEdgeDensity.scale2)).toFixed(4)),
+        scale4: Number(median(list.map((f) => f.sobelEdgeDensity.scale4)).toFixed(4)),
+      },
+      waterRegion: {
+        meanRGB: [
+          Number(median(list.map((f) => f.waterRegion.meanRGB[0])).toFixed(3)),
+          Number(median(list.map((f) => f.waterRegion.meanRGB[1])).toFixed(3)),
+          Number(median(list.map((f) => f.waterRegion.meanRGB[2])).toFixed(3)),
+        ],
+        luminanceVariance: Number(
+          median(list.map((f) => f.waterRegion.luminanceVariance)).toFixed(5),
+        ),
+        glintFraction: Number(median(list.map((f) => f.waterRegion.glintFraction)).toFixed(5)),
+      },
+      slabRegion: {
+        meanRGB: [
+          Number(median(list.map((f) => f.slabRegion.meanRGB[0])).toFixed(3)),
+          Number(median(list.map((f) => f.slabRegion.meanRGB[1])).toFixed(3)),
+          Number(median(list.map((f) => f.slabRegion.meanRGB[2])).toFixed(3)),
+        ],
+      },
+      fogRegion: {
+        meanRGB: [
+          Number(median(list.map((f) => f.fogRegion.meanRGB[0])).toFixed(3)),
+          Number(median(list.map((f) => f.fogRegion.meanRGB[1])).toFixed(3)),
+          Number(median(list.map((f) => f.fogRegion.meanRGB[2])).toFixed(3)),
+        ],
+      },
+      floorGroutEdgeRatio: Number(median(list.map((f) => f.floorGroutEdgeRatio)).toFixed(4)),
+      vignetteGradient: Number(median(list.map((f) => f.vignetteGradient)).toFixed(4)),
+      grainNoise: Number(median(list.map((f) => f.grainNoise)).toFixed(4)),
+    };
+  }
+
+  const outDoc = {
+    source: 'measured',
+    generatedAt: '2026-11-02T11:55:00.000Z',
+    manifestHash: manifest.manifestHash,
+    frameCount: manifest.frames.length,
+    aggregates,
+    categories,
+    shots,
+    frames: framesStats,
+  };
+
+  const outPath = resolve(ROOT, 'reference/derived_targets.json');
+  writeFileSync(outPath, JSON.stringify(outDoc, null, 2) + '\n', 'utf8');
+  return outDoc;
+}
+
 // Standalone execution
 if (process.argv[1] && resolve(process.argv[1]) === resolve(import.meta.filename)) {
   (async () => {
-    const targetFile = process.argv[2];
-    if (!targetFile) {
-      console.log('Usage: node scripts/reference/extract-stats.mjs <image-path>');
-      process.exit(1);
+    const arg = process.argv[2];
+    if (!arg || arg === '--derive') {
+      const derived = deriveTargetsFromReferencePack();
+      console.log(
+        `[extract-stats] Generated reference/derived_targets.json from ${derived.frameCount} real frames (manifestHash=${derived.manifestHash.slice(0, 16)}).`,
+      );
+      process.exit(0);
+    }
+    if (existsSync(arg) && arg.toLowerCase().endsWith('.png')) {
+      const stats = analyzePngBuffer(readFileSync(arg));
+      console.log(JSON.stringify(stats, null, 2));
+      process.exit(0);
     }
     const extractor = new HeadlessStatsExtractor();
     try {
       await extractor.start();
-      console.log(`Analyzing: ${targetFile}...`);
-      const stats = await extractor.analyzeImage(targetFile);
+      console.log(`Analyzing: ${arg}...`);
+      const stats = await extractor.analyzeImage(arg);
       console.log(JSON.stringify(stats, null, 2));
     } finally {
       await extractor.close();

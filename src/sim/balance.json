@@ -96,7 +96,7 @@
     "natatorium": {
       "parSeconds": 240,
       "noiseBudget": 8.0,
-      "firstContactMin": 12.0,
+      "firstContactMin": 15.0,
       "firstContactMax": 16.0,
       "firstContactDistMin": 10.0,
       "firstContactDistMax": 14.0

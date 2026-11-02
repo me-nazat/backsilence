@@ -26,7 +26,7 @@ The repository contains an initial implementation of a water shader and wave sim
 
 ## 2. Line-by-Line Detailed Audit
 
-### A. `WaterMaterial.ts` (Shaders & Shading Model)
+### A. `WaterMaterial.ts` (Shaders & Shading Model, `f_007` -> `natatorium_water_calm_axial`, `f_019` -> `natatorium_floor_through_water`)
 
 1. **Alpha-Blending Tinted Sheet Artifact (Lines 384–387):**
    - **Current Code:**

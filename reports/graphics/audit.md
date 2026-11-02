@@ -49,15 +49,15 @@
 
 ## 4. Textures, Filtering, Anisotropy & LOD Bias
 
-### 4.1 Texture Filtering & Anisotropy
+### 4.1 Texture Filtering & Anisotropy (`f_003` -> `natatorium_close_tile_wall`, `f_025` -> `natatorium_horizon_long`)
 - **Tile Texture Resolution:**
   - Low tier: 256x256
   - Medium tier: 512x512
   - High tier: 1024x1024
-- **Anisotropy:** Currently defaults to 1 or 4. At grazing angles along long pool decks (e.g. 40m views), low anisotropy causes tile grout lines to blur into muddy soup.
+- **Anisotropy:** Currently defaults to 1 or 4. At grazing angles along long pool decks (e.g. 40m views in `natatorium_horizon_long`, `f_025`), low anisotropy causes tile grout lines to blur into muddy soup.
   - *Action:* High tier must query `renderer.capabilities.getMaxAnisotropy()` (typically 8–16), Medium tier set to 4, Low tier set to 1.
 - **Texture LOD Bias (Mip Bias):**
-  - Mip bias of -0.5 on tile materials ensures 0.15m tiles remain legible up to 20m distance without introducing high-frequency shimmering.
+  - Mip bias of -0.5 on tile materials ensures 0.15m tiles remain legible up to 20m distance without introducing high-frequency shimmering (`f_003`).
 
 ---
 
@@ -82,7 +82,7 @@
 
 ## 6. External Overlays & Non-Pipeline Shading
 
-### 6.1 Static CSS Scanline Overlay Audit
+### 6.1 Static CSS Scanline Overlay Audit (`f_004` -> `natatorium_spawn_view`)
 - **Problem Statement:** An external `vhs-css-fallback` overlay element sits in the DOM outside the WebGL pipeline:
   ```css
   background-image: repeating-linear-gradient(0deg, rgba(0,0,0,0.18), rgba(0,0,0,0.18) 1px, transparent 1px, transparent 3px), radial-gradient(ellipse at center, transparent 60%, rgba(0,0,0,0.4) 100%);

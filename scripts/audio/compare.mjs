@@ -170,6 +170,7 @@ export async function runCompare(options = {}) {
   console.log(`Summary: ${passedChecks} / ${totalChecks} audio criteria within tolerance (${totalChecks ? Math.round((passedChecks / totalChecks) * 100) : 0}%).`);
 
   // Write comparison summary to reports/audio/compare_summary.json
+  const allPassed = passedChecks === totalChecks && totalChecks > 0;
   const summaryOut = resolve(REPORTS_DIR, 'compare_summary.json');
   writeFileSync(
     summaryOut,
@@ -179,7 +180,7 @@ export async function runCompare(options = {}) {
         referenceClipsCount: refFiles.length,
         totalChecks,
         passedChecks,
-        allPassed: passedChecks === totalChecks && totalChecks > 0,
+        allPassed,
         results,
       },
       null,
@@ -187,11 +188,14 @@ export async function runCompare(options = {}) {
     )
   );
   console.log(`\nComparison report saved to ${summaryOut}\n`);
-  return { passedChecks, totalChecks };
+  if (!allPassed) {
+    process.exitCode = 1;
+  }
+  return { passedChecks, totalChecks, allPassed };
 }
 
 // CLI runner
-if (process.argv[1]?.endsWith('compare.mjs')) {
+if (process.argv[1] && resolve(process.argv[1]) === resolve(import.meta.filename)) {
   runCompare().catch((err) => {
     console.error('Audio comparison error:', err);
     process.exit(1);

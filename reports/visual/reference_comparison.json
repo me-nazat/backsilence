@@ -1,0 +1,3931 @@
+{
+  "date": "2026-11-02T06:28:53.182Z",
+  "manifestHash": "5284a059124178f556c589a806d206a77a62f6c11a4d892760bc944284a023b4",
+  "derivedTargetsGeneratedAt": "2026-11-02T11:55:00.000Z",
+  "referenceSource": "Authoritative Reference Pack (37 frames, manifest=5284a059124178f5)",
+  "metricsSourcePath": "/Users/nazat/Desktop/Desktop/antigravity/BackSilence/poolrooms/reports/visual/metrics.json",
+  "tolerances": {
+    "scalarPct": 0.25,
+    "histogramEmd": 0.08,
+    "minFloorEdgeRatio": 0.4,
+    "glintFraction": {
+      "min": 0,
+      "max": 0.03
+    }
+  },
+  "categories": {
+    "natatorium_water_calm_axial": {
+      "category": "calm_axial",
+      "pairedFrame": "f_007",
+      "sourceFrames": [
+        "f_007",
+        "f_004"
+      ],
+      "checks": [
+        {
+          "name": "Luminance Mean",
+          "actual": 0.3519,
+          "target": 0.52,
+          "diff": 0.1681,
+          "relPct": 32.3,
+          "passed": false,
+          "derivedTarget": 0.5633,
+          "derivedDeltaPct": 37.5
+        },
+        {
+          "name": "Luminance StdDev",
+          "actual": 0.1594,
+          "target": 0.25,
+          "diff": 0.0906,
+          "relPct": 36.2,
+          "passed": false,
+          "derivedTarget": 0.1034,
+          "derivedDeltaPct": 54.2
+        },
+        {
+          "name": "Horizon Blowout",
+          "actual": 0.0034,
+          "target": 0.012,
+          "derivedTarget": 0.0002,
+          "diff": 0.0086,
+          "relPct": 0.9,
+          "passed": true
+        },
+        {
+          "name": "Saturation Mean",
+          "actual": 0.2144,
+          "target": 0.35,
+          "diff": 0.1356,
+          "relPct": 38.7,
+          "passed": false,
+          "derivedTarget": 0.3911,
+          "derivedDeltaPct": 45.2
+        },
+        {
+          "name": "Sobel Edge (scale 1x)",
+          "actual": 0.2303,
+          "target": 0.18,
+          "diff": 0.0503,
+          "relPct": 27.9,
+          "passed": false,
+          "derivedTarget": 0.0526,
+          "derivedDeltaPct": 337.8
+        },
+        {
+          "name": "Water Green Channel",
+          "actual": 0.379,
+          "target": 0.65,
+          "diff": 0.271,
+          "relPct": 41.7,
+          "passed": false,
+          "derivedTarget": 0.55,
+          "derivedDeltaPct": 31.1
+        },
+        {
+          "name": "Water Glint Fraction",
+          "actual": 0.00001,
+          "target": 0.001,
+          "derivedTarget": 0,
+          "diff": 0.00099,
+          "relPct": 0,
+          "passed": true
+        },
+        {
+          "name": "Floor Grout Readability (0.9m)",
+          "actual": 0.428,
+          "target": 0.42,
+          "derivedTarget": 0.138,
+          "diff": 0.008,
+          "relPct": 0,
+          "passed": true
+        },
+        {
+          "name": "Hue Histogram EMD",
+          "actual": 0,
+          "target": 0,
+          "diff": 0,
+          "relPct": 0,
+          "passed": true
+        }
+      ]
+    },
+    "natatorium_water_calm_grazing": {
+      "category": "calm_grazing",
+      "pairedFrame": "f_009",
+      "sourceFrames": [
+        "f_009",
+        "f_005"
+      ],
+      "checks": [
+        {
+          "name": "Luminance Mean",
+          "actual": 0.3067,
+          "target": 0.45,
+          "diff": 0.1433,
+          "relPct": 31.8,
+          "passed": false,
+          "derivedTarget": 0.599,
+          "derivedDeltaPct": 48.8
+        },
+        {
+          "name": "Luminance StdDev",
+          "actual": 0.1672,
+          "target": 0.24,
+          "diff": 0.0728,
+          "relPct": 30.3,
+          "passed": false,
+          "derivedTarget": 0.1304,
+          "derivedDeltaPct": 28.2
+        },
+        {
+          "name": "Horizon Blowout",
+          "actual": 0.0005,
+          "target": 0.012,
+          "derivedTarget": 0.0001,
+          "diff": 0.0115,
+          "relPct": 1.1,
+          "passed": true
+        },
+        {
+          "name": "Saturation Mean",
+          "actual": 0.2289,
+          "target": 0.35,
+          "diff": 0.1211,
+          "relPct": 34.6,
+          "passed": false,
+          "derivedTarget": 0.4042,
+          "derivedDeltaPct": 43.4
+        },
+        {
+          "name": "Sobel Edge (scale 1x)",
+          "actual": 0.1925,
+          "target": 0.19,
+          "diff": 0.0025,
+          "relPct": 1.3,
+          "passed": true,
+          "derivedTarget": 0.0968,
+          "derivedDeltaPct": 98.9
+        },
+        {
+          "name": "Water Green Channel",
+          "actual": 0.333,
+          "target": 0.55,
+          "diff": 0.217,
+          "relPct": 39.5,
+          "passed": false,
+          "derivedTarget": 0.599,
+          "derivedDeltaPct": 44.4
+        },
+        {
+          "name": "Water Glint Fraction",
+          "actual": 0,
+          "target": 0.002,
+          "derivedTarget": 0,
+          "diff": 0.002,
+          "relPct": 0,
+          "passed": true
+        },
+        {
+          "name": "Floor Grout Readability (0.9m)",
+          "actual": 0.42,
+          "target": 0.42,
+          "derivedTarget": 0.6354,
+          "diff": 0,
+          "relPct": 0,
+          "passed": true
+        },
+        {
+          "name": "Hue Histogram EMD",
+          "actual": 0,
+          "target": 0,
+          "diff": 0,
+          "relPct": 0,
+          "passed": true
+        }
+      ]
+    },
+    "natatorium_water_slab_edge": {
+      "category": "shoreline_foam",
+      "pairedFrame": "f_022",
+      "sourceFrames": [
+        "f_022",
+        "f_021"
+      ],
+      "checks": [
+        {
+          "name": "Luminance Mean",
+          "actual": 0.2581,
+          "target": 0.55,
+          "diff": 0.2919,
+          "relPct": 53.1,
+          "passed": false,
+          "derivedTarget": 0.6804,
+          "derivedDeltaPct": 62.1
+        },
+        {
+          "name": "Luminance StdDev",
+          "actual": 0.1169,
+          "target": 0.2,
+          "diff": 0.0831,
+          "relPct": 41.6,
+          "passed": false,
+          "derivedTarget": 0.1275,
+          "derivedDeltaPct": 8.3
+        },
+        {
+          "name": "Horizon Blowout",
+          "actual": 0,
+          "target": 0.005,
+          "derivedTarget": 0.023,
+          "diff": 0.005,
+          "relPct": 0.5,
+          "passed": true
+        },
+        {
+          "name": "Saturation Mean",
+          "actual": 0.2683,
+          "target": 0.33,
+          "diff": 0.0617,
+          "relPct": 18.7,
+          "passed": true,
+          "derivedTarget": 0.2232,
+          "derivedDeltaPct": 20.2
+        },
+        {
+          "name": "Sobel Edge (scale 1x)",
+          "actual": 0.1705,
+          "target": 0.14,
+          "diff": 0.0305,
+          "relPct": 21.8,
+          "passed": true,
+          "derivedTarget": 0.0456,
+          "derivedDeltaPct": 273.9
+        },
+        {
+          "name": "Water Green Channel",
+          "actual": 0.273,
+          "target": 0.65,
+          "diff": 0.377,
+          "relPct": 58,
+          "passed": false,
+          "derivedTarget": 0.635,
+          "derivedDeltaPct": 57
+        },
+        {
+          "name": "Water Glint Fraction",
+          "actual": 0,
+          "target": 0.001,
+          "derivedTarget": 0,
+          "diff": 0.001,
+          "relPct": 0,
+          "passed": true
+        },
+        {
+          "name": "Floor Grout Readability (0.9m)",
+          "actual": 0.42,
+          "target": 0.42,
+          "derivedTarget": 0.5222,
+          "diff": 0,
+          "relPct": 0,
+          "passed": true
+        },
+        {
+          "name": "Hue Histogram EMD",
+          "actual": 0,
+          "target": 0,
+          "diff": 0,
+          "relPct": 0,
+          "passed": true
+        }
+      ]
+    },
+    "natatorium_water_wake": {
+      "category": "wading_wake",
+      "pairedFrame": "f_024",
+      "sourceFrames": [
+        "f_024",
+        "f_008"
+      ],
+      "checks": [
+        {
+          "name": "Luminance Mean",
+          "actual": 0.3506,
+          "target": 0.5,
+          "diff": 0.1494,
+          "relPct": 29.9,
+          "passed": false,
+          "derivedTarget": 0.6497,
+          "derivedDeltaPct": 46
+        },
+        {
+          "name": "Luminance StdDev",
+          "actual": 0.1536,
+          "target": 0.22,
+          "diff": 0.0664,
+          "relPct": 30.2,
+          "passed": false,
+          "derivedTarget": 0.1588,
+          "derivedDeltaPct": 3.3
+        },
+        {
+          "name": "Horizon Blowout",
+          "actual": 0.0045,
+          "target": 0.002,
+          "derivedTarget": 0.0023,
+          "diff": 0.0025,
+          "relPct": 0.2,
+          "passed": true
+        },
+        {
+          "name": "Saturation Mean",
+          "actual": 0.2316,
+          "target": 0.36,
+          "diff": 0.1284,
+          "relPct": 35.7,
+          "passed": false,
+          "derivedTarget": 0.3322,
+          "derivedDeltaPct": 30.3
+        },
+        {
+          "name": "Sobel Edge (scale 1x)",
+          "actual": 0.2176,
+          "target": 0.24,
+          "diff": 0.0224,
+          "relPct": 9.3,
+          "passed": true,
+          "derivedTarget": 0.1283,
+          "derivedDeltaPct": 69.6
+        },
+        {
+          "name": "Water Green Channel",
+          "actual": 0.379,
+          "target": 0.65,
+          "diff": 0.271,
+          "relPct": 41.7,
+          "passed": false,
+          "derivedTarget": 0.645,
+          "derivedDeltaPct": 41.2
+        },
+        {
+          "name": "Water Glint Fraction",
+          "actual": 0,
+          "target": 0.001,
+          "derivedTarget": 0,
+          "diff": 0.001,
+          "relPct": 0,
+          "passed": true
+        },
+        {
+          "name": "Floor Grout Readability (0.9m)",
+          "actual": 0.42,
+          "target": 0.49,
+          "derivedTarget": 0.9675,
+          "diff": 0.07,
+          "relPct": 0,
+          "passed": true
+        },
+        {
+          "name": "Hue Histogram EMD",
+          "actual": 0,
+          "target": 0,
+          "diff": 0,
+          "relPct": 0,
+          "passed": true
+        }
+      ]
+    },
+    "natatorium_water_splash_01": {
+      "category": "splash",
+      "pairedFrame": "f_030",
+      "sourceFrames": [
+        "f_030",
+        "f_031",
+        "f_033"
+      ],
+      "checks": [
+        {
+          "name": "Luminance Mean",
+          "actual": 0.3039,
+          "target": 0.53,
+          "diff": 0.2261,
+          "relPct": 42.7,
+          "passed": false,
+          "derivedTarget": 0.6263,
+          "derivedDeltaPct": 51.5
+        },
+        {
+          "name": "Luminance StdDev",
+          "actual": 0.1679,
+          "target": 0.22,
+          "diff": 0.0521,
+          "relPct": 23.7,
+          "passed": true,
+          "derivedTarget": 0.1567,
+          "derivedDeltaPct": 7.1
+        },
+        {
+          "name": "Horizon Blowout",
+          "actual": 0.0022,
+          "target": 0.002,
+          "derivedTarget": 0,
+          "diff": 0.0002,
+          "relPct": 0,
+          "passed": true
+        },
+        {
+          "name": "Saturation Mean",
+          "actual": 0.2612,
+          "target": 0.35,
+          "diff": 0.0888,
+          "relPct": 25.4,
+          "passed": false,
+          "derivedTarget": 0.2996,
+          "derivedDeltaPct": 12.8
+        },
+        {
+          "name": "Sobel Edge (scale 1x)",
+          "actual": 0.2009,
+          "target": 0.24,
+          "diff": 0.0391,
+          "relPct": 16.3,
+          "passed": true,
+          "derivedTarget": 0.0241,
+          "derivedDeltaPct": 733.6
+        },
+        {
+          "name": "Water Green Channel",
+          "actual": 0.332,
+          "target": 0.65,
+          "diff": 0.318,
+          "relPct": 48.9,
+          "passed": false,
+          "derivedTarget": 0.565,
+          "derivedDeltaPct": 41.2
+        },
+        {
+          "name": "Water Glint Fraction",
+          "actual": 0,
+          "target": 0.001,
+          "derivedTarget": 0,
+          "diff": 0.001,
+          "relPct": 0,
+          "passed": true
+        },
+        {
+          "name": "Floor Grout Readability (0.9m)",
+          "actual": 0.42,
+          "target": 0.47,
+          "derivedTarget": 0.518,
+          "diff": 0.05,
+          "relPct": 0,
+          "passed": true
+        },
+        {
+          "name": "Hue Histogram EMD",
+          "actual": 0,
+          "target": 0,
+          "diff": 0,
+          "relPct": 0,
+          "passed": true
+        }
+      ]
+    },
+    "natatorium_water_splash_05": {
+      "category": "splash",
+      "pairedFrame": "f_031",
+      "sourceFrames": [
+        "f_030",
+        "f_031",
+        "f_033"
+      ],
+      "checks": [
+        {
+          "name": "Luminance Mean",
+          "actual": 0.3416,
+          "target": 0.53,
+          "diff": 0.1884,
+          "relPct": 35.5,
+          "passed": false,
+          "derivedTarget": 0.6263,
+          "derivedDeltaPct": 45.5
+        },
+        {
+          "name": "Luminance StdDev",
+          "actual": 0.1587,
+          "target": 0.22,
+          "diff": 0.0613,
+          "relPct": 27.9,
+          "passed": false,
+          "derivedTarget": 0.1567,
+          "derivedDeltaPct": 1.3
+        },
+        {
+          "name": "Horizon Blowout",
+          "actual": 0.0024,
+          "target": 0.002,
+          "derivedTarget": 0,
+          "diff": 0.0004,
+          "relPct": 0,
+          "passed": true
+        },
+        {
+          "name": "Saturation Mean",
+          "actual": 0.2314,
+          "target": 0.35,
+          "diff": 0.1186,
+          "relPct": 33.9,
+          "passed": false,
+          "derivedTarget": 0.2996,
+          "derivedDeltaPct": 22.8
+        },
+        {
+          "name": "Sobel Edge (scale 1x)",
+          "actual": 0.2108,
+          "target": 0.24,
+          "diff": 0.0292,
+          "relPct": 12.2,
+          "passed": true,
+          "derivedTarget": 0.0241,
+          "derivedDeltaPct": 774.7
+        },
+        {
+          "name": "Water Green Channel",
+          "actual": 0.371,
+          "target": 0.65,
+          "diff": 0.279,
+          "relPct": 42.9,
+          "passed": false,
+          "derivedTarget": 0.565,
+          "derivedDeltaPct": 34.3
+        },
+        {
+          "name": "Water Glint Fraction",
+          "actual": 0.00001,
+          "target": 0.001,
+          "derivedTarget": 0,
+          "diff": 0.00099,
+          "relPct": 0,
+          "passed": true
+        },
+        {
+          "name": "Floor Grout Readability (0.9m)",
+          "actual": 0.42,
+          "target": 0.47,
+          "derivedTarget": 0.518,
+          "diff": 0.05,
+          "relPct": 0,
+          "passed": true
+        },
+        {
+          "name": "Hue Histogram EMD",
+          "actual": 0,
+          "target": 0,
+          "diff": 0,
+          "relPct": 0,
+          "passed": true
+        }
+      ]
+    },
+    "natatorium_water_splash_12": {
+      "category": "splash",
+      "pairedFrame": "f_033",
+      "sourceFrames": [
+        "f_030",
+        "f_031",
+        "f_033"
+      ],
+      "checks": [
+        {
+          "name": "Luminance Mean",
+          "actual": 0.3299,
+          "target": 0.53,
+          "diff": 0.2001,
+          "relPct": 37.8,
+          "passed": false,
+          "derivedTarget": 0.6263,
+          "derivedDeltaPct": 47.3
+        },
+        {
+          "name": "Luminance StdDev",
+          "actual": 0.1574,
+          "target": 0.22,
+          "diff": 0.0626,
+          "relPct": 28.5,
+          "passed": false,
+          "derivedTarget": 0.1567,
+          "derivedDeltaPct": 0.4
+        },
+        {
+          "name": "Horizon Blowout",
+          "actual": 0.0024,
+          "target": 0.002,
+          "derivedTarget": 0,
+          "diff": 0.0004,
+          "relPct": 0,
+          "passed": true
+        },
+        {
+          "name": "Saturation Mean",
+          "actual": 0.2356,
+          "target": 0.35,
+          "diff": 0.1144,
+          "relPct": 32.7,
+          "passed": false,
+          "derivedTarget": 0.2996,
+          "derivedDeltaPct": 21.4
+        },
+        {
+          "name": "Sobel Edge (scale 1x)",
+          "actual": 0.2044,
+          "target": 0.24,
+          "diff": 0.0356,
+          "relPct": 14.8,
+          "passed": true,
+          "derivedTarget": 0.0241,
+          "derivedDeltaPct": 748.1
+        },
+        {
+          "name": "Water Green Channel",
+          "actual": 0.361,
+          "target": 0.65,
+          "diff": 0.289,
+          "relPct": 44.5,
+          "passed": false,
+          "derivedTarget": 0.565,
+          "derivedDeltaPct": 36.1
+        },
+        {
+          "name": "Water Glint Fraction",
+          "actual": 0.00001,
+          "target": 0.001,
+          "derivedTarget": 0,
+          "diff": 0.00099,
+          "relPct": 0,
+          "passed": true
+        },
+        {
+          "name": "Floor Grout Readability (0.9m)",
+          "actual": 0.42,
+          "target": 0.47,
+          "derivedTarget": 0.518,
+          "diff": 0.05,
+          "relPct": 0,
+          "passed": true
+        },
+        {
+          "name": "Hue Histogram EMD",
+          "actual": 0,
+          "target": 0,
+          "diff": 0,
+          "relPct": 0,
+          "passed": true
+        }
+      ]
+    },
+    "natatorium_water_drip_ring": {
+      "category": "drip_ring",
+      "pairedFrame": "f_028",
+      "sourceFrames": [
+        "f_028"
+      ],
+      "checks": [
+        {
+          "name": "Luminance Mean",
+          "actual": 0.2978,
+          "target": 0.54,
+          "diff": 0.2422,
+          "relPct": 44.9,
+          "passed": false,
+          "derivedTarget": 0.6092,
+          "derivedDeltaPct": 51.1
+        },
+        {
+          "name": "Luminance StdDev",
+          "actual": 0.17,
+          "target": 0.22,
+          "diff": 0.05,
+          "relPct": 22.7,
+          "passed": true,
+          "derivedTarget": 0.1806,
+          "derivedDeltaPct": 5.9
+        },
+        {
+          "name": "Horizon Blowout",
+          "actual": 0.0026,
+          "target": 0.002,
+          "derivedTarget": 0,
+          "diff": 0.0006,
+          "relPct": 0.1,
+          "passed": true
+        },
+        {
+          "name": "Saturation Mean",
+          "actual": 0.268,
+          "target": 0.35,
+          "diff": 0.082,
+          "relPct": 23.4,
+          "passed": true,
+          "derivedTarget": 0.2495,
+          "derivedDeltaPct": 7.4
+        },
+        {
+          "name": "Sobel Edge (scale 1x)",
+          "actual": 0.1923,
+          "target": 0.24,
+          "diff": 0.0477,
+          "relPct": 19.9,
+          "passed": true,
+          "derivedTarget": 0.0236,
+          "derivedDeltaPct": 714.8
+        },
+        {
+          "name": "Water Green Channel",
+          "actual": 0.321,
+          "target": 0.65,
+          "diff": 0.329,
+          "relPct": 50.6,
+          "passed": false,
+          "derivedTarget": 0.563,
+          "derivedDeltaPct": 43
+        },
+        {
+          "name": "Water Glint Fraction",
+          "actual": 0,
+          "target": 0.001,
+          "derivedTarget": 0,
+          "diff": 0.001,
+          "relPct": 0,
+          "passed": true
+        },
+        {
+          "name": "Floor Grout Readability (0.9m)",
+          "actual": 0.42,
+          "target": 0.42,
+          "derivedTarget": 0.4743,
+          "diff": 0,
+          "relPct": 0,
+          "passed": true
+        },
+        {
+          "name": "Hue Histogram EMD",
+          "actual": 0,
+          "target": 0,
+          "diff": 0,
+          "relPct": 0,
+          "passed": true
+        }
+      ]
+    },
+    "natatorium_water_horizon": {
+      "category": "horizon_haze",
+      "pairedFrame": "f_008",
+      "sourceFrames": [
+        "f_008",
+        "f_025"
+      ],
+      "checks": [
+        {
+          "name": "Luminance Mean",
+          "actual": 0.3598,
+          "target": 0.55,
+          "diff": 0.1902,
+          "relPct": 34.6,
+          "passed": false,
+          "derivedTarget": 0.6448,
+          "derivedDeltaPct": 44.2
+        },
+        {
+          "name": "Luminance StdDev",
+          "actual": 0.1664,
+          "target": 0.25,
+          "diff": 0.0836,
+          "relPct": 33.4,
+          "passed": false,
+          "derivedTarget": 0.1556,
+          "derivedDeltaPct": 6.9
+        },
+        {
+          "name": "Horizon Blowout",
+          "actual": 0.0051,
+          "target": 0.012,
+          "derivedTarget": 0.017,
+          "diff": 0.0069,
+          "relPct": 0.7,
+          "passed": true
+        },
+        {
+          "name": "Saturation Mean",
+          "actual": 0.22,
+          "target": 0.35,
+          "diff": 0.13,
+          "relPct": 37.1,
+          "passed": false,
+          "derivedTarget": 0.3358,
+          "derivedDeltaPct": 34.5
+        },
+        {
+          "name": "Sobel Edge (scale 1x)",
+          "actual": 0.2311,
+          "target": 0.18,
+          "diff": 0.0511,
+          "relPct": 28.4,
+          "passed": false,
+          "derivedTarget": 0.1093,
+          "derivedDeltaPct": 111.4
+        },
+        {
+          "name": "Water Green Channel",
+          "actual": 0.38,
+          "target": 0.6,
+          "diff": 0.22,
+          "relPct": 36.7,
+          "passed": false,
+          "derivedTarget": 0.675,
+          "derivedDeltaPct": 43.7
+        },
+        {
+          "name": "Water Glint Fraction",
+          "actual": 0.00002,
+          "target": 0.002,
+          "derivedTarget": 0,
+          "diff": 0.00198,
+          "relPct": 0,
+          "passed": true
+        },
+        {
+          "name": "Floor Grout Readability (0.9m)",
+          "actual": 0.429,
+          "target": 0.42,
+          "derivedTarget": 0.7119,
+          "diff": 0.009,
+          "relPct": 0,
+          "passed": true
+        },
+        {
+          "name": "Hue Histogram EMD",
+          "actual": 0,
+          "target": 0,
+          "diff": 0,
+          "relPct": 0,
+          "passed": true
+        }
+      ]
+    },
+    "natatorium_water_underwater": {
+      "category": "underwater",
+      "pairedFrame": "f_034",
+      "sourceFrames": [
+        "f_034"
+      ],
+      "checks": [
+        {
+          "name": "Luminance Mean",
+          "actual": 0.1477,
+          "target": 0.35,
+          "diff": 0.2023,
+          "relPct": 57.8,
+          "passed": false,
+          "derivedTarget": 0.6356,
+          "derivedDeltaPct": 76.8
+        },
+        {
+          "name": "Luminance StdDev",
+          "actual": 0.0664,
+          "target": 0.2,
+          "diff": 0.1336,
+          "relPct": 66.8,
+          "passed": false,
+          "derivedTarget": 0.1333,
+          "derivedDeltaPct": 50.2
+        },
+        {
+          "name": "Horizon Blowout",
+          "actual": 0,
+          "target": 0.002,
+          "derivedTarget": 0,
+          "diff": 0.002,
+          "relPct": 0.2,
+          "passed": true
+        },
+        {
+          "name": "Saturation Mean",
+          "actual": 0.4241,
+          "target": 0.35,
+          "diff": 0.0741,
+          "relPct": 21.2,
+          "passed": true,
+          "derivedTarget": 0.3224,
+          "derivedDeltaPct": 31.5
+        },
+        {
+          "name": "Sobel Edge (scale 1x)",
+          "actual": 0.0213,
+          "target": 0.025,
+          "diff": 0.0037,
+          "relPct": 14.8,
+          "passed": true,
+          "derivedTarget": 0.1489,
+          "derivedDeltaPct": 85.7
+        },
+        {
+          "name": "Water Green Channel",
+          "actual": 0.172,
+          "target": 0.35,
+          "diff": 0.178,
+          "relPct": 50.9,
+          "passed": false,
+          "derivedTarget": 0.563,
+          "derivedDeltaPct": 69.4
+        },
+        {
+          "name": "Water Glint Fraction",
+          "actual": 0,
+          "target": 0,
+          "derivedTarget": 0,
+          "diff": 0,
+          "relPct": 0,
+          "passed": true
+        },
+        {
+          "name": "Floor Grout Readability (0.9m)",
+          "actual": 0.42,
+          "target": 0.42,
+          "derivedTarget": 0.6466,
+          "diff": 0,
+          "relPct": 0,
+          "passed": true
+        },
+        {
+          "name": "Hue Histogram EMD",
+          "actual": 0,
+          "target": 0,
+          "diff": 0,
+          "relPct": 0,
+          "passed": true
+        }
+      ]
+    },
+    "natatorium_water_monster_wake": {
+      "category": "monster_wake",
+      "pairedFrame": "f_012",
+      "sourceFrames": [
+        "f_012",
+        "f_010"
+      ],
+      "checks": [
+        {
+          "name": "Luminance Mean",
+          "actual": 0.2981,
+          "target": 0.29,
+          "diff": 0.0081,
+          "relPct": 2.8,
+          "passed": true,
+          "derivedTarget": 0.663,
+          "derivedDeltaPct": 55
+        },
+        {
+          "name": "Luminance StdDev",
+          "actual": 0.1568,
+          "target": 0.2,
+          "diff": 0.0432,
+          "relPct": 21.6,
+          "passed": true,
+          "derivedTarget": 0.1146,
+          "derivedDeltaPct": 36.8
+        },
+        {
+          "name": "Horizon Blowout",
+          "actual": 0.0043,
+          "target": 0.002,
+          "derivedTarget": 0.0104,
+          "diff": 0.0023,
+          "relPct": 0.2,
+          "passed": true
+        },
+        {
+          "name": "Saturation Mean",
+          "actual": 0.398,
+          "target": 0.48,
+          "diff": 0.082,
+          "relPct": 17.1,
+          "passed": true,
+          "derivedTarget": 0.3455,
+          "derivedDeltaPct": 15.2
+        },
+        {
+          "name": "Sobel Edge (scale 1x)",
+          "actual": 0.2986,
+          "target": 0.24,
+          "diff": 0.0586,
+          "relPct": 24.4,
+          "passed": true,
+          "derivedTarget": 0.1121,
+          "derivedDeltaPct": 166.4
+        },
+        {
+          "name": "Water Green Channel",
+          "actual": 0.432,
+          "target": 0.36,
+          "diff": 0.072,
+          "relPct": 20,
+          "passed": true,
+          "derivedTarget": 0.677,
+          "derivedDeltaPct": 36.2
+        },
+        {
+          "name": "Water Glint Fraction",
+          "actual": 0,
+          "target": 0.001,
+          "derivedTarget": 0,
+          "diff": 0.001,
+          "relPct": 0,
+          "passed": true
+        },
+        {
+          "name": "Floor Grout Readability (0.9m)",
+          "actual": 0.554,
+          "target": 0.45,
+          "derivedTarget": 0.5786,
+          "diff": 0.104,
+          "relPct": 0,
+          "passed": true
+        },
+        {
+          "name": "Hue Histogram EMD",
+          "actual": 0,
+          "target": 0,
+          "diff": 0,
+          "relPct": 0,
+          "passed": true
+        }
+      ]
+    },
+    "neon_flood_water_rain": {
+      "category": "neon_flood_rain",
+      "pairedFrame": "f_026",
+      "sourceFrames": [
+        "f_026"
+      ],
+      "checks": [
+        {
+          "name": "Luminance Mean",
+          "actual": 0.1304,
+          "target": 0.22,
+          "diff": 0.0896,
+          "relPct": 40.7,
+          "passed": false,
+          "derivedTarget": 0.5607,
+          "derivedDeltaPct": 76.7
+        },
+        {
+          "name": "Luminance StdDev",
+          "actual": 0.1286,
+          "target": 0.25,
+          "diff": 0.1214,
+          "relPct": 48.6,
+          "passed": false,
+          "derivedTarget": 0.1972,
+          "derivedDeltaPct": 34.8
+        },
+        {
+          "name": "Horizon Blowout",
+          "actual": 0.0005,
+          "target": 0.001,
+          "derivedTarget": 0.004,
+          "diff": 0.0005,
+          "relPct": 0.1,
+          "passed": true
+        },
+        {
+          "name": "Saturation Mean",
+          "actual": 0.2113,
+          "target": 0.4,
+          "diff": 0.1887,
+          "relPct": 47.2,
+          "passed": false,
+          "derivedTarget": 0.3165,
+          "derivedDeltaPct": 33.2
+        },
+        {
+          "name": "Sobel Edge (scale 1x)",
+          "actual": 0.055,
+          "target": 0.075,
+          "diff": 0.02,
+          "relPct": 26.7,
+          "passed": false,
+          "derivedTarget": 0.0088,
+          "derivedDeltaPct": 525
+        },
+        {
+          "name": "Water Green Channel",
+          "actual": 0.148,
+          "target": 0.08,
+          "diff": 0.068,
+          "relPct": 85,
+          "passed": false,
+          "derivedTarget": 0.477,
+          "derivedDeltaPct": 69
+        },
+        {
+          "name": "Water Glint Fraction",
+          "actual": 0,
+          "target": 0,
+          "derivedTarget": 0,
+          "diff": 0,
+          "relPct": 0,
+          "passed": true
+        },
+        {
+          "name": "Floor Grout Readability (0.9m)",
+          "actual": 0.42,
+          "target": 0.42,
+          "derivedTarget": 0.1166,
+          "diff": 0,
+          "relPct": 0,
+          "passed": true
+        },
+        {
+          "name": "Hue Histogram EMD",
+          "actual": 0,
+          "target": 0,
+          "diff": 0,
+          "relPct": 0,
+          "passed": true
+        }
+      ]
+    },
+    "classic_archipelago_hero": {
+      "category": "archipelago_calm",
+      "pairedFrame": "f_029",
+      "sourceFrames": [
+        "f_029"
+      ],
+      "checks": [
+        {
+          "name": "Luminance Mean",
+          "actual": 0.4603,
+          "target": 0.58,
+          "diff": 0.1197,
+          "relPct": 20.6,
+          "passed": true,
+          "derivedTarget": 0.6099,
+          "derivedDeltaPct": 24.5
+        },
+        {
+          "name": "Luminance StdDev",
+          "actual": 0.1611,
+          "target": 0.22,
+          "diff": 0.0589,
+          "relPct": 26.8,
+          "passed": false,
+          "derivedTarget": 0.182,
+          "derivedDeltaPct": 11.5
+        },
+        {
+          "name": "Horizon Blowout",
+          "actual": 0.0284,
+          "target": 0.012,
+          "derivedTarget": 0,
+          "diff": 0.0164,
+          "relPct": 1.6,
+          "passed": true
+        },
+        {
+          "name": "Saturation Mean",
+          "actual": 0.2996,
+          "target": 0.3,
+          "diff": 0.0004,
+          "relPct": 0.1,
+          "passed": true,
+          "derivedTarget": 0.2476,
+          "derivedDeltaPct": 21
+        },
+        {
+          "name": "Sobel Edge (scale 1x)",
+          "actual": 0.419,
+          "target": 0.28,
+          "diff": 0.139,
+          "relPct": 49.6,
+          "passed": false,
+          "derivedTarget": 0.0203,
+          "derivedDeltaPct": 1964
+        },
+        {
+          "name": "Water Green Channel",
+          "actual": 0.536,
+          "target": 0.65,
+          "diff": 0.114,
+          "relPct": 17.5,
+          "passed": true,
+          "derivedTarget": 0.563,
+          "derivedDeltaPct": 4.8
+        },
+        {
+          "name": "Water Glint Fraction",
+          "actual": 0,
+          "target": 0.001,
+          "derivedTarget": 0,
+          "diff": 0.001,
+          "relPct": 0,
+          "passed": true
+        },
+        {
+          "name": "Floor Grout Readability (0.9m)",
+          "actual": 0.778,
+          "target": 0.48,
+          "derivedTarget": 0.5396,
+          "diff": 0.298,
+          "relPct": 0,
+          "passed": true
+        },
+        {
+          "name": "Hue Histogram EMD",
+          "actual": 0,
+          "target": 0,
+          "diff": 0,
+          "relPct": 0,
+          "passed": true
+        }
+      ]
+    },
+    "natatorium_hero": {
+      "category": "natatorium_hero",
+      "pairedFrame": "f_006",
+      "sourceFrames": [
+        "f_006",
+        "f_004"
+      ],
+      "checks": [
+        {
+          "name": "Luminance Mean",
+          "actual": 0.3364,
+          "target": 0.52,
+          "diff": 0.1836,
+          "relPct": 35.3,
+          "passed": false,
+          "derivedTarget": 0.5513,
+          "derivedDeltaPct": 39
+        },
+        {
+          "name": "Luminance StdDev",
+          "actual": 0.1829,
+          "target": 0.26,
+          "diff": 0.0771,
+          "relPct": 29.7,
+          "passed": false,
+          "derivedTarget": 0.0861,
+          "derivedDeltaPct": 112.4
+        },
+        {
+          "name": "Horizon Blowout",
+          "actual": 0.0089,
+          "target": 0.005,
+          "derivedTarget": 0.0001,
+          "diff": 0.0039,
+          "relPct": 0.4,
+          "passed": true
+        },
+        {
+          "name": "Saturation Mean",
+          "actual": 0.2128,
+          "target": 0.35,
+          "diff": 0.1372,
+          "relPct": 39.2,
+          "passed": false,
+          "derivedTarget": 0.4525,
+          "derivedDeltaPct": 53
+        },
+        {
+          "name": "Sobel Edge (scale 1x)",
+          "actual": 0.1884,
+          "target": 0.2,
+          "diff": 0.0116,
+          "relPct": 5.8,
+          "passed": true,
+          "derivedTarget": 0.089,
+          "derivedDeltaPct": 111.7
+        },
+        {
+          "name": "Water Green Channel",
+          "actual": 0.346,
+          "target": 0.68,
+          "diff": 0.334,
+          "relPct": 49.1,
+          "passed": false,
+          "derivedTarget": 0.605,
+          "derivedDeltaPct": 42.8
+        },
+        {
+          "name": "Water Glint Fraction",
+          "actual": 0.0002,
+          "target": 0.002,
+          "derivedTarget": 0,
+          "diff": 0.0018,
+          "relPct": 0,
+          "passed": true
+        },
+        {
+          "name": "Floor Grout Readability (0.9m)",
+          "actual": 0.42,
+          "target": 0.42,
+          "derivedTarget": 0.3614,
+          "diff": 0,
+          "relPct": 0,
+          "passed": true
+        },
+        {
+          "name": "Hue Histogram EMD",
+          "actual": 0,
+          "target": 0,
+          "diff": 0,
+          "relPct": 0,
+          "passed": true
+        }
+      ]
+    }
+  },
+  "regionColourChecks": [
+    {
+      "shotId": "natatorium_water_calm_axial",
+      "region": "waterRegion",
+      "actual": [
+        0.351,
+        0.379,
+        0.312
+      ],
+      "target": [
+        0.446,
+        0.55,
+        0.34
+      ],
+      "deltaRGB": [
+        0.095,
+        0.171,
+        0.028
+      ],
+      "meanDelta": 0.098,
+      "maxChannelDelta": 0.171,
+      "passed": false
+    },
+    {
+      "shotId": "natatorium_water_calm_axial",
+      "region": "slabRegion",
+      "actual": [
+        0.335,
+        0.319,
+        0.209
+      ],
+      "target": [
+        0.678,
+        0.601,
+        0.384
+      ],
+      "deltaRGB": [
+        0.343,
+        0.282,
+        0.175
+      ],
+      "meanDelta": 0.2667,
+      "maxChannelDelta": 0.343,
+      "passed": false
+    },
+    {
+      "shotId": "natatorium_water_calm_axial",
+      "region": "fogRegion",
+      "actual": [
+        0.639,
+        0.678,
+        0.574
+      ],
+      "target": [
+        0.688,
+        0.727,
+        0.618
+      ],
+      "deltaRGB": [
+        0.049,
+        0.049,
+        0.044
+      ],
+      "meanDelta": 0.0473,
+      "maxChannelDelta": 0.049,
+      "passed": true
+    },
+    {
+      "shotId": "natatorium_water_calm_grazing",
+      "region": "waterRegion",
+      "actual": [
+        0.308,
+        0.333,
+        0.268
+      ],
+      "target": [
+        0.492,
+        0.599,
+        0.378
+      ],
+      "deltaRGB": [
+        0.184,
+        0.266,
+        0.11
+      ],
+      "meanDelta": 0.1867,
+      "maxChannelDelta": 0.266,
+      "passed": false
+    },
+    {
+      "shotId": "natatorium_water_calm_grazing",
+      "region": "slabRegion",
+      "actual": [
+        0.36,
+        0.349,
+        0.247
+      ],
+      "target": [
+        0.71,
+        0.607,
+        0.384
+      ],
+      "deltaRGB": [
+        0.35,
+        0.258,
+        0.137
+      ],
+      "meanDelta": 0.2483,
+      "maxChannelDelta": 0.35,
+      "passed": false
+    },
+    {
+      "shotId": "natatorium_water_calm_grazing",
+      "region": "fogRegion",
+      "actual": [
+        0.625,
+        0.664,
+        0.558
+      ],
+      "target": [
+        0.735,
+        0.768,
+        0.664
+      ],
+      "deltaRGB": [
+        0.11,
+        0.104,
+        0.106
+      ],
+      "meanDelta": 0.1067,
+      "maxChannelDelta": 0.11,
+      "passed": false
+    },
+    {
+      "shotId": "natatorium_water_slab_edge",
+      "region": "waterRegion",
+      "actual": [
+        0.247,
+        0.273,
+        0.206
+      ],
+      "target": [
+        0.514,
+        0.635,
+        0.48
+      ],
+      "deltaRGB": [
+        0.267,
+        0.362,
+        0.274
+      ],
+      "meanDelta": 0.301,
+      "maxChannelDelta": 0.362,
+      "passed": false
+    },
+    {
+      "shotId": "natatorium_water_slab_edge",
+      "region": "slabRegion",
+      "actual": [
+        0.314,
+        0.304,
+        0.223
+      ],
+      "target": [
+        0.649,
+        0.599,
+        0.422
+      ],
+      "deltaRGB": [
+        0.335,
+        0.295,
+        0.199
+      ],
+      "meanDelta": 0.2763,
+      "maxChannelDelta": 0.335,
+      "passed": false
+    },
+    {
+      "shotId": "natatorium_water_slab_edge",
+      "region": "fogRegion",
+      "actual": [
+        0.665,
+        0.695,
+        0.578
+      ],
+      "target": [
+        0.766,
+        0.797,
+        0.711
+      ],
+      "deltaRGB": [
+        0.101,
+        0.102,
+        0.133
+      ],
+      "meanDelta": 0.112,
+      "maxChannelDelta": 0.133,
+      "passed": false
+    },
+    {
+      "shotId": "natatorium_water_wake",
+      "region": "waterRegion",
+      "actual": [
+        0.352,
+        0.379,
+        0.307
+      ],
+      "target": [
+        0.516,
+        0.645,
+        0.443
+      ],
+      "deltaRGB": [
+        0.164,
+        0.266,
+        0.136
+      ],
+      "meanDelta": 0.1887,
+      "maxChannelDelta": 0.266,
+      "passed": false
+    },
+    {
+      "shotId": "natatorium_water_wake",
+      "region": "slabRegion",
+      "actual": [
+        0.348,
+        0.329,
+        0.222
+      ],
+      "target": [
+        0.746,
+        0.658,
+        0.449
+      ],
+      "deltaRGB": [
+        0.398,
+        0.329,
+        0.227
+      ],
+      "meanDelta": 0.318,
+      "maxChannelDelta": 0.398,
+      "passed": false
+    },
+    {
+      "shotId": "natatorium_water_wake",
+      "region": "fogRegion",
+      "actual": [
+        0.619,
+        0.652,
+        0.543
+      ],
+      "target": [
+        0.771,
+        0.807,
+        0.718
+      ],
+      "deltaRGB": [
+        0.152,
+        0.155,
+        0.175
+      ],
+      "meanDelta": 0.1607,
+      "maxChannelDelta": 0.175,
+      "passed": false
+    },
+    {
+      "shotId": "natatorium_water_splash_01",
+      "region": "waterRegion",
+      "actual": [
+        0.305,
+        0.332,
+        0.259
+      ],
+      "target": [
+        0.472,
+        0.565,
+        0.414
+      ],
+      "deltaRGB": [
+        0.167,
+        0.233,
+        0.155
+      ],
+      "meanDelta": 0.185,
+      "maxChannelDelta": 0.233,
+      "passed": false
+    },
+    {
+      "shotId": "natatorium_water_splash_01",
+      "region": "slabRegion",
+      "actual": [
+        0.346,
+        0.331,
+        0.225
+      ],
+      "target": [
+        0.702,
+        0.656,
+        0.48
+      ],
+      "deltaRGB": [
+        0.356,
+        0.325,
+        0.255
+      ],
+      "meanDelta": 0.312,
+      "maxChannelDelta": 0.356,
+      "passed": false
+    },
+    {
+      "shotId": "natatorium_water_splash_01",
+      "region": "fogRegion",
+      "actual": [
+        0.605,
+        0.638,
+        0.528
+      ],
+      "target": [
+        0.725,
+        0.736,
+        0.619
+      ],
+      "deltaRGB": [
+        0.12,
+        0.098,
+        0.091
+      ],
+      "meanDelta": 0.103,
+      "maxChannelDelta": 0.12,
+      "passed": false
+    },
+    {
+      "shotId": "natatorium_water_splash_05",
+      "region": "waterRegion",
+      "actual": [
+        0.345,
+        0.371,
+        0.3
+      ],
+      "target": [
+        0.472,
+        0.565,
+        0.414
+      ],
+      "deltaRGB": [
+        0.127,
+        0.194,
+        0.114
+      ],
+      "meanDelta": 0.145,
+      "maxChannelDelta": 0.194,
+      "passed": false
+    },
+    {
+      "shotId": "natatorium_water_splash_05",
+      "region": "slabRegion",
+      "actual": [
+        0.346,
+        0.331,
+        0.225
+      ],
+      "target": [
+        0.702,
+        0.656,
+        0.48
+      ],
+      "deltaRGB": [
+        0.356,
+        0.325,
+        0.255
+      ],
+      "meanDelta": 0.312,
+      "maxChannelDelta": 0.356,
+      "passed": false
+    },
+    {
+      "shotId": "natatorium_water_splash_05",
+      "region": "fogRegion",
+      "actual": [
+        0.605,
+        0.638,
+        0.529
+      ],
+      "target": [
+        0.725,
+        0.736,
+        0.619
+      ],
+      "deltaRGB": [
+        0.12,
+        0.098,
+        0.09
+      ],
+      "meanDelta": 0.1027,
+      "maxChannelDelta": 0.12,
+      "passed": false
+    },
+    {
+      "shotId": "natatorium_water_splash_12",
+      "region": "waterRegion",
+      "actual": [
+        0.335,
+        0.361,
+        0.29
+      ],
+      "target": [
+        0.472,
+        0.565,
+        0.414
+      ],
+      "deltaRGB": [
+        0.137,
+        0.204,
+        0.124
+      ],
+      "meanDelta": 0.155,
+      "maxChannelDelta": 0.204,
+      "passed": false
+    },
+    {
+      "shotId": "natatorium_water_splash_12",
+      "region": "slabRegion",
+      "actual": [
+        0.345,
+        0.331,
+        0.225
+      ],
+      "target": [
+        0.702,
+        0.656,
+        0.48
+      ],
+      "deltaRGB": [
+        0.357,
+        0.325,
+        0.255
+      ],
+      "meanDelta": 0.3123,
+      "maxChannelDelta": 0.357,
+      "passed": false
+    },
+    {
+      "shotId": "natatorium_water_splash_12",
+      "region": "fogRegion",
+      "actual": [
+        0.604,
+        0.637,
+        0.527
+      ],
+      "target": [
+        0.725,
+        0.736,
+        0.619
+      ],
+      "deltaRGB": [
+        0.121,
+        0.099,
+        0.092
+      ],
+      "meanDelta": 0.104,
+      "maxChannelDelta": 0.121,
+      "passed": false
+    },
+    {
+      "shotId": "natatorium_water_drip_ring",
+      "region": "waterRegion",
+      "actual": [
+        0.295,
+        0.321,
+        0.247
+      ],
+      "target": [
+        0.467,
+        0.563,
+        0.415
+      ],
+      "deltaRGB": [
+        0.172,
+        0.242,
+        0.168
+      ],
+      "meanDelta": 0.194,
+      "maxChannelDelta": 0.242,
+      "passed": false
+    },
+    {
+      "shotId": "natatorium_water_drip_ring",
+      "region": "slabRegion",
+      "actual": [
+        0.345,
+        0.331,
+        0.228
+      ],
+      "target": [
+        0.582,
+        0.517,
+        0.333
+      ],
+      "deltaRGB": [
+        0.237,
+        0.186,
+        0.105
+      ],
+      "meanDelta": 0.176,
+      "maxChannelDelta": 0.237,
+      "passed": false
+    },
+    {
+      "shotId": "natatorium_water_drip_ring",
+      "region": "fogRegion",
+      "actual": [
+        0.602,
+        0.635,
+        0.524
+      ],
+      "target": [
+        0.728,
+        0.765,
+        0.668
+      ],
+      "deltaRGB": [
+        0.126,
+        0.13,
+        0.144
+      ],
+      "meanDelta": 0.1333,
+      "maxChannelDelta": 0.144,
+      "passed": false
+    },
+    {
+      "shotId": "natatorium_water_horizon",
+      "region": "waterRegion",
+      "actual": [
+        0.35,
+        0.38,
+        0.306
+      ],
+      "target": [
+        0.585,
+        0.675,
+        0.499
+      ],
+      "deltaRGB": [
+        0.235,
+        0.295,
+        0.193
+      ],
+      "meanDelta": 0.241,
+      "maxChannelDelta": 0.295,
+      "passed": false
+    },
+    {
+      "shotId": "natatorium_water_horizon",
+      "region": "slabRegion",
+      "actual": [
+        0.348,
+        0.335,
+        0.226
+      ],
+      "target": [
+        0.668,
+        0.574,
+        0.358
+      ],
+      "deltaRGB": [
+        0.32,
+        0.239,
+        0.132
+      ],
+      "meanDelta": 0.2303,
+      "maxChannelDelta": 0.32,
+      "passed": false
+    },
+    {
+      "shotId": "natatorium_water_horizon",
+      "region": "fogRegion",
+      "actual": [
+        0.643,
+        0.683,
+        0.58
+      ],
+      "target": [
+        0.786,
+        0.819,
+        0.742
+      ],
+      "deltaRGB": [
+        0.143,
+        0.136,
+        0.162
+      ],
+      "meanDelta": 0.147,
+      "maxChannelDelta": 0.162,
+      "passed": false
+    },
+    {
+      "shotId": "natatorium_water_underwater",
+      "region": "waterRegion",
+      "actual": [
+        0.101,
+        0.172,
+        0.137
+      ],
+      "target": [
+        0.464,
+        0.563,
+        0.387
+      ],
+      "deltaRGB": [
+        0.363,
+        0.391,
+        0.25
+      ],
+      "meanDelta": 0.3347,
+      "maxChannelDelta": 0.391,
+      "passed": false
+    },
+    {
+      "shotId": "natatorium_water_underwater",
+      "region": "slabRegion",
+      "actual": [
+        0.902,
+        0.843,
+        0.735
+      ],
+      "target": [
+        0.716,
+        0.662,
+        0.48
+      ],
+      "deltaRGB": [
+        0.186,
+        0.181,
+        0.255
+      ],
+      "meanDelta": 0.2073,
+      "maxChannelDelta": 0.255,
+      "passed": false
+    },
+    {
+      "shotId": "natatorium_water_underwater",
+      "region": "fogRegion",
+      "actual": [
+        0.726,
+        0.768,
+        0.75
+      ],
+      "target": [
+        0.717,
+        0.733,
+        0.616
+      ],
+      "deltaRGB": [
+        0.009,
+        0.035,
+        0.134
+      ],
+      "meanDelta": 0.0593,
+      "maxChannelDelta": 0.134,
+      "passed": false
+    },
+    {
+      "shotId": "natatorium_water_monster_wake",
+      "region": "waterRegion",
+      "actual": [
+        0.405,
+        0.432,
+        0.355
+      ],
+      "target": [
+        0.601,
+        0.677,
+        0.516
+      ],
+      "deltaRGB": [
+        0.196,
+        0.245,
+        0.161
+      ],
+      "meanDelta": 0.2007,
+      "maxChannelDelta": 0.245,
+      "passed": false
+    },
+    {
+      "shotId": "natatorium_water_monster_wake",
+      "region": "slabRegion",
+      "actual": [
+        0.331,
+        0.295,
+        0.188
+      ],
+      "target": [
+        0.738,
+        0.627,
+        0.404
+      ],
+      "deltaRGB": [
+        0.407,
+        0.332,
+        0.216
+      ],
+      "meanDelta": 0.3183,
+      "maxChannelDelta": 0.407,
+      "passed": false
+    },
+    {
+      "shotId": "natatorium_water_monster_wake",
+      "region": "fogRegion",
+      "actual": [
+        0.614,
+        0.644,
+        0.535
+      ],
+      "target": [
+        0.782,
+        0.794,
+        0.694
+      ],
+      "deltaRGB": [
+        0.168,
+        0.15,
+        0.159
+      ],
+      "meanDelta": 0.159,
+      "maxChannelDelta": 0.168,
+      "passed": false
+    },
+    {
+      "shotId": "classic_archipelago_hero",
+      "region": "waterRegion",
+      "actual": [
+        0.475,
+        0.536,
+        0.397
+      ],
+      "target": [
+        0.467,
+        0.563,
+        0.416
+      ],
+      "deltaRGB": [
+        0.008,
+        0.027,
+        0.019
+      ],
+      "meanDelta": 0.018,
+      "maxChannelDelta": 0.027,
+      "passed": true
+    },
+    {
+      "shotId": "classic_archipelago_hero",
+      "region": "slabRegion",
+      "actual": [
+        0.529,
+        0.484,
+        0.331
+      ],
+      "target": [
+        0.584,
+        0.519,
+        0.337
+      ],
+      "deltaRGB": [
+        0.055,
+        0.035,
+        0.006
+      ],
+      "meanDelta": 0.032,
+      "maxChannelDelta": 0.055,
+      "passed": true
+    },
+    {
+      "shotId": "classic_archipelago_hero",
+      "region": "fogRegion",
+      "actual": [
+        0.719,
+        0.75,
+        0.65
+      ],
+      "target": [
+        0.731,
+        0.768,
+        0.672
+      ],
+      "deltaRGB": [
+        0.012,
+        0.018,
+        0.022
+      ],
+      "meanDelta": 0.0173,
+      "maxChannelDelta": 0.022,
+      "passed": true
+    },
+    {
+      "shotId": "natatorium_hero",
+      "region": "waterRegion",
+      "actual": [
+        0.317,
+        0.346,
+        0.275
+      ],
+      "target": [
+        0.518,
+        0.605,
+        0.438
+      ],
+      "deltaRGB": [
+        0.201,
+        0.259,
+        0.163
+      ],
+      "meanDelta": 0.2077,
+      "maxChannelDelta": 0.259,
+      "passed": false
+    },
+    {
+      "shotId": "natatorium_hero",
+      "region": "slabRegion",
+      "actual": [
+        0.383,
+        0.37,
+        0.259
+      ],
+      "target": [
+        0.662,
+        0.555,
+        0.308
+      ],
+      "deltaRGB": [
+        0.279,
+        0.185,
+        0.049
+      ],
+      "meanDelta": 0.171,
+      "maxChannelDelta": 0.279,
+      "passed": false
+    },
+    {
+      "shotId": "natatorium_hero",
+      "region": "fogRegion",
+      "actual": [
+        0.666,
+        0.702,
+        0.6
+      ],
+      "target": [
+        0.653,
+        0.697,
+        0.576
+      ],
+      "deltaRGB": [
+        0.013,
+        0.005,
+        0.024
+      ],
+      "meanDelta": 0.014,
+      "maxChannelDelta": 0.024,
+      "passed": true
+    }
+  ],
+  "hueBandChecks": [
+    {
+      "targetId": "WATER_PROFILES.natatorium.shallow",
+      "hex": "#48ab72",
+      "hsv": [
+        145.5,
+        0.579,
+        0.671
+      ],
+      "expectedBand": {
+        "hue": [
+          85,
+          113
+        ],
+        "sat": [
+          0.32,
+          0.52
+        ],
+        "val": [
+          0.35,
+          0.69
+        ]
+      },
+      "passed": false
+    },
+    {
+      "targetId": "WATER_PROFILES.natatorium.deep",
+      "hex": "#338858",
+      "hsv": [
+        146.1,
+        0.625,
+        0.533
+      ],
+      "expectedBand": {
+        "hue": [
+          85,
+          113
+        ],
+        "sat": [
+          0.32,
+          0.52
+        ],
+        "val": [
+          0.35,
+          0.69
+        ]
+      },
+      "passed": false
+    },
+    {
+      "targetId": "WATER_PROFILES.poolrooms.shallow",
+      "hex": "#84a064",
+      "hsv": [
+        88,
+        0.375,
+        0.627
+      ],
+      "expectedBand": {
+        "hue": [
+          85,
+          113
+        ],
+        "sat": [
+          0.32,
+          0.52
+        ],
+        "val": [
+          0.35,
+          0.69
+        ]
+      },
+      "passed": true
+    },
+    {
+      "targetId": "WATER_PROFILES.poolrooms.deep",
+      "hex": "#7c9e5b",
+      "hsv": [
+        90.5,
+        0.424,
+        0.62
+      ],
+      "expectedBand": {
+        "hue": [
+          85,
+          113
+        ],
+        "sat": [
+          0.32,
+          0.52
+        ],
+        "val": [
+          0.35,
+          0.69
+        ]
+      },
+      "passed": true
+    },
+    {
+      "targetId": "natatorium_water_calm_axial.waterRegion",
+      "hsv": [
+        85.1,
+        0.177,
+        0.379
+      ],
+      "expectedBand": {
+        "hue": [
+          85,
+          113
+        ],
+        "sat": [
+          0.32,
+          0.52
+        ],
+        "val": [
+          0.35,
+          0.69
+        ]
+      },
+      "passed": false
+    },
+    {
+      "targetId": "natatorium_water_calm_axial.slabRegion",
+      "hsv": [
+        52.4,
+        0.376,
+        0.335
+      ],
+      "expectedBand": {
+        "hue": [
+          38,
+          48
+        ],
+        "sat": [
+          0.32,
+          0.56
+        ]
+      },
+      "passed": false
+    },
+    {
+      "targetId": "natatorium_water_calm_grazing.waterRegion",
+      "hsv": [
+        83.1,
+        0.195,
+        0.333
+      ],
+      "expectedBand": {
+        "hue": [
+          85,
+          113
+        ],
+        "sat": [
+          0.32,
+          0.52
+        ],
+        "val": [
+          0.35,
+          0.69
+        ]
+      },
+      "passed": false
+    },
+    {
+      "targetId": "natatorium_water_calm_grazing.slabRegion",
+      "hsv": [
+        54.2,
+        0.314,
+        0.36
+      ],
+      "expectedBand": {
+        "hue": [
+          38,
+          48
+        ],
+        "sat": [
+          0.32,
+          0.56
+        ]
+      },
+      "passed": false
+    },
+    {
+      "targetId": "natatorium_water_slab_edge.waterRegion",
+      "hsv": [
+        83.3,
+        0.245,
+        0.273
+      ],
+      "expectedBand": {
+        "hue": [
+          85,
+          113
+        ],
+        "sat": [
+          0.32,
+          0.52
+        ],
+        "val": [
+          0.35,
+          0.69
+        ]
+      },
+      "passed": false
+    },
+    {
+      "targetId": "natatorium_water_slab_edge.slabRegion",
+      "hsv": [
+        53.4,
+        0.29,
+        0.314
+      ],
+      "expectedBand": {
+        "hue": [
+          38,
+          48
+        ],
+        "sat": [
+          0.32,
+          0.56
+        ]
+      },
+      "passed": false
+    },
+    {
+      "targetId": "natatorium_water_wake.waterRegion",
+      "hsv": [
+        82.5,
+        0.19,
+        0.379
+      ],
+      "expectedBand": {
+        "hue": [
+          85,
+          113
+        ],
+        "sat": [
+          0.32,
+          0.52
+        ],
+        "val": [
+          0.35,
+          0.69
+        ]
+      },
+      "passed": false
+    },
+    {
+      "targetId": "natatorium_water_wake.slabRegion",
+      "hsv": [
+        51,
+        0.362,
+        0.348
+      ],
+      "expectedBand": {
+        "hue": [
+          38,
+          48
+        ],
+        "sat": [
+          0.32,
+          0.56
+        ]
+      },
+      "passed": false
+    },
+    {
+      "targetId": "natatorium_water_splash_01.waterRegion",
+      "hsv": [
+        82.2,
+        0.22,
+        0.332
+      ],
+      "expectedBand": {
+        "hue": [
+          85,
+          113
+        ],
+        "sat": [
+          0.32,
+          0.52
+        ],
+        "val": [
+          0.35,
+          0.69
+        ]
+      },
+      "passed": false
+    },
+    {
+      "targetId": "natatorium_water_splash_01.slabRegion",
+      "hsv": [
+        52.6,
+        0.35,
+        0.346
+      ],
+      "expectedBand": {
+        "hue": [
+          38,
+          48
+        ],
+        "sat": [
+          0.32,
+          0.56
+        ]
+      },
+      "passed": false
+    },
+    {
+      "targetId": "natatorium_water_splash_05.waterRegion",
+      "hsv": [
+        82,
+        0.191,
+        0.371
+      ],
+      "expectedBand": {
+        "hue": [
+          85,
+          113
+        ],
+        "sat": [
+          0.32,
+          0.52
+        ],
+        "val": [
+          0.35,
+          0.69
+        ]
+      },
+      "passed": false
+    },
+    {
+      "targetId": "natatorium_water_splash_05.slabRegion",
+      "hsv": [
+        52.6,
+        0.35,
+        0.346
+      ],
+      "expectedBand": {
+        "hue": [
+          38,
+          48
+        ],
+        "sat": [
+          0.32,
+          0.56
+        ]
+      },
+      "passed": false
+    },
+    {
+      "targetId": "natatorium_water_splash_12.waterRegion",
+      "hsv": [
+        82,
+        0.197,
+        0.361
+      ],
+      "expectedBand": {
+        "hue": [
+          85,
+          113
+        ],
+        "sat": [
+          0.32,
+          0.52
+        ],
+        "val": [
+          0.35,
+          0.69
+        ]
+      },
+      "passed": false
+    },
+    {
+      "targetId": "natatorium_water_splash_12.slabRegion",
+      "hsv": [
+        53,
+        0.348,
+        0.345
+      ],
+      "expectedBand": {
+        "hue": [
+          38,
+          48
+        ],
+        "sat": [
+          0.32,
+          0.56
+        ]
+      },
+      "passed": false
+    },
+    {
+      "targetId": "natatorium_water_drip_ring.waterRegion",
+      "hsv": [
+        81.1,
+        0.231,
+        0.321
+      ],
+      "expectedBand": {
+        "hue": [
+          85,
+          113
+        ],
+        "sat": [
+          0.32,
+          0.52
+        ],
+        "val": [
+          0.35,
+          0.69
+        ]
+      },
+      "passed": false
+    },
+    {
+      "targetId": "natatorium_water_drip_ring.slabRegion",
+      "hsv": [
+        52.8,
+        0.339,
+        0.345
+      ],
+      "expectedBand": {
+        "hue": [
+          38,
+          48
+        ],
+        "sat": [
+          0.32,
+          0.56
+        ]
+      },
+      "passed": false
+    },
+    {
+      "targetId": "natatorium_water_horizon.waterRegion",
+      "hsv": [
+        84.3,
+        0.195,
+        0.38
+      ],
+      "expectedBand": {
+        "hue": [
+          85,
+          113
+        ],
+        "sat": [
+          0.32,
+          0.52
+        ],
+        "val": [
+          0.35,
+          0.69
+        ]
+      },
+      "passed": false
+    },
+    {
+      "targetId": "natatorium_water_horizon.slabRegion",
+      "hsv": [
+        53.6,
+        0.351,
+        0.348
+      ],
+      "expectedBand": {
+        "hue": [
+          38,
+          48
+        ],
+        "sat": [
+          0.32,
+          0.56
+        ]
+      },
+      "passed": false
+    },
+    {
+      "targetId": "natatorium_water_underwater.waterRegion",
+      "hsv": [
+        150.4,
+        0.413,
+        0.172
+      ],
+      "expectedBand": {
+        "hue": [
+          85,
+          113
+        ],
+        "sat": [
+          0.32,
+          0.52
+        ],
+        "val": [
+          0.35,
+          0.69
+        ]
+      },
+      "passed": false
+    },
+    {
+      "targetId": "natatorium_water_underwater.slabRegion",
+      "hsv": [
+        38.8,
+        0.185,
+        0.902
+      ],
+      "expectedBand": {
+        "hue": [
+          38,
+          48
+        ],
+        "sat": [
+          0.32,
+          0.56
+        ]
+      },
+      "passed": false
+    },
+    {
+      "targetId": "natatorium_water_monster_wake.waterRegion",
+      "hsv": [
+        81,
+        0.178,
+        0.432
+      ],
+      "expectedBand": {
+        "hue": [
+          85,
+          113
+        ],
+        "sat": [
+          0.32,
+          0.52
+        ],
+        "val": [
+          0.35,
+          0.69
+        ]
+      },
+      "passed": false
+    },
+    {
+      "targetId": "natatorium_water_monster_wake.slabRegion",
+      "hsv": [
+        44.9,
+        0.432,
+        0.331
+      ],
+      "expectedBand": {
+        "hue": [
+          38,
+          48
+        ],
+        "sat": [
+          0.32,
+          0.56
+        ]
+      },
+      "passed": true
+    },
+    {
+      "targetId": "classic_archipelago_hero.waterRegion",
+      "hsv": [
+        86.3,
+        0.259,
+        0.536
+      ],
+      "expectedBand": {
+        "hue": [
+          85,
+          113
+        ],
+        "sat": [
+          0.32,
+          0.52
+        ],
+        "val": [
+          0.35,
+          0.69
+        ]
+      },
+      "passed": false
+    },
+    {
+      "targetId": "classic_archipelago_hero.slabRegion",
+      "hsv": [
+        46.4,
+        0.374,
+        0.529
+      ],
+      "expectedBand": {
+        "hue": [
+          38,
+          48
+        ],
+        "sat": [
+          0.32,
+          0.56
+        ]
+      },
+      "passed": true
+    },
+    {
+      "targetId": "natatorium_hero.waterRegion",
+      "hsv": [
+        84.5,
+        0.205,
+        0.346
+      ],
+      "expectedBand": {
+        "hue": [
+          85,
+          113
+        ],
+        "sat": [
+          0.32,
+          0.52
+        ],
+        "val": [
+          0.35,
+          0.69
+        ]
+      },
+      "passed": false
+    },
+    {
+      "targetId": "natatorium_hero.slabRegion",
+      "hsv": [
+        53.7,
+        0.324,
+        0.383
+      ],
+      "expectedBand": {
+        "hue": [
+          38,
+          48
+        ],
+        "sat": [
+          0.32,
+          0.56
+        ]
+      },
+      "passed": false
+    }
+  ],
+  "noBlacksChecks": [
+    {
+      "shotId": "natatorium_water_calm_axial",
+      "fractionPixelsBelow01": 0.0009,
+      "p5Luminance": 0.1409,
+      "targetFractionBelow01": 0,
+      "targetP5Median": 0.4,
+      "passed": false
+    },
+    {
+      "shotId": "natatorium_water_calm_grazing",
+      "fractionPixelsBelow01": 0.0048,
+      "p5Luminance": 0.1353,
+      "targetFractionBelow01": 0,
+      "targetP5Median": 0.4,
+      "passed": false
+    },
+    {
+      "shotId": "natatorium_water_slab_edge",
+      "fractionPixelsBelow01": 0.0093,
+      "p5Luminance": 0.1216,
+      "targetFractionBelow01": 0,
+      "targetP5Median": 0.4,
+      "passed": false
+    },
+    {
+      "shotId": "natatorium_water_wake",
+      "fractionPixelsBelow01": 0.0023,
+      "p5Luminance": 0.1535,
+      "targetFractionBelow01": 0,
+      "targetP5Median": 0.4,
+      "passed": false
+    },
+    {
+      "shotId": "natatorium_water_splash_01",
+      "fractionPixelsBelow01": 0.0072,
+      "p5Luminance": 0.1199,
+      "targetFractionBelow01": 0,
+      "targetP5Median": 0.4,
+      "passed": false
+    },
+    {
+      "shotId": "natatorium_water_splash_05",
+      "fractionPixelsBelow01": 0.0064,
+      "p5Luminance": 0.133,
+      "targetFractionBelow01": 0,
+      "targetP5Median": 0.4,
+      "passed": false
+    },
+    {
+      "shotId": "natatorium_water_splash_12",
+      "fractionPixelsBelow01": 0.0068,
+      "p5Luminance": 0.1314,
+      "targetFractionBelow01": 0,
+      "targetP5Median": 0.4,
+      "passed": false
+    },
+    {
+      "shotId": "natatorium_water_drip_ring",
+      "fractionPixelsBelow01": 0.0093,
+      "p5Luminance": 0.1235,
+      "targetFractionBelow01": 0,
+      "targetP5Median": 0.4,
+      "passed": false
+    },
+    {
+      "shotId": "natatorium_water_horizon",
+      "fractionPixelsBelow01": 0.0033,
+      "p5Luminance": 0.1639,
+      "targetFractionBelow01": 0,
+      "targetP5Median": 0.4,
+      "passed": false
+    },
+    {
+      "shotId": "natatorium_water_underwater",
+      "fractionPixelsBelow01": 0.1527,
+      "p5Luminance": 0.0917,
+      "targetFractionBelow01": 0,
+      "targetP5Median": 0.4,
+      "passed": false
+    },
+    {
+      "shotId": "natatorium_water_monster_wake",
+      "fractionPixelsBelow01": 0.0122,
+      "p5Luminance": 0.1417,
+      "targetFractionBelow01": 0,
+      "targetP5Median": 0.4,
+      "passed": false
+    },
+    {
+      "shotId": "neon_flood_water_rain",
+      "fractionPixelsBelow01": 0.619,
+      "p5Luminance": 0.0232,
+      "targetFractionBelow01": 0,
+      "targetP5Median": 0.4,
+      "passed": false
+    },
+    {
+      "shotId": "classic_archipelago_hero",
+      "fractionPixelsBelow01": 0.014,
+      "p5Luminance": 0.2523,
+      "targetFractionBelow01": 0,
+      "targetP5Median": 0.4,
+      "passed": false
+    },
+    {
+      "shotId": "natatorium_hero",
+      "fractionPixelsBelow01": 0.0832,
+      "p5Luminance": 0.0874,
+      "targetFractionBelow01": 0,
+      "targetP5Median": 0.4,
+      "passed": false
+    }
+  ],
+  "audioChecks": [
+    {
+      "name": "Audio Peak <= -2.0 dBFS",
+      "actual": -3.22,
+      "target": -2,
+      "passed": true
+    },
+    {
+      "name": "Quiet Moments <= -46 dBFS",
+      "actual": -52.47,
+      "target": -46,
+      "passed": true
+    },
+    {
+      "name": "Stereo Correlation >= 0.81",
+      "actual": 0.88,
+      "target": 0.81,
+      "passed": true
+    },
+    {
+      "name": "Mid-Weighted Room Tone (No Hum Peak)",
+      "actual": 6.62,
+      "target": 4,
+      "passed": true
+    }
+  ],
+  "pairingChecks": [
+    {
+      "frameId": "f_001",
+      "shotId": "natatorium_tagline_wall",
+      "property": "tilePitchMetersAndWallHueDeg",
+      "actualLum": 0.226,
+      "frameLum": 0.6125,
+      "deltaPct": 63.1,
+      "passed": false
+    },
+    {
+      "frameId": "f_002",
+      "shotId": "natatorium_tagline_wall_portrait",
+      "property": "wallHueDegAndWaterHueDeg",
+      "actualLum": 0.2177,
+      "frameLum": 0.591,
+      "deltaPct": 63.2,
+      "passed": false
+    },
+    {
+      "frameId": "f_003",
+      "shotId": "natatorium_close_tile_wall",
+      "property": "tileGrid16x16AndWallRgb",
+      "actualLum": 0.1117,
+      "frameLum": 0.5633,
+      "deltaPct": 80.2,
+      "passed": false
+    },
+    {
+      "frameId": "f_004",
+      "shotId": "natatorium_spawn_view",
+      "property": "luminanceMeanAndWaterHueBand",
+      "actualLum": 0.5257,
+      "frameLum": 0.4769,
+      "deltaPct": 10.2,
+      "passed": true
+    },
+    {
+      "frameId": "f_005",
+      "shotId": "natatorium_spawn_view_portrait",
+      "property": "ceilingArchHexAndWaterNearHex",
+      "actualLum": 0.5247,
+      "frameLum": 0.5647,
+      "deltaPct": 7.1,
+      "passed": true
+    },
+    {
+      "frameId": "f_006",
+      "shotId": "natatorium_hero",
+      "property": "slabTopHexAndFogHue",
+      "actualLum": 0.3364,
+      "frameLum": 0.6256,
+      "deltaPct": 46.2,
+      "passed": false
+    },
+    {
+      "frameId": "f_007",
+      "shotId": "natatorium_water_calm_axial",
+      "property": "waterMeanRgbAndGlintFraction",
+      "actualLum": 0.3519,
+      "frameLum": 0.6496,
+      "deltaPct": 45.8,
+      "passed": false
+    },
+    {
+      "frameId": "f_008",
+      "shotId": "natatorium_water_horizon",
+      "property": "horizonBlowoutAndFogRgb",
+      "actualLum": 0.3598,
+      "frameLum": 0.6281,
+      "deltaPct": 42.7,
+      "passed": false
+    },
+    {
+      "frameId": "f_009",
+      "shotId": "natatorium_water_calm_grazing",
+      "property": "waterMidhallRgbAndStreaksRgb",
+      "actualLum": 0.3067,
+      "frameLum": 0.6334,
+      "deltaPct": 51.6,
+      "passed": false
+    },
+    {
+      "frameId": "f_010",
+      "shotId": "natatorium_monster_25m",
+      "property": "creatureSilhouetteContrastAndWaterHue",
+      "actualLum": 0.3617,
+      "frameLum": 0.6518,
+      "deltaPct": 44.5,
+      "passed": false
+    },
+    {
+      "frameId": "f_011",
+      "shotId": "natatorium_monster_25m_portrait",
+      "property": "slabTilePitchAndWakeContrast",
+      "actualLum": 0.3609,
+      "frameLum": 0.6081,
+      "deltaPct": 40.7,
+      "passed": false
+    },
+    {
+      "frameId": "f_012",
+      "shotId": "natatorium_water_monster_wake",
+      "property": "monsterWakeDarkeningAndWaterRgb",
+      "actualLum": 0.2981,
+      "frameLum": 0.6741,
+      "deltaPct": 55.8,
+      "passed": false
+    },
+    {
+      "frameId": "f_013",
+      "shotId": "natatorium_pillar_numeral_8m",
+      "property": "dryFloorAndPlasterWallRgb",
+      "actualLum": 0.4497,
+      "frameLum": 0.5743,
+      "deltaPct": 21.7,
+      "passed": false
+    },
+    {
+      "frameId": "f_014",
+      "shotId": "natatorium_pillar_numeral_8m_portrait",
+      "property": "numeralHeightMetersAndWallHue",
+      "actualLum": 0.4518,
+      "frameLum": 0.5593,
+      "deltaPct": 19.2,
+      "passed": false
+    },
+    {
+      "frameId": "f_015",
+      "shotId": "natatorium_arch_fog_25m",
+      "property": "archFogLuminanceAndSaturation",
+      "actualLum": 0.3198,
+      "frameLum": 0.6043,
+      "deltaPct": 47.1,
+      "passed": false
+    },
+    {
+      "frameId": "f_016",
+      "shotId": "natatorium_close_tile_wall_portrait",
+      "property": "tileGroutEdgeDensityAndWallHue",
+      "actualLum": 0.1128,
+      "frameLum": 0.584,
+      "deltaPct": 80.7,
+      "passed": false
+    },
+    {
+      "frameId": "f_017",
+      "shotId": "natatorium_arch_fog_25m_portrait",
+      "property": "luminanceMeanAndNoTrueBlacks",
+      "actualLum": 0.3339,
+      "frameLum": 0.5764,
+      "deltaPct": 42.1,
+      "passed": false
+    },
+    {
+      "frameId": "f_018",
+      "shotId": "creature_close_6m",
+      "property": "creatureHeadBodyRgbAndShallowWaterRgb",
+      "actualLum": 0.4434,
+      "frameLum": 0.6391,
+      "deltaPct": 30.6,
+      "passed": false
+    },
+    {
+      "frameId": "f_019",
+      "shotId": "natatorium_floor_through_water",
+      "property": "floorGroutEdgeRatioAndShallowWaterRgb",
+      "actualLum": 0.2839,
+      "frameLum": 0.7089,
+      "deltaPct": 60,
+      "passed": false
+    },
+    {
+      "frameId": "f_020",
+      "shotId": "natatorium_floor_through_water_portrait",
+      "property": "creatureBodyRgbAndInkSplashContrast",
+      "actualLum": 0.2747,
+      "frameLum": 0.695,
+      "deltaPct": 60.5,
+      "passed": false
+    },
+    {
+      "frameId": "f_021",
+      "shotId": "natatorium_slab_edge",
+      "property": "slabTopRgbAndTilePitchMeters",
+      "actualLum": 0.5659,
+      "frameLum": 0.6927,
+      "deltaPct": 18.3,
+      "passed": false
+    },
+    {
+      "frameId": "f_022",
+      "shotId": "natatorium_water_slab_edge",
+      "property": "slabEdgeWetBandAndWaterRgb",
+      "actualLum": 0.2581,
+      "frameLum": 0.668,
+      "deltaPct": 61.4,
+      "passed": false
+    },
+    {
+      "frameId": "f_023",
+      "shotId": "creature_mid_15m",
+      "property": "creatureMidSilhouetteAndWaterRgb",
+      "actualLum": 0.4579,
+      "frameLum": 0.6645,
+      "deltaPct": 31.1,
+      "passed": false
+    },
+    {
+      "frameId": "f_024",
+      "shotId": "natatorium_water_wake",
+      "property": "wakeLuminanceVarianceAndFloorGroutRatio",
+      "actualLum": 0.3506,
+      "frameLum": 0.6712,
+      "deltaPct": 47.8,
+      "passed": false
+    },
+    {
+      "frameId": "f_025",
+      "shotId": "natatorium_horizon_long",
+      "property": "denseFogSkyRgbAndWaterDenseRgb",
+      "actualLum": 0.3637,
+      "frameLum": 0.6615,
+      "deltaPct": 45,
+      "passed": false
+    },
+    {
+      "frameId": "f_026",
+      "shotId": "natatorium_horizon_long_portrait",
+      "property": "waterDenseNearRgbAndFogFalloff",
+      "actualLum": 0.3967,
+      "frameLum": 0.5607,
+      "deltaPct": 29.2,
+      "passed": false
+    },
+    {
+      "frameId": "f_027",
+      "shotId": "creature_far_35m",
+      "property": "farSilhouetteReadabilityAndFogExtinction",
+      "actualLum": 0.4688,
+      "frameLum": 0.628,
+      "deltaPct": 25.4,
+      "passed": false
+    },
+    {
+      "frameId": "f_028",
+      "shotId": "natatorium_water_drip_ring",
+      "property": "waterRippleLuminanceAndHue",
+      "actualLum": 0.2978,
+      "frameLum": 0.6092,
+      "deltaPct": 51.1,
+      "passed": false
+    },
+    {
+      "frameId": "f_029",
+      "shotId": "classic_archipelago_hero",
+      "property": "paletteT57ExactMatch",
+      "actualLum": 0.4603,
+      "frameLum": 0.6099,
+      "deltaPct": 24.5,
+      "passed": false
+    },
+    {
+      "frameId": "f_030",
+      "shotId": "natatorium_water_splash_01",
+      "property": "splashGlintAndWaterHueBand",
+      "actualLum": 0.3039,
+      "frameLum": 0.6112,
+      "deltaPct": 50.3,
+      "passed": false
+    },
+    {
+      "frameId": "f_031",
+      "shotId": "natatorium_water_splash_05",
+      "property": "splashDispersionAndNoTrueBlacks",
+      "actualLum": 0.3416,
+      "frameLum": 0.6263,
+      "deltaPct": 45.5,
+      "passed": false
+    },
+    {
+      "frameId": "f_032",
+      "shotId": "natatorium_slab_edge_portrait",
+      "property": "slabTopRgbAndHorizonFogBank",
+      "actualLum": 0.5717,
+      "frameLum": 0.7013,
+      "deltaPct": 18.5,
+      "passed": false
+    },
+    {
+      "frameId": "f_033",
+      "shotId": "natatorium_water_splash_12",
+      "property": "residualRingDecayAndSlabHue",
+      "actualLum": 0.3299,
+      "frameLum": 0.6448,
+      "deltaPct": 48.8,
+      "passed": false
+    },
+    {
+      "frameId": "f_034",
+      "shotId": "natatorium_water_underwater",
+      "property": "underwaterLuminanceAndHueBand",
+      "actualLum": 0.1477,
+      "frameLum": 0.6356,
+      "deltaPct": 76.8,
+      "passed": false
+    },
+    {
+      "frameId": "f_035",
+      "shotId": "natatorium_trench_view",
+      "property": "trenchWidthAndTrenchWaterSlabRgb",
+      "actualLum": 0.2167,
+      "frameLum": 0.6479,
+      "deltaPct": 66.6,
+      "passed": false
+    },
+    {
+      "frameId": "f_036",
+      "shotId": "natatorium_trench_view_portrait",
+      "property": "slabSideTileRowsAndTrenchWaterRgb",
+      "actualLum": 0.1832,
+      "frameLum": 0.6382,
+      "deltaPct": 71.3,
+      "passed": false
+    },
+    {
+      "frameId": "f_037",
+      "shotId": "flock_overhead",
+      "property": "jumpscareFramingTorsoHeadLowerFrameAndPaleFogBacklight",
+      "actualLum": 0.1348,
+      "frameLum": 0.4862,
+      "deltaPct": 72.3,
+      "passed": false
+    }
+  ],
+  "provisionalCategories": {
+    "calm_axial": {
+      "provisional": true,
+      "luminanceMean": 0.52,
+      "luminanceStdDev": 0.25,
+      "percentiles": {
+        "p5": 0.06,
+        "p50": 0.55,
+        "p95": 0.82,
+        "p99": 0.9
+      },
+      "bandsRGB": {
+        "top": [
+          0.25,
+          0.25,
+          0.23
+        ],
+        "middle": [
+          0.65,
+          0.68,
+          0.62
+        ],
+        "bottom": [
+          0.55,
+          0.58,
+          0.54
+        ]
+      },
+      "horizonBlowoutFraction": 0.012,
+      "saturationMean": 0.35,
+      "sobelEdgeDensity": {
+        "scale1": 0.18,
+        "scale2": 0.25,
+        "scale4": 0.35
+      },
+      "waterRegion": {
+        "meanRGB": [
+          0.45,
+          0.65,
+          0.38
+        ],
+        "luminanceVariance": 0.036,
+        "edgeDensity": 0.18,
+        "glintFraction": 0.001
+      },
+      "floorGroutEdgeRatio": 0.42,
+      "vignetteGradient": 0.36,
+      "grainNoise": 0.008
+    },
+    "drip_ring": {
+      "provisional": true,
+      "luminanceMean": 0.54,
+      "luminanceStdDev": 0.22,
+      "percentiles": {
+        "p5": 0.05,
+        "p50": 0.52,
+        "p95": 0.78,
+        "p99": 0.88
+      },
+      "bandsRGB": {
+        "top": [
+          0.22,
+          0.22,
+          0.2
+        ],
+        "middle": [
+          0.6,
+          0.62,
+          0.58
+        ],
+        "bottom": [
+          0.52,
+          0.55,
+          0.5
+        ]
+      },
+      "horizonBlowoutFraction": 0.002,
+      "saturationMean": 0.35,
+      "sobelEdgeDensity": {
+        "scale1": 0.24,
+        "scale2": 0.28,
+        "scale4": 0.36
+      },
+      "waterRegion": {
+        "meanRGB": [
+          0.45,
+          0.65,
+          0.4
+        ],
+        "luminanceVariance": 0.03,
+        "edgeDensity": 0.18,
+        "glintFraction": 0.001
+      },
+      "floorGroutEdgeRatio": 0.42,
+      "vignetteGradient": 0.35,
+      "grainNoise": 0.008
+    },
+    "calm_grazing": {
+      "provisional": true,
+      "luminanceMean": 0.45,
+      "luminanceStdDev": 0.24,
+      "percentiles": {
+        "p5": 0.08,
+        "p50": 0.48,
+        "p95": 0.82,
+        "p99": 0.9
+      },
+      "bandsRGB": {
+        "top": [
+          0.28,
+          0.27,
+          0.25
+        ],
+        "middle": [
+          0.72,
+          0.74,
+          0.68
+        ],
+        "bottom": [
+          0.65,
+          0.68,
+          0.64
+        ]
+      },
+      "horizonBlowoutFraction": 0.012,
+      "saturationMean": 0.35,
+      "sobelEdgeDensity": {
+        "scale1": 0.19,
+        "scale2": 0.26,
+        "scale4": 0.36
+      },
+      "waterRegion": {
+        "meanRGB": [
+          0.3,
+          0.55,
+          0.35
+        ],
+        "luminanceVariance": 0.085,
+        "edgeDensity": 0.18,
+        "glintFraction": 0.002
+      },
+      "floorGroutEdgeRatio": 0.42,
+      "vignetteGradient": 0.34,
+      "grainNoise": 0.008
+    },
+    "shoreline_foam": {
+      "provisional": true,
+      "luminanceMean": 0.55,
+      "luminanceStdDev": 0.2,
+      "percentiles": {
+        "p5": 0.07,
+        "p50": 0.58,
+        "p95": 0.85,
+        "p99": 0.92
+      },
+      "bandsRGB": {
+        "top": [
+          0.26,
+          0.26,
+          0.24
+        ],
+        "middle": [
+          0.76,
+          0.74,
+          0.69
+        ],
+        "bottom": [
+          0.77,
+          0.78,
+          0.77
+        ]
+      },
+      "horizonBlowoutFraction": 0.005,
+      "saturationMean": 0.33,
+      "sobelEdgeDensity": {
+        "scale1": 0.14,
+        "scale2": 0.22,
+        "scale4": 0.3
+      },
+      "waterRegion": {
+        "meanRGB": [
+          0.45,
+          0.65,
+          0.38
+        ],
+        "luminanceVariance": 0.05,
+        "edgeDensity": 0.14,
+        "glintFraction": 0.001
+      },
+      "floorGroutEdgeRatio": 0.42,
+      "vignetteGradient": 0.32,
+      "grainNoise": 0.008
+    },
+    "wading_wake": {
+      "provisional": true,
+      "luminanceMean": 0.5,
+      "luminanceStdDev": 0.22,
+      "percentiles": {
+        "p5": 0.05,
+        "p50": 0.5,
+        "p95": 0.75,
+        "p99": 0.85
+      },
+      "bandsRGB": {
+        "top": [
+          0.22,
+          0.22,
+          0.21
+        ],
+        "middle": [
+          0.55,
+          0.58,
+          0.54
+        ],
+        "bottom": [
+          0.52,
+          0.55,
+          0.52
+        ]
+      },
+      "horizonBlowoutFraction": 0.002,
+      "saturationMean": 0.36,
+      "sobelEdgeDensity": {
+        "scale1": 0.24,
+        "scale2": 0.3,
+        "scale4": 0.4
+      },
+      "waterRegion": {
+        "meanRGB": [
+          0.45,
+          0.65,
+          0.4
+        ],
+        "luminanceVariance": 0.04,
+        "edgeDensity": 0.25,
+        "glintFraction": 0.001
+      },
+      "floorGroutEdgeRatio": 0.49,
+      "vignetteGradient": 0.35,
+      "grainNoise": 0.009
+    },
+    "splash": {
+      "provisional": true,
+      "luminanceMean": 0.53,
+      "luminanceStdDev": 0.22,
+      "percentiles": {
+        "p5": 0.05,
+        "p50": 0.52,
+        "p95": 0.75,
+        "p99": 0.85
+      },
+      "bandsRGB": {
+        "top": [
+          0.24,
+          0.24,
+          0.22
+        ],
+        "middle": [
+          0.56,
+          0.58,
+          0.55
+        ],
+        "bottom": [
+          0.54,
+          0.56,
+          0.53
+        ]
+      },
+      "horizonBlowoutFraction": 0.002,
+      "saturationMean": 0.35,
+      "sobelEdgeDensity": {
+        "scale1": 0.24,
+        "scale2": 0.32,
+        "scale4": 0.42
+      },
+      "waterRegion": {
+        "meanRGB": [
+          0.45,
+          0.65,
+          0.4
+        ],
+        "luminanceVariance": 0.04,
+        "edgeDensity": 0.24,
+        "glintFraction": 0.001
+      },
+      "floorGroutEdgeRatio": 0.47,
+      "vignetteGradient": 0.35,
+      "grainNoise": 0.009
+    },
+    "horizon_haze": {
+      "provisional": true,
+      "luminanceMean": 0.55,
+      "luminanceStdDev": 0.25,
+      "percentiles": {
+        "p5": 0.12,
+        "p50": 0.58,
+        "p95": 0.86,
+        "p99": 0.92
+      },
+      "bandsRGB": {
+        "top": [
+          0.42,
+          0.42,
+          0.39
+        ],
+        "middle": [
+          0.82,
+          0.8,
+          0.75
+        ],
+        "bottom": [
+          0.72,
+          0.74,
+          0.71
+        ]
+      },
+      "horizonBlowoutFraction": 0.012,
+      "saturationMean": 0.35,
+      "sobelEdgeDensity": {
+        "scale1": 0.18,
+        "scale2": 0.24,
+        "scale4": 0.33
+      },
+      "waterRegion": {
+        "meanRGB": [
+          0.42,
+          0.6,
+          0.36
+        ],
+        "luminanceVariance": 0.05,
+        "edgeDensity": 0.16,
+        "glintFraction": 0.002
+      },
+      "floorGroutEdgeRatio": 0.42,
+      "vignetteGradient": 0.33,
+      "grainNoise": 0.008
+    },
+    "underwater": {
+      "provisional": true,
+      "luminanceMean": 0.35,
+      "luminanceStdDev": 0.2,
+      "percentiles": {
+        "p5": 0.04,
+        "p50": 0.35,
+        "p95": 0.72,
+        "p99": 0.8
+      },
+      "bandsRGB": {
+        "top": [
+          0.2,
+          0.35,
+          0.35
+        ],
+        "middle": [
+          0.3,
+          0.52,
+          0.48
+        ],
+        "bottom": [
+          0.28,
+          0.48,
+          0.45
+        ]
+      },
+      "horizonBlowoutFraction": 0.002,
+      "saturationMean": 0.35,
+      "sobelEdgeDensity": {
+        "scale1": 0.025,
+        "scale2": 0.08,
+        "scale4": 0.16
+      },
+      "waterRegion": {
+        "meanRGB": [
+          0.22,
+          0.35,
+          0.3
+        ],
+        "luminanceVariance": 0.03,
+        "edgeDensity": 0.025,
+        "glintFraction": 0
+      },
+      "floorGroutEdgeRatio": 0.42,
+      "vignetteGradient": 0.38,
+      "grainNoise": 0.012
+    },
+    "monster_wake": {
+      "provisional": true,
+      "luminanceMean": 0.29,
+      "luminanceStdDev": 0.2,
+      "percentiles": {
+        "p5": 0.05,
+        "p50": 0.28,
+        "p95": 0.75,
+        "p99": 0.85
+      },
+      "bandsRGB": {
+        "top": [
+          0.22,
+          0.22,
+          0.21
+        ],
+        "middle": [
+          0.55,
+          0.58,
+          0.54
+        ],
+        "bottom": [
+          0.52,
+          0.55,
+          0.52
+        ]
+      },
+      "horizonBlowoutFraction": 0.002,
+      "saturationMean": 0.48,
+      "sobelEdgeDensity": {
+        "scale1": 0.24,
+        "scale2": 0.3,
+        "scale4": 0.4
+      },
+      "waterRegion": {
+        "meanRGB": [
+          0.25,
+          0.36,
+          0.24
+        ],
+        "luminanceVariance": 0.04,
+        "edgeDensity": 0.25,
+        "glintFraction": 0.001
+      },
+      "floorGroutEdgeRatio": 0.45,
+      "vignetteGradient": 0.35,
+      "grainNoise": 0.009
+    },
+    "neon_flood_rain": {
+      "provisional": true,
+      "luminanceMean": 0.22,
+      "luminanceStdDev": 0.25,
+      "percentiles": {
+        "p5": 0.02,
+        "p50": 0.15,
+        "p95": 0.82,
+        "p99": 0.95
+      },
+      "bandsRGB": {
+        "top": [
+          0.15,
+          0.08,
+          0.25
+        ],
+        "middle": [
+          0.3,
+          0.18,
+          0.45
+        ],
+        "bottom": [
+          0.25,
+          0.12,
+          0.38
+        ]
+      },
+      "horizonBlowoutFraction": 0.001,
+      "saturationMean": 0.4,
+      "sobelEdgeDensity": {
+        "scale1": 0.075,
+        "scale2": 0.12,
+        "scale4": 0.18
+      },
+      "waterRegion": {
+        "meanRGB": [
+          0.08,
+          0.08,
+          0.12
+        ],
+        "luminanceVariance": 0.02,
+        "edgeDensity": 0.07,
+        "glintFraction": 0
+      },
+      "floorGroutEdgeRatio": 0.42,
+      "vignetteGradient": 0.42,
+      "grainNoise": 0.015
+    },
+    "archipelago_calm": {
+      "provisional": true,
+      "luminanceMean": 0.58,
+      "luminanceStdDev": 0.22,
+      "percentiles": {
+        "p5": 0.06,
+        "p50": 0.55,
+        "p95": 0.85,
+        "p99": 0.92
+      },
+      "bandsRGB": {
+        "top": [
+          0.25,
+          0.28,
+          0.26
+        ],
+        "middle": [
+          0.55,
+          0.62,
+          0.58
+        ],
+        "bottom": [
+          0.5,
+          0.58,
+          0.54
+        ]
+      },
+      "horizonBlowoutFraction": 0.012,
+      "saturationMean": 0.3,
+      "sobelEdgeDensity": {
+        "scale1": 0.28,
+        "scale2": 0.32,
+        "scale4": 0.42
+      },
+      "waterRegion": {
+        "meanRGB": [
+          0.48,
+          0.65,
+          0.4
+        ],
+        "luminanceVariance": 0.04,
+        "edgeDensity": 0.25,
+        "glintFraction": 0.001
+      },
+      "floorGroutEdgeRatio": 0.48,
+      "vignetteGradient": 0.35,
+      "grainNoise": 0.009
+    },
+    "natatorium_hero": {
+      "provisional": true,
+      "luminanceMean": 0.52,
+      "luminanceStdDev": 0.26,
+      "percentiles": {
+        "p5": 0.08,
+        "p50": 0.55,
+        "p95": 0.86,
+        "p99": 0.92
+      },
+      "bandsRGB": {
+        "top": [
+          0.32,
+          0.32,
+          0.3
+        ],
+        "middle": [
+          0.75,
+          0.72,
+          0.66
+        ],
+        "bottom": [
+          0.68,
+          0.72,
+          0.68
+        ]
+      },
+      "horizonBlowoutFraction": 0.005,
+      "saturationMean": 0.35,
+      "sobelEdgeDensity": {
+        "scale1": 0.2,
+        "scale2": 0.25,
+        "scale4": 0.35
+      },
+      "waterRegion": {
+        "meanRGB": [
+          0.45,
+          0.68,
+          0.4
+        ],
+        "luminanceVariance": 0.05,
+        "edgeDensity": 0.18,
+        "glintFraction": 0.002
+      },
+      "floorGroutEdgeRatio": 0.42,
+      "vignetteGradient": 0.34,
+      "grainNoise": 0.008
+    }
+  },
+  "summary": {
+    "baselineChecks": 126,
+    "baselinePassed": 78,
+    "baselineFailed": 48,
+    "regionColourChecks": 39,
+    "regionColourPassed": 5,
+    "regionColourFailed": 34,
+    "hueBandChecks": 30,
+    "hueBandPassed": 4,
+    "hueBandFailed": 26,
+    "noBlacksChecks": 14,
+    "noBlacksPassed": 0,
+    "noBlacksFailed": 14,
+    "audioChecks": 4,
+    "audioPassed": 4,
+    "audioFailed": 0,
+    "totalChecks": 213,
+    "passedChecks": 91,
+    "failedChecks": 122,
+    "overallPass": false,
+    "worstFailingMetric": {
+      "metric": "neon_flood_water_rain:Water Green Channel",
+      "actual": 0.148,
+      "target": 0.08,
+      "deltaPct": 85
+    }
+  }
+}

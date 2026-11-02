@@ -6,7 +6,7 @@
 
 ---
 
-## 1. Geometric Measurements vs. Repo Constants
+## 1. Geometric Measurements vs. Repo Constants (`f_004` -> `natatorium_spawn_view`, `f_019` -> `natatorium_floor_through_water`)
 
 Using the pool tile grid (nominal 0.15 m tile pitch with grout line) visible throughout the reference frames and Section 3 Visual Bible, the key vertical and horizontal architectural dimensions were measured and cross-referenced with `WORLD` and `ProvingGroundsData` constants.
 
@@ -23,7 +23,7 @@ Using the pool tile grid (nominal 0.15 m tile pitch with grout line) visible thr
 
 ---
 
-## 2. Analysis & Decision
+## 2. Analysis & Decision (`f_019` -> `natatorium_floor_through_water`, `f_021` -> `natatorium_slab_edge`)
 
 1. **Slab Elevation (0.30 m)**:
    In the reference video, the dry tiled platform emerges roughly two tile courses above the waterline. The engine constant `PLATFORM_TOP_Y = 0.3` exactly matches $2 \times 0.15\text{ m} = 0.30\text{ m}$. No modification needed.

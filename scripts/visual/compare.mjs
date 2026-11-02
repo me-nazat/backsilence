@@ -219,7 +219,11 @@ async function main() {
       console.error('No reports/visual directory found to approve.');
       process.exit(1);
     }
-    const files = readdirSync(VISUAL_DIR).filter((f) => f.endsWith('.png'));
+    const shotsFile = resolve(ROOT, 'shots.json');
+    const validSet = existsSync(shotsFile)
+      ? new Set(JSON.parse(readFileSync(shotsFile, 'utf8')).map((s) => `${s.id}.png`))
+      : null;
+    const files = readdirSync(VISUAL_DIR).filter((f) => f.endsWith('.png') && (!validSet || validSet.has(f)));
     let approved = 0;
     for (const f of files) {
       copyFileSync(resolve(VISUAL_DIR, f), resolve(GOLDEN_DIR, f));
@@ -231,16 +235,54 @@ async function main() {
 
   if (args.includes('--check')) {
     if (!existsSync(GOLDEN_DIR)) {
-      console.warn('⚠️ No tests/golden directory found. Run "npm run shots:approve" first to seed baseline.');
-      process.exit(0);
+      console.error('❌ No tests/golden directory found. Run "npm run shots:approve" first to seed baseline.');
+      process.exit(1);
     }
-    const goldenFiles = readdirSync(GOLDEN_DIR).filter((f) => f.endsWith('.png'));
+    if (!existsSync(VISUAL_DIR)) {
+      console.error('❌ No reports/visual directory found.');
+      process.exit(1);
+    }
+    const shotsFile = resolve(ROOT, 'shots.json');
+    const expectedFiles = existsSync(shotsFile)
+      ? JSON.parse(readFileSync(shotsFile, 'utf8')).map((s) => `${s.id}.png`).sort()
+      : [];
+    const goldenFiles = readdirSync(GOLDEN_DIR).filter((f) => f.endsWith('.png')).sort();
+    const visualFiles = readdirSync(VISUAL_DIR).filter((f) => f.endsWith('.png')).sort();
+
     if (goldenFiles.length === 0) {
-      console.warn('⚠️ tests/golden contains no PNG files.');
-      process.exit(0);
+      console.error('❌ tests/golden contains no PNG files.');
+      process.exit(1);
     }
 
     let allPass = true;
+    if (expectedFiles.length > 0) {
+      const expSet = new Set(expectedFiles);
+      const goldSet = new Set(goldenFiles);
+      const visSet = new Set(visualFiles);
+      for (const f of expectedFiles) {
+        if (!goldSet.has(f)) {
+          console.error(`❌ Missing in tests/golden/: ${f}`);
+          allPass = false;
+        }
+        if (!visSet.has(f)) {
+          console.error(`❌ Missing in reports/visual/: ${f}`);
+          allPass = false;
+        }
+      }
+      for (const f of goldenFiles) {
+        if (!expSet.has(f)) {
+          console.error(`❌ Orphan in tests/golden/ (not in shots.json): ${f}`);
+          allPass = false;
+        }
+      }
+      for (const f of visualFiles) {
+        if (!expSet.has(f)) {
+          console.error(`❌ Orphan in reports/visual/ (not in shots.json): ${f}`);
+          allPass = false;
+        }
+      }
+    }
+
     console.log(`🔍 Comparing ${goldenFiles.length} shots against golden references (Threshold: SSIM >= 0.97)...`);
 
     for (const file of goldenFiles) {
@@ -291,7 +333,7 @@ async function main() {
   console.log('  node scripts/visual/compare.mjs --approve');
 }
 
-if (process.argv[1]?.endsWith('compare.mjs')) {
+if (process.argv[1] && resolve(process.argv[1]) === resolve(import.meta.filename)) {
   main().catch((err) => {
     console.error('Compare harness error:', err);
     process.exit(1);

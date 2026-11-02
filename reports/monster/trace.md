@@ -53,7 +53,7 @@
 - **waterBandDominantHue:** Actual `80` vs Target `[85, 113] deg` -> ⚠️ CHECK
 - **waterBandSaturation:** Actual `0.073` vs Target `[0.32, 0.52]` -> ⚠️ CHECK
 
-## 3. Layer Analysis Breakdown
+## 3. Layer Analysis Breakdown (`f_010` -> `natatorium_monster_25m`, `f_018` -> `creature_close_6m`)
 
 - **L0 (Sim):** Verifies monster existence in SimWorld, finite coordinates, non-zero speed/hearing, and walkable NavGrid components.
 - **L1 (Scene):** Verifies MonsterManager root object in Three scene, visibility inheritance, non-zero child meshes, and opaque materials.

@@ -6,7 +6,7 @@
 
 ---
 
-## 1. Default Map Load & Canvas Status
+## 1. Default Map Load & Canvas Status (`f_004` -> `natatorium_spawn_view`)
 - **Canvas Element:** Found (`#webgl-canvas`, size 1280x633)
 - **Active / Non-Zero Pixels:** 99.12% (803,125 / 810,240 pixels)
 - **Mean Luminance:** 0.4328

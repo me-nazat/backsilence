@@ -16,6 +16,9 @@ reports/graphics/**/*.png
 !reports/audio/
 reports/audio/**/*.wav
 !reports/ux/
+!reports/visual/
+reports/visual/*.png
+!reports/release/
 reference/out*
 reference/*.png
 !reference/frames.manifest.json

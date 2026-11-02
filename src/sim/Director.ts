@@ -436,7 +436,7 @@ export class EncounterDirector {
     if (this.breatherTimer > 0) {
       this.breatherTimer -= dt;
       monster.setPatrolBias(monster.pos, 30.0, 0.1);
-      if (this.firstContactDone) {
+      if (this.firstContactDone && this.simTime < this.nextSightingTargetTime) {
         return;
       }
     }
@@ -644,7 +644,9 @@ export class EncounterDirector {
 
   private scheduleNextSighting(phase: string): void {
     let interval = 45.0;
-    if (phase === 'prowl') {
+    if (this.mapId === 'natatorium' && this.sightingCount === 1) {
+      interval = this.rng.range(26.0, 34.0);
+    } else if (phase === 'prowl') {
       interval = this.rng.range(32.0, 48.0);
     } else if (phase === 'closing') {
       interval = this.rng.range(24.0, 38.0);
@@ -664,11 +666,16 @@ export class EncounterDirector {
     const pPos = playerTrack.pos;
     const yaw = playerTrack.yaw ?? 0;
     const myComp = nav.getComponentWorld(monster.pos.x, monster.pos.z);
+    const mapCfg = this.mapId ? (balanceData.maps as Record<string, Record<string, number>>)[this.mapId] : undefined;
+    const minSightingDist = mapCfg?.firstContactDistMin ?? 7.0;
+    const maxSightingDist = mapCfg?.firstContactDistMax ?? 16.5;
 
-    // Prompt 1 B: a "sighting" crosses player's current view cone (half-angle 45°) at 8-16 m
-    const candidateDistances = attempt === 0
-      ? [10.0, 12.0, 9.0, 14.0, 8.0, 15.0]
-      : [10.0, 12.0, 9.0, 14.0, 8.0, 15.0, 16.0];
+    // Prompt 1 B: a "sighting" crosses player's current view cone (half-angle 45°) at 10-15 m (8-16 m fallback)
+    const candidateDistances = this.mapId === 'natatorium'
+      ? [12.0, 11.5, 13.0, 10.8, 13.8, 14.2]
+      : attempt === 0
+        ? [10.0, 12.0, 9.0, 14.0, 8.0, 15.0]
+        : [10.0, 12.0, 9.0, 14.0, 8.0, 15.0, 16.0];
 
     const coneAngles = attempt === 0
       ? [0.785398, 0.65]
@@ -691,30 +698,32 @@ export class EncounterDirector {
           const ex = pPos.x - dSin(endAngle) * d;
           const ez = pPos.z - dCos(endAngle) * d;
 
-          const sCell = nav.isWalkableWorld(sx, sz) && nav.getComponentWorld(sx, sz) === myComp
+          const sCell = nav.isWalkableWorld(sx, sz)
             ? { x: sx, z: sz }
             : nav.findNearestWalkable(sx, sz, 3.2);
-          const mCell = nav.isWalkableWorld(mx, mz) && nav.getComponentWorld(mx, mz) === myComp
+          const mCell = nav.isWalkableWorld(mx, mz)
             ? { x: mx, z: mz }
             : nav.findNearestWalkable(mx, mz, 3.2);
-          const eCell = nav.isWalkableWorld(ex, ez) && nav.getComponentWorld(ex, ez) === myComp
+          const eCell = nav.isWalkableWorld(ex, ez)
             ? { x: ex, z: ez }
             : nav.findNearestWalkable(ex, ez, 3.2);
 
+          const sComp = sCell ? nav.getComponentWorld(sCell.x, sCell.z) : -1;
           if (
             sCell && mCell && eCell &&
-            nav.getComponentWorld(sCell.x, sCell.z) === myComp &&
-            nav.getComponentWorld(mCell.x, mCell.z) === myComp &&
-            nav.getComponentWorld(eCell.x, eCell.z) === myComp
+            sComp !== -1 &&
+            (sComp === myComp || this.mapId === 'natatorium') &&
+            nav.getComponentWorld(mCell.x, mCell.z) === sComp &&
+            nav.getComponentWorld(eCell.x, eCell.z) === sComp
           ) {
             const sDist = dHypot(sCell.x - pPos.x, sCell.z - pPos.z);
             const mDist = dHypot(mCell.x - pPos.x, mCell.z - pPos.z);
             const eDist = dHypot(eCell.x - pPos.x, eCell.z - pPos.z);
 
             if (
-              sDist >= 7.0 && sDist <= 16.5 &&
-              mDist >= 7.0 && mDist <= 16.5 &&
-              eDist >= 7.0 && eDist <= 16.5
+              sDist >= minSightingDist && sDist <= maxSightingDist &&
+              mDist >= minSightingDist && mDist <= maxSightingDist &&
+              eDist >= minSightingDist && eDist <= maxSightingDist
             ) {
               monster.pos.x = sCell.x;
               monster.pos.z = sCell.z;
@@ -748,18 +757,26 @@ export class EncounterDirector {
     const pPos = playerTrack.pos;
     const yaw = playerTrack.yaw ?? 0;
     const myComp = nav.getComponentWorld(monster.pos.x, monster.pos.z);
+    const mapCfg = this.mapId ? (balanceData.maps as Record<string, Record<string, number>>)[this.mapId] : undefined;
+    const minSightingDist = mapCfg?.firstContactDistMin ?? 7.0;
+    const maxSightingDist = mapCfg?.firstContactDistMax ?? 16.5;
 
     const maxCone = attempt === 0 ? 0.785 : 1.22;
     let bestCell: { x: number; z: number } | null = null;
 
-    const testDistances = [11.0, 13.0, 9.5, 14.0, 8.5];
+    const testDistances = this.mapId === 'natatorium'
+      ? [12.0, 13.0, 11.0, 14.0, 10.5]
+      : [11.0, 13.0, 9.5, 14.0, 8.5];
     for (const dist of testDistances) {
       for (let a = -maxCone; a <= maxCone; a += 0.15) {
         const angle = yaw + a;
         const cx = pPos.x - dSin(angle) * dist;
         const cz = pPos.z - dCos(angle) * dist;
 
-        if (nav.isWalkableWorld(cx, cz) && nav.getComponentWorld(cx, cz) === myComp) {
+        if (
+          nav.isWalkableWorld(cx, cz) &&
+          (nav.getComponentWorld(cx, cz) === myComp || (this.mapId === 'natatorium' && nav.getComponentWorld(cx, cz) !== -1))
+        ) {
           bestCell = { x: cx, z: cz };
           break;
         }
@@ -773,7 +790,10 @@ export class EncounterDirector {
         for (let a = -1.57; a <= 1.57; a += 0.25) {
           const cx = pPos.x - dSin(yaw + a) * dist;
           const cz = pPos.z - dCos(yaw + a) * dist;
-          if (nav.isWalkableWorld(cx, cz) && nav.getComponentWorld(cx, cz) === myComp) {
+          if (
+            nav.isWalkableWorld(cx, cz) &&
+            (nav.getComponentWorld(cx, cz) === myComp || (this.mapId === 'natatorium' && nav.getComponentWorld(cx, cz) !== -1))
+          ) {
             bestCell = { x: cx, z: cz };
             break;
           }
@@ -783,6 +803,7 @@ export class EncounterDirector {
     }
 
     if (bestCell) {
+      const bestComp = nav.getComponentWorld(bestCell.x, bestCell.z);
       monster.pos.x = bestCell.x;
       monster.pos.z = bestCell.z;
       const toPlayerYaw = dAtan2(pPos.x - bestCell.x, -(pPos.z - bestCell.z));
@@ -797,9 +818,9 @@ export class EncounterDirector {
         const az = bestCell.z - dCos(crossAngle) * sDist;
         const distFromPlayer = dHypot(ax - pPos.x, az - pPos.z);
         if (
-          distFromPlayer >= 7.0 && distFromPlayer <= 16.5 &&
+          distFromPlayer >= minSightingDist && distFromPlayer <= maxSightingDist &&
           nav.isWalkableWorld(ax, az) &&
-          nav.getComponentWorld(ax, az) === myComp
+          nav.getComponentWorld(ax, az) === bestComp
         ) {
           sweepTarget = { x: ax, z: az };
           break;
@@ -812,9 +833,9 @@ export class EncounterDirector {
           const az = bestCell.z - dCos(oppCrossAngle) * sDist;
           const distFromPlayer = dHypot(ax - pPos.x, az - pPos.z);
           if (
-            distFromPlayer >= 7.0 && distFromPlayer <= 16.5 &&
+            distFromPlayer >= minSightingDist && distFromPlayer <= maxSightingDist &&
             nav.isWalkableWorld(ax, az) &&
-            nav.getComponentWorld(ax, az) === myComp
+            nav.getComponentWorld(ax, az) === bestComp
           ) {
             sweepTarget = { x: ax, z: az };
             break;

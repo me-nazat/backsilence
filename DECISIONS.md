@@ -1623,6 +1623,32 @@ Following the Natatorium rebuild and quadrupedal monster rig integration, four g
 
 **Reason:** Collapses parallel authorities into one governed world model where tile scale, acoustics, creature appearance, reference verification, and test assertions are deterministic and enforced at build time.
 
+### D120: Reference-Derived Targets, Frame-to-Shot Traceability Pairings, and Fatal Verification Gates (Batch 1/5 Prompt 2)
+**Date:** 2026-11-02
+**Context:**
+After locking the reference pack in Prompt 1, the verification pipeline still had structural gaps:
+1. `reference/targets.json -> measured_targets` only carried global whole-frame luminance/contrast/saturation/fog stats, omitting per-region colour, water hue-band (`85°–113°`), no-blacks (`fraction_pixels_below_0.1 === 0.0`), and audio targets.
+2. There was no explicit pairing registry connecting the 37 reference frames (`f_001`..`f_037`) to `shots.json` presets and tolerances.
+3. Three orphan PNGs (`natatorium_water_calm.png`, `natatorium_water_shoreline.png`, `preconditions_canvas.png`) existed in `tests/golden/` and `reports/visual/` without matching entries in `shots.json`.
+4. `scripts/visual/compare.mjs` and `scripts/audio/compare.mjs` swallowed exit codes or ran CLI blocks when imported as modules, and `npm run verify` did not run `reference:compare` or `shots:check`.
+
+**Choice:**
+1. **Measured Reference Targets (`scripts/reference/extract-stats.mjs` -> `reference/derived_targets.json`):**
+   - Extracted per-frame and aggregate luminance, contrast, saturation, hue histogram, edge density, dark-pixel fractions, region RGB, and water hue-band (`[85°, 113°]`) directly from the 37 tracked reference frames (`manifestHash: 5284a059124178f556c589a806d206a77a62f6c11a4d892760bc944284a023b4`, `source: "measured"`).
+2. **Frame-to-Shot Traceability (`reference/pairings.json` & `scripts/audit/claim-traceability.mjs`):**
+   - Paired all 37 reference frames (`f_001`..`f_037`) to concrete `shots.json` presets with explicit properties and tolerances.
+   - Added `scripts/audit/claim-traceability.mjs` to enforce that every pairing resolves to an existing frame and shot, every visual claim section in `reports/**/*.md` cites a pairing id, and zero self-assigned grades exist in `reports/`.
+   - Rewrote `reports/graphics/review_pack.md` and `reports/water/baseline/README.md` so every number is script-emitted and traceable to `reference/derived_targets.json` and `reports/visual/reference_comparison.json`.
+3. **First-Class Per-Region Colour, Hue-Band, No-Blacks, and Audio Gates (`scripts/reference/compare.mjs`):**
+   - Extended `scripts/reference/compare.mjs` to evaluate the 126 baseline checks (`78 PASS / 48 FAIL`) plus per-region RGB (`±8%` vs `reference/video/palette.json`), water hue-band (`[85°, 113°]`, flagging `#48ab72` at `145.5°` and `#338858` at `146.1°`), `fraction_pixels_below_0.1 === 0.0`, and audio metrics, writing `reports/visual/reference_comparison.json` and exiting `1` on any failure.
+4. **1:1 Golden Shot Sync, 5-Minute Play Gate, and Single-Table Gate Summary:**
+   - Added `scripts/visual/sync-golden.mjs` and pruned the 3 orphan PNGs so `shots.json` (`46`), `tests/golden/` (`46`), and `reports/visual/` (`46`) match 1:1.
+   - Added `scripts/gates/play.mjs` (5-minute `natatorium` playthrough verifying first sighting at `10–15 m` within `15–20 s`, second sighting within `60 s`, exit reachability, `≤ 2.4 m` trench blocking, deterministic `simHash`, `p95` step time `≤ 16.6 ms`, and zero console errors) and `scripts/gates/summary.mjs` (generating `reports/release/gates.md`).
+   - Updated `npm run verify` and `npm run audit` in `package.json` to run `claim-traceability`, `sync-golden --check`, `reference:compare`, and `shots:check`.
+
+**Reason:** Establishes the 37-frame reference pack as the single quantitative authority across visual, colour, hue, dark-floor, audio, and gameplay gates, and makes gate failures fatal as required before visual/creature changes in Batches 2–5.
+
+
 
 
 

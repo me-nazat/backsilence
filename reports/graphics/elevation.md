@@ -42,7 +42,7 @@ Every measured dimension sits well inside the allowed 15% tolerance threshold (m
 
 ---
 
-## 3. Scale Lab Implementation (`?lab=scale`)
+## 3. Scale Lab Implementation (`?lab=scale`, `f_003` -> `natatorium_close_tile_wall`)
 - **Access URL:** `http://127.0.0.1:4175/?lab=scale`
 - **Features Implemented in [`src/lab/ScaleLab.ts`](file:///Users/nazat/Desktop/Desktop/antigravity/BackSilence/poolrooms/src/lab/ScaleLab.ts):**
   - **1.65m Human Silhouette:** Modeled with accurate human anatomical proportions standing at $y = +0.30\text{ m}$, featuring eye level lines at 1.65m (standing) and 0.95m (crouched).

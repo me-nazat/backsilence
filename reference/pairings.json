@@ -1,0 +1,403 @@
+{
+  "version": 1,
+  "manifestHash": "5284a059124178f50583ba8c19e0985c6b04d461d507bf1cb525e84369a4a110",
+  "pairings": [
+    {
+      "frameId": "f_001",
+      "file": "f_001.png",
+      "timestamp": "t=1s",
+      "shotId": "natatorium_tagline_wall",
+      "whatToLookAt": "wall_tile_pitch_and_graffiti_contrast",
+      "property": "tilePitchMetersAndWallHueDeg",
+      "target": { "tileMeters": 0.15, "wallHueRange": [38, 48], "sobelEdge1xMin": 0.12 },
+      "tolerance": { "tilePitchPct": 0.03, "rgbChannelDelta": 0.08 }
+    },
+    {
+      "frameId": "f_002",
+      "file": "f_002.png",
+      "timestamp": "t=3s",
+      "shotId": "natatorium_tagline_wall_portrait",
+      "whatToLookAt": "portrait_tagline_wall_and_waterline_contact",
+      "property": "wallHueDegAndWaterHueDeg",
+      "target": { "wallHueRange": [38, 48], "waterHueRange": [85, 113] },
+      "tolerance": { "rgbChannelDelta": 0.08, "scalarPct": 0.2 }
+    },
+    {
+      "frameId": "f_003",
+      "file": "f_003.png",
+      "timestamp": "t=5s",
+      "shotId": "natatorium_close_tile_wall",
+      "whatToLookAt": "close_tile_grout_grid_and_ceramic_albedo",
+      "property": "tileGrid16x16AndWallRgb",
+      "target": { "dryTileWallHex": "#c8b580", "tileMeters": 0.15 },
+      "tolerance": { "rgbChannelDelta": 0.08, "tilePitchPct": 0.03 }
+    },
+    {
+      "frameId": "f_004",
+      "file": "f_004.png",
+      "timestamp": "t=7s",
+      "shotId": "natatorium_spawn_view",
+      "whatToLookAt": "vaulted_hall_luminance_and_olive_water_hue",
+      "property": "luminanceMeanAndWaterHueBand",
+      "target": { "luminanceMean": 0.63, "waterHueRange": [85, 113], "fractionPixelsBelow01": 0.0 },
+      "tolerance": { "scalarPct": 0.2, "rgbChannelDelta": 0.08 }
+    },
+    {
+      "frameId": "f_005",
+      "file": "f_005.png",
+      "timestamp": "t=9s",
+      "shotId": "natatorium_spawn_view_portrait",
+      "whatToLookAt": "ceiling_arch_tan_and_near_water_swell",
+      "property": "ceilingArchHexAndWaterNearHex",
+      "target": { "ceilingArchHex": "#b7a775", "waterNearHex": "#6e8949" },
+      "tolerance": { "rgbChannelDelta": 0.08, "scalarPct": 0.2 }
+    },
+    {
+      "frameId": "f_006",
+      "file": "f_006.png",
+      "timestamp": "t=11s",
+      "shotId": "natatorium_hero",
+      "whatToLookAt": "slab_bullnose_elevation_and_hall_fog_falloff",
+      "property": "slabTopHexAndFogHue",
+      "target": { "slabTopHex": "#c29a56", "horizonFogHex": "#d6dccd", "fractionPixelsBelow01": 0.0 },
+      "tolerance": { "rgbChannelDelta": 0.08, "scalarPct": 0.2 }
+    },
+    {
+      "frameId": "f_007",
+      "file": "f_007.png",
+      "timestamp": "t=13s",
+      "shotId": "natatorium_water_calm_axial",
+      "whatToLookAt": "calm_axial_water_swell_and_minimal_foam",
+      "property": "waterMeanRgbAndGlintFraction",
+      "target": { "waterFarHex": "#959e69", "glintFractionMax": 0.005 },
+      "tolerance": { "rgbChannelDelta": 0.08, "scalarPct": 0.2 }
+    },
+    {
+      "frameId": "f_008",
+      "file": "f_008.png",
+      "timestamp": "t=15s",
+      "shotId": "natatorium_water_horizon",
+      "whatToLookAt": "first_sighting_10_to_15m_and_pale_mint_horizon",
+      "property": "horizonBlowoutAndFogRgb",
+      "target": { "horizonFogHex": "#d6dccd", "horizonBlowoutTypical": 0.005, "sightingDistRange": [10, 15] },
+      "tolerance": { "rgbChannelDelta": 0.08, "blowoutAbs": 0.035 }
+    },
+    {
+      "frameId": "f_009",
+      "file": "f_009.png",
+      "timestamp": "t=17s",
+      "shotId": "natatorium_water_calm_grazing",
+      "whatToLookAt": "midhall_water_colour_and_specular_streaks",
+      "property": "waterMidhallRgbAndStreaksRgb",
+      "target": { "waterMidhallHex": "#678f44", "waterStreaksHex": "#7b9e5e", "slabTopHex": "#c29a56" },
+      "tolerance": { "rgbChannelDelta": 0.08, "scalarPct": 0.2 }
+    },
+    {
+      "frameId": "f_010",
+      "file": "f_010.png",
+      "timestamp": "t=19s",
+      "shotId": "natatorium_monster_25m",
+      "whatToLookAt": "hunched_creature_silhouette_and_dark_ink_splashes",
+      "property": "creatureSilhouetteContrastAndWaterHue",
+      "target": { "creatureBodyHex": "#5a5035", "waterHueRange": [85, 113], "fractionPixelsBelow01": 0.0 },
+      "tolerance": { "rgbChannelDelta": 0.08, "scalarPct": 0.2 }
+    },
+    {
+      "frameId": "f_011",
+      "file": "f_011.png",
+      "timestamp": "t=21s",
+      "shotId": "natatorium_monster_25m_portrait",
+      "whatToLookAt": "mid_distance_wading_wake_and_foreground_slab_grid",
+      "property": "slabTilePitchAndWakeContrast",
+      "target": { "tileMeters": 0.15, "slabHueRange": [38, 48] },
+      "tolerance": { "tilePitchPct": 0.03, "rgbChannelDelta": 0.08 }
+    },
+    {
+      "frameId": "f_012",
+      "file": "f_012.png",
+      "timestamp": "t=23s",
+      "shotId": "natatorium_water_monster_wake",
+      "whatToLookAt": "monster_hand_and_foot_ink_splashes_in_green_water",
+      "property": "monsterWakeDarkeningAndWaterRgb",
+      "target": { "waterMidhallHex": "#678f44", "creatureBodyHex": "#5a5035" },
+      "tolerance": { "rgbChannelDelta": 0.08, "scalarPct": 0.2 }
+    },
+    {
+      "frameId": "f_013",
+      "file": "f_013.png",
+      "timestamp": "t=25s",
+      "shotId": "natatorium_pillar_numeral_8m",
+      "whatToLookAt": "round_tiled_pillar_numeral_2_and_dry_plaster_wall",
+      "property": "dryFloorAndPlasterWallRgb",
+      "target": { "dryFloorHex": "#cbba8b", "dryTileWallHex": "#c8b580", "dryPlasterWallHex": "#ae9e6c" },
+      "tolerance": { "rgbChannelDelta": 0.08, "scalarPct": 0.2 }
+    },
+    {
+      "frameId": "f_014",
+      "file": "f_014.png",
+      "timestamp": "t=27s",
+      "shotId": "natatorium_pillar_numeral_8m_portrait",
+      "whatToLookAt": "pillar_numeral_stencil_height_and_distance_tile_fade",
+      "property": "numeralHeightMetersAndWallHue",
+      "target": { "numeralHeightMeters": 0.5, "wallHueRange": [38, 48] },
+      "tolerance": { "rgbChannelDelta": 0.08, "scalarPct": 0.2 }
+    },
+    {
+      "frameId": "f_015",
+      "file": "f_015.png",
+      "timestamp": "t=29s",
+      "shotId": "natatorium_arch_fog_25m",
+      "whatToLookAt": "arch_opening_into_flooded_hall_pale_fog",
+      "property": "archFogLuminanceAndSaturation",
+      "target": { "horizonFogHex": "#d6dccd", "fogSaturationRange": [0.07, 0.14] },
+      "tolerance": { "rgbChannelDelta": 0.08, "scalarPct": 0.2 }
+    },
+    {
+      "frameId": "f_016",
+      "file": "f_016.png",
+      "timestamp": "t=31s",
+      "shotId": "natatorium_close_tile_wall_portrait",
+      "whatToLookAt": "tiled_wall_corner_marker_1_and_grout_lines",
+      "property": "tileGroutEdgeDensityAndWallHue",
+      "target": { "wallHueRange": [38, 48], "sobelEdge1xMin": 0.12 },
+      "tolerance": { "rgbChannelDelta": 0.08, "scalarPct": 0.2 }
+    },
+    {
+      "frameId": "f_017",
+      "file": "f_017.png",
+      "timestamp": "t=33s",
+      "shotId": "natatorium_arch_fog_25m_portrait",
+      "whatToLookAt": "camera_turn_transition_from_tiled_corner_to_pool",
+      "property": "luminanceMeanAndNoTrueBlacks",
+      "target": { "luminanceMean": 0.63, "fractionPixelsBelow01": 0.0 },
+      "tolerance": { "scalarPct": 0.2 }
+    },
+    {
+      "frameId": "f_018",
+      "file": "f_018.png",
+      "timestamp": "t=35s",
+      "shotId": "creature_close_6m",
+      "whatToLookAt": "pitted_pod_head_mottled_hide_and_shallow_cracked_floor",
+      "property": "creatureHeadBodyRgbAndShallowWaterRgb",
+      "target": {
+        "creatureHeadHex": "#59462d",
+        "creatureBodyHex": "#5a5035",
+        "waterShallowHex": "#8cb179"
+      },
+      "tolerance": { "rgbChannelDelta": 0.10 }
+    },
+    {
+      "frameId": "f_019",
+      "file": "f_019.png",
+      "timestamp": "t=37s",
+      "shotId": "natatorium_floor_through_water",
+      "whatToLookAt": "cracked_submerged_floor_tiles_and_white_foot_foam",
+      "property": "floorGroutEdgeRatioAndShallowWaterRgb",
+      "target": { "waterShallowHex": "#8cb179", "floorGroutEdgeRatioMin": 0.18 },
+      "tolerance": { "rgbChannelDelta": 0.08, "scalarPct": 0.2 }
+    },
+    {
+      "frameId": "f_020",
+      "file": "f_020.png",
+      "timestamp": "t=39s",
+      "shotId": "natatorium_floor_through_water_portrait",
+      "whatToLookAt": "close_forearms_splayed_claws_and_ink_splashes",
+      "property": "creatureBodyRgbAndInkSplashContrast",
+      "target": { "creatureBodyHex": "#5a5035", "creatureHeadHex": "#59462d" },
+      "tolerance": { "rgbChannelDelta": 0.10 }
+    },
+    {
+      "frameId": "f_021",
+      "file": "f_021.png",
+      "timestamp": "t=41s",
+      "shotId": "natatorium_slab_edge",
+      "whatToLookAt": "slab_edge_bullnose_tile_pitch_and_creature_at_8_to_20m",
+      "property": "slabTopRgbAndTilePitchMeters",
+      "target": { "slabTopHex": "#c29a56", "tileMeters": 0.15, "waterHueRange": [85, 113] },
+      "tolerance": { "rgbChannelDelta": 0.08, "tilePitchPct": 0.03 }
+    },
+    {
+      "frameId": "f_022",
+      "file": "f_022.png",
+      "timestamp": "t=43s",
+      "shotId": "natatorium_water_slab_edge",
+      "whatToLookAt": "wet_band_along_slab_edge_and_soft_swell_lines",
+      "property": "slabEdgeWetBandAndWaterRgb",
+      "target": { "slabTopHex": "#c29a56", "waterNearHex": "#6e8949" },
+      "tolerance": { "rgbChannelDelta": 0.08, "scalarPct": 0.2 }
+    },
+    {
+      "frameId": "f_023",
+      "file": "f_023.png",
+      "timestamp": "t=45s",
+      "shotId": "creature_mid_15m",
+      "whatToLookAt": "creature_stalking_at_15m_beside_slab",
+      "property": "creatureMidSilhouetteAndWaterRgb",
+      "target": { "creatureBodyHex": "#5a5035", "waterMidhallHex": "#678f44" },
+      "tolerance": { "rgbChannelDelta": 0.10, "scalarPct": 0.2 }
+    },
+    {
+      "frameId": "f_024",
+      "file": "f_024.png",
+      "timestamp": "t=47s",
+      "shotId": "natatorium_water_wake",
+      "whatToLookAt": "wading_swell_lines_and_submerged_floor_cracks",
+      "property": "wakeLuminanceVarianceAndFloorGroutRatio",
+      "target": { "waterNearHex": "#6e8949", "floorGroutEdgeRatioMin": 0.18 },
+      "tolerance": { "rgbChannelDelta": 0.08, "scalarPct": 0.2 }
+    },
+    {
+      "frameId": "f_025",
+      "file": "f_025.png",
+      "timestamp": "t=49s",
+      "shotId": "natatorium_horizon_long",
+      "whatToLookAt": "water_dissolving_into_dense_fog_with_no_hard_horizon_edge",
+      "property": "denseFogSkyRgbAndWaterDenseRgb",
+      "target": {
+        "denseFogSkyHex": "#b8c0a6",
+        "waterDenseFarHex": "#5f865a",
+        "horizonBlowoutTypical": 0.005
+      },
+      "tolerance": { "rgbChannelDelta": 0.08, "blowoutAbs": 0.035 }
+    },
+    {
+      "frameId": "f_026",
+      "file": "f_026.png",
+      "timestamp": "t=51s",
+      "shotId": "natatorium_horizon_long_portrait",
+      "whatToLookAt": "vertical_fog_falloff_and_calm_darker_green_water",
+      "property": "waterDenseNearRgbAndFogFalloff",
+      "target": { "waterDenseNearHex": "#3e5a2c", "denseFogSkyHex": "#b8c0a6" },
+      "tolerance": { "rgbChannelDelta": 0.08, "scalarPct": 0.2 }
+    },
+    {
+      "frameId": "f_027",
+      "file": "f_027.png",
+      "timestamp": "t=53s",
+      "shotId": "creature_far_35m",
+      "whatToLookAt": "creature_dark_silhouette_at_15_to_30m_in_dense_mist",
+      "property": "farSilhouetteReadabilityAndFogExtinction",
+      "target": { "denseFogSkyHex": "#b8c0a6", "waterDenseFarHex": "#5f865a", "fogExtinction": 1.0 },
+      "tolerance": { "rgbChannelDelta": 0.08, "scalarPct": 0.2 }
+    },
+    {
+      "frameId": "f_028",
+      "file": "f_028.png",
+      "timestamp": "t=55s",
+      "shotId": "natatorium_water_drip_ring",
+      "whatToLookAt": "surface_mist_and_concentric_water_ripple_rings",
+      "property": "waterRippleLuminanceAndHue",
+      "target": { "waterHueRange": [85, 113], "waterSatRange": [0.32, 0.52] },
+      "tolerance": { "rgbChannelDelta": 0.08, "scalarPct": 0.2 }
+    },
+    {
+      "frameId": "f_029",
+      "file": "f_029.png",
+      "timestamp": "t=57s",
+      "shotId": "classic_archipelago_hero",
+      "whatToLookAt": "dense_fog_sky_t57_and_water_dense_t57_palette_match",
+      "property": "paletteT57ExactMatch",
+      "target": {
+        "denseFogSkyHex": "#b8c0a6",
+        "waterDenseFarHex": "#5f865a",
+        "waterDenseNearHex": "#3e5a2c"
+      },
+      "tolerance": { "rgbChannelDelta": 0.08 }
+    },
+    {
+      "frameId": "f_030",
+      "file": "f_030.png",
+      "timestamp": "t=59s",
+      "shotId": "natatorium_water_splash_01",
+      "whatToLookAt": "crown_splash_eruption_in_olive_green_water",
+      "property": "splashGlintAndWaterHueBand",
+      "target": { "waterHueRange": [85, 113], "glintFractionMin": 0.0003 },
+      "tolerance": { "rgbChannelDelta": 0.08, "scalarPct": 0.2 }
+    },
+    {
+      "frameId": "f_031",
+      "file": "f_031.png",
+      "timestamp": "t=61s",
+      "shotId": "natatorium_water_splash_05",
+      "whatToLookAt": "dispersing_splash_droplets_and_expanding_ring",
+      "property": "splashDispersionAndNoTrueBlacks",
+      "target": { "fractionPixelsBelow01": 0.0, "waterHueRange": [85, 113] },
+      "tolerance": { "rgbChannelDelta": 0.08, "scalarPct": 0.2 }
+    },
+    {
+      "frameId": "f_032",
+      "file": "f_032.png",
+      "timestamp": "t=63s",
+      "shotId": "natatorium_slab_edge_portrait",
+      "whatToLookAt": "slab_standing_view_with_surface_fog_bank_and_distant_clue_prop",
+      "property": "slabTopRgbAndHorizonFogBank",
+      "target": { "slabTopFarHex": "#c1b584", "horizonFogHex": "#d6dccd" },
+      "tolerance": { "rgbChannelDelta": 0.08, "scalarPct": 0.2 }
+    },
+    {
+      "frameId": "f_033",
+      "file": "f_033.png",
+      "timestamp": "t=65s",
+      "shotId": "natatorium_water_splash_12",
+      "whatToLookAt": "residual_foam_ring_decay_and_slab_edge_perspective",
+      "property": "residualRingDecayAndSlabHue",
+      "target": { "slabHueRange": [38, 48], "waterHueRange": [85, 113] },
+      "tolerance": { "rgbChannelDelta": 0.08, "scalarPct": 0.2 }
+    },
+    {
+      "frameId": "f_034",
+      "file": "f_034.png",
+      "timestamp": "t=67s",
+      "shotId": "natatorium_water_underwater",
+      "whatToLookAt": "water_meniscus_and_olive_green_submerged_grade",
+      "property": "underwaterLuminanceAndHueBand",
+      "target": { "waterHueRange": [85, 113], "waterValRange": [0.35, 0.69] },
+      "tolerance": { "rgbChannelDelta": 0.08, "scalarPct": 0.2 }
+    },
+    {
+      "frameId": "f_035",
+      "file": "f_035.png",
+      "timestamp": "t=69s",
+      "shotId": "natatorium_trench_view",
+      "whatToLookAt": "narrow_trench_between_tan_slabs_and_blocked_creature_at_end",
+      "property": "trenchWidthAndTrenchWaterSlabRgb",
+      "target": {
+        "trenchWaterHex": "#7da46d",
+        "trenchSlabHex": "#bfaf7f",
+        "trenchBlockMaxWidthMeters": 2.4
+      },
+      "tolerance": { "rgbChannelDelta": 0.08, "tilePitchPct": 0.03 }
+    },
+    {
+      "frameId": "f_036",
+      "file": "f_036.png",
+      "timestamp": "t=71s",
+      "shotId": "natatorium_trench_view_portrait",
+      "whatToLookAt": "near_slab_edge_4_to_6_tile_rows_and_cracked_trench_floor",
+      "property": "slabSideTileRowsAndTrenchWaterRgb",
+      "target": {
+        "trenchWaterHex": "#7da46d",
+        "trenchSlabHex": "#bfaf7f",
+        "tileMeters": 0.15
+      },
+      "tolerance": { "rgbChannelDelta": 0.08, "tilePitchPct": 0.03 }
+    },
+    {
+      "frameId": "f_037",
+      "file": "f_037.png",
+      "timestamp": "t=72s",
+      "shotId": "flock_overhead",
+      "isJumpScare": true,
+      "whatToLookAt": "creature_looming_over_low_camera_arms_spread_wide_against_pale_fog",
+      "property": "jumpscareFramingTorsoHeadLowerFrameAndPaleFogBacklight",
+      "target": {
+        "creatureHeadHex": "#59462d",
+        "creatureBodyHex": "#5a5035",
+        "horizonFogHex": "#d6dccd",
+        "allowDarkPixelsBelow01": true
+      },
+      "tolerance": { "rgbChannelDelta": 0.10 }
+    }
+  ]
+}
+
