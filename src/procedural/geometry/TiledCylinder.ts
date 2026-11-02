@@ -24,11 +24,14 @@ export function createTiledCylinderGeometry(options: TiledCylinderOptions): Cyli
   const geom = new CylinderGeometry(r, r, h, radialSegments, 1, !capsTextured);
 
   const texMeters = WORLD.TEXTURE_METERS;
+  const tileMeters = WORLD.TILE_METERS;
   const circumference = 2 * Math.PI * r;
-  const repeatU = circumference / texMeters;
+  // Snap circumference to whole tile count so grout lines wrap seamlessly without a seam (Glitch G15)
+  const tilesAround = Math.max(4, Math.round(circumference / tileMeters));
+  const repeatU = (tilesAround * tileMeters) / texMeters;
   const repeatV = h / texMeters;
 
-  const uShift = (uvOffsetSeed * 0.381966) % 1.0;
+  const uShift = (Math.round((uvOffsetSeed * 0.381966) * tilesAround) / tilesAround);
   const vShift = (uvOffsetSeed * 0.618033) % 1.0;
 
   const uvAttr = geom.getAttribute('uv') as Float32BufferAttribute;

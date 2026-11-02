@@ -130,12 +130,39 @@ const GATES = [
     }),
   },
   {
+    name: 'audit:reports-honesty',
+    cmd: 'node',
+    args: ['scripts/audit/reports-honesty.mjs'],
+    summarize: (r) => ({
+      detail: r.ok ? 'zero subjective grades or evaluation scores detected' : 'dishonest report detected',
+      worst: r.ok ? 'none' : (r.stderr || r.stdout).split('\n')[0] || 'honesty violation',
+    }),
+  },
+  {
+    name: 'audit:docs-truth',
+    cmd: 'node',
+    args: ['scripts/audit/docs-truth.mjs'],
+    summarize: (r) => ({
+      detail: r.ok ? 'all documentation claims verified against live codebase' : 'documentation drift',
+      worst: r.ok ? 'none' : (r.stderr || r.stdout).split('\n')[0] || 'doc truth violation',
+    }),
+  },
+  {
     name: 'audit:sync-golden',
     cmd: 'node',
     args: ['scripts/visual/sync-golden.mjs', '--check'],
     summarize: (r) => ({
       detail: r.ok ? 'shots.json (46) == tests/golden/ (46) == reports/visual/ (46)' : 'golden shot drift',
       worst: r.ok ? 'none' : 'orphan or missing shot PNG',
+    }),
+  },
+  {
+    name: 'glitch:scan',
+    cmd: 'npm',
+    args: ['run', 'glitch:scan'],
+    summarize: (r) => ({
+      detail: r.ok ? 'zero visual artifacts across golden baseline shots' : 'visual artifact detected',
+      worst: r.ok ? 'none' : (r.stderr || r.stdout).split('\n')[0] || 'artifact detected',
     }),
   },
   {

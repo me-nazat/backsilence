@@ -51,3 +51,4 @@ The blind wader creature is an auditory entity before it is ever visual. Its pre
 - **Deterministic Rulebook:** All noise emitters verified by `tests/acoustic-table.test.ts` across 29 discrete actions.
 - **Dynamic Range & Ducking:** Verified via `tests/audio-mix-dynamics.test.ts` and `tests/audio-pipeline.test.ts`.
 - **Latency & CPU Budget:** Web Audio graph processing latency $< 4.5\text{ ms}$, zero garbage collection spikes during steady-state gameplay.
+

@@ -31,12 +31,19 @@ open http://localhost:5173/
 | `npm run dev:api` | Run local zero-credential FakeLibsql API proxy on port 8787 |
 | `npm run typecheck` | Run TypeScript strict type checking |
 | `npm run lint` | Run ESLint verification |
-| `npm run test` | Run Vitest unit & integration test suite (233 tests across 19 files) |
+| `npm run test` | Run Vitest unit & integration test suite (843 tests across 97 files) |
 | `npm run balance` | Run Headless Balance Bot Swarm (13,200 simulated runs across all 11 maps) |
 | `npm run smoke` | Run Headless CDP Smoke Bot covering all 14 end-to-end scenarios (S1–S14) |
 | `npm run secret:scan` | Scan repository, git history, and built bundles for exposed credentials |
-| `npm run audit` | Audit production bundle sizes (boot chunk $\le 35\text{ KB}$ gz, total $\le 450\text{ KB}$ gz) |
-| `npm run verify` | Complete release gate: typecheck → lint → test → build → audit → secret:scan |
+| `npm run glitch:scan` | Scan golden shots for visual artifacts (magenta markers, pure black void, hard fog seams) |
+| `npm run reference:verify` | Verify SHA-256 integrity of all 37 reference frames and audio files |
+| `npm run reference:compare` | Run SSIM, MAE, and colour band comparison against reference frames |
+| `npm run audio:compare` | Verify procedural Web Audio synthesis against reference spectrum |
+| `npm run shots:check` | Check 46 golden baseline screenshots for pixel regressions |
+| `npm run audit` | Comprehensive audit gate: bundle size, rulebook sync, appearance lock, no tautology, claim traceability, reports honesty, docs truth, golden sync |
+| `npm run audit:reports-honesty` | Fatal check asserting zero self-assigned rubric grades across reports |
+| `npm run audit:docs-truth` | Verify documentation script names and test claims against codebase reality |
+| `npm run verify` | Complete release gate: typecheck → lint → test → build → audit → secret:scan → i18n:check → glitch:scan → reference:verify → reference:compare → shots:check |
 
 ---
 

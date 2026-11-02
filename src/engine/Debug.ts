@@ -954,6 +954,15 @@ export function updateDebugOverlay(stats: {
   const overlay = document.getElementById('debug-overlay');
   if (!overlay) return;
 
+  const isCapture = typeof window !== 'undefined' && (
+    new URLSearchParams(window.location.search).has('shot') ||
+    (window as unknown as { __BACKSILENCE_CAPTURE__?: boolean }).__BACKSILENCE_CAPTURE__ === true
+  );
+  if (isCapture) {
+    overlay.style.display = 'none';
+    return;
+  }
+
   const now = performance.now();
   if (now - lastOverlayUpdate < 150) return;
   lastOverlayUpdate = now;

@@ -9,4 +9,6 @@ No report may contain a rubric score, grade, or percentage assigned by the model
 3. **Creature Appearance (`src/app/Settings.ts` & `src/game/creatures/MonsterSkin.ts`)**: Deterministic procedural skin resolution verified across filesystem states by `scripts/creature/appearance-lock.mjs`.
 4. **Reference Footage (`reference/frames.manifest.json`, `reference/video/palette.json`, `reference/video/measured_targets.json`)**: Verified by `scripts/reference/verify-reference.mjs` and compared by `scripts/reference/compare.mjs`.
 5. **Test Integrity (`scripts/audit/no-tautology.mjs`)**: Zero un-justified literal tautologies across `tests/**/*.test.ts`.
+6. **Defect Register & Visual Artifacts (`reports/glitch/REGISTER.md` & `scripts/visual/artifact-detector.mjs`)**: Zero open P0 or P1 defects; zero visual artifacts (pure black above fog, magenta leaks, detached islands, hard fog seams, overlapping HUD boxes, tile pitch deviations) across golden baseline shots (`npm run glitch:scan`).
+7. **Reports Honesty & Documentation Truth (`scripts/audit/reports-honesty.mjs` & `scripts/audit/docs-truth.mjs`)**: Zero self-assigned subjective grades or rubric scores in reports; 100% agreement between documented script names, test counts, and codebase reality.
 

@@ -19,6 +19,7 @@ reports/audio/**/*.wav
 !reports/visual/
 reports/visual/*.png
 !reports/release/
+!reports/glitch/
 reference/out*
 reference/*.png
 !reference/frames.manifest.json

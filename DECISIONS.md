@@ -1777,4 +1777,13 @@ After locking the reference pack in Prompt 1, the verification pipeline still ha
 **Status:** ACCEPTED
 **Consequences:** Visuals exceed the footage in depth and atmosphere while preserving the measured olive hue band ($85^\circ - 113^\circ$), 0.15 m tile pitch, and deterministic acoustics. All 11 maps hit $\ge 60$ fps on High, $\ge 60$ fps on Medium, and $\ge 60$ fps on Low.
 
+## D128 — Tracked defect register, fatal quality gates, and honest handover (Prompt 10)
+
+**Date:** 2026-11-02
+**Context:** Batches 1–4 resolved major architectural, aesthetic, creature, world, and water defects. Final release readiness requires a tracked defect register, automated verification that prevents silent visual or documentation regressions, and total honesty regarding remaining edge cases.
+**Decision:** Seed `reports/glitch/REGISTER.md` with all 17 tracked defects (G1–G17, with 0 open P0 or P1), install `npm run glitch:scan` (fatal visual artifact detector), install fatal honesty gates for report grades (`reports-honesty.mjs`) and documentation truth (`docs-truth.mjs`), and author an honest `HANDOFF.md` and non-empty `reports/release/KNOWN_LIMITATIONS.md`.
+**Status:** ACCEPTED
+**Consequences:** Release candidates cannot regress on visual artifacts, false documentation claims, or hidden defects. All 17 verification gates pass.
+
+
 

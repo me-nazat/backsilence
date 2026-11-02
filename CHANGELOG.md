@@ -5,7 +5,46 @@ This project follows strict deterministic, zero-external-binary-asset design pri
 
 ---
 
-## [v1.0.0-RC] — 2026-10-23 (Batch 8: Website Art Direction, Motion System, Online Platform & Release)
+## [v2.0.0] — 2026-11-02 (Batches 1–5: Truth, The Creature, The World, Water & Feel, Perfection)
+
+### 📐 Prompt 1–2: Truth & Calibration (Batch 1)
+- **One World Model & One Tile Scale**: Unified architecture and physics to absolute 0.15 m ceramic mosaic tile pitch (`WORLD.TILE_METERS = 0.15`, `WORLD.TEXTURE_METERS = 2.4`). Purged conflicting 0.20m and 0.30m tile scales.
+- **Reference Pairing & Manifest Integrity**: Verified 37 reference frames (`f_001`–`f_037`) and 3 reference WAVs against cryptographic SHA-256 manifest. Codified claim traceability and pair comparison gates.
+
+### 👹 Prompt 3–4: The Creature & Blind Hunter (Batch 2)
+- **Footage Creature Reconstruction**: Rebuilt creature to match video footage at 32–35s (`f_010`, `f_018`): hunched posture, pale brown-grey mottled skin (`#5a5035` / `#59462d`), seed-pod pitted rounded head, long forearms, tapering tail, and dark paint-like splash shapes at appendages.
+- **Blind Acoustic Navigation**: Enforced pure acoustic hearing without raycast vision cheating. Blind predator navigates strictly to sound source coordinates; stationary players on dry tiles or motionless in water are never tracked.
+- **Topological Spawn Integrity**: Guaranteed predator spawns at least 12m away in navigable water with clear line of wade; prohibited spawning on platforms or inside collision hulls.
+
+### 🏛️ Prompt 5–6: The World & Architectural Language (Batch 3)
+- **Natatorium Rebuild (`f_004`–`f_009`, `f_013`–`f_015`)**: Vaulted cream plaster ceiling, grand archways, low thin tan slabs (bullnose tile edges, 0.3m above water), olive water, and pale mint horizon fog at 85m.
+- **11 Maps, One Language**: Unified all 11 maps under the authentic poolroom architectural vocabulary. Added shared props (bullnose slabs, pool ladders, handrails, friezes, red alarm bells, green doors, cable spools, orange cones) and 3-layer depth staging (foreground, midground, background).
+
+### 🌊 Prompt 7–8: Water & Acoustic Feel (Batch 4)
+- **Measured Olive Water**: Calibrated water surface and absorption to canonical olive targets (`#8cb179` shallow, `#678f44` deep) within $85^\circ - 113^\circ$ hue band. Replaced dual-constant chop with broad swell ($\lambda = 4.0\text{ m}$) and physical Beer-Lambert water column absorption.
+- **Crown & Ink Splash Vocabulary**: Procedural 7-spiked crown splashes with flying beads and concentric ripples matching wall graffiti motifs. Creature emits dark ink droplets and trailing wake.
+- **World-Taught Rule & Freeze Mechanic**: First playable frame in Natatorium spawns facing the tagline mural (*"IT CAN'T SEE YOU. IT HEARS THE WATER."*). Halt in water freezes predator target coordinate at the splash location without tracking player.
+- **HUD Restraint & Synchronous Paint**: Reduced default HUD to 3 non-overlapping elements (objective pill, minimal noise meter, prompt). Decoupled UI first paint from async crypto, guaranteeing instant synchronous display across all 11 screens.
+
+### ✨ Prompt 9–10: Perfection, Defect Register & Handover (Batch 5)
+- **The Elevation Pass**:
+  - Screen-space volumetric god rays from ceiling openings and high windows.
+  - Dynamic caustics on shallow pool floor and wet slab edges ($y \in [-1.0, 0.35]\text{ m}$).
+  - Contact darkening anchoring slab bases and wall junctions to the waterbed.
+  - Texel-snapped directional shadows (`bias: -0.0004`, `normalBias: 0.02`) and anisotropic filtering (16× on High) with -0.5 LOD bias.
+  - Procedural 3D LUT tension grading (cool drift and contrast tightening $\le 12\%$ as creature closes in; preserves olive hue band).
+  - 4-frame temporal auto-exposure (1.2s time constant) with lifted black floor ($\ge 0.102$).
+  - `AgXToneMapping` default preventing green channel compression.
+  - Velocity-derived camera motion blur (6 samples on High) and far-field depth of field.
+  - Stillness audio ducking (40% / -8 dB ambient duck after 500ms stillness) and poolroom convolution reverb.
+  - Full encounter arc with post-mortem mistake attribution on death screen (marked splash coordinate, predator distance, plain language mistake).
+- **Defect Register & Definitions**: Seeded `reports/glitch/DEFINITIONS.md` (P0–P3 severity rubric) and `reports/glitch/REGISTER.md` resolving all 17 defects (G1–G17 closed, zero open P0/P1).
+- **Fatal Quality Gates**:
+  - `scripts/visual/artifact-detector.mjs` (`npm run glitch:scan`): Scans golden baseline shots for pure black above fog line, magenta markers, detached islands, hard fog seams, overlapping HUD boxes, visible far water edge, and tile pitch outside $0.15\text{ m} \pm 5\%$.
+  - `scripts/audit/reports-honesty.mjs` (`npm run audit:reports-honesty`): Scans `reports/**/*.md` for self-assigned grades or rubric scores, failing build on any match.
+  - `scripts/audit/docs-truth.mjs` (`npm run audit:docs-truth`): Verifies script names, test counts, and doc links against codebase reality.
+
+---
 
 ### 🎨 Art Direction & Visual Identity ("The Archive")
 - **Found-Footage VHS Aesthetic**: Built a cohesive design system anchored in institutional dampness, fluorescent warm casts, CRT scanlines, tracking tape ripples, and green surveillance phosphorus (`src/ui/kit/tokens.css`).

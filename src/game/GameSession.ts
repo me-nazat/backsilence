@@ -4353,7 +4353,14 @@ export class GameSession {
       }
     }
 
-    const isDebug = typeof window !== 'undefined' && (new URLSearchParams(window.location.search).get('debug') === '1' || (window as unknown as { __BACKSILENCE_DEBUG__?: boolean }).__BACKSILENCE_DEBUG__ === true);
+    const isCapture = typeof window !== 'undefined' && (
+      new URLSearchParams(window.location.search).has('shot') ||
+      (window as unknown as { __BACKSILENCE_CAPTURE__?: boolean }).__BACKSILENCE_CAPTURE__ === true
+    );
+    const isDebug = !isCapture && typeof window !== 'undefined' && (
+      new URLSearchParams(window.location.search).get('debug') === '1' ||
+      (window as unknown as { __BACKSILENCE_DEBUG__?: boolean }).__BACKSILENCE_DEBUG__ === true
+    );
     if (!isDebug || this.simWorld.monsters.length === 0) {
       if (this.magentaMarker) this.magentaMarker.visible = false;
       if (this.locatorElement) this.locatorElement.style.display = 'none';
