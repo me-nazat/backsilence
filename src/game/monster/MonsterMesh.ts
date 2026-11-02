@@ -30,6 +30,7 @@ import {
 } from 'three';
 import { generateFleshTextures } from '../../procedural/textures/FleshTexture.js';
 import { buildProceduralSkinnedMonster } from './ProceduralSkinnedMeshBuilder.js';
+import { createCreatureShaderHook, SEED_POD_PIT_COORDS } from './MonsterRig.js';
 
 export interface MonsterJoints {
   root: Object3D;
@@ -233,127 +234,52 @@ export class MonsterMeshHierarchy {
   private readonly waterLevelUniform = { value: 0.0 };
   private readonly agitationUniform = { value: 0.0 };
 
-  constructor(scale = 1.0, tintHex = '#6b5f40', seed = 54321) {
+  constructor(scale = 1.0, tintHex = '#5a5035', seed = 54321) {
     this.root.name = 'MonsterRoot';
     this.root.scale.set(scale, scale, scale);
     this.root.add(this.lod0);
     this.root.add(this.lod1);
     this.lod1.visible = false; // LOD0 active by default
 
-    // 1. Generate high-resolution procedural horror PBR textures
+    const lowerTint = tintHex.toLowerCase();
+    const resolvedBodyHex =
+      lowerTint === '#221916' || lowerTint === '#2b211b' || lowerTint === '#6b5f40'
+        ? '#5a5035'
+        : tintHex;
+
+    // 1. Generate procedural PBR hide textures
     const flesh = generateFleshTextures({ seed });
     this.textures.push(flesh.albedo, flesh.bump, flesh.roughness);
     if (flesh.subsurface) this.textures.push(flesh.subsurface);
 
-    const applyCreatureShaderHooks = (shader: {
-      vertexShader: string;
-      fragmentShader: string;
-      uniforms: Record<string, { value: unknown }>;
-    }) => {
-      shader.uniforms.uWaterLevel = this.waterLevelUniform;
-      shader.uniforms.uAgitation = this.agitationUniform;
+    const applyCreatureShaderHooks = createCreatureShaderHook(
+      this.waterLevelUniform,
+      this.agitationUniform,
+    );
 
-      shader.vertexShader = shader.vertexShader.replace(
-        '#include <common>',
-        /* glsl */ `
-        #include <common>
-        varying vec3 vWorldPositionForWet;
-        `,
-      );
-      shader.vertexShader = shader.vertexShader.replace(
-        '#include <worldpos_vertex>',
-        /* glsl */ `
-        #include <worldpos_vertex>
-        vWorldPositionForWet = (modelMatrix * vec4(transformed, 1.0)).xyz;
-        `,
-      );
-
-      shader.fragmentShader = shader.fragmentShader.replace(
-        '#include <common>',
-        /* glsl */ `
-        #include <common>
-        uniform float uWaterLevel;
-        uniform float uAgitation;
-        varying vec3 vWorldPositionForWet;
-        `,
-      );
-
-      shader.fragmentShader = shader.fragmentShader.replace(
-        '#include <roughnessmap_fragment>',
-        /* glsl */ `
-        #include <roughnessmap_fragment>
-        // Wetness below waterline + 0.30m (Prompt 7.6)
-        float wetT = clamp((uWaterLevel + 0.30 - vWorldPositionForWet.y) / 0.30, 0.0, 1.0);
-        roughnessFactor = mix(roughnessFactor, 0.10, wetT * 0.9);
-        diffuseColor.rgb *= mix(1.0, 0.72, wetT);
-        // Submerged albedo darkening 15% (Prompt 1 C)
-        float submergedT = clamp((uWaterLevel - vWorldPositionForWet.y) / 0.15, 0.0, 1.0);
-        diffuseColor.rgb *= mix(1.0, 0.85, submergedT);
-        `,
-      );
-
-      shader.fragmentShader = shader.fragmentShader.replace(
-        '#include <fog_fragment>',
-        /* glsl */ `
-        #ifdef USE_FOG
-          #ifdef FOG_EXP2
-            float fogFactor = 1.0 - exp( - fogDensity * fogDensity * vFogDepth * vFogDepth );
-          #else
-            float fogFactor = smoothstep( fogNear, fogFar, vFogDepth );
-          #endif
-          // 45% extinction reduction so the silhouette survives the haze at 25-40 m (Prompt 7.5).
-          fogFactor = clamp( fogFactor * 0.55, 0.0, 1.0 );
-          gl_FragColor.rgb = mix( gl_FragColor.rgb, fogColor, fogFactor );
-        #endif
-
-        // Cool top rim for readability against pale water (Prompt 1 C) + neutral rim + wet sheen
-        vec3 viewDir = normalize(vViewPosition);
-        float rim = 1.0 - max(0.0, dot(vNormal, viewDir));
-        float topMask = max(0.0, vNormal.y);
-        vec3 coolTopRim = vec3(0.18, 0.22, 0.25) * pow(rim, 2.0) * topMask * 0.50;
-        vec3 coolRim = vec3(0.16, 0.20, 0.22) * pow(rim, 2.2) * 0.35;
-        vec3 wetSheen = vec3(0.04, 0.045, 0.04) * pow(rim, 3.0);
-        vec3 subsurfaceLift = vec3(0.065, 0.045, 0.038);
-
-        // Cold razor-sharp abyssal silhouette rim intensifying as agitation approaches 1.0
-        vec3 abyssalRim = mix(vec3(0.18, 0.28, 0.25), vec3(0.45, 0.06, 0.04), clamp(uAgitation, 0.0, 1.0)) * pow(rim, 2.2) * (0.50 + uAgitation * 0.50);
-
-        // Wet Mucus Specular Micro-Sheen term
-        vec3 mucusNormal = normalize(vNormal);
-        float mucusSheen = pow(max(0.0, dot(reflect(-viewDir, mucusNormal), viewDir)), 24.0) * 0.35;
-
-        // Dark wet abyssal chitin with subtle bio-acoustic acoustic vein pulse
-        float veinNoise = sin(vWorldPositionForWet.x * 12.0 + vWorldPositionForWet.z * 12.0) * cos(vWorldPositionForWet.y * 18.0);
-        vec3 acousticVein = vec3(0.02, 0.12, 0.09) * smoothstep(0.75, 0.98, veinNoise);
-
-        gl_FragColor.rgb += coolTopRim + coolRim + wetSheen + subsurfaceLift + abyssalRim + vec3(mucusSheen) + acousticVein;
-        `,
-      );
-    };
-
-    // Body skin material
+    // Body skin material (#5a5035)
     const skinMat = new MeshStandardMaterial({
       map: flesh.albedo,
       bumpMap: flesh.bump,
-      bumpScale: 0.085,
+      bumpScale: 0.06,
       roughnessMap: flesh.roughness,
-      roughness: 0.52,
+      roughness: 0.36,
       metalness: 0.03,
-      envMapIntensity: 0.2,
-      color: new Color(tintHex),
+      envMapIntensity: 0.35,
+      color: new Color(resolvedBodyHex),
     });
     skinMat.onBeforeCompile = applyCreatureShaderHooks;
     this.materials.push(skinMat);
 
-    // Head skin material: tinted #59462d
+    // Head skin material: tinted #59462d (`monster_head_t34`)
     const headMat = new MeshStandardMaterial({
       map: flesh.albedo,
       bumpMap: flesh.bump,
-      bumpScale: 0.085,
+      bumpScale: 0.075,
       roughnessMap: flesh.roughness,
-      roughness: 0.52,
+      roughness: 0.36,
       metalness: 0.03,
-      envMapIntensity: 0.2,
+      envMapIntensity: 0.35,
       color: new Color('#59462d'),
     });
     headMat.onBeforeCompile = applyCreatureShaderHooks;
@@ -412,27 +338,16 @@ export class MonsterMeshHierarchy {
       footR: bm.footR,
     };
 
-    // 3. Attach articulated accessories to skeleton bones
-    // Acoustic sensory pits: 28 dark pitted sensory pores parented to head
-    const pitGeom = new SphereGeometry(0.024, 6, 6);
-    const pitMat = new MeshStandardMaterial({ color: new Color('#220c0a'), roughness: 0.95 });
+    // 3. Attach seed-pod pits to head (32 dark pits, 0 dorsal spine ridges)
+    const pitGeom = new SphereGeometry(0.022, 6, 6);
+    const pitMat = new MeshStandardMaterial({ color: new Color('#241c14'), roughness: 0.90 });
     this.materials.push(pitMat);
-    const pitMesh = new InstancedMesh(pitGeom, pitMat, 28);
+    const pitMesh = new InstancedMesh(pitGeom, pitMat, SEED_POD_PIT_COORDS.length);
     pitMesh.name = 'acousticPits';
     pitMesh.instanceMatrix.setUsage(DynamicDrawUsage);
 
-    const pitCoords: [number, number, number][] = [
-      [0.0, 0.16, -0.06], [0.06, 0.15, -0.08], [-0.06, 0.15, -0.08],
-      [0.11, 0.14, -0.10], [-0.11, 0.14, -0.10], [0.04, 0.15, 0.02], [-0.04, 0.15, 0.02],
-      [0.08, 0.09, -0.18], [-0.08, 0.09, -0.18], [0.14, 0.08, -0.15], [-0.14, 0.08, -0.15],
-      [0.03, 0.10, -0.19], [-0.03, 0.10, -0.19], [0.09, 0.05, -0.21], [-0.09, 0.05, -0.21],
-      [0.15, 0.03, -0.18], [-0.15, 0.03, -0.18], [0.0, 0.05, -0.22],
-      [0.06, 0.01, -0.23], [-0.06, 0.01, -0.23], [0.11, 0.0, -0.20], [-0.11, 0.0, -0.20],
-      [0.0, 0.02, -0.24], [0.04, -0.03, -0.22], [-0.04, -0.03, -0.22],
-      [0.17, 0.10, -0.08], [-0.17, 0.10, -0.08], [0.0, 0.12, -0.13],
-    ];
-    for (let i = 0; i < pitCoords.length; i++) {
-      const [px, py, pz] = pitCoords[i]!;
+    for (let i = 0; i < SEED_POD_PIT_COORDS.length; i++) {
+      const [px, py, pz] = SEED_POD_PIT_COORDS[i]!;
       this.dummyMat.makeTranslation(px, py, pz);
       pitMesh.setMatrixAt(i, this.dummyMat);
     }
@@ -578,50 +493,10 @@ export class MonsterMeshHierarchy {
     earMeshR.name = 'TympanicFan_R';
     bm.earRight.add(earMeshR);
 
-    // 24 Curved Dorsal Spine Processes (asymmetrical osteoderm blades bursting through skin)
+    // Zero dorsal spine ridges per reference footage (`f_010`, `f_018`, `f_037`)
     const bladeGeom = buildOsteodermBladeGeometry();
-    this.vertebraMesh = new InstancedMesh(bladeGeom, boneMat, 24);
+    this.vertebraMesh = new InstancedMesh(bladeGeom, boneMat, 0);
     this.vertebraMesh.instanceMatrix.setUsage(DynamicDrawUsage);
-
-    // Central primary ridge: 14 blades angled backward at 35°–50°
-    for (let i = 0; i < 14; i++) {
-      const progress = i / 14;
-      const vz = -0.36 + progress * 0.85;
-      const vy = 0.22 + Math.sin(progress * Math.PI) * 0.18;
-      const bladeScale = 0.8 + Math.sin(progress * Math.PI) * 0.45;
-      const rakeAngle = -0.65 - (progress * 0.22); // 37° to 50° backward rake
-
-      m.makeTranslation(0, vy, vz);
-      rotM.makeRotationX(rakeAngle);
-      m.multiply(rotM);
-      scaleM.makeScale(bladeScale, bladeScale, bladeScale);
-      m.multiply(scaleM);
-
-      this.vertebraMesh.setMatrixAt(i, m);
-    }
-
-    // Flanking paravertebral rows: 10 smaller jutting bone spurs (5 left, 5 right)
-    for (let i = 0; i < 10; i++) {
-      const side = i % 2 === 0 ? 1 : -1;
-      const pairIdx = Math.floor(i / 2);
-      const progress = 0.25 + pairIdx * 0.12;
-      const vx = side * 0.085;
-      const vz = -0.28 + progress * 0.65;
-      const vy = 0.18 + Math.sin(progress * Math.PI) * 0.14;
-      const spurScale = 0.55 + Math.sin(progress * Math.PI) * 0.25;
-
-      m.makeTranslation(vx, vy, vz);
-      rotM.makeRotationX(-0.60);
-      m.multiply(rotM);
-      const sideRot = new Matrix4().makeRotationZ(side * 0.28);
-      m.multiply(sideRot);
-      scaleM.makeScale(spurScale, spurScale, spurScale);
-      m.multiply(scaleM);
-
-      this.vertebraMesh.setMatrixAt(14 + i, m);
-    }
-    this.vertebraMesh.instanceMatrix.needsUpdate = true;
-    bm.spine2.add(this.vertebraMesh);
 
     // Trailing dark abyssal tendrils parented to pelvis and spine
     const tendrilMat = new MeshStandardMaterial({

@@ -1648,6 +1648,27 @@ After locking the reference pack in Prompt 1, the verification pipeline still ha
 
 **Reason:** Establishes the 37-frame reference pack as the single quantitative authority across visual, colour, hue, dark-floor, audio, and gameplay gates, and makes gate failures fatal as required before visual/creature changes in Batches 2–5.
 
+### D121: Reference-Derived Creature Anatomy, Seed-Pod Dome Head, and Wet Brown-Grey Hide Shader (Batch 2/5 Prompt 3)
+**Date:** 2026-11-02
+**Context:**
+`MonsterRig.ts`, `MonsterMesh.ts`, and `FleshTexture.ts` previously constructed a horror-beast archetype with near-black flesh (`#221916`), rust-red carapace (`#732a1e`), a split-shell horned head (`#965028`), 9–10 dorsal spine ridges, a 4-petal split jaw with 36 teeth, and `applyCreatureShaderHooks` containing a red `abyssalRim`, `0.55x` fog extinction multiplier, unconditional `subsurfaceLift`, and green `acousticVein` — producing a black body with an orange head rather than the creature visible in the third reference video at 32–35 s (`f_010`, `f_018`, `f_021`, `f_037`).
+
+**Choice:**
+1. **Reference Creature Specification (`reports/monster/creature_spec.md`):**
+   - Documented 24 measurable anatomical, postural, and colorimetric properties citing `f_001`, `f_008`–`f_012`, `f_018`–`f_024`, `f_035`–`f_037`, `reference/video/notes.md`, and `reference/video/palette.json`.
+2. **Anatomical Silhouette Rebuild (`src/game/monster/MonsterRig.ts`, `src/game/monster/MonsterMesh.ts`, `src/game/monster/MonsterBody.ts`):**
+   - Replaced split-shell horned head and 4-petal jaw with `buildSeedPodDomeHeadGeometry()` (`0.29 m × 0.25 m × 0.31 m` rounded dome), `32` dark seed-pod pits (`SEED_POD_PIT_COORDS`, density `>= 28 pits/m²`), subdued maroon facial marking (`#4a2520`), small dark mouth (`#241c14`), single hinged lower jaw (`SingleLowerJaw`), `0` visible eyes, and `0` horns.
+   - Removed all dorsal spine ridges (`dorsalRidges = []`, `vertebraMesh.count = 0`) and carapace plates; sculpted a gaunt ribcage torso (`0.65 m` length, `1.25 m` shoulder span), disproportionately long forelimbs (`0.65 m + 0.70 m = 1.35 m`, `2.077x` torso length) ending in `4` long splayed clawed fingers (`0.28 m`), and a long tapering tail (`1.15 m`, `0.11 m -> 0.015 m`).
+   - Enforced low quadrupedal hunch (`upperChest.rotation.x = 0.42 rad`, head below shoulder line) with rearing reserved for `LURK` / `HUNT` / `ATTACK`.
+3. **Wet Brown-Grey Hide & Subsurface Shader (`src/procedural/textures/FleshTexture.ts`, `src/game/monster/MonsterMesh.ts`):**
+   - Rebuilt `FleshTexture.ts` as a mottled brown-grey dermis carrier with `<= 12%` reddish blotch coverage and `<= 0.05` chroma delta.
+   - Rewrote `createCreatureShaderHook` (`applyCreatureShaderHooks`): deleted red `abyssalRim` and green `acousticVein`, restored `1.0x` fog extinction (`fogFactor * 1.0`), replaced unconditional `subsurfaceLift` with `NdotL`-gated `wrapLight` (`<= 0.02`) and back-lit `sssTranslucency` on thin forearms/flanks, reduced wet/submerged darkening (`<= 10%` / `<= 8%`, distance-attenuated), tinted body `#5a5035` and head `#59462d`, and enforced `R <= G * 1.14` and `luminance >= 0.055`.
+4. **Verification Contracts (`tests/monster-silhouette-contract.test.ts`, `tests/creature-colour-contract.test.ts`, `reports/monster/creature_readability.md`):**
+   - Verified silhouette against `reports/monster/creature_spec.md` and rendered pixel colour at `6 m`, `15 m`, and `35 m` against `reference/video/palette.json` (`#5a5035` body, `#59462d` head within `±10%`, `max R/G <= 1.15`, `min luminance >= 0.05`).
+
+**Reason:** Aligns the creature's silhouette, anatomy, posture, and hide shaders with the reference footage (`f_010`, `f_018`, `f_021`, `f_037`) while adding physically grounded subsurface scattering and distance readability without orange-head or black-body artifacts.
+
+
 
 
 

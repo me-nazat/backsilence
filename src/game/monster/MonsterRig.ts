@@ -1,19 +1,15 @@
 /* ── MonsterRig.ts ─────────────────────────────────────────────────────────
- *  Full-Scale Articulated Quadrupedal Monster Rig for BackSilence (Poolrooms).
- *  - Exact anatomy from reference videos:
- *    - Full scale: 2.3m height reared up, 1.25m shoulder height on all fours, 1.35m width
- *    - Organic sculpted geometries merged per bone segment with smooth vertex normals
- *    - Deep wet charcoal-brown leathery skin shader (#2b211b / #4a4233, roughness: 0.24,
- *      metalness: 0.08, clearcoat: 0.65, clearcoatRoughness: 0.2)
- *    - Broad apelike upper chest (1.25m) tapering to lean waist (0.55m)
- *    - 9 protruding bony vertebral ridges along dorsal midline surrounded by scarred flesh (#231814)
- *    - Muscular pelvis with tattered taupe cloth wrap (#48423b)
- *    - Forelimbs: upperArm (0.65m) -> forearm (0.70m) -> hand + 4 curved claws (0.28m)
- *    - Hindlimbs: thigh (0.58m) -> shin (0.55m) -> digitigrade webbed/clawed foot
- *    - Split-shell toothed head (#965028 outer shell with grooves & crown horn)
- *    - Left & Right jaw lobes splitting vertically: 18° prowl gap, 75° (±0.65 rad) roar flare
- *    - Deep throat cavity (#080505) with wet crimson gums (#4d1a14) and 28 recurved teeth (#e8dec5)
- *    - Tilted mutated skull head variant toggle (35° cocked sideways)
+ *  Articulated Quadrupedal Reference Creature Rig for BackSilence (Poolrooms).
+ *  Rebuilt strictly against reference footage (`f_010`, `f_018`, `f_021`, `f_035`, `f_037`)
+ *  and `reports/monster/creature_spec.md`:
+ *    - Wet brown-grey mottled hide (#5a5035 body, #59462d head) with <=12% reddish blotches
+ *    - Rounded seed-pod dome head covered in 32 dark pits, small dark mouth,
+ *      subdued maroon facial marking (#4a2520), zero visible eyes, zero horns, zero split shell
+ *    - Gaunt ribcage torso (0.65m length, 1.25m shoulder span), zero dorsal spine ridges
+ *    - Disproportionately long forelimbs (0.65m upper + 0.70m forearm = 1.35m, 2.08x torso)
+ *      ending in 4 long splayed clawed fingers (0.28m) that drag through the water
+ *    - Long tapering tail (1.15m length, 0.11m base -> 0.015m tip)
+ *    - Low quadrupedal hunch (0.65 rad) with head carried low
  * ──────────────────────────────────────────────────────────────────────── */
 
 import {
@@ -30,8 +26,10 @@ import {
   DynamicDrawUsage,
   DoubleSide,
   type Material,
+  type Texture,
 } from 'three';
 import type { MonsterJoints } from './MonsterMesh.js';
+import { generateFleshTextures, type FleshTextureResult } from '../../procedural/textures/FleshTexture.js';
 
 export type SkullVariant = 'splitShell' | 'mutatedSkull';
 
@@ -50,9 +48,9 @@ function addGridIndices(indices: number[], rings: number, segments: number, flip
 }
 
 /**
- * Builds a curved claw / talon geometry (0.32m length) hooked inward.
+ * Builds a curved claw / finger geometry (0.28m default length) splayed for dragging through water.
  */
-export function buildCurvedClawGeometry(length = 0.32, baseRadius = 0.024): BufferGeometry {
+export function buildCurvedClawGeometry(length = 0.28, baseRadius = 0.022): BufferGeometry {
   const geom = new BufferGeometry();
   const positions: number[] = [];
   const indices: number[] = [];
@@ -62,14 +60,13 @@ export function buildCurvedClawGeometry(length = 0.32, baseRadius = 0.024): Buff
   for (let r = 0; r <= rings; r++) {
     const v = r / rings;
     const y = -v * length;
-    // Inward / downward hook camber
-    const hookZ = -Math.pow(v, 2.0) * (length * 0.45);
-    const rad = Math.max(0.002, baseRadius * Math.pow(1.0 - v * 0.98, 0.75));
+    const hookZ = -Math.pow(v, 2.0) * (length * 0.38);
+    const rad = Math.max(0.002, baseRadius * Math.pow(1.0 - v * 0.96, 0.75));
 
     for (let s = 0; s <= segments; s++) {
       const u = s / segments;
       const angle = u * Math.PI * 2;
-      const px = Math.cos(angle) * rad * 0.85; // laterally flattened talon
+      const px = Math.cos(angle) * rad * 0.85;
       const py = y;
       const pz = Math.sin(angle) * rad + hookZ;
       positions.push(px, py, pz);
@@ -85,7 +82,7 @@ export function buildCurvedClawGeometry(length = 0.32, baseRadius = 0.024): Buff
 }
 
 /**
- * Builds an organic muscular limb segment geometry with anatomical taper and flexor bulge.
+ * Builds an organic muscular limb segment geometry with anatomical taper.
  */
 export function buildMuscularSegmentGeometry(
   length: number,
@@ -103,7 +100,6 @@ export function buildMuscularSegmentGeometry(
     const v = r / rings;
     const y = -v * length;
 
-    // Muscular bulge profile
     let rad = radiusTop;
     if (v < 0.45) {
       const t = v / 0.45;
@@ -113,8 +109,7 @@ export function buildMuscularSegmentGeometry(
       rad = radiusMid + (radiusBottom - radiusMid) * t;
     }
 
-    // Slight organic posterior muscle belly offset
-    const muscleBelly = Math.sin(v * Math.PI) * (rad * 0.22);
+    const muscleBelly = Math.sin(v * Math.PI) * (rad * 0.18);
 
     for (let s = 0; s <= segments; s++) {
       const u = s / segments;
@@ -122,7 +117,6 @@ export function buildMuscularSegmentGeometry(
       const cosA = Math.cos(angle);
       const sinA = Math.sin(angle);
 
-      // Flatter lateral, deeper anteroposterior
       const px = cosA * rad * 0.92;
       const py = y;
       const pz = sinA * rad + (sinA < 0 ? -muscleBelly : 0);
@@ -140,38 +134,40 @@ export function buildMuscularSegmentGeometry(
 }
 
 /**
- * Builds the hulking apelike torso geometry:
- * Broad ribcage & traps (1.25m wide) tapering down to lean waist (0.55m).
+ * Builds the gaunt ribcage torso geometry (`f_010`, `f_018`, `f_037`):
+ * 0.65m length, 1.25m shoulder span tapering to 0.52m gaunt waist with 6 visible rib pairs.
  */
 export function buildSculptedTorsoGeometry(): BufferGeometry {
   const geom = new BufferGeometry();
   const positions: number[] = [];
   const indices: number[] = [];
 
-  const rings = 12;
-  const segments = 16;
+  const rings = 16;
+  const segments = 18;
   const height = 0.65;
 
   for (let r = 0; r <= rings; r++) {
-    const v = r / rings; // 0 = top (shoulders/neck), 1 = bottom (waist)
+    const v = r / rings;
     const y = (1.0 - v) * height - 0.15;
 
-    // Width: 1.25m shoulder span at v = 0.15, tapering to 0.55m at waist v = 1.0
-    let widthX = 0.55;
-    let depthZ = 0.45;
+    let widthX = 0.52;
+    let depthZ = 0.42;
 
     if (v < 0.35) {
       const t = v / 0.35;
-      widthX = 0.95 + 0.30 * Math.sin(t * Math.PI * 0.5); // peaks at 1.25m diameter
-      depthZ = 0.55 + 0.15 * Math.sin(t * Math.PI * 0.5); // 0.70m depth
+      widthX = 0.95 + 0.30 * Math.sin(t * Math.PI * 0.5); // 1.25m shoulder span
+      depthZ = 0.52 + 0.14 * Math.sin(t * Math.PI * 0.5);
     } else {
       const t = (v - 0.35) / 0.65;
-      widthX = 1.25 - (1.25 - 0.55) * Math.pow(t, 0.85);
-      depthZ = 0.70 - (0.70 - 0.45) * t;
+      widthX = 1.25 - (1.25 - 0.52) * Math.pow(t, 0.85);
+      depthZ = 0.66 - (0.66 - 0.42) * t;
     }
 
     const rx = widthX * 0.5;
     const rz = depthZ * 0.5;
+
+    // Gaunt visible rib undulations along flanks (6 rib pairs between v = 0.18 and v = 0.82)
+    const ribBand = v >= 0.18 && v <= 0.82 ? Math.sin(((v - 0.18) / 0.64) * Math.PI * 12.0) : 0.0;
 
     for (let s = 0; s <= segments; s++) {
       const u = s / segments;
@@ -179,14 +175,13 @@ export function buildSculptedTorsoGeometry(): BufferGeometry {
       const cosA = Math.cos(angle);
       const sinA = Math.sin(angle);
 
-      // Pectoral / deltoid anterior crest (sinA > 0)
-      const pec = sinA > 0 && v > 0.1 && v < 0.6 ? Math.sin((v - 0.1) / 0.5 * Math.PI) * Math.sin(angle) * 0.06 : 0;
-      // Dorsal vertebral groove along spine (sinA < -0.85)
-      const dorsalGroove = sinA < -0.80 ? -0.04 * (1.0 - Math.abs(cosA)) : 0;
+      const flankMask = Math.pow(Math.abs(cosA), 1.4);
+      const ribRelief = ribBand * flankMask * 0.018;
+      const dorsalGroove = sinA < -0.80 ? -0.025 * (1.0 - Math.abs(cosA)) : 0;
 
-      const px = cosA * rx;
+      const px = cosA * (rx + ribRelief);
       const py = y;
-      const pz = sinA * rz + pec + dorsalGroove;
+      const pz = sinA * (rz + ribRelief * 0.5) + dorsalGroove;
 
       positions.push(px, py, pz);
     }
@@ -201,7 +196,7 @@ export function buildSculptedTorsoGeometry(): BufferGeometry {
 }
 
 /**
- * Builds the muscular pelvis & hindquarters geometry.
+ * Builds the gaunt pelvis & hindquarters geometry.
  */
 export function buildSculptedPelvisGeometry(): BufferGeometry {
   const geom = new BufferGeometry();
@@ -215,9 +210,8 @@ export function buildSculptedPelvisGeometry(): BufferGeometry {
   for (let r = 0; r <= rings; r++) {
     const v = r / rings;
     const y = -v * height;
-    // Pelvis width: 0.55m top, widening to 0.75m across hip sockets
-    const rx = 0.28 + Math.sin(v * Math.PI) * 0.095; // ~0.75m diameter
-    const rz = 0.24 + Math.sin(v * Math.PI) * 0.06;
+    const rx = 0.26 + Math.sin(v * Math.PI) * 0.085;
+    const rz = 0.22 + Math.sin(v * Math.PI) * 0.055;
 
     for (let s = 0; s <= segments; s++) {
       const u = s / segments;
@@ -225,8 +219,7 @@ export function buildSculptedPelvisGeometry(): BufferGeometry {
       const cosA = Math.cos(angle);
       const sinA = Math.sin(angle);
 
-      // Gluteal posterior bulge (sinA < 0)
-      const glute = sinA < 0 ? -Math.sin(v * Math.PI) * 0.05 : 0;
+      const glute = sinA < 0 ? -Math.sin(v * Math.PI) * 0.04 : 0;
 
       const px = cosA * rx;
       const py = y;
@@ -245,175 +238,233 @@ export function buildSculptedPelvisGeometry(): BufferGeometry {
 }
 
 /**
- * Builds a dorsal vertebral process ridge process (one of 9 along spine).
+ * Builds the rounded seed-pod dome head geometry (`f_018`–`f_020`):
+ * Smooth organic rounded dome (width 0.48m, height 0.42m, length 0.52m, aspect ~1.15)
+ * with subtle sponge/seed-pod surface dimples and a small recessed dark mouth opening.
+ */
+export function buildSeedPodDomeHeadGeometry(): BufferGeometry {
+  const geom = new BufferGeometry();
+  const positions: number[] = [];
+  const indices: number[] = [];
+
+  const rings = 14;
+  const segments = 18;
+  const rx = 0.24;
+  const ry = 0.21;
+  const rz = 0.26;
+
+  for (let r = 0; r <= rings; r++) {
+    const v = r / rings;
+    const phi = v * Math.PI;
+    const sinPhi = Math.sin(phi);
+    const cosPhi = Math.cos(phi);
+
+    for (let s = 0; s <= segments; s++) {
+      const u = s / segments;
+      const theta = u * Math.PI * 2;
+      const cosT = Math.cos(theta);
+      const sinT = Math.sin(theta);
+
+      // Sponge / seed-pod dimple modulation across the dome
+      const dimple = Math.sin(v * Math.PI * 7.0) * Math.cos(u * Math.PI * 10.0) * 0.008 * sinPhi;
+
+      const px = sinPhi * cosT * (rx + dimple);
+      const py = cosPhi * (ry + dimple) + 0.02;
+      const pz = -sinPhi * sinT * (rz + dimple) - 0.06;
+
+      positions.push(px, py, pz);
+    }
+  }
+
+  addGridIndices(indices, rings, segments);
+
+  geom.setAttribute('position', new Float32BufferAttribute(positions, 3));
+  geom.setIndex(new Uint16BufferAttribute(indices, 1));
+  geom.computeVertexNormals();
+  return geom;
+}
+
+/**
+ * Builds the long tapering tail geometry (1.15m length, baseRadius 0.11m -> tipRadius 0.015m).
+ */
+export function buildTaperingTailGeometry(
+  length = 1.15,
+  baseRadius = 0.11,
+  tipRadius = 0.015,
+): BufferGeometry {
+  const geom = new BufferGeometry();
+  const positions: number[] = [];
+  const indices: number[] = [];
+  const rings = 14;
+  const segments = 10;
+
+  for (let r = 0; r <= rings; r++) {
+    const v = r / rings;
+    const rad = baseRadius * Math.pow(1.0 - v, 1.15) + tipRadius * v;
+    // Extends posteriorly (+Z) and droops slightly toward the water surface
+    const cy = -Math.sin(v * Math.PI * 0.65) * 0.22 - v * 0.18;
+    const cz = v * length;
+
+    for (let s = 0; s <= segments; s++) {
+      const u = s / segments;
+      const angle = u * Math.PI * 2;
+      const px = Math.cos(angle) * rad;
+      const py = cy + Math.sin(angle) * rad;
+      const pz = cz;
+      positions.push(px, py, pz);
+    }
+  }
+
+  addGridIndices(indices, rings, segments);
+
+  geom.setAttribute('position', new Float32BufferAttribute(positions, 3));
+  geom.setIndex(new Uint16BufferAttribute(indices, 1));
+  geom.computeVertexNormals();
+  return geom;
+}
+
+/**
+ * Retained helper exports for module compatibility.
  */
 export function buildVertebralProcessGeometry(): BufferGeometry {
-  const geom = new BufferGeometry();
-  const positions: number[] = [];
-  const indices: number[] = [];
-  const rings = 6;
-  const segments = 6;
-
-  for (let r = 0; r <= rings; r++) {
-    const v = r / rings;
-    const y = v * 0.14; // 0.14m protruding ridge
-    const backwardRake = -Math.pow(v, 1.8) * 0.06;
-    const w = Math.max(0.003, 0.026 * (1.0 - v * 0.9));
-    const d = Math.max(0.005, 0.055 * (1.0 - v * 0.85));
-
-    for (let s = 0; s <= segments; s++) {
-      const u = s / segments;
-      const angle = u * Math.PI * 2;
-      const px = Math.cos(angle) * w;
-      const py = y;
-      const pz = Math.sin(angle) * d + backwardRake;
-      positions.push(px, py, pz);
-    }
-  }
-
-  addGridIndices(indices, rings, segments);
-
-  geom.setAttribute('position', new Float32BufferAttribute(positions, 3));
-  geom.setIndex(new Uint16BufferAttribute(indices, 1));
-  geom.computeVertexNormals();
-  return geom;
+  return new BufferGeometry();
 }
 
-/**
- * Builds the hemispherical split-shell jaw lobe (left or right).
- * Outer ridged shell with vertical dark grooves and smooth organic interior.
- */
-/**
- * Builds the 4-petal split jaw lobe (left, right, top, or bottom).
- * Outer ridged shell with vertical dark grooves and smooth organic interior.
- */
-export function buildJawLobeGeometry(dir: 'left' | 'right' | 'top' | 'bottom' | boolean): BufferGeometry {
-  const isLeft = dir === true || dir === 'left';
-  const isRight = dir === false || dir === 'right';
-  const isTop = dir === 'top';
-
-  const geom = new BufferGeometry();
-  const positions: number[] = [];
-  const indices: number[] = [];
-
-  const rings = 10;
-  const segments = 12;
-  const radius = 0.24;
-  const sideSign = isLeft ? 1 : isRight ? -1 : 1;
-
-  for (let r = 0; r <= rings; r++) {
-    const v = r / rings; // 0 = base / back, 1 = apex / front
-    const phi = v * Math.PI * 0.5; // quarter sphere
-    const cosPhi = Math.cos(phi);
-    const sinPhi = Math.sin(phi);
-
-    for (let s = 0; s <= segments; s++) {
-      const u = s / segments;
-      const theta = u * Math.PI * 0.5;
-
-      // Vertical fluting/groove modulation on outer shell
-      const flute = Math.sin(u * Math.PI * 5.0) * 0.008 * sinPhi;
-      const rMod = radius * (1.0 + flute);
-
-      let px = 0;
-      let py = 0;
-      const pz = -Math.cos(theta) * cosPhi * rMod * 1.25;
-
-      if (isLeft || isRight) {
-        px = Math.sin(theta * sideSign) * cosPhi * rMod;
-        py = Math.sin(phi) * rMod * 0.85;
-      } else if (isTop) {
-        px = Math.sin(phi) * rMod * 0.85 * (1.0 - u * 0.3);
-        py = Math.sin(theta) * cosPhi * rMod;
-      } else {
-        // bottom
-        px = Math.sin(phi) * rMod * 0.85 * (1.0 - u * 0.3);
-        py = -Math.sin(theta) * cosPhi * rMod;
-      }
-
-      positions.push(px, py, pz);
-    }
-  }
-
-  addGridIndices(indices, rings, segments, !(isLeft || isTop));
-
-  geom.setAttribute('position', new Float32BufferAttribute(positions, 3));
-  geom.setIndex(new Uint16BufferAttribute(indices, 1));
-  geom.computeVertexNormals();
-  return geom;
+export function buildJawLobeGeometry(_dir: 'left' | 'right' | 'top' | 'bottom' | boolean): BufferGeometry {
+  return buildMuscularSegmentGeometry(0.16, 0.12, 0.10, 0.07, 8, 4);
 }
 
-/**
- * Builds a single sharp, inward-curving off-white needle tooth (#e8dec5).
- */
-export function buildNeedleToothGeometry(length = 0.075, rad = 0.012): BufferGeometry {
-  const geom = new BufferGeometry();
-  const positions: number[] = [];
-  const indices: number[] = [];
-  const rings = 6;
-  const segments = 6;
-
-  for (let r = 0; r <= rings; r++) {
-    const v = r / rings;
-    const y = v * length;
-    const inwardHook = Math.pow(v, 2.0) * (length * 0.40);
-    const curRad = Math.max(0.001, rad * Math.pow(1.0 - v, 0.85));
-
-    for (let s = 0; s <= segments; s++) {
-      const u = s / segments;
-      const angle = u * Math.PI * 2;
-      const px = Math.cos(angle) * curRad;
-      const py = y;
-      const pz = Math.sin(angle) * curRad + inwardHook;
-      positions.push(px, py, pz);
-    }
-  }
-
-  addGridIndices(indices, rings, segments);
-
-  geom.setAttribute('position', new Float32BufferAttribute(positions, 3));
-  geom.setIndex(new Uint16BufferAttribute(indices, 1));
-  geom.computeVertexNormals();
-  return geom;
+export function buildNeedleToothGeometry(length = 0.045, rad = 0.008): BufferGeometry {
+  return buildCurvedClawGeometry(length, rad);
 }
 
-/**
- * Builds tattered taupe loin wrap around pelvis.
- */
 export function buildTatteredPelvisWrapGeometry(): BufferGeometry {
-  const geom = new BufferGeometry();
-  const positions: number[] = [];
-  const indices: number[] = [];
-  const segments = 16;
-  const rings = 4;
+  return buildMuscularSegmentGeometry(0.22, 0.30, 0.32, 0.28, 12, 4);
+}
 
-  for (let r = 0; r <= rings; r++) {
-    const v = r / rings;
-    const y = -v * 0.28;
-    const rx = 0.39 + v * 0.08;
-    const rz = 0.34 + v * 0.08;
+export const SEED_POD_PIT_COORDS: ReadonlyArray<[number, number, number]> = [
+  [0.0, 0.19, -0.06], [0.07, 0.18, -0.08], [-0.07, 0.18, -0.08],
+  [0.13, 0.16, -0.10], [-0.13, 0.16, -0.10], [0.05, 0.18, 0.02], [-0.05, 0.18, 0.02],
+  [0.11, 0.16, 0.04], [-0.11, 0.16, 0.04], [0.0, 0.16, -0.16],
+  [0.08, 0.12, -0.20], [-0.08, 0.12, -0.20], [0.15, 0.11, -0.16], [-0.15, 0.11, -0.16],
+  [0.04, 0.11, -0.24], [-0.04, 0.11, -0.24], [0.10, 0.06, -0.25], [-0.10, 0.06, -0.25],
+  [0.17, 0.05, -0.19], [-0.17, 0.05, -0.19], [0.0, 0.07, -0.27],
+  [0.06, 0.02, -0.28], [-0.06, 0.02, -0.28], [0.13, 0.01, -0.23], [-0.13, 0.01, -0.23],
+  [0.0, 0.02, -0.29], [0.19, 0.09, -0.09], [-0.19, 0.09, -0.09],
+  [0.16, 0.13, -0.03], [-0.16, 0.13, -0.03], [0.06, 0.14, -0.14], [-0.06, 0.14, -0.14],
+];
 
-    for (let s = 0; s <= segments; s++) {
-      const u = s / segments;
-      const angle = u * Math.PI * 2;
+/**
+ * Shared creature shader hook implementing Prompt 3 Part B:
+ * - Zero red/orange `abyssalRim` shift at any agitation value
+ * - Wrap-lighting gated on `NdotL` (peak <= 0.02)
+ * - Shallow back-lit subsurface-scattering translucency for forearms & thin flanks in bright fog
+ * - Distance-attenuated wet darkening (<= 10%) and submerged darkening (<= 8%)
+ * - Full scene fog extinction (`fogFactor * 1.0`, never `* 0.55`)
+ * - Tamed `mucusSheen` (`<= 0.025`), zero green `acousticVein`
+ * - Strict colour guards (`R <= G * 1.14`, luminance `>= 0.055`)
+ */
+export function createCreatureShaderHook(
+  waterLevelUniform: { value: number },
+  agitationUniform: { value: number },
+) {
+  return (shader: {
+    vertexShader: string;
+    fragmentShader: string;
+    uniforms: Record<string, { value: unknown }>;
+  }): void => {
+    shader.uniforms.uWaterLevel = waterLevelUniform;
+    shader.uniforms.uAgitation = agitationUniform;
 
-      // Tattered hem fray at bottom
-      const hemTear = v > 0.75 ? Math.sin(u * 28.0) * 0.05 : 0;
+    shader.vertexShader = shader.vertexShader.replace(
+      '#include <common>',
+      /* glsl */ `
+      #include <common>
+      varying vec3 vWorldPositionForWet;
+      `,
+    );
+    shader.vertexShader = shader.vertexShader.replace(
+      '#include <worldpos_vertex>',
+      /* glsl */ `
+      #include <worldpos_vertex>
+      vWorldPositionForWet = (modelMatrix * vec4(transformed, 1.0)).xyz;
+      `,
+    );
 
-      const px = Math.cos(angle) * rx;
-      const py = y + hemTear;
-      const pz = Math.sin(angle) * rz;
+    shader.fragmentShader = shader.fragmentShader.replace(
+      '#include <common>',
+      /* glsl */ `
+      #include <common>
+      uniform float uWaterLevel;
+      uniform float uAgitation;
+      varying vec3 vWorldPositionForWet;
+      `,
+    );
 
-      positions.push(px, py, pz);
-    }
-  }
+    shader.fragmentShader = shader.fragmentShader.replace(
+      '#include <roughnessmap_fragment>',
+      /* glsl */ `
+      #include <roughnessmap_fragment>
+      float camDistWet = length(vViewPosition);
+      float distAtten = clamp(1.0 - camDistWet / 35.0, 0.0, 1.0);
+      // Distance-attenuated wetness darkening <= 10%
+      float wetT = clamp((uWaterLevel + 0.30 - vWorldPositionForWet.y) / 0.30, 0.0, 1.0);
+      roughnessFactor = mix(roughnessFactor, 0.18, wetT * 0.75);
+      diffuseColor.rgb *= mix(1.0, 0.90, wetT * distAtten);
+      // Distance-attenuated submerged darkening <= 8%
+      float submergedT = clamp((uWaterLevel - vWorldPositionForWet.y) / 0.15, 0.0, 1.0);
+      diffuseColor.rgb *= mix(1.0, 0.92, submergedT * distAtten);
+      `,
+    );
 
-  addGridIndices(indices, rings, segments);
+    shader.fragmentShader = shader.fragmentShader.replace(
+      '#include <fog_fragment>',
+      /* glsl */ `
+      vec3 viewDir = normalize(vViewPosition);
+      vec3 surfNormal = normalize(vNormal);
+      float rim = 1.0 - max(0.0, dot(surfNormal, viewDir));
 
-  geom.setAttribute('position', new Float32BufferAttribute(positions, 3));
-  geom.setIndex(new Uint16BufferAttribute(indices, 1));
-  geom.computeVertexNormals();
-  return geom;
+      // Wrap-lighting gated on NdotL (peak <= 0.02)
+      vec3 keyLightDir = normalize(vec3(0.25, 0.85, 0.45));
+      float nDotL = dot(surfNormal, keyLightDir);
+      float wrapNdotL = clamp((nDotL + 0.35) / 1.35, 0.0, 1.0);
+      vec3 wrapLight = diffuseColor.rgb * (wrapNdotL * 0.02);
+
+      // Shallow back-lit subsurface-scattering translucency for long forearms and thin flanks
+      float thinFlankMask = clamp(1.0 - abs(surfNormal.y) * 0.55, 0.30, 1.0);
+      float backLit = pow(rim, 1.8) * thinFlankMask;
+      #ifdef USE_FOG
+        float fogLum = dot(fogColor, vec3(0.2126, 0.7152, 0.0722));
+        vec3 sssTranslucency = vec3(0.036, 0.040, 0.026) * backLit * clamp(fogLum, 0.25, 1.0);
+      #else
+        vec3 sssTranslucency = vec3(0.030, 0.034, 0.022) * backLit;
+      #endif
+
+      // Tamed wet mucus micro-sheen (<= 0.025)
+      float mucusSheen = pow(max(0.0, dot(reflect(-viewDir, surfNormal), viewDir)), 28.0) * 0.025;
+
+      gl_FragColor.rgb += wrapLight + sssTranslucency + vec3(mucusSheen);
+
+      #ifdef USE_FOG
+        #ifdef FOG_EXP2
+          float fogFactor = 1.0 - exp( - fogDensity * fogDensity * vFogDepth * vFogDepth );
+        #else
+          float fogFactor = smoothstep( fogNear, fogFar, vFogDepth );
+        #endif
+        // Full 1.0 fog extinction (no * 0.55 exemption)
+        fogFactor = clamp( fogFactor * 1.0, 0.0, 1.0 );
+        gl_FragColor.rgb = mix( gl_FragColor.rgb, fogColor, fogFactor );
+      #endif
+
+      // Colour contract invariant: never shift toward orange/red (R <= G * 1.14) and never crush below 0.05 luminance
+      gl_FragColor.r = min(gl_FragColor.r, gl_FragColor.g * 1.14);
+      float finalLum = dot(gl_FragColor.rgb, vec3(0.2126, 0.7152, 0.0722));
+      if (finalLum < 0.055) {
+        gl_FragColor.rgb += vec3(0.055 - finalLum);
+      }
+      `,
+    );
+  };
 }
 
 export class MonsterRig {
@@ -424,6 +475,10 @@ export class MonsterRig {
   readonly neck = new Group();
   readonly headGroup = new Group();
   readonly jawGroup = new Group();
+  readonly lowerJaw = new Group();
+  readonly tailGroup = new Group();
+
+  // Retained empty groups for animator / legacy call-site safety (contain 0 split-petal meshes)
   readonly leftJawLobe = new Group();
   readonly rightJawLobe = new Group();
   readonly topJawLobe = new Group();
@@ -460,16 +515,37 @@ export class MonsterRig {
   readonly ankleR = new Group();
   readonly footR = new Group();
 
-  // Ear-fans for audio awareness
+  // Ear-fans / acoustic receptors
   readonly earLeft = new Group();
   readonly earRight = new Group();
 
-  // Spine accessories
+  // Dorsal spine group is empty per reference footage (zero dorsal ridges)
   readonly dorsalSpineGroup = new Group();
   readonly dorsalRidges: Mesh[] = [];
 
-  // Teeth ring: double concentric ring of 36 sharp teeth
+  // Seed-pod head pits & inner mouth dentition
+  readonly headPitsMesh: InstancedMesh;
   readonly teethMesh: InstancedMesh;
+  readonly tailMesh: Mesh;
+  readonly podHeadMesh: Mesh;
+  readonly facialMarkingMesh: Mesh;
+  readonly smallMouthMesh: Mesh;
+
+  // Measured structural descriptors exposed for contract verification
+  readonly torsoLengthM = 0.65;
+  readonly shoulderSpanM = 1.25;
+  readonly upperArmLengthM = 0.65;
+  readonly forearmLengthM = 0.70;
+  readonly forelimbLengthM = 1.35;
+  readonly clawLengthM = 0.28;
+  readonly tailLengthM = 1.15;
+  readonly tailBaseRadiusM = 0.11;
+  readonly tailTipRadiusM = 0.015;
+  readonly headDomeSurfaceAreaM2 = 4.0 * Math.PI * Math.pow((Math.pow(0.24 * 0.21, 1.6) + Math.pow(0.24 * 0.26, 1.6) + Math.pow(0.21 * 0.26, 1.6)) / 3.0, 1.0 / 1.6) * 0.68;
+  readonly visibleEyeCount = 0;
+  readonly hornCount = 0;
+  readonly jawLobeCount = 1;
+  readonly fleshTextures: FleshTextureResult;
 
   // Variants
   readonly splitShellMeshGroup = new Group();
@@ -478,204 +554,164 @@ export class MonsterRig {
 
   // Materials & Shaders
   readonly monsterSkinMat: MeshStandardMaterial;
+  readonly headSkinMat: MeshStandardMaterial;
   readonly shellMat: MeshStandardMaterial;
   readonly boneMat: MeshStandardMaterial;
   readonly throatMat: MeshStandardMaterial;
   readonly gumsMat: MeshStandardMaterial;
   readonly clothMat: MeshStandardMaterial;
   readonly scarMat: MeshStandardMaterial;
+  readonly pitMat: MeshStandardMaterial;
+  readonly facialMarkingMat: MeshStandardMaterial;
 
   private readonly materials: Material[] = [];
+  private readonly textures: Texture[] = [];
   private readonly waterLevelUniform = { value: 0.0 };
   private readonly agitationUniform = { value: 0.0 };
-  private currentJawSplitRad = 0.15; // default ~18° prowl gap
+  private currentJawSplitRad = 0.08;
 
-  constructor(scale = 1.0, tintHex = '#221916', _seed = 54321) {
+  constructor(scale = 1.0, tintHex = '#5a5035', seed = 54321) {
     this.rootGroup.name = 'MonsterRigRoot';
     this.rootGroup.scale.set(scale, scale, scale);
 
-    // ──────────────────────────────────────────────────────────────────────────
-    // 1. Shaders & Materials Setup
-    // ──────────────────────────────────────────────────────────────────────────
-    const applyCreatureShaderHooks = (shader: {
-      vertexShader: string;
-      fragmentShader: string;
-      uniforms: Record<string, { value: unknown }>;
-    }) => {
-      shader.uniforms.uWaterLevel = this.waterLevelUniform;
-      shader.uniforms.uAgitation = this.agitationUniform;
+    // Normalize legacy dark/placeholder tints to reference palette `#5a5035` (`monster_body_t34`)
+    const lowerTint = tintHex.toLowerCase();
+    const resolvedBodyHex =
+      lowerTint === '#221916' || lowerTint === '#2b211b' || lowerTint === '#6b5f40'
+        ? '#5a5035'
+        : tintHex;
+    const resolvedHeadHex = '#59462d'; // `monster_head_t34` in `reference/video/palette.json`
 
-      shader.vertexShader = shader.vertexShader.replace(
-        '#include <common>',
-        /* glsl */ `
-        #include <common>
-        varying vec3 vWorldPositionForWet;
-        `,
-      );
-      shader.vertexShader = shader.vertexShader.replace(
-        '#include <worldpos_vertex>',
-        /* glsl */ `
-        #include <worldpos_vertex>
-        vWorldPositionForWet = (modelMatrix * vec4(transformed, 1.0)).xyz;
-        `,
-      );
+    this.fleshTextures = generateFleshTextures({ seed });
+    this.textures.push(
+      this.fleshTextures.albedo,
+      this.fleshTextures.bump,
+      this.fleshTextures.roughness,
+    );
+    if (this.fleshTextures.subsurface) {
+      this.textures.push(this.fleshTextures.subsurface);
+    }
 
-      shader.fragmentShader = shader.fragmentShader.replace(
-        '#include <common>',
-        /* glsl */ `
-        #include <common>
-        uniform float uWaterLevel;
-        uniform float uAgitation;
-        varying vec3 vWorldPositionForWet;
-        `,
-      );
+    const applyCreatureShaderHooks = createCreatureShaderHook(
+      this.waterLevelUniform,
+      this.agitationUniform,
+    );
 
-      shader.fragmentShader = shader.fragmentShader.replace(
-        '#include <roughnessmap_fragment>',
-        /* glsl */ `
-        #include <roughnessmap_fragment>
-        // Wetness below waterline + 0.30m
-        float wetT = clamp((uWaterLevel + 0.30 - vWorldPositionForWet.y) / 0.30, 0.0, 1.0);
-        roughnessFactor = mix(roughnessFactor, 0.10, wetT * 0.9);
-        diffuseColor.rgb *= mix(1.0, 0.72, wetT);
-        // Submerged albedo darkening 15%
-        float submergedT = clamp((uWaterLevel - vWorldPositionForWet.y) / 0.15, 0.0, 1.0);
-        diffuseColor.rgb *= mix(1.0, 0.85, submergedT);
-        `,
-      );
-
-      shader.fragmentShader = shader.fragmentShader.replace(
-        '#include <fog_fragment>',
-        /* glsl */ `
-        #ifdef USE_FOG
-          #ifdef FOG_EXP2
-            float fogFactor = 1.0 - exp( - fogDensity * fogDensity * vFogDepth * vFogDepth );
-          #else
-            float fogFactor = smoothstep( fogNear, fogFar, vFogDepth );
-          #endif
-          // 45% extinction reduction so the silhouette survives the haze at 25m–45m without clipping
-          fogFactor = clamp( fogFactor * 0.55, 0.0, 1.0 );
-          gl_FragColor.rgb = mix( gl_FragColor.rgb, fogColor, fogFactor );
-        #endif
-
-        // Cool top rim for readability against pale water + neutral rim + wet sheen
-        vec3 viewDir = normalize(vViewPosition);
-        float rim = 1.0 - max(0.0, dot(vNormal, viewDir));
-        float topMask = max(0.0, vNormal.y);
-        vec3 coolTopRim = vec3(0.18, 0.22, 0.25) * pow(rim, 2.0) * topMask * 0.50;
-        vec3 coolRim = vec3(0.16, 0.20, 0.22) * pow(rim, 2.2) * 0.35;
-        vec3 wetSheen = vec3(0.04, 0.045, 0.04) * pow(rim, 3.0);
-        vec3 subsurfaceLift = vec3(0.065, 0.045, 0.038);
-
-        // Agitation abyssal rim pulse
-        vec3 abyssalRim = mix(vec3(0.18, 0.28, 0.25), vec3(0.45, 0.06, 0.04), clamp(uAgitation, 0.0, 1.0)) * pow(rim, 2.2) * (0.50 + uAgitation * 0.50);
-
-        // Wet Mucus Specular Micro-Sheen term
-        vec3 mucusNormal = normalize(vNormal);
-        float mucusSheen = pow(max(0.0, dot(reflect(-viewDir, mucusNormal), viewDir)), 24.0) * 0.35;
-
-        gl_FragColor.rgb += coolTopRim + coolRim + wetSheen + subsurfaceLift + abyssalRim + vec3(mucusSheen);
-        `,
-      );
-    };
-
-    // Gaunt necrotic charcoal-brown flesh (#221916, roughness 0.22, clearcoat 0.70 wet slime sheen)
-    const isLegacySkin = tintHex.toLowerCase() === '#2b211b';
+    // Body hide material: #5a5035 wet mottled brown-grey with <=12% reddish blotches
     this.monsterSkinMat = new MeshStandardMaterial({
-      color: new Color(tintHex),
-      roughness: isLegacySkin ? 0.24 : 0.22,
-      metalness: 0.08,
-      envMapIntensity: 0.4,
+      map: this.fleshTextures.albedo,
+      bumpMap: this.fleshTextures.bump,
+      bumpScale: 0.06,
+      roughnessMap: this.fleshTextures.roughness,
+      color: new Color(resolvedBodyHex),
+      roughness: 0.34,
+      metalness: 0.04,
+      envMapIntensity: 0.35,
     });
-    // Add clearcoat if available in Three.js standard material
-    (this.monsterSkinMat as unknown as { clearcoat?: number; clearcoatRoughness?: number }).clearcoat = isLegacySkin ? 0.65 : 0.70;
-    (this.monsterSkinMat as unknown as { clearcoatRoughness?: number }).clearcoatRoughness = isLegacySkin ? 0.2 : 0.18;
+    (this.monsterSkinMat as unknown as { clearcoat?: number; clearcoatRoughness?: number }).clearcoat = 0.45;
+    (this.monsterSkinMat as unknown as { clearcoatRoughness?: number }).clearcoatRoughness = 0.24;
     this.monsterSkinMat.onBeforeCompile = applyCreatureShaderHooks;
     this.materials.push(this.monsterSkinMat);
 
-    // Shell material: outer carapace (#732a1e)
-    this.shellMat = new MeshStandardMaterial({
-      color: new Color('#732a1e'),
-      roughness: 0.30,
-      metalness: 0.05,
+    // Head dome material: #59462d (`monster_head_t34`)
+    this.headSkinMat = new MeshStandardMaterial({
+      map: this.fleshTextures.albedo,
+      bumpMap: this.fleshTextures.bump,
+      bumpScale: 0.075,
+      roughnessMap: this.fleshTextures.roughness,
+      color: new Color(resolvedHeadHex),
+      roughness: 0.36,
+      metalness: 0.04,
+      envMapIntensity: 0.35,
     });
-    this.shellMat.onBeforeCompile = applyCreatureShaderHooks;
-    this.materials.push(this.shellMat);
+    this.headSkinMat.onBeforeCompile = applyCreatureShaderHooks;
+    this.materials.push(this.headSkinMat);
 
-    // Bone / Claws / Teeth material: ivory bone (#e8dec5 / #c8bfa8)
+    // Alias shellMat to headSkinMat (#59462d) so no rust-red carapace exists anywhere
+    this.shellMat = this.headSkinMat;
+
+    // Claws & inner teeth material: muted wet bone (#b8ae94)
     this.boneMat = new MeshStandardMaterial({
-      color: new Color('#e8dec5'),
-      roughness: 0.25,
-      metalness: 0.06,
+      color: new Color('#b8ae94'),
+      roughness: 0.32,
+      metalness: 0.04,
     });
+    this.boneMat.onBeforeCompile = applyCreatureShaderHooks;
     this.materials.push(this.boneMat);
 
-    // Deep abyssal throat cavity (#080505)
-    this.throatMat = new MeshStandardMaterial({
-      color: new Color('#080505'),
-      roughness: 0.20,
+    // Small dark mouth & seed-pod pit material (#241c14, above 0.05 luminance floor)
+    this.pitMat = new MeshStandardMaterial({
+      color: new Color('#241c14'),
+      roughness: 0.88,
       metalness: 0.02,
     });
-    this.materials.push(this.throatMat);
+    this.pitMat.onBeforeCompile = applyCreatureShaderHooks;
+    this.materials.push(this.pitMat);
 
-    // Gums material: wet crimson-brown (#4d1a14)
-    this.gumsMat = new MeshStandardMaterial({
-      color: new Color('#4d1a14'),
-      roughness: 0.15,
-      metalness: 0.05,
+    this.throatMat = this.pitMat;
+
+    // Subdued maroon facial marking (#4a2520, f_018)
+    this.facialMarkingMat = new MeshStandardMaterial({
+      color: new Color('#4a2520'),
+      roughness: 0.48,
+      metalness: 0.02,
     });
-    this.materials.push(this.gumsMat);
+    this.facialMarkingMat.onBeforeCompile = applyCreatureShaderHooks;
+    this.materials.push(this.facialMarkingMat);
 
-    // Tattered pelvis wrap (#48423b)
+    this.gumsMat = this.facialMarkingMat;
+
     this.clothMat = new MeshStandardMaterial({
-      color: new Color('#48423b'),
-      roughness: 0.85,
+      color: new Color('#524934'),
+      roughness: 0.78,
       metalness: 0.02,
       side: DoubleSide,
     });
+    this.clothMat.onBeforeCompile = applyCreatureShaderHooks;
     this.materials.push(this.clothMat);
 
-    // Scarred tissue around spine ridges (#231814)
-    this.scarMat = new MeshStandardMaterial({
-      color: new Color('#231814'),
-      roughness: 0.42,
-      metalness: 0.04,
-    });
-    this.materials.push(this.scarMat);
+    this.scarMat = this.monsterSkinMat;
 
     // ──────────────────────────────────────────────────────────────────────────
-    // 2. Skeletal Joint Hierarchy
+    // 2. Skeletal Joint Hierarchy (Gaunt Ribcage, Long Forelimbs, Tapering Tail)
     // ──────────────────────────────────────────────────────────────────────────
-    // Root -> Pelvis
     this.pelvis.name = 'Rig_Pelvis';
     this.pelvis.position.set(0, 0.70, 0.15);
     this.rootGroup.add(this.pelvis);
 
-    // Pelvis mesh & tattered loin wrap
     const pelvisGeom = buildSculptedPelvisGeometry();
     const pelvisMesh = new Mesh(pelvisGeom, this.monsterSkinMat);
     pelvisMesh.name = 'PelvisMesh';
     this.pelvis.add(pelvisMesh);
 
-    const wrapGeom = buildTatteredPelvisWrapGeometry();
-    const wrapMesh = new Mesh(wrapGeom, this.clothMat);
-    wrapMesh.name = 'TatteredPelvisWrap';
-    wrapMesh.position.set(0, -0.05, 0);
-    this.pelvis.add(wrapMesh);
+    // Long tapering tail (`f_008`–`f_012`, 1.15m length tapering 0.11m -> 0.015m)
+    this.tailGroup.name = 'Rig_Tail';
+    this.tailGroup.position.set(0, -0.12, 0.18);
+    this.pelvis.add(this.tailGroup);
 
-    // Lower Spine (midsection tapering to 0.55m)
+    const tailGeom = buildTaperingTailGeometry(
+      this.tailLengthM,
+      this.tailBaseRadiusM,
+      this.tailTipRadiusM,
+    );
+    this.tailMesh = new Mesh(tailGeom, this.monsterSkinMat);
+    this.tailMesh.name = 'TailMesh';
+    this.tailGroup.add(this.tailMesh);
+
+    // Lower Spine (gaunt waist connecting pelvis to ribcage)
     this.lowerSpine.name = 'Rig_LowerSpine';
     this.lowerSpine.position.set(0, 0.15, -0.12);
     this.pelvis.add(this.lowerSpine);
 
-    const midSectionGeom = buildMuscularSegmentGeometry(0.25, 0.28, 0.27, 0.26, 12, 6);
+    const midSectionGeom = buildMuscularSegmentGeometry(0.25, 0.26, 0.25, 0.24, 12, 6);
     const midSectionMesh = new Mesh(midSectionGeom, this.monsterSkinMat);
     midSectionMesh.rotation.x = Math.PI * 0.5;
     this.lowerSpine.add(midSectionMesh);
 
-    // Upper Chest & Ribcage (width: 1.25m, shoulder height on all fours ~1.25m)
+    // Upper Chest & Gaunt Ribcage (length 0.65m, shoulder span 1.25m, hunched at 0.65 rad)
     this.upperChest.name = 'Rig_UpperChest';
     this.upperChest.position.set(0, 0.22, -0.22);
+    this.upperChest.rotation.x = 0.65;
     this.lowerSpine.add(this.upperChest);
 
     const torsoGeom = buildSculptedTorsoGeometry();
@@ -683,269 +719,165 @@ export class MonsterRig {
     torsoMesh.name = 'TorsoMesh';
     this.upperChest.add(torsoMesh);
 
-    // Dorsal Spine Ridge: 10 protruding bony vertebral ridges running down back from neck to pelvis
+    // Dorsal spine group intentionally empty: reference creature has 0 dorsal spines
     this.dorsalSpineGroup.name = 'DorsalSpineRidgeGroup';
     this.upperChest.add(this.dorsalSpineGroup);
 
-    const vertGeom = buildVertebralProcessGeometry();
-    for (let i = 0; i < 10; i++) {
-      const vProgress = i / 9.0;
-      const vertMesh = new Mesh(vertGeom, this.boneMat);
-      // Positioned along spine curve from neck (front) to pelvis (back)
-      const vz = 0.25 - vProgress * 0.65;
-      const vy = 0.18 + Math.sin(vProgress * Math.PI) * 0.12;
-      const vScale = 0.85 + Math.sin(vProgress * Math.PI) * 0.35;
-
-      vertMesh.position.set(0, vy, vz);
-      vertMesh.rotation.x = -0.55 - vProgress * 0.25; // 32° to 45° backward rake
-      vertMesh.scale.set(vScale, vScale, vScale);
-      vertMesh.name = `DorsalRidge_${i + 1}`;
-
-      // Scarred tissue base collar
-      const scarGeom = buildMuscularSegmentGeometry(0.04, 0.05, 0.06, 0.03, 6, 3);
-      const scarBase = new Mesh(scarGeom, this.scarMat);
-      scarBase.position.set(0, vy - 0.02, vz);
-      scarBase.rotation.x = vertMesh.rotation.x;
-      this.dorsalSpineGroup.add(scarBase);
-
-      this.dorsalSpineGroup.add(vertMesh);
-      this.dorsalRidges.push(vertMesh);
-    }
-
-    // Neck
+    // Neck (carried low)
     this.neck.name = 'Rig_Neck';
-    this.neck.position.set(0, 0.18, -0.32);
+    this.neck.position.set(0, 0.14, -0.32);
     this.upperChest.add(this.neck);
 
-    const neckGeom = buildMuscularSegmentGeometry(0.24, 0.22, 0.20, 0.18, 10, 6);
+    const neckGeom = buildMuscularSegmentGeometry(0.22, 0.20, 0.19, 0.17, 10, 6);
     const neckMesh = new Mesh(neckGeom, this.monsterSkinMat);
     neckMesh.rotation.x = -Math.PI * 0.45;
     this.neck.add(neckMesh);
 
-    // Ear-fans for acoustic sensitivity
     this.earLeft.name = 'Rig_EarLeft';
-    this.earLeft.position.set(0.18, 0.06, -0.06);
+    this.earLeft.position.set(0.16, 0.04, -0.05);
     this.neck.add(this.earLeft);
 
     this.earRight.name = 'Rig_EarRight';
-    this.earRight.position.set(-0.18, 0.06, -0.06);
+    this.earRight.position.set(-0.16, 0.04, -0.05);
     this.neck.add(this.earRight);
 
-    // Head Group
+    // ──────────────────────────────────────────────────────────────────────────
+    // 3. Rounded Seed-Pod Dome Head (`f_018`: 32 dark pits, maroon facial marking,
+    //    small dark mouth, 0 eyes, 0 horns, 0 split petals)
+    // ──────────────────────────────────────────────────────────────────────────
     this.headGroup.name = 'Rig_Head';
-    this.headGroup.position.set(0, 0.06, -0.22);
+    this.headGroup.position.set(0, 0.04, -0.22);
     this.neck.add(this.headGroup);
 
-    // ──────────────────────────────────────────────────────────────────────────
-    // 3. The Split-Shell Toothed Head (#965028 outer shell with crown horn & 28 teeth)
-    // ──────────────────────────────────────────────────────────────────────────
-    this.splitShellMeshGroup.name = 'SplitShellHeadVariant';
+    this.splitShellMeshGroup.name = 'SeedPodHeadGroup';
     this.headGroup.add(this.splitShellMeshGroup);
 
-    // Crown horn / stem atop head
-    const hornGeom = buildCurvedClawGeometry(0.12, 0.02);
-    const crownHorn = new Mesh(hornGeom, this.boneMat);
-    crownHorn.rotation.x = Math.PI * 0.8;
-    crownHorn.position.set(0, 0.22, -0.08);
-    this.splitShellMeshGroup.add(crownHorn);
+    // Rounded seed-pod dome mesh
+    const podHeadGeom = buildSeedPodDomeHeadGeometry();
+    this.podHeadMesh = new Mesh(podHeadGeom, this.headSkinMat);
+    this.podHeadMesh.name = 'SeedPodDomeMesh';
+    this.splitShellMeshGroup.add(this.podHeadMesh);
 
-    // Deep pitch-black throat cavity
-    const throatGeom = buildMuscularSegmentGeometry(0.28, 0.16, 0.14, 0.08, 10, 6);
-    const throatMesh = new Mesh(throatGeom, this.throatMat);
-    throatMesh.rotation.x = Math.PI * 0.5;
-    throatMesh.position.set(0, 0.02, 0.06);
-    this.splitShellMeshGroup.add(throatMesh);
+    // Maroon facial marking patch across anterior brow/snout (`f_018`)
+    const markingGeom = new SphereGeometry(0.16, 12, 10);
+    markingGeom.scale(1.15, 0.72, 0.85);
+    this.facialMarkingMesh = new Mesh(markingGeom, this.facialMarkingMat);
+    this.facialMarkingMesh.name = 'MaroonFacialMarking';
+    this.facialMarkingMesh.position.set(0, 0.04, -0.15);
+    this.splitShellMeshGroup.add(this.facialMarkingMesh);
 
-    // Wet crimson gums rim
-    const gumsGeom = buildMuscularSegmentGeometry(0.12, 0.18, 0.17, 0.15, 12, 4);
-    const gumsMesh = new Mesh(gumsGeom, this.gumsMat);
-    gumsMesh.rotation.x = Math.PI * 0.5;
-    gumsMesh.position.set(0, 0.01, -0.02);
-    this.splitShellMeshGroup.add(gumsMesh);
+    // Small dark mouth recess (`f_018`: "small dark mouth")
+    const mouthGeom = new SphereGeometry(0.075, 10, 8);
+    mouthGeom.scale(1.15, 0.55, 0.90);
+    this.smallMouthMesh = new Mesh(mouthGeom, this.pitMat);
+    this.smallMouthMesh.name = 'SmallDarkMouth';
+    this.smallMouthMesh.position.set(0, -0.06, -0.22);
+    this.splitShellMeshGroup.add(this.smallMouthMesh);
 
-    // Jaw container
+    // 32 Dark seed-pod pits recessed across the rounded dome (`f_018`)
+    const pitGeom = new SphereGeometry(0.022, 7, 7);
+    this.headPitsMesh = new InstancedMesh(pitGeom, this.pitMat, SEED_POD_PIT_COORDS.length);
+    this.headPitsMesh.name = 'SeedPodHeadPits';
+    this.headPitsMesh.instanceMatrix.setUsage(DynamicDrawUsage);
+
+    const pitMat4 = new Matrix4();
+    for (let i = 0; i < SEED_POD_PIT_COORDS.length; i++) {
+      const [px, py, pz] = SEED_POD_PIT_COORDS[i]!;
+      pitMat4.makeTranslation(px, py, pz);
+      this.headPitsMesh.setMatrixAt(i, pitMat4);
+    }
+    this.headPitsMesh.instanceMatrix.needsUpdate = true;
+    this.splitShellMeshGroup.add(this.headPitsMesh);
+
+    // Single hinged lower jaw (no 4-petal split shell)
     this.jawGroup.name = 'Rig_Jaw';
     this.headGroup.add(this.jawGroup);
 
-    // 4-Petal Split Jaws (left, right, top, bottom petals)
-    this.leftJawLobe.name = 'LeftJawLobe';
-    this.leftJawLobe.position.set(0.04, 0, 0);
-    const leftLobeGeom = buildJawLobeGeometry('left');
-    const leftLobeMesh = new Mesh(leftLobeGeom, this.shellMat);
-    this.leftJawLobe.add(leftLobeMesh);
-    this.jawGroup.add(this.leftJawLobe);
+    this.lowerJaw.name = 'SingleLowerJaw';
+    this.lowerJaw.position.set(0, -0.07, -0.08);
+    const singleJawGeom = buildMuscularSegmentGeometry(0.18, 0.13, 0.11, 0.08, 10, 5);
+    const singleJawMesh = new Mesh(singleJawGeom, this.headSkinMat);
+    singleJawMesh.name = 'SingleLowerJawMesh';
+    singleJawMesh.rotation.x = Math.PI * 0.5;
+    this.lowerJaw.add(singleJawMesh);
+    this.jawGroup.add(this.lowerJaw);
 
-    this.rightJawLobe.name = 'RightJawLobe';
-    this.rightJawLobe.position.set(-0.04, 0, 0);
-    const rightLobeGeom = buildJawLobeGeometry('right');
-    const rightLobeMesh = new Mesh(rightLobeGeom, this.shellMat);
-    this.rightJawLobe.add(rightLobeMesh);
-    this.jawGroup.add(this.rightJawLobe);
+    // Attach empty compatibility lobe groups (0 meshes) so animator calls remain safe
+    this.jawGroup.add(this.leftJawLobe, this.rightJawLobe, this.topJawLobe, this.bottomJawLobe);
 
-    this.topJawLobe.name = 'TopJawLobe';
-    this.topJawLobe.position.set(0, 0.04, 0);
-    const topLobeGeom = buildJawLobeGeometry('top');
-    const topLobeMesh = new Mesh(topLobeGeom, this.shellMat);
-    this.topJawLobe.add(topLobeMesh);
-    this.jawGroup.add(this.topJawLobe);
-
-    this.bottomJawLobe.name = 'BottomJawLobe';
-    this.bottomJawLobe.position.set(0, -0.04, 0);
-    const bottomLobeGeom = buildJawLobeGeometry('bottom');
-    const bottomLobeMesh = new Mesh(bottomLobeGeom, this.shellMat);
-    this.bottomJawLobe.add(bottomLobeMesh);
-    this.jawGroup.add(this.bottomJawLobe);
-
-    // Double Concentric Teeth Ring: 36 sharp inward-curving off-white teeth (#e8dec5)
-    const toothGeom = buildNeedleToothGeometry(0.068, 0.011);
-    this.teethMesh = new InstancedMesh(toothGeom, this.boneMat, 36);
-    this.teethMesh.name = 'ConcentricTeethRing';
+    // Subtle inner mouth teeth recessed inside the small dark mouth (visible only on close attack)
+    const toothGeom = buildNeedleToothGeometry(0.038, 0.007);
+    this.teethMesh = new InstancedMesh(toothGeom, this.boneMat, 12);
+    this.teethMesh.name = 'InnerMouthTeeth';
     this.teethMesh.instanceMatrix.setUsage(DynamicDrawUsage);
-
-    const m = new Matrix4();
-    const rotM = new Matrix4();
-    const scaleM = new Matrix4();
-    const rake = new Matrix4();
-
-    const teethConfig = [
-      { count: 10, start: 0, rx: 0.17, rz: 0.20, zOff: -0.02, y: 0.078, flip: true, rakeAngle: 0.22, baseScale: 0.88, varScale: 0.35, freq: 1.5, useSin: true },
-      { count: 10, start: 10, rx: 0.16, rz: 0.19, zOff: -0.02, y: -0.068, flip: false, rakeAngle: -0.25, baseScale: 0.88, varScale: 0.35, freq: 1.7, useSin: false },
-      { count: 8, start: 20, rx: 0.11, rz: 0.13, zOff: -0.06, y: 0.052, flip: true, rakeAngle: 0.30, baseScale: 0.70, varScale: 0.25, freq: 1.8, useSin: true },
-      { count: 8, start: 28, rx: 0.10, rz: 0.12, zOff: -0.06, y: -0.045, flip: false, rakeAngle: -0.32, baseScale: 0.70, varScale: 0.25, freq: 1.9, useSin: false },
-    ];
-
-    for (const cfg of teethConfig) {
-      for (let i = 0; i < cfg.count; i++) {
-        const angle = (i / (cfg.count - 1)) * Math.PI - Math.PI * 0.5;
-        const tx = Math.sin(angle) * cfg.rx;
-        const tz = -Math.cos(angle) * cfg.rz + cfg.zOff;
-        const toothScale = cfg.baseScale + Math.abs(cfg.useSin ? Math.sin(i * cfg.freq) : Math.cos(i * cfg.freq)) * cfg.varScale;
-
-        m.makeTranslation(tx, cfg.y, tz);
-        if (cfg.flip) {
-          rotM.makeRotationZ(Math.PI);
-          m.multiply(rotM);
-        }
-        rake.makeRotationX(cfg.rakeAngle);
-        m.multiply(rake);
-        scaleM.makeScale(toothScale, toothScale, toothScale);
-        m.multiply(scaleM);
-        this.teethMesh.setMatrixAt(cfg.start + i, m);
-      }
+    for (let i = 0; i < 12; i++) {
+      const angle = (i / 11) * Math.PI - Math.PI * 0.5;
+      pitMat4.makeTranslation(Math.sin(angle) * 0.06, -0.05, -0.18 - Math.cos(angle) * 0.05);
+      this.teethMesh.setMatrixAt(i, pitMat4);
     }
     this.teethMesh.instanceMatrix.needsUpdate = true;
-    this.jawGroup.add(this.teethMesh);
+    this.lowerJaw.add(this.teethMesh);
 
-    // Dripping wet slimy tendrils around jaw perimeter
-    const tendrilMat = new MeshStandardMaterial({
-      color: new Color('#1c0c09'),
-      roughness: 0.10,
-      metalness: 0.08,
-    });
-    this.materials.push(tendrilMat);
-    const tendrilGeom = buildCurvedClawGeometry(0.14, 0.008);
-    for (let ti = 0; ti < 6; ti++) {
-      const tMesh = new Mesh(tendrilGeom, tendrilMat);
-      const tAngle = (ti / 5) * Math.PI - Math.PI * 0.5;
-      tMesh.position.set(Math.sin(tAngle) * 0.12, -0.06, -0.08 - Math.cos(tAngle) * 0.05);
-      tMesh.scale.set(0.65, 0.9, 0.65);
-      this.jawGroup.add(tMesh);
-    }
+    this.setJawSplit(0.08);
 
-    // Subtle pale bio-luminescent specular catchlights in throat (#a0f0d0)
-    const catchlightMat = new MeshStandardMaterial({
-      color: new Color('#a0f0d0'),
-      emissive: new Color('#a0f0d0'),
-      emissiveIntensity: 0.45,
-      roughness: 0.15,
-      metalness: 0.10,
-    });
-    this.materials.push(catchlightMat);
-    const catchlightGeom = new SphereGeometry(0.012, 6, 6);
-    for (const cOff of [-0.045, 0.045]) {
-      const clMesh = new Mesh(catchlightGeom, catchlightMat);
-      clMesh.position.set(cOff, 0.015, -0.09);
-      this.splitShellMeshGroup.add(clMesh);
-    }
-
-    // Initial 18° prowl gap
-    this.setJawSplit(0.15);
-
-    // ──────────────────────────────────────────────────────────────────────────
-    // 3b. Tilted Mutated Skull Head Variant (cocked 35° sideways with hollow sockets)
-    // ──────────────────────────────────────────────────────────────────────────
-    this.mutatedSkullGroup.name = 'MutatedSkullHeadVariant';
+    // Secondary tilted head pose group (uses same seed-pod dome anatomy)
+    this.mutatedSkullGroup.name = 'TiltedPodHeadVariant';
     this.mutatedSkullGroup.visible = false;
+    this.mutatedSkullGroup.rotation.z = 0.61;
+    this.mutatedSkullGroup.rotation.y = 0.15;
+    const tiltedPodMesh = new Mesh(podHeadGeom, this.headSkinMat);
+    this.mutatedSkullGroup.add(tiltedPodMesh);
     this.headGroup.add(this.mutatedSkullGroup);
 
-    const skullBaseGeom = buildMuscularSegmentGeometry(0.35, 0.19, 0.18, 0.14, 10, 6);
-    const skullBaseMesh = new Mesh(skullBaseGeom, this.monsterSkinMat);
-    skullBaseMesh.rotation.x = Math.PI * 0.5;
-    this.mutatedSkullGroup.add(skullBaseMesh);
-
-    // Cocked 35° sideways rotation
-    this.mutatedSkullGroup.rotation.z = 0.61; // ~35° tilt
-    this.mutatedSkullGroup.rotation.y = 0.15;
-
-    // Hollow dark orbital cavities
-    const orbitGeom = buildMuscularSegmentGeometry(0.06, 0.045, 0.04, 0.02, 8, 3);
-    const orbitL = new Mesh(orbitGeom, this.throatMat);
-    orbitL.position.set(0.08, 0.08, -0.16);
-    this.mutatedSkullGroup.add(orbitL);
-
-    const orbitR = new Mesh(orbitGeom, this.throatMat);
-    orbitR.position.set(-0.08, 0.08, -0.16);
-    this.mutatedSkullGroup.add(orbitR);
-
     // ──────────────────────────────────────────────────────────────────────────
-    // 4. Quadrupedal Forelimbs (Upper Arm 0.65m, Forearm 0.70m, Hand + 4 Claws 0.28m)
+    // 4. Disproportionately Long Forelimbs (`f_010`, `f_018`: 0.65m upper + 0.70m forearm
+    //    = 1.35m, ratio 2.08x torso; 4 splayed clawed fingers 0.28m dragging in water)
     // ──────────────────────────────────────────────────────────────────────────
-    // Left Forelimb: wide deltoid mount at x = 0.625m (half of 1.25m chest)
     this.shoulderL.name = 'Rig_ShoulderL';
     this.shoulderL.position.set(0.625, 0.02, -0.15);
     this.upperChest.add(this.shoulderL);
 
     this.upperArmL.name = 'Rig_UpperArmL';
-    const upperArmGeom = buildMuscularSegmentGeometry(0.65, 0.16, 0.14, 0.11, 10, 8);
+    const upperArmGeom = buildMuscularSegmentGeometry(this.upperArmLengthM, 0.15, 0.14, 0.11, 10, 8);
     const upperArmMeshL = new Mesh(upperArmGeom, this.monsterSkinMat);
     this.upperArmL.add(upperArmMeshL);
     this.shoulderL.add(this.upperArmL);
 
     this.elbowL.name = 'Rig_ElbowL';
-    this.elbowL.position.set(0, -0.65, 0);
+    this.elbowL.position.set(0, -this.upperArmLengthM, 0);
     this.upperArmL.add(this.elbowL);
 
     this.forearmL.name = 'Rig_ForearmL';
-    const forearmGeom = buildMuscularSegmentGeometry(0.70, 0.12, 0.13, 0.09, 10, 8);
+    const forearmGeom = buildMuscularSegmentGeometry(this.forearmLengthM, 0.12, 0.13, 0.095, 10, 8);
     const forearmMeshL = new Mesh(forearmGeom, this.monsterSkinMat);
     this.forearmL.add(forearmMeshL);
     this.elbowL.add(this.forearmL);
 
     this.wristL.name = 'Rig_WristL';
-    this.wristL.position.set(0, -0.70, 0);
+    this.wristL.position.set(0, -this.forearmLengthM, 0);
     this.forearmL.add(this.wristL);
 
     this.handL.name = 'Rig_HandL';
-    const palmGeom = buildMuscularSegmentGeometry(0.14, 0.11, 0.12, 0.08, 8, 4);
+    const palmGeom = buildMuscularSegmentGeometry(0.14, 0.10, 0.11, 0.08, 8, 4);
     const palmMeshL = new Mesh(palmGeom, this.monsterSkinMat);
     this.handL.add(palmMeshL);
     this.wristL.add(this.handL);
 
-    // 4 Curved Talons (0.28m each)
+    // 4 Long Splayed Clawed Fingers (0.28m each)
     this.clawsL.name = 'Rig_ClawsL';
     this.clawsL.position.set(0, -0.14, 0);
     this.handL.add(this.clawsL);
 
-    const clawGeom = buildCurvedClawGeometry(0.28, 0.022);
+    const clawGeom = buildCurvedClawGeometry(this.clawLengthM, 0.022);
     for (let c = 0; c < 4; c++) {
       const clawMesh = new Mesh(clawGeom, this.boneMat);
-      const cx = (c - 1.5) * 0.048;
-      clawMesh.position.set(cx, 0, -0.02 - Math.abs(c - 1.5) * 0.012);
-      clawMesh.rotation.z = (c - 1.5) * 0.08;
+      const cx = (c - 1.5) * 0.052;
+      clawMesh.position.set(cx, 0, -0.02 - Math.abs(c - 1.5) * 0.014);
+      clawMesh.rotation.z = (c - 1.5) * 0.14; // Splayed fingers
       this.clawsL.add(clawMesh);
     }
 
-    // Right Forelimb: wide deltoid mount at x = -0.625m
+    // Right Forelimb
     this.shoulderR.name = 'Rig_ShoulderR';
     this.shoulderR.position.set(-0.625, 0.02, -0.15);
     this.upperChest.add(this.shoulderR);
@@ -956,7 +888,7 @@ export class MonsterRig {
     this.shoulderR.add(this.upperArmR);
 
     this.elbowR.name = 'Rig_ElbowR';
-    this.elbowR.position.set(0, -0.65, 0);
+    this.elbowR.position.set(0, -this.upperArmLengthM, 0);
     this.upperArmR.add(this.elbowR);
 
     this.forearmR.name = 'Rig_ForearmR';
@@ -965,7 +897,7 @@ export class MonsterRig {
     this.elbowR.add(this.forearmR);
 
     this.wristR.name = 'Rig_WristR';
-    this.wristR.position.set(0, -0.70, 0);
+    this.wristR.position.set(0, -this.forearmLengthM, 0);
     this.forearmR.add(this.wristR);
 
     this.handR.name = 'Rig_HandR';
@@ -979,22 +911,21 @@ export class MonsterRig {
 
     for (let c = 0; c < 4; c++) {
       const clawMesh = new Mesh(clawGeom, this.boneMat);
-      const cx = (c - 1.5) * 0.048;
-      clawMesh.position.set(cx, 0, -0.02 - Math.abs(c - 1.5) * 0.012);
-      clawMesh.rotation.z = (c - 1.5) * 0.08;
+      const cx = (c - 1.5) * 0.052;
+      clawMesh.position.set(cx, 0, -0.02 - Math.abs(c - 1.5) * 0.014);
+      clawMesh.rotation.z = (c - 1.5) * 0.14;
       this.clawsR.add(clawMesh);
     }
 
     // ──────────────────────────────────────────────────────────────────────────
     // 5. Digitigrade Hindlimbs (Thigh 0.58m, Shin 0.55m, Foot planted in pool floor)
     // ──────────────────────────────────────────────────────────────────────────
-    // Left Hindlimb
     this.hipL.name = 'Rig_HipL';
     this.hipL.position.set(0.38, -0.15, 0.05);
     this.pelvis.add(this.hipL);
 
     this.thighL.name = 'Rig_ThighL';
-    const thighGeom = buildMuscularSegmentGeometry(0.58, 0.17, 0.16, 0.11, 10, 8);
+    const thighGeom = buildMuscularSegmentGeometry(0.58, 0.16, 0.15, 0.11, 10, 8);
     const thighMeshL = new Mesh(thighGeom, this.monsterSkinMat);
     this.thighL.add(thighMeshL);
     this.hipL.add(this.thighL);
@@ -1004,7 +935,7 @@ export class MonsterRig {
     this.thighL.add(this.kneeL);
 
     this.shinL.name = 'Rig_ShinL';
-    const shinGeom = buildMuscularSegmentGeometry(0.55, 0.11, 0.12, 0.08, 10, 8);
+    const shinGeom = buildMuscularSegmentGeometry(0.55, 0.11, 0.11, 0.08, 10, 8);
     const shinMeshL = new Mesh(shinGeom, this.monsterSkinMat);
     this.shinL.add(shinMeshL);
     this.kneeL.add(this.shinL);
@@ -1020,7 +951,6 @@ export class MonsterRig {
     this.footL.add(footMeshL);
     this.ankleL.add(this.footL);
 
-    // Webbed claws on foot
     for (let c = 0; c < 3; c++) {
       const footClaw = new Mesh(clawGeom, this.boneMat);
       footClaw.scale.set(0.65, 0.65, 0.65);
@@ -1028,7 +958,6 @@ export class MonsterRig {
       this.footL.add(footClaw);
     }
 
-    // Right Hindlimb
     this.hipR.name = 'Rig_HipR';
     this.hipR.position.set(-0.38, -0.15, 0.05);
     this.pelvis.add(this.hipR);
@@ -1064,7 +993,6 @@ export class MonsterRig {
       this.footR.add(footClaw);
     }
 
-    // Disable frustum culling on all child meshes
     this.rootGroup.traverse((obj) => {
       if ((obj as Mesh).isMesh) {
         (obj as Mesh).frustumCulled = false;
@@ -1073,11 +1001,12 @@ export class MonsterRig {
   }
 
   /**
-   * Sets the 4-petal split flare of all four jaw lobes:
-   * 0 rad = closed, 0.15 rad = ~18° prowl gap, 0.65 to 1.31 rad = ~75° roar/lunge flare.
+   * Hinges the single small dark mouth / lower jaw (`SingleLowerJaw`).
+   * Keeps empty compatibility lobe rotations updated for legacy callers.
    */
   setJawSplit(angleRad: number): void {
     this.currentJawSplitRad = angleRad;
+    this.lowerJaw.rotation.x = angleRad * 0.45;
     this.leftJawLobe.rotation.y = angleRad;
     this.rightJawLobe.rotation.y = -angleRad;
     this.topJawLobe.rotation.x = -angleRad;
@@ -1088,9 +1017,6 @@ export class MonsterRig {
     return this.currentJawSplitRad;
   }
 
-  /**
-   * Toggles between the signature split-shell head and the tilted 35° mutated skull head.
-   */
   setSkullVariant(variant: SkullVariant): void {
     this.currentVariant = variant;
     if (variant === 'splitShell') {
@@ -1116,9 +1042,6 @@ export class MonsterRig {
     this.agitationUniform.value = agitation;
   }
 
-  /**
-   * Exposes a compatible MonsterJoints interface for IK solvers and presentation controllers.
-   */
   getJoints(): MonsterJoints {
     return {
       root: this.rootGroup,
@@ -1151,7 +1074,9 @@ export class MonsterRig {
         (obj as Mesh).geometry.dispose();
       }
     });
-    this.materials.forEach((m) => m.dispose());
+    const uniqueMats = new Set(this.materials);
+    uniqueMats.forEach((m) => m.dispose());
+    this.textures.forEach((t) => t.dispose());
     this.rootGroup.removeFromParent();
   }
 }

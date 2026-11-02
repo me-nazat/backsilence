@@ -1,0 +1,92 @@
+[
+  {
+    "id": "creature_close_6m",
+    "distM": 6,
+    "refFrame": "f_018",
+    "shotId": "creature_close_6m",
+    "width": 1280,
+    "height": 720,
+    "center": [
+      640,
+      360
+    ],
+    "halfBox": [
+      150,
+      130
+    ],
+    "bodyPixels": 16589,
+    "headPixels": 3820,
+    "bodyMeanRgb255": [
+      89.94,
+      80.03,
+      53.37
+    ],
+    "headMeanRgb255": [
+      83.98,
+      74.98,
+      45.67
+    ],
+    "maxROverG": 1.1351,
+    "minLuminance": 0.2623
+  },
+  {
+    "id": "creature_mid_15m",
+    "distM": 15,
+    "refFrame": "f_010",
+    "shotId": "creature_mid_15m",
+    "width": 1280,
+    "height": 720,
+    "center": [
+      640,
+      353
+    ],
+    "halfBox": [
+      78,
+      68
+    ],
+    "bodyPixels": 4453,
+    "headPixels": 1041,
+    "bodyMeanRgb255": [
+      89.95,
+      80.04,
+      53.37
+    ],
+    "headMeanRgb255": [
+      84.05,
+      75.05,
+      45.76
+    ],
+    "maxROverG": 1.1343,
+    "minLuminance": 0.2623
+  },
+  {
+    "id": "creature_far_35m",
+    "distM": 35,
+    "refFrame": "f_021",
+    "shotId": "creature_far_35m",
+    "width": 1280,
+    "height": 720,
+    "center": [
+      640,
+      346
+    ],
+    "halfBox": [
+      39,
+      34
+    ],
+    "bodyPixels": 1109,
+    "headPixels": 262,
+    "bodyMeanRgb255": [
+      89.84,
+      79.94,
+      53.29
+    ],
+    "headMeanRgb255": [
+      84.24,
+      75.24,
+      45.9
+    ],
+    "maxROverG": 1.1343,
+    "minLuminance": 0.2623
+  }
+]

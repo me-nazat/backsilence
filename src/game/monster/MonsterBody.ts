@@ -64,7 +64,7 @@ export class MonsterBody {
   constructor(
     id: string,
     scale = 1.0,
-    tint = '#6b5f40',
+    tint = '#5a5035',
     water?: WaterSystem,
     audio?: AudioEngine,
   ) {

@@ -62,16 +62,15 @@ describe('Batch 2: Monster Rig, Locomotion, and Jumpscare', () => {
     });
 
     it('creates wet leathery skin shader with clearcoat and readability hooks', () => {
-      const rig = new MonsterRig(1.0, '#2b211b');
+      const rig = new MonsterRig(1.0, '#5a5035');
       const skinMat = rig.monsterSkinMat;
 
-      // Video 1 / Video 2 PBR leathery flesh specifications
-      expect(skinMat.roughness).toBeCloseTo(0.24, 2);
-      expect(skinMat.metalness).toBeCloseTo(0.08, 2);
+      expect(skinMat.roughness).toBeCloseTo(0.34, 2);
+      expect(skinMat.metalness).toBeCloseTo(0.04, 2);
 
       const customProps = skinMat as unknown as { clearcoat?: number; clearcoatRoughness?: number };
-      expect(customProps.clearcoat).toBeCloseTo(0.65, 2);
-      expect(customProps.clearcoatRoughness).toBeCloseTo(0.2, 2);
+      expect(customProps.clearcoat).toBeCloseTo(0.45, 2);
+      expect(customProps.clearcoatRoughness).toBeCloseTo(0.24, 2);
 
       // Verify shader compilation hooks
       expect(typeof skinMat.onBeforeCompile).toBe('function');
@@ -82,32 +81,28 @@ describe('Batch 2: Monster Rig, Locomotion, and Jumpscare', () => {
       };
       (skinMat.onBeforeCompile as (s: unknown) => void)(fakeShader);
 
-      // Extinction reduction for distant silhouette
-      expect(fakeShader.fragmentShader).toContain('fogFactor * 0.55');
-      // Submerged and waterline wetness darkening
-      expect(fakeShader.fragmentShader).toContain('roughnessFactor = mix(roughnessFactor, 0.10, wetT * 0.9)');
-      expect(fakeShader.fragmentShader).toContain('diffuseColor.rgb *= mix(1.0, 0.85, submergedT)');
-      // Mucus sheen & cool rim
+      // Full 1.0 fog extinction (no * 0.55 exemption) and zero red abyssalRim
+      expect(fakeShader.fragmentShader).toContain('fogFactor * 1.0');
+      expect(fakeShader.fragmentShader).not.toContain('fogFactor * 0.55');
+      expect(fakeShader.fragmentShader).not.toContain('abyssalRim');
+      // Distance-attenuated wet (<=10%) and submerged (<=8%) darkening
+      expect(fakeShader.fragmentShader).toContain('diffuseColor.rgb *= mix(1.0, 0.90, wetT * distAtten)');
+      expect(fakeShader.fragmentShader).toContain('diffuseColor.rgb *= mix(1.0, 0.92, submergedT * distAtten)');
+      // Wrap lighting gated on NdotL + back-lit SSS translucency + tamed mucusSheen
+      expect(fakeShader.fragmentShader).toContain('wrapLight');
+      expect(fakeShader.fragmentShader).toContain('sssTranslucency');
       expect(fakeShader.fragmentShader).toContain('mucusSheen');
-      expect(fakeShader.fragmentShader).toContain('coolTopRim');
 
       rig.dispose();
     });
 
-    it('verifies 9 dorsal vertebral processes and tattered pelvis wrap', () => {
-      const rig = new MonsterRig(1.0, '#2b211b');
+    it('verifies zero dorsal ridges, gaunt ribcage torso, and long tapering tail', () => {
+      const rig = new MonsterRig(1.0, '#5a5035');
 
-      // Protruding bony ridges along spine
-      expect([9, 10]).toContain(rig.dorsalRidges.length);
-      for (let i = 0; i < rig.dorsalRidges.length; i++) {
-        const ridge = rig.dorsalRidges[i]!;
-        expect(ridge.name).toBe(`DorsalRidge_${i + 1}`);
-        expect(ridge.geometry.attributes.position?.count).toBeGreaterThan(0);
-      }
-
-      // Tattered loin wrap on pelvis
-      const wrapMesh = rig.pelvis.getObjectByName('TatteredPelvisWrap');
-      expect(wrapMesh).toBeDefined();
+      expect(rig.dorsalRidges.length).toBe(0);
+      expect(rig.dorsalSpineGroup.children.length).toBe(0);
+      expect(rig.tailGroup).toBeDefined();
+      expect(rig.tailMesh.geometry.attributes.position?.count).toBeGreaterThan(0);
 
       rig.dispose();
     });
@@ -145,26 +140,23 @@ describe('Batch 2: Monster Rig, Locomotion, and Jumpscare', () => {
       rig.dispose();
     });
 
-    it('constructs split-shell toothed head with 28 teeth, deep throat, and vertical jaw split', () => {
-      const rig = new MonsterRig(1.0, '#2b211b');
+    it('constructs seed-pod dome head with 32 dark pits, maroon marking, small dark mouth, and single hinged jaw', () => {
+      const rig = new MonsterRig(1.0, '#5a5035');
 
-      // Concentric teeth ring: 28 or 36 teeth
-      expect(rig.teethMesh).toBeDefined();
-      expect([28, 36]).toContain(rig.teethMesh.count);
+      expect(rig.headPitsMesh).toBeDefined();
+      expect(rig.headPitsMesh.count).toBe(32);
+      expect(rig.podHeadMesh).toBeDefined();
+      expect(rig.facialMarkingMesh).toBeDefined();
+      expect(rig.smallMouthMesh).toBeDefined();
+      expect(rig.lowerJaw).toBeDefined();
 
-      // Split jaw lobes
-      expect(rig.leftJawLobe).toBeDefined();
-      expect(rig.rightJawLobe).toBeDefined();
-
-      // Prowl 18° gap (~0.15 rad)
+      // Prowl mouth hinge
       rig.setJawSplit(0.15);
-      expect(rig.leftJawLobe.rotation.y).toBeCloseTo(0.15, 2);
-      expect(rig.rightJawLobe.rotation.y).toBeCloseTo(-0.15, 2);
+      expect(rig.lowerJaw.rotation.x).toBeCloseTo(0.15 * 0.45, 2);
 
-      // Roar / lunge 75° split (±0.65 rad)
+      // Roar / lunge mouth hinge
       rig.setJawSplit(0.65);
-      expect(rig.leftJawLobe.rotation.y).toBeCloseTo(0.65, 2);
-      expect(rig.rightJawLobe.rotation.y).toBeCloseTo(-0.65, 2);
+      expect(rig.lowerJaw.rotation.x).toBeCloseTo(0.65 * 0.45, 2);
 
       rig.dispose();
     });

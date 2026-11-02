@@ -160,40 +160,37 @@ describe('Prompt 4B: Quadrupedal Horror Monster Rig & Eliminating Wake Streaks',
     mat.dispose();
   });
 
-  it('constructs hulking horror creature in MonsterRig with articulated spine, 4-petal jaws, and concentric teeth', () => {
+  it('constructs reference footage creature in MonsterRig with seed-pod pitted head, long forelimbs, tapering tail, and palette.json skin colours (#5a5035 / #59462d)', () => {
     const rig = new MonsterRig(1.0);
 
-    // Protruding dorsal vertebrae along the arched spine
-    expect(rig.dorsalRidges.length).toBeGreaterThanOrEqual(8);
-    expect(rig.dorsalRidges[rig.dorsalRidges.length - 1]!.name).toBe(
-      `DorsalRidge_${rig.dorsalRidges.length}`,
-    );
+    // Zero dorsal ridges per reference footage (`f_010`, `f_018`, `f_037`)
+    expect(rig.dorsalRidges.length).toBe(0);
+    expect(rig.headPitsMesh.count).toBeGreaterThanOrEqual(28);
+    expect(rig.tailLengthM).toBeGreaterThanOrEqual(0.95);
+    expect(rig.forelimbLengthM / rig.torsoLengthM).toBeGreaterThanOrEqual(1.85);
 
-    // Flesh and shell materials have low wet roughness and dark organic tone
-    expect(rig.monsterSkinMat.roughness).toBeLessThanOrEqual(0.35);
+    // Compare body and head skin colours against `reference/video/palette.json` (`monster_body_t34` #5a5035, `monster_head_t34` #59462d)
+    const refBodyHex = paletteJson.monster_body_t34!.hex!.toLowerCase();
+    const refHeadHex = paletteJson.monster_head_t34!.hex!.toLowerCase();
+    expect(`#${rig.monsterSkinMat.color.getHexString().toLowerCase()}`).toBe(refBodyHex);
+    expect(`#${rig.headSkinMat.color.getHexString().toLowerCase()}`).toBe(refHeadHex);
     expect(rig.monsterSkinMat.color.r).toBeGreaterThan(rig.monsterSkinMat.color.b);
-    expect(rig.shellMat.color.r).toBeGreaterThan(rig.shellMat.color.g);
+    expect(rig.headSkinMat.color.r).toBeGreaterThan(rig.headSkinMat.color.b);
 
-    // 4-petal split jaws
-    expect(rig.leftJawLobe).toBeDefined();
-    expect(rig.rightJawLobe).toBeDefined();
-    expect(rig.topJawLobe).toBeDefined();
-    expect(rig.bottomJawLobe).toBeDefined();
-
-    // Double concentric tooth ring
-    expect(rig.teethMesh).toBeDefined();
-    expect(rig.teethMesh.count).toBeGreaterThanOrEqual(24);
+    // Single hinged lower jaw & small dark mouth (no 4-petal split shell meshes)
+    expect(rig.lowerJaw).toBeDefined();
+    expect(rig.leftJawLobe.children.length).toBe(0);
+    expect(rig.rightJawLobe.children.length).toBe(0);
 
     // Curved claws on each hand
-    const clawGeom = buildCurvedClawGeometry(0.32, 0.024);
+    const clawGeom = buildCurvedClawGeometry(0.28, 0.022);
     expect(clawGeom.getAttribute('position')).toBeDefined();
-    expect(rig.clawsL.children.length).toBeGreaterThanOrEqual(3);
+    expect(rig.clawsL.children.length).toBeGreaterThanOrEqual(4);
     expect(rig.clawsR.children.length).toBe(rig.clawsL.children.length);
 
-    // 4-petal jaw flare symmetry
+    // Jaw hinge updates cleanly
     rig.setJawSplit(0.65);
-    expect(rig.leftJawLobe.rotation.y).toBeCloseTo(-rig.rightJawLobe.rotation.y, 3);
-    expect(rig.topJawLobe.rotation.x).toBeCloseTo(-rig.bottomJawLobe.rotation.x, 3);
+    expect(rig.lowerJaw.rotation.x).toBeCloseTo(0.65 * 0.45, 3);
 
     rig.dispose();
   });
