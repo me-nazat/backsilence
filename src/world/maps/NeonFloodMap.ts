@@ -31,9 +31,9 @@ import type { LightStreak } from '../../game/water/WaterMaterial.js';
 
 export const NeonFloodMap: MapDefinition = {
   id: 'neon_flood',
-  name: 'Neon Flood District',
-  tagline: 'Sector 9 in a permanent storm: searchlight drones above, the entity below.',
-  stars: 4,
+  name: 'Neon Flood City (Cyberpunk Downtown Streets)',
+  tagline: 'Flooded urban canyon at night, glowing neon reflections in dark water, rooftop ledges and trucks.',
+  stars: 5,
   reverb: 'city',
   acoustics: {
     hearingMul: 1.0,

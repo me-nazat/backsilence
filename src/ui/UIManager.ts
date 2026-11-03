@@ -29,6 +29,7 @@ import { ResultsScreen, type RunResults } from './ResultsScreen.js';
 import { KeypadModal } from './KeypadModal.js';
 import { MetaHubPanel } from './MetaHubPanel.js';
 import type { MapDefinition, LayoutData } from '../world/MapTypes.js';
+import { normalizeMapId } from '../world/SectorProgression.js';
 import type { AudioLabPanel } from '../lab/AudioLabPanel.js';
 
 // New Archive Screens
@@ -277,6 +278,7 @@ export class UIManager {
       onDiveOnline: () => this.navigateTo('ROOM_LINK'),
       onDailyDescent: () => handleSelectMode('daily'),
       onOpenPlayHub: () => this.navigateTo('PLAY_HUB'),
+      onOpenMaps: () => this.navigateTo('MAPS'),
       onSelectMode: handleSelectMode,
       onOpenBestiary: () => this.navigateTo('BESTIARY'),
       onOpenLeaderboards: () => this.navigateTo('LEADERBOARDS'),
@@ -289,14 +291,20 @@ export class UIManager {
 
     this.playHubScreen = new PlayHubScreen({
       onSelectMode: handleSelectMode,
+      onOpenMaps: () => this.navigateTo('MAPS'),
       onBack: () => this.goBack(),
     });
 
     this.mapsScreen = new MapsScreen({
       onSelectMap: (mapId) => {
+        const norm = normalizeMapId(mapId);
+        this.setUIState('ACTIVE_GAMEPLAY');
+        this.isAudioUnlocked = true;
+        const engine = AudioEngine.getInstance();
+        void engine.init().then(() => engine.startAmbience());
         this.startGame({
           mode: 'single',
-          mapId: mapId as MapId,
+          mapId: norm,
           difficulty: 2,
           seed: Date.now(),
           subMode: 'campaign',

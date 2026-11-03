@@ -102,6 +102,7 @@ export const GAME_MODES: GameModeInfo[] = [
 
 export interface PlayHubCallbacks {
   onSelectMode: (modeId: string) => void;
+  onOpenMaps?: () => void;
   onBack: () => void;
 }
 
@@ -187,6 +188,16 @@ export class PlayHubScreen {
 
     const wrap = this.element.querySelector('#btn-back-wrap');
     if (wrap) {
+      const mapsBtn = new Button({
+        text: 'SELECT MAP (11 SECTORS)',
+        variant: 'primary',
+        onClick: () => this.callbacks.onOpenMaps?.(),
+      });
+      mapsBtn.element.id = 'btn-open-maps-from-hub';
+      mapsBtn.element.style.fontSize = '12px';
+      mapsBtn.element.style.fontWeight = '700';
+      wrap.appendChild(mapsBtn.element);
+
       const practiceBtn = new Button({
         text: 'GUIDED PRACTICE',
         variant: 'ghost',

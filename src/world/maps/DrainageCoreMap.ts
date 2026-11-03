@@ -13,9 +13,9 @@ import { buildStandardMapInstance } from './CommonMapBuilder.js';
 
 export const DrainageCoreMap: MapDefinition = {
   id: 'drainage_core',
-  name: 'The Abyssal Drainage Core',
-  tagline: 'Total darkness and glowing bioluminescent water. Three blind entities hunt in the deep.',
-  stars: 5,
+  name: 'Drainage Core (Municipal Waterworks & Turbine Hall)',
+  tagline: 'Industrial sewer brick, massive copper drainage pipes, catwalk grates with hazard curbs, and sodium lighting.',
+  stars: 4,
   reverb: 'drain',
   acoustics: {
     hearingMul: 1.0,

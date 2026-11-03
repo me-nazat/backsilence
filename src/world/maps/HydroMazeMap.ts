@@ -14,8 +14,8 @@ import { buildStandardMapInstance } from './CommonMapBuilder.js';
 
 export const HydroMazeMap: MapDefinition = {
   id: 'hydro_maze',
-  name: 'The Hydro-Filtration Maze',
-  tagline: 'An industrial filtration labyrinth that breathes, shifting water levels every 45 seconds.',
+  name: 'Mangrove Canopy Swamp (Deep Bayou)',
+  tagline: 'Twilight amber fog, twisting mangrove aerial roots, dark jade water, and weathered wooden boardwalks.',
   stars: 4,
   reverb: 'tunnel',
   acoustics: {

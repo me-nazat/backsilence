@@ -30,8 +30,8 @@ const PASSWORD_WORDS = ['HUSH', 'DRIP', 'MUTE', 'TIDE', 'WADE', 'SILT'];
 
 export const DrownedSchoolMap: MapDefinition = {
   id: 'drowned_school',
-  name: 'The Drowned Schoolhouse',
-  tagline: 'Climb the desks, stay off the floor. It will not touch what is dry.',
+  name: 'Flooded High School (Saint Jude Academy)',
+  tagline: 'Two-tone sage green and cream tiles, submerged lockers, gym bleachers, and cafeteria islands.',
   stars: 3,
   reverb: 'school',
   acoustics: {

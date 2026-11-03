@@ -14,9 +14,9 @@ import { buildStandardMapInstance } from './CommonMapBuilder.js';
 
 export const MarbleAtriumMap: MapDefinition = {
   id: 'marble_atrium',
-  name: 'The Echoing Marble Atrium',
-  tagline: 'Vast colonnades, sinking stepping-stones, and acoustic bronze bells under oculus light.',
-  stars: 3,
+  name: 'Submerged University College (Lecture Halls & Quad)',
+  tagline: 'Neoclassical colonnade, fluted limestone pillars, tiered podiums, and marble study tables.',
+  stars: 2,
   reverb: 'atrium',
   acoustics: {
     hearingMul: 1.1,

@@ -66,6 +66,7 @@ import type { Hud, HudData, InventorySlot, RosterMember } from '../ui/Hud.js';
 import type { RunResults, CoOpPlayerResult } from '../ui/ResultsScreen.js';
 import type { KeypadModal } from '../ui/KeypadModal.js';
 import { getMapDefinition } from '../world/MapRegistry.js';
+import { unlockSector, getMapSectorIndex } from '../world/SectorProgression.js';
 import { generateValidLayout } from '../world/validate/LayoutValidator.js';
 import type { LayoutData, MapDefinition } from '../world/MapTypes.js';
 import type { MapInstance } from '../world/maps/MapInstance.js';
@@ -3634,6 +3635,14 @@ export class GameSession {
 
     if (dist <= 2.5 && this.exitUnlocked) {
       this.isWon = true;
+      this.hud.showCheckpointSaved();
+      const sectorIdx = getMapSectorIndex(this.mapId);
+      if (sectorIdx < 11) {
+        unlockSector(sectorIdx + 1);
+      }
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem('backsilence_last_tape', String(this.mapId));
+      }
       this.audio.play('tape_eject');
       this.postFX.triggerTapeEjected();
 

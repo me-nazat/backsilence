@@ -14,8 +14,8 @@ import { buildStandardMapInstance } from './CommonMapBuilder.js';
 
 export const PoolroomsMap: MapDefinition = {
   id: 'poolrooms',
-  name: 'Classic Archipelago',
-  tagline: 'Endless tiled arches above silent milky-green water.',
+  name: 'Mirror Lake & Pier Islands (Foggy Alpine Lake)',
+  tagline: 'Pale-gold morning mist, wooden boat docks and piers, stone lighthouse ruins, and calm ripple water.',
   stars: 2,
   reverb: 'poolroom',
   acoustics: {

@@ -28,8 +28,8 @@ import type { LightStreak } from '../../game/water/WaterMaterial.js';
 
 export const DrownedMetroMap: MapDefinition = {
   id: 'drowned_metro',
-  name: 'Platform Zero, the Drowned Metro',
-  tagline: 'Flooded tracks, a stalled train, and the scheduled Ghost Train in express.',
+  name: 'Drowned Station Row (Subterranean Metro)',
+  tagline: 'White municipal brick-tile, dark emerald station stripe, submerged tracks, and stalled train cars.',
   stars: 5,
   reverb: 'station',
   acoustics: {

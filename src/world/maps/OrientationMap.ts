@@ -26,8 +26,8 @@ import { createSkylightAssembly } from '../../game/rendering/LightShafts.js';
 
 export const OrientationMap: MapDefinition = {
   id: 'orientation',
-  name: 'Training Pool (Orientation)',
-  tagline: 'Employee onboarding archive: tethered entity demonstrator, dry tile rules, and lure testing.',
+  name: 'Canyon River Rapids (Red Rock Gorge)',
+  tagline: 'Terraced red-ochre sandstone canyon, winding rushing emerald rapids with white-water foam, and extraction cavern.',
   stars: 1,
   reverb: 'poolroom',
   acoustics: {

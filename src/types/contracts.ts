@@ -15,7 +15,7 @@ export type RoomCode = string; // 4 chars from SAFE_ALPHABET
 /** 32 unambiguous symbols — no I, O, 0, or 1. */
 export const SAFE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 
-export type MapId =
+export type CanonicalMapId =
   | 'orientation'
   | 'poolrooms'
   | 'utility_tunnels'
@@ -27,6 +27,22 @@ export type MapId =
   | 'sunken_jungle'
   | 'neon_flood'
   | 'drowned_metro';
+
+export type MapAliasId =
+  | 'map_01_poolrooms'
+  | 'map_02_station_row'
+  | 'map_03_neon_city'
+  | 'map_04_high_school'
+  | 'map_05_university'
+  | 'map_06_drainage_core'
+  | 'map_07_jungle_ruins'
+  | 'map_08_mangrove_swamp'
+  | 'map_09_mountain_reservoir'
+  | 'map_10_mirror_lake'
+  | 'map_11_canyon_rapids';
+
+export type MapId = CanonicalMapId;
+export type AnyMapId = CanonicalMapId | MapAliasId;
 
 export type AppState =
   | 'BOOT'

@@ -6,6 +6,7 @@
  * ──────────────────────────────────────────────────────────────────────── */
 
 import type { MapId } from '../types/contracts.js';
+import { getNextMapId, MAP_SEQUENCE } from '../world/SectorProgression.js';
 import { AudioEngine } from '../audio/AudioEngine.js';
 import { computeScore, type ScoreBreakdown, type DeathReplayLine } from '../meta/Scoring.js';
 import { ProfileStore } from '../meta/ProfilePersistence.js';
@@ -245,22 +246,8 @@ export class ResultsScreen {
 
     el.querySelector('#btn-results-next-tape')?.addEventListener('click', () => {
       this.hide();
-      const currentMap = this.currentResults?.mapId ?? 'orientation';
-      const sequence: MapId[] = [
-        'orientation',
-        'poolrooms',
-        'utility_tunnels',
-        'marble_atrium',
-        'hydro_maze',
-        'drainage_core',
-        'natatorium',
-        'drowned_school',
-        'sunken_jungle',
-        'neon_flood',
-        'drowned_metro',
-      ];
-      const idx = sequence.indexOf(currentMap);
-      const nextMap = sequence[idx + 1] ?? sequence[0]!;
+      const currentMap = this.currentResults?.mapId ?? 'natatorium';
+      const nextMap = getNextMapId(currentMap) ?? MAP_SEQUENCE[0]!;
       if (this.onNextTape) {
         this.onNextTape(nextMap);
       }

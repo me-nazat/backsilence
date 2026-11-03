@@ -14,8 +14,8 @@ import { buildStandardMapInstance } from './CommonMapBuilder.js';
 
 export const UtilityTunnelsMap: MapDefinition = {
   id: 'utility_tunnels',
-  name: 'Sub-Aquatic Utility Tunnels',
-  tagline: 'Claustrophobic flooded concrete conduits, steam bursts, and rattling catwalks.',
+  name: 'Misty Mountain Reservoir (Highland Dam & Peaks)',
+  tagline: 'Slate-blue alpine mist, towering granite peaks, stone dam buttresses, and glacial emerald-blue water.',
   stars: 3,
   reverb: 'tunnel',
   acoustics: {

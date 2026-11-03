@@ -19,6 +19,7 @@ export interface HomeScreenCallbacks {
   onDiveOnline: () => void;
   onDailyDescent: () => void;
   onOpenPlayHub: () => void;
+  onOpenMaps?: () => void;
   onSelectMode?: (modeId: string) => void;
   onOpenBestiary: () => void;
   onOpenLeaderboards: () => void;
@@ -67,6 +68,7 @@ export class HomeScreen {
           </div>
           <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
             <button id="nav-btn-play" class="bs-btn bs-btn-ghost" style="padding: 6px 14px; min-height: 38px; font-weight: 700;">PLAY HUB (8 MODES)</button>
+            <button id="nav-btn-maps" class="bs-btn bs-btn-ghost" style="padding: 6px 14px; min-height: 38px; font-weight: 700; color: #86cfa0; border: 1px solid rgba(134,207,160,0.5);">SELECT MAP (11 SECTORS)</button>
             <button id="nav-btn-quality" class="bs-btn bs-btn-ghost" style="padding: 6px 12px; min-height: 38px; font-size: 11px; font-family: var(--bs-font-mono); color: #86cfa0; border: 1px solid rgba(134,207,160,0.5);" title="Quality Auto-Detect (tap to change)">
               QUALITY: AUTO
             </button>
@@ -101,6 +103,8 @@ export class HomeScreen {
               <div id="btn-descend-wrap"></div>
               <div id="btn-playhub-wrap"></div>
             </div>
+
+            <div id="btn-maps-wrap" style="width: 100%;"></div>
 
             <div style="display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 11px; color: #e9dca8; font-family: var(--bs-font-mono); -webkit-text-stroke: 1px rgba(0,0,0,0.8); text-shadow: 0 1px 4px #000; margin: 4px 0;">
               ${renderIcon('ear', 14)}
@@ -317,6 +321,26 @@ export class HomeScreen {
     dailyBtn.element.style.fontWeight = '700';
     this.motion.attachHoverRipple(dailyBtn.element);
     dailyWrap.appendChild(dailyBtn.element);
+
+    const mapsWrap = this.element.querySelector('#btn-maps-wrap');
+    if (mapsWrap) {
+      const mapsBtn = new Button({
+        text: 'SELECT MAP // 11 SECTORS ▶',
+        variant: 'ghost',
+        onClick: () => this.callbacks.onOpenMaps?.(),
+      });
+      mapsBtn.element.id = 'btn-hero-maps';
+      mapsBtn.element.classList.add('hero-btn');
+      mapsBtn.element.style.minHeight = '44px';
+      mapsBtn.element.style.width = '100%';
+      mapsBtn.element.style.fontSize = '0.92rem';
+      mapsBtn.element.style.fontWeight = '700';
+      mapsBtn.element.style.letterSpacing = '0.10em';
+      mapsBtn.element.style.border = '1px solid rgba(134,207,160,0.45)';
+      mapsBtn.element.style.color = '#86cfa0';
+      this.motion.attachHoverRipple(mapsBtn.element);
+      mapsWrap.appendChild(mapsBtn.element);
+    }
   }
 
   private bindEvents(): void {
@@ -343,6 +367,7 @@ export class HomeScreen {
       });
     };
     wire('#nav-btn-play', () => this.callbacks.onOpenPlayHub());
+    wire('#nav-btn-maps', () => this.callbacks.onOpenMaps?.());
     wire('#btn-open-play-hub-bottom', () => this.callbacks.onOpenPlayHub());
     wire('#nav-btn-leaderboards', () => this.callbacks.onOpenLeaderboards());
     wire('#nav-btn-bestiary', () => this.callbacks.onOpenBestiary());

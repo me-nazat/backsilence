@@ -1,35 +1,35 @@
 /* ── MapsScreen.ts ───────────────────────────────────────────────────────
  *  Maps Archive View:
- *  10 map cards with live mini-canvas previews, difficulty stars,
- *  best times, and Featured vs Archive tabs.
+ *  11 Master Sectors in sequential order with live procedural mini-canvas previews,
+ *  difficulty stars, best times, category tabs, and 1-click deployment.
  * ──────────────────────────────────────────────────────────────────────── */
 
 import { Button, MapCard, Tabs } from '../kit/index.js';
+import { SECTOR_PROGRESSION, type SectorEntry } from '../../world/SectorProgression.js';
 
 export interface MapEntryInfo {
   id: string;
+  aliasId?: string | undefined;
   name: string;
+  sectorNumber: number;
   difficulty: number;
   tags: string[];
-  bestTimeMs?: number;
-  isFeatured?: boolean;
+  bestTimeMs?: number | undefined;
+  isFeatured?: boolean | undefined;
+  category: 'facility' | 'urban' | 'wilderness';
 }
 
-export const MAPS_CATALOG: MapEntryInfo[] = [
-  // Featured (Batch 5)
-  { id: 'natatorium', name: 'The Natatorium', difficulty: 2, tags: ['OLYMPIC BASIN', 'ECHOES', 'WIDE STEPS'], isFeatured: true, bestTimeMs: 42300 },
-  { id: 'drowned_school', name: 'Drowned School', difficulty: 3, tags: ['FAMILY VARIANT', 'SUBMERGED DESKS', 'HALLWAYS', 'LOCKERS'], isFeatured: true, bestTimeMs: 51200 },
-  { id: 'sunken_jungle', name: 'Sunken Jungle', difficulty: 4, tags: ['FAMILY VARIANT', 'ALGAE OVERGROWTH', 'MURKY WATER', 'FOLIAGE'], isFeatured: true, bestTimeMs: 83400 },
-  { id: 'neon_flood', name: 'Neon Flood', difficulty: 5, tags: ['FAMILY VARIANT', 'ELECTRICAL SHORT', 'NEON REFLECTION', 'FAST CURRENT'], isFeatured: true, bestTimeMs: 91000 },
-  { id: 'drowned_metro', name: 'Drowned Metro', difficulty: 5, tags: ['FAMILY VARIANT', 'TRAIN CARS', 'SUBMERGED TRACKS', 'DARK TUNNELS'], isFeatured: true, bestTimeMs: 104200 },
-  // Archive & Training (Batch 3 & 7)
-  { id: 'orientation', name: 'Orientation Facility', difficulty: 1, tags: ['TUTORIAL', 'GUIDED ACOUSTICS', 'CALM SHALLOWS'], isFeatured: false, bestTimeMs: 25000 },
-  { id: 'poolrooms', name: 'Poolrooms Core', difficulty: 1, tags: ['CLASSIC TILES', 'SHALLOW TRENCH', 'SAFE LEDGES'], isFeatured: false, bestTimeMs: 34100 },
-  { id: 'marble_atrium', name: 'Marble Atrium', difficulty: 2, tags: ['FAMILY VARIANT', 'ROMAN ARCHES', 'HIGH VAULT', 'PERCHES'], isFeatured: false, bestTimeMs: 48900 },
-  { id: 'utility_tunnels', name: 'Utility Tunnels', difficulty: 3, tags: ['FAMILY VARIANT', 'NARROW PIPES', 'STEAM VENTS', 'LOW CEILING'], isFeatured: false, bestTimeMs: 58200 },
-  { id: 'hydro_maze', name: 'Hydro Maze', difficulty: 3, tags: ['FAMILY VARIANT', 'T-JUNCTIONS', 'DEAD ENDS', 'HIGH REVERB'], isFeatured: false, bestTimeMs: 65400 },
-  { id: 'drainage_core', name: 'Drainage Core', difficulty: 4, tags: ['FAMILY VARIANT', 'PUMP TURBINES', 'RAPID DRAINS', 'STRONG TIDE'], isFeatured: false, bestTimeMs: 72100 },
-];
+export const MAPS_CATALOG: MapEntryInfo[] = SECTOR_PROGRESSION.map((s: SectorEntry) => ({
+  id: s.id,
+  aliasId: s.aliasId,
+  name: `SECTOR ${String(s.sectorNumber).padStart(2, '0')}: ${s.name}`,
+  sectorNumber: s.sectorNumber,
+  difficulty: s.difficulty,
+  tags: s.tags,
+  bestTimeMs: s.bestTimeMs,
+  isFeatured: s.sectorNumber <= 6,
+  category: s.category,
+}));
 
 export interface MapsScreenCallbacks {
   onSelectMap: (mapId: string) => void;
@@ -38,7 +38,7 @@ export interface MapsScreenCallbacks {
 
 export class MapsScreen {
   readonly element: HTMLElement;
-  private currentFilter: 'featured' | 'all' = 'all';
+  private currentFilter: 'all' | 'facility' | 'urban' | 'wilderness' = 'all';
   private gridContainer!: HTMLElement;
 
   constructor(private callbacks: MapsScreenCallbacks) {
@@ -63,15 +63,15 @@ export class MapsScreen {
 
   private render(): void {
     this.element.innerHTML = `
-      <div style="width: min(1100px, 95vw); display: flex; flex-direction: column; gap: 24px;">
+      <div style="width: min(1140px, 95vw); display: flex; flex-direction: column; gap: 24px;">
         <!-- Top bar -->
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--bs-border); padding-bottom: 16px; flex-wrap: wrap; gap: 12px;">
           <div>
             <h1 style="font-family: var(--bs-font-mono); font-size: var(--bs-text-2xl); color: var(--bs-cream); margin: 0; letter-spacing: 0.08em;">
-              FACILITY MAP ARCHIVE // 11 SECTORS
+              OPERATIONAL SECTOR ARCHIVE // 11 MAPS
             </h1>
             <div style="font-family: var(--bs-font-mono); font-size: var(--bs-text-xs); color: var(--bs-tan); margin-top: 4px;">
-              SURVEYED HYDROGRAPHIC LAYOUTS
+              ACOUSTIC HYDROGRAPHIC SURVEYS — SELECT SECTOR TO DEPLOY IMMEDIATELY
             </div>
           </div>
           <div id="btn-back-wrap"></div>
@@ -81,27 +81,27 @@ export class MapsScreen {
         <div id="tabs-wrap"></div>
 
         <!-- Maps Grid -->
-        <div id="maps-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr)); gap: 20px;"></div>
+        <div id="maps-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr)); gap: 20px;"></div>
       </div>
     `;
 
     const backBtn = new Button({
-      text: '← RETURN',
+      text: '← RETURN HOME',
       variant: 'ghost',
       onClick: () => this.callbacks.onBack(),
     });
     this.element.querySelector('#btn-back-wrap')?.appendChild(backBtn.element);
 
-    const featuredCount = MAPS_CATALOG.filter((m) => m.isFeatured).length;
-    const allCount = MAPS_CATALOG.length;
     const tabs = new Tabs({
       items: [
-        { id: 'all', label: 'FULL ARCHIVE', count: allCount },
-        { id: 'featured', label: 'FEATURED SECTORS', count: featuredCount },
+        { id: 'all', label: 'ALL 11 SECTORS', count: MAPS_CATALOG.length },
+        { id: 'facility', label: 'FACILITY & MUNICIPAL', count: MAPS_CATALOG.filter((m) => m.category === 'facility').length },
+        { id: 'urban', label: 'URBAN & METRO', count: MAPS_CATALOG.filter((m) => m.category === 'urban').length },
+        { id: 'wilderness', label: 'WILDERNESS & LAKES', count: MAPS_CATALOG.filter((m) => m.category === 'wilderness').length },
       ],
       activeId: 'all',
       onChange: (id) => {
-        this.currentFilter = id as 'featured' | 'all';
+        this.currentFilter = id as 'all' | 'facility' | 'urban' | 'wilderness';
         this.renderCards();
       },
     });
@@ -113,9 +113,9 @@ export class MapsScreen {
 
   private renderCards(): void {
     this.gridContainer.innerHTML = '';
-    const filtered = this.currentFilter === 'featured'
-      ? MAPS_CATALOG.filter((m) => m.isFeatured)
-      : MAPS_CATALOG;
+    const filtered = this.currentFilter === 'all'
+      ? MAPS_CATALOG
+      : MAPS_CATALOG.filter((m) => m.category === this.currentFilter);
 
     filtered.forEach((m) => {
       const card = new MapCard({

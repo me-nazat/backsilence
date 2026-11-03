@@ -175,15 +175,17 @@ export function drawProceduralMapPlaceholder(
   ctx.stroke();
 
   // 5. Monospace Typography Card Header
-  ctx.fillStyle = '#f5f0dc'; // warm cream
-  ctx.font = 'bold 12px monospace';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText(title, w / 2, h * 0.45);
+  if (typeof ctx.fillText === 'function') {
+    ctx.fillStyle = '#f5f0dc'; // warm cream
+    ctx.font = 'bold 12px monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(title, w / 2, h * 0.45);
 
-  ctx.fillStyle = meta.accentTint;
-  ctx.font = '9px monospace';
-  ctx.fillText(`${meta.family.toUpperCase()} SECTOR`, w / 2, h * 0.56);
+    ctx.fillStyle = meta.accentTint;
+    ctx.font = '9px monospace';
+    ctx.fillText(`${meta.family.toUpperCase()} SECTOR`, w / 2, h * 0.56);
+  }
 }
 
 /**

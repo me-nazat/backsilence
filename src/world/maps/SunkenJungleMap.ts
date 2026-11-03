@@ -29,8 +29,8 @@ import { createLightShaftMesh, createDustMotes } from '../../game/rendering/Ligh
 
 export const SunkenJungleMap: MapDefinition = {
   id: 'sunken_jungle',
-  name: 'The Sunken Jungle',
-  tagline: 'Mossy stones, deep currents, and a waterfall that masks your noise.',
+  name: 'Sunken Jungle Ruins (Overgrown Temple Basin)',
+  tagline: 'Humid emerald mist, mossy sandstone ziggurat ruins, turquoise lagoon water, and vine canopies.',
   stars: 4,
   reverb: 'jungle',
   acoustics: {

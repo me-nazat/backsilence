@@ -64,8 +64,8 @@ import type { LightStreak } from '../../game/water/WaterMaterial.js';
 
 export const NatatoriumMap: MapDefinition = {
   id: 'natatorium',
-  name: 'The Grand Natatorium',
-  tagline: 'A flooded municipal bath: vaulted skylights, brass fittings, and the Ear in the deep.',
+  name: 'The Natatorium (Liminal Poolrooms)',
+  tagline: "Bright cream ceramic arches, giant cylindrical pillars, and translucent emerald water. It can't see you. It hears the water.",
   stars: 2,
   reverb: 'poolroom',
   acoustics: {
