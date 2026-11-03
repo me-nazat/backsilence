@@ -194,7 +194,9 @@ export class Hud {
   private throwableHotbarEl: HTMLElement | null = null;
   private pebbleCountEl: HTMLElement | null = null;
   private slot1El: HTMLElement | null = null;
+  private hotbarSlot1El: HTMLElement | null = null;
   private checkpointTimeout: ReturnType<typeof setTimeout> | null = null;
+  private objectivePillFadeTimer: ReturnType<typeof setTimeout> | null = null;
   private sectorToastEl: HTMLElement | null = null;
   private sectorToastTimeout: ReturnType<typeof setTimeout> | null = null;
   private lastSectorTitle = '';
@@ -683,80 +685,8 @@ export class Hud {
         z-index: 90;
       "></div>
 
-      <!-- Checkpoint Notification (Prompt 4B Section 1) -->
-      <div id="hud-checkpoint-saved" style="
-        position: absolute;
-        bottom: 85px;
-        left: 50%;
-        transform: translateX(-50%);
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-        font-size: 18px;
-        font-weight: 500;
-        color: #ffffff;
-        text-shadow: 0 2px 10px rgba(0,0,0,0.85);
-        letter-spacing: 0.05em;
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity 0.4s ease;
-        z-index: 110;
-      ">Progress saved</div>
-
       <!-- Sleek Sector Title Center Toast (2.0s Fade) -->
       <div id="hud-sector-toast" style="position: absolute; top: 38%; left: 50%; transform: translate(-50%, -50%); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 22px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #ffffff; text-shadow: 0 2px 14px rgba(0,0,0,0.95), 0 0 20px rgba(134,207,160,0.3); opacity: 0; pointer-events: none; transition: opacity 0.4s ease-out; z-index: 120; text-align: center; white-space: nowrap;"></div>
-
-      <!-- Bottom-Center Hotbar & Control Hint (Prompt 4B Section 1) -->
-      <div id="hud-throwable-hotbar" style="
-        position: absolute;
-        bottom: 18px;
-        left: 50%;
-        transform: translateX(-50%);
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 6px;
-        pointer-events: none;
-        z-index: 100;
-      ">
-        <div id="hud-throwable-hint" style="
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-          font-size: 13px;
-          font-weight: 400;
-          color: #ffffff;
-          text-shadow: 0 1px 4px rgba(0,0,0,0.85), 0 2px 8px rgba(0,0,0,0.7);
-          letter-spacing: 0.03em;
-          white-space: nowrap;
-        ">1-9 pick • again to put away • CLICK to throw / push</div>
-        <div style="display: flex; gap: 8px;">
-          <div id="hud-slot-1" style="
-            width: 44px;
-            height: 44px;
-            background: rgba(0, 0, 0, 0.45);
-            border: 1.5px solid rgba(255, 255, 255, 0.6);
-            border-radius: 4px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            box-sizing: border-box;
-          ">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" style="opacity: 0.95;">
-              <ellipse cx="12" cy="13" rx="7" ry="5" fill="#757575" stroke="#ffffff" stroke-width="1.5"/>
-            </svg>
-            <span id="hud-pebble-count" style="
-              position: absolute;
-              bottom: 2px;
-              right: 5px;
-              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-              font-size: 12px;
-              font-weight: bold;
-              color: #ffffff;
-              text-shadow: 0 1px 3px #000;
-            ">2</span>
-          </div>
-        </div>
-      </div>
 
       <!-- Center Crosshair and Directional Arc Ring -->
       <div id="hud-crosshair-container" style="
@@ -1269,18 +1199,17 @@ export class Hud {
         max-width: min(85vw, 360px);
       "></div>
 
-      <!-- Bottom-Center Unified Vertical Stack (Non-Overlapping Flex Column) -->
+      <!-- Bottom-Center Unified Non-Overlapping Vertical Flex Stack (Prompt 1B Fix) -->
       <div id="hud-bottom-stack" style="
         position: absolute;
         bottom: max(16px, env(safe-area-inset-bottom, 16px));
         left: 50%;
         transform: translateX(-50%);
         display: flex;
-        flex-direction: column-reverse;
+        flex-direction: column;
         align-items: center;
-        gap: 8px;
         pointer-events: none;
-        z-index: 60;
+        z-index: 100;
         width: max-content;
         max-width: min(92vw, 560px);
       ">
@@ -1290,6 +1219,7 @@ export class Hud {
           align-items: center;
           gap: 10px;
           pointer-events: none;
+          margin-bottom: 8px;
         ">
           <div style="
             width: 220px;
@@ -1318,40 +1248,127 @@ export class Hud {
           ">RADIUS ~0m</span>
         </div>
 
-        <!-- Minimal Objective Line Pill -->
-        <div id="hud-objective-pill" style="
-          font-size: 12px;
-          color: var(--fog, #d9d3a2);
-          background: rgba(8, 6, 3, 0.85);
-          border: 1px solid rgba(217, 211, 162, 0.22);
-          padding: 4px 12px;
-          border-radius: 12px;
-          letter-spacing: 0.05em;
-          white-space: nowrap;
-          max-width: min(90vw, 520px);
-          overflow: hidden;
-          text-overflow: ellipsis;
-          text-align: center;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.6);
+        <!-- Row 1 (Top of stack, bottom: 84px): Temporary toast / caption / checkpoint saved (margin-bottom: 10px) -->
+        <div id="hud-toast-row" style="
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          margin-bottom: 10px;
+          min-height: 20px;
         ">
-          <span id="hud-objective-text">Find the numbered pillars. Avoid making splashes.</span>
+          <!-- Checkpoint Notification (Prompt 4B Section 1) -->
+          <div id="hud-checkpoint-saved" style="
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-size: 18px;
+            font-weight: 500;
+            color: #ffffff;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.85);
+            letter-spacing: 0.05em;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
+          ">Progress saved</div>
+
+          <!-- Minimal Objective Line Pill (auto-fading after 3.5s) -->
+          <div id="hud-objective-pill" style="
+            font-size: 12px;
+            color: var(--fog, #d9d3a2);
+            background: rgba(8, 6, 3, 0.85);
+            border: 1px solid rgba(217, 211, 162, 0.22);
+            padding: 4px 12px;
+            border-radius: 12px;
+            letter-spacing: 0.05em;
+            white-space: nowrap;
+            max-width: min(90vw, 520px);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.6);
+            opacity: 0;
+            transition: opacity 0.5s ease-out;
+          ">
+            <span id="hud-objective-text">Find the numbered pillars. Avoid making splashes.</span>
+          </div>
+
+          <!-- Quiet In-World Hint -->
+          <div id="hud-quiet-hint" style="
+            font-family: var(--bs-font-mono, monospace);
+            font-size: 12px;
+            color: rgba(242, 236, 220, 0.92);
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            pointer-events: none;
+            opacity: 0;
+            display: none;
+            transition: opacity 1.5s ease;
+            text-align: center;
+            white-space: nowrap;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.85);
+          "></div>
         </div>
 
-        <!-- Quiet In-World Hint -->
-        <div id="hud-quiet-hint" style="
-          font-family: var(--bs-font-mono, monospace);
-          font-size: 12px;
-          color: rgba(242, 236, 220, 0.92);
-          letter-spacing: 0.12em;
-          text-transform: uppercase;
+        <!-- Row 2 (bottom: 58px): Control prompt (font-size: 12.5px, color: #ffffff) -->
+        <!-- Row 3 (bottom: 12px): The 44px x 44px square pebble slot box (#hotbar-slot-1) -->
+        <div id="hud-throwable-hotbar" style="
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 6px;
           pointer-events: none;
-          opacity: 0;
-          display: none;
-          transition: opacity 1.5s ease;
-          text-align: center;
-          white-space: nowrap;
-          text-shadow: 0 2px 8px rgba(0,0,0,0.85);
-        "></div>
+        ">
+          <div id="hud-throwable-hint" style="
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-size: 12.5px;
+            font-weight: 400;
+            color: #ffffff;
+            text-shadow: 0 1px 4px rgba(0,0,0,0.85), 0 2px 8px rgba(0,0,0,0.7);
+            letter-spacing: 0.03em;
+            white-space: nowrap;
+          ">1-9 pick • again to put away • CLICK to throw / push</div>
+
+          <div style="display: flex; gap: 8px;">
+            <div id="hotbar-slot-1" style="
+              width: 44px;
+              height: 44px;
+              background: rgba(0, 0, 0, 0.45);
+              border: 1.5px solid rgba(255, 255, 255, 0.6);
+              border-radius: 4px;
+              box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              justify-content: center;
+              position: relative;
+              box-sizing: border-box;
+            ">
+              <div id="hud-slot-1" style="
+                width: 100%;
+                height: 100%;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                position: relative;
+                box-sizing: border-box;
+                border-radius: 3px;
+              ">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" style="opacity: 0.95;">
+                  <ellipse cx="12" cy="13" rx="7" ry="5" fill="#757575" stroke="#ffffff" stroke-width="1.5"/>
+                </svg>
+                <span id="hud-pebble-count" style="
+                  position: absolute;
+                  bottom: 2px;
+                  right: 5px;
+                  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                  font-size: 12px;
+                  font-weight: bold;
+                  color: #ffffff;
+                  text-shadow: 0 1px 3px #000;
+                ">2</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- Persistent Ping Control Hint -->
@@ -1489,6 +1506,19 @@ export class Hud {
     }
     this.pebbleCountEl = el.querySelector('#hud-pebble-count');
     this.slot1El = el.querySelector('#hud-slot-1');
+    this.hotbarSlot1El = el.querySelector('#hotbar-slot-1');
+    if (this.objectivePillEl) {
+      this.objectivePillEl.style.opacity = '1';
+      if (this.objectivePillFadeTimer !== null) {
+        clearTimeout(this.objectivePillFadeTimer);
+      }
+      this.objectivePillFadeTimer = setTimeout(() => {
+        if (this.objectivePillEl) {
+          this.objectivePillEl.style.opacity = '0';
+        }
+        this.objectivePillFadeTimer = null;
+      }, 3500);
+    }
     this.sectorToastEl = el.querySelector('#hud-sector-toast');
 
     el.querySelector('#btn-spectate-prev')?.addEventListener('click', () => {
@@ -1643,6 +1673,18 @@ export class Hud {
       }
       if (this.objectivePillTextEl) {
         this.objectivePillTextEl.textContent = data.objective;
+      }
+      if (this.objectivePillEl) {
+        this.objectivePillEl.style.opacity = '1';
+        if (this.objectivePillFadeTimer !== null) {
+          clearTimeout(this.objectivePillFadeTimer);
+        }
+        this.objectivePillFadeTimer = setTimeout(() => {
+          if (this.objectivePillEl) {
+            this.objectivePillEl.style.opacity = '0';
+          }
+          this.objectivePillFadeTimer = null;
+        }, 3500);
       }
 
       if (this.riskTagEl) {
@@ -2172,9 +2214,17 @@ export class Hud {
     if (data.pebbleCount !== undefined && this.pebbleCountEl) {
       this.pebbleCountEl.textContent = String(Math.max(0, data.pebbleCount));
     }
-    if (data.pebbleEquipped !== undefined && this.slot1El) {
-      this.slot1El.style.borderColor = data.pebbleEquipped ? '#00e5ff' : 'rgba(255, 255, 255, 0.6)';
-      this.slot1El.style.boxShadow = data.pebbleEquipped ? '0 0 10px rgba(0, 229, 255, 0.6)' : '0 2px 10px rgba(0,0,0,0.5)';
+    if (data.pebbleEquipped !== undefined) {
+      const border = data.pebbleEquipped ? '#00e5ff' : 'rgba(255, 255, 255, 0.6)';
+      const shadow = data.pebbleEquipped ? '0 0 10px rgba(0, 229, 255, 0.6)' : '0 2px 10px rgba(0,0,0,0.5)';
+      if (this.slot1El) {
+        this.slot1El.style.borderColor = border;
+        this.slot1El.style.boxShadow = shadow;
+      }
+      if (this.hotbarSlot1El) {
+        this.hotbarSlot1El.style.borderColor = border;
+        this.hotbarSlot1El.style.boxShadow = shadow;
+      }
       if (data.pebbleEquipped) {
         this.dismissThrowableHint();
       }

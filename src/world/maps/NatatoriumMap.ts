@@ -23,6 +23,10 @@ import {
   PointLight,
   Float32BufferAttribute,
   MeshBasicMaterial,
+  BackSide,
+  DoubleSide,
+  Quaternion,
+  Euler,
 } from 'three';
 import type {
   LayoutCtx,
@@ -569,8 +573,8 @@ export const NatatoriumMap: MapDefinition = {
       isWall: true,
     });
 
-    // Spawn Tagline Wall at z = 44.0 (facing player spawn at z = 49.5, distance 5.3m)
-    // Covers x: -7.0 to 0.8; height -0.75 to 6.0
+    // Spawn Wall at z = 44.0 (facing player spawn at z = 49.5)
+    // Left Wall Pier: [-7.0, 0.8], height y = -0.75m to 6.0m (flat mural wall segment)
     walls.push({
       id: 'wall_spawn_tagline',
       min: { x: -7.0, y: -0.75, z: 43.8 },
@@ -578,66 +582,67 @@ export const NatatoriumMap: MapDefinition = {
       isWall: true,
     });
 
-    // Arch opening connecting foyer to grand pool hall (x: 0.8 to 6.5, z = 44.0)
-    // Left jamb is wall_spawn_tagline (x = 0.8).
-    // Right jamb:
+    // Right Wall Pier: [6.5, 12.0], height y = -0.75m to 9.0m
     walls.push({
       id: 'wall_foyer_arch_e',
       min: { x: 6.5, y: -0.75, z: 43.8 },
-      max: { x: 12.0, y: 6.0, z: 44.2 },
+      max: { x: 12.0, y: 9.0, z: 44.2 },
       isWall: true,
     });
-    // Arch lintel above the opening:
+    // Overhead Arch Header Lintel: [0.8, 6.5], bottomY = 4.2m to 9.0m (width: 5.7m, clearance: 3.82m)
     walls.push({
       id: 'wall_foyer_arch_lintel',
-      min: { x: 0.8, y: 4.5, z: 43.8 },
-      max: { x: 6.5, y: 6.0, z: 44.2 },
+      min: { x: 0.8, y: 4.2, z: 43.8 },
+      max: { x: 6.5, y: 9.0, z: 44.2 },
       isWall: true,
     });
 
-    // Foyer Side Enclosure Walls
+    // Foyer Side Enclosure Walls (height 9.0m)
     walls.push({
       id: 'wall_foyer_w',
       min: { x: -14.6, y: -0.75, z: 43.8 },
-      max: { x: -14.0, y: 6.0, z: 57.5 },
+      max: { x: -14.0, y: 9.0, z: 57.5 },
       isWall: true,
     });
     walls.push({
       id: 'wall_foyer_e',
       min: { x: 12.0, y: -0.75, z: 43.8 },
-      max: { x: 12.6, y: 6.0, z: 57.5 },
+      max: { x: 12.6, y: 9.0, z: 57.5 },
       isWall: true,
     });
     walls.push({
       id: 'wall_foyer_s',
       min: { x: -14.6, y: -0.75, z: 57.0 },
-      max: { x: 12.6, y: 6.0, z: 57.6 },
+      max: { x: 12.6, y: 9.0, z: 57.6 },
       isWall: true,
     });
 
     // Dividing Wall between Zone A and Zone B (at z = 35)
-    // Low bridge tunnel opening (clearance 1.65m above water, width 3.2m, length 4.5m)
+    // High-clearance archway passage (width 5.5m, clearance 3.82m above 0.38m dry platform)
+    // Left Wall Pier: [minX, passageMinX] = [-45.0, -2.75], height y = -0.75m to 9.0m
     walls.push({
       id: 'wall_zone_a_div_w',
       min: { x: -45.0, y: -0.75, z: 34.6 },
-      max: { x: -1.6, y: 9.0, z: 35.4 },
+      max: { x: -2.75, y: 9.0, z: 35.4 },
       isWall: true,
     });
+    // Right Wall Pier: [passageMaxX, maxX] = [2.75, 45.0], height y = -0.75m to 9.0m
     walls.push({
       id: 'wall_zone_a_div_e',
-      min: { x: 1.6, y: -0.75, z: 34.6 },
+      min: { x: 2.75, y: -0.75, z: 34.6 },
       max: { x: 45.0, y: 9.0, z: 35.4 },
       isWall: true,
     });
-    // Tunnel roof / lintel spanning across the swim-under opening
+    // Overhead Arch Header Lintel: [passageMinX, passageMaxX] = [-2.75, 2.75], bottomY = 4.2m to 9.0m
+    // (width: 5.5m, clearance height: 3.82m above the 0.38m dry platform!)
     walls.push({
-      id: 'wall_tunnel_bridge_roof',
-      min: { x: -1.6, y: 1.65, z: 34.0 },
-      max: { x: 1.6, y: 3.5, z: 38.5 },
+      id: 'wall_zone_a_div_lintel',
+      min: { x: -2.75, y: 4.2, z: 34.6 },
+      max: { x: 2.75, y: 9.0, z: 35.4 },
       isWall: true,
     });
 
-    // Dividing Wall 1 in Zone B (at z = 8.0) pierced by 6.5m x 6.0m Roman Arch
+    // Dividing Wall 1 in Zone B (at z = 8.0) pierced by 6.5m x 4.2m clearance arch
     walls.push({
       id: 'wall_arch1_w',
       min: { x: -45.0, y: -0.75, z: 7.6 },
@@ -652,12 +657,12 @@ export const NatatoriumMap: MapDefinition = {
     });
     walls.push({
       id: 'wall_arch1_lintel',
-      min: { x: -3.25, y: 6.0, z: 7.6 },
+      min: { x: -3.25, y: 4.2, z: 7.6 },
       max: { x: 3.25, y: 9.0, z: 8.4 },
       isWall: true,
     });
 
-    // Dividing Wall 2 in Zone B (at z = -14.0) pierced by 6.5m x 6.0m Roman Arch
+    // Dividing Wall 2 in Zone B (at z = -14.0) pierced by 6.5m x 4.2m clearance arch
     walls.push({
       id: 'wall_arch2_w',
       min: { x: -45.0, y: -0.75, z: -14.4 },
@@ -672,7 +677,7 @@ export const NatatoriumMap: MapDefinition = {
     });
     walls.push({
       id: 'wall_arch2_lintel',
-      min: { x: -3.25, y: 6.0, z: -14.4 },
+      min: { x: -3.25, y: 4.2, z: -14.4 },
       max: { x: 3.25, y: 9.0, z: -13.6 },
       isWall: true,
     });
@@ -681,19 +686,19 @@ export const NatatoriumMap: MapDefinition = {
     walls.push({
       id: 'wall_corridor_div_w',
       min: { x: -45.0, y: -0.75, z: -44.5 },
-      max: { x: -1.75, y: 9.0, z: -43.5 },
+      max: { x: -2.75, y: 9.0, z: -43.5 },
       isWall: true,
     });
     walls.push({
       id: 'wall_corridor_div_e',
-      min: { x: 1.75, y: -0.75, z: -44.5 },
+      min: { x: 2.75, y: -0.75, z: -44.5 },
       max: { x: 45.0, y: 9.0, z: -43.5 },
       isWall: true,
     });
     walls.push({
       id: 'wall_corridor_div_lintel',
-      min: { x: -1.75, y: 4.5, z: -44.5 },
-      max: { x: 1.75, y: 9.0, z: -43.5 },
+      min: { x: -2.75, y: 4.2, z: -44.5 },
+      max: { x: 2.75, y: 9.0, z: -43.5 },
       isWall: true,
     });
 
@@ -705,16 +710,16 @@ export const NatatoriumMap: MapDefinition = {
     props.push({
       id: 'drain_wheel',
       kind: 'drain_wheel',
-      position: { x: 0.0, y: 0.30, z: -54.0 },
+      position: { x: 0.0, y: WORLD.PLATFORM_TOP_Y, z: -54.0 },
     });
 
     // Collectible pebble props on dry platforms (Prompt 4B Section 2)
     const pebbleSpawns = [
-      { id: 'pebble_prop_1', x: -0.5, y: 0.30, z: 8.5 },
-      { id: 'pebble_prop_2', x: 0.0, y: 0.30, z: -6.0 },
-      { id: 'pebble_prop_3', x: -12.5, y: 0.30, z: 9.5 },
-      { id: 'pebble_prop_4', x: 17.5, y: 0.30, z: 11.5 },
-      { id: 'pebble_prop_5', x: 0.0, y: 0.30, z: -18.0 },
+      { id: 'pebble_prop_1', x: -0.5, y: WORLD.PLATFORM_TOP_Y, z: 8.5 },
+      { id: 'pebble_prop_2', x: 0.0, y: WORLD.PLATFORM_TOP_Y, z: -6.0 },
+      { id: 'pebble_prop_3', x: -12.5, y: WORLD.PLATFORM_TOP_Y, z: 9.5 },
+      { id: 'pebble_prop_4', x: 17.5, y: WORLD.PLATFORM_TOP_Y, z: 11.5 },
+      { id: 'pebble_prop_5', x: 0.0, y: WORLD.PLATFORM_TOP_Y, z: -18.0 },
     ];
     for (const p of pebbleSpawns) {
       props.push({
@@ -728,10 +733,10 @@ export const NatatoriumMap: MapDefinition = {
     props.push({
       id: 'keypad_console_pedestal',
       kind: 'keypad_pedestal',
-      position: { x: 2.2, y: 0.30, z: -56.5 },
+      position: { x: 2.2, y: WORLD.PLATFORM_TOP_Y, z: -56.5 },
     });
 
-    const exitPos = { x: 0.0, y: 0.30, z: -58.0 };
+    const exitPos = { x: 0.0, y: WORLD.PLATFORM_TOP_Y, z: -58.0 };
     const playerSpawn = { x: 0.0, y: 0.30, z: 49.5 };
     // Apex monster spawn in flooded hall, distance 51.5m >= 45m from player spawn
     const monsterSpawn = { x: 0.0, y: -0.75, z: -1.5 };
@@ -778,7 +783,7 @@ export const NatatoriumMap: MapDefinition = {
           position: exitPos,
           params: {
             code: digits.join(''),
-            drainWheelPos: { x: 0.0, y: 0.30, z: -54.0 },
+            drainWheelPos: { x: 0.0, y: WORLD.PLATFORM_TOP_Y, z: -54.0 },
           },
         },
       ],
@@ -818,8 +823,9 @@ export const NatatoriumMap: MapDefinition = {
     const ceilingArchMat = tileFactory.ceilingTileMaterial;
     ceilingArchMat.envMapIntensity = 0.35;
     ceilingArchMat.vertexColors = true;
-    ceilingArchMat.color.set('#b7a775');
+    ceilingArchMat.color.set('#ebe4c8');
     ceilingArchMat.aoMapIntensity = 0.85;
+    ceilingArchMat.side = BackSide;
 
     // Platform hook applies multi-material groups with world-space scaling
     // Top: WORLD.TILE_METERS square ceramic tile (#d5b676, #4a3b22 grout)
@@ -861,9 +867,9 @@ export const NatatoriumMap: MapDefinition = {
     // ──────────────────────────────────────────────────────────────────────────
 
     // Spawn Wall Mural: "IT CAN'T SEE YOU. IT HEARS THE WATER." + Ink Splash Crown (f_001–f_003)
-    const tagTex = makeSpawnWallMural({ width: 1024, height: 512 });
-    const tagMesh = DecalSystem.createWallDecalMesh(tagTex, 4.8, 2.4);
-    tagMesh.position.set(-2.8, 1.95, 44.22);
+    const tagTex = makeSpawnWallMural({ width: 1024, height: 768 });
+    const tagMesh = DecalSystem.createWallDecalMesh(tagTex, 4.0, 3.0);
+    tagMesh.position.set(-3.1, 2.4, 44.22);
     tagMesh.rotation.y = 0; // facing +Z towards player at z=49.5
     tagMesh.updateMatrix();
     tagMesh.name = 'SpawnTagline';
@@ -938,11 +944,11 @@ export const NatatoriumMap: MapDefinition = {
       // 1. Near spawn / Foyer deck boundary
       { id: 'Warning_Spawn', x: -7.85, y: 1.6, z: 46.5, isFloor: false, rotY: Math.PI / 2, arrowDir: 'right' },
       // 2. Before first deep water crossing (Zone A low arch/stepping-stone rim)
-      { id: 'Warning_FirstCrossing', x: 0.0, y: 0.305, z: 34.5, isFloor: true, rotY: Math.PI, arrowDir: 'up' },
+      { id: 'Warning_FirstCrossing', x: 0.0, y: 0.385, z: 34.5, isFloor: true, rotY: Math.PI, arrowDir: 'up', text: 'WATER CARRIES SOUND\nNEVER STOP' },
       // 3. Middle Pillar Hall entrance / Palm arch fork
       { id: 'Warning_PillarHall', x: -6.0, y: 1.6, z: 22.0, isFloor: false, rotY: 0, arrowDir: 'left' },
       // 4. At Trench Landmark (narrow trench rim where creature gets blocked)
-      { id: 'Warning_Trench', x: 0.0, y: 0.305, z: -11.5, isFloor: true, rotY: Math.PI, arrowDir: 'down' },
+      { id: 'Warning_Trench', x: 0.0, y: 0.385, z: -11.5, isFloor: true, rotY: Math.PI, arrowDir: 'down' },
       // 5. Approaching lit Arched Checkpoint / S-bend Corridor
       { id: 'Warning_ArchedCheckpoint', x: -2.0, y: 1.6, z: -43.48, isFloor: false, rotY: 0, arrowDir: 'right' },
       // 6. Near Floodgate / Plant Room exit keypad door
@@ -978,7 +984,7 @@ export const NatatoriumMap: MapDefinition = {
       seed: layout.seed + 77,
     });
     const hearsWaterMesh = DecalSystem.createWallDecalMesh(hearsWaterTex, 2.4, 1.2);
-    hearsWaterMesh.position.set(-4.5, 0.305, 20.0);
+    hearsWaterMesh.position.set(-4.5, 0.385, 20.0);
     hearsWaterMesh.rotation.x = -Math.PI * 0.5;
     hearsWaterMesh.rotation.z = Math.PI;
     hearsWaterMesh.name = 'Graffiti_Flavor_HearsWater';
@@ -1003,7 +1009,7 @@ export const NatatoriumMap: MapDefinition = {
       const arrowTex = makeRouteArrowDecal({ symbol: validDir, seed: layout.seed + i });
       const arrowMesh = DecalSystem.createWallDecalMesh(arrowTex, 1.2, 1.2);
       arrowMesh.rotation.x = -Math.PI * 0.5;
-      arrowMesh.position.set(gridX, 0.308, gridZ);
+      arrowMesh.position.set(gridX, 0.388, gridZ);
       arrowMesh.name = `RouteArrow_${i + 1}`;
       instance.root.add(arrowMesh);
     }
@@ -1025,7 +1031,7 @@ export const NatatoriumMap: MapDefinition = {
     // ──────────────────────────────────────────────────────────────────────────
     const pedestalGroup = new Group();
     pedestalGroup.name = 'KeypadConsolePedestal';
-    pedestalGroup.position.set(2.2, 0.30, -56.5);
+    pedestalGroup.position.set(2.2, WORLD.PLATFORM_TOP_Y, -56.5);
 
     const standMat = new MeshStandardMaterial({
       color: 0x22201d,
@@ -1182,10 +1188,10 @@ export const NatatoriumMap: MapDefinition = {
     const arch1Geom = buildArchGeometry({
       width: 6.5,
       height: 3.25,
-      pierHeight: 2.75,
+      pierHeight: 4.95,
       thickness: 0.8,
-      wallWidth: 6.5,
-      wallHeight: 6.0,
+      wallWidth: 7.5,
+      wallHeight: 14.75,
       type: 'semicircular',
     });
     const arch1Mesh = new Mesh(arch1Geom, romanArchMat);
@@ -1198,10 +1204,10 @@ export const NatatoriumMap: MapDefinition = {
     const arch2Geom = buildArchGeometry({
       width: 6.5,
       height: 3.25,
-      pierHeight: 2.75,
+      pierHeight: 4.95,
       thickness: 0.8,
-      wallWidth: 6.5,
-      wallHeight: 6.0,
+      wallWidth: 7.5,
+      wallHeight: 14.75,
       type: 'semicircular',
     });
     const arch2Mesh = new Mesh(arch2Geom, romanArchMat);
@@ -1289,19 +1295,68 @@ export const NatatoriumMap: MapDefinition = {
     foyerCeiling.name = 'FoyerCeiling';
     instance.root.add(foyerCeiling);
 
-    // Vaulted ceiling over grand pool hall (covers full map bounds, height 9.0m)
-    const grandRoofGeom = new BoxGeometry(90.0, 0.5, 118.0);
-    scaleBoxUv(grandRoofGeom, 90.0, 0.5, 118.0, WORLD.TEXTURE_METERS);
+    // Continuous seamless cream-tiled barrel vault over grand pool hall (Prompt 1B Fix)
+    const hallWidth = 90.0;
+    const hallLength = 118.5;
+    const grandRoofGeom = new CylinderGeometry(
+      hallWidth / 2,
+      hallWidth / 2,
+      hallLength,
+      48,
+      1,
+      true,
+      -Math.PI / 2,
+      Math.PI,
+    );
+    grandRoofGeom.rotateX(-Math.PI / 2);
+
+    const uvAttr = grandRoofGeom.getAttribute('uv');
+    if (uvAttr) {
+      const uRepeat = (Math.PI * (hallWidth / 2)) / WORLD.TEXTURE_METERS;
+      const vRepeat = hallLength / WORLD.TEXTURE_METERS;
+      for (let i = 0; i < uvAttr.count; i++) {
+        uvAttr.setXY(i, uvAttr.getX(i) * uRepeat, uvAttr.getY(i) * vRepeat);
+      }
+      uvAttr.needsUpdate = true;
+    }
+
     const gCount = grandRoofGeom.attributes['position']?.count ?? 0;
     const gColors = new Float32Array(gCount * 3);
     gColors.fill(1.0);
     grandRoofGeom.setAttribute('color', new Float32BufferAttribute(gColors, 3));
+
     const grandRoof = new Mesh(grandRoofGeom, ceilingArchMat);
-    grandRoof.position.set(0.0, 9.0, 0.0);
+    grandRoof.position.set(0.0, 9.0, -0.75);
     grandRoof.castShadow = true;
     grandRoof.receiveShadow = true;
     grandRoof.name = 'GrandHallCeiling';
     instance.root.add(grandRoof);
+
+    // Inset glowing white skylight panels along the barrel vault apex (Prompt 1B Fix)
+    const skylightPanelMat = new MeshStandardMaterial({
+      color: 0xffffff,
+      emissive: 0xffffff,
+      emissiveIntensity: 2.0,
+      roughness: 0.1,
+      metalness: 0.0,
+      side: DoubleSide,
+    });
+    const skylightPositionsZ = [-45.0, -30.0, -15.0, 0.0, 15.0, 30.0, 45.0];
+    const skyPanelGeom = new PlaneGeometry(6.0, 5.0);
+    const skylightInstMesh = new InstancedMesh(skyPanelGeom, skylightPanelMat, skylightPositionsZ.length);
+    skylightInstMesh.name = 'VaultSkylightPanels';
+    const mat4 = new Matrix4();
+    const posVec = new Vector3();
+    const rotEuler = new Euler(Math.PI * 0.5, 0, 0);
+    const scaleVec = new Vector3(1, 1, 1);
+    const quat = new Quaternion().setFromEuler(rotEuler);
+    for (let i = 0; i < skylightPositionsZ.length; i++) {
+      posVec.set(0.0, 53.85, skylightPositionsZ[i]!);
+      mat4.compose(posVec, quat, scaleVec);
+      skylightInstMesh.setMatrixAt(i, mat4);
+    }
+    skylightInstMesh.instanceMatrix.needsUpdate = true;
+    instance.root.add(skylightInstMesh);
 
     // ──────────────────────────────────────────────────────────────────────────
     // 6. Submerged Ear Mosaic at Pool Floor Center

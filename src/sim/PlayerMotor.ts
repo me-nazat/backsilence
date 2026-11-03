@@ -50,14 +50,16 @@ export class PlayerMotor {
   pitch = 0;
 
   // Constants
-  static readonly RADIUS = 0.32;
+  static readonly RADIUS = 0.28;
   static readonly STAND_HEIGHT = 1.8;
   static readonly CROUCH_HEIGHT = 1.1;
-  static readonly EYE_STAND = 1.65;
+  static readonly EYE_STAND = 1.75;
   static readonly EYE_CROUCH = 0.95;
   static readonly STEP_LIMIT = 0.45;
   static readonly GRAVITY = 14.0;
   static readonly JUMP_V = 4.6;
+  static readonly WATER_GRAVITY = 15.5;
+  static readonly WATER_JUMP_V = 6.8;
   static readonly SPEED_WALK = 3.2;
   static readonly SPEED_SPRINT = 5.2;
   static readonly SPEED_CROUCH = 1.6;
@@ -341,8 +343,8 @@ export class PlayerMotor {
     // 9. Jump & Gravity logic (Coyote time & Jump buffer)
     const effectiveCoyoteDuration = this.parkourMode ? PlayerMotor.PARKOUR_COYOTE : this.coyoteDuration;
     const effectiveJumpBuffer = this.parkourMode ? PlayerMotor.PARKOUR_JUMP_BUFFER : 0.15;
-    const effectiveGravity = this.parkourMode ? PlayerMotor.PARKOUR_GRAVITY : PlayerMotor.GRAVITY;
-    const effectiveJumpV = this.parkourMode ? PlayerMotor.PARKOUR_JUMP_V : (this.wet ? 6.2 : PlayerMotor.JUMP_V);
+    const effectiveGravity = this.parkourMode ? PlayerMotor.PARKOUR_GRAVITY : (this.wet ? PlayerMotor.WATER_GRAVITY : PlayerMotor.GRAVITY);
+    const effectiveJumpV = this.parkourMode ? PlayerMotor.PARKOUR_JUMP_V : (this.wet ? PlayerMotor.WATER_JUMP_V : PlayerMotor.JUMP_V);
     const effectiveStandHeight = this.parkourMode ? PlayerMotor.PARKOUR_STAND_HEIGHT : PlayerMotor.STAND_HEIGHT;
 
     if (this.onGround || this.wet) {
@@ -388,20 +390,24 @@ export class PlayerMotor {
     for (let s = 0; s < subSteps; s++) {
       // 10a. Horizontal Movement on X with swept wall/step limit detection
       let newX = this.pos.x + this.vel.x * subDt;
-      const destGroundYX = this.sampleGroundHeight(newX, this.pos.z, ground, colliders);
-      const stepDiffX = destGroundYX - this.pos.y;
-      if (stepDiffX > PlayerMotor.STEP_LIMIT) {
-        newX = this.pos.x;
-        this.vel.x = 0;
+      if (!this.wet) {
+        const destGroundYX = this.sampleGroundHeight(newX, this.pos.z, ground, colliders);
+        const stepDiffX = destGroundYX - this.pos.y;
+        if (stepDiffX > PlayerMotor.STEP_LIMIT) {
+          newX = this.pos.x;
+          this.vel.x = 0;
+        }
       }
 
       // 10b. Horizontal Movement on Z with swept wall/step limit detection
       let newZ = this.pos.z + this.vel.z * subDt;
-      const destGroundYZ = this.sampleGroundHeight(newX, newZ, ground, colliders);
-      const stepDiffZ = destGroundYZ - this.pos.y;
-      if (stepDiffZ > PlayerMotor.STEP_LIMIT) {
-        newZ = this.pos.z;
-        this.vel.z = 0;
+      if (!this.wet) {
+        const destGroundYZ = this.sampleGroundHeight(newX, newZ, ground, colliders);
+        const stepDiffZ = destGroundYZ - this.pos.y;
+        if (stepDiffZ > PlayerMotor.STEP_LIMIT) {
+          newZ = this.pos.z;
+          this.vel.z = 0;
+        }
       }
 
       // Auto-step-up: automatically step up ledges/stairs <= STEP_LIMIT
@@ -413,9 +419,15 @@ export class PlayerMotor {
         this.onGround = true;
       }
 
-      // 10c. Pushout vs Box & Cylinder Colliders (Pillars, walls, arch jambs)
+      // 10c. Pushout vs Box & Cylinder Colliders (Pillars, walls, arch jambs, platform boundaries)
       colliders.queryCircle(newX, newZ, PlayerMotor.RADIUS + 1.0, this.colliderCandidates);
-      for (let iter = 0; iter < 3; iter++) {
+      let blockedX = false;
+      let blockedZ = false;
+      let totalNormX = 0;
+      let totalNormZ = 0;
+      let contactCount = 0;
+
+      for (let iter = 0; iter < 4; iter++) {
         const pushed = colliders.resolveCirclePushout(
           newX,
           newZ,
@@ -432,6 +444,14 @@ export class PlayerMotor {
           if (pushDist > 1e-4) {
             const nx = this.pushOut.x / pushDist;
             const nz = this.pushOut.z / pushDist;
+            totalNormX += nx;
+            totalNormZ += nz;
+            contactCount++;
+
+            if (Math.abs(nx) > 0.35) blockedX = true;
+            if (Math.abs(nz) > 0.35) blockedZ = true;
+
+            // Resolve horizontal (X and Z) collisions using smooth wall-sliding
             const vDotN = this.vel.x * nx + this.vel.z * nz;
             if (vDotN < 0) {
               this.vel.x -= vDotN * nx;
@@ -440,6 +460,19 @@ export class PlayerMotor {
           }
         } else {
           break;
+        }
+      }
+
+      // Unstuck safety check: if horizontal movement is blocked on both X and Z simultaneously inside a water gap,
+      // push the player capsule outward along the sum of contact normals by 0.04m so the player can never get wedged
+      // between two platform AABBs.
+      if (this.wet && blockedX && blockedZ && contactCount >= 2) {
+        const normDist = dHypot(totalNormX, totalNormZ);
+        if (normDist > 1e-4) {
+          newX += (totalNormX / normDist) * 0.04;
+          newZ += (totalNormZ / normDist) * 0.04;
+        } else {
+          newZ += 0.04;
         }
       }
 
@@ -457,12 +490,21 @@ export class PlayerMotor {
       this.pos.x = newX;
       this.pos.z = newZ;
 
-      // 10d. Auto-Mantle & Scramble-Out Assist:
-      // Smoothly step/mantle up onto dry platform (y = 0.38m) when jumping or moving in water within 1.2m reach.
-      if (this.wet) {
+      // 10d. Auto-Mantle & Scramble-Out Assist (water -> dry platform top at 0.38m):
+      // Whenever the player is in the water (or airborne jumping out of water) and their horizontal capsule
+      // touches or comes within 0.22m of a dry platform's edge while pressing W/A/S/D toward the platform
+      // (or holding Space), automatically step player.position.y up onto platform.topY (0.38m)
+      // so climbing out of the water onto any platform is 100% effortless and never traps the player.
+      const isPressingKey = intent.jump || Math.abs(intent.moveX) > 0.1 || Math.abs(intent.moveZ) > 0.1;
+      if ((this.wet || this.pos.y < 0.40) && isPressingKey) {
+        let foundLedge = false;
+        let mantleTargetX = this.pos.x;
+        let mantleTargetY = 0.38;
+        let mantleTargetZ = this.pos.z;
+
+        // 1. Raycast / grid probe along look direction and forward angles
         const angles = [0, 0.35, -0.35];
         const probeDistances = [0.45, 0.75, 1.05, 1.2];
-        let foundLedge = false;
 
         for (const ang of angles) {
           if (foundLedge) break;
@@ -480,28 +522,73 @@ export class PlayerMotor {
               const isMoving = intent.moveZ < -0.1 || Math.abs(intent.moveX) > 0.1;
               const canScramble = (intent.jump && distToTop <= 1.4) || (distToTop <= 0.35 && (isMoving || distToTop <= 0.18));
               if (distToTop >= 0.05 && canScramble) {
-                this.pos.x = probeX;
-                this.pos.z = probeZ;
-                this.pos.y = probeGroundY;
-                this.vel.x = 0;
-                this.vel.y = 0;
-                this.vel.z = 0;
-                this.onGround = true;
-                this.wet = false;
-                this.waterFallActive = false;
-                this.waterFallTimer = 0;
-                events.pushNoise(`noise_automantle_${simTime}`, 'mantle', this.pos.x, this.pos.y, this.pos.z, 0.25, this.playerId, simTime);
+                mantleTargetX = probeX;
+                mantleTargetZ = probeZ;
+                mantleTargetY = probeGroundY;
                 foundLedge = true;
                 break;
               }
             }
           }
         }
+
+        // 2. Proximity check vs platform box colliders
+        if (!foundLedge) {
+          const sinY = dSin(this.yaw);
+          const cosY = dCos(this.yaw);
+          const inputX = intent.moveX * cosY - intent.moveZ * sinY;
+          const inputZ = intent.moveX * sinY + intent.moveZ * cosY;
+
+          colliders.queryCircle(this.pos.x, this.pos.z, PlayerMotor.RADIUS + 0.35, this.colliderCandidates);
+          for (let i = 0; i < this.colliderCandidates.length; i++) {
+            const col = this.colliderCandidates[i]!;
+            if (col.type === 'box' && col.max.y >= 0.25 && col.max.y <= 0.60) {
+              const nearX = Math.max(col.min.x, Math.min(this.pos.x, col.max.x));
+              const nearZ = Math.max(col.min.z, Math.min(this.pos.z, col.max.z));
+              const dist = dHypot(this.pos.x - nearX, this.pos.z - nearZ);
+              const gap = dist - PlayerMotor.RADIUS;
+
+              const heightDiff = col.max.y - this.pos.y;
+              const canMantle = (intent.jump && heightDiff <= 1.4) || (heightDiff <= 0.35 && heightDiff > 0.02);
+
+              if (gap <= 0.22 && canMantle) {
+                const toPlatX = nearX - this.pos.x;
+                const toPlatZ = nearZ - this.pos.z;
+                const toDist = dHypot(toPlatX, toPlatZ);
+                const dotInput = toDist > 1e-4 ? (inputX * (toPlatX / toDist) + inputZ * (toPlatZ / toDist)) : 1.0;
+
+                if (intent.jump || dotInput > -0.2) {
+                  const stepInside = 0.20;
+                  mantleTargetX = nearX + (toDist > 1e-4 ? (toPlatX / toDist) * stepInside : 0);
+                  mantleTargetZ = nearZ + (toDist > 1e-4 ? (toPlatZ / toDist) * stepInside : 0);
+                  mantleTargetY = col.max.y;
+                  foundLedge = true;
+                  break;
+                }
+              }
+            }
+          }
+        }
+
+        if (foundLedge) {
+          this.pos.x = mantleTargetX;
+          this.pos.z = mantleTargetZ;
+          this.pos.y = mantleTargetY;
+          this.vel.x = 0;
+          this.vel.y = 0;
+          this.vel.z = 0;
+          this.onGround = true;
+          this.wet = false;
+          this.waterFallActive = false;
+          this.waterFallTimer = 0;
+          events.pushNoise(`noise_automantle_${simTime}`, 'mantle', this.pos.x, this.pos.y, this.pos.z, 0.25, this.playerId, simTime);
+          break;
+        }
       }
 
       // 11. Vertical Position Update & Ground/Ceiling Snapping
       let newY = this.pos.y + this.vel.y * subDt;
-      const finalGroundY = this.sampleGroundHeight(this.pos.x, this.pos.z, ground, colliders);
+      let finalGroundY = this.sampleGroundHeight(this.pos.x, this.pos.z, ground, colliders);
 
       // Low tunnel ceiling collision (y = 1.65m to 16.0m)
       const headY = newY + effectiveStandHeight;
@@ -561,7 +648,7 @@ export class PlayerMotor {
   }
 
   private sampleGroundHeight(x: number, z: number, ground: GroundGrid, colliders?: ColliderSet): number {
-    const r = PlayerMotor.RADIUS * 0.7;
+    const r = 0.08;
     const c = ground.heightAt(x, z);
     const n = ground.heightAt(x, z - r);
     const s = ground.heightAt(x, z + r);
@@ -575,7 +662,7 @@ export class PlayerMotor {
     if (Number.isFinite(w) && w > maxH) maxH = w;
 
     if (colliders) {
-      colliders.queryCircle(x, z, r + 0.1, this.colliderCandidates);
+      colliders.queryCircle(x, z, r + 0.05, this.colliderCandidates);
       for (let i = 0; i < this.colliderCandidates.length; i++) {
         const col = this.colliderCandidates[i]!;
         if (col.type === 'box') {

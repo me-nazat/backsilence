@@ -123,7 +123,7 @@ describe('ANTIGRAVITY BATCH 1: Poolrooms Rebuild & Visuals', () => {
       expect(val.valid, `Layout errors: ${val.errors.join(', ')}`).toBe(true);
     });
 
-    it('Zone A: includes spawn deck, curved peninsula, palm-arch pillars, and low swim-under tunnel', () => {
+    it('Zone A: includes spawn deck, curved peninsula, palm-arch pillars, and high-clearance archway passage', () => {
       const foyer = layout.platforms.find((p) => p.id === 'plat_foyer');
       expect(foyer).toBeDefined();
       expect(foyer?.topY).toBe(WORLD.PLATFORM_TOP_Y);
@@ -131,12 +131,10 @@ describe('ANTIGRAVITY BATCH 1: Poolrooms Rebuild & Visuals', () => {
       const peninsula = layout.platforms.filter((p) => p.id.startsWith('plat_peninsula'));
       expect(peninsula.length).toBeGreaterThanOrEqual(4);
 
-      // Low swim-under tunnel roof exists with clearance 1.65m above water
-      const tunnelRoof = layout.walls.find((w) => w.id === 'wall_tunnel_bridge_roof');
+      // High-clearance arch header lintel across dividing wall with clearance >= 4.2m
+      const tunnelRoof = layout.walls.find((w) => w.id === 'wall_zone_a_div_lintel' || w.id === 'wall_tunnel_bridge_roof');
       expect(tunnelRoof).toBeDefined();
-      expect(tunnelRoof?.min.y).toBeCloseTo(1.65, 2);
-      const tunnelLength = (tunnelRoof?.max.z ?? 0) - (tunnelRoof?.min.z ?? 0);
-      expect(tunnelLength).toBeCloseTo(4.5, 1);
+      expect(tunnelRoof?.min.y).toBeGreaterThanOrEqual(4.2);
     });
 
     it('Zone B: Flooded Pillar Hall has ~45 dry stepping-stone platforms and safe trench', () => {

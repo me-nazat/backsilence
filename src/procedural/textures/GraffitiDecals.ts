@@ -36,7 +36,7 @@ export function clearDecalCache(): void {
  */
 export function makeTaglineDecal(options: TaglineDecalOptions = {}): CanvasTexture {
   const width = options.width ?? 1024;
-  const height = options.height ?? 512;
+  const height = options.height ?? 768;
   const seed = options.seed ?? 77;
 
   const cacheKey = `tagline_${width}_${height}_${seed}`;
@@ -51,229 +51,152 @@ export function makeTaglineDecal(options: TaglineDecalOptions = {}): CanvasTextu
   const rng = new Rng(seed);
   const color = '#0d0b06';
 
-  // Helper to layout and offset text polylines
-  function addText(text: string, x: number, y: number, size: number): { polylines: Polyline[]; width: number } {
-    const res = layoutText(text, {
-      size,
-      tracking: 0.12,
-      rng: rng.next.bind(rng),
-      wobble: 0.06,
-    });
-    const shifted: Polyline[] = res.polylines.map((stroke) =>
-      stroke.map(([px, py]) => [px + x, py + y] as Point2D),
-    );
-    return { polylines: shifted, width: res.width };
+  const line1 = "IT CAN'T SEE YOU.";
+  const line2 = "IT HEARS THE WATER.";
+  const maxLineWidth = 840; // ensures >= 80px horizontal safety margin on both left and right
+
+  // Auto-scale font size so line2 and line1 fit within 840px with all letters 100% visible
+  let fontSize = 62;
+  ctx.font = `900 ${fontSize}px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Impact, sans-serif`;
+  while (fontSize > 20) {
+    const w1 = ctx.measureText(line1).width;
+    const w2 = ctx.measureText(line2).width;
+    if (w1 <= maxLineWidth && w2 <= maxLineWidth) {
+      break;
+    }
+    fontSize -= 2;
+    ctx.font = `900 ${fontSize}px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Impact, sans-serif`;
   }
 
-  const standardTextStrokes: Polyline[] = [];
-  const boldTextStrokes: Polyline[] = [];
-  const underlineStrokes: Polyline[] = [];
-
-  // Line 1: "IT CAN'T SEE YOU."
-  const startX1 = 60;
-  const y1 = 45;
-  const t_it1 = addText('IT', startX1, y1, 52);
-  standardTextStrokes.push(...t_it1.polylines);
-
-  // CAN'T is larger and bolder
-  const cantX = startX1 + t_it1.width + 25;
-  const t_cant = addText("CAN'T", cantX, y1 - 8, 68);
-  boldTextStrokes.push(...t_cant.polylines);
-
-  // Double rough underline under CAN'T
-  const u1Y = y1 + 75;
-  const u1Start = cantX - 10;
-  const u1End = cantX + t_cant.width + 10;
-  underlineStrokes.push([
-    [u1Start, u1Y],
-    [u1Start + (u1End - u1Start) * 0.4, u1Y + 3],
-    [u1End, u1Y - 1],
-  ]);
-  underlineStrokes.push([
-    [u1Start + 5, u1Y + 7],
-    [u1Start + (u1End - u1Start) * 0.6, u1Y + 9],
-    [u1End - 5, u1Y + 6],
-  ]);
-
-  const seeX = cantX + t_cant.width + 30;
-  const t_see = addText('SEE', seeX, y1, 52);
-  standardTextStrokes.push(...t_see.polylines);
-
-  const youX = seeX + t_see.width + 25;
-  const t_you = addText('YOU.', youX, y1, 52);
-  standardTextStrokes.push(...t_you.polylines);
-
-  // Line 2: "IT HEARS THE WATER."
-  const startX2 = 80;
-  const y2 = 165;
-  const t_it2 = addText('IT', startX2, y2, 52);
-  standardTextStrokes.push(...t_it2.polylines);
-
-  // HEARS is larger and bolder
-  const hearsX = startX2 + t_it2.width + 25;
-  const t_hears = addText('HEARS', hearsX, y2 - 8, 68);
-  boldTextStrokes.push(...t_hears.polylines);
-
-  // Double rough underline under HEARS
-  const u2Y = y2 + 75;
-  const u2Start = hearsX - 10;
-  const u2End = hearsX + t_hears.width + 10;
-  underlineStrokes.push([
-    [u2Start, u2Y],
-    [u2Start + (u2End - u2Start) * 0.5, u2Y + 4],
-    [u2End, u2Y],
-  ]);
-  underlineStrokes.push([
-    [u2Start + 8, u2Y + 8],
-    [u2Start + (u2End - u2Start) * 0.55, u2Y + 10],
-    [u2End - 4, u2Y + 7],
-  ]);
-
-  const theX = hearsX + t_hears.width + 30;
-  const t_the = addText('THE', theX, y2, 52);
-  standardTextStrokes.push(...t_the.polylines);
-
-  const waterX = theX + t_the.width + 25;
-  const t_water = addText('WATER.', waterX, y2, 52);
-  standardTextStrokes.push(...t_water.polylines);
-
-  // Render text strokes with distinct authentic weights
-  drawMarker(ctx, standardTextStrokes, {
-    width: 9.5,
-    color,
-    seed: seed + 1,
-  });
-
-  drawMarker(ctx, boldTextStrokes, {
-    width: 14.5,
-    color,
-    seed: seed + 2,
-  });
-
-  drawMarker(ctx, underlineStrokes, {
-    width: 12.0,
-    color,
-    seed: seed + 3,
-  });
-
-  // Below text: Procedural black ink water-splash crown (central rising droplet column, 7-pointed crown rim, 4 concentric oval ripple rings)
-  const dropCenterX = width * 0.5;
-
-  // 1. Central rising droplet column (y ~ 265 to 330)
   ctx.save();
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
   ctx.fillStyle = color;
+
+  const centerX = width * 0.5; // 512
+  const y1 = 110;
+  const y2 = 230;
+
+  ctx.fillText(line1, centerX, y1);
+  ctx.fillText(line2, centerX, y2);
+
+  // Underlines under CAN'T and HEARS
+  const wIt1 = ctx.measureText("IT ").width;
+  const wCant = ctx.measureText("CAN'T").width;
+  const line1TotalW = ctx.measureText(line1).width;
+  const cantStartX = centerX - line1TotalW * 0.5 + wIt1;
+
+  ctx.lineWidth = 6;
+  ctx.strokeStyle = color;
   ctx.beginPath();
-  const dropTopY = 265;
-  const dropBotY = 325;
+  ctx.moveTo(cantStartX - 4, y1 + fontSize * 0.55);
+  ctx.lineTo(cantStartX + wCant + 6, y1 + fontSize * 0.58);
+  ctx.stroke();
+
+  const wIt2 = ctx.measureText("IT ").width;
+  const wHears = ctx.measureText("HEARS").width;
+  const line2TotalW = ctx.measureText(line2).width;
+  const hearsStartX = centerX - line2TotalW * 0.5 + wIt2;
+
+  ctx.beginPath();
+  ctx.moveTo(hearsStartX - 4, y2 + fontSize * 0.55);
+  ctx.lineTo(hearsStartX + wHears + 6, y2 + fontSize * 0.58);
+  ctx.stroke();
+
+  // Procedural black ink water-splash crown (central rising droplet column, 7-pointed crown rim, 4 concentric oval ripple rings)
+  const dropCenterX = centerX;
+  const dropTopY = 360;
+  const dropBotY = 440;
+
+  // 1. Central rising droplet column
+  ctx.beginPath();
   ctx.moveTo(dropCenterX, dropTopY);
   ctx.bezierCurveTo(
-    dropCenterX - 10,
-    dropTopY + 20,
-    dropCenterX - 14,
-    dropBotY - 10,
-    dropCenterX - 8,
-    dropBotY,
+    dropCenterX - 12, dropTopY + 24,
+    dropCenterX - 16, dropBotY - 12,
+    dropCenterX - 9, dropBotY,
   );
-  ctx.lineTo(dropCenterX + 8, dropBotY);
+  ctx.lineTo(dropCenterX + 9, dropBotY);
   ctx.bezierCurveTo(
-    dropCenterX + 14,
-    dropBotY - 10,
-    dropCenterX + 10,
-    dropTopY + 20,
-    dropCenterX,
-    dropTopY,
+    dropCenterX + 16, dropBotY - 12,
+    dropCenterX + 12, dropTopY + 24,
+    dropCenterX, dropTopY,
   );
   ctx.fill();
 
   // Droplet head bead at apex
   ctx.beginPath();
-  ctx.arc(dropCenterX, dropTopY - 4, 6.5, 0, Math.PI * 2);
+  ctx.arc(dropCenterX, dropTopY - 6, 8, 0, Math.PI * 2);
   ctx.fill();
 
-  // 2. 7-pointed splash crown rim at water contact point (y ~ 345) with flying ink droplets
-  const crownY = 345;
+  // 2. 7-pointed splash crown rim at water contact point
+  const crownY = 460;
   const spikeCount = 7;
-  const crownRadius = 42;
-  const crownStrokes: Polyline[] = [];
-
+  const crownRadius = 52;
   for (let i = 0; i < spikeCount; i++) {
-    const angle = Math.PI * 1.02 + (i / (spikeCount - 1)) * (Math.PI * 0.96); // Upper arc
-    const spikeLen = rng.range(26, 40);
+    const angle = Math.PI * 1.02 + (i / (spikeCount - 1)) * (Math.PI * 0.96);
+    const spikeLen = rng.range(32, 50);
     const sx1 = dropCenterX + Math.cos(angle) * (crownRadius * 0.55);
     const sy1 = crownY + Math.sin(angle) * (crownRadius * 0.28);
     const sx2 = dropCenterX + Math.cos(angle) * (crownRadius * 0.55 + spikeLen);
     const sy2 = crownY + Math.sin(angle) * (crownRadius * 0.28 + spikeLen * 0.85);
 
-    crownStrokes.push([[sx1, sy1], [sx2, sy2]]);
-
-    // Tip droplet beads & flying ink droplets
+    ctx.lineWidth = 6;
     ctx.beginPath();
-    ctx.arc(sx2, sy2, rng.range(3.8, 5.2), 0, Math.PI * 2);
+    ctx.moveTo(sx1, sy1);
+    ctx.lineTo(sx2, sy2);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.arc(sx2, sy2, rng.range(4.5, 6.5), 0, Math.PI * 2);
     ctx.fill();
 
-    // Flying airborne ink droplets off the crown rim
     if (i % 2 === 0) {
-      const flyX = sx2 + Math.cos(angle) * rng.range(8, 18);
-      const flyY = sy2 + Math.sin(angle) * rng.range(8, 16);
+      const flyX = sx2 + Math.cos(angle) * rng.range(10, 22);
+      const flyY = sy2 + Math.sin(angle) * rng.range(10, 20);
       ctx.beginPath();
-      ctx.arc(flyX, flyY, rng.range(2.0, 3.4), 0, Math.PI * 2);
+      ctx.arc(flyX, flyY, rng.range(2.5, 4.2), 0, Math.PI * 2);
       ctx.fill();
     }
   }
-  drawMarker(ctx, crownStrokes, { width: 6.5, color, seed: seed + 10 });
 
   // 3. Four concentric oval ripple rings around the base
   const ringRadii = [
-    { rx: 55, ry: 15, width: 5.2 },
-    { rx: 105, ry: 28, width: 4.2 },
-    { rx: 165, ry: 44, width: 3.4 },
-    { rx: 225, ry: 58, width: 2.6 },
+    { rx: 70, ry: 18, width: 5.5 },
+    { rx: 130, ry: 34, width: 4.5 },
+    { rx: 200, ry: 52, width: 3.5 },
+    { rx: 280, ry: 70, width: 2.8 },
   ];
-
   for (const ring of ringRadii) {
-    const ellipseStrokes: Polyline[] = [];
-    const segments = 22;
+    ctx.lineWidth = ring.width;
+    const segments = 24;
     for (let s = 0; s < segments; s++) {
-      // Broken expressive hand-brushed appearance
       if (s % 4 === 3) continue;
       const a1 = (s / segments) * Math.PI * 2.0;
       const a2 = ((s + 0.88) / segments) * Math.PI * 2.0;
-
       const px1 = dropCenterX + Math.cos(a1) * ring.rx;
       const py1 = crownY + Math.sin(a1) * ring.ry;
       const px2 = dropCenterX + Math.cos(a2) * ring.rx;
       const py2 = crownY + Math.sin(a2) * ring.ry;
-
-      ellipseStrokes.push([[px1, py1], [px2, py2]]);
+      ctx.beginPath();
+      ctx.moveTo(px1, py1);
+      ctx.lineTo(px2, py2);
+      ctx.stroke();
     }
-    drawMarker(ctx, ellipseStrokes, {
-      width: ring.width,
-      color,
-      seed: seed + ring.rx,
-    });
   }
 
-  // Drips from letter bottoms and underlines
-  const dripPoints: Point2D[] = [
-    [cantX + 35, y1 + 75],
-    [cantX + 110, y1 + 78],
-    [seeX + 40, y1 + 62],
-    [hearsX + 45, y2 + 75],
-    [hearsX + 130, y2 + 78],
-    [waterX + 45, y2 + 62],
-  ];
-
-  ctx.strokeStyle = color;
-  ctx.fillStyle = color;
-  for (const [dx, dy] of dripPoints) {
-    const len = rng.range(18, 38);
-    ctx.lineWidth = 2.5;
+  // Drips from letter bottoms
+  const dripXs = [cantStartX + 20, cantStartX + wCant * 0.6, hearsStartX + 20, hearsStartX + wHears * 0.6, centerX + 180];
+  for (const dx of dripXs) {
+    const len = rng.range(20, 45);
+    const startY = y2 + fontSize * 0.6;
+    ctx.lineWidth = 3;
     ctx.beginPath();
-    ctx.moveTo(dx, dy);
-    ctx.lineTo(dx + (rng.next() - 0.5) * 2, dy + len);
+    ctx.moveTo(dx, startY);
+    ctx.lineTo(dx + (rng.next() - 0.5) * 3, startY + len);
     ctx.stroke();
     ctx.beginPath();
-    ctx.arc(dx, dy + len, 3.0, 0, Math.PI * 2.0);
+    ctx.arc(dx, startY + len, 3.5, 0, Math.PI * 2);
     ctx.fill();
   }
 

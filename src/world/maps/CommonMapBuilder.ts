@@ -780,25 +780,20 @@ export function buildStandardMapInstance(
       geom.translate(cx, cy, cz);
       standardWallGeoms.push(geom);
 
-      // Add recessed baseboard/wainscoting trim and ceiling cornice moldings along walls
-      if (h >= 2.2 && Math.max(w, d) >= 2.0) {
+      // Recessed baseboard/wainscoting trim along walls (purely visual, zero colliders)
+      if (layout.mapId !== 'natatorium' && h >= 2.2 && Math.max(w, d) >= 2.0) {
         const wainscotH = Math.min(1.4, h * 0.38);
         const wainscotBaseY = Math.max(0.0, wall.min.y);
         if (wall.max.y > wainscotBaseY + wainscotH + 0.5) {
-          // Lower wainscoting panel band
-          const wainscot = new BoxGeometry(w + 0.05, wainscotH, d + 0.05);
+          // Lower wainscoting panel band (flush with wall, purely decorative)
+          const wainscot = new BoxGeometry(w, wainscotH, d);
           wainscot.translate(cx, wainscotBaseY + wainscotH * 0.5, cz);
           trimGeoms.push(wainscot);
 
-          // Chair-rail molding cap at top of wainscoting
-          const chairRail = new BoxGeometry(w + 0.09, 0.08, d + 0.09);
-          chairRail.translate(cx, wainscotBaseY + wainscotH + 0.04, cz);
+          // Chair-rail molding cap at top of wainscoting (no colliders)
+          const chairRail = new BoxGeometry(w + 0.02, 0.06, d + 0.02);
+          chairRail.translate(cx, wainscotBaseY + wainscotH + 0.03, cz);
           accentGeoms.push(chairRail);
-
-          // Upper ceiling cornice molding
-          const cornice = new BoxGeometry(w + 0.12, 0.18, d + 0.12);
-          cornice.translate(cx, wall.max.y - 0.09, cz);
-          trimGeoms.push(cornice);
         }
       }
     }
