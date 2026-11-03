@@ -230,6 +230,36 @@ function main() {
     audio,
   };
 
+  // Supplementary evidence packs (Video-1 and Video-3)
+  const supplementary = {};
+  for (const [subKey, relDir, notesFile] of [
+    ['video_1', 'video/frames_v1', 'video/notes_v1.md'],
+    ['video_3', 'video/frames_v3', 'video/notes_v3.md'],
+  ]) {
+    const subDir = path.join(targetRefDir, relDir);
+    const subNotes = path.join(targetRefDir, notesFile);
+    if (fs.existsSync(subDir)) {
+      const subFiles = fs.readdirSync(subDir).filter((f) => /^f_\d+\.png$/.test(f)).sort();
+      const subTimestamps = parseNotesTimestamps(subNotes);
+      supplementary[subKey] = subFiles.map((file) => {
+        const subBuf = fs.readFileSync(path.join(subDir, file));
+        const subDecoded = decodePngHeaderAndVerify(subBuf);
+        return {
+          file,
+          path: `${relDir}/${file}`,
+          sha256: sha256Buffer(subBuf),
+          bytes: subBuf.length,
+          width: subDecoded.width,
+          height: subDecoded.height,
+          timestamp: subTimestamps.get(file) || '',
+        };
+      });
+    }
+  }
+  if (Object.keys(supplementary).length > 0) {
+    manifest.supplementaryPacks = supplementary;
+  }
+
   const manifestPath = path.join(targetRefDir, 'frames.manifest.json');
   fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2) + '\n', 'utf8');
   console.log(

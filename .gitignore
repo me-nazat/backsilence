@@ -18,13 +18,14 @@ reports/audio/**/*.wav
 !reports/ux/
 !reports/visual/
 reports/visual/*.png
+!reports/visual/creature_close_6m.png
+!reports/visual/creature_mid_15m.png
+!reports/visual/creature_far_35m.png
 !reports/release/
 !reports/glitch/
 reference/out*
 reference/*.png
 !reference/frames.manifest.json
-reference/video/frames/*
-!reference/video/frames/.gitkeep
 reference/audio/*.wav
 !reference/audio/notes.md
 
