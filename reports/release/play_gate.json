@@ -10,11 +10,11 @@
     "secondSightingTime": 49.283,
     "exitReachable": true,
     "trenchViolations": 0,
-    "p95FrameTimeMs": 0.0273,
-    "finalSimHash": "e4ffad24",
+    "p95FrameTimeMs": 0.0515,
+    "finalSimHash": "b239e0bc",
     "checkpointsCount": 30
   },
-  "run2SimHash": "e4ffad24",
+  "run2SimHash": "b239e0bc",
   "consoleErrors": [],
   "checks": [
     {
@@ -50,13 +50,13 @@
     {
       "id": "sim_hash_deterministic",
       "passed": true,
-      "actual": "e4ffad24 === e4ffad24",
+      "actual": "b239e0bc === b239e0bc",
       "expected": "identical simHash across 2 runs"
     },
     {
       "id": "p95_frame_time_budget",
       "passed": true,
-      "actual": "0.0273 ms",
+      "actual": "0.0515 ms",
       "expected": "<= 16.6 ms"
     },
     {

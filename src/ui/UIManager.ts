@@ -1233,7 +1233,7 @@ export class UIManager {
           this.resumeGame();
           const canvas = document.querySelector('canvas');
           if (canvas) {
-            try { canvas.requestPointerLock(); } catch {}
+            try { void canvas.requestPointerLock(); } catch { /* ignore */ }
           }
         } else if (this.currentView !== 'MENU') {
           this.goBack();
@@ -1246,7 +1246,7 @@ export class UIManager {
           e.preventDefault();
           try {
             localStorage.setItem('backsilence_last_settings_tab', 'controls');
-          } catch {}
+          } catch { /* ignore */ }
           this.navigateTo('SETTINGS');
         } else if (e.key === 'p' || e.key === 'P') {
           e.preventDefault();

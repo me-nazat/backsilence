@@ -202,7 +202,7 @@ export class PauseMenu {
       const canvas = document.querySelector('canvas');
       if (canvas) {
         try {
-          canvas.requestPointerLock();
+          void canvas.requestPointerLock();
         } catch {
           void safeRequestPointerLock(canvas);
         }

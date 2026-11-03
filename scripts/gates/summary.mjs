@@ -152,7 +152,7 @@ const GATES = [
     cmd: 'node',
     args: ['scripts/visual/sync-golden.mjs', '--check'],
     summarize: (r) => ({
-      detail: r.ok ? 'shots.json (46) == tests/golden/ (46) == reports/visual/ (46)' : 'golden shot drift',
+      detail: r.ok ? 'shots.json (47) == tests/golden/ (47) == reports/visual/ (47)' : 'golden shot drift',
       worst: r.ok ? 'none' : 'orphan or missing shot PNG',
     }),
   },
@@ -197,7 +197,7 @@ const GATES = [
     cmd: 'npm',
     args: ['run', 'shots:check'],
     summarize: (r) => ({
-      detail: r.ok ? '46/46 shots match golden baselines (zero drift)' : 'golden visual regression',
+      detail: r.ok ? '47/47 shots match golden baselines (zero drift)' : 'golden visual regression',
       worst: r.ok ? 'none' : 'pixel diff against tests/golden/',
     }),
   },

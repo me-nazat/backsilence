@@ -74,20 +74,23 @@ node scripts/gates/summary.mjs
 npm run glitch:scan              # Scans golden baseline shots for visual defects
 npm run audit:reports-honesty   # Asserts zero self-assigned subjective grades in reports
 npm run audit:docs-truth        # Asserts documentation claims match codebase reality
-npm run shots:check             # Asserts zero pixel regressions across 46 golden shots
+npm run shots:check             # Asserts zero pixel regressions across 47 golden shots
 npm run reference:verify        # Verifies SHA-256 integrity of all 37 reference frames
 npm run reference:compare       # Runs SSIM/MAE comparisons against reference frames
 ```
 
 ---
 
-## 5. Defect Register Status
+## 5. Defect Register Status & Visual Glitch Census
 
-All 17 tracked defects (G1–G17) are resolved and closed in `reports/glitch/REGISTER.md`:
+All 17 historical defects (G1–G17) are resolved and closed in `reports/glitch/REGISTER.md`:
 - **P0 Defects:** 0 Open (G6 dry sound alert, G9 invalid monster spawn resolved).
 - **P1 Defects:** 0 Open (G1 tile scale conflict, G2 inverted footstep cadence, G3 floating mesh, G4 teal water, G5 debug marker leak, G8 horizon fog band, G11 noise meter zero, G14 pebble bounce, G16 fog color mismatch, G17 audio listener desync resolved).
 - **P2 Defects:** 0 Open (G7 near plane clip, G10 wave wrap-around, G12 dual scanlines, G13 abrupt death cut, G15 pillar texture seam resolved).
 - **P3 Defects:** 0 Open.
+
+Additionally, Prompt 1 established a comprehensive, screenshot-evidenced visual glitch census across all 11 maps × 3 quality tiers:
+- [Visual Glitch Census](reports/glitch/CENSUS.md) — 151 tracked defects (all OPEN) serving as the official burn-down targets for Prompts 2–9 (prioritizing C1 ceiling void, C2 15m creature silhouette readability, C3 debug text leaks, C4 submerged floor z-fighting, and C6 specular highlight blowout).
 
 ---
 

@@ -528,7 +528,7 @@ export class MonsterBrain {
         this.displacementStuckTimer += dt;
         if (this.displacementStuckTimer >= 0.35) {
           this.currentPathIndex++;
-          const perpYaw = this.yaw + Math.PI * 0.5 * (Math.sin(simTime * 4.0) > 0 ? 1 : -1);
+          const perpYaw = this.yaw + Math.PI * 0.5 * (dSin(simTime * 4.0) > 0 ? 1 : -1);
           this.pos.x += dSin(perpYaw) * 0.06;
           this.pos.z -= dCos(perpYaw) * 0.06;
           this.displacementStuckTimer = 0;

@@ -1,8 +1,8 @@
 {
-  "date": "2026-11-02T17:20:39.092Z",
-  "manifestHash": "5284a059124178f556c589a806d206a77a62f6c11a4d892760bc944284a023b4",
+  "date": "2026-11-03T06:26:00.101Z",
+  "manifestHash": "94e00f1eff14c185906da61201cc3044cc50454ea812590c7ce853e82aeec772",
   "derivedTargetsGeneratedAt": "2026-11-02T11:55:00.000Z",
-  "referenceSource": "Authoritative Reference Pack (37 frames, manifest=5284a059124178f5)",
+  "referenceSource": "Authoritative Reference Pack (37 frames, manifest=94e00f1eff14c185)",
   "metricsSourcePath": "/Users/nazat/Desktop/Desktop/antigravity/BackSilence/poolrooms/reports/visual/metrics.json",
   "tolerances": {
     "scalarPct": 0.25,
@@ -25,61 +25,61 @@
         {
           "name": "Luminance Mean",
           "actual": 0.6139,
-          "target": 0.5633,
-          "diff": 0.0506,
-          "relPct": 9,
+          "target": 0.561,
+          "diff": 0.0529,
+          "relPct": 9.4,
           "passed": true,
-          "derivedTarget": 0.5633,
-          "derivedDeltaPct": 9
+          "derivedTarget": 0.561,
+          "derivedDeltaPct": 9.4
         },
         {
           "name": "Luminance StdDev",
           "actual": 0.1987,
-          "target": 0.1034,
-          "diff": 0.0953,
-          "relPct": 92.2,
+          "target": 0.1038,
+          "diff": 0.0949,
+          "relPct": 91.4,
           "passed": false,
-          "derivedTarget": 0.1034,
-          "derivedDeltaPct": 92.2
+          "derivedTarget": 0.1038,
+          "derivedDeltaPct": 91.4
         },
         {
           "name": "Horizon Blowout",
           "actual": 0.0015,
-          "target": 0.0002,
-          "derivedTarget": 0.0002,
-          "diff": 0.0013,
+          "target": 0.0001,
+          "derivedTarget": 0.0001,
+          "diff": 0.0014,
           "relPct": 0.1,
           "passed": true
         },
         {
           "name": "Saturation Mean",
           "actual": 0.1069,
-          "target": 0.3911,
-          "diff": 0.2842,
-          "relPct": 72.7,
+          "target": 0.3965,
+          "diff": 0.2896,
+          "relPct": 73,
           "passed": false,
-          "derivedTarget": 0.3911,
-          "derivedDeltaPct": 72.7
+          "derivedTarget": 0.3965,
+          "derivedDeltaPct": 73
         },
         {
           "name": "Sobel Edge (scale 1x)",
           "actual": 0.3278,
-          "target": 0.0526,
-          "diff": 0.2752,
-          "relPct": 523.2,
+          "target": 0.0543,
+          "diff": 0.2735,
+          "relPct": 503.7,
           "passed": false,
-          "derivedTarget": 0.0526,
-          "derivedDeltaPct": 523.2
+          "derivedTarget": 0.0543,
+          "derivedDeltaPct": 503.7
         },
         {
           "name": "Water Green Channel",
           "actual": 0.76,
-          "target": 0.55,
-          "diff": 0.21,
-          "relPct": 38.2,
+          "target": 0.552,
+          "diff": 0.208,
+          "relPct": 37.7,
           "passed": false,
-          "derivedTarget": 0.55,
-          "derivedDeltaPct": 38.2
+          "derivedTarget": 0.552,
+          "derivedDeltaPct": 37.7
         },
         {
           "name": "Water Glint Fraction",
@@ -93,9 +93,9 @@
         {
           "name": "Floor Grout Readability (0.9m)",
           "actual": 0.4728,
-          "target": 0.138,
-          "derivedTarget": 0.138,
-          "diff": 0.3348,
+          "target": 0.1292,
+          "derivedTarget": 0.1292,
+          "diff": 0.3436,
           "relPct": 0,
           "passed": true
         },
@@ -120,22 +120,22 @@
         {
           "name": "Luminance Mean",
           "actual": 0.6471,
-          "target": 0.599,
-          "diff": 0.0481,
-          "relPct": 8,
+          "target": 0.5964,
+          "diff": 0.0507,
+          "relPct": 8.5,
           "passed": true,
-          "derivedTarget": 0.599,
-          "derivedDeltaPct": 8
+          "derivedTarget": 0.5964,
+          "derivedDeltaPct": 8.5
         },
         {
           "name": "Luminance StdDev",
           "actual": 0.1776,
-          "target": 0.1304,
-          "diff": 0.0472,
-          "relPct": 36.2,
+          "target": 0.1308,
+          "diff": 0.0468,
+          "relPct": 35.8,
           "passed": false,
-          "derivedTarget": 0.1304,
-          "derivedDeltaPct": 36.2
+          "derivedTarget": 0.1308,
+          "derivedDeltaPct": 35.8
         },
         {
           "name": "Horizon Blowout",
@@ -149,32 +149,32 @@
         {
           "name": "Saturation Mean",
           "actual": 0.1151,
-          "target": 0.4042,
-          "diff": 0.2891,
-          "relPct": 71.5,
+          "target": 0.4076,
+          "diff": 0.2925,
+          "relPct": 71.8,
           "passed": false,
-          "derivedTarget": 0.4042,
-          "derivedDeltaPct": 71.5
+          "derivedTarget": 0.4076,
+          "derivedDeltaPct": 71.8
         },
         {
           "name": "Sobel Edge (scale 1x)",
           "actual": 0.3642,
-          "target": 0.0968,
-          "diff": 0.2674,
-          "relPct": 276.2,
+          "target": 0.0982,
+          "diff": 0.266,
+          "relPct": 270.9,
           "passed": false,
-          "derivedTarget": 0.0968,
-          "derivedDeltaPct": 276.2
+          "derivedTarget": 0.0982,
+          "derivedDeltaPct": 270.9
         },
         {
           "name": "Water Green Channel",
           "actual": 0.634,
-          "target": 0.599,
-          "diff": 0.035,
-          "relPct": 5.8,
+          "target": 0.601,
+          "diff": 0.033,
+          "relPct": 5.5,
           "passed": true,
-          "derivedTarget": 0.599,
-          "derivedDeltaPct": 5.8
+          "derivedTarget": 0.601,
+          "derivedDeltaPct": 5.5
         },
         {
           "name": "Water Glint Fraction",
@@ -188,9 +188,9 @@
         {
           "name": "Floor Grout Readability (0.9m)",
           "actual": 0.4804,
-          "target": 0.6354,
-          "derivedTarget": 0.6354,
-          "diff": 0.155,
+          "target": 0.6241,
+          "derivedTarget": 0.6241,
+          "diff": 0.1437,
           "relPct": 0,
           "passed": true
         },
@@ -215,61 +215,61 @@
         {
           "name": "Luminance Mean",
           "actual": 0.6917,
-          "target": 0.6804,
-          "diff": 0.0113,
-          "relPct": 1.7,
+          "target": 0.6777,
+          "diff": 0.014,
+          "relPct": 2.1,
           "passed": true,
-          "derivedTarget": 0.6804,
-          "derivedDeltaPct": 1.7
+          "derivedTarget": 0.6777,
+          "derivedDeltaPct": 2.1
         },
         {
           "name": "Luminance StdDev",
           "actual": 0.1653,
-          "target": 0.1275,
-          "diff": 0.0378,
-          "relPct": 29.6,
+          "target": 0.128,
+          "diff": 0.0373,
+          "relPct": 29.1,
           "passed": false,
-          "derivedTarget": 0.1275,
-          "derivedDeltaPct": 29.6
+          "derivedTarget": 0.128,
+          "derivedDeltaPct": 29.1
         },
         {
           "name": "Horizon Blowout",
           "actual": 0.0016,
-          "target": 0.023,
-          "derivedTarget": 0.023,
-          "diff": 0.0214,
-          "relPct": 2.1,
+          "target": 0.0202,
+          "derivedTarget": 0.0202,
+          "diff": 0.0186,
+          "relPct": 1.9,
           "passed": true
         },
         {
           "name": "Saturation Mean",
           "actual": 0.1137,
-          "target": 0.2232,
-          "diff": 0.1095,
-          "relPct": 49.1,
+          "target": 0.226,
+          "diff": 0.1123,
+          "relPct": 49.7,
           "passed": false,
-          "derivedTarget": 0.2232,
-          "derivedDeltaPct": 49.1
+          "derivedTarget": 0.226,
+          "derivedDeltaPct": 49.7
         },
         {
           "name": "Sobel Edge (scale 1x)",
           "actual": 0.2951,
-          "target": 0.0456,
-          "diff": 0.2495,
-          "relPct": 547.1,
+          "target": 0.0473,
+          "diff": 0.2478,
+          "relPct": 523.9,
           "passed": false,
-          "derivedTarget": 0.0456,
-          "derivedDeltaPct": 547.1
+          "derivedTarget": 0.0473,
+          "derivedDeltaPct": 523.9
         },
         {
           "name": "Water Green Channel",
           "actual": 0.748,
-          "target": 0.635,
-          "diff": 0.113,
-          "relPct": 17.8,
+          "target": 0.641,
+          "diff": 0.107,
+          "relPct": 16.7,
           "passed": true,
-          "derivedTarget": 0.635,
-          "derivedDeltaPct": 17.8
+          "derivedTarget": 0.641,
+          "derivedDeltaPct": 16.7
         },
         {
           "name": "Water Glint Fraction",
@@ -283,9 +283,9 @@
         {
           "name": "Floor Grout Readability (0.9m)",
           "actual": 0.3872,
-          "target": 0.5222,
-          "derivedTarget": 0.5222,
-          "diff": 0.135,
+          "target": 0.5038,
+          "derivedTarget": 0.5038,
+          "diff": 0.1166,
           "relPct": 0,
           "passed": false
         },
@@ -310,51 +310,51 @@
         {
           "name": "Luminance Mean",
           "actual": 0.7053,
-          "target": 0.6497,
-          "diff": 0.0556,
-          "relPct": 8.6,
+          "target": 0.6469,
+          "diff": 0.0584,
+          "relPct": 9,
           "passed": true,
-          "derivedTarget": 0.6497,
-          "derivedDeltaPct": 8.6
+          "derivedTarget": 0.6469,
+          "derivedDeltaPct": 9
         },
         {
           "name": "Luminance StdDev",
           "actual": 0.1627,
-          "target": 0.1588,
-          "diff": 0.0039,
-          "relPct": 2.5,
+          "target": 0.1591,
+          "diff": 0.0036,
+          "relPct": 2.3,
           "passed": true,
-          "derivedTarget": 0.1588,
-          "derivedDeltaPct": 2.5
+          "derivedTarget": 0.1591,
+          "derivedDeltaPct": 2.3
         },
         {
           "name": "Horizon Blowout",
           "actual": 0.0032,
-          "target": 0.0023,
-          "derivedTarget": 0.0023,
-          "diff": 0.0009,
-          "relPct": 0.1,
+          "target": 0.0015,
+          "derivedTarget": 0.0015,
+          "diff": 0.0017,
+          "relPct": 0.2,
           "passed": true
         },
         {
           "name": "Saturation Mean",
           "actual": 0.1205,
-          "target": 0.3322,
-          "diff": 0.2117,
-          "relPct": 63.7,
+          "target": 0.3356,
+          "diff": 0.2151,
+          "relPct": 64.1,
           "passed": false,
-          "derivedTarget": 0.3322,
-          "derivedDeltaPct": 63.7
+          "derivedTarget": 0.3356,
+          "derivedDeltaPct": 64.1
         },
         {
           "name": "Sobel Edge (scale 1x)",
           "actual": 0.3799,
-          "target": 0.1283,
-          "diff": 0.2516,
-          "relPct": 196.1,
+          "target": 0.13,
+          "diff": 0.2499,
+          "relPct": 192.2,
           "passed": false,
-          "derivedTarget": 0.1283,
-          "derivedDeltaPct": 196.1
+          "derivedTarget": 0.13,
+          "derivedDeltaPct": 192.2
         },
         {
           "name": "Water Green Channel",
@@ -378,9 +378,9 @@
         {
           "name": "Floor Grout Readability (0.9m)",
           "actual": 0.4292,
-          "target": 0.9675,
-          "derivedTarget": 0.9675,
-          "diff": 0.5383,
+          "target": 0.9602,
+          "derivedTarget": 0.9602,
+          "diff": 0.531,
           "relPct": 0,
           "passed": true
         },
@@ -406,22 +406,22 @@
         {
           "name": "Luminance Mean",
           "actual": 0.7012,
-          "target": 0.6263,
-          "diff": 0.0749,
-          "relPct": 12,
+          "target": 0.6235,
+          "diff": 0.0777,
+          "relPct": 12.5,
           "passed": true,
-          "derivedTarget": 0.6263,
-          "derivedDeltaPct": 12
+          "derivedTarget": 0.6235,
+          "derivedDeltaPct": 12.5
         },
         {
           "name": "Luminance StdDev",
           "actual": 0.1627,
-          "target": 0.1567,
-          "diff": 0.006,
-          "relPct": 3.8,
+          "target": 0.1573,
+          "diff": 0.0054,
+          "relPct": 3.4,
           "passed": true,
-          "derivedTarget": 0.1567,
-          "derivedDeltaPct": 3.8
+          "derivedTarget": 0.1573,
+          "derivedDeltaPct": 3.4
         },
         {
           "name": "Horizon Blowout",
@@ -435,32 +435,32 @@
         {
           "name": "Saturation Mean",
           "actual": 0.1266,
-          "target": 0.2996,
-          "diff": 0.173,
-          "relPct": 57.7,
+          "target": 0.302,
+          "diff": 0.1754,
+          "relPct": 58.1,
           "passed": false,
-          "derivedTarget": 0.2996,
-          "derivedDeltaPct": 57.7
+          "derivedTarget": 0.302,
+          "derivedDeltaPct": 58.1
         },
         {
           "name": "Sobel Edge (scale 1x)",
           "actual": 0.3533,
-          "target": 0.0241,
-          "diff": 0.3292,
-          "relPct": 1366,
+          "target": 0.026,
+          "diff": 0.3273,
+          "relPct": 1258.8,
           "passed": false,
-          "derivedTarget": 0.0241,
-          "derivedDeltaPct": 1366
+          "derivedTarget": 0.026,
+          "derivedDeltaPct": 1258.8
         },
         {
           "name": "Water Green Channel",
           "actual": 0.763,
-          "target": 0.565,
-          "diff": 0.198,
-          "relPct": 35,
+          "target": 0.578,
+          "diff": 0.185,
+          "relPct": 32,
           "passed": false,
-          "derivedTarget": 0.565,
-          "derivedDeltaPct": 35
+          "derivedTarget": 0.578,
+          "derivedDeltaPct": 32
         },
         {
           "name": "Water Glint Fraction",
@@ -474,9 +474,9 @@
         {
           "name": "Floor Grout Readability (0.9m)",
           "actual": 0.4634,
-          "target": 0.518,
-          "derivedTarget": 0.518,
-          "diff": 0.0546,
+          "target": 0.4811,
+          "derivedTarget": 0.4811,
+          "diff": 0.0177,
           "relPct": 0,
           "passed": true
         },
@@ -502,22 +502,22 @@
         {
           "name": "Luminance Mean",
           "actual": 0.7005,
-          "target": 0.6263,
-          "diff": 0.0742,
-          "relPct": 11.8,
+          "target": 0.6235,
+          "diff": 0.077,
+          "relPct": 12.3,
           "passed": true,
-          "derivedTarget": 0.6263,
-          "derivedDeltaPct": 11.8
+          "derivedTarget": 0.6235,
+          "derivedDeltaPct": 12.3
         },
         {
           "name": "Luminance StdDev",
           "actual": 0.1625,
-          "target": 0.1567,
-          "diff": 0.0058,
-          "relPct": 3.7,
+          "target": 0.1573,
+          "diff": 0.0052,
+          "relPct": 3.3,
           "passed": true,
-          "derivedTarget": 0.1567,
-          "derivedDeltaPct": 3.7
+          "derivedTarget": 0.1573,
+          "derivedDeltaPct": 3.3
         },
         {
           "name": "Horizon Blowout",
@@ -531,32 +531,32 @@
         {
           "name": "Saturation Mean",
           "actual": 0.1268,
-          "target": 0.2996,
-          "diff": 0.1728,
-          "relPct": 57.7,
+          "target": 0.302,
+          "diff": 0.1752,
+          "relPct": 58,
           "passed": false,
-          "derivedTarget": 0.2996,
-          "derivedDeltaPct": 57.7
+          "derivedTarget": 0.302,
+          "derivedDeltaPct": 58
         },
         {
           "name": "Sobel Edge (scale 1x)",
           "actual": 0.3529,
-          "target": 0.0241,
-          "diff": 0.3288,
-          "relPct": 1364.3,
+          "target": 0.026,
+          "diff": 0.3269,
+          "relPct": 1257.3,
           "passed": false,
-          "derivedTarget": 0.0241,
-          "derivedDeltaPct": 1364.3
+          "derivedTarget": 0.026,
+          "derivedDeltaPct": 1257.3
         },
         {
           "name": "Water Green Channel",
           "actual": 0.763,
-          "target": 0.565,
-          "diff": 0.198,
-          "relPct": 35,
+          "target": 0.578,
+          "diff": 0.185,
+          "relPct": 32,
           "passed": false,
-          "derivedTarget": 0.565,
-          "derivedDeltaPct": 35
+          "derivedTarget": 0.578,
+          "derivedDeltaPct": 32
         },
         {
           "name": "Water Glint Fraction",
@@ -570,9 +570,9 @@
         {
           "name": "Floor Grout Readability (0.9m)",
           "actual": 0.4655,
-          "target": 0.518,
-          "derivedTarget": 0.518,
-          "diff": 0.0525,
+          "target": 0.4811,
+          "derivedTarget": 0.4811,
+          "diff": 0.0156,
           "relPct": 0,
           "passed": true
         },
@@ -598,22 +598,22 @@
         {
           "name": "Luminance Mean",
           "actual": 0.6989,
-          "target": 0.6263,
-          "diff": 0.0726,
-          "relPct": 11.6,
+          "target": 0.6235,
+          "diff": 0.0754,
+          "relPct": 12.1,
           "passed": true,
-          "derivedTarget": 0.6263,
-          "derivedDeltaPct": 11.6
+          "derivedTarget": 0.6235,
+          "derivedDeltaPct": 12.1
         },
         {
           "name": "Luminance StdDev",
           "actual": 0.1618,
-          "target": 0.1567,
-          "diff": 0.0051,
-          "relPct": 3.3,
+          "target": 0.1573,
+          "diff": 0.0045,
+          "relPct": 2.9,
           "passed": true,
-          "derivedTarget": 0.1567,
-          "derivedDeltaPct": 3.3
+          "derivedTarget": 0.1573,
+          "derivedDeltaPct": 2.9
         },
         {
           "name": "Horizon Blowout",
@@ -627,32 +627,32 @@
         {
           "name": "Saturation Mean",
           "actual": 0.1273,
-          "target": 0.2996,
-          "diff": 0.1723,
-          "relPct": 57.5,
+          "target": 0.302,
+          "diff": 0.1747,
+          "relPct": 57.8,
           "passed": false,
-          "derivedTarget": 0.2996,
-          "derivedDeltaPct": 57.5
+          "derivedTarget": 0.302,
+          "derivedDeltaPct": 57.8
         },
         {
           "name": "Sobel Edge (scale 1x)",
           "actual": 0.3608,
-          "target": 0.0241,
-          "diff": 0.3367,
-          "relPct": 1397.1,
+          "target": 0.026,
+          "diff": 0.3348,
+          "relPct": 1287.7,
           "passed": false,
-          "derivedTarget": 0.0241,
-          "derivedDeltaPct": 1397.1
+          "derivedTarget": 0.026,
+          "derivedDeltaPct": 1287.7
         },
         {
           "name": "Water Green Channel",
           "actual": 0.762,
-          "target": 0.565,
-          "diff": 0.197,
-          "relPct": 34.9,
+          "target": 0.578,
+          "diff": 0.184,
+          "relPct": 31.8,
           "passed": false,
-          "derivedTarget": 0.565,
-          "derivedDeltaPct": 34.9
+          "derivedTarget": 0.578,
+          "derivedDeltaPct": 31.8
         },
         {
           "name": "Water Glint Fraction",
@@ -666,9 +666,9 @@
         {
           "name": "Floor Grout Readability (0.9m)",
           "actual": 0.4749,
-          "target": 0.518,
-          "derivedTarget": 0.518,
-          "diff": 0.0431,
+          "target": 0.4811,
+          "derivedTarget": 0.4811,
+          "diff": 0.0062,
           "relPct": 0,
           "passed": true
         },
@@ -692,22 +692,22 @@
         {
           "name": "Luminance Mean",
           "actual": 0.701,
-          "target": 0.6092,
-          "diff": 0.0918,
-          "relPct": 15.1,
+          "target": 0.6067,
+          "diff": 0.0943,
+          "relPct": 15.5,
           "passed": true,
-          "derivedTarget": 0.6092,
-          "derivedDeltaPct": 15.1
+          "derivedTarget": 0.6067,
+          "derivedDeltaPct": 15.5
         },
         {
           "name": "Luminance StdDev",
           "actual": 0.1665,
-          "target": 0.1806,
-          "diff": 0.0141,
-          "relPct": 7.8,
+          "target": 0.1812,
+          "diff": 0.0147,
+          "relPct": 8.1,
           "passed": true,
-          "derivedTarget": 0.1806,
-          "derivedDeltaPct": 7.8
+          "derivedTarget": 0.1812,
+          "derivedDeltaPct": 8.1
         },
         {
           "name": "Horizon Blowout",
@@ -721,32 +721,32 @@
         {
           "name": "Saturation Mean",
           "actual": 0.1302,
-          "target": 0.2495,
-          "diff": 0.1193,
-          "relPct": 47.8,
+          "target": 0.2538,
+          "diff": 0.1236,
+          "relPct": 48.7,
           "passed": false,
-          "derivedTarget": 0.2495,
-          "derivedDeltaPct": 47.8
+          "derivedTarget": 0.2538,
+          "derivedDeltaPct": 48.7
         },
         {
           "name": "Sobel Edge (scale 1x)",
           "actual": 0.3162,
-          "target": 0.0236,
-          "diff": 0.2926,
-          "relPct": 1239.8,
+          "target": 0.0249,
+          "diff": 0.2913,
+          "relPct": 1169.9,
           "passed": false,
-          "derivedTarget": 0.0236,
-          "derivedDeltaPct": 1239.8
+          "derivedTarget": 0.0249,
+          "derivedDeltaPct": 1169.9
         },
         {
           "name": "Water Green Channel",
           "actual": 0.766,
-          "target": 0.563,
-          "diff": 0.203,
-          "relPct": 36.1,
+          "target": 0.577,
+          "diff": 0.189,
+          "relPct": 32.8,
           "passed": false,
-          "derivedTarget": 0.563,
-          "derivedDeltaPct": 36.1
+          "derivedTarget": 0.577,
+          "derivedDeltaPct": 32.8
         },
         {
           "name": "Water Glint Fraction",
@@ -760,9 +760,9 @@
         {
           "name": "Floor Grout Readability (0.9m)",
           "actual": 0.3877,
-          "target": 0.4743,
-          "derivedTarget": 0.4743,
-          "diff": 0.0866,
+          "target": 0.4471,
+          "derivedTarget": 0.4471,
+          "diff": 0.0594,
           "relPct": 0,
           "passed": false
         },
@@ -787,61 +787,61 @@
         {
           "name": "Luminance Mean",
           "actual": 0.3502,
-          "target": 0.6448,
-          "diff": 0.2946,
-          "relPct": 45.7,
+          "target": 0.6418,
+          "diff": 0.2916,
+          "relPct": 45.4,
           "passed": false,
-          "derivedTarget": 0.6448,
-          "derivedDeltaPct": 45.7
+          "derivedTarget": 0.6418,
+          "derivedDeltaPct": 45.4
         },
         {
           "name": "Luminance StdDev",
           "actual": 0.0429,
-          "target": 0.1556,
-          "diff": 0.1127,
-          "relPct": 72.4,
+          "target": 0.1561,
+          "diff": 0.1132,
+          "relPct": 72.5,
           "passed": false,
-          "derivedTarget": 0.1556,
-          "derivedDeltaPct": 72.4
+          "derivedTarget": 0.1561,
+          "derivedDeltaPct": 72.5
         },
         {
           "name": "Horizon Blowout",
           "actual": 0.0014,
-          "target": 0.017,
-          "derivedTarget": 0.017,
-          "diff": 0.0156,
-          "relPct": 1.6,
+          "target": 0.016,
+          "derivedTarget": 0.016,
+          "diff": 0.0146,
+          "relPct": 1.5,
           "passed": true
         },
         {
           "name": "Saturation Mean",
           "actual": 0.1155,
-          "target": 0.3358,
-          "diff": 0.2203,
-          "relPct": 65.6,
+          "target": 0.3388,
+          "diff": 0.2233,
+          "relPct": 65.9,
           "passed": false,
-          "derivedTarget": 0.3358,
-          "derivedDeltaPct": 65.6
+          "derivedTarget": 0.3388,
+          "derivedDeltaPct": 65.9
         },
         {
           "name": "Sobel Edge (scale 1x)",
           "actual": 0.0143,
-          "target": 0.1093,
-          "diff": 0.095,
-          "relPct": 86.9,
+          "target": 0.111,
+          "diff": 0.0967,
+          "relPct": 87.1,
           "passed": false,
-          "derivedTarget": 0.1093,
-          "derivedDeltaPct": 86.9
+          "derivedTarget": 0.111,
+          "derivedDeltaPct": 87.1
         },
         {
           "name": "Water Green Channel",
           "actual": 0.561,
-          "target": 0.675,
-          "diff": 0.114,
-          "relPct": 16.9,
+          "target": 0.677,
+          "diff": 0.116,
+          "relPct": 17.1,
           "passed": true,
-          "derivedTarget": 0.675,
-          "derivedDeltaPct": 16.9
+          "derivedTarget": 0.677,
+          "derivedDeltaPct": 17.1
         },
         {
           "name": "Water Glint Fraction",
@@ -855,9 +855,9 @@
         {
           "name": "Floor Grout Readability (0.9m)",
           "actual": 0.4612,
-          "target": 0.7119,
-          "derivedTarget": 0.7119,
-          "diff": 0.2507,
+          "target": 0.7003,
+          "derivedTarget": 0.7003,
+          "diff": 0.2391,
           "relPct": 0,
           "passed": true
         },
@@ -881,22 +881,22 @@
         {
           "name": "Luminance Mean",
           "actual": 0.4409,
-          "target": 0.6356,
-          "diff": 0.1947,
-          "relPct": 30.6,
+          "target": 0.6323,
+          "diff": 0.1914,
+          "relPct": 30.3,
           "passed": false,
-          "derivedTarget": 0.6356,
-          "derivedDeltaPct": 30.6
+          "derivedTarget": 0.6323,
+          "derivedDeltaPct": 30.3
         },
         {
           "name": "Luminance StdDev",
           "actual": 0.1147,
-          "target": 0.1333,
-          "diff": 0.0186,
-          "relPct": 14,
+          "target": 0.1341,
+          "diff": 0.0194,
+          "relPct": 14.5,
           "passed": true,
-          "derivedTarget": 0.1333,
-          "derivedDeltaPct": 14
+          "derivedTarget": 0.1341,
+          "derivedDeltaPct": 14.5
         },
         {
           "name": "Horizon Blowout",
@@ -910,32 +910,32 @@
         {
           "name": "Saturation Mean",
           "actual": 0.1709,
-          "target": 0.3224,
-          "diff": 0.1515,
-          "relPct": 47,
+          "target": 0.3243,
+          "diff": 0.1534,
+          "relPct": 47.3,
           "passed": false,
-          "derivedTarget": 0.3224,
-          "derivedDeltaPct": 47
+          "derivedTarget": 0.3243,
+          "derivedDeltaPct": 47.3
         },
         {
           "name": "Sobel Edge (scale 1x)",
           "actual": 0.178,
-          "target": 0.1489,
-          "diff": 0.0291,
-          "relPct": 19.5,
+          "target": 0.1509,
+          "diff": 0.0271,
+          "relPct": 18,
           "passed": true,
-          "derivedTarget": 0.1489,
-          "derivedDeltaPct": 19.5
+          "derivedTarget": 0.1509,
+          "derivedDeltaPct": 18
         },
         {
           "name": "Water Green Channel",
           "actual": 0.453,
-          "target": 0.563,
-          "diff": 0.11,
-          "relPct": 19.5,
+          "target": 0.565,
+          "diff": 0.112,
+          "relPct": 19.8,
           "passed": true,
-          "derivedTarget": 0.563,
-          "derivedDeltaPct": 19.5
+          "derivedTarget": 0.565,
+          "derivedDeltaPct": 19.8
         },
         {
           "name": "Water Glint Fraction",
@@ -949,9 +949,9 @@
         {
           "name": "Floor Grout Readability (0.9m)",
           "actual": 0.7765,
-          "target": 0.6466,
-          "derivedTarget": 0.6466,
-          "diff": 0.1299,
+          "target": 0.6385,
+          "derivedTarget": 0.6385,
+          "diff": 0.138,
           "relPct": 0,
           "passed": true
         },
@@ -976,61 +976,61 @@
         {
           "name": "Luminance Mean",
           "actual": 0.6486,
-          "target": 0.663,
-          "diff": 0.0144,
-          "relPct": 2.2,
+          "target": 0.6597,
+          "diff": 0.0111,
+          "relPct": 1.7,
           "passed": true,
-          "derivedTarget": 0.663,
-          "derivedDeltaPct": 2.2
+          "derivedTarget": 0.6597,
+          "derivedDeltaPct": 1.7
         },
         {
           "name": "Luminance StdDev",
           "actual": 0.164,
-          "target": 0.1146,
-          "diff": 0.0494,
-          "relPct": 43.1,
+          "target": 0.1157,
+          "diff": 0.0483,
+          "relPct": 41.7,
           "passed": false,
-          "derivedTarget": 0.1146,
-          "derivedDeltaPct": 43.1
+          "derivedTarget": 0.1157,
+          "derivedDeltaPct": 41.7
         },
         {
           "name": "Horizon Blowout",
           "actual": 0.0017,
-          "target": 0.0104,
-          "derivedTarget": 0.0104,
-          "diff": 0.0087,
-          "relPct": 0.9,
+          "target": 0.0101,
+          "derivedTarget": 0.0101,
+          "diff": 0.0084,
+          "relPct": 0.8,
           "passed": true
         },
         {
           "name": "Saturation Mean",
           "actual": 0.1949,
-          "target": 0.3455,
-          "diff": 0.1506,
-          "relPct": 43.6,
+          "target": 0.3475,
+          "diff": 0.1526,
+          "relPct": 43.9,
           "passed": false,
-          "derivedTarget": 0.3455,
-          "derivedDeltaPct": 43.6
+          "derivedTarget": 0.3475,
+          "derivedDeltaPct": 43.9
         },
         {
           "name": "Sobel Edge (scale 1x)",
           "actual": 0.3364,
-          "target": 0.1121,
-          "diff": 0.2243,
-          "relPct": 200.1,
+          "target": 0.114,
+          "diff": 0.2224,
+          "relPct": 195.1,
           "passed": false,
-          "derivedTarget": 0.1121,
-          "derivedDeltaPct": 200.1
+          "derivedTarget": 0.114,
+          "derivedDeltaPct": 195.1
         },
         {
           "name": "Water Green Channel",
           "actual": 0.742,
-          "target": 0.677,
-          "diff": 0.065,
-          "relPct": 9.6,
+          "target": 0.666,
+          "diff": 0.076,
+          "relPct": 11.4,
           "passed": true,
-          "derivedTarget": 0.677,
-          "derivedDeltaPct": 9.6
+          "derivedTarget": 0.666,
+          "derivedDeltaPct": 11.4
         },
         {
           "name": "Water Glint Fraction",
@@ -1044,9 +1044,9 @@
         {
           "name": "Floor Grout Readability (0.9m)",
           "actual": 0.5376,
-          "target": 0.5786,
-          "derivedTarget": 0.5786,
-          "diff": 0.041,
+          "target": 0.5716,
+          "derivedTarget": 0.5716,
+          "diff": 0.034,
           "relPct": 0,
           "passed": true
         },
@@ -1070,61 +1070,61 @@
         {
           "name": "Luminance Mean",
           "actual": 0.3765,
-          "target": 0.5607,
-          "diff": 0.1842,
-          "relPct": 32.9,
+          "target": 0.5586,
+          "diff": 0.1821,
+          "relPct": 32.6,
           "passed": false,
-          "derivedTarget": 0.5607,
-          "derivedDeltaPct": 32.9
+          "derivedTarget": 0.5586,
+          "derivedDeltaPct": 32.6
         },
         {
           "name": "Luminance StdDev",
           "actual": 0.1224,
-          "target": 0.1972,
-          "diff": 0.0748,
-          "relPct": 37.9,
+          "target": 0.1968,
+          "diff": 0.0744,
+          "relPct": 37.8,
           "passed": false,
-          "derivedTarget": 0.1972,
-          "derivedDeltaPct": 37.9
+          "derivedTarget": 0.1968,
+          "derivedDeltaPct": 37.8
         },
         {
           "name": "Horizon Blowout",
           "actual": 0.0015,
-          "target": 0.004,
-          "derivedTarget": 0.004,
-          "diff": 0.0025,
-          "relPct": 0.3,
+          "target": 0.0039,
+          "derivedTarget": 0.0039,
+          "diff": 0.0024,
+          "relPct": 0.2,
           "passed": true
         },
         {
           "name": "Saturation Mean",
           "actual": 0.0232,
-          "target": 0.3165,
-          "diff": 0.2933,
+          "target": 0.3196,
+          "diff": 0.2964,
           "relPct": 92.7,
           "passed": false,
-          "derivedTarget": 0.3165,
+          "derivedTarget": 0.3196,
           "derivedDeltaPct": 92.7
         },
         {
           "name": "Sobel Edge (scale 1x)",
           "actual": 0.0388,
-          "target": 0.0088,
-          "diff": 0.03,
-          "relPct": 340.9,
+          "target": 0.0108,
+          "diff": 0.028,
+          "relPct": 259.3,
           "passed": false,
-          "derivedTarget": 0.0088,
-          "derivedDeltaPct": 340.9
+          "derivedTarget": 0.0108,
+          "derivedDeltaPct": 259.3
         },
         {
           "name": "Water Green Channel",
           "actual": 0.405,
-          "target": 0.477,
-          "diff": 0.072,
-          "relPct": 15.1,
+          "target": 0.507,
+          "diff": 0.102,
+          "relPct": 20.1,
           "passed": true,
-          "derivedTarget": 0.477,
-          "derivedDeltaPct": 15.1
+          "derivedTarget": 0.507,
+          "derivedDeltaPct": 20.1
         },
         {
           "name": "Water Glint Fraction",
@@ -1138,9 +1138,9 @@
         {
           "name": "Floor Grout Readability (0.9m)",
           "actual": 0.2884,
-          "target": 0.1166,
-          "derivedTarget": 0.1166,
-          "diff": 0.1718,
+          "target": 0.1077,
+          "derivedTarget": 0.1077,
+          "diff": 0.1807,
           "relPct": 0,
           "passed": false
         },
@@ -1164,22 +1164,22 @@
         {
           "name": "Luminance Mean",
           "actual": 0.555,
-          "target": 0.6099,
-          "diff": 0.0549,
-          "relPct": 9,
+          "target": 0.6073,
+          "diff": 0.0523,
+          "relPct": 8.6,
           "passed": true,
-          "derivedTarget": 0.6099,
-          "derivedDeltaPct": 9
+          "derivedTarget": 0.6073,
+          "derivedDeltaPct": 8.6
         },
         {
           "name": "Luminance StdDev",
           "actual": 0.0978,
-          "target": 0.182,
-          "diff": 0.0842,
-          "relPct": 46.3,
+          "target": 0.1826,
+          "diff": 0.0848,
+          "relPct": 46.4,
           "passed": false,
-          "derivedTarget": 0.182,
-          "derivedDeltaPct": 46.3
+          "derivedTarget": 0.1826,
+          "derivedDeltaPct": 46.4
         },
         {
           "name": "Horizon Blowout",
@@ -1193,32 +1193,32 @@
         {
           "name": "Saturation Mean",
           "actual": 0.128,
-          "target": 0.2476,
-          "diff": 0.1196,
-          "relPct": 48.3,
+          "target": 0.252,
+          "diff": 0.124,
+          "relPct": 49.2,
           "passed": false,
-          "derivedTarget": 0.2476,
-          "derivedDeltaPct": 48.3
+          "derivedTarget": 0.252,
+          "derivedDeltaPct": 49.2
         },
         {
           "name": "Sobel Edge (scale 1x)",
           "actual": 0.0805,
-          "target": 0.0203,
-          "diff": 0.0602,
-          "relPct": 296.6,
+          "target": 0.0222,
+          "diff": 0.0583,
+          "relPct": 262.6,
           "passed": false,
-          "derivedTarget": 0.0203,
-          "derivedDeltaPct": 296.6
+          "derivedTarget": 0.0222,
+          "derivedDeltaPct": 262.6
         },
         {
           "name": "Water Green Channel",
           "actual": 0.641,
-          "target": 0.563,
-          "diff": 0.078,
-          "relPct": 13.9,
+          "target": 0.579,
+          "diff": 0.062,
+          "relPct": 10.7,
           "passed": true,
-          "derivedTarget": 0.563,
-          "derivedDeltaPct": 13.9
+          "derivedTarget": 0.579,
+          "derivedDeltaPct": 10.7
         },
         {
           "name": "Water Glint Fraction",
@@ -1232,9 +1232,9 @@
         {
           "name": "Floor Grout Readability (0.9m)",
           "actual": 0.42,
-          "target": 0.5396,
-          "derivedTarget": 0.5396,
-          "diff": 0.1196,
+          "target": 0.5006,
+          "derivedTarget": 0.5006,
+          "diff": 0.0806,
           "relPct": 0,
           "passed": true
         },
@@ -1259,22 +1259,22 @@
         {
           "name": "Luminance Mean",
           "actual": 0.5592,
-          "target": 0.5513,
-          "diff": 0.0079,
-          "relPct": 1.4,
+          "target": 0.5485,
+          "diff": 0.0107,
+          "relPct": 2,
           "passed": true,
-          "derivedTarget": 0.5513,
-          "derivedDeltaPct": 1.4
+          "derivedTarget": 0.5485,
+          "derivedDeltaPct": 2
         },
         {
           "name": "Luminance StdDev",
           "actual": 0.1809,
-          "target": 0.0861,
-          "diff": 0.0948,
-          "relPct": 110.1,
+          "target": 0.0872,
+          "diff": 0.0937,
+          "relPct": 107.5,
           "passed": false,
-          "derivedTarget": 0.0861,
-          "derivedDeltaPct": 110.1
+          "derivedTarget": 0.0872,
+          "derivedDeltaPct": 107.5
         },
         {
           "name": "Horizon Blowout",
@@ -1288,32 +1288,32 @@
         {
           "name": "Saturation Mean",
           "actual": 0.1201,
-          "target": 0.4525,
-          "diff": 0.3324,
-          "relPct": 73.5,
+          "target": 0.4577,
+          "diff": 0.3376,
+          "relPct": 73.8,
           "passed": false,
-          "derivedTarget": 0.4525,
-          "derivedDeltaPct": 73.5
+          "derivedTarget": 0.4577,
+          "derivedDeltaPct": 73.8
         },
         {
           "name": "Sobel Edge (scale 1x)",
           "actual": 0.2247,
-          "target": 0.089,
-          "diff": 0.1357,
-          "relPct": 152.5,
+          "target": 0.0909,
+          "diff": 0.1338,
+          "relPct": 147.2,
           "passed": false,
-          "derivedTarget": 0.089,
-          "derivedDeltaPct": 152.5
+          "derivedTarget": 0.0909,
+          "derivedDeltaPct": 147.2
         },
         {
           "name": "Water Green Channel",
           "actual": 0.727,
-          "target": 0.605,
-          "diff": 0.122,
-          "relPct": 20.2,
+          "target": 0.607,
+          "diff": 0.12,
+          "relPct": 19.8,
           "passed": true,
-          "derivedTarget": 0.605,
-          "derivedDeltaPct": 20.2
+          "derivedTarget": 0.607,
+          "derivedDeltaPct": 19.8
         },
         {
           "name": "Water Glint Fraction",
@@ -1327,9 +1327,9 @@
         {
           "name": "Floor Grout Readability (0.9m)",
           "actual": 0.5332,
-          "target": 0.3614,
-          "derivedTarget": 0.3614,
-          "diff": 0.1718,
+          "target": 0.3571,
+          "derivedTarget": 0.3571,
+          "diff": 0.1761,
           "relPct": 0,
           "passed": true
         },
@@ -1354,17 +1354,17 @@
         0.657
       ],
       "target": [
-        0.446,
-        0.55,
-        0.34
+        0.447,
+        0.552,
+        0.341
       ],
       "deltaRGB": [
-        0.247,
-        0.21,
-        0.317
+        0.246,
+        0.208,
+        0.316
       ],
-      "meanDelta": 0.258,
-      "maxChannelDelta": 0.317,
+      "meanDelta": 0.2567,
+      "maxChannelDelta": 0.316,
       "passed": false
     },
     {
@@ -1376,17 +1376,17 @@
         0.425
       ],
       "target": [
-        0.678,
+        0.674,
         0.601,
-        0.384
+        0.38
       ],
       "deltaRGB": [
-        0.063,
+        0.059,
         0.026,
-        0.041
+        0.045
       ],
       "meanDelta": 0.0433,
-      "maxChannelDelta": 0.063,
+      "maxChannelDelta": 0.059,
       "passed": true
     },
     {
@@ -1398,17 +1398,17 @@
         0.676
       ],
       "target": [
-        0.688,
-        0.727,
-        0.618
+        0.686,
+        0.729,
+        0.619
       ],
       "deltaRGB": [
-        0.068,
-        0.036,
-        0.058
+        0.07,
+        0.034,
+        0.057
       ],
-      "meanDelta": 0.054,
-      "maxChannelDelta": 0.068,
+      "meanDelta": 0.0537,
+      "maxChannelDelta": 0.07,
       "passed": true
     },
     {
@@ -1420,17 +1420,17 @@
         0.533
       ],
       "target": [
-        0.492,
-        0.599,
-        0.378
+        0.494,
+        0.601,
+        0.38
       ],
       "deltaRGB": [
-        0.097,
-        0.035,
-        0.155
+        0.095,
+        0.033,
+        0.153
       ],
-      "meanDelta": 0.0957,
-      "maxChannelDelta": 0.155,
+      "meanDelta": 0.0937,
+      "maxChannelDelta": 0.153,
       "passed": false
     },
     {
@@ -1442,17 +1442,17 @@
         0.4
       ],
       "target": [
-        0.71,
-        0.607,
-        0.384
+        0.705,
+        0.606,
+        0.379
       ],
       "deltaRGB": [
-        0.127,
-        0.064,
-        0.016
+        0.122,
+        0.063,
+        0.021
       ],
-      "meanDelta": 0.069,
-      "maxChannelDelta": 0.127,
+      "meanDelta": 0.0687,
+      "maxChannelDelta": 0.122,
       "passed": false
     },
     {
@@ -1464,17 +1464,17 @@
         0.659
       ],
       "target": [
-        0.735,
-        0.768,
-        0.664
+        0.731,
+        0.767,
+        0.661
       ],
       "deltaRGB": [
-        0.008,
-        0.018,
-        0.005
+        0.012,
+        0.017,
+        0.002
       ],
       "meanDelta": 0.0103,
-      "maxChannelDelta": 0.018,
+      "maxChannelDelta": 0.017,
       "passed": true
     },
     {
@@ -1486,17 +1486,17 @@
         0.65
       ],
       "target": [
-        0.514,
-        0.635,
-        0.48
+        0.522,
+        0.641,
+        0.487
       ],
       "deltaRGB": [
-        0.175,
-        0.113,
-        0.17
+        0.167,
+        0.107,
+        0.163
       ],
-      "meanDelta": 0.1527,
-      "maxChannelDelta": 0.175,
+      "meanDelta": 0.1457,
+      "maxChannelDelta": 0.167,
       "passed": false
     },
     {
@@ -1508,17 +1508,17 @@
         0.414
       ],
       "target": [
-        0.649,
-        0.599,
-        0.422
+        0.641,
+        0.591,
+        0.408
       ],
       "deltaRGB": [
-        0.037,
-        0.028,
-        0.008
+        0.029,
+        0.02,
+        0.006
       ],
-      "meanDelta": 0.0243,
-      "maxChannelDelta": 0.037,
+      "meanDelta": 0.0183,
+      "maxChannelDelta": 0.029,
       "passed": true
     },
     {
@@ -1530,16 +1530,16 @@
         0.657
       ],
       "target": [
-        0.766,
+        0.762,
         0.797,
-        0.711
+        0.709
       ],
       "deltaRGB": [
-        0.05,
+        0.046,
         0.057,
-        0.054
+        0.052
       ],
-      "meanDelta": 0.0537,
+      "meanDelta": 0.0517,
       "maxChannelDelta": 0.057,
       "passed": true
     },
@@ -1552,17 +1552,17 @@
         0.657
       ],
       "target": [
-        0.516,
+        0.514,
         0.645,
-        0.443
+        0.442
       ],
       "deltaRGB": [
-        0.178,
+        0.18,
         0.117,
-        0.214
+        0.215
       ],
-      "meanDelta": 0.1697,
-      "maxChannelDelta": 0.214,
+      "meanDelta": 0.1707,
+      "maxChannelDelta": 0.215,
       "passed": false
     },
     {
@@ -1574,17 +1574,17 @@
         0.425
       ],
       "target": [
-        0.746,
-        0.658,
-        0.449
+        0.741,
+        0.656,
+        0.443
       ],
       "deltaRGB": [
-        0.154,
-        0.103,
-        0.024
+        0.149,
+        0.101,
+        0.018
       ],
-      "meanDelta": 0.0937,
-      "maxChannelDelta": 0.154,
+      "meanDelta": 0.0893,
+      "maxChannelDelta": 0.149,
       "passed": false
     },
     {
@@ -1596,16 +1596,16 @@
         0.692
       ],
       "target": [
-        0.771,
+        0.767,
         0.807,
-        0.718
+        0.716
       ],
       "deltaRGB": [
-        0.008,
+        0.004,
         0.031,
-        0.026
+        0.024
       ],
-      "meanDelta": 0.0217,
+      "meanDelta": 0.0197,
       "maxChannelDelta": 0.031,
       "passed": true
     },
@@ -1618,17 +1618,17 @@
         0.656
       ],
       "target": [
-        0.472,
-        0.565,
-        0.414
+        0.486,
+        0.578,
+        0.426
       ],
       "deltaRGB": [
-        0.224,
-        0.198,
-        0.242
+        0.21,
+        0.185,
+        0.23
       ],
-      "meanDelta": 0.2213,
-      "maxChannelDelta": 0.242,
+      "meanDelta": 0.2083,
+      "maxChannelDelta": 0.23,
       "passed": false
     },
     {
@@ -1640,17 +1640,17 @@
         0.415
       ],
       "target": [
-        0.702,
-        0.656,
-        0.48
+        0.699,
+        0.654,
+        0.473
       ],
       "deltaRGB": [
-        0.12,
-        0.111,
-        0.065
+        0.117,
+        0.109,
+        0.058
       ],
-      "meanDelta": 0.0987,
-      "maxChannelDelta": 0.12,
+      "meanDelta": 0.0947,
+      "maxChannelDelta": 0.117,
       "passed": false
     },
     {
@@ -1662,17 +1662,17 @@
         0.686
       ],
       "target": [
-        0.725,
+        0.722,
         0.736,
-        0.619
+        0.617
       ],
       "deltaRGB": [
-        0.025,
+        0.028,
         0.033,
-        0.067
+        0.069
       ],
-      "meanDelta": 0.0417,
-      "maxChannelDelta": 0.067,
+      "meanDelta": 0.0433,
+      "maxChannelDelta": 0.069,
       "passed": true
     },
     {
@@ -1684,17 +1684,17 @@
         0.656
       ],
       "target": [
-        0.472,
-        0.565,
-        0.414
+        0.486,
+        0.578,
+        0.426
       ],
       "deltaRGB": [
-        0.224,
-        0.198,
-        0.242
+        0.21,
+        0.185,
+        0.23
       ],
-      "meanDelta": 0.2213,
-      "maxChannelDelta": 0.242,
+      "meanDelta": 0.2083,
+      "maxChannelDelta": 0.23,
       "passed": false
     },
     {
@@ -1706,17 +1706,17 @@
         0.415
       ],
       "target": [
-        0.702,
-        0.656,
-        0.48
+        0.699,
+        0.654,
+        0.473
       ],
       "deltaRGB": [
-        0.121,
-        0.111,
-        0.065
+        0.118,
+        0.109,
+        0.058
       ],
-      "meanDelta": 0.099,
-      "maxChannelDelta": 0.121,
+      "meanDelta": 0.095,
+      "maxChannelDelta": 0.118,
       "passed": false
     },
     {
@@ -1728,17 +1728,17 @@
         0.686
       ],
       "target": [
-        0.725,
+        0.722,
         0.736,
-        0.619
+        0.617
       ],
       "deltaRGB": [
-        0.025,
+        0.028,
         0.033,
-        0.067
+        0.069
       ],
-      "meanDelta": 0.0417,
-      "maxChannelDelta": 0.067,
+      "meanDelta": 0.0433,
+      "maxChannelDelta": 0.069,
       "passed": true
     },
     {
@@ -1750,17 +1750,17 @@
         0.656
       ],
       "target": [
-        0.472,
-        0.565,
-        0.414
+        0.486,
+        0.578,
+        0.426
       ],
       "deltaRGB": [
-        0.224,
-        0.197,
-        0.242
+        0.21,
+        0.184,
+        0.23
       ],
-      "meanDelta": 0.221,
-      "maxChannelDelta": 0.242,
+      "meanDelta": 0.208,
+      "maxChannelDelta": 0.23,
       "passed": false
     },
     {
@@ -1772,17 +1772,17 @@
         0.414
       ],
       "target": [
-        0.702,
-        0.656,
-        0.48
+        0.699,
+        0.654,
+        0.473
       ],
       "deltaRGB": [
-        0.121,
-        0.112,
-        0.066
+        0.118,
+        0.11,
+        0.059
       ],
-      "meanDelta": 0.0997,
-      "maxChannelDelta": 0.121,
+      "meanDelta": 0.0957,
+      "maxChannelDelta": 0.118,
       "passed": false
     },
     {
@@ -1794,17 +1794,17 @@
         0.687
       ],
       "target": [
-        0.725,
+        0.722,
         0.736,
-        0.619
+        0.617
       ],
       "deltaRGB": [
-        0.026,
+        0.029,
         0.033,
-        0.068
+        0.07
       ],
-      "meanDelta": 0.0423,
-      "maxChannelDelta": 0.068,
+      "meanDelta": 0.044,
+      "maxChannelDelta": 0.07,
       "passed": true
     },
     {
@@ -1816,17 +1816,17 @@
         0.659
       ],
       "target": [
-        0.467,
-        0.563,
-        0.415
+        0.484,
+        0.577,
+        0.43
       ],
       "deltaRGB": [
-        0.231,
-        0.203,
-        0.244
+        0.214,
+        0.189,
+        0.229
       ],
-      "meanDelta": 0.226,
-      "maxChannelDelta": 0.244,
+      "meanDelta": 0.2107,
+      "maxChannelDelta": 0.229,
       "passed": false
     },
     {
@@ -1838,17 +1838,17 @@
         0.42
       ],
       "target": [
-        0.582,
-        0.517,
-        0.333
+        0.576,
+        0.516,
+        0.33
       ],
       "deltaRGB": [
-        0.012,
-        0.038,
-        0.087
+        0.018,
+        0.039,
+        0.09
       ],
-      "meanDelta": 0.0457,
-      "maxChannelDelta": 0.087,
+      "meanDelta": 0.049,
+      "maxChannelDelta": 0.09,
       "passed": false
     },
     {
@@ -1860,17 +1860,17 @@
         0.683
       ],
       "target": [
-        0.728,
-        0.765,
-        0.668
+        0.723,
+        0.764,
+        0.665
       ],
       "deltaRGB": [
-        0.011,
-        0.003,
-        0.015
+        0.016,
+        0.002,
+        0.018
       ],
-      "meanDelta": 0.0097,
-      "maxChannelDelta": 0.015,
+      "meanDelta": 0.012,
+      "maxChannelDelta": 0.018,
       "passed": true
     },
     {
@@ -1883,15 +1883,15 @@
       ],
       "target": [
         0.585,
-        0.675,
+        0.677,
         0.499
       ],
       "deltaRGB": [
         0.181,
-        0.114,
+        0.116,
         0.232
       ],
-      "meanDelta": 0.1757,
+      "meanDelta": 0.1763,
       "maxChannelDelta": 0.232,
       "passed": false
     },
@@ -1904,17 +1904,17 @@
         0.478
       ],
       "target": [
-        0.668,
-        0.574,
-        0.358
+        0.663,
+        0.571,
+        0.352
       ],
       "deltaRGB": [
-        0.027,
-        0.046,
-        0.12
+        0.022,
+        0.049,
+        0.126
       ],
-      "meanDelta": 0.0643,
-      "maxChannelDelta": 0.12,
+      "meanDelta": 0.0657,
+      "maxChannelDelta": 0.126,
       "passed": false
     },
     {
@@ -1926,17 +1926,17 @@
         0.939
       ],
       "target": [
-        0.786,
-        0.819,
-        0.742
+        0.78,
+        0.818,
+        0.738
       ],
       "deltaRGB": [
-        0.159,
-        0.122,
-        0.197
+        0.165,
+        0.123,
+        0.201
       ],
-      "meanDelta": 0.1593,
-      "maxChannelDelta": 0.197,
+      "meanDelta": 0.163,
+      "maxChannelDelta": 0.201,
       "passed": false
     },
     {
@@ -1949,16 +1949,16 @@
       ],
       "target": [
         0.464,
-        0.563,
-        0.387
+        0.565,
+        0.389
       ],
       "deltaRGB": [
         0.101,
-        0.11,
-        0.023
+        0.112,
+        0.025
       ],
-      "meanDelta": 0.078,
-      "maxChannelDelta": 0.11,
+      "meanDelta": 0.0793,
+      "maxChannelDelta": 0.112,
       "passed": false
     },
     {
@@ -1970,17 +1970,17 @@
         0.392
       ],
       "target": [
-        0.716,
-        0.662,
-        0.48
+        0.709,
+        0.658,
+        0.472
       ],
       "deltaRGB": [
-        0.195,
-        0.154,
-        0.088
+        0.188,
+        0.15,
+        0.08
       ],
-      "meanDelta": 0.1457,
-      "maxChannelDelta": 0.195,
+      "meanDelta": 0.1393,
+      "maxChannelDelta": 0.188,
       "passed": false
     },
     {
@@ -1992,17 +1992,17 @@
         0.66
       ],
       "target": [
-        0.717,
-        0.733,
-        0.616
+        0.714,
+        0.734,
+        0.615
       ],
       "deltaRGB": [
-        0.086,
-        0.032,
-        0.044
+        0.083,
+        0.033,
+        0.045
       ],
-      "meanDelta": 0.054,
-      "maxChannelDelta": 0.086,
+      "meanDelta": 0.0537,
+      "maxChannelDelta": 0.083,
       "passed": false
     },
     {
@@ -2014,17 +2014,17 @@
         0.641
       ],
       "target": [
-        0.601,
-        0.677,
-        0.516
+        0.593,
+        0.666,
+        0.499
       ],
       "deltaRGB": [
-        0.071,
-        0.065,
-        0.125
+        0.079,
+        0.076,
+        0.142
       ],
-      "meanDelta": 0.087,
-      "maxChannelDelta": 0.125,
+      "meanDelta": 0.099,
+      "maxChannelDelta": 0.142,
       "passed": false
     },
     {
@@ -2036,17 +2036,17 @@
         0.463
       ],
       "target": [
-        0.738,
-        0.627,
-        0.404
+        0.732,
+        0.625,
+        0.399
       ],
       "deltaRGB": [
-        0.036,
-        0.013,
-        0.059
+        0.03,
+        0.015,
+        0.064
       ],
-      "meanDelta": 0.036,
-      "maxChannelDelta": 0.059,
+      "meanDelta": 0.0363,
+      "maxChannelDelta": 0.064,
       "passed": true
     },
     {
@@ -2058,16 +2058,16 @@
         0.673
       ],
       "target": [
-        0.782,
+        0.78,
         0.794,
-        0.694
+        0.692
       ],
       "deltaRGB": [
-        0.029,
+        0.027,
         0.032,
-        0.021
+        0.019
       ],
-      "meanDelta": 0.0273,
+      "meanDelta": 0.026,
       "maxChannelDelta": 0.032,
       "passed": true
     },
@@ -2080,17 +2080,17 @@
         0.541
       ],
       "target": [
-        0.467,
-        0.563,
-        0.416
+        0.487,
+        0.579,
+        0.434
       ],
       "deltaRGB": [
-        0.128,
-        0.078,
-        0.125
+        0.108,
+        0.062,
+        0.107
       ],
-      "meanDelta": 0.1103,
-      "maxChannelDelta": 0.128,
+      "meanDelta": 0.0923,
+      "maxChannelDelta": 0.108,
       "passed": false
     },
     {
@@ -2102,17 +2102,17 @@
         0.457
       ],
       "target": [
-        0.584,
-        0.519,
-        0.337
+        0.578,
+        0.518,
+        0.334
       ],
       "deltaRGB": [
-        0.056,
-        0.044,
-        0.12
+        0.062,
+        0.045,
+        0.123
       ],
-      "meanDelta": 0.0733,
-      "maxChannelDelta": 0.12,
+      "meanDelta": 0.0767,
+      "maxChannelDelta": 0.123,
       "passed": false
     },
     {
@@ -2124,17 +2124,17 @@
         0.643
       ],
       "target": [
-        0.731,
-        0.768,
-        0.672
+        0.726,
+        0.767,
+        0.668
       ],
       "deltaRGB": [
-        0.047,
-        0.074,
-        0.029
+        0.042,
+        0.073,
+        0.025
       ],
-      "meanDelta": 0.05,
-      "maxChannelDelta": 0.074,
+      "meanDelta": 0.0467,
+      "maxChannelDelta": 0.073,
       "passed": true
     },
     {
@@ -2146,17 +2146,17 @@
         0.617
       ],
       "target": [
-        0.518,
-        0.605,
-        0.438
+        0.522,
+        0.607,
+        0.443
       ],
       "deltaRGB": [
-        0.145,
-        0.122,
-        0.179
+        0.141,
+        0.12,
+        0.174
       ],
-      "meanDelta": 0.1487,
-      "maxChannelDelta": 0.179,
+      "meanDelta": 0.145,
+      "maxChannelDelta": 0.174,
       "passed": false
     },
     {
@@ -2168,17 +2168,17 @@
         0.446
       ],
       "target": [
-        0.662,
-        0.555,
-        0.308
+        0.658,
+        0.554,
+        0.303
       ],
       "deltaRGB": [
-        0.004,
-        0.051,
-        0.138
+        0,
+        0.052,
+        0.143
       ],
-      "meanDelta": 0.0643,
-      "maxChannelDelta": 0.138,
+      "meanDelta": 0.065,
+      "maxChannelDelta": 0.143,
       "passed": false
     },
     {
@@ -2191,15 +2191,15 @@
       ],
       "target": [
         0.653,
-        0.697,
-        0.576
+        0.7,
+        0.578
       ],
       "deltaRGB": [
         0.054,
-        0.023,
-        0.051
+        0.02,
+        0.049
       ],
-      "meanDelta": 0.0427,
+      "meanDelta": 0.041,
       "maxChannelDelta": 0.054,
       "passed": true
     }
@@ -2995,7 +2995,7 @@
       "shotId": "natatorium_tagline_wall",
       "property": "tilePitchMetersAndWallHueDeg",
       "actualLum": 0.5631,
-      "frameLum": 0.6125,
+      "frameLum": 0.6101,
       "deltaPct": 0,
       "passed": true
     },
@@ -3005,7 +3005,7 @@
       "shotId": "natatorium_tagline_wall_portrait",
       "property": "wallHueDegAndWaterHueDeg",
       "actualLum": 0.5316,
-      "frameLum": 0.591,
+      "frameLum": 0.5886,
       "deltaPct": 0,
       "passed": true
     },
@@ -3015,7 +3015,7 @@
       "shotId": "natatorium_close_tile_wall",
       "property": "tileGrid16x16AndWallRgb",
       "actualLum": 0.5469,
-      "frameLum": 0.5633,
+      "frameLum": 0.5612,
       "deltaPct": 0,
       "passed": true
     },
@@ -3025,7 +3025,7 @@
       "shotId": "natatorium_spawn_view",
       "property": "luminanceMeanAndWaterHueBand",
       "actualLum": 0.6149,
-      "frameLum": 0.4769,
+      "frameLum": 0.4748,
       "deltaPct": 0,
       "passed": true
     },
@@ -3035,7 +3035,7 @@
       "shotId": "natatorium_spawn_view_portrait",
       "property": "ceilingArchHexAndWaterNearHex",
       "actualLum": 0.6286,
-      "frameLum": 0.5647,
+      "frameLum": 0.5624,
       "deltaPct": 0,
       "passed": true
     },
@@ -3045,7 +3045,7 @@
       "shotId": "natatorium_hero",
       "property": "slabTopHexAndFogHue",
       "actualLum": 0.5592,
-      "frameLum": 0.6256,
+      "frameLum": 0.6223,
       "deltaPct": 0,
       "passed": true
     },
@@ -3055,7 +3055,7 @@
       "shotId": "natatorium_water_calm_axial",
       "property": "waterMeanRgbAndGlintFraction",
       "actualLum": 0.6139,
-      "frameLum": 0.6496,
+      "frameLum": 0.6472,
       "deltaPct": 0,
       "passed": true
     },
@@ -3065,7 +3065,7 @@
       "shotId": "natatorium_water_horizon",
       "property": "horizonBlowoutAndFogRgb",
       "actualLum": 0.3502,
-      "frameLum": 0.6281,
+      "frameLum": 0.6253,
       "deltaPct": 0.4,
       "passed": true
     },
@@ -3075,7 +3075,7 @@
       "shotId": "natatorium_water_calm_grazing",
       "property": "waterMidhallRgbAndStreaksRgb",
       "actualLum": 0.6471,
-      "frameLum": 0.6334,
+      "frameLum": 0.6305,
       "deltaPct": 0,
       "passed": true
     },
@@ -3085,7 +3085,7 @@
       "shotId": "natatorium_monster_25m",
       "property": "creatureSilhouetteContrastAndWaterHue",
       "actualLum": 0.5933,
-      "frameLum": 0.6518,
+      "frameLum": 0.6485,
       "deltaPct": 0,
       "passed": true
     },
@@ -3095,7 +3095,7 @@
       "shotId": "natatorium_monster_25m_portrait",
       "property": "slabTilePitchAndWakeContrast",
       "actualLum": 0.6261,
-      "frameLum": 0.6081,
+      "frameLum": 0.6055,
       "deltaPct": 0,
       "passed": true
     },
@@ -3105,7 +3105,7 @@
       "shotId": "natatorium_water_monster_wake",
       "property": "monsterWakeDarkeningAndWaterRgb",
       "actualLum": 0.6486,
-      "frameLum": 0.6741,
+      "frameLum": 0.6709,
       "deltaPct": 0,
       "passed": true
     },
@@ -3115,7 +3115,7 @@
       "shotId": "natatorium_pillar_numeral_8m",
       "property": "dryFloorAndPlasterWallRgb",
       "actualLum": 0.5689,
-      "frameLum": 0.5743,
+      "frameLum": 0.572,
       "deltaPct": 0,
       "passed": true
     },
@@ -3125,7 +3125,7 @@
       "shotId": "natatorium_pillar_numeral_8m_portrait",
       "property": "numeralHeightMetersAndWallHue",
       "actualLum": 0.6056,
-      "frameLum": 0.5593,
+      "frameLum": 0.5566,
       "deltaPct": 0,
       "passed": true
     },
@@ -3135,7 +3135,7 @@
       "shotId": "natatorium_arch_fog_25m",
       "property": "archFogLuminanceAndSaturation",
       "actualLum": 0.5816,
-      "frameLum": 0.6043,
+      "frameLum": 0.6021,
       "deltaPct": 0,
       "passed": true
     },
@@ -3145,7 +3145,7 @@
       "shotId": "natatorium_close_tile_wall_portrait",
       "property": "tileGroutEdgeDensityAndWallHue",
       "actualLum": 0.5457,
-      "frameLum": 0.584,
+      "frameLum": 0.5814,
       "deltaPct": 0,
       "passed": true
     },
@@ -3155,7 +3155,7 @@
       "shotId": "natatorium_arch_fog_25m_portrait",
       "property": "luminanceMeanAndNoTrueBlacks",
       "actualLum": 0.6543,
-      "frameLum": 0.5764,
+      "frameLum": 0.5734,
       "deltaPct": 0,
       "passed": true
     },
@@ -3165,7 +3165,7 @@
       "shotId": "creature_close_6m",
       "property": "creatureHeadBodyRgbAndShallowWaterRgb",
       "actualLum": 0.4451,
-      "frameLum": 0.6391,
+      "frameLum": 0.6359,
       "deltaPct": 0,
       "passed": true
     },
@@ -3175,7 +3175,7 @@
       "shotId": "natatorium_floor_through_water",
       "property": "floorGroutEdgeRatioAndShallowWaterRgb",
       "actualLum": 0.6222,
-      "frameLum": 0.7089,
+      "frameLum": 0.706,
       "deltaPct": 0,
       "passed": true
     },
@@ -3185,7 +3185,7 @@
       "shotId": "natatorium_floor_through_water_portrait",
       "property": "creatureBodyRgbAndInkSplashContrast",
       "actualLum": 0.6422,
-      "frameLum": 0.695,
+      "frameLum": 0.6922,
       "deltaPct": 0,
       "passed": true
     },
@@ -3195,7 +3195,7 @@
       "shotId": "natatorium_slab_edge",
       "property": "slabTopRgbAndTilePitchMeters",
       "actualLum": 0.5527,
-      "frameLum": 0.6927,
+      "frameLum": 0.6903,
       "deltaPct": 0,
       "passed": true
     },
@@ -3205,7 +3205,7 @@
       "shotId": "natatorium_water_slab_edge",
       "property": "slabEdgeWetBandAndWaterRgb",
       "actualLum": 0.6917,
-      "frameLum": 0.668,
+      "frameLum": 0.665,
       "deltaPct": 0,
       "passed": true
     },
@@ -3215,7 +3215,7 @@
       "shotId": "creature_mid_15m",
       "property": "creatureMidSilhouetteAndWaterRgb",
       "actualLum": 0.4603,
-      "frameLum": 0.6645,
+      "frameLum": 0.6618,
       "deltaPct": 0,
       "passed": true
     },
@@ -3225,7 +3225,7 @@
       "shotId": "natatorium_water_wake",
       "property": "wakeLuminanceVarianceAndFloorGroutRatio",
       "actualLum": 0.7053,
-      "frameLum": 0.6712,
+      "frameLum": 0.6686,
       "deltaPct": 0,
       "passed": true
     },
@@ -3235,7 +3235,7 @@
       "shotId": "natatorium_horizon_long",
       "property": "denseFogSkyRgbAndWaterDenseRgb",
       "actualLum": 0.6373,
-      "frameLum": 0.6615,
+      "frameLum": 0.6583,
       "deltaPct": 0.1,
       "passed": true
     },
@@ -3245,7 +3245,7 @@
       "shotId": "natatorium_horizon_long_portrait",
       "property": "waterDenseNearRgbAndFogFalloff",
       "actualLum": 0.6707,
-      "frameLum": 0.5607,
+      "frameLum": 0.5586,
       "deltaPct": 0,
       "passed": true
     },
@@ -3255,7 +3255,7 @@
       "shotId": "creature_far_35m",
       "property": "farSilhouetteReadabilityAndFogExtinction",
       "actualLum": 0.4719,
-      "frameLum": 0.628,
+      "frameLum": 0.6268,
       "deltaPct": 0,
       "passed": true
     },
@@ -3265,7 +3265,7 @@
       "shotId": "natatorium_water_drip_ring",
       "property": "waterRippleLuminanceAndHue",
       "actualLum": 0.701,
-      "frameLum": 0.6092,
+      "frameLum": 0.6067,
       "deltaPct": 0,
       "passed": true
     },
@@ -3275,7 +3275,7 @@
       "shotId": "classic_archipelago_hero",
       "property": "paletteT57ExactMatch",
       "actualLum": 0.555,
-      "frameLum": 0.6099,
+      "frameLum": 0.6073,
       "deltaPct": 0,
       "passed": true
     },
@@ -3285,7 +3285,7 @@
       "shotId": "natatorium_water_splash_01",
       "property": "splashGlintAndWaterHueBand",
       "actualLum": 0.7012,
-      "frameLum": 0.6112,
+      "frameLum": 0.6086,
       "deltaPct": 0,
       "passed": true
     },
@@ -3295,7 +3295,7 @@
       "shotId": "natatorium_water_splash_05",
       "property": "splashDispersionAndNoTrueBlacks",
       "actualLum": 0.7005,
-      "frameLum": 0.6263,
+      "frameLum": 0.6235,
       "deltaPct": 0,
       "passed": true
     },
@@ -3305,7 +3305,7 @@
       "shotId": "natatorium_slab_edge_portrait",
       "property": "slabTopRgbAndHorizonFogBank",
       "actualLum": 0.5559,
-      "frameLum": 0.7013,
+      "frameLum": 0.698,
       "deltaPct": 0,
       "passed": true
     },
@@ -3315,7 +3315,7 @@
       "shotId": "natatorium_water_splash_12",
       "property": "residualRingDecayAndSlabHue",
       "actualLum": 0.6989,
-      "frameLum": 0.6448,
+      "frameLum": 0.642,
       "deltaPct": 0,
       "passed": true
     },
@@ -3325,7 +3325,7 @@
       "shotId": "natatorium_water_underwater",
       "property": "underwaterLuminanceAndHueBand",
       "actualLum": 0.4409,
-      "frameLum": 0.6356,
+      "frameLum": 0.6323,
       "deltaPct": 0,
       "passed": true
     },
@@ -3335,7 +3335,7 @@
       "shotId": "natatorium_trench_view",
       "property": "trenchWidthAndTrenchWaterSlabRgb",
       "actualLum": 0.6122,
-      "frameLum": 0.6479,
+      "frameLum": 0.6452,
       "deltaPct": 0,
       "passed": true
     },
@@ -3345,7 +3345,7 @@
       "shotId": "natatorium_trench_view_portrait",
       "property": "slabSideTileRowsAndTrenchWaterRgb",
       "actualLum": 0.6108,
-      "frameLum": 0.6382,
+      "frameLum": 0.6352,
       "deltaPct": 0,
       "passed": true
     },
@@ -3355,7 +3355,7 @@
       "shotId": "flock_overhead",
       "property": "jumpscareFramingTorsoHeadLowerFrameAndPaleFogBacklight",
       "actualLum": 0.428,
-      "frameLum": 0.4862,
+      "frameLum": 0.4847,
       "deltaPct": 0,
       "passed": true
     }
@@ -3961,8 +3961,8 @@
     "worstFailingMetric": {
       "metric": "natatorium_water_splash_12:Sobel Edge (scale 1x)",
       "actual": 0.3608,
-      "target": 0.0241,
-      "deltaPct": 1397.1
+      "target": 0.026,
+      "deltaPct": 1287.7
     }
   }
 }

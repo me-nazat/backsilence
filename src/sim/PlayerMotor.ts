@@ -588,7 +588,7 @@ export class PlayerMotor {
 
       // 11. Vertical Position Update & Ground/Ceiling Snapping
       let newY = this.pos.y + this.vel.y * subDt;
-      let finalGroundY = this.sampleGroundHeight(this.pos.x, this.pos.z, ground, colliders);
+      const finalGroundY = this.sampleGroundHeight(this.pos.x, this.pos.z, ground, colliders);
 
       // Low tunnel ceiling collision (y = 1.65m to 16.0m)
       const headY = newY + effectiveStandHeight;

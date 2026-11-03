@@ -39,7 +39,7 @@ open http://localhost:5173/
 | `npm run reference:verify` | Verify SHA-256 integrity of all 37 reference frames and audio files |
 | `npm run reference:compare` | Run SSIM, MAE, and colour band comparison against reference frames |
 | `npm run audio:compare` | Verify procedural Web Audio synthesis against reference spectrum |
-| `npm run shots:check` | Check 46 golden baseline screenshots for pixel regressions |
+| `npm run shots:check` | Check 47 golden baseline screenshots for pixel regressions |
 | `npm run audit` | Comprehensive audit gate: bundle size, rulebook sync, appearance lock, no tautology, claim traceability, reports honesty, docs truth, golden sync |
 | `npm run audit:reports-honesty` | Fatal check asserting zero self-assigned rubric grades across reports |
 | `npm run audit:docs-truth` | Verify documentation script names and test claims against codebase reality |
@@ -118,6 +118,8 @@ api/
 - [BALANCE_REPORT.md](BALANCE_REPORT.md) — Latest 13,200-run balance swarm verification report
 - [SECURITY.md](SECURITY.md) — Threat model, database credential quarantine, and audit rules
 - [DEPLOY.md](DEPLOY.md) — Production deployment guide (Cloudflare, Vercel, Netlify)
+- [reports/glitch/CENSUS.md](reports/glitch/CENSUS.md) — Visual defect & glitch census across all 11 maps and 3 quality tiers
+- [reports/glitch/REGISTER.md](reports/glitch/REGISTER.md) — Tracked defect register & historical resolution milestones
 - [COPY.md](COPY.md) — UI microcopy, narrative voice, and error messaging
 - [CREDITS.md](CREDITS.md) — CC BY 4.0 asset licenses and engine attributions
 - [CHANGELOG.md](CHANGELOG.md) — Milestone changelog from Batch 1 through Batch 8
