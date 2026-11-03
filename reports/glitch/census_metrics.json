@@ -1,0 +1,3694 @@
+[
+  {
+    "file": "classic_archipelago_hero.png",
+    "path": "reports/water/baseline/classic_archipelago_hero.png",
+    "map": "natatorium",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": false,
+        "hardEdgeCount": 2675,
+        "totalEdgeCount": 15151,
+        "hardEdgeSharePct": 17.66
+      },
+      "debugText": {
+        "isHit": false,
+        "whitePixelCount": 2,
+        "boundingBox": null
+      },
+      "specularBlowout": {
+        "isHit": false,
+        "blownPixels": 0,
+        "frameAreaPct": 0
+      }
+    },
+    "defectsFound": 0
+  },
+  {
+    "file": "drainage_core_hero.png",
+    "path": "reports/water/baseline/drainage_core_hero.png",
+    "map": "drainage_core",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 3111,
+        "frameAreaPct": 0.34,
+        "upperThirdAreaPct": 1.01,
+        "firstPosition": {
+          "x": 0,
+          "y": 47
+        }
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": true,
+        "hardEdgeCount": 38085,
+        "totalEdgeCount": 72594,
+        "hardEdgeSharePct": 52.46
+      },
+      "debugText": {
+        "isHit": false,
+        "whitePixelCount": 0,
+        "boundingBox": null
+      },
+      "specularBlowout": {
+        "isHit": true,
+        "blownPixels": 50672,
+        "frameAreaPct": 5.5
+      }
+    },
+    "defectsFound": 2
+  },
+  {
+    "file": "drowned_metro_hero.png",
+    "path": "reports/water/baseline/drowned_metro_hero.png",
+    "map": "drowned_metro",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": true,
+        "hardEdgeCount": 8864,
+        "totalEdgeCount": 25473,
+        "hardEdgeSharePct": 34.8
+      },
+      "debugText": {
+        "isHit": false,
+        "whitePixelCount": 0,
+        "boundingBox": null
+      },
+      "specularBlowout": {
+        "isHit": true,
+        "blownPixels": 925,
+        "frameAreaPct": 0.1
+      }
+    },
+    "defectsFound": 2
+  },
+  {
+    "file": "drowned_school_hero.png",
+    "path": "reports/water/baseline/drowned_school_hero.png",
+    "map": "drowned_school",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": true,
+        "hardEdgeCount": 21382,
+        "totalEdgeCount": 55477,
+        "hardEdgeSharePct": 38.54
+      },
+      "debugText": {
+        "isHit": false,
+        "whitePixelCount": 0,
+        "boundingBox": null
+      },
+      "specularBlowout": {
+        "isHit": true,
+        "blownPixels": 1016,
+        "frameAreaPct": 0.11
+      }
+    },
+    "defectsFound": 2
+  },
+  {
+    "file": "hydro_maze_hero.png",
+    "path": "reports/water/baseline/hydro_maze_hero.png",
+    "map": "hydro_maze",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": true,
+        "hardEdgeCount": 9973,
+        "totalEdgeCount": 51247,
+        "hardEdgeSharePct": 19.46
+      },
+      "debugText": {
+        "isHit": false,
+        "whitePixelCount": 0,
+        "boundingBox": null
+      },
+      "specularBlowout": {
+        "isHit": true,
+        "blownPixels": 856,
+        "frameAreaPct": 0.09
+      }
+    },
+    "defectsFound": 2
+  },
+  {
+    "file": "marble_atrium_hero.png",
+    "path": "reports/water/baseline/marble_atrium_hero.png",
+    "map": "marble_atrium",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": false,
+        "hardEdgeCount": 26386,
+        "totalEdgeCount": 239915,
+        "hardEdgeSharePct": 11
+      },
+      "debugText": {
+        "isHit": false,
+        "whitePixelCount": 0,
+        "boundingBox": null
+      },
+      "specularBlowout": {
+        "isHit": false,
+        "blownPixels": 8,
+        "frameAreaPct": 0
+      }
+    },
+    "defectsFound": 0
+  },
+  {
+    "file": "natatorium_floor_through_water.png",
+    "path": "reports/water/baseline/natatorium_floor_through_water.png",
+    "map": "natatorium",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": true,
+        "hardEdgeCount": 17725,
+        "totalEdgeCount": 51679,
+        "hardEdgeSharePct": 34.3
+      },
+      "debugText": {
+        "isHit": false,
+        "whitePixelCount": 17,
+        "boundingBox": null
+      },
+      "specularBlowout": {
+        "isHit": true,
+        "blownPixels": 2955,
+        "frameAreaPct": 0.32
+      }
+    },
+    "defectsFound": 2
+  },
+  {
+    "file": "natatorium_floor_through_water_portrait.png",
+    "path": "reports/water/baseline/natatorium_floor_through_water_portrait.png",
+    "map": "natatorium",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": true,
+        "hardEdgeCount": 13689,
+        "totalEdgeCount": 41743,
+        "hardEdgeSharePct": 32.79
+      },
+      "debugText": {
+        "isHit": false,
+        "whitePixelCount": 1,
+        "boundingBox": null
+      },
+      "specularBlowout": {
+        "isHit": true,
+        "blownPixels": 4702,
+        "frameAreaPct": 0.51
+      }
+    },
+    "defectsFound": 2
+  },
+  {
+    "file": "natatorium_hero.png",
+    "path": "reports/water/baseline/natatorium_hero.png",
+    "map": "natatorium",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": true,
+        "hardEdgeCount": 18238,
+        "totalEdgeCount": 46137,
+        "hardEdgeSharePct": 39.53
+      },
+      "debugText": {
+        "isHit": false,
+        "whitePixelCount": 225,
+        "boundingBox": null
+      },
+      "specularBlowout": {
+        "isHit": true,
+        "blownPixels": 6272,
+        "frameAreaPct": 0.68
+      }
+    },
+    "defectsFound": 2
+  },
+  {
+    "file": "natatorium_water_calm_axial.png",
+    "path": "reports/water/baseline/natatorium_water_calm_axial.png",
+    "map": "natatorium",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": true,
+        "hardEdgeCount": 18198,
+        "totalEdgeCount": 48707,
+        "hardEdgeSharePct": 37.36
+      },
+      "debugText": {
+        "isHit": false,
+        "whitePixelCount": 0,
+        "boundingBox": null
+      },
+      "specularBlowout": {
+        "isHit": true,
+        "blownPixels": 2064,
+        "frameAreaPct": 0.22
+      }
+    },
+    "defectsFound": 2
+  },
+  {
+    "file": "natatorium_water_calm_grazing.png",
+    "path": "reports/water/baseline/natatorium_water_calm_grazing.png",
+    "map": "natatorium",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": true,
+        "hardEdgeCount": 14233,
+        "totalEdgeCount": 38897,
+        "hardEdgeSharePct": 36.59
+      },
+      "debugText": {
+        "isHit": false,
+        "whitePixelCount": 0,
+        "boundingBox": null
+      },
+      "specularBlowout": {
+        "isHit": false,
+        "blownPixels": 257,
+        "frameAreaPct": 0.03
+      }
+    },
+    "defectsFound": 1
+  },
+  {
+    "file": "natatorium_water_drip_ring.png",
+    "path": "reports/water/baseline/natatorium_water_drip_ring.png",
+    "map": "natatorium",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": true,
+        "hardEdgeCount": 21682,
+        "totalEdgeCount": 54118,
+        "hardEdgeSharePct": 40.06
+      },
+      "debugText": {
+        "isHit": false,
+        "whitePixelCount": 0,
+        "boundingBox": null
+      },
+      "specularBlowout": {
+        "isHit": true,
+        "blownPixels": 749,
+        "frameAreaPct": 0.08
+      }
+    },
+    "defectsFound": 2
+  },
+  {
+    "file": "natatorium_water_horizon.png",
+    "path": "reports/water/baseline/natatorium_water_horizon.png",
+    "map": "natatorium",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": true,
+        "hardEdgeCount": 18512,
+        "totalEdgeCount": 47501,
+        "hardEdgeSharePct": 38.97
+      },
+      "debugText": {
+        "isHit": false,
+        "whitePixelCount": 0,
+        "boundingBox": null
+      },
+      "specularBlowout": {
+        "isHit": true,
+        "blownPixels": 3565,
+        "frameAreaPct": 0.39
+      }
+    },
+    "defectsFound": 2
+  },
+  {
+    "file": "natatorium_water_monster_wake.png",
+    "path": "reports/water/baseline/natatorium_water_monster_wake.png",
+    "map": "natatorium",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": true,
+        "hardEdgeCount": 15190,
+        "totalEdgeCount": 66260,
+        "hardEdgeSharePct": 22.92
+      },
+      "debugText": {
+        "isHit": false,
+        "whitePixelCount": 1,
+        "boundingBox": null
+      },
+      "specularBlowout": {
+        "isHit": true,
+        "blownPixels": 778,
+        "frameAreaPct": 0.08
+      }
+    },
+    "defectsFound": 2
+  },
+  {
+    "file": "natatorium_water_slab_edge.png",
+    "path": "reports/water/baseline/natatorium_water_slab_edge.png",
+    "map": "natatorium",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": true,
+        "hardEdgeCount": 8102,
+        "totalEdgeCount": 30174,
+        "hardEdgeSharePct": 26.85
+      },
+      "debugText": {
+        "isHit": false,
+        "whitePixelCount": 0,
+        "boundingBox": null
+      },
+      "specularBlowout": {
+        "isHit": false,
+        "blownPixels": 0,
+        "frameAreaPct": 0
+      }
+    },
+    "defectsFound": 1
+  },
+  {
+    "file": "natatorium_water_splash_01.png",
+    "path": "reports/water/baseline/natatorium_water_splash_01.png",
+    "map": "natatorium",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": true,
+        "hardEdgeCount": 19459,
+        "totalEdgeCount": 51089,
+        "hardEdgeSharePct": 38.09
+      },
+      "debugText": {
+        "isHit": false,
+        "whitePixelCount": 19,
+        "boundingBox": null
+      },
+      "specularBlowout": {
+        "isHit": true,
+        "blownPixels": 867,
+        "frameAreaPct": 0.09
+      }
+    },
+    "defectsFound": 2
+  },
+  {
+    "file": "natatorium_water_splash_05.png",
+    "path": "reports/water/baseline/natatorium_water_splash_05.png",
+    "map": "natatorium",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": true,
+        "hardEdgeCount": 19987,
+        "totalEdgeCount": 49884,
+        "hardEdgeSharePct": 40.07
+      },
+      "debugText": {
+        "isHit": false,
+        "whitePixelCount": 15,
+        "boundingBox": null
+      },
+      "specularBlowout": {
+        "isHit": true,
+        "blownPixels": 870,
+        "frameAreaPct": 0.09
+      }
+    },
+    "defectsFound": 2
+  },
+  {
+    "file": "natatorium_water_splash_12.png",
+    "path": "reports/water/baseline/natatorium_water_splash_12.png",
+    "map": "natatorium",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": true,
+        "hardEdgeCount": 19736,
+        "totalEdgeCount": 48865,
+        "hardEdgeSharePct": 40.39
+      },
+      "debugText": {
+        "isHit": false,
+        "whitePixelCount": 28,
+        "boundingBox": null
+      },
+      "specularBlowout": {
+        "isHit": true,
+        "blownPixels": 937,
+        "frameAreaPct": 0.1
+      }
+    },
+    "defectsFound": 2
+  },
+  {
+    "file": "natatorium_water_underwater.png",
+    "path": "reports/water/baseline/natatorium_water_underwater.png",
+    "map": "natatorium",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": true,
+        "hardEdgeCount": 4476,
+        "totalEdgeCount": 11432,
+        "hardEdgeSharePct": 39.15
+      },
+      "debugText": {
+        "isHit": false,
+        "whitePixelCount": 0,
+        "boundingBox": null
+      },
+      "specularBlowout": {
+        "isHit": false,
+        "blownPixels": 0,
+        "frameAreaPct": 0
+      }
+    },
+    "defectsFound": 1
+  },
+  {
+    "file": "natatorium_water_wake.png",
+    "path": "reports/water/baseline/natatorium_water_wake.png",
+    "map": "natatorium",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": true,
+        "hardEdgeCount": 18499,
+        "totalEdgeCount": 52592,
+        "hardEdgeSharePct": 35.17
+      },
+      "debugText": {
+        "isHit": false,
+        "whitePixelCount": 0,
+        "boundingBox": null
+      },
+      "specularBlowout": {
+        "isHit": true,
+        "blownPixels": 1901,
+        "frameAreaPct": 0.21
+      }
+    },
+    "defectsFound": 2
+  },
+  {
+    "file": "neon_flood_hero.png",
+    "path": "reports/water/baseline/neon_flood_hero.png",
+    "map": "neon_flood",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": true,
+        "blackPixelCount": 98765,
+        "frameAreaPct": 10.72,
+        "upperThirdAreaPct": 32.15,
+        "firstPosition": {
+          "x": 0,
+          "y": 0
+        }
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": true,
+        "hardEdgeCount": 20299,
+        "totalEdgeCount": 50383,
+        "hardEdgeSharePct": 40.29
+      },
+      "debugText": {
+        "isHit": false,
+        "whitePixelCount": 0,
+        "boundingBox": null
+      },
+      "specularBlowout": {
+        "isHit": true,
+        "blownPixels": 6172,
+        "frameAreaPct": 0.67
+      }
+    },
+    "defectsFound": 3
+  },
+  {
+    "file": "neon_flood_water_rain.png",
+    "path": "reports/water/baseline/neon_flood_water_rain.png",
+    "map": "neon_flood",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": true,
+        "hardEdgeCount": 11722,
+        "totalEdgeCount": 20223,
+        "hardEdgeSharePct": 57.96
+      },
+      "debugText": {
+        "isHit": false,
+        "whitePixelCount": 0,
+        "boundingBox": null
+      },
+      "specularBlowout": {
+        "isHit": false,
+        "blownPixels": 382,
+        "frameAreaPct": 0.04
+      }
+    },
+    "defectsFound": 1
+  },
+  {
+    "file": "sunken_jungle_hero.png",
+    "path": "reports/water/baseline/sunken_jungle_hero.png",
+    "map": "sunken_jungle",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": false,
+        "hardEdgeCount": 19138,
+        "totalEdgeCount": 137187,
+        "hardEdgeSharePct": 13.95
+      },
+      "debugText": {
+        "isHit": false,
+        "whitePixelCount": 0,
+        "boundingBox": null
+      },
+      "specularBlowout": {
+        "isHit": true,
+        "blownPixels": 51051,
+        "frameAreaPct": 5.54
+      }
+    },
+    "defectsFound": 1
+  },
+  {
+    "file": "utility_tunnels_hero.png",
+    "path": "reports/water/baseline/utility_tunnels_hero.png",
+    "map": "utility_tunnels",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": true,
+        "hardEdgeCount": 21276,
+        "totalEdgeCount": 37520,
+        "hardEdgeSharePct": 56.71
+      },
+      "debugText": {
+        "isHit": false,
+        "whitePixelCount": 0,
+        "boundingBox": null
+      },
+      "specularBlowout": {
+        "isHit": false,
+        "blownPixels": 0,
+        "frameAreaPct": 0
+      }
+    },
+    "defectsFound": 1
+  },
+  {
+    "file": "crossing.png",
+    "path": "reports/monster/screenshots/crossing.png",
+    "map": "natatorium",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": true,
+        "hardEdgeCount": 13118,
+        "totalEdgeCount": 22445,
+        "hardEdgeSharePct": 58.45
+      },
+      "debugText": {
+        "isHit": false,
+        "whitePixelCount": 0,
+        "boundingBox": null
+      },
+      "specularBlowout": {
+        "isHit": false,
+        "blownPixels": 0,
+        "frameAreaPct": 0
+      }
+    },
+    "defectsFound": 2
+  },
+  {
+    "file": "jumpscare_0.2s.png",
+    "path": "reports/monster/screenshots/jumpscare_0.2s.png",
+    "map": "natatorium",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": true,
+        "hardEdgeCount": 15897,
+        "totalEdgeCount": 19352,
+        "hardEdgeSharePct": 82.15
+      },
+      "debugText": {
+        "isHit": false,
+        "whitePixelCount": 0,
+        "boundingBox": null
+      },
+      "specularBlowout": {
+        "isHit": false,
+        "blownPixels": 0,
+        "frameAreaPct": 0
+      }
+    },
+    "defectsFound": 2
+  },
+  {
+    "file": "jumpscare_0.6s.png",
+    "path": "reports/monster/screenshots/jumpscare_0.6s.png",
+    "map": "natatorium",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": true,
+        "blackPixelCount": 277212,
+        "frameAreaPct": 30.08,
+        "upperThirdAreaPct": 90.24,
+        "firstPosition": {
+          "x": 0,
+          "y": 0
+        }
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": true,
+        "hardEdgeCount": 10298,
+        "totalEdgeCount": 11846,
+        "hardEdgeSharePct": 86.93
+      },
+      "debugText": {
+        "isHit": false,
+        "whitePixelCount": 0,
+        "boundingBox": null
+      },
+      "specularBlowout": {
+        "isHit": false,
+        "blownPixels": 0,
+        "frameAreaPct": 0
+      }
+    },
+    "defectsFound": 3
+  },
+  {
+    "file": "lurk.png",
+    "path": "reports/monster/screenshots/lurk.png",
+    "map": "natatorium",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": true,
+        "hardEdgeCount": 13745,
+        "totalEdgeCount": 23475,
+        "hardEdgeSharePct": 58.55
+      },
+      "debugText": {
+        "isHit": false,
+        "whitePixelCount": 0,
+        "boundingBox": null
+      },
+      "specularBlowout": {
+        "isHit": false,
+        "blownPixels": 0,
+        "frameAreaPct": 0
+      }
+    },
+    "defectsFound": 2
+  },
+  {
+    "file": "map_drainage_core_high.png",
+    "path": "reports/monster/screenshots/map_drainage_core_high.png",
+    "map": "drainage_core",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": true,
+        "hardEdgeCount": 32081,
+        "totalEdgeCount": 53661,
+        "hardEdgeSharePct": 59.78
+      },
+      "debugText": {
+        "isHit": true,
+        "whitePixelCount": 448,
+        "boundingBox": {
+          "x": 1220,
+          "y": 849,
+          "w": 178,
+          "h": 11
+        }
+      },
+      "specularBlowout": {
+        "isHit": false,
+        "blownPixels": 384,
+        "frameAreaPct": 0.03
+      }
+    },
+    "defectsFound": 3
+  },
+  {
+    "file": "map_drowned_metro_high.png",
+    "path": "reports/monster/screenshots/map_drowned_metro_high.png",
+    "map": "drowned_metro",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": true,
+        "hardEdgeCount": 23001,
+        "totalEdgeCount": 40192,
+        "hardEdgeSharePct": 57.23
+      },
+      "debugText": {
+        "isHit": true,
+        "whitePixelCount": 448,
+        "boundingBox": {
+          "x": 1220,
+          "y": 849,
+          "w": 178,
+          "h": 11
+        }
+      },
+      "specularBlowout": {
+        "isHit": false,
+        "blownPixels": 384,
+        "frameAreaPct": 0.03
+      }
+    },
+    "defectsFound": 3
+  },
+  {
+    "file": "map_drowned_school_high.png",
+    "path": "reports/monster/screenshots/map_drowned_school_high.png",
+    "map": "drowned_school",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": true,
+        "hardEdgeCount": 34620,
+        "totalEdgeCount": 56444,
+        "hardEdgeSharePct": 61.34
+      },
+      "debugText": {
+        "isHit": true,
+        "whitePixelCount": 449,
+        "boundingBox": {
+          "x": 1220,
+          "y": 849,
+          "w": 178,
+          "h": 11
+        }
+      },
+      "specularBlowout": {
+        "isHit": false,
+        "blownPixels": 384,
+        "frameAreaPct": 0.03
+      }
+    },
+    "defectsFound": 3
+  },
+  {
+    "file": "map_hydro_maze_high.png",
+    "path": "reports/monster/screenshots/map_hydro_maze_high.png",
+    "map": "hydro_maze",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": true,
+        "hardEdgeCount": 23226,
+        "totalEdgeCount": 41070,
+        "hardEdgeSharePct": 56.55
+      },
+      "debugText": {
+        "isHit": true,
+        "whitePixelCount": 448,
+        "boundingBox": {
+          "x": 1220,
+          "y": 849,
+          "w": 178,
+          "h": 11
+        }
+      },
+      "specularBlowout": {
+        "isHit": false,
+        "blownPixels": 384,
+        "frameAreaPct": 0.03
+      }
+    },
+    "defectsFound": 3
+  },
+  {
+    "file": "map_marble_atrium_high.png",
+    "path": "reports/monster/screenshots/map_marble_atrium_high.png",
+    "map": "marble_atrium",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": true,
+        "hardEdgeCount": 26250,
+        "totalEdgeCount": 99992,
+        "hardEdgeSharePct": 26.25
+      },
+      "debugText": {
+        "isHit": true,
+        "whitePixelCount": 455,
+        "boundingBox": {
+          "x": 1220,
+          "y": 849,
+          "w": 178,
+          "h": 11
+        }
+      },
+      "specularBlowout": {
+        "isHit": false,
+        "blownPixels": 384,
+        "frameAreaPct": 0.03
+      }
+    },
+    "defectsFound": 3
+  },
+  {
+    "file": "map_natatorium_high.png",
+    "path": "reports/monster/screenshots/map_natatorium_high.png",
+    "map": "natatorium",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": true,
+        "hardEdgeCount": 25397,
+        "totalEdgeCount": 49499,
+        "hardEdgeSharePct": 51.31
+      },
+      "debugText": {
+        "isHit": true,
+        "whitePixelCount": 448,
+        "boundingBox": {
+          "x": 1220,
+          "y": 849,
+          "w": 178,
+          "h": 11
+        }
+      },
+      "specularBlowout": {
+        "isHit": false,
+        "blownPixels": 384,
+        "frameAreaPct": 0.03
+      }
+    },
+    "defectsFound": 3
+  },
+  {
+    "file": "map_neon_flood_high.png",
+    "path": "reports/monster/screenshots/map_neon_flood_high.png",
+    "map": "neon_flood",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": true,
+        "hardEdgeCount": 32724,
+        "totalEdgeCount": 51555,
+        "hardEdgeSharePct": 63.47
+      },
+      "debugText": {
+        "isHit": true,
+        "whitePixelCount": 448,
+        "boundingBox": {
+          "x": 1220,
+          "y": 849,
+          "w": 178,
+          "h": 11
+        }
+      },
+      "specularBlowout": {
+        "isHit": false,
+        "blownPixels": 384,
+        "frameAreaPct": 0.03
+      }
+    },
+    "defectsFound": 3
+  },
+  {
+    "file": "map_orientation_high.png",
+    "path": "reports/monster/screenshots/map_orientation_high.png",
+    "map": "orientation",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": true,
+        "hardEdgeCount": 35744,
+        "totalEdgeCount": 71063,
+        "hardEdgeSharePct": 50.3
+      },
+      "debugText": {
+        "isHit": false,
+        "whitePixelCount": 489,
+        "boundingBox": null
+      },
+      "specularBlowout": {
+        "isHit": false,
+        "blownPixels": 613,
+        "frameAreaPct": 0.05
+      }
+    },
+    "defectsFound": 2
+  },
+  {
+    "file": "map_poolrooms_high.png",
+    "path": "reports/monster/screenshots/map_poolrooms_high.png",
+    "map": "poolrooms",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": true,
+        "hardEdgeCount": 22660,
+        "totalEdgeCount": 44823,
+        "hardEdgeSharePct": 50.55
+      },
+      "debugText": {
+        "isHit": false,
+        "whitePixelCount": 457,
+        "boundingBox": null
+      },
+      "specularBlowout": {
+        "isHit": false,
+        "blownPixels": 385,
+        "frameAreaPct": 0.03
+      }
+    },
+    "defectsFound": 2
+  },
+  {
+    "file": "map_sunken_jungle_high.png",
+    "path": "reports/monster/screenshots/map_sunken_jungle_high.png",
+    "map": "sunken_jungle",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": true,
+        "hardEdgeCount": 23735,
+        "totalEdgeCount": 63738,
+        "hardEdgeSharePct": 37.24
+      },
+      "debugText": {
+        "isHit": true,
+        "whitePixelCount": 454,
+        "boundingBox": {
+          "x": 1220,
+          "y": 849,
+          "w": 178,
+          "h": 11
+        }
+      },
+      "specularBlowout": {
+        "isHit": true,
+        "blownPixels": 2215,
+        "frameAreaPct": 0.17
+      }
+    },
+    "defectsFound": 4
+  },
+  {
+    "file": "map_utility_tunnels_high.png",
+    "path": "reports/monster/screenshots/map_utility_tunnels_high.png",
+    "map": "utility_tunnels",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": true,
+        "hardEdgeCount": 34663,
+        "totalEdgeCount": 52496,
+        "hardEdgeSharePct": 66.03
+      },
+      "debugText": {
+        "isHit": true,
+        "whitePixelCount": 448,
+        "boundingBox": {
+          "x": 1220,
+          "y": 849,
+          "w": 178,
+          "h": 11
+        }
+      },
+      "specularBlowout": {
+        "isHit": false,
+        "blownPixels": 384,
+        "frameAreaPct": 0.03
+      }
+    },
+    "defectsFound": 3
+  },
+  {
+    "file": "mobile_orientation.png",
+    "path": "reports/monster/screenshots/mobile_orientation.png",
+    "map": "orientation",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": true,
+        "hardEdgeCount": 103215,
+        "totalEdgeCount": 160097,
+        "hardEdgeSharePct": 64.47
+      },
+      "debugText": {
+        "isHit": true,
+        "whitePixelCount": 5371,
+        "boundingBox": {
+          "x": 510,
+          "y": 2376,
+          "w": 511,
+          "h": 10
+        }
+      },
+      "specularBlowout": {
+        "isHit": true,
+        "blownPixels": 7568,
+        "frameAreaPct": 0.26
+      }
+    },
+    "defectsFound": 4
+  },
+  {
+    "file": "mobile_poolrooms.png",
+    "path": "reports/monster/screenshots/mobile_poolrooms.png",
+    "map": "poolrooms",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": true,
+        "hardEdgeCount": 70378,
+        "totalEdgeCount": 112555,
+        "hardEdgeSharePct": 62.53
+      },
+      "debugText": {
+        "isHit": true,
+        "whitePixelCount": 5371,
+        "boundingBox": {
+          "x": 510,
+          "y": 2376,
+          "w": 511,
+          "h": 10
+        }
+      },
+      "specularBlowout": {
+        "isHit": true,
+        "blownPixels": 5137,
+        "frameAreaPct": 0.17
+      }
+    },
+    "defectsFound": 4
+  },
+  {
+    "file": "retry_spawn.png",
+    "path": "reports/monster/screenshots/retry_spawn.png",
+    "map": "natatorium",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 1,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": {
+          "x": 556,
+          "y": 196
+        }
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": true,
+        "hardEdgeCount": 16882,
+        "totalEdgeCount": 25023,
+        "hardEdgeSharePct": 67.47
+      },
+      "debugText": {
+        "isHit": false,
+        "whitePixelCount": 0,
+        "boundingBox": null
+      },
+      "specularBlowout": {
+        "isHit": false,
+        "blownPixels": 350,
+        "frameAreaPct": 0.04
+      }
+    },
+    "defectsFound": 2
+  },
+  {
+    "file": "show_me_15m.png",
+    "path": "reports/monster/screenshots/show_me_15m.png",
+    "map": "natatorium",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": true,
+        "hardEdgeCount": 13875,
+        "totalEdgeCount": 21046,
+        "hardEdgeSharePct": 65.93
+      },
+      "debugText": {
+        "isHit": false,
+        "whitePixelCount": 0,
+        "boundingBox": null
+      },
+      "specularBlowout": {
+        "isHit": false,
+        "blownPixels": 0,
+        "frameAreaPct": 0
+      }
+    },
+    "defectsFound": 2
+  },
+  {
+    "file": "show_me_25m.png",
+    "path": "reports/monster/screenshots/show_me_25m.png",
+    "map": "natatorium",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": true,
+        "hardEdgeCount": 13601,
+        "totalEdgeCount": 20450,
+        "hardEdgeSharePct": 66.51
+      },
+      "debugText": {
+        "isHit": false,
+        "whitePixelCount": 0,
+        "boundingBox": null
+      },
+      "specularBlowout": {
+        "isHit": false,
+        "blownPixels": 0,
+        "frameAreaPct": 0
+      }
+    },
+    "defectsFound": 2
+  },
+  {
+    "file": "show_me_40m.png",
+    "path": "reports/monster/screenshots/show_me_40m.png",
+    "map": "natatorium",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": true,
+        "hardEdgeCount": 13865,
+        "totalEdgeCount": 20555,
+        "hardEdgeSharePct": 67.45
+      },
+      "debugText": {
+        "isHit": false,
+        "whitePixelCount": 0,
+        "boundingBox": null
+      },
+      "specularBlowout": {
+        "isHit": false,
+        "blownPixels": 0,
+        "frameAreaPct": 0
+      }
+    },
+    "defectsFound": 2
+  },
+  {
+    "file": "show_me_6m.png",
+    "path": "reports/monster/screenshots/show_me_6m.png",
+    "map": "natatorium",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": true,
+        "hardEdgeCount": 16385,
+        "totalEdgeCount": 25653,
+        "hardEdgeSharePct": 63.87
+      },
+      "debugText": {
+        "isHit": false,
+        "whitePixelCount": 0,
+        "boundingBox": null
+      },
+      "specularBlowout": {
+        "isHit": false,
+        "blownPixels": 0,
+        "frameAreaPct": 0
+      }
+    },
+    "defectsFound": 2
+  },
+  {
+    "file": "sleeper_from_spawn.png",
+    "path": "reports/monster/screenshots/sleeper_from_spawn.png",
+    "map": "natatorium",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": true,
+        "hardEdgeCount": 13690,
+        "totalEdgeCount": 22933,
+        "hardEdgeSharePct": 59.7
+      },
+      "debugText": {
+        "isHit": false,
+        "whitePixelCount": 0,
+        "boundingBox": null
+      },
+      "specularBlowout": {
+        "isHit": false,
+        "blownPixels": 0,
+        "frameAreaPct": 0
+      }
+    },
+    "defectsFound": 2
+  },
+  {
+    "file": "tier_low_poolrooms.png",
+    "path": "reports/monster/screenshots/tier_low_poolrooms.png",
+    "map": "poolrooms",
+    "tier": "low",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": true,
+        "hardEdgeCount": 22638,
+        "totalEdgeCount": 44873,
+        "hardEdgeSharePct": 50.45
+      },
+      "debugText": {
+        "isHit": false,
+        "whitePixelCount": 457,
+        "boundingBox": null
+      },
+      "specularBlowout": {
+        "isHit": false,
+        "blownPixels": 385,
+        "frameAreaPct": 0.03
+      }
+    },
+    "defectsFound": 2
+  },
+  {
+    "file": "tier_med_poolrooms.png",
+    "path": "reports/monster/screenshots/tier_med_poolrooms.png",
+    "map": "poolrooms",
+    "tier": "medium",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": true,
+        "hardEdgeCount": 22617,
+        "totalEdgeCount": 44872,
+        "hardEdgeSharePct": 50.4
+      },
+      "debugText": {
+        "isHit": false,
+        "whitePixelCount": 457,
+        "boundingBox": null
+      },
+      "specularBlowout": {
+        "isHit": false,
+        "blownPixels": 385,
+        "frameAreaPct": 0.03
+      }
+    },
+    "defectsFound": 2
+  },
+  {
+    "file": "drowned_metro_t20s.png",
+    "path": "reports/graphics/prompt1_after/drowned_metro_t20s.png",
+    "map": "drowned_metro",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": true,
+        "hardEdgeCount": 4076,
+        "totalEdgeCount": 9183,
+        "hardEdgeSharePct": 44.39
+      },
+      "debugText": {
+        "isHit": false,
+        "whitePixelCount": 0,
+        "boundingBox": null
+      },
+      "specularBlowout": {
+        "isHit": false,
+        "blownPixels": 0,
+        "frameAreaPct": 0
+      }
+    },
+    "defectsFound": 1
+  },
+  {
+    "file": "map_drainage_core_t5s.png",
+    "path": "reports/graphics/prompt1_after/map_drainage_core_t5s.png",
+    "map": "drainage_core",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": false,
+        "hardEdgeCount": 6053,
+        "totalEdgeCount": 81869,
+        "hardEdgeSharePct": 7.39
+      },
+      "debugText": {
+        "isHit": false,
+        "whitePixelCount": 0,
+        "boundingBox": null
+      },
+      "specularBlowout": {
+        "isHit": false,
+        "blownPixels": 0,
+        "frameAreaPct": 0
+      }
+    },
+    "defectsFound": 0
+  },
+  {
+    "file": "map_drowned_metro_t5s.png",
+    "path": "reports/graphics/prompt1_after/map_drowned_metro_t5s.png",
+    "map": "drowned_metro",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": false,
+        "hardEdgeCount": 7476,
+        "totalEdgeCount": 43869,
+        "hardEdgeSharePct": 17.04
+      },
+      "debugText": {
+        "isHit": false,
+        "whitePixelCount": 0,
+        "boundingBox": null
+      },
+      "specularBlowout": {
+        "isHit": false,
+        "blownPixels": 0,
+        "frameAreaPct": 0
+      }
+    },
+    "defectsFound": 0
+  },
+  {
+    "file": "map_drowned_school_t5s.png",
+    "path": "reports/graphics/prompt1_after/map_drowned_school_t5s.png",
+    "map": "drowned_school",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": false,
+        "hardEdgeCount": 5331,
+        "totalEdgeCount": 42306,
+        "hardEdgeSharePct": 12.6
+      },
+      "debugText": {
+        "isHit": false,
+        "whitePixelCount": 0,
+        "boundingBox": null
+      },
+      "specularBlowout": {
+        "isHit": true,
+        "blownPixels": 2118,
+        "frameAreaPct": 0.23
+      }
+    },
+    "defectsFound": 1
+  },
+  {
+    "file": "map_hydro_maze_t5s.png",
+    "path": "reports/graphics/prompt1_after/map_hydro_maze_t5s.png",
+    "map": "hydro_maze",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": true,
+        "hardEdgeCount": 5586,
+        "totalEdgeCount": 9787,
+        "hardEdgeSharePct": 57.08
+      },
+      "debugText": {
+        "isHit": false,
+        "whitePixelCount": 0,
+        "boundingBox": null
+      },
+      "specularBlowout": {
+        "isHit": true,
+        "blownPixels": 2105,
+        "frameAreaPct": 0.23
+      }
+    },
+    "defectsFound": 2
+  },
+  {
+    "file": "map_marble_atrium_t5s.png",
+    "path": "reports/graphics/prompt1_after/map_marble_atrium_t5s.png",
+    "map": "marble_atrium",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": false,
+        "hardEdgeCount": 7433,
+        "totalEdgeCount": 64711,
+        "hardEdgeSharePct": 11.49
+      },
+      "debugText": {
+        "isHit": false,
+        "whitePixelCount": 0,
+        "boundingBox": null
+      },
+      "specularBlowout": {
+        "isHit": true,
+        "blownPixels": 2110,
+        "frameAreaPct": 0.23
+      }
+    },
+    "defectsFound": 1
+  },
+  {
+    "file": "map_natatorium_t5s.png",
+    "path": "reports/graphics/prompt1_after/map_natatorium_t5s.png",
+    "map": "natatorium",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": false,
+        "hardEdgeCount": 16634,
+        "totalEdgeCount": 103837,
+        "hardEdgeSharePct": 16.02
+      },
+      "debugText": {
+        "isHit": false,
+        "whitePixelCount": 0,
+        "boundingBox": null
+      },
+      "specularBlowout": {
+        "isHit": false,
+        "blownPixels": 3,
+        "frameAreaPct": 0
+      }
+    },
+    "defectsFound": 0
+  },
+  {
+    "file": "map_neon_flood_t5s.png",
+    "path": "reports/graphics/prompt1_after/map_neon_flood_t5s.png",
+    "map": "neon_flood",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": true,
+        "hardEdgeCount": 8264,
+        "totalEdgeCount": 16112,
+        "hardEdgeSharePct": 51.29
+      },
+      "debugText": {
+        "isHit": false,
+        "whitePixelCount": 0,
+        "boundingBox": null
+      },
+      "specularBlowout": {
+        "isHit": false,
+        "blownPixels": 0,
+        "frameAreaPct": 0
+      }
+    },
+    "defectsFound": 1
+  },
+  {
+    "file": "map_orientation_t5s.png",
+    "path": "reports/graphics/prompt1_after/map_orientation_t5s.png",
+    "map": "orientation",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": true,
+        "hardEdgeCount": 14800,
+        "totalEdgeCount": 37787,
+        "hardEdgeSharePct": 39.17
+      },
+      "debugText": {
+        "isHit": true,
+        "whitePixelCount": 238,
+        "boundingBox": {
+          "x": 233,
+          "y": 1089,
+          "w": 88,
+          "h": 9
+        }
+      },
+      "specularBlowout": {
+        "isHit": true,
+        "blownPixels": 2308,
+        "frameAreaPct": 0.25
+      }
+    },
+    "defectsFound": 3
+  },
+  {
+    "file": "map_poolrooms_t5s.png",
+    "path": "reports/graphics/prompt1_after/map_poolrooms_t5s.png",
+    "map": "poolrooms",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": false,
+        "hardEdgeCount": 5657,
+        "totalEdgeCount": 58007,
+        "hardEdgeSharePct": 9.75
+      },
+      "debugText": {
+        "isHit": false,
+        "whitePixelCount": 0,
+        "boundingBox": null
+      },
+      "specularBlowout": {
+        "isHit": false,
+        "blownPixels": 0,
+        "frameAreaPct": 0
+      }
+    },
+    "defectsFound": 0
+  },
+  {
+    "file": "map_sunken_jungle_t5s.png",
+    "path": "reports/graphics/prompt1_after/map_sunken_jungle_t5s.png",
+    "map": "sunken_jungle",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": false,
+        "hardEdgeCount": 3151,
+        "totalEdgeCount": 69303,
+        "hardEdgeSharePct": 4.55
+      },
+      "debugText": {
+        "isHit": false,
+        "whitePixelCount": 0,
+        "boundingBox": null
+      },
+      "specularBlowout": {
+        "isHit": false,
+        "blownPixels": 0,
+        "frameAreaPct": 0
+      }
+    },
+    "defectsFound": 0
+  },
+  {
+    "file": "map_utility_tunnels_t5s.png",
+    "path": "reports/graphics/prompt1_after/map_utility_tunnels_t5s.png",
+    "map": "utility_tunnels",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": true,
+        "hardEdgeCount": 6339,
+        "totalEdgeCount": 10376,
+        "hardEdgeSharePct": 61.09
+      },
+      "debugText": {
+        "isHit": false,
+        "whitePixelCount": 0,
+        "boundingBox": null
+      },
+      "specularBlowout": {
+        "isHit": true,
+        "blownPixels": 2105,
+        "frameAreaPct": 0.23
+      }
+    },
+    "defectsFound": 2
+  },
+  {
+    "file": "menu_backdrop.png",
+    "path": "reports/graphics/prompt1_after/menu_backdrop.png",
+    "map": "natatorium",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 243,
+        "frameAreaPct": 0.03,
+        "upperThirdAreaPct": 0.08,
+        "firstPosition": {
+          "x": 88,
+          "y": 69
+        }
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": true,
+        "hardEdgeCount": 32053,
+        "totalEdgeCount": 64627,
+        "hardEdgeSharePct": 49.6
+      },
+      "debugText": {
+        "isHit": false,
+        "whitePixelCount": 0,
+        "boundingBox": null
+      },
+      "specularBlowout": {
+        "isHit": true,
+        "blownPixels": 975,
+        "frameAreaPct": 0.11
+      }
+    },
+    "defectsFound": 2
+  },
+  {
+    "file": "natatorium_spawn_f001_match.png",
+    "path": "reports/graphics/prompt1_after/natatorium_spawn_f001_match.png",
+    "map": "natatorium",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": false,
+        "hardEdgeCount": 16634,
+        "totalEdgeCount": 103837,
+        "hardEdgeSharePct": 16.02
+      },
+      "debugText": {
+        "isHit": false,
+        "whitePixelCount": 0,
+        "boundingBox": null
+      },
+      "specularBlowout": {
+        "isHit": false,
+        "blownPixels": 3,
+        "frameAreaPct": 0
+      }
+    },
+    "defectsFound": 0
+  },
+  {
+    "file": "natatorium_t20s.png",
+    "path": "reports/graphics/prompt1_after/natatorium_t20s.png",
+    "map": "natatorium",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": false,
+        "hardEdgeCount": 1605,
+        "totalEdgeCount": 10217,
+        "hardEdgeSharePct": 15.71
+      },
+      "debugText": {
+        "isHit": false,
+        "whitePixelCount": 0,
+        "boundingBox": null
+      },
+      "specularBlowout": {
+        "isHit": false,
+        "blownPixels": 0,
+        "frameAreaPct": 0
+      }
+    },
+    "defectsFound": 0
+  },
+  {
+    "file": "natatorium_vaulted_hall.png",
+    "path": "reports/graphics/prompt1_after/natatorium_vaulted_hall.png",
+    "map": "natatorium",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": false,
+        "hardEdgeCount": 1613,
+        "totalEdgeCount": 10637,
+        "hardEdgeSharePct": 15.16
+      },
+      "debugText": {
+        "isHit": false,
+        "whitePixelCount": 0,
+        "boundingBox": null
+      },
+      "specularBlowout": {
+        "isHit": false,
+        "blownPixels": 0,
+        "frameAreaPct": 0
+      }
+    },
+    "defectsFound": 0
+  },
+  {
+    "file": "natatorium_w5s.png",
+    "path": "reports/graphics/prompt1_after/natatorium_w5s.png",
+    "map": "natatorium",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": false,
+        "hardEdgeCount": 1614,
+        "totalEdgeCount": 10500,
+        "hardEdgeSharePct": 15.37
+      },
+      "debugText": {
+        "isHit": false,
+        "whitePixelCount": 0,
+        "boundingBox": null
+      },
+      "specularBlowout": {
+        "isHit": false,
+        "blownPixels": 0,
+        "frameAreaPct": 0
+      }
+    },
+    "defectsFound": 0
+  },
+  {
+    "file": "sunken_jungle_t20s.png",
+    "path": "reports/graphics/prompt1_after/sunken_jungle_t20s.png",
+    "map": "sunken_jungle",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": false,
+        "hardEdgeCount": 428,
+        "totalEdgeCount": 34803,
+        "hardEdgeSharePct": 1.23
+      },
+      "debugText": {
+        "isHit": false,
+        "whitePixelCount": 0,
+        "boundingBox": null
+      },
+      "specularBlowout": {
+        "isHit": false,
+        "blownPixels": 0,
+        "frameAreaPct": 0
+      }
+    },
+    "defectsFound": 0
+  },
+  {
+    "file": "high_desktop_t20s.png",
+    "path": "reports/reproduction/tiers/high_desktop_t20s.png",
+    "map": "natatorium",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": false,
+        "hardEdgeCount": 16071,
+        "totalEdgeCount": 109940,
+        "hardEdgeSharePct": 14.62
+      },
+      "debugText": {
+        "isHit": false,
+        "whitePixelCount": 0,
+        "boundingBox": null
+      },
+      "specularBlowout": {
+        "isHit": false,
+        "blownPixels": 0,
+        "frameAreaPct": 0
+      }
+    },
+    "defectsFound": 0
+  },
+  {
+    "file": "low_desktop_t20s.png",
+    "path": "reports/reproduction/tiers/low_desktop_t20s.png",
+    "map": "natatorium",
+    "tier": "low",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": false,
+        "hardEdgeCount": 16084,
+        "totalEdgeCount": 109951,
+        "hardEdgeSharePct": 14.63
+      },
+      "debugText": {
+        "isHit": false,
+        "whitePixelCount": 0,
+        "boundingBox": null
+      },
+      "specularBlowout": {
+        "isHit": false,
+        "blownPixels": 0,
+        "frameAreaPct": 0
+      }
+    },
+    "defectsFound": 0
+  },
+  {
+    "file": "medium_desktop_t20s.png",
+    "path": "reports/reproduction/tiers/medium_desktop_t20s.png",
+    "map": "natatorium",
+    "tier": "medium",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": false,
+        "hardEdgeCount": 16080,
+        "totalEdgeCount": 109938,
+        "hardEdgeSharePct": 14.63
+      },
+      "debugText": {
+        "isHit": false,
+        "whitePixelCount": 0,
+        "boundingBox": null
+      },
+      "specularBlowout": {
+        "isHit": false,
+        "blownPixels": 0,
+        "frameAreaPct": 0
+      }
+    },
+    "defectsFound": 0
+  },
+  {
+    "file": "mobile_390x844_t20s.png",
+    "path": "reports/reproduction/tiers/mobile_390x844_t20s.png",
+    "map": "natatorium",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": false,
+        "hardEdgeCount": 3275,
+        "totalEdgeCount": 51215,
+        "hardEdgeSharePct": 6.39
+      },
+      "debugText": {
+        "isHit": false,
+        "whitePixelCount": 0,
+        "boundingBox": null
+      },
+      "specularBlowout": {
+        "isHit": false,
+        "blownPixels": 0,
+        "frameAreaPct": 0
+      }
+    },
+    "defectsFound": 0
+  },
+  {
+    "file": "creature_close_6m.png",
+    "path": "reports/visual/creature_close_6m.png",
+    "map": "natatorium",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": false,
+        "hardEdgeCount": 12948,
+        "totalEdgeCount": 129611,
+        "hardEdgeSharePct": 9.99
+      },
+      "debugText": {
+        "isHit": false,
+        "whitePixelCount": 0,
+        "boundingBox": null
+      },
+      "specularBlowout": {
+        "isHit": false,
+        "blownPixels": 719,
+        "frameAreaPct": 0.08
+      }
+    },
+    "defectsFound": 0
+  },
+  {
+    "file": "creature_far_35m.png",
+    "path": "reports/visual/creature_far_35m.png",
+    "map": "natatorium",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": false,
+        "hardEdgeCount": 15656,
+        "totalEdgeCount": 128533,
+        "hardEdgeSharePct": 12.18
+      },
+      "debugText": {
+        "isHit": false,
+        "whitePixelCount": 2,
+        "boundingBox": null
+      },
+      "specularBlowout": {
+        "isHit": true,
+        "blownPixels": 1552,
+        "frameAreaPct": 0.17
+      }
+    },
+    "defectsFound": 1
+  },
+  {
+    "file": "creature_mid_15m.png",
+    "path": "reports/visual/creature_mid_15m.png",
+    "map": "natatorium",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": false,
+        "hardEdgeCount": 11785,
+        "totalEdgeCount": 135150,
+        "hardEdgeSharePct": 8.72
+      },
+      "debugText": {
+        "isHit": false,
+        "whitePixelCount": 0,
+        "boundingBox": null
+      },
+      "specularBlowout": {
+        "isHit": true,
+        "blownPixels": 1304,
+        "frameAreaPct": 0.14
+      }
+    },
+    "defectsFound": 1
+  },
+  {
+    "file": "flock_overhead.png",
+    "path": "reports/visual/flock_overhead.png",
+    "map": "natatorium",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": true,
+        "hardEdgeCount": 16500,
+        "totalEdgeCount": 79995,
+        "hardEdgeSharePct": 20.63
+      },
+      "debugText": {
+        "isHit": true,
+        "whitePixelCount": 559,
+        "boundingBox": {
+          "x": 474,
+          "y": 639,
+          "w": 331,
+          "h": 10
+        }
+      },
+      "specularBlowout": {
+        "isHit": true,
+        "blownPixels": 1067,
+        "frameAreaPct": 0.12
+      }
+    },
+    "defectsFound": 3
+  },
+  {
+    "file": "natatorium_arch_fog_25m.png",
+    "path": "reports/visual/natatorium_arch_fog_25m.png",
+    "map": "natatorium",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": true,
+        "hardEdgeCount": 32546,
+        "totalEdgeCount": 101430,
+        "hardEdgeSharePct": 32.09
+      },
+      "debugText": {
+        "isHit": true,
+        "whitePixelCount": 552,
+        "boundingBox": {
+          "x": 474,
+          "y": 640,
+          "w": 331,
+          "h": 9
+        }
+      },
+      "specularBlowout": {
+        "isHit": true,
+        "blownPixels": 1055,
+        "frameAreaPct": 0.11
+      }
+    },
+    "defectsFound": 3
+  },
+  {
+    "file": "natatorium_arch_fog_25m_portrait.png",
+    "path": "reports/visual/natatorium_arch_fog_25m_portrait.png",
+    "map": "natatorium",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": false,
+        "hardEdgeCount": 6803,
+        "totalEdgeCount": 89509,
+        "hardEdgeSharePct": 7.6
+      },
+      "debugText": {
+        "isHit": true,
+        "whitePixelCount": 574,
+        "boundingBox": {
+          "x": 194,
+          "y": 1199,
+          "w": 331,
+          "h": 10
+        }
+      },
+      "specularBlowout": {
+        "isHit": true,
+        "blownPixels": 1025,
+        "frameAreaPct": 0.11
+      }
+    },
+    "defectsFound": 2
+  },
+  {
+    "file": "natatorium_close_tile_wall.png",
+    "path": "reports/visual/natatorium_close_tile_wall.png",
+    "map": "natatorium",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": true,
+        "hardEdgeCount": 54590,
+        "totalEdgeCount": 99568,
+        "hardEdgeSharePct": 54.83
+      },
+      "debugText": {
+        "isHit": false,
+        "whitePixelCount": 532,
+        "boundingBox": null
+      },
+      "specularBlowout": {
+        "isHit": true,
+        "blownPixels": 985,
+        "frameAreaPct": 0.11
+      }
+    },
+    "defectsFound": 2
+  },
+  {
+    "file": "natatorium_close_tile_wall_portrait.png",
+    "path": "reports/visual/natatorium_close_tile_wall_portrait.png",
+    "map": "natatorium",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": false,
+        "hardEdgeCount": 10741,
+        "totalEdgeCount": 78595,
+        "hardEdgeSharePct": 13.67
+      },
+      "debugText": {
+        "isHit": false,
+        "whitePixelCount": 532,
+        "boundingBox": null
+      },
+      "specularBlowout": {
+        "isHit": true,
+        "blownPixels": 1039,
+        "frameAreaPct": 0.11
+      }
+    },
+    "defectsFound": 1
+  },
+  {
+    "file": "natatorium_horizon_long.png",
+    "path": "reports/visual/natatorium_horizon_long.png",
+    "map": "natatorium",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": false,
+        "hardEdgeCount": 28473,
+        "totalEdgeCount": 174385,
+        "hardEdgeSharePct": 16.33
+      },
+      "debugText": {
+        "isHit": true,
+        "whitePixelCount": 632,
+        "boundingBox": {
+          "x": 474,
+          "y": 639,
+          "w": 331,
+          "h": 10
+        }
+      },
+      "specularBlowout": {
+        "isHit": true,
+        "blownPixels": 1135,
+        "frameAreaPct": 0.12
+      }
+    },
+    "defectsFound": 2
+  },
+  {
+    "file": "natatorium_horizon_long_portrait.png",
+    "path": "reports/visual/natatorium_horizon_long_portrait.png",
+    "map": "natatorium",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": true,
+        "hardEdgeCount": 54814,
+        "totalEdgeCount": 132990,
+        "hardEdgeSharePct": 41.22
+      },
+      "debugText": {
+        "isHit": false,
+        "whitePixelCount": 615,
+        "boundingBox": null
+      },
+      "specularBlowout": {
+        "isHit": true,
+        "blownPixels": 1042,
+        "frameAreaPct": 0.11
+      }
+    },
+    "defectsFound": 2
+  },
+  {
+    "file": "natatorium_monster_25m.png",
+    "path": "reports/visual/natatorium_monster_25m.png",
+    "map": "natatorium",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": true,
+        "hardEdgeCount": 49235,
+        "totalEdgeCount": 103465,
+        "hardEdgeSharePct": 47.59
+      },
+      "debugText": {
+        "isHit": true,
+        "whitePixelCount": 593,
+        "boundingBox": {
+          "x": 474,
+          "y": 639,
+          "w": 331,
+          "h": 10
+        }
+      },
+      "specularBlowout": {
+        "isHit": true,
+        "blownPixels": 1057,
+        "frameAreaPct": 0.11
+      }
+    },
+    "defectsFound": 3
+  },
+  {
+    "file": "natatorium_monster_25m_portrait.png",
+    "path": "reports/visual/natatorium_monster_25m_portrait.png",
+    "map": "natatorium",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": true,
+        "hardEdgeCount": 52048,
+        "totalEdgeCount": 153357,
+        "hardEdgeSharePct": 33.94
+      },
+      "debugText": {
+        "isHit": true,
+        "whitePixelCount": 580,
+        "boundingBox": {
+          "x": 194,
+          "y": 1199,
+          "w": 331,
+          "h": 10
+        }
+      },
+      "specularBlowout": {
+        "isHit": true,
+        "blownPixels": 1023,
+        "frameAreaPct": 0.11
+      }
+    },
+    "defectsFound": 3
+  },
+  {
+    "file": "natatorium_pillar_numeral_8m.png",
+    "path": "tests/golden/natatorium_pillar_numeral_8m.png",
+    "map": "natatorium",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": true,
+        "hardEdgeCount": 96850,
+        "totalEdgeCount": 142435,
+        "hardEdgeSharePct": 68
+      },
+      "debugText": {
+        "isHit": false,
+        "whitePixelCount": 532,
+        "boundingBox": null
+      },
+      "specularBlowout": {
+        "isHit": true,
+        "blownPixels": 1047,
+        "frameAreaPct": 0.11
+      }
+    },
+    "defectsFound": 2
+  },
+  {
+    "file": "natatorium_pillar_numeral_8m_portrait.png",
+    "path": "reports/visual/natatorium_pillar_numeral_8m_portrait.png",
+    "map": "natatorium",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": true,
+        "hardEdgeCount": 121326,
+        "totalEdgeCount": 208174,
+        "hardEdgeSharePct": 58.28
+      },
+      "debugText": {
+        "isHit": true,
+        "whitePixelCount": 548,
+        "boundingBox": {
+          "x": 194,
+          "y": 1199,
+          "w": 331,
+          "h": 11
+        }
+      },
+      "specularBlowout": {
+        "isHit": true,
+        "blownPixels": 1069,
+        "frameAreaPct": 0.12
+      }
+    },
+    "defectsFound": 3
+  },
+  {
+    "file": "natatorium_slab_edge.png",
+    "path": "reports/visual/natatorium_slab_edge.png",
+    "map": "natatorium",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": false,
+        "hardEdgeCount": 13343,
+        "totalEdgeCount": 85169,
+        "hardEdgeSharePct": 15.67
+      },
+      "debugText": {
+        "isHit": false,
+        "whitePixelCount": 0,
+        "boundingBox": null
+      },
+      "specularBlowout": {
+        "isHit": false,
+        "blownPixels": 0,
+        "frameAreaPct": 0
+      }
+    },
+    "defectsFound": 0
+  },
+  {
+    "file": "natatorium_slab_edge_portrait.png",
+    "path": "reports/visual/natatorium_slab_edge_portrait.png",
+    "map": "natatorium",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": false,
+        "hardEdgeCount": 10156,
+        "totalEdgeCount": 77518,
+        "hardEdgeSharePct": 13.1
+      },
+      "debugText": {
+        "isHit": false,
+        "whitePixelCount": 0,
+        "boundingBox": null
+      },
+      "specularBlowout": {
+        "isHit": false,
+        "blownPixels": 0,
+        "frameAreaPct": 0
+      }
+    },
+    "defectsFound": 0
+  },
+  {
+    "file": "natatorium_spawn_view.png",
+    "path": "reports/visual/natatorium_spawn_view.png",
+    "map": "natatorium",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": true,
+        "hardEdgeCount": 24047,
+        "totalEdgeCount": 120712,
+        "hardEdgeSharePct": 19.92
+      },
+      "debugText": {
+        "isHit": false,
+        "whitePixelCount": 0,
+        "boundingBox": null
+      },
+      "specularBlowout": {
+        "isHit": false,
+        "blownPixels": 0,
+        "frameAreaPct": 0
+      }
+    },
+    "defectsFound": 1
+  },
+  {
+    "file": "natatorium_spawn_view_portrait.png",
+    "path": "reports/visual/natatorium_spawn_view_portrait.png",
+    "map": "natatorium",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": true,
+        "hardEdgeCount": 50402,
+        "totalEdgeCount": 132942,
+        "hardEdgeSharePct": 37.91
+      },
+      "debugText": {
+        "isHit": false,
+        "whitePixelCount": 0,
+        "boundingBox": null
+      },
+      "specularBlowout": {
+        "isHit": false,
+        "blownPixels": 0,
+        "frameAreaPct": 0
+      }
+    },
+    "defectsFound": 1
+  },
+  {
+    "file": "natatorium_tagline_wall.png",
+    "path": "reports/visual/natatorium_tagline_wall.png",
+    "map": "natatorium",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": true,
+        "hardEdgeCount": 128590,
+        "totalEdgeCount": 206149,
+        "hardEdgeSharePct": 62.38
+      },
+      "debugText": {
+        "isHit": true,
+        "whitePixelCount": 547,
+        "boundingBox": {
+          "x": 474,
+          "y": 639,
+          "w": 331,
+          "h": 11
+        }
+      },
+      "specularBlowout": {
+        "isHit": true,
+        "blownPixels": 1081,
+        "frameAreaPct": 0.12
+      }
+    },
+    "defectsFound": 3
+  },
+  {
+    "file": "natatorium_tagline_wall_portrait.png",
+    "path": "reports/visual/natatorium_tagline_wall_portrait.png",
+    "map": "natatorium",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": true,
+        "hardEdgeCount": 107096,
+        "totalEdgeCount": 151103,
+        "hardEdgeSharePct": 70.88
+      },
+      "debugText": {
+        "isHit": true,
+        "whitePixelCount": 549,
+        "boundingBox": {
+          "x": 194,
+          "y": 1199,
+          "w": 331,
+          "h": 11
+        }
+      },
+      "specularBlowout": {
+        "isHit": true,
+        "blownPixels": 1058,
+        "frameAreaPct": 0.11
+      }
+    },
+    "defectsFound": 3
+  },
+  {
+    "file": "natatorium_trench_view.png",
+    "path": "reports/visual/natatorium_trench_view.png",
+    "map": "natatorium",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": false,
+        "hardEdgeCount": 14912,
+        "totalEdgeCount": 85616,
+        "hardEdgeSharePct": 17.42
+      },
+      "debugText": {
+        "isHit": false,
+        "whitePixelCount": 0,
+        "boundingBox": null
+      },
+      "specularBlowout": {
+        "isHit": false,
+        "blownPixels": 1,
+        "frameAreaPct": 0
+      }
+    },
+    "defectsFound": 0
+  },
+  {
+    "file": "natatorium_trench_view_portrait.png",
+    "path": "reports/visual/natatorium_trench_view_portrait.png",
+    "map": "natatorium",
+    "tier": "high",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": true,
+        "hardEdgeCount": 16895,
+        "totalEdgeCount": 92855,
+        "hardEdgeSharePct": 18.2
+      },
+      "debugText": {
+        "isHit": false,
+        "whitePixelCount": 0,
+        "boundingBox": null
+      },
+      "specularBlowout": {
+        "isHit": false,
+        "blownPixels": 8,
+        "frameAreaPct": 0
+      }
+    },
+    "defectsFound": 1
+  },
+  {
+    "file": "shallow_floor_view.png",
+    "path": "reports/visual/shallow_floor_view.png",
+    "map": "natatorium",
+    "tier": "low",
+    "metrics": {
+      "blackVoid": {
+        "isHit": false,
+        "blackPixelCount": 0,
+        "frameAreaPct": 0,
+        "upperThirdAreaPct": 0,
+        "firstPosition": null
+      },
+      "zFighting": {
+        "isHit": false,
+        "flaggedScanlineCount": 0,
+        "maxAlternatingScore": 0,
+        "worstLocation": null
+      },
+      "aliasing": {
+        "isHit": false,
+        "hardEdgeCount": 35,
+        "totalEdgeCount": 62352,
+        "hardEdgeSharePct": 0.06
+      },
+      "debugText": {
+        "isHit": false,
+        "whitePixelCount": 0,
+        "boundingBox": null
+      },
+      "specularBlowout": {
+        "isHit": false,
+        "blownPixels": 0,
+        "frameAreaPct": 0
+      }
+    },
+    "defectsFound": 0
+  }
+]
