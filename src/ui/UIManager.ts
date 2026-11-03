@@ -1076,7 +1076,7 @@ export class UIManager {
   }
 
   showPause(): void {
-    if (this.currentView === 'GAME') {
+    if (this.currentView === 'GAME' || this.uiState === 'ACTIVE_GAMEPLAY') {
       this.currentView = 'PAUSE';
       this.viewStack.push('PAUSE');
       this.setUIState('PAUSED');
@@ -1121,6 +1121,7 @@ export class UIManager {
     this.updateViewVisibility();
     this.stateMachine.goTo('MENU');
     setMenuRoute();
+    pushNavigationState('MAIN_MENU');
     this.bus.emit('game:leave', undefined);
   }
 
@@ -1220,14 +1221,42 @@ export class UIManager {
       if (e.key === 'Escape') {
         if (this.currentView === 'GAME') {
           this.showPause();
+        } else if (this.currentView === 'PAUSE') {
+          this.resumeGame();
+          const canvas = document.querySelector('canvas');
+          if (canvas) {
+            try { canvas.requestPointerLock(); } catch {}
+          }
         } else if (this.currentView !== 'MENU') {
           this.goBack();
         }
       } else if ((e.key === 'p' || e.key === 'P') && this.currentView === 'GAME') {
         e.preventDefault();
         this.takePhotoMode();
+      } else if (this.currentView === 'PAUSE') {
+        if (e.key === 'k' || e.key === 'K') {
+          e.preventDefault();
+          try {
+            localStorage.setItem('backsilence_last_settings_tab', 'controls');
+          } catch {}
+          this.navigateTo('SETTINGS');
+        } else if (e.key === 'p' || e.key === 'P') {
+          e.preventDefault();
+          this.takePhotoMode();
+        } else if (e.key === 'n' || e.key === 'N') {
+          e.preventDefault();
+          this.toggleAudioLab();
+        }
       }
     });
+
+    if (typeof document !== 'undefined') {
+      document.addEventListener('pointerlockchange', () => {
+        if (document.pointerLockElement === null && (this.uiState === 'ACTIVE_GAMEPLAY' || this.currentView === 'GAME')) {
+          this.showPause();
+        }
+      });
+    }
   }
 
   getCurrentView(): UIView {

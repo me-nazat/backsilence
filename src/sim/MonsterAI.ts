@@ -48,10 +48,10 @@ export interface MonsterAISnapshot {
 
 export class MonsterAI {
   // Speeds
-  static readonly SPEED_PATROL = 2.6;
+  static readonly SPEED_PATROL = 3.2;
   static readonly SPEED_STALK = 2.4; // Prompt 4C: wading stalk speed 2.2–2.6 m/s
   static readonly SPEED_TERMINAL_LUNGE = 7.2; // Prompt 4C: 7.2 m/s terminal lunge within <= 4m
-  static readonly SPEED_CHARGE = 11.5;
+  static readonly SPEED_CHARGE = 11.8;
   static readonly SPEED_RETREAT = 3.4;
 
   // Collision & Near-Miss Ranges
@@ -81,10 +81,11 @@ export class MonsterAI {
   private stateTimer = 0;
   private snarlTimer = 0; // 0.25s initial snarl on alert
   private isSnarling = false;
-  private roarDuration = 1.75;
+  private roarDuration = 1.7;
   private lungeDuration = 1.8;
   private isBlockedAtTrench = false;
   private activeTrenchMouth: { x: number; z: number } | null = null;
+  private stuckTimer = 0;
 
   // Presentation metrics
   rearingT = 0;
@@ -176,6 +177,9 @@ export class MonsterAI {
     const inWater = player.isInWater && !onDry;
     const isPlayerFrozen = inWater && pSpeed < AcousticBus.STILL_SPEED_THRESHOLD;
 
+    const prevX = this.pos.x;
+    const prevZ = this.pos.z;
+
     // ──────────────────────────────────────────────────────────────────────────
     // 1. Lethal Strike Evaluation
     // ──────────────────────────────────────────────────────────────────────────
@@ -234,6 +238,34 @@ export class MonsterAI {
     const resolved = this.nav.resolveMonsterCollision(this.pos);
     this.pos.x = resolved.x;
     this.pos.z = resolved.z;
+
+    // 4. Anti-Stuck Corner Watchdog
+    const actualDisplacement = dt > 0.0001 ? dHypot(this.pos.x - prevX, this.pos.z - prevZ) / dt : 0;
+    const desiredSpeed =
+      this.state === 'PATROL'
+        ? MonsterAI.SPEED_PATROL
+        : this.state === 'ALERT_AND_CHARGE'
+        ? MonsterAI.SPEED_CHARGE
+        : this.state === 'RETREAT_PROWL'
+        ? MonsterAI.SPEED_RETREAT
+        : 0;
+
+    if (desiredSpeed > 0 && (this.state === 'PATROL' || this.state === 'ALERT_AND_CHARGE')) {
+      if (actualDisplacement < 0.4 * desiredSpeed) {
+        this.stuckTimer += dt;
+        if (this.stuckTimer >= 0.35) {
+          this.currentPathIndex++;
+          const perpYaw = this.yaw + Math.PI * 0.5 * (Math.sin(this.stateTimer * 4.0) > 0 ? 1 : -1);
+          this.pos.x += dSin(perpYaw) * 0.06;
+          this.pos.z += dCos(perpYaw) * 0.06;
+          this.stuckTimer = 0;
+        }
+      } else {
+        this.stuckTimer = Math.max(0, this.stuckTimer - dt * 2.0);
+      }
+    } else {
+      this.stuckTimer = 0;
+    }
   }
 
   private stepPatrol(dt: number, player: PlayerAcousticState): void {
@@ -348,15 +380,15 @@ export class MonsterAI {
     this.stateTimer = 0;
     this.vel.x = 0;
     this.vel.z = 0;
-    this.rearingT = 0.85;
-    this.jawOpenT = 0.65; // 75° full maw flare
+    this.rearingT = 0.88;
+    this.jawOpenT = 0.85; // full flared maw
   }
 
   private stepArriveAndRoar(_dt: number): void {
     this.vel.x = 0;
     this.vel.z = 0;
-    this.rearingT = 0.85;
-    this.jawOpenT = 0.65;
+    this.rearingT = 0.88;
+    this.jawOpenT = 0.85;
 
     if (this.stateTimer >= this.roarDuration) {
       // Roar complete with no new splashes -> retreat

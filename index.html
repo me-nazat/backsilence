@@ -20,6 +20,24 @@
     body[data-ui-state="ACTIVE_GAMEPLAY"] :is(#main-menu-card,.hero-panel,#top-navbar,.top-bar,#bottom-dossier-bar,.dossier-strip,#play-hub-modal,.subpage-modal,#objective-panel,#hud-objective-container,.sector-briefing-box,#hud-ping-hint,#hud-noise-minimal,#hud-bottom-center,#hud-pointer-lock-hint){display:none!important;opacity:0!important;pointer-events:none!important;visibility:hidden!important}
     :is(body[data-ui-state="PLAY_HUB"],body[data-ui-state="MODAL_SUBPAGE"]) :is(#main-menu-card,.hero-panel,#bottom-dossier-bar,.dossier-strip){display:none!important;opacity:0!important;pointer-events:none!important;visibility:hidden!important}
     body[data-ui-state="MAIN_MENU"] :is(#main-menu-card,.hero-panel,#top-navbar,.top-bar){pointer-events:auto!important}
+    button, .btn, #pause-modal, #pause-modal *, #pause-menu-view, #pause-menu-view *, #main-menu-card, #play-hub-modal {
+      user-select: none !important;
+      -webkit-user-select: none !important;
+    }
+    #pause-modal.is-open, #pause-menu-view.is-open, body[data-ui-state="PAUSED"] #pause-modal, body[data-ui-state="PAUSED"] #pause-menu-view {
+      display: flex !important;
+      pointer-events: auto !important;
+      z-index: 9999 !important;
+    }
+    #pause-modal button, #pause-menu-view button {
+      pointer-events: auto !important;
+      cursor: pointer !important;
+      position: relative;
+      z-index: 10000 !important;
+    }
+    body:not([data-ui-state="ACTIVE_GAMEPLAY"]) #canvas-container canvas {
+      pointer-events: none !important;
+    }
     #main-menu-card,.hero-card{background:rgba(8, 14, 11, 0.26)!important;backdrop-filter:blur(2.5px) saturate(1.15)!important}
     #top-navbar,#bottom-dossier-bar{background:rgba(18, 28, 22, 0.25)!important;backdrop-filter:blur(4px) saturate(1.15)!important}
     #splash{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;background:var(--ink);transition:opacity .6s ease-out;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}

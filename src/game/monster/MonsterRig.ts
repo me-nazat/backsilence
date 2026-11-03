@@ -82,6 +82,41 @@ export function buildCurvedClawGeometry(length = 0.28, baseRadius = 0.022): Buff
 }
 
 /**
+ * Builds an organic curved jaw petal geometry for the 4-lobe flared maw.
+ */
+export function buildJawPetalGeometry(length = 0.20, baseWidth = 0.12, tipWidth = 0.03): BufferGeometry {
+  const geom = new BufferGeometry();
+  const positions: number[] = [];
+  const indices: number[] = [];
+  const rings = 6;
+  const segments = 6;
+
+  for (let r = 0; r <= rings; r++) {
+    const v = r / rings;
+    const z = -v * length;
+    const curve = Math.sin(v * Math.PI) * 0.035;
+    const w = (baseWidth * (1.0 - v * 0.6) + tipWidth * (v * 0.6)) * 0.5;
+    const h = (0.05 * (1.0 - v * 0.5)) * 0.5;
+
+    for (let s = 0; s <= segments; s++) {
+      const u = s / segments;
+      const angle = (u - 0.5) * Math.PI;
+      const px = Math.sin(angle) * w;
+      const py = Math.cos(angle) * h + curve;
+      const pz = z;
+      positions.push(px, py, pz);
+    }
+  }
+
+  addGridIndices(indices, rings, segments);
+
+  geom.setAttribute('position', new Float32BufferAttribute(positions, 3));
+  geom.setIndex(new Uint16BufferAttribute(indices, 1));
+  geom.computeVertexNormals();
+  return geom;
+}
+
+/**
  * Builds an organic muscular limb segment geometry with anatomical taper.
  */
 export function buildMuscularSegmentGeometry(
@@ -484,6 +519,12 @@ export class MonsterRig {
   readonly topJawLobe = new Group();
   readonly bottomJawLobe = new Group();
 
+  // 4-petal flared jaw groups
+  readonly jawPetalL = new Group();
+  readonly jawPetalR = new Group();
+  readonly jawPetalTop = new Group();
+  readonly jawPetalBottom = new Group();
+
   // Limbs
   readonly shoulderL = new Group();
   readonly upperArmL = new Group();
@@ -563,6 +604,7 @@ export class MonsterRig {
   readonly scarMat: MeshStandardMaterial;
   readonly pitMat: MeshStandardMaterial;
   readonly facialMarkingMat: MeshStandardMaterial;
+  readonly jointMat: MeshStandardMaterial;
 
   private readonly materials: Material[] = [];
   private readonly textures: Texture[] = [];
@@ -669,6 +711,16 @@ export class MonsterRig {
     });
     this.clothMat.onBeforeCompile = applyCreatureShaderHooks;
     this.materials.push(this.clothMat);
+
+    this.jointMat = new MeshStandardMaterial({
+      color: new Color('#261c18'),
+      roughness: 0.25,
+      metalness: 0.06,
+    });
+    (this.jointMat as unknown as { clearcoat?: number; clearcoatRoughness?: number }).clearcoat = 0.65;
+    (this.jointMat as unknown as { clearcoatRoughness?: number }).clearcoatRoughness = 0.20;
+    this.jointMat.onBeforeCompile = applyCreatureShaderHooks;
+    this.materials.push(this.jointMat);
 
     this.scarMat = this.monsterSkinMat;
 
@@ -789,7 +841,7 @@ export class MonsterRig {
     this.headPitsMesh.instanceMatrix.needsUpdate = true;
     this.splitShellMeshGroup.add(this.headPitsMesh);
 
-    // Single hinged lower jaw (no 4-petal split shell)
+    // Sculpted orange-brown 4-petal split-jaw maw (#59462d) with inner black throat (#100c0a) and 32 sharp teeth ring
     this.jawGroup.name = 'Rig_Jaw';
     this.headGroup.add(this.jawGroup);
 
@@ -802,17 +854,73 @@ export class MonsterRig {
     this.lowerJaw.add(singleJawMesh);
     this.jawGroup.add(this.lowerJaw);
 
-    // Attach empty compatibility lobe groups (0 meshes) so animator calls remain safe
-    this.jawGroup.add(this.leftJawLobe, this.rightJawLobe, this.topJawLobe, this.bottomJawLobe);
+    // Sculpted jaw petal meshes on all 4 lobes (#59462d)
+    const jawPetalGeom = buildJawPetalGeometry(0.20, 0.12, 0.03);
 
-    // Subtle inner mouth teeth recessed inside the small dark mouth (visible only on close attack)
+    this.leftJawLobe.name = 'LeftJawLobe';
+    this.rightJawLobe.name = 'RightJawLobe';
+    this.topJawLobe.name = 'TopJawLobe';
+    this.bottomJawLobe.name = 'BottomJawLobe';
+
+    this.jawPetalL.name = 'JawPetalL';
+    this.jawPetalL.position.set(0.06, -0.02, -0.16);
+    const leftPetalMesh = new Mesh(jawPetalGeom, this.headSkinMat);
+    leftPetalMesh.rotation.z = Math.PI * 0.5;
+    this.jawPetalL.add(leftPetalMesh);
+
+    this.jawPetalR.name = 'JawPetalR';
+    this.jawPetalR.position.set(-0.06, -0.02, -0.16);
+    const rightPetalMesh = new Mesh(jawPetalGeom, this.headSkinMat);
+    rightPetalMesh.rotation.z = -Math.PI * 0.5;
+    this.jawPetalR.add(rightPetalMesh);
+
+    this.jawPetalTop.name = 'JawPetalTop';
+    this.jawPetalTop.position.set(0, 0.05, -0.16);
+    const topPetalMesh = new Mesh(jawPetalGeom, this.headSkinMat);
+    topPetalMesh.rotation.x = -Math.PI;
+    this.jawPetalTop.add(topPetalMesh);
+
+    this.jawPetalBottom.name = 'JawPetalBottom';
+    this.jawPetalBottom.position.set(0, -0.07, -0.16);
+    const bottomPetalMesh = new Mesh(jawPetalGeom, this.headSkinMat);
+    this.jawPetalBottom.add(bottomPetalMesh);
+
+    this.jawGroup.add(
+      this.leftJawLobe,
+      this.rightJawLobe,
+      this.topJawLobe,
+      this.bottomJawLobe,
+      this.jawPetalL,
+      this.jawPetalR,
+      this.jawPetalTop,
+      this.jawPetalBottom,
+    );
+
+    // Inner black throat cavity (#100c0a)
+    const innerThroatMat = new MeshStandardMaterial({
+      color: new Color('#100c0a'),
+      roughness: 0.95,
+      metalness: 0.01,
+    });
+    this.materials.push(innerThroatMat);
+    const innerThroatGeom = new SphereGeometry(0.09, 10, 8);
+    innerThroatGeom.scale(0.9, 0.9, 1.3);
+    const innerThroatMesh = new Mesh(innerThroatGeom, innerThroatMat);
+    innerThroatMesh.position.set(0, -0.02, -0.14);
+    this.headGroup.add(innerThroatMesh);
+
+    // Ring of 32 sharp white teeth around the inner circumference of the maw
     const toothGeom = buildNeedleToothGeometry(0.038, 0.007);
-    this.teethMesh = new InstancedMesh(toothGeom, this.boneMat, 12);
+    this.teethMesh = new InstancedMesh(toothGeom, this.boneMat, 32);
     this.teethMesh.name = 'InnerMouthTeeth';
     this.teethMesh.instanceMatrix.setUsage(DynamicDrawUsage);
-    for (let i = 0; i < 12; i++) {
-      const angle = (i / 11) * Math.PI - Math.PI * 0.5;
-      pitMat4.makeTranslation(Math.sin(angle) * 0.06, -0.05, -0.18 - Math.cos(angle) * 0.05);
+    for (let i = 0; i < 32; i++) {
+      const angle = (i / 32) * Math.PI * 2;
+      const radius = 0.075;
+      const tx = Math.cos(angle) * radius;
+      const ty = Math.sin(angle) * (radius * 0.8) - 0.02;
+      const tz = -0.19 - Math.sin(angle * 2) * 0.015;
+      pitMat4.makeTranslation(tx, ty, tz);
       this.teethMesh.setMatrixAt(i, pitMat4);
     }
     this.teethMesh.instanceMatrix.needsUpdate = true;
@@ -837,6 +945,11 @@ export class MonsterRig {
     this.shoulderL.position.set(0.625, 0.02, -0.15);
     this.upperChest.add(this.shoulderL);
 
+    const shoulderSphereGeom = new SphereGeometry(0.26, 12, 10);
+    const shoulderSphereL = new Mesh(shoulderSphereGeom, this.jointMat);
+    shoulderSphereL.name = 'ShoulderJointSphereL';
+    this.shoulderL.add(shoulderSphereL);
+
     this.upperArmL.name = 'Rig_UpperArmL';
     const upperArmGeom = buildMuscularSegmentGeometry(this.upperArmLengthM, 0.15, 0.14, 0.11, 10, 8);
     const upperArmMeshL = new Mesh(upperArmGeom, this.monsterSkinMat);
@@ -846,6 +959,11 @@ export class MonsterRig {
     this.elbowL.name = 'Rig_ElbowL';
     this.elbowL.position.set(0, -this.upperArmLengthM, 0);
     this.upperArmL.add(this.elbowL);
+
+    const elbowSphereGeom = new SphereGeometry(0.20, 10, 8);
+    const elbowSphereL = new Mesh(elbowSphereGeom, this.jointMat);
+    elbowSphereL.name = 'ElbowJointSphereL';
+    this.elbowL.add(elbowSphereL);
 
     this.forearmL.name = 'Rig_ForearmL';
     const forearmGeom = buildMuscularSegmentGeometry(this.forearmLengthM, 0.12, 0.13, 0.095, 10, 8);
@@ -882,6 +1000,10 @@ export class MonsterRig {
     this.shoulderR.position.set(-0.625, 0.02, -0.15);
     this.upperChest.add(this.shoulderR);
 
+    const shoulderSphereR = new Mesh(shoulderSphereGeom, this.jointMat);
+    shoulderSphereR.name = 'ShoulderJointSphereR';
+    this.shoulderR.add(shoulderSphereR);
+
     this.upperArmR.name = 'Rig_UpperArmR';
     const upperArmMeshR = new Mesh(upperArmGeom, this.monsterSkinMat);
     this.upperArmR.add(upperArmMeshR);
@@ -890,6 +1012,10 @@ export class MonsterRig {
     this.elbowR.name = 'Rig_ElbowR';
     this.elbowR.position.set(0, -this.upperArmLengthM, 0);
     this.upperArmR.add(this.elbowR);
+
+    const elbowSphereR = new Mesh(elbowSphereGeom, this.jointMat);
+    elbowSphereR.name = 'ElbowJointSphereR';
+    this.elbowR.add(elbowSphereR);
 
     this.forearmR.name = 'Rig_ForearmR';
     const forearmMeshR = new Mesh(forearmGeom, this.monsterSkinMat);
@@ -924,6 +1050,11 @@ export class MonsterRig {
     this.hipL.position.set(0.38, -0.15, 0.05);
     this.pelvis.add(this.hipL);
 
+    const hipSphereGeom = new SphereGeometry(0.24, 12, 10);
+    const hipSphereL = new Mesh(hipSphereGeom, this.jointMat);
+    hipSphereL.name = 'HipJointSphereL';
+    this.hipL.add(hipSphereL);
+
     this.thighL.name = 'Rig_ThighL';
     const thighGeom = buildMuscularSegmentGeometry(0.58, 0.16, 0.15, 0.11, 10, 8);
     const thighMeshL = new Mesh(thighGeom, this.monsterSkinMat);
@@ -933,6 +1064,11 @@ export class MonsterRig {
     this.kneeL.name = 'Rig_KneeL';
     this.kneeL.position.set(0, -0.58, 0);
     this.thighL.add(this.kneeL);
+
+    const kneeSphereGeom = new SphereGeometry(0.18, 10, 8);
+    const kneeSphereL = new Mesh(kneeSphereGeom, this.jointMat);
+    kneeSphereL.name = 'KneeJointSphereL';
+    this.kneeL.add(kneeSphereL);
 
     this.shinL.name = 'Rig_ShinL';
     const shinGeom = buildMuscularSegmentGeometry(0.55, 0.11, 0.11, 0.08, 10, 8);
@@ -962,6 +1098,10 @@ export class MonsterRig {
     this.hipR.position.set(-0.38, -0.15, 0.05);
     this.pelvis.add(this.hipR);
 
+    const hipSphereR = new Mesh(hipSphereGeom, this.jointMat);
+    hipSphereR.name = 'HipJointSphereR';
+    this.hipR.add(hipSphereR);
+
     this.thighR.name = 'Rig_ThighR';
     const thighMeshR = new Mesh(thighGeom, this.monsterSkinMat);
     this.thighR.add(thighMeshR);
@@ -970,6 +1110,10 @@ export class MonsterRig {
     this.kneeR.name = 'Rig_KneeR';
     this.kneeR.position.set(0, -0.58, 0);
     this.thighR.add(this.kneeR);
+
+    const kneeSphereR = new Mesh(kneeSphereGeom, this.jointMat);
+    kneeSphereR.name = 'KneeJointSphereR';
+    this.kneeR.add(kneeSphereR);
 
     this.shinR.name = 'Rig_ShinR';
     const shinMeshR = new Mesh(shinGeom, this.monsterSkinMat);
@@ -1011,6 +1155,10 @@ export class MonsterRig {
     this.rightJawLobe.rotation.y = -angleRad;
     this.topJawLobe.rotation.x = -angleRad;
     this.bottomJawLobe.rotation.x = angleRad;
+    this.jawPetalL.rotation.y = angleRad;
+    this.jawPetalR.rotation.y = -angleRad;
+    this.jawPetalTop.rotation.x = -angleRad;
+    this.jawPetalBottom.rotation.x = angleRad;
   }
 
   getJawSplit(): number {

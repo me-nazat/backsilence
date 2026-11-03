@@ -6,7 +6,6 @@
  * ──────────────────────────────────────────────────────────────────────── */
 
 import { AudioEngine } from '../audio/AudioEngine.js';
-import { ConfirmationModal } from './ConfirmationModal.js';
 import { loadSettings, saveSettings } from '../app/Settings.js';
 import { safeRequestPointerLock } from '../engine/input/PointerLock.js';
 
@@ -30,7 +29,8 @@ export class PauseMenu {
   mount(container: HTMLElement): void {
     const el = document.createElement('div');
     el.id = 'pause-menu-view';
-    el.className = 'bs-screen';
+    el.className = 'bs-screen pause-modal';
+    el.setAttribute('data-modal', 'pause-modal');
     el.style.cssText = `
       position: absolute;
       inset: 0;
@@ -41,17 +41,19 @@ export class PauseMenu {
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      z-index: 500;
+      z-index: 9999;
       pointer-events: auto;
       font-family: monospace;
       color: var(--fog, #d9d3a2);
       padding: 16px;
       box-sizing: border-box;
       overflow-y: auto;
+      user-select: none;
+      -webkit-user-select: none;
     `;
 
     el.innerHTML = `
-      <div style="
+      <div id="pause-modal" style="
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -62,6 +64,11 @@ export class PauseMenu {
         background: rgba(13, 11, 6, 0.96);
         box-shadow: 0 0 36px rgba(0,0,0,0.9);
         border-radius: 4px;
+        pointer-events: auto;
+        position: relative;
+        z-index: 10000;
+        user-select: none;
+        -webkit-user-select: none;
       ">
         <div style="text-align: center;">
           <h2 style="
@@ -75,7 +82,7 @@ export class PauseMenu {
         </div>
 
         <!-- 1. Resume First -->
-        <button id="pause-btn-resume" class="analog-btn primary" style="width: 100%; min-height: 48px; font-size: 1.05rem; font-weight: bold; letter-spacing: 0.12em;">
+        <button id="btn-resume-game" data-action="resume" class="analog-btn primary pause-btn-resume" style="width: 100%; min-height: 48px; font-size: 1.05rem; font-weight: bold; letter-spacing: 0.12em; cursor: pointer; pointer-events: auto; position: relative; z-index: 10000;">
           RESUME (ESC)
         </button>
 
@@ -157,13 +164,13 @@ export class PauseMenu {
 
         <!-- 3. Navigation & Actions -->
         <div style="display: flex; flex-direction: column; gap: 8px; width: 100%;">
-          <button id="pause-btn-settings" class="analog-btn" style="width: 100%;">CONFIGURATION</button>
+          <button id="btn-pause-configuration" data-action="configuration" class="analog-btn pause-btn-settings" style="width: 100%; cursor: pointer; pointer-events: auto; position: relative; z-index: 10000;">CONFIGURATION</button>
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-            <button id="pause-btn-controls" class="analog-btn" style="padding: 8px 4px; font-size: 11px;">CONTROLS (H)</button>
-            <button id="pause-btn-photo" class="analog-btn" style="padding: 8px 4px; font-size: 11px;">PHOTO (P)</button>
+            <button id="btn-pause-controls" data-action="controls" class="analog-btn pause-btn-controls" style="padding: 8px 4px; font-size: 11px; cursor: pointer; pointer-events: auto; position: relative; z-index: 10000;">CONTROLS (K)</button>
+            <button id="btn-pause-photo" data-action="photo" class="analog-btn pause-btn-photo" style="padding: 8px 4px; font-size: 11px; cursor: pointer; pointer-events: auto; position: relative; z-index: 10000;">PHOTO (P)</button>
           </div>
-          <button id="pause-btn-audiolab" class="analog-btn" style="width: 100%; font-size: 11px; opacity: 0.85;">AUDIO LAB (B)</button>
-          <button id="pause-btn-quit" class="analog-btn danger" style="width: 100%; margin-top: 4px;">ABORT EXPEDITION</button>
+          <button id="btn-pause-audiolab" data-action="audiolab" class="analog-btn pause-btn-audiolab" style="width: 100%; font-size: 11px; opacity: 0.85; cursor: pointer; pointer-events: auto; position: relative; z-index: 10000;">AUDIO LAB (N)</button>
+          <button id="btn-abort-expedition" data-action="abort-expedition" class="analog-btn danger pause-btn-quit" style="width: 100%; margin-top: 4px; cursor: pointer; pointer-events: auto; position: relative; z-index: 10000;">ABORT EXPEDITION</button>
         </div>
       </div>
     `;
@@ -183,17 +190,30 @@ export class PauseMenu {
       btn.addEventListener('focus', () => engine.play('ui_hover'));
     });
 
-    const resumeAction = () => {
+    const resumeAction = (e?: Event) => {
+      if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
       engine.play('ui_confirm');
+      this.hide();
       this.callbacks.onResume();
       // Re-lock pointer in 1 click
       const canvas = document.querySelector('canvas');
       if (canvas) {
-        void safeRequestPointerLock(canvas);
+        try {
+          canvas.requestPointerLock();
+        } catch {
+          void safeRequestPointerLock(canvas);
+        }
       }
     };
 
-    this.el.querySelector('#pause-btn-resume')?.addEventListener('click', resumeAction);
+    const resumeBtn = this.el.querySelector<HTMLButtonElement>(
+      '#btn-resume-game, #pause-btn-resume, [data-action="resume"]',
+    );
+    resumeBtn?.addEventListener('click', resumeAction);
+    resumeBtn?.addEventListener('pointerdown', resumeAction);
 
     // Quick Settings Binds
     const volInput = this.el.querySelector<HTMLInputElement>('#pause-quick-volume');
@@ -204,42 +224,59 @@ export class PauseMenu {
     const brightVal = this.el.querySelector<HTMLElement>('#pause-quick-brightness-val');
     const captionsInput = this.el.querySelector<HTMLInputElement>('#pause-quick-captions');
 
-    volInput?.addEventListener('input', () => {
-      const pct = Number(volInput.value);
+    const updateVolume = () => {
+      const pct = Number(volInput?.value ?? 80);
       if (volVal) volVal.textContent = `${pct}%`;
       const frac = pct / 100;
       engine.setBusVolume('master', frac);
       const s = loadSettings();
       s.audio.master = frac;
       saveSettings(s);
-    });
+    };
+    volInput?.addEventListener('input', updateVolume);
+    volInput?.addEventListener('change', updateVolume);
 
-    sensInput?.addEventListener('input', () => {
-      const val = Number(sensInput.value) / 100;
+    const updateSens = () => {
+      const val = Number(sensInput?.value ?? 100) / 100;
       if (sensVal) sensVal.textContent = `${val.toFixed(1)}x (${Math.round(val * 360)}°)`;
       const s = loadSettings();
       s.controls.sensitivity = val;
       saveSettings(s);
-    });
+    };
+    sensInput?.addEventListener('input', updateSens);
+    sensInput?.addEventListener('change', updateSens);
 
-    brightInput?.addEventListener('input', () => {
-      const pct = Number(brightInput.value);
+    const updateBright = () => {
+      const pct = Number(brightInput?.value ?? 100);
       if (brightVal) brightVal.textContent = `${pct}%`;
       const s = loadSettings();
       s.graphics.brightness = pct / 100;
       saveSettings(s);
-    });
+      const g = window as unknown as {
+        __backsilence_lab?: { renderer?: { renderer?: { toneMappingExposure?: number } } };
+        __backsilence_session?: { renderer?: { renderer?: { toneMappingExposure?: number } } };
+      };
+      if (g.__backsilence_lab?.renderer?.renderer) {
+        g.__backsilence_lab.renderer.renderer.toneMappingExposure = pct / 100;
+      }
+      if (g.__backsilence_session?.renderer?.renderer) {
+        g.__backsilence_session.renderer.renderer.toneMappingExposure = pct / 100;
+      }
+    };
+    brightInput?.addEventListener('input', updateBright);
+    brightInput?.addEventListener('change', updateBright);
 
-    captionsInput?.addEventListener('change', () => {
-      const checked = captionsInput.checked;
+    const updateCaptions = () => {
+      const checked = captionsInput?.checked ?? false;
       const s = loadSettings();
       s.audio.soundVisualizer = checked;
       saveSettings(s);
-    });
+    };
+    captionsInput?.addEventListener('change', updateCaptions);
 
     const minimalHudInput = this.el.querySelector<HTMLInputElement>('#pause-quick-minimalhud');
-    minimalHudInput?.addEventListener('change', () => {
-      const checked = minimalHudInput.checked;
+    const updateMinimalHud = () => {
+      const checked = minimalHudInput?.checked ?? false;
       const s = loadSettings();
       s.accessibility.minimalHud = checked;
       saveSettings(s);
@@ -248,57 +285,97 @@ export class PauseMenu {
         if (checked) hudEl.classList.add('minimal-hud');
         else hudEl.classList.remove('minimal-hud');
       }
-    });
+    };
+    minimalHudInput?.addEventListener('change', updateMinimalHud);
 
-    this.el.querySelector('#pause-btn-settings')?.addEventListener('click', () => {
+    const settingsBtn = this.el.querySelector<HTMLButtonElement>(
+      '#btn-pause-configuration, #pause-btn-settings, [data-action="configuration"]',
+    );
+    const onSettingsAction = (e?: Event) => {
+      if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
       engine.play('ui_click');
       this.callbacks.onSettings();
-    });
+    };
+    settingsBtn?.addEventListener('click', onSettingsAction);
+    settingsBtn?.addEventListener('pointerdown', onSettingsAction);
 
-    this.el.querySelector('#pause-btn-controls')?.addEventListener('click', () => {
+    const controlsBtn = this.el.querySelector<HTMLButtonElement>(
+      '#btn-pause-controls, #pause-btn-controls, [data-action="controls"]',
+    );
+    const onControlsAction = (e?: Event) => {
+      if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
       engine.play('ui_click');
       if (this.callbacks.onControlsReference) {
         this.callbacks.onControlsReference();
       } else {
         this.callbacks.onSettings();
       }
-    });
+    };
+    controlsBtn?.addEventListener('click', onControlsAction);
+    controlsBtn?.addEventListener('pointerdown', onControlsAction);
 
-    this.el.querySelector('#pause-btn-photo')?.addEventListener('click', () => {
+    const photoBtn = this.el.querySelector<HTMLButtonElement>(
+      '#btn-pause-photo, #pause-btn-photo, [data-action="photo"]',
+    );
+    const onPhotoAction = (e?: Event) => {
+      if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
       engine.play('ui_click');
       if (this.callbacks.onPhotoMode) {
         this.callbacks.onPhotoMode();
       }
-    });
+    };
+    photoBtn?.addEventListener('click', onPhotoAction);
+    photoBtn?.addEventListener('pointerdown', onPhotoAction);
 
-    this.el.querySelector('#pause-btn-audiolab')?.addEventListener('click', () => {
+    const audioLabBtn = this.el.querySelector<HTMLButtonElement>(
+      '#btn-pause-audiolab, #pause-btn-audiolab, [data-action="audiolab"]',
+    );
+    const onAudioLabAction = (e?: Event) => {
+      if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
       engine.play('ui_click');
       this.callbacks.onAudioLab();
-    });
+    };
+    audioLabBtn?.addEventListener('click', onAudioLabAction);
+    audioLabBtn?.addEventListener('pointerdown', onAudioLabAction);
 
-    this.el.querySelector('#pause-btn-quit')?.addEventListener('click', () => {
+    const abortBtn = this.el.querySelector<HTMLButtonElement>(
+      '#btn-abort-expedition, #pause-btn-quit, [data-action="abort-expedition"]',
+    );
+    const onAbortAction = (e?: Event) => {
+      if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
       engine.play('ui_confirm');
-      const modal = new ConfirmationModal({
-        title: 'ABORT EXPEDITION?',
-        consequences: 'Leaving now will lose unarchived sector progress and return to the main archive.',
-        confirmLabel: 'ABORT RUN',
-        cancelLabel: 'KEEP PLAYING',
-        isDanger: true,
-        undoable: true,
-        undoMessage: 'Expedition aborted.',
-        onConfirm: () => {
-          this.callbacks.onQuit();
-        },
-        onUndo: () => {
-          this.callbacks.onResume();
-        },
-      });
-      modal.mount();
-    });
+      if (typeof document !== 'undefined' && document.pointerLockElement) {
+        try {
+          document.exitPointerLock();
+        } catch {
+          /* ignore */
+        }
+      }
+      this.hide();
+      this.callbacks.onQuit();
+    };
+    abortBtn?.addEventListener('click', onAbortAction);
+    abortBtn?.addEventListener('pointerdown', onAbortAction);
   }
 
   show(objective?: string): void {
     if (this.el) {
+      this.el.classList.add('is-open');
       this.el.style.display = 'flex';
       this.el.style.visibility = 'visible';
       this.el.style.pointerEvents = 'auto';
@@ -309,7 +386,9 @@ export class PauseMenu {
         const objText = this.el.querySelector('#pause-objective-text');
         if (objText) objText.textContent = objective;
       }
-      const resumeBtn = this.el.querySelector<HTMLButtonElement>('#pause-btn-resume');
+      const resumeBtn = this.el.querySelector<HTMLButtonElement>(
+        '#btn-resume-game, #pause-btn-resume, [data-action="resume"]',
+      );
       resumeBtn?.focus();
     }
   }
@@ -362,6 +441,7 @@ export class PauseMenu {
 
   hide(): void {
     if (this.el) {
+      this.el.classList.remove('is-open');
       this.el.style.display = 'none';
       this.el.style.visibility = 'hidden';
       this.el.style.pointerEvents = 'none';

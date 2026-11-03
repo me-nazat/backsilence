@@ -310,7 +310,17 @@ export class MonsterNavigation {
   isNavigable(x: number, z: number): boolean {
     const { gx, gz } = this.worldToGrid(x, z);
     if (gx < 0 || gx >= this.gridWidth || gz < 0 || gz >= this.gridDepth) return false;
-    return this.walkable[gz * this.gridWidth + gx] === 1;
+    if (this.walkable[gz * this.gridWidth + gx] === 1) return true;
+    for (let i = 0; i < this.expandedPlatforms.length; i++) {
+      const exp = this.expandedPlatforms[i]!;
+      if (x >= exp.minX && x <= exp.maxX && z >= exp.minZ && z <= exp.maxZ) {
+        return false;
+      }
+    }
+    if (x < this.bounds.minX || x > this.bounds.maxX || z < this.bounds.minZ || z > this.bounds.maxZ) {
+      return false;
+    }
+    return true;
   }
 
   /**
@@ -656,17 +666,13 @@ export class MonsterNavigation {
 
         const minD = Math.min(dLeft, dRight, dBottom, dTop);
         if (minD === dLeft) {
-          const minGx = Math.floor((exp.minX - this.bounds.minX) / this.cellSize);
-          curX = this.bounds.minX + minGx * this.cellSize - 0.05;
+          curX = exp.minX - 0.05;
         } else if (minD === dRight) {
-          const maxGx = Math.floor((exp.maxX - this.bounds.minX) / this.cellSize);
-          curX = this.bounds.minX + (maxGx + 1) * this.cellSize + 0.05;
+          curX = exp.maxX + 0.05;
         } else if (minD === dBottom) {
-          const minGz = Math.floor((exp.minZ - this.bounds.minZ) / this.cellSize);
-          curZ = this.bounds.minZ + minGz * this.cellSize - 0.05;
+          curZ = exp.minZ - 0.05;
         } else {
-          const maxGz = Math.floor((exp.maxZ - this.bounds.minZ) / this.cellSize);
-          curZ = this.bounds.minZ + (maxGz + 1) * this.cellSize + 0.05;
+          curZ = exp.maxZ + 0.05;
         }
       }
     }

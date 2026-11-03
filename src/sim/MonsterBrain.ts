@@ -108,6 +108,7 @@ export class MonsterBrain {
   private searchTimer = 0;
   private swipeCooldown = 0;
   private stuckTimer = 0;
+  private displacementStuckTimer = 0;
   consecutiveSplashes = 0;
   lastSplashTime = -999;
   isSighting = false;
@@ -318,6 +319,9 @@ export class MonsterBrain {
     h = Math.imul(h ^ this.state.charCodeAt(0), 16777619);
     this.trajectoryHash = h;
 
+    const prevX = this.pos.x;
+    const prevZ = this.pos.z;
+
     if (this.state === 'STUNNED') {
       this.stepStunned(dt, nav, playerPos);
       return;
@@ -506,6 +510,42 @@ export class MonsterBrain {
       const resolved = this.monsterNav.resolveMonsterCollision(this.pos);
       this.pos.x = resolved.x;
       this.pos.z = resolved.z;
+    }
+
+    // 6. Anti-Stuck Watchdog
+    const actualDisplacement = dt > 0.0001 ? dHypot(this.pos.x - prevX, this.pos.z - prevZ) / dt : 0;
+    const desiredSpeed =
+      this.state === 'HUNT'
+        ? MonsterBrain.SPEED_HUNT * this.speedMul
+        : this.state === 'WANDER'
+        ? MonsterBrain.SPEED_WANDER * this.speedMul
+        : this.state === 'INVESTIGATE'
+        ? MonsterBrain.SPEED_INVESTIGATE * this.speedMul
+        : 0;
+
+    if (desiredSpeed > 0 && this.state === 'HUNT') {
+      if (actualDisplacement < 0.4 * desiredSpeed) {
+        this.displacementStuckTimer += dt;
+        if (this.displacementStuckTimer >= 0.35) {
+          this.currentPathIndex++;
+          const perpYaw = this.yaw + Math.PI * 0.5 * (Math.sin(simTime * 4.0) > 0 ? 1 : -1);
+          this.pos.x += dSin(perpYaw) * 0.06;
+          this.pos.z -= dCos(perpYaw) * 0.06;
+          this.displacementStuckTimer = 0;
+          if (this.currentPathIndex >= this.currentPath.length) {
+            if (this.state === 'HUNT' && this.currentTarget) {
+              this.currentPath = this.astar.findPath(this.pos.x, this.pos.z, this.currentTarget.x, this.currentTarget.z);
+              this.currentPathIndex = 0;
+            } else {
+              this.pickNextWanderWaypoint(nav, playerPos);
+            }
+          }
+        }
+      } else {
+        this.displacementStuckTimer = Math.max(0, this.displacementStuckTimer - dt * 2.0);
+      }
+    } else {
+      this.displacementStuckTimer = 0;
     }
   }
 
