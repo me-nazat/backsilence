@@ -1909,3 +1909,30 @@ Formally accept the framing variance between downward local water evaluation cro
 
 
 
+
+
+## D135 — Water v5: Calm Viscous Swell, Meniscus Waterline & Ink-and-Foam Contact Vocabulary (Prompt 3)
+
+**Date:** 2026-11-04  
+**Context:**  
+Prompt 3 required transforming the water simulation into "Water v5": replacing high-frequency normal chop and jittery specular noise with calm, broad, low-frequency swells with an oily, viscous sheen (`f_004`–`f_007`, `f_021`–`f_024`); eliminating z-fighting bands and hard seams along slab edges and pillars via a depth-based screenspace meniscus line (closing defect C4); implementing the authoritative contact vocabulary of dark viscous ink droplets (`#1e1a14`) and white foam rings (`#e8f2e6`, max radius $0.32\,\text{m}$, life $0.38\,\text{s}$) across player and throwables; melting grazing horizon water into scene fog (`#d6dccd`) without white blowout (G8); and rendering the submerged mint interior (`f_034`).  
+**Decision:**  
+1. **Calm, Broad, Low-Frequency Swell (Phase A):**  
+   - Retuned Gerstner wave displacement in `WaterMaterial.ts` to 3 low-frequency harmonic components ($\lambda = 6.4\,\text{m}, 4.5\,\text{m}, 3.2\,\text{m}$ in the $[3.0, 8.0]\,\text{m}$ band), bounding total composite amplitude $\le 0.035\,\text{m}$ ($3.5\,\text{cm}$), with a slow viscous breathing rate multiplier ($0.28$) and trochoidal factor $q = 0.32$.  
+   - Retuned procedural normal synthesis in `WaterNormal.ts` to broad swell wavenumbers (`waveFreq = 3`, `streakFreqX = 2`, `streakFreqY = 4`, `strength = 1.35`), down-scaling sampling octaves to $p / 7.2$, $p / 4.1$, $p / 2.0$ with slope multipliers $0.007 / 0.0035 / 0.0012$.  
+   - Broadened GGX specular lobe with roughness floor $0.12$, tinted with `uSpecularColor` (`#7b9e5e`), and glint fraction capped $\le 0.03$, generating long soft horizontal streaks along crests instead of micro-sparkle.  
+   - Calibrated Kelvin wake simulation in `WakeEmitters.ts` with viscous exponential decay ($2.0–3.0\,\text{s}$) and slope multiplier $1.40$.  
+2. **Milky-Green Depth, Floor Legibility & Fog Horizon Melt (Phase B):**  
+   - Calibrated Beer–Lambert depth transmittance: shallow water $\le 0.35\,\text{m}$ maintains clear floor tile readability (effective surface alpha $0.20–0.35$); mid-depth $0.35–0.8\,\text{m}$ displays translucent jade-green (`#8cb179` $\to$ `#678f44`); water $> 0.8\,\text{m}$ attenuates to deep volume (`#3e5a2c`).  
+   - Softened floor tile caustics to low-contrast webs ($0.12$ multiplier) fading out by $1.1\,\text{m}$ depth.  
+   - Grazing horizon water dissolves seamlessly into scene fog (`#d6dccd`) via height-fog band and Fresnel blend without white blowout (Glitch G8).  
+   - Submerged underwater grading inside mint interior: depth fog grading `#3e5a2c` near to `#2c4420` far (`f_034`).  
+3. **Contact Vocabulary: Ink & Foam (Phase C):**  
+   - Implemented `spawnPlayerLimbSplash` and `spawnThrowableSplash` in `Splashes.ts`: hand contact and throwable impacts spawn dark viscous ink droplets (`#1e1a14`) and liquid contact rings; foot contact spawns pale mint foam rings strictly at feet (`#e8f2e6`, max radius $0.32\,\text{m}$, life $0.38\,\text{s}$).  
+   - Implemented `spawnDripRings` with 3 broken concentric elliptical ripple arcs with slow radial expansion, reproducing the ceiling drip motif (`f_028`).  
+   - Wired throwable splashes (`Projectile.ts`) to acoustic propagation with loudness $0.60$ and hearing radius $24.0\,\text{m}$.  
+4. **Waterline Integration & Zero Z-Fighting (Phase D):**  
+   - Implemented depth-based screenspace meniscus line ($2–4\,\text{cm}$, `#f5fff9`) rendered at water-geometry intersections via `abs(sceneLinearDepth - waterLinearDepth) < 0.035`.  
+   - Added screenspace depth discard threshold (`diffZ < -0.02`) and soft-edge alpha fade over $2.8\,\text{cm}$, eliminating coplanar z-fighting on submerged floor slabs (closing C4).  
+**Status:** ACCEPTED  
+**Consequences:** Water reads calm, viscous, and luminous; 22 water-class visual defects closed in `reports/glitch/CENSUS.md` (C4, C21, C22, C27..C45); 100/100 Vitest test suites and 888/888 tests pass; all 11 verification gates exit 0; medium tier sustains 60 FPS across all 10 maps.

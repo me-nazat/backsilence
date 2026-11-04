@@ -1,5 +1,5 @@
 {
-  "date": "2026-11-04T12:04:47.461Z",
+  "date": "2026-11-04T12:46:15.418Z",
   "manifestHash": "94e00f1eff14c185906da61201cc3044cc50454ea812590c7ce853e82aeec772",
   "derivedTargetsGeneratedAt": "2026-11-02T11:55:00.000Z",
   "referenceSource": "Authoritative Reference Pack (37 frames, manifest=94e00f1eff14c185)",
@@ -24,23 +24,23 @@
       "checks": [
         {
           "name": "Luminance Mean",
-          "actual": 0.5737,
+          "actual": 0.5729,
           "target": 0.561,
-          "diff": 0.0127,
-          "relPct": 2.3,
+          "diff": 0.0119,
+          "relPct": 2.1,
           "passed": true,
           "derivedTarget": 0.561,
-          "derivedDeltaPct": 2.3
+          "derivedDeltaPct": 2.1
         },
         {
           "name": "Luminance StdDev",
-          "actual": 0.0755,
+          "actual": 0.0754,
           "target": 0.1038,
-          "diff": 0.0283,
-          "relPct": 27.3,
+          "diff": 0.0284,
+          "relPct": 27.4,
           "passed": false,
           "derivedTarget": 0.1038,
-          "derivedDeltaPct": 27.3
+          "derivedDeltaPct": 27.4
         },
         {
           "name": "Horizon Blowout",
@@ -53,33 +53,33 @@
         },
         {
           "name": "Saturation Mean",
-          "actual": 0.2572,
+          "actual": 0.2569,
           "target": 0.3965,
-          "diff": 0.1393,
-          "relPct": 35.1,
+          "diff": 0.1396,
+          "relPct": 35.2,
           "passed": false,
           "derivedTarget": 0.3965,
-          "derivedDeltaPct": 35.1
+          "derivedDeltaPct": 35.2
         },
         {
           "name": "Sobel Edge (scale 1x)",
-          "actual": 0.0704,
+          "actual": 0.0716,
           "target": 0.0543,
-          "diff": 0.0161,
-          "relPct": 29.7,
+          "diff": 0.0173,
+          "relPct": 31.9,
           "passed": false,
           "derivedTarget": 0.0543,
-          "derivedDeltaPct": 29.7
+          "derivedDeltaPct": 31.9
         },
         {
           "name": "Water Green Channel",
-          "actual": 0.643,
+          "actual": 0.642,
           "target": 0.552,
-          "diff": 0.091,
-          "relPct": 16.5,
+          "diff": 0.09,
+          "relPct": 16.3,
           "passed": true,
           "derivedTarget": 0.552,
-          "derivedDeltaPct": 16.5
+          "derivedDeltaPct": 16.3
         },
         {
           "name": "Water Glint Fraction",
@@ -119,23 +119,23 @@
       "checks": [
         {
           "name": "Luminance Mean",
-          "actual": 0.5946,
+          "actual": 0.5874,
           "target": 0.5964,
-          "diff": 0.0018,
-          "relPct": 0.3,
+          "diff": 0.009,
+          "relPct": 1.5,
           "passed": true,
           "derivedTarget": 0.5964,
-          "derivedDeltaPct": 0.3
+          "derivedDeltaPct": 1.5
         },
         {
           "name": "Luminance StdDev",
-          "actual": 0.0759,
+          "actual": 0.077,
           "target": 0.1308,
-          "diff": 0.0549,
-          "relPct": 42,
+          "diff": 0.0538,
+          "relPct": 41.1,
           "passed": false,
           "derivedTarget": 0.1308,
-          "derivedDeltaPct": 42
+          "derivedDeltaPct": 41.1
         },
         {
           "name": "Horizon Blowout",
@@ -148,33 +148,33 @@
         },
         {
           "name": "Saturation Mean",
-          "actual": 0.2783,
+          "actual": 0.2723,
           "target": 0.4076,
-          "diff": 0.1293,
-          "relPct": 31.7,
+          "diff": 0.1353,
+          "relPct": 33.2,
           "passed": false,
           "derivedTarget": 0.4076,
-          "derivedDeltaPct": 31.7
+          "derivedDeltaPct": 33.2
         },
         {
           "name": "Sobel Edge (scale 1x)",
-          "actual": 0.1186,
+          "actual": 0.1849,
           "target": 0.0982,
-          "diff": 0.0204,
-          "relPct": 20.8,
-          "passed": true,
+          "diff": 0.0867,
+          "relPct": 88.3,
+          "passed": false,
           "derivedTarget": 0.0982,
-          "derivedDeltaPct": 20.8
+          "derivedDeltaPct": 88.3
         },
         {
           "name": "Water Green Channel",
-          "actual": 0.633,
+          "actual": 0.617,
           "target": 0.601,
-          "diff": 0.032,
-          "relPct": 5.3,
+          "diff": 0.016,
+          "relPct": 2.7,
           "passed": true,
           "derivedTarget": 0.601,
-          "derivedDeltaPct": 5.3
+          "derivedDeltaPct": 2.7
         },
         {
           "name": "Water Glint Fraction",
@@ -224,13 +224,13 @@
         },
         {
           "name": "Luminance StdDev",
-          "actual": 0.0557,
+          "actual": 0.0559,
           "target": 0.128,
-          "diff": 0.0723,
-          "relPct": 56.5,
+          "diff": 0.0721,
+          "relPct": 56.3,
           "passed": false,
           "derivedTarget": 0.128,
-          "derivedDeltaPct": 56.5
+          "derivedDeltaPct": 56.3
         },
         {
           "name": "Horizon Blowout",
@@ -243,33 +243,33 @@
         },
         {
           "name": "Saturation Mean",
-          "actual": 0.2887,
+          "actual": 0.2884,
           "target": 0.226,
-          "diff": 0.0627,
-          "relPct": 27.7,
+          "diff": 0.0624,
+          "relPct": 27.6,
           "passed": false,
           "derivedTarget": 0.226,
-          "derivedDeltaPct": 27.7
+          "derivedDeltaPct": 27.6
         },
         {
           "name": "Sobel Edge (scale 1x)",
-          "actual": 0.0463,
+          "actual": 0.0466,
           "target": 0.0473,
-          "diff": 0.001,
-          "relPct": 2.1,
+          "diff": 0.0007,
+          "relPct": 1.5,
           "passed": true,
           "derivedTarget": 0.0473,
-          "derivedDeltaPct": 2.1
+          "derivedDeltaPct": 1.5
         },
         {
           "name": "Water Green Channel",
-          "actual": 0.657,
+          "actual": 0.658,
           "target": 0.641,
-          "diff": 0.016,
-          "relPct": 2.5,
+          "diff": 0.017,
+          "relPct": 2.7,
           "passed": true,
           "derivedTarget": 0.641,
-          "derivedDeltaPct": 2.5
+          "derivedDeltaPct": 2.7
         },
         {
           "name": "Water Glint Fraction",
@@ -309,23 +309,23 @@
       "checks": [
         {
           "name": "Luminance Mean",
-          "actual": 0.5785,
+          "actual": 0.5779,
           "target": 0.6469,
-          "diff": 0.0684,
-          "relPct": 10.6,
+          "diff": 0.069,
+          "relPct": 10.7,
           "passed": true,
           "derivedTarget": 0.6469,
-          "derivedDeltaPct": 10.6
+          "derivedDeltaPct": 10.7
         },
         {
           "name": "Luminance StdDev",
-          "actual": 0.0515,
+          "actual": 0.0513,
           "target": 0.1591,
-          "diff": 0.1076,
-          "relPct": 67.6,
+          "diff": 0.1078,
+          "relPct": 67.8,
           "passed": false,
           "derivedTarget": 0.1591,
-          "derivedDeltaPct": 67.6
+          "derivedDeltaPct": 67.8
         },
         {
           "name": "Horizon Blowout",
@@ -338,23 +338,23 @@
         },
         {
           "name": "Saturation Mean",
-          "actual": 0.2942,
+          "actual": 0.2939,
           "target": 0.3356,
-          "diff": 0.0414,
-          "relPct": 12.3,
+          "diff": 0.0417,
+          "relPct": 12.4,
           "passed": true,
           "derivedTarget": 0.3356,
-          "derivedDeltaPct": 12.3
+          "derivedDeltaPct": 12.4
         },
         {
           "name": "Sobel Edge (scale 1x)",
-          "actual": 0.063,
+          "actual": 0.0647,
           "target": 0.13,
-          "diff": 0.067,
-          "relPct": 51.5,
+          "diff": 0.0653,
+          "relPct": 50.2,
           "passed": false,
           "derivedTarget": 0.13,
-          "derivedDeltaPct": 51.5
+          "derivedDeltaPct": 50.2
         },
         {
           "name": "Water Green Channel",
@@ -405,23 +405,23 @@
       "checks": [
         {
           "name": "Luminance Mean",
-          "actual": 0.5808,
+          "actual": 0.5799,
           "target": 0.6235,
-          "diff": 0.0427,
-          "relPct": 6.8,
+          "diff": 0.0436,
+          "relPct": 7,
           "passed": true,
           "derivedTarget": 0.6235,
-          "derivedDeltaPct": 6.8
+          "derivedDeltaPct": 7
         },
         {
           "name": "Luminance StdDev",
-          "actual": 0.0422,
+          "actual": 0.0417,
           "target": 0.1573,
-          "diff": 0.1151,
-          "relPct": 73.2,
+          "diff": 0.1156,
+          "relPct": 73.5,
           "passed": false,
           "derivedTarget": 0.1573,
-          "derivedDeltaPct": 73.2
+          "derivedDeltaPct": 73.5
         },
         {
           "name": "Horizon Blowout",
@@ -434,33 +434,33 @@
         },
         {
           "name": "Saturation Mean",
-          "actual": 0.3022,
+          "actual": 0.302,
           "target": 0.302,
-          "diff": 0.0002,
-          "relPct": 0.1,
+          "diff": 0,
+          "relPct": 0,
           "passed": true,
           "derivedTarget": 0.302,
-          "derivedDeltaPct": 0.1
+          "derivedDeltaPct": 0
         },
         {
           "name": "Sobel Edge (scale 1x)",
-          "actual": 0.0684,
+          "actual": 0.069,
           "target": 0.026,
-          "diff": 0.0424,
-          "relPct": 163.1,
+          "diff": 0.043,
+          "relPct": 165.4,
           "passed": false,
           "derivedTarget": 0.026,
-          "derivedDeltaPct": 163.1
+          "derivedDeltaPct": 165.4
         },
         {
           "name": "Water Green Channel",
-          "actual": 0.653,
+          "actual": 0.652,
           "target": 0.578,
-          "diff": 0.075,
-          "relPct": 13,
+          "diff": 0.074,
+          "relPct": 12.8,
           "passed": true,
           "derivedTarget": 0.578,
-          "derivedDeltaPct": 13
+          "derivedDeltaPct": 12.8
         },
         {
           "name": "Water Glint Fraction",
@@ -501,23 +501,23 @@
       "checks": [
         {
           "name": "Luminance Mean",
-          "actual": 0.5806,
+          "actual": 0.5798,
           "target": 0.6235,
-          "diff": 0.0429,
-          "relPct": 6.9,
+          "diff": 0.0437,
+          "relPct": 7,
           "passed": true,
           "derivedTarget": 0.6235,
-          "derivedDeltaPct": 6.9
+          "derivedDeltaPct": 7
         },
         {
           "name": "Luminance StdDev",
-          "actual": 0.0422,
+          "actual": 0.0417,
           "target": 0.1573,
-          "diff": 0.1151,
-          "relPct": 73.2,
+          "diff": 0.1156,
+          "relPct": 73.5,
           "passed": false,
           "derivedTarget": 0.1573,
-          "derivedDeltaPct": 73.2
+          "derivedDeltaPct": 73.5
         },
         {
           "name": "Horizon Blowout",
@@ -530,33 +530,33 @@
         },
         {
           "name": "Saturation Mean",
-          "actual": 0.3022,
+          "actual": 0.3021,
           "target": 0.302,
-          "diff": 0.0002,
-          "relPct": 0.1,
+          "diff": 0.0001,
+          "relPct": 0,
           "passed": true,
           "derivedTarget": 0.302,
-          "derivedDeltaPct": 0.1
+          "derivedDeltaPct": 0
         },
         {
           "name": "Sobel Edge (scale 1x)",
-          "actual": 0.0682,
+          "actual": 0.0689,
           "target": 0.026,
-          "diff": 0.0422,
-          "relPct": 162.3,
+          "diff": 0.0429,
+          "relPct": 165,
           "passed": false,
           "derivedTarget": 0.026,
-          "derivedDeltaPct": 162.3
+          "derivedDeltaPct": 165
         },
         {
           "name": "Water Green Channel",
-          "actual": 0.653,
+          "actual": 0.652,
           "target": 0.578,
-          "diff": 0.075,
-          "relPct": 13,
+          "diff": 0.074,
+          "relPct": 12.8,
           "passed": true,
           "derivedTarget": 0.578,
-          "derivedDeltaPct": 13
+          "derivedDeltaPct": 12.8
         },
         {
           "name": "Water Glint Fraction",
@@ -597,23 +597,23 @@
       "checks": [
         {
           "name": "Luminance Mean",
-          "actual": 0.5805,
+          "actual": 0.5799,
           "target": 0.6235,
-          "diff": 0.043,
-          "relPct": 6.9,
+          "diff": 0.0436,
+          "relPct": 7,
           "passed": true,
           "derivedTarget": 0.6235,
-          "derivedDeltaPct": 6.9
+          "derivedDeltaPct": 7
         },
         {
           "name": "Luminance StdDev",
-          "actual": 0.0422,
+          "actual": 0.0418,
           "target": 0.1573,
-          "diff": 0.1151,
-          "relPct": 73.2,
+          "diff": 0.1155,
+          "relPct": 73.4,
           "passed": false,
           "derivedTarget": 0.1573,
-          "derivedDeltaPct": 73.2
+          "derivedDeltaPct": 73.4
         },
         {
           "name": "Horizon Blowout",
@@ -636,23 +636,23 @@
         },
         {
           "name": "Sobel Edge (scale 1x)",
-          "actual": 0.0685,
+          "actual": 0.0691,
           "target": 0.026,
-          "diff": 0.0425,
-          "relPct": 163.5,
+          "diff": 0.0431,
+          "relPct": 165.8,
           "passed": false,
           "derivedTarget": 0.026,
-          "derivedDeltaPct": 163.5
+          "derivedDeltaPct": 165.8
         },
         {
           "name": "Water Green Channel",
-          "actual": 0.653,
+          "actual": 0.652,
           "target": 0.578,
-          "diff": 0.075,
-          "relPct": 13,
+          "diff": 0.074,
+          "relPct": 12.8,
           "passed": true,
           "derivedTarget": 0.578,
-          "derivedDeltaPct": 13
+          "derivedDeltaPct": 12.8
         },
         {
           "name": "Water Glint Fraction",
@@ -691,23 +691,23 @@
       "checks": [
         {
           "name": "Luminance Mean",
-          "actual": 0.5833,
+          "actual": 0.5827,
           "target": 0.6067,
-          "diff": 0.0234,
-          "relPct": 3.9,
+          "diff": 0.024,
+          "relPct": 4,
           "passed": true,
           "derivedTarget": 0.6067,
-          "derivedDeltaPct": 3.9
+          "derivedDeltaPct": 4
         },
         {
           "name": "Luminance StdDev",
-          "actual": 0.0369,
+          "actual": 0.0365,
           "target": 0.1812,
-          "diff": 0.1443,
-          "relPct": 79.6,
+          "diff": 0.1447,
+          "relPct": 79.9,
           "passed": false,
           "derivedTarget": 0.1812,
-          "derivedDeltaPct": 79.6
+          "derivedDeltaPct": 79.9
         },
         {
           "name": "Horizon Blowout",
@@ -720,9 +720,9 @@
         },
         {
           "name": "Saturation Mean",
-          "actual": 0.3102,
+          "actual": 0.3101,
           "target": 0.2538,
-          "diff": 0.0564,
+          "diff": 0.0563,
           "relPct": 22.2,
           "passed": true,
           "derivedTarget": 0.2538,
@@ -730,23 +730,23 @@
         },
         {
           "name": "Sobel Edge (scale 1x)",
-          "actual": 0.0721,
+          "actual": 0.073,
           "target": 0.0249,
-          "diff": 0.0472,
-          "relPct": 189.6,
+          "diff": 0.0481,
+          "relPct": 193.2,
           "passed": false,
           "derivedTarget": 0.0249,
-          "derivedDeltaPct": 189.6
+          "derivedDeltaPct": 193.2
         },
         {
           "name": "Water Green Channel",
-          "actual": 0.656,
+          "actual": 0.655,
           "target": 0.577,
-          "diff": 0.079,
-          "relPct": 13.7,
+          "diff": 0.078,
+          "relPct": 13.5,
           "passed": true,
           "derivedTarget": 0.577,
-          "derivedDeltaPct": 13.7
+          "derivedDeltaPct": 13.5
         },
         {
           "name": "Water Glint Fraction",
@@ -825,13 +825,13 @@
         },
         {
           "name": "Sobel Edge (scale 1x)",
-          "actual": 0.0633,
+          "actual": 0.0632,
           "target": 0.111,
-          "diff": 0.0477,
-          "relPct": 43,
+          "diff": 0.0478,
+          "relPct": 43.1,
           "passed": false,
           "derivedTarget": 0.111,
-          "derivedDeltaPct": 43
+          "derivedDeltaPct": 43.1
         },
         {
           "name": "Water Green Channel",
@@ -880,23 +880,23 @@
       "checks": [
         {
           "name": "Luminance Mean",
-          "actual": 0.5842,
+          "actual": 0.5691,
           "target": 0.6323,
-          "diff": 0.0481,
-          "relPct": 7.6,
+          "diff": 0.0632,
+          "relPct": 10,
           "passed": true,
           "derivedTarget": 0.6323,
-          "derivedDeltaPct": 7.6
+          "derivedDeltaPct": 10
         },
         {
           "name": "Luminance StdDev",
-          "actual": 0.0689,
+          "actual": 0.0706,
           "target": 0.1341,
-          "diff": 0.0652,
-          "relPct": 48.6,
+          "diff": 0.0635,
+          "relPct": 47.4,
           "passed": false,
           "derivedTarget": 0.1341,
-          "derivedDeltaPct": 48.6
+          "derivedDeltaPct": 47.4
         },
         {
           "name": "Horizon Blowout",
@@ -909,33 +909,33 @@
         },
         {
           "name": "Saturation Mean",
-          "actual": 0.2543,
+          "actual": 0.2398,
           "target": 0.3243,
-          "diff": 0.07,
-          "relPct": 21.6,
-          "passed": true,
+          "diff": 0.0845,
+          "relPct": 26.1,
+          "passed": false,
           "derivedTarget": 0.3243,
-          "derivedDeltaPct": 21.6
+          "derivedDeltaPct": 26.1
         },
         {
           "name": "Sobel Edge (scale 1x)",
-          "actual": 0.0598,
+          "actual": 0.1121,
           "target": 0.1509,
-          "diff": 0.0911,
-          "relPct": 60.4,
+          "diff": 0.0388,
+          "relPct": 25.7,
           "passed": false,
           "derivedTarget": 0.1509,
-          "derivedDeltaPct": 60.4
+          "derivedDeltaPct": 25.7
         },
         {
           "name": "Water Green Channel",
-          "actual": 0.608,
+          "actual": 0.582,
           "target": 0.565,
-          "diff": 0.043,
-          "relPct": 7.6,
+          "diff": 0.017,
+          "relPct": 3,
           "passed": true,
           "derivedTarget": 0.565,
-          "derivedDeltaPct": 7.6
+          "derivedDeltaPct": 3
         },
         {
           "name": "Water Glint Fraction",
@@ -975,23 +975,23 @@
       "checks": [
         {
           "name": "Luminance Mean",
-          "actual": 0.6183,
+          "actual": 0.6169,
           "target": 0.6597,
-          "diff": 0.0414,
-          "relPct": 6.3,
+          "diff": 0.0428,
+          "relPct": 6.5,
           "passed": true,
           "derivedTarget": 0.6597,
-          "derivedDeltaPct": 6.3
+          "derivedDeltaPct": 6.5
         },
         {
           "name": "Luminance StdDev",
-          "actual": 0.0604,
+          "actual": 0.0602,
           "target": 0.1157,
-          "diff": 0.0553,
-          "relPct": 47.8,
+          "diff": 0.0555,
+          "relPct": 48,
           "passed": false,
           "derivedTarget": 0.1157,
-          "derivedDeltaPct": 47.8
+          "derivedDeltaPct": 48
         },
         {
           "name": "Horizon Blowout",
@@ -1004,33 +1004,33 @@
         },
         {
           "name": "Saturation Mean",
-          "actual": 0.3178,
+          "actual": 0.3163,
           "target": 0.3475,
-          "diff": 0.0297,
-          "relPct": 8.5,
+          "diff": 0.0312,
+          "relPct": 9,
           "passed": true,
           "derivedTarget": 0.3475,
-          "derivedDeltaPct": 8.5
+          "derivedDeltaPct": 9
         },
         {
           "name": "Sobel Edge (scale 1x)",
-          "actual": 0.192,
+          "actual": 0.2072,
           "target": 0.114,
-          "diff": 0.078,
-          "relPct": 68.4,
+          "diff": 0.0932,
+          "relPct": 81.8,
           "passed": false,
           "derivedTarget": 0.114,
-          "derivedDeltaPct": 68.4
+          "derivedDeltaPct": 81.8
         },
         {
           "name": "Water Green Channel",
-          "actual": 0.611,
+          "actual": 0.609,
           "target": 0.666,
-          "diff": 0.055,
-          "relPct": 8.3,
+          "diff": 0.057,
+          "relPct": 8.6,
           "passed": true,
           "derivedTarget": 0.666,
-          "derivedDeltaPct": 8.3
+          "derivedDeltaPct": 8.6
         },
         {
           "name": "Water Glint Fraction",
@@ -1079,9 +1079,9 @@
         },
         {
           "name": "Luminance StdDev",
-          "actual": 0.0949,
+          "actual": 0.0948,
           "target": 0.1968,
-          "diff": 0.1019,
+          "diff": 0.102,
           "relPct": 51.8,
           "passed": false,
           "derivedTarget": 0.1968,
@@ -1098,9 +1098,9 @@
         },
         {
           "name": "Saturation Mean",
-          "actual": 0.0687,
+          "actual": 0.0686,
           "target": 0.3196,
-          "diff": 0.2509,
+          "diff": 0.251,
           "relPct": 78.5,
           "passed": false,
           "derivedTarget": 0.3196,
@@ -1108,13 +1108,13 @@
         },
         {
           "name": "Sobel Edge (scale 1x)",
-          "actual": 0.09,
+          "actual": 0.0898,
           "target": 0.0108,
-          "diff": 0.0792,
-          "relPct": 733.3,
+          "diff": 0.079,
+          "relPct": 731.5,
           "passed": false,
           "derivedTarget": 0.0108,
-          "derivedDeltaPct": 733.3
+          "derivedDeltaPct": 731.5
         },
         {
           "name": "Water Green Channel",
@@ -1163,23 +1163,23 @@
       "checks": [
         {
           "name": "Luminance Mean",
-          "actual": 0.5741,
+          "actual": 0.5727,
           "target": 0.6073,
-          "diff": 0.0332,
-          "relPct": 5.5,
+          "diff": 0.0346,
+          "relPct": 5.7,
           "passed": true,
           "derivedTarget": 0.6073,
-          "derivedDeltaPct": 5.5
+          "derivedDeltaPct": 5.7
         },
         {
           "name": "Luminance StdDev",
-          "actual": 0.0965,
+          "actual": 0.0958,
           "target": 0.1826,
-          "diff": 0.0861,
-          "relPct": 47.2,
+          "diff": 0.0868,
+          "relPct": 47.5,
           "passed": false,
           "derivedTarget": 0.1826,
-          "derivedDeltaPct": 47.2
+          "derivedDeltaPct": 47.5
         },
         {
           "name": "Horizon Blowout",
@@ -1192,33 +1192,33 @@
         },
         {
           "name": "Saturation Mean",
-          "actual": 0.205,
+          "actual": 0.2007,
           "target": 0.252,
-          "diff": 0.047,
-          "relPct": 18.7,
+          "diff": 0.0513,
+          "relPct": 20.4,
           "passed": true,
           "derivedTarget": 0.252,
-          "derivedDeltaPct": 18.7
+          "derivedDeltaPct": 20.4
         },
         {
           "name": "Sobel Edge (scale 1x)",
-          "actual": 0.0466,
+          "actual": 0.0462,
           "target": 0.0222,
-          "diff": 0.0244,
-          "relPct": 109.9,
+          "diff": 0.024,
+          "relPct": 108.1,
           "passed": false,
           "derivedTarget": 0.0222,
-          "derivedDeltaPct": 109.9
+          "derivedDeltaPct": 108.1
         },
         {
           "name": "Water Green Channel",
-          "actual": 0.667,
+          "actual": 0.65,
           "target": 0.579,
-          "diff": 0.088,
-          "relPct": 15.2,
+          "diff": 0.071,
+          "relPct": 12.3,
           "passed": true,
           "derivedTarget": 0.579,
-          "derivedDeltaPct": 15.2
+          "derivedDeltaPct": 12.3
         },
         {
           "name": "Water Glint Fraction",
@@ -1258,23 +1258,23 @@
       "checks": [
         {
           "name": "Luminance Mean",
-          "actual": 0.5872,
+          "actual": 0.587,
           "target": 0.5485,
-          "diff": 0.0387,
-          "relPct": 7.1,
+          "diff": 0.0385,
+          "relPct": 7,
           "passed": true,
           "derivedTarget": 0.5485,
-          "derivedDeltaPct": 7.1
+          "derivedDeltaPct": 7
         },
         {
           "name": "Luminance StdDev",
-          "actual": 0.0869,
+          "actual": 0.087,
           "target": 0.0872,
-          "diff": 0.0003,
-          "relPct": 0.3,
+          "diff": 0.0002,
+          "relPct": 0.2,
           "passed": true,
           "derivedTarget": 0.0872,
-          "derivedDeltaPct": 0.3
+          "derivedDeltaPct": 0.2
         },
         {
           "name": "Horizon Blowout",
@@ -1287,33 +1287,33 @@
         },
         {
           "name": "Saturation Mean",
-          "actual": 0.2489,
+          "actual": 0.2485,
           "target": 0.4577,
-          "diff": 0.2088,
-          "relPct": 45.6,
+          "diff": 0.2092,
+          "relPct": 45.7,
           "passed": false,
           "derivedTarget": 0.4577,
-          "derivedDeltaPct": 45.6
+          "derivedDeltaPct": 45.7
         },
         {
           "name": "Sobel Edge (scale 1x)",
-          "actual": 0.1154,
+          "actual": 0.1162,
           "target": 0.0909,
-          "diff": 0.0245,
-          "relPct": 27,
+          "diff": 0.0253,
+          "relPct": 27.8,
           "passed": false,
           "derivedTarget": 0.0909,
-          "derivedDeltaPct": 27
+          "derivedDeltaPct": 27.8
         },
         {
           "name": "Water Green Channel",
-          "actual": 0.625,
+          "actual": 0.624,
           "target": 0.607,
-          "diff": 0.018,
-          "relPct": 3,
+          "diff": 0.017,
+          "relPct": 2.8,
           "passed": true,
           "derivedTarget": 0.607,
-          "derivedDeltaPct": 3
+          "derivedDeltaPct": 2.8
         },
         {
           "name": "Water Glint Fraction",
@@ -1349,8 +1349,8 @@
       "shotId": "natatorium_water_calm_axial",
       "region": "waterRegion",
       "actual": [
-        0.492,
-        0.643,
+        0.488,
+        0.642,
         0.446
       ],
       "target": [
@@ -1359,11 +1359,11 @@
         0.341
       ],
       "deltaRGB": [
-        0.045,
-        0.091,
+        0.041,
+        0.09,
         0.105
       ],
-      "meanDelta": 0.0803,
+      "meanDelta": 0.0787,
       "maxChannelDelta": 0.105,
       "passed": false
     },
@@ -1415,9 +1415,9 @@
       "shotId": "natatorium_water_calm_grazing",
       "region": "waterRegion",
       "actual": [
-        0.539,
-        0.633,
-        0.46
+        0.519,
+        0.617,
+        0.453
       ],
       "target": [
         0.494,
@@ -1425,21 +1425,21 @@
         0.38
       ],
       "deltaRGB": [
-        0.045,
-        0.032,
-        0.08
+        0.025,
+        0.016,
+        0.073
       ],
-      "meanDelta": 0.0523,
-      "maxChannelDelta": 0.08,
-      "passed": false
+      "meanDelta": 0.038,
+      "maxChannelDelta": 0.073,
+      "passed": true
     },
     {
       "shotId": "natatorium_water_calm_grazing",
       "region": "slabRegion",
       "actual": [
-        0.684,
-        0.624,
-        0.459
+        0.68,
+        0.621,
+        0.458
       ],
       "target": [
         0.705,
@@ -1447,19 +1447,19 @@
         0.379
       ],
       "deltaRGB": [
-        0.021,
-        0.018,
-        0.08
+        0.025,
+        0.015,
+        0.079
       ],
       "meanDelta": 0.0397,
-      "maxChannelDelta": 0.08,
-      "passed": false
+      "maxChannelDelta": 0.079,
+      "passed": true
     },
     {
       "shotId": "natatorium_water_calm_grazing",
       "region": "fogRegion",
       "actual": [
-        0.687,
+        0.686,
         0.699,
         0.616
       ],
@@ -1469,11 +1469,11 @@
         0.661
       ],
       "deltaRGB": [
-        0.044,
+        0.045,
         0.068,
         0.045
       ],
-      "meanDelta": 0.0523,
+      "meanDelta": 0.0527,
       "maxChannelDelta": 0.068,
       "passed": true
     },
@@ -1482,7 +1482,7 @@
       "region": "waterRegion",
       "actual": [
         0.49,
-        0.657,
+        0.658,
         0.446
       ],
       "target": [
@@ -1492,10 +1492,10 @@
       ],
       "deltaRGB": [
         0.032,
-        0.016,
+        0.017,
         0.041
       ],
-      "meanDelta": 0.0297,
+      "meanDelta": 0.03,
       "maxChannelDelta": 0.041,
       "passed": true
     },
@@ -1503,9 +1503,9 @@
       "shotId": "natatorium_water_slab_edge",
       "region": "slabRegion",
       "actual": [
-        0.649,
+        0.648,
         0.603,
-        0.448
+        0.447
       ],
       "target": [
         0.641,
@@ -1513,21 +1513,21 @@
         0.408
       ],
       "deltaRGB": [
-        0.008,
+        0.007,
         0.012,
-        0.04
+        0.039
       ],
-      "meanDelta": 0.02,
-      "maxChannelDelta": 0.04,
+      "meanDelta": 0.0193,
+      "maxChannelDelta": 0.039,
       "passed": true
     },
     {
       "shotId": "natatorium_water_slab_edge",
       "region": "fogRegion",
       "actual": [
-        0.613,
-        0.647,
-        0.592
+        0.623,
+        0.656,
+        0.612
       ],
       "target": [
         0.762,
@@ -1535,19 +1535,19 @@
         0.709
       ],
       "deltaRGB": [
-        0.149,
-        0.15,
-        0.117
+        0.139,
+        0.141,
+        0.097
       ],
-      "meanDelta": 0.1387,
-      "maxChannelDelta": 0.15,
+      "meanDelta": 0.1257,
+      "maxChannelDelta": 0.141,
       "passed": false
     },
     {
       "shotId": "natatorium_water_wake",
       "region": "waterRegion",
       "actual": [
-        0.492,
+        0.489,
         0.653,
         0.445
       ],
@@ -1557,12 +1557,12 @@
         0.442
       ],
       "deltaRGB": [
-        0.022,
+        0.025,
         0.008,
         0.003
       ],
-      "meanDelta": 0.011,
-      "maxChannelDelta": 0.022,
+      "meanDelta": 0.012,
+      "maxChannelDelta": 0.025,
       "passed": true
     },
     {
@@ -1591,9 +1591,9 @@
       "shotId": "natatorium_water_wake",
       "region": "fogRegion",
       "actual": [
-        0.649,
-        0.659,
-        0.552
+        0.658,
+        0.669,
+        0.566
       ],
       "target": [
         0.767,
@@ -1601,21 +1601,21 @@
         0.716
       ],
       "deltaRGB": [
-        0.118,
-        0.148,
-        0.164
+        0.109,
+        0.138,
+        0.15
       ],
-      "meanDelta": 0.1433,
-      "maxChannelDelta": 0.164,
+      "meanDelta": 0.1323,
+      "maxChannelDelta": 0.15,
       "passed": false
     },
     {
       "shotId": "natatorium_water_splash_01",
       "region": "waterRegion",
       "actual": [
-        0.49,
-        0.653,
-        0.445
+        0.487,
+        0.652,
+        0.444
       ],
       "target": [
         0.486,
@@ -1623,12 +1623,12 @@
         0.426
       ],
       "deltaRGB": [
-        0.004,
-        0.075,
-        0.019
+        0.001,
+        0.074,
+        0.018
       ],
-      "meanDelta": 0.0327,
-      "maxChannelDelta": 0.075,
+      "meanDelta": 0.031,
+      "maxChannelDelta": 0.074,
       "passed": true
     },
     {
@@ -1637,7 +1637,7 @@
       "actual": [
         0.644,
         0.601,
-        0.447
+        0.446
       ],
       "target": [
         0.699,
@@ -1647,9 +1647,9 @@
       "deltaRGB": [
         0.055,
         0.053,
-        0.026
+        0.027
       ],
-      "meanDelta": 0.0447,
+      "meanDelta": 0.045,
       "maxChannelDelta": 0.055,
       "passed": true
     },
@@ -1657,9 +1657,9 @@
       "shotId": "natatorium_water_splash_01",
       "region": "fogRegion",
       "actual": [
-        0.648,
         0.654,
-        0.552
+        0.659,
+        0.561
       ],
       "target": [
         0.722,
@@ -1667,20 +1667,20 @@
         0.617
       ],
       "deltaRGB": [
-        0.074,
-        0.082,
-        0.065
+        0.068,
+        0.077,
+        0.056
       ],
-      "meanDelta": 0.0737,
-      "maxChannelDelta": 0.082,
-      "passed": false
+      "meanDelta": 0.067,
+      "maxChannelDelta": 0.077,
+      "passed": true
     },
     {
       "shotId": "natatorium_water_splash_05",
       "region": "waterRegion",
       "actual": [
-        0.49,
-        0.653,
+        0.487,
+        0.652,
         0.444
       ],
       "target": [
@@ -1689,12 +1689,12 @@
         0.426
       ],
       "deltaRGB": [
-        0.004,
-        0.075,
+        0.001,
+        0.074,
         0.018
       ],
-      "meanDelta": 0.0323,
-      "maxChannelDelta": 0.075,
+      "meanDelta": 0.031,
+      "maxChannelDelta": 0.074,
       "passed": true
     },
     {
@@ -1723,9 +1723,9 @@
       "shotId": "natatorium_water_splash_05",
       "region": "fogRegion",
       "actual": [
-        0.649,
         0.654,
-        0.553
+        0.659,
+        0.56
       ],
       "target": [
         0.722,
@@ -1733,20 +1733,20 @@
         0.617
       ],
       "deltaRGB": [
-        0.073,
-        0.082,
-        0.064
+        0.068,
+        0.077,
+        0.057
       ],
-      "meanDelta": 0.073,
-      "maxChannelDelta": 0.082,
-      "passed": false
+      "meanDelta": 0.0673,
+      "maxChannelDelta": 0.077,
+      "passed": true
     },
     {
       "shotId": "natatorium_water_splash_12",
       "region": "waterRegion",
       "actual": [
-        0.49,
-        0.653,
+        0.487,
+        0.652,
         0.444
       ],
       "target": [
@@ -1755,12 +1755,12 @@
         0.426
       ],
       "deltaRGB": [
-        0.004,
-        0.075,
+        0.001,
+        0.074,
         0.018
       ],
-      "meanDelta": 0.0323,
-      "maxChannelDelta": 0.075,
+      "meanDelta": 0.031,
+      "maxChannelDelta": 0.074,
       "passed": true
     },
     {
@@ -1789,9 +1789,9 @@
       "shotId": "natatorium_water_splash_12",
       "region": "fogRegion",
       "actual": [
-        0.648,
-        0.654,
-        0.553
+        0.656,
+        0.66,
+        0.563
       ],
       "target": [
         0.722,
@@ -1799,21 +1799,21 @@
         0.617
       ],
       "deltaRGB": [
-        0.074,
-        0.082,
-        0.064
+        0.066,
+        0.076,
+        0.054
       ],
-      "meanDelta": 0.0733,
-      "maxChannelDelta": 0.082,
-      "passed": false
+      "meanDelta": 0.0653,
+      "maxChannelDelta": 0.076,
+      "passed": true
     },
     {
       "shotId": "natatorium_water_drip_ring",
       "region": "waterRegion",
       "actual": [
-        0.491,
-        0.656,
-        0.445
+        0.489,
+        0.655,
+        0.444
       ],
       "target": [
         0.484,
@@ -1821,12 +1821,12 @@
         0.43
       ],
       "deltaRGB": [
-        0.007,
-        0.079,
-        0.015
+        0.005,
+        0.078,
+        0.014
       ],
-      "meanDelta": 0.0337,
-      "maxChannelDelta": 0.079,
+      "meanDelta": 0.0323,
+      "maxChannelDelta": 0.078,
       "passed": true
     },
     {
@@ -1855,9 +1855,9 @@
       "shotId": "natatorium_water_drip_ring",
       "region": "fogRegion",
       "actual": [
-        0.614,
-        0.639,
-        0.515
+        0.628,
+        0.654,
+        0.547
       ],
       "target": [
         0.723,
@@ -1865,12 +1865,12 @@
         0.665
       ],
       "deltaRGB": [
-        0.109,
-        0.125,
-        0.15
+        0.095,
+        0.11,
+        0.118
       ],
-      "meanDelta": 0.128,
-      "maxChannelDelta": 0.15,
+      "meanDelta": 0.1077,
+      "maxChannelDelta": 0.118,
       "passed": false
     },
     {
@@ -1943,9 +1943,9 @@
       "shotId": "natatorium_water_underwater",
       "region": "waterRegion",
       "actual": [
-        0.478,
-        0.608,
-        0.457
+        0.476,
+        0.582,
+        0.45
       ],
       "target": [
         0.464,
@@ -1953,12 +1953,12 @@
         0.389
       ],
       "deltaRGB": [
-        0.014,
-        0.043,
-        0.068
+        0.012,
+        0.017,
+        0.061
       ],
-      "meanDelta": 0.0417,
-      "maxChannelDelta": 0.068,
+      "meanDelta": 0.03,
+      "maxChannelDelta": 0.061,
       "passed": true
     },
     {
@@ -1966,8 +1966,8 @@
       "region": "slabRegion",
       "actual": [
         0.684,
-        0.652,
-        0.485
+        0.651,
+        0.484
       ],
       "target": [
         0.709,
@@ -1976,8 +1976,8 @@
       ],
       "deltaRGB": [
         0.025,
-        0.006,
-        0.013
+        0.007,
+        0.012
       ],
       "meanDelta": 0.0147,
       "maxChannelDelta": 0.025,
@@ -1987,8 +1987,8 @@
       "shotId": "natatorium_water_underwater",
       "region": "fogRegion",
       "actual": [
-        0.6,
-        0.726,
+        0.601,
+        0.727,
         0.619
       ],
       "target": [
@@ -1997,21 +1997,21 @@
         0.615
       ],
       "deltaRGB": [
-        0.114,
-        0.008,
+        0.113,
+        0.007,
         0.004
       ],
-      "meanDelta": 0.042,
-      "maxChannelDelta": 0.114,
+      "meanDelta": 0.0413,
+      "maxChannelDelta": 0.113,
       "passed": false
     },
     {
       "shotId": "natatorium_water_monster_wake",
       "region": "waterRegion",
       "actual": [
-        0.493,
-        0.611,
-        0.447
+        0.491,
+        0.609,
+        0.446
       ],
       "target": [
         0.593,
@@ -2019,21 +2019,21 @@
         0.499
       ],
       "deltaRGB": [
-        0.1,
-        0.055,
-        0.052
+        0.102,
+        0.057,
+        0.053
       ],
-      "meanDelta": 0.069,
-      "maxChannelDelta": 0.1,
+      "meanDelta": 0.0707,
+      "maxChannelDelta": 0.102,
       "passed": false
     },
     {
       "shotId": "natatorium_water_monster_wake",
       "region": "slabRegion",
       "actual": [
-        0.667,
-        0.611,
-        0.454
+        0.666,
+        0.61,
+        0.453
       ],
       "target": [
         0.732,
@@ -2041,12 +2041,12 @@
         0.399
       ],
       "deltaRGB": [
-        0.065,
-        0.014,
-        0.055
+        0.066,
+        0.015,
+        0.054
       ],
-      "meanDelta": 0.0447,
-      "maxChannelDelta": 0.065,
+      "meanDelta": 0.045,
+      "maxChannelDelta": 0.066,
       "passed": true
     },
     {
@@ -2075,9 +2075,9 @@
       "shotId": "classic_archipelago_hero",
       "region": "waterRegion",
       "actual": [
-        0.59,
-        0.667,
-        0.485
+        0.583,
+        0.65,
+        0.472
       ],
       "target": [
         0.487,
@@ -2085,12 +2085,12 @@
         0.434
       ],
       "deltaRGB": [
-        0.103,
-        0.088,
-        0.051
+        0.096,
+        0.071,
+        0.038
       ],
-      "meanDelta": 0.0807,
-      "maxChannelDelta": 0.103,
+      "meanDelta": 0.0683,
+      "maxChannelDelta": 0.096,
       "passed": false
     },
     {
@@ -2119,9 +2119,9 @@
       "shotId": "classic_archipelago_hero",
       "region": "fogRegion",
       "actual": [
-        0.685,
-        0.702,
-        0.612
+        0.687,
+        0.698,
+        0.606
       ],
       "target": [
         0.726,
@@ -2129,21 +2129,21 @@
         0.668
       ],
       "deltaRGB": [
-        0.041,
-        0.065,
-        0.056
+        0.039,
+        0.069,
+        0.062
       ],
-      "meanDelta": 0.054,
-      "maxChannelDelta": 0.065,
+      "meanDelta": 0.0567,
+      "maxChannelDelta": 0.069,
       "passed": true
     },
     {
       "shotId": "natatorium_hero",
       "region": "waterRegion",
       "actual": [
-        0.487,
-        0.625,
-        0.447
+        0.486,
+        0.624,
+        0.446
       ],
       "target": [
         0.522,
@@ -2151,12 +2151,12 @@
         0.443
       ],
       "deltaRGB": [
-        0.035,
-        0.018,
-        0.004
+        0.036,
+        0.017,
+        0.003
       ],
-      "meanDelta": 0.019,
-      "maxChannelDelta": 0.035,
+      "meanDelta": 0.0187,
+      "maxChannelDelta": 0.036,
       "passed": true
     },
     {
@@ -2164,7 +2164,7 @@
       "region": "slabRegion",
       "actual": [
         0.691,
-        0.63,
+        0.629,
         0.465
       ],
       "target": [
@@ -2174,10 +2174,10 @@
       ],
       "deltaRGB": [
         0.033,
-        0.076,
+        0.075,
         0.162
       ],
-      "meanDelta": 0.0903,
+      "meanDelta": 0.09,
       "maxChannelDelta": 0.162,
       "passed": false
     },
@@ -2186,7 +2186,7 @@
       "region": "fogRegion",
       "actual": [
         0.699,
-        0.704,
+        0.705,
         0.62
       ],
       "target": [
@@ -2196,10 +2196,10 @@
       ],
       "deltaRGB": [
         0.046,
-        0.004,
+        0.005,
         0.042
       ],
-      "meanDelta": 0.0307,
+      "meanDelta": 0.031,
       "maxChannelDelta": 0.046,
       "passed": true
     }
@@ -2304,9 +2304,9 @@
     {
       "targetId": "natatorium_water_calm_axial.waterRegion",
       "hsv": [
-        106,
-        0.306,
-        0.643
+        107.1,
+        0.305,
+        0.642
       ],
       "expectedBand": {
         "hue": [
@@ -2346,9 +2346,9 @@
     {
       "targetId": "natatorium_water_calm_grazing.waterRegion",
       "hsv": [
-        92.6,
-        0.273,
-        0.633
+        95.8,
+        0.266,
+        0.617
       ],
       "expectedBand": {
         "hue": [
@@ -2370,8 +2370,8 @@
       "targetId": "natatorium_water_calm_grazing.slabRegion",
       "hsv": [
         44,
-        0.329,
-        0.684
+        0.327,
+        0.68
       ],
       "expectedBand": {
         "hue": [
@@ -2389,8 +2389,8 @@
       "targetId": "natatorium_water_slab_edge.waterRegion",
       "hsv": [
         107.5,
-        0.321,
-        0.657
+        0.322,
+        0.658
       ],
       "expectedBand": {
         "hue": [
@@ -2411,9 +2411,9 @@
     {
       "targetId": "natatorium_water_slab_edge.slabRegion",
       "hsv": [
-        46.3,
+        46.6,
         0.31,
-        0.649
+        0.648
       ],
       "expectedBand": {
         "hue": [
@@ -2430,7 +2430,7 @@
     {
       "targetId": "natatorium_water_wake.waterRegion",
       "hsv": [
-        106.4,
+        107.3,
         0.319,
         0.653
       ],
@@ -2472,9 +2472,9 @@
     {
       "targetId": "natatorium_water_splash_01.waterRegion",
       "hsv": [
-        107,
+        107.6,
         0.319,
-        0.653
+        0.652
       ],
       "expectedBand": {
         "hue": [
@@ -2495,8 +2495,8 @@
     {
       "targetId": "natatorium_water_splash_01.slabRegion",
       "hsv": [
-        46.9,
-        0.306,
+        47,
+        0.307,
         0.644
       ],
       "expectedBand": {
@@ -2514,9 +2514,9 @@
     {
       "targetId": "natatorium_water_splash_05.waterRegion",
       "hsv": [
-        106.8,
-        0.32,
-        0.653
+        107.6,
+        0.319,
+        0.652
       ],
       "expectedBand": {
         "hue": [
@@ -2532,7 +2532,7 @@
           0.69
         ]
       },
-      "passed": true
+      "passed": false
     },
     {
       "targetId": "natatorium_water_splash_05.slabRegion",
@@ -2556,9 +2556,9 @@
     {
       "targetId": "natatorium_water_splash_12.waterRegion",
       "hsv": [
-        106.8,
-        0.32,
-        0.653
+        107.6,
+        0.319,
+        0.652
       ],
       "expectedBand": {
         "hue": [
@@ -2574,7 +2574,7 @@
           0.69
         ]
       },
-      "passed": true
+      "passed": false
     },
     {
       "targetId": "natatorium_water_splash_12.slabRegion",
@@ -2598,9 +2598,9 @@
     {
       "targetId": "natatorium_water_drip_ring.waterRegion",
       "hsv": [
-        106.9,
+        107.2,
         0.322,
-        0.656
+        0.655
       ],
       "expectedBand": {
         "hue": [
@@ -2682,9 +2682,9 @@
     {
       "targetId": "natatorium_water_underwater.waterRegion",
       "hsv": [
-        111.7,
-        0.248,
-        0.608
+        108.2,
+        0.227,
+        0.582
       ],
       "expectedBand": {
         "hue": [
@@ -2705,8 +2705,8 @@
     {
       "targetId": "natatorium_water_underwater.slabRegion",
       "hsv": [
-        50.4,
-        0.291,
+        50.1,
+        0.292,
         0.684
       ],
       "expectedBand": {
@@ -2724,9 +2724,9 @@
     {
       "targetId": "natatorium_water_monster_wake.waterRegion",
       "hsv": [
-        103.2,
+        103.4,
         0.268,
-        0.611
+        0.609
       ],
       "expectedBand": {
         "hue": [
@@ -2748,8 +2748,8 @@
       "targetId": "natatorium_water_monster_wake.slabRegion",
       "hsv": [
         44.2,
-        0.319,
-        0.667
+        0.32,
+        0.666
       ],
       "expectedBand": {
         "hue": [
@@ -2766,9 +2766,9 @@
     {
       "targetId": "classic_archipelago_hero.waterRegion",
       "hsv": [
-        85.4,
-        0.273,
-        0.667
+        82.6,
+        0.274,
+        0.65
       ],
       "expectedBand": {
         "hue": [
@@ -2810,7 +2810,7 @@
       "hsv": [
         106.5,
         0.285,
-        0.625
+        0.624
       ],
       "expectedBand": {
         "hue": [
@@ -2831,7 +2831,7 @@
     {
       "targetId": "natatorium_hero.slabRegion",
       "hsv": [
-        43.8,
+        43.5,
         0.327,
         0.691
       ],
@@ -2884,7 +2884,7 @@
     {
       "shotId": "natatorium_water_splash_01",
       "fractionPixelsBelow01": 0,
-      "p5Luminance": 0.5293,
+      "p5Luminance": 0.5278,
       "targetFractionBelow01": 0,
       "targetP5Median": 0.4,
       "passed": true
@@ -2892,7 +2892,7 @@
     {
       "shotId": "natatorium_water_splash_05",
       "fractionPixelsBelow01": 0,
-      "p5Luminance": 0.5276,
+      "p5Luminance": 0.5271,
       "targetFractionBelow01": 0,
       "targetP5Median": 0.4,
       "passed": true
@@ -2900,7 +2900,7 @@
     {
       "shotId": "natatorium_water_splash_12",
       "fractionPixelsBelow01": 0,
-      "p5Luminance": 0.5278,
+      "p5Luminance": 0.5276,
       "targetFractionBelow01": 0,
       "targetP5Median": 0.4,
       "passed": true
@@ -2908,7 +2908,7 @@
     {
       "shotId": "natatorium_water_drip_ring",
       "fractionPixelsBelow01": 0,
-      "p5Luminance": 0.553,
+      "p5Luminance": 0.5525,
       "targetFractionBelow01": 0,
       "targetP5Median": 0.4,
       "passed": true
@@ -2924,7 +2924,7 @@
     {
       "shotId": "natatorium_water_underwater",
       "fractionPixelsBelow01": 0,
-      "p5Luminance": 0.458,
+      "p5Luminance": 0.4547,
       "targetFractionBelow01": 0,
       "targetP5Median": 0.4,
       "passed": true
@@ -3044,7 +3044,7 @@
       "frameId": "f_006",
       "shotId": "natatorium_hero",
       "property": "slabTopHexAndFogHue",
-      "actualLum": 0.5872,
+      "actualLum": 0.587,
       "frameLum": 0.6223,
       "deltaPct": 0,
       "passed": true
@@ -3054,7 +3054,7 @@
       "frameId": "f_007",
       "shotId": "natatorium_water_calm_axial",
       "property": "waterMeanRgbAndGlintFraction",
-      "actualLum": 0.5737,
+      "actualLum": 0.5729,
       "frameLum": 0.6472,
       "deltaPct": 0,
       "passed": true
@@ -3074,7 +3074,7 @@
       "frameId": "f_009",
       "shotId": "natatorium_water_calm_grazing",
       "property": "waterMidhallRgbAndStreaksRgb",
-      "actualLum": 0.5946,
+      "actualLum": 0.5874,
       "frameLum": 0.6305,
       "deltaPct": 0,
       "passed": true
@@ -3104,7 +3104,7 @@
       "frameId": "f_012",
       "shotId": "natatorium_water_monster_wake",
       "property": "monsterWakeDarkeningAndWaterRgb",
-      "actualLum": 0.6183,
+      "actualLum": 0.6169,
       "frameLum": 0.6709,
       "deltaPct": 0,
       "passed": true
@@ -3224,7 +3224,7 @@
       "frameId": "f_024",
       "shotId": "natatorium_water_wake",
       "property": "wakeLuminanceVarianceAndFloorGroutRatio",
-      "actualLum": 0.5785,
+      "actualLum": 0.5779,
       "frameLum": 0.6686,
       "deltaPct": 0,
       "passed": true
@@ -3264,7 +3264,7 @@
       "frameId": "f_028",
       "shotId": "natatorium_water_drip_ring",
       "property": "waterRippleLuminanceAndHue",
-      "actualLum": 0.5833,
+      "actualLum": 0.5827,
       "frameLum": 0.6067,
       "deltaPct": 0,
       "passed": true
@@ -3274,7 +3274,7 @@
       "frameId": "f_029",
       "shotId": "classic_archipelago_hero",
       "property": "paletteT57ExactMatch",
-      "actualLum": 0.5741,
+      "actualLum": 0.5727,
       "frameLum": 0.6073,
       "deltaPct": 0,
       "passed": true
@@ -3284,7 +3284,7 @@
       "frameId": "f_030",
       "shotId": "natatorium_water_splash_01",
       "property": "splashGlintAndWaterHueBand",
-      "actualLum": 0.5808,
+      "actualLum": 0.5799,
       "frameLum": 0.6086,
       "deltaPct": 0,
       "passed": true
@@ -3294,7 +3294,7 @@
       "frameId": "f_031",
       "shotId": "natatorium_water_splash_05",
       "property": "splashDispersionAndNoTrueBlacks",
-      "actualLum": 0.5806,
+      "actualLum": 0.5798,
       "frameLum": 0.6235,
       "deltaPct": 0,
       "passed": true
@@ -3314,7 +3314,7 @@
       "frameId": "f_033",
       "shotId": "natatorium_water_splash_12",
       "property": "residualRingDecayAndSlabHue",
-      "actualLum": 0.5805,
+      "actualLum": 0.5799,
       "frameLum": 0.642,
       "deltaPct": 0,
       "passed": true
@@ -3324,7 +3324,7 @@
       "frameId": "f_034",
       "shotId": "natatorium_water_underwater",
       "property": "underwaterLuminanceAndHueBand",
-      "actualLum": 0.5842,
+      "actualLum": 0.5691,
       "frameLum": 0.6323,
       "deltaPct": 0,
       "passed": true
@@ -3940,14 +3940,14 @@
   },
   "summary": {
     "baselineChecks": 126,
-    "baselinePassed": 96,
-    "baselineFailed": 30,
+    "baselinePassed": 94,
+    "baselineFailed": 32,
     "regionColourChecks": 39,
-    "regionColourPassed": 21,
-    "regionColourFailed": 18,
+    "regionColourPassed": 26,
+    "regionColourFailed": 13,
     "hueBandChecks": 30,
-    "hueBandPassed": 10,
-    "hueBandFailed": 20,
+    "hueBandPassed": 8,
+    "hueBandFailed": 22,
     "noBlacksChecks": 14,
     "noBlacksPassed": 14,
     "noBlacksFailed": 0,
@@ -3955,14 +3955,14 @@
     "audioPassed": 4,
     "audioFailed": 0,
     "totalChecks": 213,
-    "passedChecks": 145,
-    "failedChecks": 68,
+    "passedChecks": 146,
+    "failedChecks": 67,
     "overallPass": false,
     "worstFailingMetric": {
       "metric": "neon_flood_water_rain:Sobel Edge (scale 1x)",
-      "actual": 0.09,
+      "actual": 0.0898,
       "target": 0.0108,
-      "deltaPct": 733.3
+      "deltaPct": 731.5
     }
   }
 }
