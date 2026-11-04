@@ -29,6 +29,7 @@ import { MaterialCache } from '../../graphics/MaterialCache.js';
 import { createTiledBoxGeometry } from '../../procedural/geometry/TiledBox.js';
 import { createTiledCylinderGeometry } from '../../procedural/geometry/TiledCylinder.js';
 import { buildArchGeometry } from '../../procedural/geometry/ArchBuilder.js';
+import { buildVaultGeometry, createVaultSkylightPanels } from '../../procedural/geometry/VaultBuilder.js';
 import { buildStairGeometry, rasterizeStairsToGround } from '../../procedural/geometry/StairBuilder.js';
 import { buildValveWheelGeometry } from '../../procedural/geometry/ValveWheel.js';
 import { buildKeypadGeometry } from '../../procedural/geometry/Keypad.js';
@@ -560,13 +561,13 @@ export function buildStandardMapInstance(
     }
 
     if (mergePlatforms && !plat.dynamic && !hooks?.onPlatformMesh) {
-      const geom = createTiledBoxGeometry({ w, h: depth, d, uvOffsetSeed: plat.id.charCodeAt(0) });
+      const geom = createTiledBoxGeometry({ w, h: depth, d, uvOffsetSeed: plat.id.charCodeAt(0), bullnose: plat.bullnose ?? true });
       applyWorldSpaceBoxUVs(geom, WORLD.TILE_METERS, { isPlatformSide: true, topY, floorY: -0.75 });
       geom.translate(cx, topY - depth * 0.5, cz);
       hydroPlatformGeoms.push(geom);
     } else {
       // Visual Mesh with consistent WORLD.TILE_METERS tile grid UV scaling
-      const geom = createTiledBoxGeometry({ w, h: depth, d, uvOffsetSeed: plat.id.charCodeAt(0) });
+      const geom = createTiledBoxGeometry({ w, h: depth, d, uvOffsetSeed: plat.id.charCodeAt(0), bullnose: plat.bullnose ?? true });
       applyWorldSpaceBoxUVs(geom, WORLD.TILE_METERS, { isPlatformSide: true, topY, floorY: -0.75 });
       geometriesToDispose.push(geom);
       const platMaterial = plat.kind === 'metal'
@@ -639,6 +640,25 @@ export function buildStandardMapInstance(
 
   // 2. Build Fluted Columns / 3-Section Pillars (Prompt 5.4)
   const pillarGeomCache = new Map<string, BufferGeometry>();
+  const spawnPt = layout.spawns.player[0] ?? { x: 0, y: 0.3, z: 0 };
+
+  // Ensure 2-4 prominent pillars along sighting corridors receive deterministic numerals (Prompt 4 Phase A)
+  const sortedPillars = [...layout.pillars].sort((a, b) => {
+    const da = Math.hypot(a.x - spawnPt.x, a.z - spawnPt.z);
+    const db = Math.hypot(b.x - spawnPt.x, b.z - spawnPt.z);
+    return da - db;
+  });
+  let assignedDecalCount = 0;
+  for (let i = 0; i < sortedPillars.length && assignedDecalCount < 3; i++) {
+    const p = sortedPillars[i]!;
+    if (p.decalNumber === undefined) {
+      p.decalNumber = assignedDecalCount + 1;
+      p.decalWidth = 0.8;
+      p.decalY = 1.8;
+      assignedDecalCount++;
+    }
+  }
+
   for (const pil of layout.pillars) {
     colliders.addCylinder(
       `pil_${pil.id}`,
@@ -724,7 +744,13 @@ export function buildStandardMapInstance(
       });
       materialsToDispose.push(decalMat);
       const decalMesh = new Mesh(decalGeom, decalMat);
-      decalMesh.position.set(pil.x, pil.decalY ?? 1.6, pil.z + r + 0.015);
+      const dx = spawnPt.x - pil.x;
+      const dz = spawnPt.z - pil.z;
+      const ang = Math.abs(dx) > 0.01 || Math.abs(dz) > 0.01 ? Math.atan2(dx, dz) : 0;
+      const offX = Math.sin(ang) * (r + 0.015);
+      const offZ = Math.cos(ang) * (r + 0.015);
+      decalMesh.position.set(pil.x + offX, pil.decalY ?? 1.8, pil.z + offZ);
+      decalMesh.rotation.y = ang;
       root.add(decalMesh);
     }
   }
@@ -748,16 +774,23 @@ export function buildStandardMapInstance(
     );
 
     if (wall.kind === 'arch') {
-      const wallThick = 0.5; // full 0.5m thick wall opening with soffit (Prompt 5.5)
+      const wallThick = 0.6; // 0.6m thick wall opening with filleted reveal (Prompt 4)
       const wallLength = Math.max(w, d);
-      const span = Math.max(1.8, wallLength * 0.45);
+      // Whole-tile quantized span (multiples of 0.15m between 2.4m and 4.8m)
+      const rawSpan = Math.max(2.4, Math.min(4.8, wallLength * 0.45));
+      const tilesInSpan = Math.max(16, Math.round(rawSpan / WORLD.TILE_METERS));
+      const span = tilesInSpan * WORLD.TILE_METERS;
       const archGeom = buildArchGeometry({
         width: span,
-        height: h * 0.35,
-        pierHeight: h * 0.65,
+        height: Math.max(2.4, h * 0.4),
+        pierHeight: Math.max(3.0, h * 0.6),
         thickness: wallThick,
         wallWidth: wallLength,
         wallHeight: h,
+        bevelEnabled: true,
+        bevelSize: 0.04,
+        bevelThickness: 0.04,
+        bevelSegments: 3,
       });
       applyWorldSpaceBoxUVs(archGeom, WORLD.TILE_METERS);
       geometriesToDispose.push(archGeom);
@@ -871,29 +904,47 @@ export function buildStandardMapInstance(
     ground.setRectHeight(ramp.rect[0], ramp.rect[1], ramp.rect[2], ramp.rect[3], ramp.topY);
   }
 
-  // 3c. Build Ceiling Mesh & Skylight Shafts for Enclosed Atmosphere (Prompt 4.7 & 5.6)
-  // Open-air sky / canyon maps do not build artificial low flat ceilings
-  const openSkyMaps = new Set(['natatorium', 'orientation', 'neon_flood', 'sunken_jungle']);
-  if (!openSkyMaps.has(layout.mapId)) {
+  // 3c. Build Vaulted Ceiling Mesh & Skylight Shafts for Enclosed Atmosphere (Prompt 4)
+  // Natatorium builds its custom 90x118m hall vault; sunken_jungle has canyon canopy
+  const customCeilingMaps = new Set(['natatorium', 'sunken_jungle']);
+  if (!customCeilingMaps.has(layout.mapId)) {
     const mapW = layout.bounds.maxX - layout.bounds.minX;
     const mapD = layout.bounds.maxZ - layout.bounds.minZ;
     const mapCx = (layout.bounds.minX + layout.bounds.maxX) * 0.5;
     const mapCz = (layout.bounds.minZ + layout.bounds.maxZ) * 0.5;
-    const ceilingY = (layout.meta['ceilingY'] as number) ?? 5.0;
-    const ceilingGeom = createTiledBoxGeometry({ w: mapW, h: 0.2, d: mapD });
-    const ceilPosCount = ceilingGeom.attributes['position']?.count ?? 0;
-    const ceilColors = new Float32Array(ceilPosCount * 3);
-    ceilColors.fill(1.0);
-    ceilingGeom.setAttribute('color', new Float32BufferAttribute(ceilColors, 3));
-    geometriesToDispose.push(ceilingGeom);
-    const ceilingMesh = new Mesh(ceilingGeom, ceilingMat);
-    ceilingMesh.position.set(mapCx, ceilingY + 0.1, mapCz);
+    const ceilingY = (layout.meta['ceilingY'] as number) ?? (layout.mapId === 'neon_flood' ? 7.0 : 5.0);
+    const apexHeight = layout.mapId === 'drainage_core' ? 6.0 : (layout.mapId === 'neon_flood' ? 6.0 : 4.0);
+
+    const vaultGeom = buildVaultGeometry({
+      width: mapW,
+      length: mapD,
+      springlineY: ceilingY,
+      apexY: ceilingY + apexHeight,
+      color: '#b7a775',
+      radialSegments: 48,
+      lengthSegments: 24,
+      uvOffsetSeed: layout.seed,
+    });
+    geometriesToDispose.push(vaultGeom);
+    const ceilingMesh = new Mesh(vaultGeom, ceilingMat);
+    ceilingMesh.position.set(mapCx, 0, mapCz);
     ceilingMesh.receiveShadow = true;
     ceilingMesh.castShadow = true;
     ceilingMesh.matrixAutoUpdate = false;
     ceilingMesh.updateMatrix();
     ceilingMesh.name = 'MapCeilingMesh';
     root.add(ceilingMesh);
+
+    // Continuous glowing white skylight panels along vault crown apex (f_004-f_009)
+    const skylights = createVaultSkylightPanels({
+      length: mapD,
+      apexY: ceilingY + apexHeight,
+      panelWidth: Math.min(6.0, mapW * 0.15),
+      panelLength: 4.5,
+      spacing: 16.0,
+    });
+    skylights.position.set(mapCx, 0, mapCz);
+    root.add(skylights);
 
     // Skylight assemblies with emissive ceiling openings, light shafts, and internal dust motes
     const shaftPositions: [number, number][] = [
@@ -1139,7 +1190,7 @@ export function buildStandardMapInstance(
     }
   }
 
-  if (isPoolroomFamily && layout.mapId !== 'natatorium') {
+  if (layout.mapId !== 'natatorium') {
 
 
     const primaryWall = wallsWithDist[0]?.wall ?? layout.walls[0];

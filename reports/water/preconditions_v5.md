@@ -70,3 +70,4 @@ The 8 core water shot presets from `shots.json` establish the baseline for Water
 3. **Phase C — Contact Vocabulary (Ink & Foam):** Implement limb contact dark ink blobs `#1e1a14` and white foam ring only at feet (`#e8f2e6`, max radius 0.32 m, life 0.38 s) extended to player and throwables. Soft billboard/shader decals with alpha falloff.
 4. **Phase D — Waterline Integration (Zero Z-Fighting):** Screenspace depth-difference meniscus line (2–4 cm, `#f5fff9`), wet band below `waterY + 0.35 m` (`WetDarkening.ts`), and seamless whole-tile UV wrap on tiled cylinders.
 5. **Phase E — Verification & Gating:** Ensure all water categories in `npm run reference:compare` pass, close all water-class census rows in `CENSUS.md`, and verify 60 fps on medium tier.
+

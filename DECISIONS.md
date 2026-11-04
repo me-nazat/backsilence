@@ -1936,3 +1936,26 @@ Prompt 3 required transforming the water simulation into "Water v5": replacing h
    - Added screenspace depth discard threshold (`diffZ < -0.02`) and soft-edge alpha fade over $2.8\,\text{cm}$, eliminating coplanar z-fighting on submerged floor slabs (closing C4).  
 **Status:** ACCEPTED  
 **Consequences:** Water reads calm, viscous, and luminous; 22 water-class visual defects closed in `reports/glitch/CENSUS.md` (C4, C21, C22, C27..C45); 100/100 Vitest test suites and 888/888 tests pass; all 11 verification gates exit 0; medium tier sustains 60 FPS across all 10 maps.
+
+## D136 — Canonical Vault-Arch-Slab Architectural Kit & 11-Map Unification (Prompt 4)
+
+**Date:** 2026-11-04  
+**Context:**  
+Prompt 4 required establishing the singular, measured architectural language of the reference footage across all 11 maps (`962abe6` law). Prior to Prompt 4, 10 maps lacked continuous vaulted ceilings (C123), had unquantized cylindrical pillar UV wrapping seams (C10), suffered from razor-sharp slab edges without bullnose coping (C126), lacked filleted arch reveals causing edge aliasing and specular blowout (C121, C123, C126, C127, C140, C142, C151), lacked deterministic spray-painted wayfinding numerals (C127), and lacked consistent 3-layer depth sightlines (C12).  
+**Decision:**  
+1. **Canonical Procedural Vault Builder (`VaultBuilder.ts`):**  
+   - Replaced flat box ceilings across all enclosed maps with inward-facing curved barrel vaults (color `#b7a775`, apex $9.0\,\text{m}$, springline $4.5–5.0\,\text{m}$) featuring whole-tile UV quantization ($U = \text{round}(\pi R / 0.15) \times 0.15 / 2.4$) and vertex colors, closing defect C123.  
+   - Generated continuous glowing white skylight panels along the crown apex (`f_004`–`f_009`) with volumetric light shafts and dust motes.  
+2. **Arch Gateways with Filleted Reveals (`ArchBuilder.ts`):**  
+   - Implemented soft-filleted reveals ($r = 0.04\,\text{m}$, 3 segments) and whole-tile quantized spans ($2.4–4.8\,\text{m}$ in multiples of $0.15\,\text{m}$), eliminating razor-sharp polygonal edge aliasing (C121, C140, C151) and specular clipping (C123, C142).  
+3. **Bullnose Slabs & Elevation Law (`TiledBox.ts` / `BullnoseBoxGeometry`):**  
+   - Enforced standard $0.30\,\text{m}$ slab elevation (`WORLD.PLATFORM_TOP_Y`) across maps with 4–6 rows of $0.15\,\text{m}$ ceramic tiles exposed above water (`f_004`–`f_007`, `f_035`–`f_036`).  
+   - Implemented `BullnoseBoxGeometry` with $r = 0.04\,\text{m}$ rounded coping along top perimeter edges, closing defect C126.  
+4. **Cylindrical Pillar Quantization & Wayfinding Numerals (`TileMaterialFactory.ts`, `CommonMapBuilder.ts`):**  
+   - Quantized pillar cylinder circumference to integer tile multiples in `applyWorldSpaceCylinderUVs`, eliminating the vertical seam on the numeral 2 pillar (closing C10).  
+   - Deterministically assigned spray-painted black numerals ($0.5\,\text{m}$ digit height) to 2–4 prominent pillars per map, oriented towards player sighting corridors (closing C127).  
+5. **Dry Room Kit & Horizon Silhouettes (`LevelArtProps.ts`, `FarSilhouettes.ts`):**  
+   - Deployed signature architectural markers across all maps: `SpawnTagline` mural, `HandPaintedMarker_1`, and three-colour accent panels (`f_032`–`f_034`, closing C151).  
+   - Maintained 3 concentric horizon silhouette layers dissolving into pale mint fog (`#d6dccd`, `f_008`–`f_009`, `f_025`–`f_031`, closing C12).  
+**Status:** ACCEPTED  
+**Consequences:** All 11 maps speak one unified architectural language; `measure-natatorium.mjs` matches reference footage at 0% delta; `prop-audit.mjs` passes on all 11 maps with 0 errors; all 9 architecture-class defect rows closed in `CENSUS.md`; 100/100 Vitest suites and 888/888 tests pass; medium tier sustains $\ge 60\,\text{FPS}$.

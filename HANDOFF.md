@@ -90,7 +90,10 @@ All 17 historical defects (G1–G17) are resolved and closed in `reports/glitch/
 - **P3 Defects:** 0 Open.
 
 Additionally, Prompt 1 established a comprehensive, screenshot-evidenced visual glitch census across all 11 maps × 3 quality tiers:
-- [Visual Glitch Census](reports/glitch/CENSUS.md) — 151 tracked defects (all OPEN) serving as the official burn-down targets for Prompts 2–9 (prioritizing C1 ceiling void, C2 15m creature silhouette readability, C3 debug text leaks, C4 submerged floor z-fighting, and C6 specular highlight blowout).
+- [Visual Glitch Census](reports/glitch/CENSUS.md) — 151 tracked defects serving as official burn-down targets across Prompts 2–9.
+  - **Prompt 2 Closures:** C1 (ceiling void), C2 (15m creature silhouette), C3 (debug text leaks), C7, C8, C9, C11, C52, C54, C55, C57, C60, C62, C64, C66, C68, C70, C72, C74, C76, C78.
+  - **Prompt 3 Closures:** C4 (submerged floor z-fighting), C21, C22, C27..C45 (waterline meniscus, viscous low-frequency swell, ink & foam contact vocabulary).
+  - **Prompt 4 Closures:** C10 (pillar UV seam), C12 (waterline wainscot contrast & horizon silhouettes), C121, C126, C140, C151 (edge aliasing on arches, slabs, and pillars via bullnose coping and filleted reveals), C123, C127, C142 (specular clipping via curved normals and wayfinding numerals), and 11-map vaulted ceiling unification (`VaultBuilder.ts`).
 
 ---
 
