@@ -6,7 +6,7 @@
 export const WORLD = {
   UNIT: 'meter',
   WATER_Y: 0,
-  PLATFORM_TOP_Y: 0.38,
+  PLATFORM_TOP_Y: 0.30,
   POOL_FLOOR_Y: -0.42,
   TILE_METERS: 0.15,
   TEXTURE_METERS: 2.4,

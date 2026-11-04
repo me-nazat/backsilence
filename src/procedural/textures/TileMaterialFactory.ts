@@ -1694,7 +1694,7 @@ export function applyWorldSpaceBoxUVs(
   options?: { isPlatformSide?: boolean; topY?: number; floorY?: number },
 ): void {
   const uvAttr = geometry.getAttribute('uv') as Float32BufferAttribute | undefined;
-  if (!uvAttr) return;
+  if (!uvAttr || uvAttr.count !== 24) return;
 
   geometry.computeBoundingBox();
   const bb = geometry.boundingBox;
@@ -1756,6 +1756,7 @@ export function applyWorldSpaceCylinderUVs(
   radius: number,
   height: number,
   tileSize = WORLD.TILE_METERS,
+  snapToWholeTiles = false,
 ): void {
   const uvAttr = geometry.getAttribute('uv') as Float32BufferAttribute | undefined;
   if (!uvAttr) return;
@@ -1763,7 +1764,10 @@ export function applyWorldSpaceCylinderUVs(
   const uvArray = uvAttr.array as Float32Array;
   const texMeters = 16.0 * tileSize;
   const circumference = 2 * Math.PI * radius;
-  const repeatU = circumference / texMeters;
+  // Snap circumference to whole tile count so grout lines wrap seamlessly without a seam (C10)
+  const repeatU = snapToWholeTiles
+    ? (Math.max(4, Math.round(circumference / tileSize)) * tileSize) / texMeters
+    : circumference / texMeters;
   const repeatV = height / texMeters;
 
   let maxU = 0;

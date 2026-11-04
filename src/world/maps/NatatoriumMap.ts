@@ -657,7 +657,7 @@ export const NatatoriumMap: MapDefinition = {
     });
     walls.push({
       id: 'wall_arch1_lintel',
-      min: { x: -3.25, y: 4.2, z: 7.6 },
+      min: { x: -3.25, y: 6.0, z: 7.6 },
       max: { x: 3.25, y: 9.0, z: 8.4 },
       isWall: true,
     });

@@ -20,6 +20,10 @@ export interface ArchOptions {
   wallHeight?: number;// Total outer block height (m)
   type?: 'semicircular' | 'segmental' | 'pointed';
   segments?: number;
+  bevelEnabled?: boolean;
+  bevelSize?: number;
+  bevelThickness?: number;
+  bevelSegments?: number;
 }
 
 export function buildArchGeometry(opts: ArchOptions): BufferGeometry {
@@ -84,9 +88,18 @@ export function buildArchGeometry(opts: ArchOptions): BufferGeometry {
   hole.closePath();
   shape.holes.push(hole);
 
+  const bevelEnabled = opts.bevelEnabled ?? true;
+  const bevelSize = opts.bevelSize ?? 0.04;
+  const bevelThickness = opts.bevelThickness ?? 0.04;
+  const bevelSegments = opts.bevelSegments ?? 3;
+
   const geom = new ExtrudeGeometry(shape, {
     depth,
-    bevelEnabled: false,
+    bevelEnabled,
+    bevelSegments,
+    bevelSize,
+    bevelThickness,
+    bevelOffset: 0,
     curveSegments: segments,
   });
 

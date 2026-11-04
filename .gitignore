@@ -23,6 +23,7 @@ reports/visual/*.png
 !reports/visual/creature_far_35m.png
 !reports/release/
 !reports/glitch/
+!reports/world/
 reference/out*
 reference/*.png
 !reference/frames.manifest.json
