@@ -164,8 +164,9 @@ export const VHSShader = {
         }
       }
 
-      // 4. Chroma Aberration
-      float chroma = (0.0006 + 0.0025 * uTension + uGlitch * 0.008 + uRewind * 0.015) * uIntensity;
+      // 4. Chroma Aberration (< 1 px extreme edges only per Prompt 2 spec)
+      float edgeDist = smoothstep(0.25, 0.75, length(uv - 0.5));
+      float chroma = (0.0006 + 0.0025 * uTension + uGlitch * 0.008 + uRewind * 0.015) * uIntensity * edgeDist;
       if (isSafe > 0.5) {
         chroma = min(chroma, 0.0008);
       }
@@ -179,6 +180,33 @@ export const VHSShader = {
       vec4 colB = texture2D(tDiffuse, uvB);
 
       vec3 color = vec3(colR.r, colG.g, colB.b);
+
+      // Soft analog bandwidth filtering (eliminates high-frequency subpixel aliasing/ringing)
+      float hBandwidth = 6.5 / 1280.0;
+      float vBandwidth = 5.0 / 720.0;
+      if (isSafe < 0.5 && hBandwidth > 0.0001) {
+        vec3 colL = vec3(
+          texture2D(tDiffuse, clamp(uvR - vec2(hBandwidth, 0.0), 0.0, 1.0)).r,
+          texture2D(tDiffuse, clamp(uvG - vec2(hBandwidth, 0.0), 0.0, 1.0)).g,
+          texture2D(tDiffuse, clamp(uvB - vec2(hBandwidth, 0.0), 0.0, 1.0)).b
+        );
+        vec3 colRight = vec3(
+          texture2D(tDiffuse, clamp(uvR + vec2(hBandwidth, 0.0), 0.0, 1.0)).r,
+          texture2D(tDiffuse, clamp(uvG + vec2(hBandwidth, 0.0), 0.0, 1.0)).g,
+          texture2D(tDiffuse, clamp(uvB + vec2(hBandwidth, 0.0), 0.0, 1.0)).b
+        );
+        vec3 colU = vec3(
+          texture2D(tDiffuse, clamp(uvR - vec2(0.0, vBandwidth), 0.0, 1.0)).r,
+          texture2D(tDiffuse, clamp(uvG - vec2(0.0, vBandwidth), 0.0, 1.0)).g,
+          texture2D(tDiffuse, clamp(uvB - vec2(0.0, vBandwidth), 0.0, 1.0)).b
+        );
+        vec3 colD = vec3(
+          texture2D(tDiffuse, clamp(uvR + vec2(0.0, vBandwidth), 0.0, 1.0)).r,
+          texture2D(tDiffuse, clamp(uvG + vec2(0.0, vBandwidth), 0.0, 1.0)).g,
+          texture2D(tDiffuse, clamp(uvB + vec2(0.0, vBandwidth), 0.0, 1.0)).b
+        );
+        color = color * 0.18 + (colL + colRight) * 0.27 + (colU + colD) * 0.14;
+      }
 
       // Camera motion blur: 6 directional samples along velocity vector
       float velMag = length(uVelocity);
@@ -194,15 +222,17 @@ export const VHSShader = {
 
       // Far-field Depth of Field (subtle horizon / distance defocus)
       if (uFarDof > 0.5 && isSafe < 0.5) {
-        float dofBand = smoothstep(0.38, 0.52, uv.y) * smoothstep(0.70, 0.52, uv.y);
-        if (dofBand > 0.02) {
-          vec2 dofOff = vec2(1.2 / max(uResolution.x, 640.0), 1.2 / max(uResolution.y, 480.0)) * dofBand;
-          vec3 t1 = texture2D(tDiffuse, clamp(uv + vec2(dofOff.x, dofOff.y), 0.0, 1.0)).rgb;
-          vec3 t2 = texture2D(tDiffuse, clamp(uv + vec2(-dofOff.x, dofOff.y), 0.0, 1.0)).rgb;
-          vec3 t3 = texture2D(tDiffuse, clamp(uv + vec2(dofOff.x, -dofOff.y), 0.0, 1.0)).rgb;
-          vec3 t4 = texture2D(tDiffuse, clamp(uv + vec2(-dofOff.x, -dofOff.y), 0.0, 1.0)).rgb;
-          vec3 blurCol = (t1 + t2 + t3 + t4) * 0.25;
-          color = mix(color, blurCol, dofBand * 0.40);
+        float dofBand = smoothstep(0.40, 0.70, uv.y);
+        if (dofBand > 0.01) {
+          float db = 4.0 * dofBand;
+          vec2 oH = vec2(db / max(uResolution.x, 640.0), 0.0);
+          vec2 oV = vec2(0.0, db / max(uResolution.y, 480.0));
+          vec3 bCol = texture2D(tDiffuse, uv).rgb * 0.36 +
+            (texture2D(tDiffuse, clamp(uv - oH, 0.0, 1.0)).rgb +
+             texture2D(tDiffuse, clamp(uv + oH, 0.0, 1.0)).rgb) * 0.20 +
+            (texture2D(tDiffuse, clamp(uv - oV, 0.0, 1.0)).rgb +
+             texture2D(tDiffuse, clamp(uv + oV, 0.0, 1.0)).rgb) * 0.12;
+          color = mix(color, bCol, dofBand * 0.85);
         }
       }
 
@@ -246,20 +276,13 @@ export const VHSShader = {
         color += bloom;
       }
 
-      // 7. Scanlines & Interlace Field Flicker
-      if (isSafe < 0.5 && uLines > 0.0) {
+      // 7. Subtle VHS Tape Track Lines (Prompt 2: soft analog feel without CRT ringing)
+      if (isSafe < 0.5 && uLines > 0.0 && uIntensity > 0.01) {
         float field = mod(floor(uTime * 60.0), 2.0);
         float scanline = sin(uv.y * uLines * 3.14159265 + field * 3.14159265);
-        float scanlineMul = 1.0 - (0.08 * uIntensity * (0.5 + 0.5 * scanline));
+        float scanlineMul = 1.0 - (0.0015 * uIntensity * (0.5 + 0.5 * scanline));
         color *= scanlineMul;
       }
-
-      // 8. Tape Grain (Luma + Coarse Chroma Noise)
-      float grainTime = floor(uTime * 24.0);
-      float lumaNoise = (hash21(uv * vec2(800.0, 600.0) + grainTime) - 0.5) * 0.06 * uIntensity;
-      float chromaNoise = (hash21(floor(uv * vec2(120.0, 90.0)) + grainTime) - 0.5) * 0.04 * uIntensity;
-
-      color += vec3(lumaNoise + chromaNoise * 0.5, lumaNoise, lumaNoise - chromaNoise * 0.5);
 
       // 9. Dropout Streaks (Horizontal white needle blips)
       if (isSafe < 0.5) {
@@ -296,20 +319,41 @@ export const VHSShader = {
       }
 
       // 13. Per-map Color Grade & Procedural 3D LUT (Lift, Gamma, Gain, Saturation, Tint)
-      // Warm cream lift and teal-ish shadow base
-      vec3 warmCreamLift = vec3(0.024, 0.020, 0.012);
-      float shadowMask = 1.0 - smoothstep(0.0, 0.35, dot(color, vec3(0.299, 0.587, 0.114)));
-      vec3 tealShadow = vec3(0.0, 0.012, 0.015) * shadowMask;
-
-      // Gain & Lift
-      color = (color - 0.5) * uGain + 0.5 + uLift + warmCreamLift + tealShadow;
-      // Gamma
-      color = pow(max(color, vec3(0.0)), 1.0 / max(uGamma, vec3(0.001)));
-      // Saturation (+7% baseline)
       float lum = dot(color, vec3(0.299, 0.587, 0.114));
-      color = mix(vec3(lum), color, uSaturation * 1.07);
-      // Tint
-      color *= uTint;
+      float shadowMask = 1.0 - smoothstep(0.0, 0.35, lum);
+      float midsMask = smoothstep(0.15, 0.45, lum) * (1.0 - smoothstep(0.70, 0.92, lum));
+      float highsMask = smoothstep(0.65, 0.95, lum);
+
+      // Warm cream highs and mint-olive mids
+      vec3 warmCreamHigh = vec3(0.014, 0.010, 0.004) * highsMask;
+      vec3 mintOliveMids = vec3(0.005, 0.002, 0.001) * midsMask;
+      vec3 warmCreamLift = vec3(0.008, 0.003, 0.002);
+      vec3 tealShadow = vec3(0.0, 0.002, 0.004) * shadowMask;
+
+      // Contrast shaping for filmic S-curve matching reference dynamic range
+      vec3 gradedColor = (color - 0.5) * (uGain * 1.03) + 0.5 + uLift;
+      // Gamma
+      color = pow(max(gradedColor, vec3(0.0)), 1.0 / max(uGamma, vec3(0.001)));
+      // Saturation (calibrated to measured reference olive-mint & warm ochre gamut)
+      float postLum = dot(color, vec3(0.299, 0.587, 0.114));
+      color = mix(vec3(postLum), color, uSaturation);
+
+      // Hue-aware saturation calibration: enhance olive-mint water chroma (hue 85-115°)
+      float greenChroma = max(0.0, color.g - max(color.r, color.b));
+      if (greenChroma > 0.005) {
+        color.b -= greenChroma * 0.12;
+        color.r -= greenChroma * 0.04;
+      }
+
+      // Enrich ceramic tile warm ochre saturation in mids (hue 38-48°)
+      float tileChroma = max(0.0, color.r - max(color.g, color.b)) * midsMask;
+      if (tileChroma > 0.005) {
+        color.r += tileChroma * 0.35;
+        color.b -= tileChroma * 0.30;
+      }
+
+      // Film grade tone curve: warm cream highs, mint-olive mids, teal shadows, and warm cream lift
+      color = color * uTint + warmCreamLift + tealShadow + mintOliveMids + warmCreamHigh;
 
       // Tension response: as creature closes, grade drifts cooler and contrast tightens by <= 12%
       if (uTension > 0.001) {
@@ -319,14 +363,19 @@ export const VHSShader = {
         color = (color - 0.5) * contrastTighten + 0.5;
       }
 
-      // 14. Vignette
+      // 14. Soft Vignette (~0.30 depth radial falloff per measured look specification)
       vec2 centeredVig = uv - 0.5;
-      float vig = 1.0 - smoothstep(0.45, 0.95, length(centeredVig) * 1.35) * (0.35 * uIntensity);
+      float vig = 1.0 - smoothstep(0.35, 1.0, length(centeredVig) * 1.25) * 0.30;
       color *= vig;
 
-      // 16. Blend final with raw diffuse based on uIntensity
-      vec3 rawColor = texture2D(tDiffuse, vUv).rgb;
-      vec3 finalColor = mix(rawColor, color, uIntensity);
+      // 15. Soft Monochrome-Sepia Film Grain (Prompt 2: ~0.0019 reference noise floor)
+      float grainTime = floor(uTime * 24.0);
+      float lumaNoise = (hash21(uv * vec2(1280.0, 720.0) + grainTime) - 0.5) * 0.0006 * uIntensity;
+      vec3 sepiaGrainTint = vec3(1.05, 1.0, 0.92);
+      color += sepiaGrainTint * lumaNoise;
+
+      // 16. Final color with color grading and soft VHS integration
+      vec3 finalColor = color;
 
       // 17. Lift black floor per reference video contract (no crushed blacks, fraction below 0.1 == 0)
       if (uRewind == 0.0 && uGlitch == 0.0 && uSignalLost == 0.0) {

@@ -240,7 +240,8 @@ export class GameSession {
   private isPaused = false;
   private isDisposed = false;
   private isWon = false;
-  private isLoaded = false;
+  // Session lifecycle
+  isLoaded = false;
 
   // Stats tracking
   private timeSurvived = 0;
@@ -342,15 +343,20 @@ export class GameSession {
       console.warn('[GameSession] captureEnvMap warning:', e);
     }
 
-    // 3. Compile shaders asynchronously during loading
+    // 3. Compile shaders during loading (guard against compileAsync hanging in headless environments without KHR_parallel_shader_compile)
     try {
-      if (typeof glRenderer.compileAsync === 'function') {
-        await glRenderer.compileAsync(this.scene, this.camera);
+      const gl = glRenderer.getContext();
+      const hasParallel = Boolean(gl?.getExtension?.('KHR_parallel_shader_compile'));
+      if (hasParallel && typeof glRenderer.compileAsync === 'function') {
+        await Promise.race([
+          glRenderer.compileAsync(this.scene, this.camera),
+          new Promise((res) => setTimeout(res, 2000)),
+        ]);
       } else if (typeof glRenderer.compile === 'function') {
         glRenderer.compile(this.scene, this.camera);
       }
     } catch (e) {
-      console.warn('[GameSession] compileAsync warning:', e);
+      console.warn('[GameSession] compile warning:', e);
     }
   }
 
@@ -432,7 +438,6 @@ export class GameSession {
 
       // 1. Atmosphere Setup
       this.setupAtmosphere(this.mapDef);
-      this.settings.graphics.vhsIntensity = 0.0;
       this.postFX.setPostGrade(this.mapDef.postGrade);
       this.audio.play('tape_insert');
       this.postFX.triggerTracking(0.8);

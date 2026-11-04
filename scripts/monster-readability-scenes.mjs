@@ -203,10 +203,12 @@ async function main() {
       return Boolean(ok);
     }, 'GameSession object', 20000);
 
-    // Dismiss any modal
+    // Dismiss any modal & remove HUD leaks in capture
     await cdp.evaluate(`(() => {
       const btn = document.querySelector('.bs-btn, #bs-safety-accept, button');
       if (btn && btn.offsetParent !== null) btn.click();
+      const huds = document.querySelectorAll('.bs-hud');
+      huds.forEach(h => h.remove());
     })()`);
 
     // Wait for simWorld to be ready

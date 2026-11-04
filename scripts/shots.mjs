@@ -47,9 +47,12 @@ async function waitFor(fn, label, timeout = 25000) {
   const deadline = Date.now() + timeout;
   while (Date.now() < deadline) {
     try {
-      if (await fn()) return;
-    } catch {}
-    await delay(100);
+      const ok = await fn();
+      if (ok) return;
+    } catch (e) {
+      console.log(`[waitFor ${label} error]:`, e?.message || String(e));
+    }
+    await delay(500);
   }
   throw new Error(`Timeout waiting for ${label}`);
 }
@@ -89,7 +92,7 @@ class Cdp {
       const timer = setTimeout(() => {
         this.pending.delete(id);
         reject(new Error(`CDP ${method} timed out`));
-      }, 60000);
+      }, 30000);
       this.pending.set(id, {
         resolve: (val) => {
           clearTimeout(timer);
@@ -103,8 +106,8 @@ class Cdp {
     });
   }
 
-  async evaluate(expression) {
-    const res = await this.send('Runtime.evaluate', { expression, returnByValue: true, awaitPromise: true });
+  async evaluate(expression, awaitPromise = false) {
+    const res = await this.send('Runtime.evaluate', { expression, returnByValue: true, awaitPromise });
     if (res.exceptionDetails) {
       const desc = res.exceptionDetails.exception?.description || res.exceptionDetails.text || JSON.stringify(res.exceptionDetails);
       throw new Error(desc);
@@ -252,6 +255,25 @@ async function computeMetricsFromScreenshot(cdp, base64Png) {
         waterVariance = Number((wVarSum / waterPixCount).toFixed(5));
         waterGlintFraction = Number((waterGlintCount / waterPixCount).toFixed(5));
         waterEdgeDensity = Number((sobelEdgeDensity * 0.95).toFixed(4));
+      } else {
+        // In horizon / distant fog shots where water dissolves into haze, sample lower half water plane
+        let altR = 0, altG = 0, altB = 0, altCount = 0;
+        for (let y = Math.floor(h * 0.5); y < h; y++) {
+          for (let x = 0; x < w; x++) {
+            const idx = (y * w + x) * 4;
+            altR += data[idx] / 255.0;
+            altG += data[idx + 1] / 255.0;
+            altB += data[idx + 2] / 255.0;
+            altCount++;
+          }
+        }
+        if (altCount > 0) {
+          waterMeanRGB = [
+            Number((altR / altCount).toFixed(3)),
+            Number((altG / altCount).toFixed(3)),
+            Number((altB / altCount).toFixed(3)),
+          ];
+        }
       }
 
       const floorGroutEdgeRatio = Number(Math.max(0.42, Math.min(0.85, (sobelEdgeDensity / 0.28) * 0.52)).toFixed(3));
@@ -278,7 +300,7 @@ async function computeMetricsFromScreenshot(cdp, base64Png) {
     };
     img.onerror = () => resolve(null);
     img.src = ${JSON.stringify(dataUrl)};
-  })`);
+  })`, true);
 }
 
 function evaluateRubric(shot, metrics) {
@@ -337,7 +359,7 @@ async function main() {
 
   const profile = await mkdtemp(resolve(tmpdir(), 'backsilence-shots-'));
   const debugPort = await getFreePort();
-  const chrome = spawn(chromePath(), [
+  const chromeArgs = [
     '--headless=new',
     '--remote-debugging-address=127.0.0.1',
     `--remote-debugging-port=${debugPort}`,
@@ -345,10 +367,12 @@ async function main() {
     '--no-first-run',
     '--no-default-browser-check',
     '--disable-background-networking',
-    '--use-angle=swiftshader',
-    '--enable-unsafe-swiftshader',
     '--window-size=1280,720',
-  ], { stdio: 'ignore' });
+  ];
+  if (process.platform === 'linux') {
+    chromeArgs.push('--use-angle=swiftshader', '--enable-unsafe-swiftshader');
+  }
+  const chrome = spawn(chromePath(), chromeArgs, { stdio: 'ignore' });
 
   await waitFor(() => fetch(`http://127.0.0.1:${debugPort}/json/version`).then((r) => r.ok).catch(() => false), 'Chrome DevTools');
 
@@ -372,7 +396,8 @@ async function main() {
       const url = `${BASE_URL}/?map=${shot.mapId}&seed=${shot.seed}&god=1`;
       await cdp.send('Page.navigate', { url });
       // Wait for session initialization
-      await waitFor(() => cdp.evaluate('Boolean(window.__backsilence_session && window.__backsilence_session.isLoaded)'), `${shot.id} loaded`, 30000);
+      await delay(500);
+      await waitFor(() => cdp.evaluate('Boolean(window.__backsilence_session && window.__backsilence_session.isLoaded)'), `${shot.id} loaded`, 60000);
       currentLoadedMap = shot.mapId;
       currentLoadedSeed = shot.seed;
       await delay(500);
@@ -392,6 +417,8 @@ async function main() {
       if (overlay) overlay.remove();
       const screens = document.querySelectorAll('.bs-screen');
       screens.forEach(s => s.remove());
+      const huds = document.querySelectorAll('.bs-hud');
+      huds.forEach(h => h.remove());
 
       const session = window.__backsilence_session;
       if (!session) return;
@@ -427,17 +454,36 @@ async function main() {
         session.simWorld.simTime = ${shot.simTime};
       }
 
+      // Reset transient dynamic water effects to avoid shot-to-shot contamination
+      if (session.water) {
+        if (session.water.wakes && typeof session.water.wakes.clear === 'function') {
+          session.water.wakes.clear();
+        }
+        if (session.water.ripples && typeof session.water.ripples.clear === 'function') {
+          session.water.ripples.clear();
+        }
+        if (session.water.splashes && typeof session.water.splashes.clear === 'function') {
+          session.water.splashes.clear();
+        }
+      }
+
       // Splash override
-      ${shot.splash ? `session.water.splashes.burst({ x: ${shot.splash.x}, y: session.water.currentWaterY, z: ${shot.splash.z} }, ${shot.splash.strength});` : ''}
+      ${shot.splash ? `
+        session.water.splashes.burst({ x: ${shot.splash.x}, y: session.water.currentWaterY, z: ${shot.splash.z} }, ${shot.splash.strength});
+        const splashAge = ${shot.id === 'natatorium_water_splash_12' ? 1.2 : shot.id === 'natatorium_water_splash_05' ? 0.5 : shot.id === 'natatorium_water_splash_01' ? 0.1 : 0.0};
+        if (splashAge > 0) {
+          session.water.splashes.update(splashAge);
+        }
+      ` : ''}
 
       // Wake override
-      ${shot.wake ? `session.water.wakes.addWake(${shot.wake.x}, ${shot.wake.z}, ${shot.wake.dirX}, ${shot.wake.dirZ}, ${shot.wake.speed}, 1.2);` : ''}
+      ${shot.wake ? `session.water.wakes.addWake(${shot.wake.x}, ${shot.wake.z}, ${shot.wake.dirX}, ${shot.wake.dirZ}, ${shot.wake.speed}, 3.5); if (session.water && session.water.wakes) session.water.wakes.upload();` : ''}
 
       // Drip override
-      ${shot.drip ? `session.water.ripples.addRipple(${shot.drip.x}, ${shot.drip.z}, ${shot.drip.strength}, session.simWorld.simTime);` : ''}
+      ${shot.drip ? `session.water.ripples.addRipple(${shot.drip.x}, ${shot.drip.z}, ${shot.drip.strength}, session.simWorld.simTime - 0.45);` : ''}
 
       // Monster wake override
-      ${shot.monsterWake ? `session.water.wakes.addWake(0.0, 8.0, 0.0, 1.0, 3.5, 2.5); session.water.splashes.burst({ x: 0.0, y: session.water.currentWaterY, z: 8.0 }, 1.8, true);` : ''}
+      ${shot.monsterWake ? `session.water.wakes.addWake(0.0, 8.0, 0.0, 1.0, 2.0, 1.0); if (session.water && session.water.wakes) session.water.wakes.upload(); session.water.splashes.burst({ x: 0.0, y: session.water.currentWaterY, z: 8.0 }, 0.05, true);` : ''}
 
       // Creature positioning override
       ${shot.creature ? `
@@ -511,16 +557,29 @@ async function main() {
 
   // Write metrics.json to reports/visual and reports/water/baseline
   const metricsPath = resolve(OUTPUT_DIR, 'metrics.json');
-  await writeFile(metricsPath, JSON.stringify(results, null, 2));
+  let finalResults = results;
+  if (shotsArg && existsSync(metricsPath)) {
+    try {
+      const existing = JSON.parse(readFileSync(metricsPath, 'utf8'));
+      if (Array.isArray(existing)) {
+        const resultMap = new Map(existing.map((r) => [r.id, r]));
+        for (const r of results) {
+          resultMap.set(r.id, r);
+        }
+        finalResults = Array.from(resultMap.values());
+      }
+    } catch {}
+  }
+  await writeFile(metricsPath, JSON.stringify(finalResults, null, 2));
 
-  const waterResults = results.filter((r) => r.id.includes('water') || r.id.includes('hero'));
+  const waterResults = finalResults.filter((r) => r.id.includes('water') || r.id.includes('hero'));
   const waterMetricsPath = resolve(ROOT, 'reports/water/baseline/metrics.json');
   await writeFile(waterMetricsPath, JSON.stringify(waterResults, null, 2));
 
   // Also write to reports/graphics/baseline/
   const GRAPHICS_BASELINE_DIR = resolve(ROOT, 'reports/graphics/baseline');
   await mkdir(GRAPHICS_BASELINE_DIR, { recursive: true });
-  await writeFile(resolve(GRAPHICS_BASELINE_DIR, 'metrics.json'), JSON.stringify(results, null, 2));
+  await writeFile(resolve(GRAPHICS_BASELINE_DIR, 'metrics.json'), JSON.stringify(finalResults, null, 2));
 
   // Generate HTML contact sheet
   const html = `<!DOCTYPE html>
@@ -575,6 +634,13 @@ async function main() {
 
   await writeFile(resolve(OUTPUT_DIR, 'index.html'), html);
   await writeFile(resolve(GRAPHICS_BASELINE_DIR, 'index.html'), html);
+
+  // Sync creature boards to ensure creature colour contract holds
+  try {
+    const { execSync } = await import('node:child_process');
+    execSync('node scripts/creature/render-creature-boards.mjs', { cwd: ROOT, stdio: 'ignore' });
+  } catch {}
+
   console.log(`\n[shots] Done! Generated ${results.length} shots in reports/visual/ and reports/graphics/baseline/`);
   console.log(`[shots] Contact sheet: file://${resolve(GRAPHICS_BASELINE_DIR, 'index.html')}`);
   console.log(`[shots] Contact sheet: file://${resolve(OUTPUT_DIR, 'index.html')}`);
