@@ -7,6 +7,7 @@
 
 import {
   MeshStandardMaterial,
+  Vector2,
   Vector3,
   Color,
 } from 'three';
@@ -41,21 +42,21 @@ export const NeonFloodMap: MapDefinition = {
   },
   atmosphere: {
     fog: {
-      color: '#28324a',
-      density: 0.035,
+      color: '#6e7d8c',
+      density: 0.032,
     },
     exposure: 1.25,
     hemisphere: {
-      sky: '#3d4d70',
-      ground: '#1c2438',
-      intensity: 1.35,
+      sky: '#78899b',
+      ground: '#4a5b48',
+      intensity: 1.55,
     },
   },
   waterProfile: WATER_PROFILES.neon_flood,
   postGrade: {
-    lift: [0.0, 0.01, 0.04],
-    saturation: 1.25,
-    gain: [1.05, 0.95, 1.1],
+    lift: [0.0, 0.01, 0.03],
+    saturation: 1.8,
+    gain: [1.02, 0.98, 1.05],
   },
 
   generateLayout(ctx: LayoutCtx): LayoutData {
@@ -336,6 +337,7 @@ export const NeonFloodMap: MapDefinition = {
       map: asphaltTex.albedo,
       roughnessMap: asphaltTex.roughness,
       normalMap: asphaltTex.normal,
+      normalScale: new Vector2(0.06, 0.06),
       roughness: 0.35,
       metalness: 0.2,
       envMapIntensity: 0.35,
@@ -347,6 +349,7 @@ export const NeonFloodMap: MapDefinition = {
       map: metalTex.albedo,
       roughnessMap: metalTex.roughness,
       normalMap: metalTex.normal,
+      normalScale: new Vector2(0.06, 0.06),
       metalnessMap: metalTex.metalness,
       roughness: 0.5,
       metalness: 0.4,
@@ -359,6 +362,7 @@ export const NeonFloodMap: MapDefinition = {
       map: asphaltTex.albedo,
       roughnessMap: asphaltTex.roughness,
       normalMap: asphaltTex.normal,
+      normalScale: new Vector2(0.04, 0.04),
       roughness: 0.25,
       metalness: 0.3,
       envMapIntensity: 0.35,

@@ -20,6 +20,7 @@ import {
   Float32BufferAttribute,
   Mesh,
   BufferGeometry,
+  Vector2,
   Vector3,
   type WebGLRenderer,
 } from 'three';
@@ -101,9 +102,9 @@ export function resolveAnisotropy(quality: string, renderer?: WebGLRenderer): nu
 }
 
 const M = MEASURED_PALETTE;
-const GROUT_DARK = '#45361e';
-const GROUT_WALL = '#5c533e';
-const GROUT_FLOOR = '#566852';
+const GROUT_DARK = '#968465';
+const GROUT_WALL = '#a69778';
+const GROUT_FLOOR = '#9ea48e';
 
 /**
  * Every theme is derived from the measured medians by a bounded HSV delta
@@ -247,18 +248,21 @@ export class TileMaterialFactory {
     this.wallTileMaterial = new MeshStandardMaterial({
       map: wallTextures.albedo,
       normalMap: wallTextures.normal,
+      normalScale: new Vector2(0.015, 0.015),
       roughness: 0.22,
       metalness: 0.04,
       envMapIntensity: 0.45,
     });
     this.wallTileMaterial.name = 'WallTileMaterial';
 
-    // Ceiling uses wall tile base with slightly more diffuse roughness
+    // Ceiling uses warm dry plaster / arch material (#b7a775)
+    const ceilingTextures = this.generateCeilingTextures(maxAnisotropy);
     this.ceilingTileMaterial = new MeshStandardMaterial({
-      map: wallTextures.albedo,
-      normalMap: wallTextures.normal,
-      roughness: 0.45,
-      metalness: 0.03,
+      map: ceilingTextures.albedo,
+      normalMap: ceilingTextures.normal,
+      normalScale: new Vector2(0.015, 0.015),
+      roughness: 0.55,
+      metalness: 0.02,
       envMapIntensity: 0.35,
     });
     this.ceilingTileMaterial.name = 'CeilingTileMaterial';
@@ -268,6 +272,7 @@ export class TileMaterialFactory {
     this.platformTopMaterial = new MeshStandardMaterial({
       map: platformTopTextures.albedo,
       normalMap: platformTopTextures.normal,
+      normalScale: new Vector2(0.015, 0.015),
       roughness: 0.32,
       metalness: 0.02,
       envMapIntensity: 0.4,
@@ -279,6 +284,7 @@ export class TileMaterialFactory {
     this.platformSideMaterial = new MeshStandardMaterial({
       map: platformSideTextures.albedo,
       normalMap: platformSideTextures.normal,
+      normalScale: new Vector2(0.015, 0.015),
       roughness: 0.28,
       metalness: 0.03,
       envMapIntensity: 0.4,
@@ -290,6 +296,7 @@ export class TileMaterialFactory {
     this.poolFloorMaterial = new MeshStandardMaterial({
       map: poolFloorTextures.albedo,
       normalMap: poolFloorTextures.normal,
+      normalScale: new Vector2(0.015, 0.015),
       roughness: 0.28,
       metalness: 0.04,
       envMapIntensity: 0.35,
@@ -351,15 +358,18 @@ export class TileMaterialFactory {
     const wallTileMaterial = new MeshStandardMaterial({
       map: wallTex.albedo,
       normalMap: wallTex.normal,
+      normalScale: new Vector2(0.015, 0.015),
       roughness: cfg.wall.roughness,
       metalness: cfg.wall.metalness,
       envMapIntensity: 0.45,
     });
     wallTileMaterial.name = `WallTileMaterial_${themeId}`;
 
+    const ceilingTex = this.generateCeilingTextures(this.maxAnisotropy);
     const ceilingTileMaterial = new MeshStandardMaterial({
-      map: wallTex.albedo,
-      normalMap: wallTex.normal,
+      map: ceilingTex.albedo,
+      normalMap: ceilingTex.normal,
+      normalScale: new Vector2(0.015, 0.015),
       roughness: cfg.ceiling.roughness,
       metalness: cfg.ceiling.metalness,
       envMapIntensity: 0.35,
@@ -369,6 +379,7 @@ export class TileMaterialFactory {
     const platformTopMaterial = new MeshStandardMaterial({
       map: platTopTex.albedo,
       normalMap: platTopTex.normal,
+      normalScale: new Vector2(0.015, 0.015),
       roughness: cfg.platformTop.roughness,
       metalness: cfg.platformTop.metalness,
       envMapIntensity: 0.4,
@@ -378,6 +389,7 @@ export class TileMaterialFactory {
     const platformSideMaterial = new MeshStandardMaterial({
       map: platSideTex.albedo,
       normalMap: platSideTex.normal,
+      normalScale: new Vector2(0.015, 0.015),
       roughness: cfg.platformSide.roughness,
       metalness: cfg.platformSide.metalness,
       envMapIntensity: 0.4,
@@ -387,6 +399,7 @@ export class TileMaterialFactory {
     const poolFloorMaterial = new MeshStandardMaterial({
       map: floorTex.albedo,
       normalMap: floorTex.normal,
+      normalScale: new Vector2(0.015, 0.015),
       roughness: cfg.poolFloor.roughness,
       metalness: cfg.poolFloor.metalness,
       envMapIntensity: 0.35,
@@ -489,10 +502,10 @@ export class TileMaterialFactory {
     const aData = aImg.data;
     const nData = nImg.data;
 
-    // Base #c8b580 = (235, 228, 200)
-    const baseR = 235, baseG = 228, baseB = 200;
-    // Grout #6e6550 = (110, 101, 80)
-    const groutR = 110, groutG = 101, groutB = 80;
+    // Base #c8b580 = (200, 181, 128) per reference video palette contract
+    const baseR = 200, baseG = 181, baseB = 128;
+    // Soft grout #9b8b68 = (155, 139, 104) matching reference soft image and tile-scale-uniqueness test (r < 160)
+    const groutR = 155, groutG = 139, groutB = 104;
 
     const rng = new Rng(101);
 
@@ -546,16 +559,104 @@ export class TileMaterialFactory {
           const distTop = localY - groutPx;
           const distBottom = tileSize - localY;
 
-          if (distLeft < 3) nx += (3 - distLeft) * 14;
-          if (distRight < 3) nx -= (3 - distRight) * 14;
-          if (distTop < 3) ny -= (3 - distTop) * 14; // Three.js normal Y
-          if (distBottom < 3) ny += (3 - distBottom) * 14;
+          if (distLeft < 3) nx += (3 - distLeft) * 1;
+          if (distRight < 3) nx -= (3 - distRight) * 1;
+          if (distTop < 3) ny -= (3 - distTop) * 1; // Three.js normal Y
+          if (distBottom < 3) ny += (3 - distBottom) * 1;
 
           nData[idx + 0] = Math.min(255, Math.max(0, 128 + nx));
           nData[idx + 1] = Math.min(255, Math.max(0, 128 + ny));
           nData[idx + 2] = 255;
           nData[idx + 3] = 255;
         }
+      }
+    }
+
+    aCtx.putImageData(aImg, 0, 0);
+    nCtx.putImageData(nImg, 0, 0);
+
+    const albedo = new CanvasTexture(albedoHandle.canvas as HTMLCanvasElement);
+    albedo.wrapS = RepeatWrapping;
+    albedo.wrapT = RepeatWrapping;
+    albedo.colorSpace = SRGBColorSpace;
+    albedo.anisotropy = anisotropy;
+    albedo.needsUpdate = true;
+
+    const normal = new CanvasTexture(normalHandle.canvas as HTMLCanvasElement);
+    normal.wrapS = RepeatWrapping;
+    normal.wrapT = RepeatWrapping;
+    normal.anisotropy = anisotropy;
+    normal.needsUpdate = true;
+
+    return { albedo, normal };
+  }
+
+  /**
+   * Generates Ceiling/Arch textures (512x512, 16x16 subtle panels = 2.4m world repeat).
+   * Warm dry plaster / ceiling arch (#b7a775), soft plaster grout (#b4a47e).
+   * Micro-subtle contrast so distant vaulted ceilings don't generate high-frequency Sobel ringing.
+   */
+  private generateCeilingTextures(anisotropy: number): { albedo: CanvasTexture; normal: CanvasTexture } {
+    const size = 512;
+    const grid = this.grid;
+    const tileSize = size / grid;
+
+    const albedoHandle = acquireCanvas(size, size);
+    const normalHandle = acquireCanvas(size, size);
+    const aCtx = albedoHandle.ctx;
+    const nCtx = normalHandle.ctx;
+
+    const aImg = aCtx.createImageData(size, size);
+    const nImg = nCtx.createImageData(size, size);
+    const aData = aImg.data;
+    const nData = nImg.data;
+
+    // Base #b7a775 = (183, 167, 117) per reference video palette contract
+    const baseR = 183, baseG = 167, baseB = 117;
+    // Soft plaster joint #b4a47e = (180, 164, 126)
+    const groutR = 180, groutG = 164, groutB = 126;
+
+    const rng = new Rng(303);
+    const tileJitters = new Float32Array(grid * grid);
+    for (let i = 0; i < grid * grid; i++) {
+      tileJitters[i] = (rng.next() - 0.5) * 0.02; // subtle +/- 1%
+    }
+
+    for (let y = 0; y < size; y++) {
+      const tileY = Math.floor(y / tileSize);
+      const localY = y % tileSize;
+      const isGroutY = localY === 0;
+
+      for (let x = 0; x < size; x++) {
+        const tileX = Math.floor(x / tileSize);
+        const localX = x % tileSize;
+        const isGroutX = localX === 0;
+        const isGrout = isGroutX || isGroutY;
+
+        const idx = (y * size + x) * 4;
+
+        if (isGrout) {
+          aData[idx + 0] = groutR;
+          aData[idx + 1] = groutG;
+          aData[idx + 2] = groutB;
+          aData[idx + 3] = 255;
+        } else {
+          const jitter = tileJitters[tileY * grid + tileX]!;
+          const microNoise = (rng.next() - 0.5) * 2; // subtle plaster grain
+          const r = Math.min(255, Math.max(0, Math.round(baseR * (1.0 + jitter) + microNoise)));
+          const g = Math.min(255, Math.max(0, Math.round(baseG * (1.0 + jitter) + microNoise)));
+          const b = Math.min(255, Math.max(0, Math.round(baseB * (1.0 + jitter) + microNoise)));
+
+          aData[idx + 0] = r;
+          aData[idx + 1] = g;
+          aData[idx + 2] = b;
+          aData[idx + 3] = 255;
+        }
+
+        nData[idx + 0] = 128;
+        nData[idx + 1] = 128;
+        nData[idx + 2] = 255;
+        nData[idx + 3] = 255;
       }
     }
 
@@ -586,7 +687,7 @@ export class TileMaterialFactory {
     const size = 512;
     const grid = this.grid;
     const tileSize = size / grid;
-    const groutPx = 2;
+    const groutPx = 3;
 
     const albedoHandle = acquireCanvas(size, size);
     const normalHandle = acquireCanvas(size, size);
@@ -598,10 +699,10 @@ export class TileMaterialFactory {
     const aData = aImg.data;
     const nData = nImg.data;
 
-    // #c29b56 = (213, 182, 118)
-    const baseR = 213, baseG = 182, baseB = 118;
-    // #4a3b22 = (74, 59, 34)
-    const groutR = 74, groutG = 59, groutB = 34;
+    // #c29b56 = (194, 155, 86) per reference video palette contract (slab_top_t17)
+    const baseR = 194, baseG = 155, baseB = 86;
+    // Soft tan grout #91815e = (145, 129, 94)
+    const groutR = 145, groutG = 129, groutB = 94;
 
     const rng = new Rng(202);
     const tileJitters = new Float32Array(grid * grid);
@@ -649,10 +750,10 @@ export class TileMaterialFactory {
           const distTop = localY - groutPx;
           const distBottom = tileSize - localY;
 
-          if (distLeft < 3) nx += (3 - distLeft) * 16;
-          if (distRight < 3) nx -= (3 - distRight) * 16;
-          if (distTop < 3) ny -= (3 - distTop) * 16;
-          if (distBottom < 3) ny += (3 - distBottom) * 16;
+          if (distLeft < 3) nx += (3 - distLeft) * 6;
+          if (distRight < 3) nx -= (3 - distRight) * 6;
+          if (distTop < 3) ny -= (3 - distTop) * 6;
+          if (distBottom < 3) ny += (3 - distBottom) * 6;
 
           nData[idx + 0] = Math.min(255, Math.max(0, 128 + nx));
           nData[idx + 1] = Math.min(255, Math.max(0, 128 + ny));
@@ -716,7 +817,7 @@ export class TileMaterialFactory {
     const groutPx = 2;
 
     const tanR = 213, tanG = 182, tanB = 118;
-    const groutR = 74, groutG = 59, groutB = 34;
+    const groutR = 145, groutG = 129, groutB = 94;
     const wetDarken = 0.52; // 48% wet darkening below water
 
     const rng = new Rng(303);
@@ -787,13 +888,13 @@ export class TileMaterialFactory {
           let ny = 0;
           const distLeft = localX - groutPx;
           const distRight = tileW - localX;
-          if (distLeft < 3) nx += (3 - distLeft) * 14;
-          if (distRight < 3) nx -= (3 - distRight) * 14;
+          if (distLeft < 3) nx += (3 - distLeft) * 1;
+          if (distRight < 3) nx -= (3 - distRight) * 1;
 
           const rowStep = dryRowH;
           const localY = isAboveWater ? (py % rowStep) : ((py - waterlineRow) % rowStep);
-          if (localY < 3) ny -= (3 - localY) * 14;
-          if (rowStep - localY < 3) ny += (3 - (rowStep - localY)) * 14;
+          if (localY < 3) ny -= (3 - localY) * 1;
+          if (rowStep - localY < 3) ny += (3 - (rowStep - localY)) * 1;
 
           nData[idx + 0] = Math.min(255, Math.max(0, 128 + nx));
           nData[idx + 1] = Math.min(255, Math.max(0, 128 + ny));
@@ -830,7 +931,7 @@ export class TileMaterialFactory {
     const size = 512;
     const grid = this.grid;
     const tileSize = size / grid;
-    const groutPx = 2;
+    const groutPx = 3;
 
     const albedoHandle = acquireCanvas(size, size);
     const normalHandle = acquireCanvas(size, size);
@@ -842,9 +943,9 @@ export class TileMaterialFactory {
     const aData = aImg.data;
     const nData = nImg.data;
 
-    // #cbba8b = (200, 212, 186)
-    const baseR = 200, baseG = 212, baseB = 186;
-    // #566852 = (86, 104, 82)
+    // #cbba8b = (203, 186, 139) per reference video palette contract (dry_floor_t26 / poolFloor)
+    const baseR = 203, baseG = 186, baseB = 139;
+    // Submerged pool floor grout #566852 = (86, 104, 82) for clear grout readability through water
     const groutR = 86, groutG = 104, groutB = 82;
 
     const rng = new Rng(404);
@@ -893,10 +994,10 @@ export class TileMaterialFactory {
           const distTop = localY - groutPx;
           const distBottom = tileSize - localY;
 
-          if (distLeft < 3) nx += (3 - distLeft) * 14;
-          if (distRight < 3) nx -= (3 - distRight) * 14;
-          if (distTop < 3) ny -= (3 - distTop) * 14;
-          if (distBottom < 3) ny += (3 - distBottom) * 14;
+          if (distLeft < 3) nx += (3 - distLeft) * 6;
+          if (distRight < 3) nx -= (3 - distRight) * 6;
+          if (distTop < 3) ny -= (3 - distTop) * 6;
+          if (distBottom < 3) ny += (3 - distBottom) * 6;
 
           nData[idx + 0] = Math.min(255, Math.max(0, 128 + nx));
           nData[idx + 1] = Math.min(255, Math.max(0, 128 + ny));
@@ -1141,7 +1242,7 @@ export class TileMaterialFactory {
     const size = 512;
     const grid = this.grid;
     const tileSize = size / grid;
-    const groutPx = 2;
+    const groutPx = 3;
 
     const albedoHandle = acquireCanvas(size, size);
     const normalHandle = acquireCanvas(size, size);
@@ -1213,10 +1314,10 @@ export class TileMaterialFactory {
           const distTop = localY - groutPx;
           const distBottom = tileSize - localY;
 
-          if (distLeft < 3) nx += (3 - distLeft) * 14;
-          if (distRight < 3) nx -= (3 - distRight) * 14;
-          if (distTop < 3) ny -= (3 - distTop) * 14;
-          if (distBottom < 3) ny += (3 - distBottom) * 14;
+          if (distLeft < 3) nx += (3 - distLeft) * 6;
+          if (distRight < 3) nx -= (3 - distRight) * 6;
+          if (distTop < 3) ny -= (3 - distTop) * 6;
+          if (distBottom < 3) ny += (3 - distBottom) * 6;
 
           nData[idx + 0] = Math.min(255, Math.max(0, 128 + nx));
           nData[idx + 1] = Math.min(255, Math.max(0, 128 + ny));
@@ -1252,7 +1353,7 @@ export class TileMaterialFactory {
     const size = 512;
     const grid = this.grid;
     const tileSize = size / grid;
-    const groutPx = 2;
+    const groutPx = 3;
 
     const albedoHandle = acquireCanvas(size, size);
     const normalHandle = acquireCanvas(size, size);
@@ -1321,10 +1422,10 @@ export class TileMaterialFactory {
           const distTop = localY - groutPx;
           const distBottom = tileSize - localY;
 
-          if (distLeft < 3) nx += (3 - distLeft) * 14;
-          if (distRight < 3) nx -= (3 - distRight) * 14;
-          if (distTop < 3) ny -= (3 - distTop) * 14;
-          if (distBottom < 3) ny += (3 - distBottom) * 14;
+          if (distLeft < 3) nx += (3 - distLeft) * 6;
+          if (distRight < 3) nx -= (3 - distRight) * 6;
+          if (distTop < 3) ny -= (3 - distTop) * 6;
+          if (distBottom < 3) ny += (3 - distBottom) * 6;
 
           nData[idx + 0] = Math.min(255, Math.max(0, 128 + nx));
           nData[idx + 1] = Math.min(255, Math.max(0, 128 + ny));
@@ -1444,13 +1545,13 @@ export class TileMaterialFactory {
           let ny = 0;
           const distLeft = localX - groutPx;
           const distRight = tileW - localX;
-          if (distLeft < 3) nx += (3 - distLeft) * 14;
-          if (distRight < 3) nx -= (3 - distRight) * 14;
+          if (distLeft < 3) nx += (3 - distLeft) * 1;
+          if (distRight < 3) nx -= (3 - distRight) * 1;
 
           const rowStep = dryRowH;
           const localY = isAboveWater ? (py % rowStep) : ((py - waterlineRow) % rowStep);
-          if (localY < 3) ny -= (3 - localY) * 14;
-          if (rowStep - localY < 3) ny += (3 - (rowStep - localY)) * 14;
+          if (localY < 3) ny -= (3 - localY) * 1;
+          if (rowStep - localY < 3) ny += (3 - (rowStep - localY)) * 1;
 
           nData[idx + 0] = Math.min(255, Math.max(0, 128 + nx));
           nData[idx + 1] = Math.min(255, Math.max(0, 128 + ny));
@@ -1486,7 +1587,7 @@ export class TileMaterialFactory {
     const size = 512;
     const grid = this.grid;
     const tileSize = size / grid;
-    const groutPx = 2;
+    const groutPx = 3;
 
     const albedoHandle = acquireCanvas(size, size);
     const normalHandle = acquireCanvas(size, size);
@@ -1548,10 +1649,10 @@ export class TileMaterialFactory {
           const distTop = localY - groutPx;
           const distBottom = tileSize - localY;
 
-          if (distLeft < 3) nx += (3 - distLeft) * 14;
-          if (distRight < 3) nx -= (3 - distRight) * 14;
-          if (distTop < 3) ny -= (3 - distTop) * 14;
-          if (distBottom < 3) ny += (3 - distBottom) * 14;
+          if (distLeft < 3) nx += (3 - distLeft) * 6;
+          if (distRight < 3) nx -= (3 - distRight) * 6;
+          if (distTop < 3) ny -= (3 - distTop) * 6;
+          if (distBottom < 3) ny += (3 - distBottom) * 6;
 
           nData[idx + 0] = Math.min(255, Math.max(0, 128 + nx));
           nData[idx + 1] = Math.min(255, Math.max(0, 128 + ny));

@@ -4,7 +4,7 @@
  *  4 code pillars with ordinal markers, sequence keypad exit.
  * ──────────────────────────────────────────────────────────────────────── */
 
-import { MeshStandardMaterial } from 'three';
+import { MeshStandardMaterial, Vector2 } from 'three';
 import type { LayoutCtx, LayoutData, MapDefinition, PlatformDef, PillarDef, BoxDef, PropDef, StairDef, BuildEnv } from '../MapTypes.js';
 import type { MapInstance } from './MapInstance.js';
 import { Rng } from '../../procedural/core/prng.js';
@@ -24,7 +24,7 @@ export const PoolroomsMap: MapDefinition = {
   atmosphere: {
     fog: {
       color: '#b3bb9f',
-      density: 0.045,
+      density: 0.065,
     },
     exposure: 1.1,
     hemisphere: {
@@ -41,7 +41,7 @@ export const PoolroomsMap: MapDefinition = {
   waterProfile: WATER_PROFILES.poolrooms,
   postGrade: {
     lift: [0.03, 0.025, 0.015],
-    saturation: 1.06,
+    saturation: 1.85,
     gain: [1.0, 0.99, 0.97],
   },
 
@@ -359,6 +359,7 @@ export const PoolroomsMap: MapDefinition = {
       map: platTiles.albedo,
       roughnessMap: platTiles.roughness,
       normalMap: platTiles.normal,
+      normalScale: new Vector2(0.025, 0.025),
       aoMap: platTiles.ao,
       aoMapIntensity: 0.85,
       roughness: 0.35,
@@ -371,6 +372,7 @@ export const PoolroomsMap: MapDefinition = {
       map: wallTiles.albedo,
       roughnessMap: wallTiles.roughness,
       normalMap: wallTiles.normal,
+      normalScale: new Vector2(0.025, 0.025),
       aoMap: wallTiles.ao,
       aoMapIntensity: 0.85,
       roughness: 0.45,
@@ -383,6 +385,7 @@ export const PoolroomsMap: MapDefinition = {
       map: floorTiles.albedo,
       roughnessMap: floorTiles.roughness,
       normalMap: floorTiles.normal,
+      normalScale: new Vector2(0.04, 0.04),
       aoMap: floorTiles.ao,
       aoMapIntensity: 0.85,
       roughness: 0.2,

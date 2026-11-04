@@ -48,7 +48,7 @@ import { buildStandardMapInstance, scaleBoxUv, type CustomBuilderHook } from './
 import { makeMosaicEarTexture } from '../../procedural/textures/MosaicEarTexture.js';
 import { bakeVertexAO } from '../../procedural/geometry/VertexAO.js';
 import { createLightShaftMesh, createDustMotes } from '../../game/rendering/LightShafts.js';
-import { buildYFixtureGeometry, buildColorPanelGeometry } from '../levelart/LevelArtProps.js';
+import { buildColorPanelGeometry } from '../levelart/LevelArtProps.js';
 import { buildArchGeometry } from '../../procedural/geometry/ArchBuilder.js';
 import { TileMaterialFactory } from '../../procedural/textures/TileMaterialFactory.js';
 import { DecalSystem } from '../../game/decals/DecalSystem.js';
@@ -93,9 +93,9 @@ export const NatatoriumMap: MapDefinition = {
   postGrade: {
     lift: [0.045, 0.038, 0.022],
     gamma: [0.98, 1.01, 1.02],
-    gain: [1.02, 1.0, 0.96],
-    saturation: 1.08,
-    tint: [1.01, 1.0, 0.98],
+    gain: [1.02, 0.99, 0.95],
+    saturation: 2.3,
+    tint: [1.02, 1.0, 0.98],
   },
 
   generateLayout(ctx: LayoutCtx): LayoutData {
@@ -823,7 +823,7 @@ export const NatatoriumMap: MapDefinition = {
     const ceilingArchMat = tileFactory.ceilingTileMaterial;
     ceilingArchMat.envMapIntensity = 0.35;
     ceilingArchMat.vertexColors = true;
-    ceilingArchMat.color.set('#ebe4c8');
+    ceilingArchMat.color.set('#b7a775');
     ceilingArchMat.aoMapIntensity = 0.85;
     ceilingArchMat.side = BackSide;
 
@@ -1420,24 +1420,6 @@ export const NatatoriumMap: MapDefinition = {
       size: 0.07,
     });
     instance.root.add(motes);
-
-    // Standalone Y-fixture props
-    const yFixtureGeom = buildYFixtureGeometry();
-    const fixturePropMat = new MeshStandardMaterial({
-      color: new Color('#5a4d3a'),
-      roughness: 0.4,
-      metalness: 0.7,
-    });
-    const yFixtures = new InstancedMesh(yFixtureGeom, fixturePropMat, 2);
-    yFixtures.name = 'YFixtures';
-    const m4 = new Matrix4();
-    m4.makeTranslation(12, 0.30, 10);
-    yFixtures.setMatrixAt(0, m4);
-    m4.makeRotationY(0.4);
-    m4.setPosition(18, 0.30, -5);
-    yFixtures.setMatrixAt(1, m4);
-    yFixtures.instanceMatrix.needsUpdate = true;
-    instance.root.add(yFixtures);
 
     // Tricolor panel on far wall
     const panelGeom = buildColorPanelGeometry(3.6, 2.0);

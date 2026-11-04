@@ -35,28 +35,28 @@ export interface TileSetResult {
 
 const PALETTE: Record<TileVariant, { base: string; grout: string; grid: number; crackRate: number }> = {
   platform: {
-    base: '#b8873f',
-    grout: '#5b4526',
+    base: '#c29b56',
+    grout: '#a58a5c',
     grid: 16,
-    crackRate: 0.02,
+    crackRate: 0.005,
   },
   wall: {
-    base: '#d6c79c',
-    grout: '#5b4526',
+    base: '#c8b580',
+    grout: '#b4a47e',
     grid: 16,
-    crackRate: 0.01,
+    crackRate: 0.005,
   },
   floorWet: {
-    base: '#9aa08c',
-    grout: '#3d3824',
+    base: '#cbba8b',
+    grout: '#989e84',
     grid: 8,
-    crackRate: 0.08,
+    crackRate: 0.02,
   },
   ceiling: {
     base: '#b7a775',
-    grout: '#5b4526',
+    grout: '#b4a47e',
     grid: 16,
-    crackRate: 0.01,
+    crackRate: 0.005,
   },
 };
 

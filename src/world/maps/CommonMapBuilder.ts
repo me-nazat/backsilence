@@ -872,7 +872,9 @@ export function buildStandardMapInstance(
   }
 
   // 3c. Build Ceiling Mesh & Skylight Shafts for Enclosed Atmosphere (Prompt 4.7 & 5.6)
-  if (layout.mapId !== 'natatorium' && layout.mapId !== 'orientation') {
+  // Open-air sky / canyon maps do not build artificial low flat ceilings
+  const openSkyMaps = new Set(['natatorium', 'orientation', 'neon_flood', 'sunken_jungle']);
+  if (!openSkyMaps.has(layout.mapId)) {
     const mapW = layout.bounds.maxX - layout.bounds.minX;
     const mapD = layout.bounds.maxZ - layout.bounds.minZ;
     const mapCx = (layout.bounds.minX + layout.bounds.maxX) * 0.5;
