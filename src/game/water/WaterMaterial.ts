@@ -98,56 +98,50 @@ float ripple(vec2 p, vec4 r, float time, inout vec2 grad) {
   return h;
 }
 
-// 4-wave Gerstner broad swell displacement and analytic normal slope accumulator (Phase G / Prompt 7 D125)
-// Dominant wavelengths in 2.5–6m band: 4.70m, 3.60m, 5.40m, 2.80m with long-period gentle breathing motion.
+// 3-wave Gerstner calm broad swell displacement & analytic slope accumulator (Water v5 / Prompt 3)
+// Dominant wavelengths in 3.0–8.0m band: 6.40m, 4.50m, 3.20m with viscous breathing motion.
 void evaluateGerstner(vec2 pos, float time, float scale, out vec3 disp, out vec2 slope) {
   disp = vec3(0.0);
   slope = vec2(0.0);
 
-  // Broad swell wavenumbers in [2.5, 6.0]m band
-  float k1 = 1.33685; // 2pi / 4.70m
-  float k2 = 1.74533; // 2pi / 3.60m
-  float k3 = 1.16355; // 2pi / 5.40m
-  float k4 = 2.24399; // 2pi / 2.80m
+  // Broad swell wavenumbers in [3.0, 8.0]m band
+  float k1 = 0.98175; // 2pi / 6.40m
+  float k2 = 1.39626; // 2pi / 4.50m
+  float k3 = 1.96350; // 2pi / 3.20m
 
   // Directions spread over gentle forward swell
-  vec2 d1 = vec2(0.9888, 0.1494);
-  vec2 d2 = vec2(0.8870, 0.4618);
-  vec2 d3 = vec2(0.7071, 0.7071);
-  vec2 d4 = vec2(0.4085, 0.9128);
+  vec2 d1 = vec2(0.9659, 0.2588);
+  vec2 d2 = vec2(0.7071, 0.7071);
+  vec2 d3 = vec2(0.3420, 0.9397);
 
-  // Amplitudes: low gentle amplitude broad swell
-  float a1 = 0.014 * scale;
-  float a2 = 0.009 * scale;
-  float a3 = 0.007 * scale;
-  float a4 = 0.003 * scale;
+  // Low gentle amplitude broad swell (total amplitude <= 0.035m)
+  float a1 = 0.016 * scale;
+  float a2 = 0.010 * scale;
+  float a3 = 0.005 * scale;
 
-  // Frequencies: long period, speed multiplier 0.35
-  float w1 = 3.623 * 0.35;
-  float w2 = 5.176 * 0.35;
-  float w3 = 7.485 * 0.35;
-  float w4 = 10.135 * 0.35;
+  // Frequencies: long period, slow viscous breathing multiplier 0.28
+  float w1 = 2.40 * 0.28;
+  float w2 = 3.80 * 0.28;
+  float w3 = 5.60 * 0.28;
 
-  float q = 0.45;
+  float q = 0.32;
 
   float ph1 = dot(d1, pos) * k1 + time * w1;
   float ph2 = dot(d2, pos) * k2 + time * w2;
   float ph3 = dot(d3, pos) * k3 + time * w3;
-  float ph4 = dot(d4, pos) * k4 + time * w4;
 
   float cos1 = cos(ph1); float sin1 = sin(ph1);
   float cos2 = cos(ph2); float sin2 = sin(ph2);
   float cos3 = cos(ph3); float sin3 = sin(ph3);
-  float cos4 = cos(ph4); float sin4 = sin(ph4);
 
   // Trochoidal horizontal and vertical displacements
-  disp.x = -(q * a1 * d1.x * cos1 + q * a2 * d2.x * cos2 + q * a3 * d3.x * cos3 + q * a4 * d4.x * cos4);
-  disp.z = -(q * a1 * d1.y * cos1 + q * a2 * d2.y * cos2 + q * a3 * d3.y * cos3 + q * a4 * d4.y * cos4);
-  disp.y = a1 * sin1 + a2 * sin2 + a3 * sin3 + a4 * sin4;
+  disp.x = -(q * a1 * d1.x * cos1 + q * a2 * d2.x * cos2 + q * a3 * d3.x * cos3);
+  disp.z = -(q * a1 * d1.y * cos1 + q * a2 * d2.y * cos2 + q * a3 * d3.y * cos3);
+  disp.y = a1 * sin1 + a2 * sin2 + a3 * sin3;
 
   // Analytic Gerstner normal slopes
-  slope.x = a1 * k1 * d1.x * cos1 + a2 * k2 * d2.x * cos2 + a3 * k3 * d3.x * cos3 + a4 * k4 * d4.x * cos4;
-  slope.y = a1 * k1 * d1.y * cos1 + a2 * k2 * d2.y * cos2 + a3 * k3 * d3.y * cos3 + a4 * k4 * d4.y * cos4;
+  slope.x = a1 * k1 * d1.x * cos1 + a2 * k2 * d2.x * cos2 + a3 * k3 * d3.x * cos3;
+  slope.y = a1 * k1 * d1.y * cos1 + a2 * k2 * d2.y * cos2 + a3 * k3 * d3.y * cos3;
 }
 
 void main() {
@@ -320,26 +314,28 @@ float G_Smith(float NdotV, float NdotL, float roughness) {
 vec3 evalGGX(vec3 N, vec3 V, vec3 L, vec3 lightColor, float intensity, float roughness) {
   vec3 H = normalize(V + L);
   float NdotH = max(0.0, dot(N, H));
-  if (NdotH < 0.5) return vec3(0.0);
+  if (NdotH < 0.65) return vec3(0.0);
   float NdotV = max(1e-4, dot(N, V));
   float NdotL = max(0.0, dot(N, L));
   float VdotH = max(0.0, dot(V, H));
 
   float F = 0.02 + 0.98 * pow(1.0 - VdotH, 5.0);
 
-  // Microfacet sharp glint lobe (roughness 0.06 - 0.09)
-  float D1 = D_GGX(NdotH, roughness);
-  float G1 = G_Smith(NdotV, NdotL, roughness);
+  // Broadened roughness floor 0.12 to prevent pointillist sparkling noise (Prompt 3 Phase A)
+  float r1 = max(0.12, roughness);
+  float D1 = D_GGX(NdotH, r1);
+  float G1 = G_Smith(NdotV, NdotL, r1);
   float spec1 = (D1 * F * G1) / (4.0 * NdotV * max(0.01, NdotL));
 
   // Broader streak highlight lobe
-  float r2 = 0.16;
+  float r2 = max(0.24, roughness * 1.6);
   float D2 = D_GGX(NdotH, r2);
   float G2 = G_Smith(NdotV, NdotL, r2);
   float spec2 = (D2 * F * G2) / (4.0 * NdotV * max(0.01, NdotL));
 
-  float glintMask = smoothstep(0.5, 0.85, NdotH);
-  float totalSpec = (spec1 * 1.5 + spec2 * 0.5) * glintMask;
+  // Cap glint fraction <= 0.03
+  float glintMask = smoothstep(0.68, 0.94, NdotH);
+  float totalSpec = (spec1 * 0.7 + spec2 * 0.4) * glintMask;
   return lightColor * (totalSpec * intensity * NdotL);
 }
 
@@ -371,40 +367,35 @@ void main() {
     float sceneLinearDepth = -perspectiveDepthToLinearZ(rawSceneDepth, uCameraNear, uCameraFar);
     float diffZ = sceneLinearDepth - waterLinearDepth;
     // Discard water fragment if opaque geometry is closer than the water surface (above water / in front)
-    // 0.05m tolerance prevents grazing angles from punching holes in platform slab sides
-    if (diffZ < -0.05) {
+    // 0.02m tolerance prevents grazing angles from punching holes in platform slab sides while eliminating z-fight
+    if (diffZ < -0.02) {
       discard;
     }
     thickness = clamp(diffZ, 0.0, mapDepth * 1.5 + 0.1);
   }
 
-  // 4. Broad detail swells at 3 scales: 4.8m, 2.2m, 0.95m (eliminating high-frequency edge chatter)
-  float animSpeed = max(0.04, uScrollSpeed) * 1.2;
+  // 4. Broad detail swells at 3 scales: 7.2m, 4.1m, 2.0m (eliminating high-frequency edge chatter)
+  float animSpeed = max(0.03, uScrollSpeed) * 0.95;
 
-  vec2 uv1 = p / 4.8 + vec2(uTime * animSpeed * 0.25, uTime * animSpeed * 0.18);
-  vec2 uv2 = p / 2.2 - vec2(uTime * animSpeed * 0.35, -uTime * animSpeed * 0.26);
-  vec2 uv3 = p / 0.95 + vec2(-uTime * animSpeed * 0.45, uTime * animSpeed * 0.38);
+  vec2 uv1 = p / 7.2 + vec2(uTime * animSpeed * 0.18, uTime * animSpeed * 0.12);
+  vec2 uv2 = p / 4.1 - vec2(uTime * animSpeed * 0.24, -uTime * animSpeed * 0.18);
+  vec2 uv3 = p / 2.0 + vec2(-uTime * animSpeed * 0.32, uTime * animSpeed * 0.26);
 
   vec3 norm1 = texture2D(uNormalMap, uv1).rgb * 2.0 - 1.0;
   vec3 norm2 = texture2D(uNormalMap, uv2).rgb * 2.0 - 1.0;
   vec3 norm3 = texture2D(uNormalMap, uv3).rgb * 2.0 - 1.0;
 
   float distToCam = length(vViewPos);
-  float nearFade = clamp(1.0 - distToCam / 12.0, 0.0, 1.0);
+  float nearFade = clamp(1.0 - distToCam / 14.0, 0.0, 1.0);
   float distFade = clamp(1.0 - distToCam / 70.0, 0.0, 1.0);
 
-  // Toksvig-style anti-aliasing roughness increase
+  // Toksvig-style anti-aliasing roughness increase with 0.12 roughness floor
   float avgLen = length(norm1.xy * 0.35 + norm2.xy * 0.22);
   float variance = (1.0 - min(1.0, avgLen)) / max(0.01, avgLen);
-  float roughness = clamp(sqrt(uBaseRoughness * uBaseRoughness + variance * 0.28), 0.09, 0.42);
+  float roughness = clamp(sqrt(uBaseRoughness * uBaseRoughness + variance * 0.28), 0.12, 0.48);
 
   // Combine slopes before normalizing (soft broad swells)
-  vec2 slopeDetail = (norm1.xy * 0.011 + norm2.xy * 0.006 + norm3.xy * (0.002 * nearFade)) * (uNormalScale * mix(0.03, 0.045, distFade));
-
-  // Gentle soft glint term without high-frequency pointillist chatter
-  float sparkleNoise = sin(p.x * 12.0 + uTime * 1.8) * cos(p.y * 11.0 - uTime * 1.5)
-                    + sin((p.x + p.y) * 16.0 - uTime * 2.2) * 0.5;
-  float sparkle = smoothstep(1.25, 1.48, sparkleNoise);
+  vec2 slopeDetail = (norm1.xy * 0.007 + norm2.xy * 0.0035 + norm3.xy * (0.0012 * nearFade)) * (uNormalScale * mix(0.018, 0.030, distFade));
 
   // Add analytic ripples
   vec2 rippleGrad = vec2(0.0);
@@ -414,7 +405,7 @@ void main() {
   }
   vec2 slopeRipple = -rippleGrad * 0.012;
 
-  // Add V-shaped Kelvin wakes (19.5 degrees half-angle)
+  // Add V-shaped Kelvin wakes (19.5 degrees half-angle) with 2-3s exponential decay
   float wakeFoam = 0.0;
   vec2 wakeGrad = vec2(0.0);
   const float KELVIN_TAN = 0.3541;
@@ -437,16 +428,16 @@ void main() {
     if (along > 0.0 && along < length) {
       float ridgeDist = along * KELVIN_TAN;
       float dRidge = abs(abs(across) - ridgeDist);
-      float wakeWidth = 0.14 + 0.06 * along;
+      float wakeWidth = 0.18 + 0.08 * along;
       float ridgeEnv = exp(-(dRidge * dRidge) / (wakeWidth * wakeWidth));
       float ridgeSlope = (dRidge / wakeWidth) * ridgeEnv;
-      float fade = min(0.45, (1.0 - along / length) * strength);
+      float fade = min(0.35, exp(-along / max(1.0, length * 0.45)) * strength);
 
-      wakeFoam += ridgeEnv * fade * 1.6;
-      wakeGrad += perp(wakeDir) * sign(across) * ridgeSlope * fade * 1.5;
+      wakeFoam += ridgeEnv * fade * 1.1;
+      wakeGrad += perp(wakeDir) * sign(across) * ridgeSlope * fade * 0.9;
     }
   }
-  vec2 slopeWake = -wakeGrad * 2.5;
+  vec2 slopeWake = -wakeGrad * 1.4;
 
   // Add wave simulation slope if available (Phase C: Medium & High)
   vec2 slopeSim = vec2(0.0);
@@ -541,22 +532,22 @@ void main() {
   float deepRatio = clamp((thickness - 0.35) / 0.35, 0.0, 1.0);
   float depthAlpha = mix(shallowAlpha, 1.0, deepRatio);
 
-  // Animated Caustics: broad gentle caustic bands illuminating submerged floor in shallow water (< 1.5m)
+  // Animated Caustics: broad gentle caustic webs illuminating submerged floor in shallow water (< 1.1m)
   vec3 causticLight = vec3(0.0);
-  if (thickness < 1.5) {
-    vec2 cUv1 = p * 0.35 + vec2(uTime * 0.05, uTime * 0.04) + normal.xz * 0.03;
-    vec2 cUv2 = p * 0.45 + vec2(-uTime * 0.04, uTime * 0.05) + normal.zx * 0.03;
-    float c1 = sin(cUv1.x * 2.8 + sin(cUv1.y * 2.2 + uTime * 0.4)) * 0.5 + 0.5;
-    float c2 = cos(cUv2.x * 2.5 + cos(cUv2.y * 2.8 - uTime * 0.35)) * 0.5 + 0.5;
-    float caustic = pow(min(c1, c2), 1.8) * 0.8;
-    float causticFade = smoothstep(1.5, 0.15, thickness);
-    vec3 causticCol = mix(vec3(0.9, 1.0, 0.95), vec3(1.0, 0.98, 0.9), 0.5);
-    causticLight = causticCol * caustic * causticFade * 0.12;
+  if (thickness < 1.1) {
+    vec2 cUv1 = p * 0.22 + vec2(uTime * 0.035, uTime * 0.028) + normal.xz * 0.02;
+    vec2 cUv2 = p * 0.30 + vec2(-uTime * 0.028, uTime * 0.035) + normal.zx * 0.02;
+    float c1 = sin(cUv1.x * 2.2 + sin(cUv1.y * 1.8 + uTime * 0.3)) * 0.5 + 0.5;
+    float c2 = cos(cUv2.x * 2.0 + cos(cUv2.y * 2.2 - uTime * 0.25)) * 0.5 + 0.5;
+    float caustic = pow(min(c1, c2), 1.6) * 0.45;
+    float causticFade = smoothstep(1.1, 0.15, thickness);
+    vec3 causticCol = mix(vec3(0.88, 0.98, 0.92), vec3(0.96, 0.96, 0.88), 0.5);
+    causticLight = causticCol * (caustic * causticFade * 0.05);
   }
 
   // Veil must be gated by optical path length or it becomes a flat white sheet.
   float veilGate = (1.0 - exp(-thickness * 1.6)) * (1.0 - floorVisibility);
-  vec3 milkyVeil = vec3(0.85, 0.94, 0.88) * (0.005 * veilGate);
+  vec3 milkyVeil = vec3(0.85, 0.94, 0.88) * (0.003 * veilGate);
   vec3 transmittedFloor = (sceneSample + causticLight) * T;
   vec3 absorbedWater = mix(transmittedFloor, scatter, depthAlpha) + milkyVeil;
 
@@ -585,17 +576,15 @@ void main() {
   float fresnelFactor = mix(0.18, 0.70, pow(1.0 - NdotV, 3.0));
   vec3 waterColor = mix(absorbedWater, reflectColor, fresnel * fresnelFactor);
 
-  // 9. Sun GGX Specular Glint & Horizontal Pale Specular Streaks (#d6dccd)
-  vec3 sunSpec = evalGGX(normal, viewDir, uSunDir, uSpecularColor, 0.45, roughness);
-  vec3 sparkleNormal = normalize(normal + vec3(sparkle * 0.05, 0.0, sparkle * 0.05));
-  sunSpec += evalGGX(sparkleNormal, viewDir, uSunDir, uSpecularColor, 0.45 * sparkle, roughness * 0.9);
-  waterColor += clamp(sunSpec, 0.0, 0.65);
+  // 9. Sun GGX Specular Glint & Horizontal Pale Specular Streaks (#7b9e5e)
+  vec3 sunSpec = evalGGX(normal, viewDir, uSunDir, uSpecularColor, 0.32, roughness);
+  waterColor += clamp(sunSpec, 0.0, 0.38);
 
-  // Horizontal Pale Specular Streaks (anisotropic highlights along wave crests)
+  // Horizontal Pale Specular Streaks (anisotropic highlights along wave crests, no pointillist noise)
   vec3 H_glint = normalize(viewDir + uSunDir);
-  vec3 anisoNormal = normalize(vec3(normal.x * 0.32, normal.y, normal.z));
+  vec3 anisoNormal = normalize(vec3(normal.x * 0.18, normal.y, normal.z));
   float specBase = max(0.0, dot(anisoNormal, H_glint));
-  float specWave = pow(specBase, 28.0) * 0.16;
+  float specWave = pow(specBase, 18.0) * 0.12;
   waterColor += uSpecularColor * specWave;
 
   // 10. LightStreaks (up to 16 area/line light proxies) evaluated via GGX
@@ -616,8 +605,8 @@ void main() {
     vec3 lDir = normalize(lightVec);
 
     float atten = 1.0 / (1.0 + 0.02 * distSq);
-    vec3 streakSpec = evalGGX(normal, viewDir, lDir, sCol, sInt * atten * 0.65, roughness);
-    waterColor += clamp(streakSpec, 0.0, 0.5);
+    vec3 streakSpec = evalGGX(normal, viewDir, lDir, sCol, sInt * atten * 0.55, roughness);
+    waterColor += clamp(streakSpec, 0.0, 0.38);
   }
 
   // 11. Soft Shoreline & Contact Foam (from depth gradient meniscus + 3-octave foam)
@@ -660,6 +649,14 @@ void main() {
   vec3 foamColor = vec3(0.90, 0.94, 0.88);
   waterColor = mix(waterColor, foamColor, totalFoam * clamp(uFoamStrength * 1.2, 0.15, 0.85));
 
+  // Depth-based screenspace meniscus line (2–4 cm #f5fff9, f_022)
+  vec3 meniscusColor = vec3(0.961, 1.0, 0.976);
+  float meniscusLine = 0.0;
+  if (hasTrueDepth) {
+    meniscusLine = smoothstep(0.040, 0.015, thickness) * smoothstep(0.0005, 0.008, thickness);
+    waterColor = mix(waterColor, meniscusColor, meniscusLine * 0.70);
+  }
+
   // Piecewise Beer-Lambert depth transmittance:
   // (a) shallow water <= 0.35 m deep: effective surface alpha 0.20-0.35 revealing cracked pool floor
   // (b) mid water 0.35-0.9 m: translucent green with floor faintly present
@@ -667,10 +664,11 @@ void main() {
   float fresnelTerm = pow(1.0 - max(dot(viewDir, normal), 0.0), 4.0);
   float fresnelAlpha = mix(depthAlpha, max(depthAlpha, 0.85), fresnelTerm);
 
-  // Soft Edge Alpha: blend alpha to 0 over the last 3 cm of thickness
-  float softEdge = clamp(thickness / 0.03, 0.0, 1.0);
+  // Soft Edge Alpha: smoothly fade water over the final 2-3 cm to prevent hard-edge clipping or z-fighting
+  float softEdge = smoothstep(0.001, 0.028, thickness);
   float alpha = hasTrueDepth ? softEdge : (softEdge * fresnelAlpha);
   alpha = max(alpha, totalFoam * 0.92);
+  alpha = max(alpha, meniscusLine * 0.88);
 
   // Readability: never let water opacity exceed 0.6 within 3m of monster waterline
   float distToMonster = length(vWorldPos.xz - uMonsterPos.xz);
@@ -687,14 +685,18 @@ void main() {
     waterColor += uBiolumColor * glow;
   }
 
-  // 13. Submerged underwater grading (Prompt 2: clear emerald-mint water, not dark swamp)
+  // 13. Submerged underwater grading: inside the mint interior (f_034)
   if (uUnderwater > 0.5) {
-    vec3 underwaterTint = mix(uColorShallow, uColorDeep, 0.65) * 1.25;
-    waterColor = mix(waterColor * 1.15, underwaterTint, 0.60);
+    vec3 cUnderwaterNear = mix(vec3(0.243, 0.353, 0.173), mix(uColorShallow, uColorDeep, 0.65), 0.30); // #3e5a2c
+    vec3 cUnderwaterFar = vec3(0.173, 0.267, 0.125);  // #2c4420
+    float uDist = length(vViewPos);
+    float uFog = clamp(uDist / 20.0, 0.0, 1.0);
+    vec3 uWaterVolume = mix(cUnderwaterNear, cUnderwaterFar, uFog);
+    waterColor = mix(waterColor * 0.85, uWaterVolume, 0.72);
     alpha = max(alpha, 0.92);
   }
 
-  // 14. Fog & Horizon Blowout (Height fog + FogExp2)
+  // 14. Fog & Horizon Melt (Height fog + FogExp2, Glitch G8)
   #ifdef USE_FOG
     #ifdef FOG_EXP2
       float baseFogFactor = 1.0 - exp( - fogDensity * fogDensity * vFogDepth * vFogDepth );
@@ -708,11 +710,9 @@ void main() {
     float grazingMist = pow(1.0 - max(0.0, dot(normal, viewDir)), 4.5) * 0.25 * smoothstep(5.0, 25.0, vFogDepth);
     float finalFogFactor = clamp(baseFogFactor + (hMist + grazingMist) * (1.0 - baseFogFactor) * smoothstep(0.0, 5.0, vFogDepth), 0.0, 1.0);
 
-    // Fast whip-turn surface haze at water surface (f_032)
-    float whipSurfaceBank = pow(1.0 - max(0.0, dot(vec3(0.0, 1.0, 0.0), viewDir)), 3.0) * smoothstep(4.0, 18.0, vFogDepth) * 0.18;
-    vec3 farWaterTint = mix(fogColor, vec3(0.50, 0.70, 0.48), 0.75);
-    vec3 horizonColor = mix(farWaterTint, uSpecularColor, whipSurfaceBank * 0.5);
-    horizonColor = mix(horizonColor, uSpecularColor, smoothstep(0.70, 1.0, finalFogFactor) * 0.50);
+    // Grazing & distant horizon: melt water seamlessly into scene fog (#d6dccd) without white blowout band (G8)
+    vec3 farWaterTint = mix(fogColor, vec3(0.48, 0.62, 0.44), 0.35);
+    vec3 horizonColor = mix(farWaterTint, fogColor, smoothstep(0.50, 0.95, finalFogFactor));
 
     gl_FragColor.rgb = mix( waterColor, horizonColor, finalFogFactor );
     gl_FragColor.a = mix( alpha, 1.0, finalFogFactor );
