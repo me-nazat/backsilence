@@ -544,6 +544,54 @@ export class SplashSystem {
   }
 
   /**
+   * Spawns player limb contact splashes using authentic ink-and-foam vocabulary (f_010–f_012, f_018):
+   * - Hands/crouch/crawl: dark viscous ink droplets #1e1a14 and expanding ink ring.
+   * - Feet/wade: white foam ring strictly at feet (#e8f2e6, max radius 0.32m, life 0.38s).
+   */
+  spawnPlayerLimbSplash(
+    pos: Vector3 | { x: number; y: number; z: number },
+    limb: 'hand' | 'foot',
+    strength = 1.0,
+  ): void {
+    if (limb === 'hand') {
+      this.spawnInkSplash(pos, strength, false);
+    } else {
+      this.spawnInkSplash(pos, strength, true);
+    }
+  }
+
+  /**
+   * Spawns 3 broken concentric elliptical ripple rings with slow expansion matching graffiti motif (f_028).
+   */
+  spawnDripRings(
+    pos: Vector3 | { x: number; y: number; z: number },
+    strength = 0.6,
+  ): void {
+    const scale = Math.max(0.4, Math.min(1.5, strength));
+    const ringsConfig = [
+      { r0: 0.08, rMax: 0.55, maxAge: 1.4 },
+      { r0: 0.18, rMax: 0.95, maxAge: 1.8 },
+      { r0: 0.28, rMax: 1.35, maxAge: 2.2 },
+    ];
+    for (let r = 0; r < 3; r++) {
+      const ringIdx = this.ringHead;
+      const ring = this.rings[ringIdx]!;
+      ring.active = true;
+      ring.x = pos.x;
+      ring.y = this.waterY + 0.006 + r * 0.003;
+      ring.z = pos.z;
+      ring.radius = ringsConfig[r]!.r0 * scale;
+      ring.maxRadius = ringsConfig[r]!.rMax * scale;
+      ring.age = 0;
+      ring.maxAge = ringsConfig[r]!.maxAge;
+      ring.isInk = false;
+      this.ringMesh.setColorAt(ringIdx, this.whiteFoamRingColor);
+      this.ringHead = (this.ringHead + 1) % SplashSystem.MAX_RINGS;
+    }
+    if (this.ringMesh.instanceColor) this.ringMesh.instanceColor.needsUpdate = true;
+  }
+
+  /**
    * Spawns an authentic 7-pointed crown splash mesh with rising droplet column,
    * tip droplets, and three broken ellipse ripple rings (f_001–f_003, f_018).
    */
@@ -725,14 +773,48 @@ export class SplashSystem {
     return { loudness, hearingRadius };
   }
 
-  /** Profile 4: Pebble in water (single crown splash + three broken ellipse ripples, 0.6, no wake) */
+  /** Profile 4: Pebble / Throwable in water (crown splash -> ink ring -> drip rings, 0.60 <= 24m) */
   spawnPebbleSplash(pos: Vector3 | { x: number; y: number; z: number }): { loudness: number; hearingRadius: number } {
-    this.spawnCrownSplash(pos, 0.75, false);
+    return this.spawnThrowableSplash(pos, 0.75);
+  }
+
+  /**
+   * Throwable impact splash (Prompt 3 Phase C):
+   * Crown splash -> ink ring -> drip rings with loudness 0.60, hearing radius 24.0m.
+   */
+  spawnThrowableSplash(
+    pos: Vector3 | { x: number; y: number; z: number },
+    strength = 0.75,
+  ): { loudness: number; hearingRadius: number } {
+    this.spawnCrownSplash(pos, strength, false);
+
+    // Viscous dark ink ring
+    const inkRingIdx = this.ringHead;
+    const inkRing = this.rings[inkRingIdx]!;
+    inkRing.active = true;
+    inkRing.x = pos.x;
+    inkRing.y = this.waterY + 0.012;
+    inkRing.z = pos.z;
+    inkRing.radius = 0.12;
+    inkRing.maxRadius = 0.55 * strength;
+    inkRing.age = 0;
+    inkRing.maxAge = 0.85;
+    inkRing.isInk = true;
+    this.ringMesh.setColorAt(inkRingIdx, this.inkRingColor);
+    this.ringHead = (this.ringHead + 1) % SplashSystem.MAX_RINGS;
+    if (this.ringMesh.instanceColor) this.ringMesh.instanceColor.needsUpdate = true;
+
+    // Expanding concentric drip rings
+    this.spawnDripRings(pos, strength * 0.7);
 
     const flash = this.flashes[this.flashHead]!;
     flash.active = true;
-    flash.x = pos.x; flash.y = this.waterY + 0.015; flash.z = pos.z;
-    flash.maxScale = 0.42; flash.age = 0; flash.maxAge = 0.08;
+    flash.x = pos.x;
+    flash.y = this.waterY + 0.015;
+    flash.z = pos.z;
+    flash.maxScale = 0.42 * strength;
+    flash.age = 0;
+    flash.maxAge = 0.08;
     this.flashHead = (this.flashHead + 1) % SplashSystem.MAX_FLASHES;
 
     return { loudness: 0.6, hearingRadius: 24.0 };

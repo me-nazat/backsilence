@@ -3566,7 +3566,7 @@ export class GameSession {
 
     if (impact.isWater) {
       this.audio.play('pebble_plink', { position: pos, gain: 0.85 });
-      this.water?.splashes.burst(pos, 0.75);
+      this.water?.splashes.spawnThrowableSplash(pos, 0.75);
       this.water?.rippleManager.spawnPebbleImpact(pos.x, pos.z);
       this.water?.onRipple({
         position: pos,

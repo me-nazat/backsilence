@@ -479,8 +479,8 @@ async function main() {
       // Wake override
       ${shot.wake ? `session.water.wakes.addWake(${shot.wake.x}, ${shot.wake.z}, ${shot.wake.dirX}, ${shot.wake.dirZ}, ${shot.wake.speed}, 3.5); if (session.water && session.water.wakes) session.water.wakes.upload();` : ''}
 
-      // Drip override
-      ${shot.drip ? `session.water.ripples.addRipple(${shot.drip.x}, ${shot.drip.z}, ${shot.drip.strength}, session.simWorld.simTime - 0.45);` : ''}
+      // Drip override (Water v5 3-concentric broken elliptical rings)
+      ${shot.drip ? `session.water.ripples.addRipple(${shot.drip.x}, ${shot.drip.z}, ${shot.drip.strength}, session.simWorld.simTime - 0.45); if (session.water && session.water.splashes && typeof session.water.splashes.spawnDripRings === 'function') session.water.splashes.spawnDripRings({ x: ${shot.drip.x}, y: session.water.currentWaterY, z: ${shot.drip.z} }, ${shot.drip.strength});` : ''}
 
       // Monster wake override
       ${shot.monsterWake ? `session.water.wakes.addWake(0.0, 8.0, 0.0, 1.0, 2.0, 1.0); if (session.water && session.water.wakes) session.water.wakes.upload(); session.water.splashes.burst({ x: 0.0, y: session.water.currentWaterY, z: 8.0 }, 0.05, true);` : ''}
