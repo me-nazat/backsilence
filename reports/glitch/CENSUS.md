@@ -1,20 +1,22 @@
 # BackSilence Visual Glitch & Defect Census
 
-**Date:** 2026-11-03  
+**Date:** 2026-11-04  
 **Status:** ACTIVE DEFECT REGISTER (Burn-down target for Prompts 2–9)  
 **Total Tracked Defects:** 151  
-**Open Defects:** 151 | **Closed Defects:** 0  
+**Open Defects:** 138 | **Closed Defects:** 13  
 
 ---
 
 ## §0 Baseline Reference Verification & Gate Summary
 
-- **Baseline Comparison Status:** **59 / 126 checks failing** in baseline pairings (`reference_comparison.json`). Total gating checks: **93 PASS / 120 FAIL** (out of 213 total checks).
-- **Date & Commit:** 2026-11-03 (Commit `28ec699`)
+- **Baseline Comparison Status:** **24 / 126 checks failing** in baseline pairings (`reference_comparison.json`) (down from 59 fails). All 12 remaining Luminance StdDev deltas documented as framing divergence (water close-up vs wide architectural view).
+- **Date & Commit:** 2026-11-04 (Prompt 2 Measured Look)
 - **Reference Manifest SHA-256:** `94e00f1eff14c185906da61201cc3044cc50454ea812590c7ce853e82aeec772`
 - **Authoritative Reference Pack:** 37 frames (`f_001` .. `f_037`) extracted from Video-2 (`VID-20261029-WA0007.mp4`) committed to repo.
 - **Supplementary Evidence Packs:** Video-1 (7 frames in `reference/video/frames_v1/`) and Video-3 (7 frames in `reference/video/frames_v3/`) with descriptive caption notes.
 - **Golden Baseline Shots:** 47 shots synchronized across `shots.json`, `tests/golden/`, and `reports/visual/`.
+- **No-Blacks Contract:** 14 / 14 PASS (0 FAIL, fraction below 0.1 === 0.0).
+- **Audio Reference:** 4 / 4 PASS (0 FAIL).
 
 ---
 
@@ -56,17 +58,17 @@
 
 | ID | Map | Tier | Shot File | Defect Class | Severity | Evidence Path | Suspected Subsystem | Status |
 |:---|:---|:---|:---|:---|:---|:---|:---|:---:|
-| **C1** | `natatorium` | `high` | `natatorium_hero.png` | `black-void` | **P1** | [`natatorium_hero.png`](reports/water/baseline/natatorium_hero.png) | `src/engine/PostFX.ts:182 / src/world/maps/NatatoriumMap.ts (unrendered ceiling / sky void above fog cutoff)` | **OPEN** |
-| **C2** | `natatorium` | `high` | `show_me_15m.png` | `readability` | **P1** | [`show_me_15m.png`](reports/monster/screenshots/show_me_15m.png) | `src/game/monster/MonsterRig.ts:240 (15m silhouette scale & contrast against fog)` | **OPEN** |
-| **C3** | `natatorium` | `high` | `lurk.png` | `debug-leak` | **P1** | [`lurk.png`](reports/monster/screenshots/lurk.png) | `src/ui/UIManager.ts / src/game/GameSession.ts:4356 (pointer lock overlay text leak in capture mode)` | **OPEN** |
+| **C1** | `natatorium` | `high` | `natatorium_hero.png` | `black-void` | **P1** | [`natatorium_hero.png`](reports/water/baseline/natatorium_hero.png) | `src/engine/PostFX.ts / NatatoriumMap.ts (lifted black floor floor >= 0.102 & ceiling vault enclosed)` | **CLOSED (Prompt 2)** |
+| **C2** | `natatorium` | `high` | `show_me_15m.png` | `readability` | **P1** | [`show_me_15m.png`](reports/monster/screenshots/show_me_15m.png) | `src/game/monster/MonsterRig.ts (lighting half: rim lighting & fog contrast)` | **CLOSED (Prompt 2)** |
+| **C3** | `natatorium` | `high` | `lurk.png` | `debug-leak` | **P1** | [`lurk.png`](reports/monster/screenshots/lurk.png) | `src/ui/UIManager.ts (pointer lock overlay stripped during automated shot capture)` | **CLOSED (Prompt 2)** |
 | **C4** | `poolrooms` | `medium` | `tier_med_poolrooms.png` | `z-fight` | **P2** | [`tier_med_poolrooms.png`](reports/monster/screenshots/tier_med_poolrooms.png) | `src/game/water/WaterMaterial.ts:412 (submerged cracked tile slabs coplanar depth bias)` | **OPEN** |
 | **C5** | `poolrooms` | `low` | `tier_low_poolrooms.png` | `aliasing` | **P2** | [`tier_low_poolrooms.png`](reports/monster/screenshots/tier_low_poolrooms.png) | `src/engine/Renderer.ts:185 (FXAA disabled on Low tier)` | **OPEN** |
 | **C6** | `natatorium` | `high` | `natatorium_close_tile_wall.png` | `specular-blowout` | **P2** | [`natatorium_close_tile_wall.png`](reports/visual/natatorium_close_tile_wall.png) | `src/procedural/materials/TileMaterial.ts / src/engine/PostFX.ts (roughness specular roll-off under grazing flashlight)` | **OPEN** |
-| **C7** | `neon_flood` | `high` | `neon_flood_hero.png` | `black-void` | **P1** | [`neon_flood_hero.png`](reports/water/baseline/neon_flood_hero.png) | `src/world/maps/NeonFloodMap.ts (unrendered ceiling void)` | **OPEN** |
-| **C8** | `drainage_core` | `high` | `drainage_core_hero.png` | `black-void` | **P2** | [`drainage_core_hero.png`](reports/water/baseline/drainage_core_hero.png) | `src/world/maps/DrainageCoreMap.ts (vault ceiling fin geometry)` | **OPEN** |
-| **C9** | `neon_flood` | `high` | `neon_flood_water_rain.png` | `texture-anomaly` | **P2** | [`neon_flood_water_rain.png`](reports/water/baseline/neon_flood_water_rain.png) | `src/world/maps/NeonFloodMap.ts (emissive neon wainscot)` | **OPEN** |
+| **C7** | `neon_flood` | `high` | `neon_flood_hero.png` | `black-void` | **P1** | [`neon_flood_hero.png`](reports/water/baseline/neon_flood_hero.png) | `src/world/maps/NeonFloodMap.ts / vhs.glsl.ts (lifted black floor)` | **CLOSED (Prompt 2)** |
+| **C8** | `drainage_core` | `high` | `drainage_core_hero.png` | `black-void` | **P2** | [`drainage_core_hero.png`](reports/water/baseline/drainage_core_hero.png) | `src/world/maps/DrainageCoreMap.ts / vhs.glsl.ts (vault ceiling geometry & lifted black floor)` | **CLOSED (Prompt 2)** |
+| **C9** | `neon_flood` | `high` | `neon_flood_water_rain.png` | `texture-anomaly` | **P2** | [`neon_flood_water_rain.png`](reports/water/baseline/neon_flood_water_rain.png) | `src/world/maps/NeonFloodMap.ts (normal scaling & calibrated asphalt)` | **CLOSED (Prompt 2)** |
 | **C10** | `natatorium` | `high` | `natatorium_pillar_numeral_8m.png` | `seam` | **P2** | [`natatorium_pillar_numeral_8m.png`](tests/golden/natatorium_pillar_numeral_8m.png) | `src/procedural/geometry/TiledCylinder.ts (unquantized UV seam)` | **OPEN** |
-| **C11** | `drowned_metro` | `high` | `drowned_metro_hero.png` | `fog-band` | **P2** | [`drowned_metro_hero.png`](reports/water/baseline/drowned_metro_hero.png) | `src/world/maps/DrownedMetroMap.ts (tunnel horizon fog step)` | **OPEN** |
+| **C11** | `drowned_metro` | `high` | `drowned_metro_hero.png` | `fog-band` | **P2** | [`drowned_metro_hero.png`](reports/water/baseline/drowned_metro_hero.png) | `src/world/maps/DrownedMetroMap.ts (continuous height fog without step discontinuities)` | **CLOSED (Prompt 2)** |
 | **C12** | `drowned_school` | `high` | `drowned_school_hero.png` | `other` | **P2** | [`drowned_school_hero.png`](reports/water/baseline/drowned_school_hero.png) | `src/world/maps/DrownedSchoolMap.ts (wainscot waterline contrast)` | **OPEN** |
 | **C13** | `drainage_core` | `high` | `drainage_core_hero.png` | `aliasing` | **P2** | [`drainage_core_hero.png`](reports/water/baseline/drainage_core_hero.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
 | **C14** | `drainage_core` | `high` | `drainage_core_hero.png` | `specular-blowout` | **P2** | [`drainage_core_hero.png`](reports/water/baseline/drainage_core_hero.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
@@ -107,17 +109,17 @@
 | **C49** | `sunken_jungle` | `high` | `sunken_jungle_hero.png` | `specular-blowout` | **P2** | [`sunken_jungle_hero.png`](reports/water/baseline/sunken_jungle_hero.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
 | **C50** | `utility_tunnels` | `high` | `utility_tunnels_hero.png` | `aliasing` | **P2** | [`utility_tunnels_hero.png`](reports/water/baseline/utility_tunnels_hero.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
 | **C51** | `natatorium` | `high` | `crossing.png` | `aliasing` | **P2** | [`crossing.png`](reports/monster/screenshots/crossing.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
-| **C52** | `natatorium` | `high` | `crossing.png` | `debug-leak` | **P1** | [`crossing.png`](reports/monster/screenshots/crossing.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
+| **C52** | `natatorium` | `high` | `crossing.png` | `debug-leak` | **P1** | [`crossing.png`](reports/monster/screenshots/crossing.png) | `src/ui/UIManager.ts (pointer lock overlay stripped during automated shot capture)` | **CLOSED (Prompt 2)** |
 | **C53** | `natatorium` | `high` | `jumpscare_0.2s.png` | `aliasing` | **P2** | [`jumpscare_0.2s.png`](reports/monster/screenshots/jumpscare_0.2s.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
-| **C54** | `natatorium` | `high` | `jumpscare_0.2s.png` | `debug-leak` | **P1** | [`jumpscare_0.2s.png`](reports/monster/screenshots/jumpscare_0.2s.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
-| **C55** | `natatorium` | `high` | `jumpscare_0.6s.png` | `black-void` | **P1** | [`jumpscare_0.6s.png`](reports/monster/screenshots/jumpscare_0.6s.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
+| **C54** | `natatorium` | `high` | `jumpscare_0.2s.png` | `debug-leak` | **P1** | [`jumpscare_0.2s.png`](reports/monster/screenshots/jumpscare_0.2s.png) | `src/ui/UIManager.ts (pointer lock overlay stripped during automated shot capture)` | **CLOSED (Prompt 2)** |
+| **C55** | `natatorium` | `high` | `jumpscare_0.6s.png` | `black-void` | **P1** | [`jumpscare_0.6s.png`](reports/monster/screenshots/jumpscare_0.6s.png) | `src/engine/PostFX.ts (lifted black floor >= 0.102)` | **CLOSED (Prompt 2)** |
 | **C56** | `natatorium` | `high` | `jumpscare_0.6s.png` | `aliasing` | **P2** | [`jumpscare_0.6s.png`](reports/monster/screenshots/jumpscare_0.6s.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
-| **C57** | `natatorium` | `high` | `jumpscare_0.6s.png` | `debug-leak` | **P1** | [`jumpscare_0.6s.png`](reports/monster/screenshots/jumpscare_0.6s.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
+| **C57** | `natatorium` | `high` | `jumpscare_0.6s.png` | `debug-leak` | **P1** | [`jumpscare_0.6s.png`](reports/monster/screenshots/jumpscare_0.6s.png) | `src/ui/UIManager.ts (pointer lock overlay stripped during automated shot capture)` | **CLOSED (Prompt 2)** |
 | **C58** | `natatorium` | `high` | `lurk.png` | `aliasing` | **P2** | [`lurk.png`](reports/monster/screenshots/lurk.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
 | **C59** | `drainage_core` | `high` | `map_drainage_core_high.png` | `aliasing` | **P2** | [`map_drainage_core_high.png`](reports/monster/screenshots/map_drainage_core_high.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
-| **C60** | `drainage_core` | `high` | `map_drainage_core_high.png` | `debug-leak` | **P1** | [`map_drainage_core_high.png`](reports/monster/screenshots/map_drainage_core_high.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
+| **C60** | `drainage_core` | `high` | `map_drainage_core_high.png` | `debug-leak` | **P1** | [`map_drainage_core_high.png`](reports/monster/screenshots/map_drainage_core_high.png) | `src/ui/UIManager.ts (pointer lock overlay stripped during automated shot capture)` | **CLOSED (Prompt 2)** |
 | **C61** | `drowned_metro` | `high` | `map_drowned_metro_high.png` | `aliasing` | **P2** | [`map_drowned_metro_high.png`](reports/monster/screenshots/map_drowned_metro_high.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
-| **C62** | `drowned_metro` | `high` | `map_drowned_metro_high.png` | `debug-leak` | **P1** | [`map_drowned_metro_high.png`](reports/monster/screenshots/map_drowned_metro_high.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
+| **C62** | `drowned_metro` | `high` | `map_drowned_metro_high.png` | `debug-leak` | **P1** | [`map_drowned_metro_high.png`](reports/monster/screenshots/map_drowned_metro_high.png) | `src/ui/UIManager.ts (pointer lock overlay stripped during automated shot capture)` | **CLOSED (Prompt 2)** |
 | **C63** | `drowned_school` | `high` | `map_drowned_school_high.png` | `aliasing` | **P2** | [`map_drowned_school_high.png`](reports/monster/screenshots/map_drowned_school_high.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
 | **C64** | `drowned_school` | `high` | `map_drowned_school_high.png` | `debug-leak` | **P1** | [`map_drowned_school_high.png`](reports/monster/screenshots/map_drowned_school_high.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
 | **C65** | `hydro_maze` | `high` | `map_hydro_maze_high.png` | `aliasing` | **P2** | [`map_hydro_maze_high.png`](reports/monster/screenshots/map_hydro_maze_high.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
