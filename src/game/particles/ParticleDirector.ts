@@ -76,7 +76,7 @@ export class ParticleDirector {
           float lat = abs(vUv.x - 0.5);
           if (lat > 0.45) discard;
           float a = smoothstep(0.45, 0.05, lat) * smoothstep(0.0, 0.1, vUv.y) * smoothstep(1.0, 0.7, vUv.y);
-          gl_FragColor = vec4(vColor, a * 0.75);
+          gl_FragColor = vec4(vColor, a * 0.18);
         }
       `,
     });

@@ -378,33 +378,33 @@ void main() {
     thickness = clamp(diffZ, 0.0, mapDepth * 1.5 + 0.1);
   }
 
-  // 4. Detail normals at 3 scales: 0.55m, 0.18m, 0.06m near camera
-  float animSpeed = max(0.04, uScrollSpeed) * 1.5;
+  // 4. Broad detail swells at 3 scales: 4.8m, 2.2m, 0.95m (eliminating high-frequency edge chatter)
+  float animSpeed = max(0.04, uScrollSpeed) * 1.2;
 
-  vec2 uv1 = p / 1.35 + vec2(uTime * animSpeed * 0.4, uTime * animSpeed * 0.28);
-  vec2 uv2 = p / 0.47 - vec2(uTime * animSpeed * 0.55, -uTime * animSpeed * 0.42);
-  vec2 uv3 = p / 0.14 + vec2(-uTime * animSpeed * 0.72, uTime * animSpeed * 0.6);
+  vec2 uv1 = p / 4.8 + vec2(uTime * animSpeed * 0.25, uTime * animSpeed * 0.18);
+  vec2 uv2 = p / 2.2 - vec2(uTime * animSpeed * 0.35, -uTime * animSpeed * 0.26);
+  vec2 uv3 = p / 0.95 + vec2(-uTime * animSpeed * 0.45, uTime * animSpeed * 0.38);
 
   vec3 norm1 = texture2D(uNormalMap, uv1).rgb * 2.0 - 1.0;
   vec3 norm2 = texture2D(uNormalMap, uv2).rgb * 2.0 - 1.0;
   vec3 norm3 = texture2D(uNormalMap, uv3).rgb * 2.0 - 1.0;
 
   float distToCam = length(vViewPos);
-  float nearFade = clamp(1.0 - distToCam / 9.0, 0.0, 1.0);
+  float nearFade = clamp(1.0 - distToCam / 12.0, 0.0, 1.0);
   float distFade = clamp(1.0 - distToCam / 70.0, 0.0, 1.0);
 
   // Toksvig-style anti-aliasing roughness increase
-  float avgLen = length(norm1.xy * 0.55 + norm2.xy * 0.38);
+  float avgLen = length(norm1.xy * 0.35 + norm2.xy * 0.22);
   float variance = (1.0 - min(1.0, avgLen)) / max(0.01, avgLen);
   float roughness = clamp(sqrt(uBaseRoughness * uBaseRoughness + variance * 0.28), 0.09, 0.42);
 
-  // Combine slopes before normalizing
-  vec2 slopeDetail = (norm1.xy * 0.55 + norm2.xy * 0.38 + norm3.xy * (0.32 * nearFade)) * (uNormalScale * mix(0.25, 1.0, distFade));
+  // Combine slopes before normalizing (soft broad swells)
+  vec2 slopeDetail = (norm1.xy * 0.011 + norm2.xy * 0.006 + norm3.xy * (0.002 * nearFade)) * (uNormalScale * mix(0.03, 0.045, distFade));
 
-  // Pointillist sparkle term
-  float sparkleNoise = sin(p.x * 43.0 + uTime * 3.1) * cos(p.y * 37.0 - uTime * 2.6)
-                    + sin((p.x + p.y) * 61.0 - uTime * 4.4) * 0.5;
-  float sparkle = smoothstep(1.15, 1.45, sparkleNoise);
+  // Gentle soft glint term without high-frequency pointillist chatter
+  float sparkleNoise = sin(p.x * 12.0 + uTime * 1.8) * cos(p.y * 11.0 - uTime * 1.5)
+                    + sin((p.x + p.y) * 16.0 - uTime * 2.2) * 0.5;
+  float sparkle = smoothstep(1.25, 1.48, sparkleNoise);
 
   // Add analytic ripples
   vec2 rippleGrad = vec2(0.0);
@@ -412,7 +412,7 @@ void main() {
     if (i >= uRippleCount) break;
     evalRipple(p, uRipples[i], uTime, rippleGrad);
   }
-  vec2 slopeRipple = -rippleGrad * 3.5;
+  vec2 slopeRipple = -rippleGrad * 0.012;
 
   // Add V-shaped Kelvin wakes (19.5 degrees half-angle)
   float wakeFoam = 0.0;
@@ -437,15 +437,16 @@ void main() {
     if (along > 0.0 && along < length) {
       float ridgeDist = along * KELVIN_TAN;
       float dRidge = abs(abs(across) - ridgeDist);
-      float wakeWidth = 0.25 + 0.08 * along;
+      float wakeWidth = 0.14 + 0.06 * along;
       float ridgeEnv = exp(-(dRidge * dRidge) / (wakeWidth * wakeWidth));
-      float fade = (1.0 - along / length) * strength;
+      float ridgeSlope = (dRidge / wakeWidth) * ridgeEnv;
+      float fade = min(0.45, (1.0 - along / length) * strength);
 
-      wakeFoam += ridgeEnv * fade * 0.85;
-      wakeGrad += perp(wakeDir) * sign(across) * ridgeEnv * fade * 0.35;
+      wakeFoam += ridgeEnv * fade * 1.6;
+      wakeGrad += perp(wakeDir) * sign(across) * ridgeSlope * fade * 1.5;
     }
   }
-  vec2 slopeWake = -wakeGrad * 1.6;
+  vec2 slopeWake = -wakeGrad * 2.5;
 
   // Add wave simulation slope if available (Phase C: Medium & High)
   vec2 slopeSim = vec2(0.0);
@@ -499,8 +500,8 @@ void main() {
 
   // 6. Physical Water Absorption & Depth Visibility (Prompt 7 D125)
   // Floor visibility through water column drives trench detection as a physical signal.
-  // Beer-Lambert spectral extinction: red absorbed fastest (2.4), blue (1.1), green least (0.45)
-  vec3 sigma = vec3(2.4, 0.45, 1.1);
+  // Beer-Lambert spectral extinction: red absorbed fastest (1.6), blue (0.95), green least (0.55)
+  vec3 sigma = vec3(1.6, 0.55, 0.95);
   vec3 T = exp(-sigma * thickness);
   float floorVisibility = dot(T, vec3(0.299, 0.587, 0.114));
 
@@ -540,17 +541,17 @@ void main() {
   float deepRatio = clamp((thickness - 0.35) / 0.35, 0.0, 1.0);
   float depthAlpha = mix(shallowAlpha, 1.0, deepRatio);
 
-  // Animated Caustics: illuminates submerged floor in shallow water (< 1.5m), absorbed in deep water
+  // Animated Caustics: broad gentle caustic bands illuminating submerged floor in shallow water (< 1.5m)
   vec3 causticLight = vec3(0.0);
   if (thickness < 1.5) {
-    vec2 cUv1 = p * 0.85 + vec2(uTime * 0.08, uTime * 0.06) + normal.xz * 0.08;
-    vec2 cUv2 = p * 1.15 + vec2(-uTime * 0.07, uTime * 0.09) + normal.zx * 0.08;
-    float c1 = sin(cUv1.x * 7.0 + sin(cUv1.y * 5.0 + uTime * 0.6)) * 0.5 + 0.5;
-    float c2 = cos(cUv2.x * 6.5 + cos(cUv2.y * 7.5 - uTime * 0.5)) * 0.5 + 0.5;
-    float caustic = pow(min(c1, c2), 1.6) * 1.8;
+    vec2 cUv1 = p * 0.35 + vec2(uTime * 0.05, uTime * 0.04) + normal.xz * 0.03;
+    vec2 cUv2 = p * 0.45 + vec2(-uTime * 0.04, uTime * 0.05) + normal.zx * 0.03;
+    float c1 = sin(cUv1.x * 2.8 + sin(cUv1.y * 2.2 + uTime * 0.4)) * 0.5 + 0.5;
+    float c2 = cos(cUv2.x * 2.5 + cos(cUv2.y * 2.8 - uTime * 0.35)) * 0.5 + 0.5;
+    float caustic = pow(min(c1, c2), 1.8) * 0.8;
     float causticFade = smoothstep(1.5, 0.15, thickness);
     vec3 causticCol = mix(vec3(0.9, 1.0, 0.95), vec3(1.0, 0.98, 0.9), 0.5);
-    causticLight = causticCol * caustic * causticFade * 0.15;
+    causticLight = causticCol * caustic * causticFade * 0.12;
   }
 
   // Veil must be gated by optical path length or it becomes a flat white sheet.
@@ -569,7 +570,7 @@ void main() {
 
   if (uReflectionTier > 1.5) {
     // High Tier: Planar reflection + Cube map
-    vec2 planarUv = clamp(vec2(screenUv.x, 1.0 - screenUv.y) + normal.xz * 0.04, 0.001, 0.999);
+    vec2 planarUv = clamp(vec2(screenUv.x, 1.0 - screenUv.y) + normal.xz * 0.016, 0.001, 0.999);
     vec3 planarCol = texture2D(uPlanarReflection, planarUv).rgb;
     vec3 cubeCol = textureCube(uEnvCube, reflectDir).rgb;
     reflectColor = mix(cubeCol, planarCol, 0.45);
@@ -581,19 +582,20 @@ void main() {
     reflectColor = mix(skyHazeColor * 0.92, skyHazeColor * 1.08, max(0.0, reflectDir.y));
   }
 
-  vec3 waterColor = mix(absorbedWater, reflectColor, fresnel * 0.18);
+  float fresnelFactor = mix(0.18, 0.70, pow(1.0 - NdotV, 3.0));
+  vec3 waterColor = mix(absorbedWater, reflectColor, fresnel * fresnelFactor);
 
   // 9. Sun GGX Specular Glint & Horizontal Pale Specular Streaks (#d6dccd)
-  vec3 sunSpec = evalGGX(normal, viewDir, uSunDir, uSpecularColor, 0.55, roughness);
-  vec3 sparkleNormal = normalize(normal + vec3(sparkle * 0.25, 0.0, sparkle * 0.25));
-  sunSpec += evalGGX(sparkleNormal, viewDir, uSunDir, uSpecularColor, 26.0 * sparkle, roughness * 0.6);
+  vec3 sunSpec = evalGGX(normal, viewDir, uSunDir, uSpecularColor, 0.45, roughness);
+  vec3 sparkleNormal = normalize(normal + vec3(sparkle * 0.05, 0.0, sparkle * 0.05));
+  sunSpec += evalGGX(sparkleNormal, viewDir, uSunDir, uSpecularColor, 0.45 * sparkle, roughness * 0.9);
   waterColor += clamp(sunSpec, 0.0, 0.65);
 
   // Horizontal Pale Specular Streaks (anisotropic highlights along wave crests)
   vec3 H_glint = normalize(viewDir + uSunDir);
   vec3 anisoNormal = normalize(vec3(normal.x * 0.32, normal.y, normal.z));
   float specBase = max(0.0, dot(anisoNormal, H_glint));
-  float specWave = pow(specBase, 32.0) * 0.35;
+  float specWave = pow(specBase, 28.0) * 0.16;
   waterColor += uSpecularColor * specWave;
 
   // 10. LightStreaks (up to 16 area/line light proxies) evaluated via GGX
@@ -632,7 +634,7 @@ void main() {
     float dpx = max(0.001, fwidth(p.x));
     float dpz = max(0.001, fwidth(p.y));
     float depthGrad = length(vec2(dFdx(thickness), dFdy(thickness))) / max(dpx + dpz, 1e-4);
-    meniscusFoam = smoothstep(0.35, 1.4, depthGrad) * smoothstep(0.30, 0.06, thickness) * 0.85;
+    meniscusFoam = smoothstep(0.18, 0.9, depthGrad) * smoothstep(0.35, 0.04, thickness) * 1.25;
   } else {
     if (distToDry < 0.32) {
       float fn = sin(p.x * 5.3 + uTime * 1.7) * sin(p.y * 6.1 - uTime * 1.3)
@@ -643,22 +645,20 @@ void main() {
     }
   }
 
-  // Subtle 0.06m white-green edge foam rim where the water intersects platforms, pillars, and walls
+  // Subtle 0.08m soft meniscus contact rim where the water intersects platforms and walls
   float edgeRim = 0.0;
-  if (thickness < 0.06) {
-    edgeRim = smoothstep(0.06, 0.005, thickness);
-    vec3 edgeRimColor = vec3(0.88, 0.96, 0.90);
-    waterColor = mix(waterColor, edgeRimColor, edgeRim * 0.75);
+  if (thickness < 0.08) {
+    edgeRim = smoothstep(0.08, 0.005, thickness) * 0.45;
   }
 
   // Foam policy: NO ambient white foam on calm water (crestFoam = 0.0).
   // Foam appears strictly on shore/contact, wake, ripples, and edge rim.
   float crestFoam = 0.0;
-  float rippleFoam = smoothstep(0.007, 0.026, abs(vRippleHeight)) * 0.8;
+  float rippleFoam = smoothstep(0.025, 0.055, abs(vRippleHeight)) * 0.18;
   float totalFoam = clamp(shoreFoam + meniscusFoam + wakeFoam + rippleFoam + crestFoam + edgeRim, 0.0, 1.0);
 
-  vec3 foamColor = vec3(0.92, 0.95, 0.90);
-  waterColor = mix(waterColor, foamColor, totalFoam * clamp(uFoamStrength * 1.95, 0.3, 1.0));
+  vec3 foamColor = vec3(0.90, 0.94, 0.88);
+  waterColor = mix(waterColor, foamColor, totalFoam * clamp(uFoamStrength * 1.2, 0.15, 0.85));
 
   // Piecewise Beer-Lambert depth transmittance:
   // (a) shallow water <= 0.35 m deep: effective surface alpha 0.20-0.35 revealing cracked pool floor
@@ -687,10 +687,10 @@ void main() {
     waterColor += uBiolumColor * glow;
   }
 
-  // 13. Submerged underwater grading
+  // 13. Submerged underwater grading (Prompt 2: clear emerald-mint water, not dark swamp)
   if (uUnderwater > 0.5) {
-    vec3 underwaterTint = mix(uColorShallow, uColorDeep, 0.65);
-    waterColor = mix(waterColor * 0.55, underwaterTint, 0.55);
+    vec3 underwaterTint = mix(uColorShallow, uColorDeep, 0.65) * 1.25;
+    waterColor = mix(waterColor * 1.15, underwaterTint, 0.60);
     alpha = max(alpha, 0.92);
   }
 
@@ -710,8 +710,9 @@ void main() {
 
     // Fast whip-turn surface haze at water surface (f_032)
     float whipSurfaceBank = pow(1.0 - max(0.0, dot(vec3(0.0, 1.0, 0.0), viewDir)), 3.0) * smoothstep(4.0, 18.0, vFogDepth) * 0.18;
-    vec3 horizonColor = mix(fogColor, uSpecularColor, whipSurfaceBank * 0.5);
-    horizonColor = mix(horizonColor, uSpecularColor, smoothstep(0.70, 1.0, finalFogFactor) * 0.55);
+    vec3 farWaterTint = mix(fogColor, vec3(0.50, 0.70, 0.48), 0.75);
+    vec3 horizonColor = mix(farWaterTint, uSpecularColor, whipSurfaceBank * 0.5);
+    horizonColor = mix(horizonColor, uSpecularColor, smoothstep(0.70, 1.0, finalFogFactor) * 0.50);
 
     gl_FragColor.rgb = mix( waterColor, horizonColor, finalFogFactor );
     gl_FragColor.a = mix( alpha, 1.0, finalFogFactor );

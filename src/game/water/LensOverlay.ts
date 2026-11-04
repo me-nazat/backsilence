@@ -122,8 +122,8 @@ export class LensOverlay {
 
     // 1. Submerged underwater overlay: tint, drifting particulate, radial chromatic vignette
     if (this.isSubmerged) {
-      // 1a. Base underwater tint
-      this.ctx.fillStyle = 'rgba(18, 59, 58, 0.28)';
+      // 1a. Base underwater tint (Prompt 2: clear emerald-mint water, not dark swamp)
+      this.ctx.fillStyle = 'rgba(125, 178, 145, 0.16)';
       this.ctx.fillRect(0, 0, w, h);
 
       // 1b. ~90 drifting particulate specks
@@ -150,8 +150,8 @@ export class LensOverlay {
       const maxR = Math.sqrt(cx * cx + cy * cy);
       const vig = this.ctx.createRadialGradient(cx, cy, maxR * 0.35, cx, cy, maxR);
       vig.addColorStop(0, 'rgba(0, 0, 0, 0)');
-      vig.addColorStop(0.7, 'rgba(12, 38, 35, 0.25)');
-      vig.addColorStop(1, 'rgba(6, 22, 20, 0.55)');
+      vig.addColorStop(0.7, 'rgba(100, 150, 125, 0.08)');
+      vig.addColorStop(1, 'rgba(80, 120, 100, 0.18)');
       this.ctx.fillStyle = vig;
       this.ctx.fillRect(0, 0, w, h);
       this.ctx.restore();

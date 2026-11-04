@@ -92,6 +92,14 @@ export class WakeEmitters {
     this.updateSource(id, posX, posZ, dirX, dirZ, speed, strength, width, length);
   }
 
+  clear(): void {
+    this.sources.clear();
+    for (let i = 0; i < WakeEmitters.MAX_WAKES; i++) {
+      this.wakesUniform[i]!.set(0, 0, 0, 0);
+      this.paramsUniform[i]!.set(0, 0, 0, 0);
+    }
+  }
+
   upload(): void {
     let slot = 0;
     for (const src of this.sources.values()) {

@@ -64,7 +64,8 @@ export function makeWaterNormalMap(
 
   // 2. Derive normal map via 3x3 Sobel with periodic boundary wrapping
   const data = new Uint8ClampedArray(size * size * 4);
-  const strength = 3.5;
+  // Gentle strength 1.8 for calm poolrooms water without high-frequency normal chatter
+  const strength = 1.8;
 
   for (let y = 0; y < size; y++) {
     const ym1 = (y - 1 + size) % size;

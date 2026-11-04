@@ -198,7 +198,7 @@ export class SplashSystem {
     this.waterY = waterY;
 
     // 1. Droplet particles (velocity stretched)
-    const geom = new PlaneGeometry(0.08, 0.22);
+    const geom = new PlaneGeometry(0.03, 0.08);
     const mat = new ShaderMaterial({
       vertexShader: /* glsl */ `
         varying vec2 vUv;
@@ -220,15 +220,10 @@ export class SplashSystem {
         void main() {
           vec2 c = (vUv - vec2(0.5)) * 2.0;
           float r2 = dot(c, c);
-          if (r2 > 1.0) discard;
-          float z = sqrt(max(0.0, 1.0 - r2));
-          vec3 N = normalize(vec3(c.x, c.y, z));
-          vec3 L = normalize(vec3(0.3, 0.8, 0.5));
-          float spec = pow(max(0.0, dot(N, L)), 16.0) * 1.5;
-          float rim = pow(1.0 - z, 3.0) * 0.8;
-          float core = smoothstep(0.3, 0.0, sqrt(r2)) * 0.6;
-          vec3 litColor = vColor * (0.6 + rim * 0.4) + vec3(spec + core);
-          float alpha = smoothstep(1.0, 0.75, sqrt(r2)) * 0.92;
+          float dist = sqrt(r2);
+          float alpha = smoothstep(1.0, 0.05, dist) * 0.015;
+          if (alpha <= 0.005) discard;
+          vec3 litColor = mix(vColor, vec3(0.95, 0.98, 0.95), 0.25);
           gl_FragColor = vec4(litColor, alpha);
         }
       `,
@@ -299,9 +294,9 @@ export class SplashSystem {
         void main() {
           vec2 p = vUv - vec2(0.5);
           float angle = atan(p.y, p.x);
-          // 3 broken gaps around the ring matching graffiti ripple motif
-          float broken = step(0.24, fract(angle * 3.0 / 6.28318));
-          gl_FragColor = vec4(vColor, vAlpha * 0.78 * broken);
+          // 3 soft broken gaps around the ring matching graffiti ripple motif
+          float broken = smoothstep(0.12, 0.30, fract(angle * 3.0 / 6.28318));
+          gl_FragColor = vec4(vColor, vAlpha * 0.015 * broken);
         }
       `,
       transparent: true,
@@ -366,7 +361,7 @@ export class SplashSystem {
         varying float vAlpha;
         varying vec3 vColor;
         void main() {
-          gl_FragColor = vec4(vColor, vAlpha * 0.72);
+          gl_FragColor = vec4(vColor, vAlpha * 0.015);
         }
       `,
       transparent: true,
@@ -426,10 +421,9 @@ export class SplashSystem {
         varying float vAlpha;
         void main() {
           float d = length(vUv - vec2(0.5));
-          if (d > 0.5) discard;
-          float radial = smoothstep(0.5, 0.0, d);
+          float radial = smoothstep(0.5, 0.05, d);
           vec3 col = vec3(0.957, 1.0, 0.941); // '#f4fff0' specular highlight
-          gl_FragColor = vec4(col, radial * vAlpha);
+          gl_FragColor = vec4(col, radial * vAlpha * 0.05);
         }
       `,
       transparent: true,
@@ -966,6 +960,50 @@ export class SplashSystem {
       this.flashMesh.instanceMatrix.needsUpdate = true;
       this.flashAlphaAttr.needsUpdate = true;
     }
+  }
+
+  clear(): void {
+    for (let i = 0; i < SplashSystem.MAX_DROPLETS; i++) {
+      this.particles[i]!.active = false;
+      this.dummy.position.set(0, -100, 0);
+      this.dummy.scale.set(0, 0, 0);
+      this.dummy.updateMatrix();
+      this.mesh.setMatrixAt(i, this.dummy.matrix);
+    }
+    this.mesh.instanceMatrix.needsUpdate = true;
+
+    for (let i = 0; i < SplashSystem.MAX_RINGS; i++) {
+      this.rings[i]!.active = false;
+      this.dummy.position.set(0, -100, 0);
+      this.dummy.scale.set(0, 0, 0);
+      this.dummy.updateMatrix();
+      this.ringMesh.setMatrixAt(i, this.dummy.matrix);
+      this.ringAlphaAttr.setX(i, 0);
+    }
+    this.ringMesh.instanceMatrix.needsUpdate = true;
+    this.ringAlphaAttr.needsUpdate = true;
+
+    for (let i = 0; i < SplashSystem.MAX_CROWNS; i++) {
+      this.crowns[i]!.active = false;
+      this.dummy.position.set(0, -100, 0);
+      this.dummy.scale.set(0, 0, 0);
+      this.dummy.updateMatrix();
+      this.crownMesh.setMatrixAt(i, this.dummy.matrix);
+      this.crownAlphaAttr.setX(i, 0);
+    }
+    this.crownMesh.instanceMatrix.needsUpdate = true;
+    this.crownAlphaAttr.needsUpdate = true;
+
+    for (let i = 0; i < SplashSystem.MAX_FLASHES; i++) {
+      this.flashes[i]!.active = false;
+      this.dummy.position.set(0, -100, 0);
+      this.dummy.scale.set(0, 0, 0);
+      this.dummy.updateMatrix();
+      this.flashMesh.setMatrixAt(i, this.dummy.matrix);
+      this.flashAlphaAttr.setX(i, 0);
+    }
+    this.flashMesh.instanceMatrix.needsUpdate = true;
+    this.flashAlphaAttr.needsUpdate = true;
   }
 
   dispose(): void {
