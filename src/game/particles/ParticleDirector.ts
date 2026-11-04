@@ -76,12 +76,12 @@ export class ParticleDirector {
           float lat = abs(vUv.x - 0.5);
           if (lat > 0.45) discard;
           float a = smoothstep(0.45, 0.05, lat) * smoothstep(0.0, 0.1, vUv.y) * smoothstep(1.0, 0.7, vUv.y);
-          gl_FragColor = vec4(vColor, a * 0.18);
+          gl_FragColor = vec4(vColor, a * 0.09);
         }
       `,
     });
 
-    // 2. Drop Ripples (Horizontal surface rings)
+    // 2. Drop Ripples (Horizontal surface rings, Water v5 soft rain surface disturbance)
     this.dropRipples = new ParticlePool({
       capacity: Math.max(16, Math.floor(128 * mul)),
       orientation: 'horizontal',
@@ -92,8 +92,8 @@ export class ParticleDirector {
           vec2 c = vUv - vec2(0.5);
           float d = length(c);
           if (d > 0.5) discard;
-          float ring = smoothstep(0.08, 0.0, abs(d - 0.42));
-          gl_FragColor = vec4(vColor, ring * 0.65);
+          float ring = smoothstep(0.18, 0.02, abs(d - 0.38)) * 0.14;
+          gl_FragColor = vec4(vColor, ring * 0.22);
         }
       `,
     });

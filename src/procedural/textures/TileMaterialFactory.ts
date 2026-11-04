@@ -461,7 +461,8 @@ export class TileMaterialFactory {
            float c1 = sin(cUv.x * 3.14 + uTileTime * 1.5) * cos(cUv.y * 3.14 + uTileTime * 1.1);
            float c2 = cos(cUv.x * 2.4 - uTileTime * 1.3) * sin(cUv.y * 2.4 + uTileTime * 1.8);
            float causticLum = pow(clamp(min(c1, c2) * 0.5 + 0.5, 0.0, 1.0), 2.0) * 0.28;
-           diffuseColor.rgb += vec3(causticLum * edgeFade * 0.35);
+           vec3 causticTint = mix(vec3(0.85, 0.95, 0.88), vec3(0.95, 0.95, 0.85), 0.5);
+           diffuseColor.rgb += causticTint * (causticLum * edgeFade * 0.12);
          }
          ` : ''}
 

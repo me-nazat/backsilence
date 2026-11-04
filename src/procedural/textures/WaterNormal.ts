@@ -25,47 +25,48 @@ export function makeWaterNormalMap(
   const heights = new Float32Array(size * size);
 
   // 1. Generate height field using integer frequencies for mathematically seamless tiling
-  const waveFreq = 4;
+  // Water v5: calm broad swell (waveFreq 3, streakFreqX 2, streakFreqY 4) with reduced high-frequency chatter
+  const waveFreq = 3;
   const streakFreqX = 2;
-  const streakFreqY = 8;
+  const streakFreqY = 4;
 
   for (let y = 0; y < size; y++) {
     const ny = y / size;
     for (let x = 0; x < size; x++) {
       const nx = x / size;
 
-      // Primary multi-octave water surface waves
+      // Primary multi-octave water surface waves (3 octaves for broad oily swell)
       const waves = fbm2DTileable(
         nx * waveFreq,
         ny * waveFreq,
         waveFreq,
         waveFreq,
-        4,
+        3,
         2,
-        0.5,
+        0.45,
         perm,
       );
 
-      // Directional wake streaks (stretched ripples)
+      // Directional wake streaks (stretched gentle ripples)
       const streaks = fbm2DTileable(
         nx * streakFreqX,
         ny * streakFreqY,
         streakFreqX,
         streakFreqY,
-        3,
         2,
-        0.5,
+        2,
+        0.45,
         perm,
       );
 
-      heights[y * size + x] = waves * 0.7 + streaks * 0.3;
+      heights[y * size + x] = waves * 0.75 + streaks * 0.25;
     }
   }
 
   // 2. Derive normal map via 3x3 Sobel with periodic boundary wrapping
   const data = new Uint8ClampedArray(size * size * 4);
-  // Gentle strength 1.8 for calm poolrooms water without high-frequency normal chatter
-  const strength = 1.8;
+  // Gentle strength 1.35 for calm poolrooms water without high-frequency normal chatter
+  const strength = 1.35;
 
   for (let y = 0; y < size; y++) {
     const ym1 = (y - 1 + size) % size;

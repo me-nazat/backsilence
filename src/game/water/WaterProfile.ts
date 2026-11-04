@@ -52,7 +52,7 @@ export const WATER_PROFILES: Record<MapId, WaterProfile> = {
   },
   marble_atrium: {
     shallow: '#8fae74',
-    deep: '#6d8a5f',
+    deep: '#6a8a5b',
     far: '#959e69',
     opacityMin: 0.20,
     opacityMax: 0.80,
