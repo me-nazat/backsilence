@@ -1,5 +1,5 @@
 {
-  "date": "2026-11-04T16:21:08.847Z",
+  "date": "2026-11-05T15:39:14.400Z",
   "manifestHash": "94e00f1eff14c185906da61201cc3044cc50454ea812590c7ce853e82aeec772",
   "derivedTargetsGeneratedAt": "2026-11-02T11:55:00.000Z",
   "referenceSource": "Authoritative Reference Pack (37 frames, manifest=94e00f1eff14c185)",
@@ -3164,7 +3164,7 @@
       "frameId": "f_018",
       "shotId": "creature_close_6m",
       "property": "creatureHeadBodyRgbAndShallowWaterRgb",
-      "actualLum": 0.6064,
+      "actualLum": 0.5994,
       "frameLum": 0.6359,
       "deltaPct": 0,
       "passed": true
@@ -3214,7 +3214,7 @@
       "frameId": "f_023",
       "shotId": "creature_mid_15m",
       "property": "creatureMidSilhouetteAndWaterRgb",
-      "actualLum": 0.6219,
+      "actualLum": 0.6208,
       "frameLum": 0.6618,
       "deltaPct": 0,
       "passed": true
@@ -3254,7 +3254,7 @@
       "frameId": "f_027",
       "shotId": "creature_far_35m",
       "property": "farSilhouetteReadabilityAndFogExtinction",
-      "actualLum": 0.6265,
+      "actualLum": 0.6262,
       "frameLum": 0.6268,
       "deltaPct": 0,
       "passed": true
