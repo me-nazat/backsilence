@@ -1,6 +1,6 @@
 # BackSilence — Project Handover & Architecture Guide
 
-**Version:** 2.2.0  
+**Version:** 2.3.0  
 **Date:** 2026-11-05  
 **Target:** Engineering Handover, Production Operation, and Architecture Reference  
 
@@ -23,7 +23,7 @@ src/
 │   └── Config.ts         # Authoritative world scale: TILE_METERS = 0.15, TEXTURE_METERS = 2.4
 ├── sim/                  # 60 Hz deterministic fixed-timestep simulation
 │   ├── SimWorld.ts       # Player physics, collision hulls, world state snapshots
-│   ├── AcousticBus.ts    # Inverse-square sound propagation, hearing radius, 29-row rulebook
+│   ├── AcousticBus.ts    # Inverse-square sound propagation, hearing radius, 32-row rulebook
 │   └── MonsterAI.ts      # Blind predator state machine, navmesh/waterline traversal, freeze rule
 ├── game/                 # Game loop session, camera, water, and monster visualization
 │   ├── GameSession.ts    # Main session coordinator, input wiring, still ducking, auto-exposure
@@ -51,8 +51,8 @@ src/
    - Simulation state advances at a fixed 60 Hz timestep independent of render frame rate.
    - Multiplayer replay determinism is validated via bitwise FNV-1a `simHash`.
 3. **Acoustic Truth Table:**
-   - 29 distinct sound actions are codified in `ACOUSTIC_RULEBOOK.md` and synced with `AcousticBus.ts`.
-   - Dry platform locomotion emits 0 water noise and alerts zero predators.
+   - 32 distinct sound actions are codified in `ACOUSTIC_RULEBOOK.md` and synced with `AcousticBus.ts` (including Level 0 inverted acoustic rules).
+   - Dry platform locomotion in the Poolrooms emits 0 water noise and alerts zero predators.
    - Halting in water locks the predator's hearing target to the splash coordinate without live tracking.
 4. **Authentic Olive Palette:**
    - Water surface and absorption hues are strictly constrained to the measured olive-to-leaf green spectrum ($85^\circ - 113^\circ$). Saturated cyan, teal, or blue hues are forbidden.
@@ -67,6 +67,12 @@ src/
    - Fairness laws: `INVESTIGATE` state deals 0 damage, terminal lunge strictly requires qualifying noise $\le 4.0\text{ s}$ within $\le 4.0\text{ m}$, movement speed capped at $\le 7.4\text{ m/s}$, no off-screen kills at $> 1.5\text{ m}$, recovery window $\ge 20.0\text{ s}$ between lunges, standing still on dry tile 100% survivable.
    - Video-3 Leap-Cross Variant: rare ($\le 1$ per run), pre-leap crouch + hiss $\ge 0.6\text{ s}$, single parabolic arc $\le 0.7\text{ s}$, double ink-splash on landing.
    - Layered encounter audio mix: 6 layers, silence-as-information snapshot ducking (-18dB ambient, -24dB music, -12dB SFX, un-ducked breath) with $\ge 250\text{ ms}$ crossfades.
+7. **Anomaly Invariants & Three-Stage Descent Campaign (`AnomalyDirector.ts`, `Campaign.ts`, `ACOUSTIC_RULEBOOK.md`):**
+   - Three deterministic anomaly families: Rising Water (smoothstep $+0.15\text{--}0.40\text{m}$ climb), Reality Loops ($A \leftrightarrow B$ threshold pairs broken via 3s stillness or water bypass), and Sensory Hallucinations (phantom silhouettes $\ge 12\text{m}$, auditory decoys emitting 0 true acoustic events).
+   - Inviolable anomaly fairness: $\ge 5.0\text{s}$ universal telegraphs, 0 anomaly damage, 0 true acoustic events from decoys, and 100% of attacks noise-attributable.
+   - Three-stage descent arc: Poolrooms $\to$ The Drain $\to$ Level 0.
+   - Level 0 re-lit finale: 30s progressive water drainage down to 0.0m, inverted acoustic rule (dry footsteps echo loudly up to 28m), creature stalks slower at 1.4 m/s with widened acoustic sensitivity, and light door exit.
+   - Streamer mode 9:16 layout with facecam safe area and sub-1s quick retry with last-3-noise acoustic cause chain.
 
 ---
 
@@ -108,6 +114,7 @@ Additionally, Prompt 1 established a comprehensive, screenshot-evidenced visual 
   - **Prompt 5 Closures:** C2 (Creature silhouette readability at 15 m and screen-space contrast vs fog closed via Creature v2 seed-pod proportions, 15 m screen coverage 0.852%, Michelson contrast 0.3536 >= 0.35, waterline law, kinematic posture library, and jumpscare framing contract).
   - **Prompt 6 Closures:** All 35 `debug-leak` defect rows closed (C3, C52, C54, C57, C60, C62, C64, C66, C68, C70, C72, C74, C76, C78, C81, C83, C86, C89, C91, C93, C95, C97, C99, C100, C102, C110, C119, C122, C124, C128, C133, C136, C141, C146, C149) via strict `?debug=1` containment check.
   - **Prompt 7 Closures:** Onboarding & diegetic loop closed: Pool Cleaner routine maintenance cold open, teaching caption ("Do not touch the water 💔"), two-line interaction prompt grammar, 7-cell chlorine filtration loop with 25m beacon attenuation law, 3-pebble carry cap, buoyant prop `PUSH` mechanic, and 20/20 lure assertion verified.
+  - **Prompt 8 Closures:** Anomaly systems and Descent Campaign closed: deterministic `AnomalyDirector.ts` with Rising Water, Reality Loops, and Sensory Hallucinations; Three-Stage Descent Campaign (`Campaign.ts`) with diegetic portal transitions (`drain_pipes` $\to$ `descending_stairs` $\to$ `shifting_door`); Level 0 re-lit finale with 30s water drain and inverted acoustic rules (D140); Streamer mode 9:16 safe areas and `#death-cause-chain` last-3-noise attribution; photosafety compliance ($\le 3\text{ Hz}$, $< 0.25$ delta).
 
 ---
 

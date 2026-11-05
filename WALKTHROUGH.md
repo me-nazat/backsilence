@@ -53,3 +53,40 @@ retained.
    - The top-right `#hud-cell-chip` tracks progress (`0/7` to `7/7`).
    - Active waypoint beacon illuminates only the single nearest uncollected cell, obeying the 25m attenuation law.
    - Once all 7 cells are secured, hold [E] for 3.0s to crank the exit generator at the plant room ($z = -57.5\text{m}$), unsealing the exit vault.
+
+## The Three-Stage Descent & Anomaly Survival Guide
+
+### Stage 1: The Poolrooms
+1. **The Flooded Vaults:** Traverse the shallow, milky-green vaulted halls. Maintain dry platform discipline.
+2. **Weir & Pump Alignment:** Align the two mechanical valves to balance water pressure.
+3. **The Whirlpool Intake:** Approach the primary drain gate (`drain_pipes`). Step into the draining intake to initiate the vortex descent into Stage 2.
+
+### Stage 2: The Drain & Anomaly Hazards
+1. **Navigating the Sump:** Industrial pipe complex with periodic water surges (+0.30m) that flood low catwalks.
+2. **Surviving Rising Water:**
+   - When pipes groan and water bubbles appear, you have 5 seconds of telegraph warning.
+   - Immediately scramble to upper ventilation shafts or elevated pipe brackets before catwalks submerge.
+3. **Breaking Reality Loops:**
+   - If a corridor threshold seamlessly teleports you backward into the same hallway, do not run forward in panic.
+   - **Method A (Stillness):** Stand completely still for 3.0 seconds (`KeyW`/`KeyS` released, velocity $< 0.05\text{m/s}$). A resonant glass chime will play, shattering the loop.
+   - **Method B (Water Bypass):** Drop off the dry walkway into the adjacent water canal, bypassing the portal trigger.
+4. **Discerning Sensory Hallucinations:**
+   - If you spot a distant hunched silhouette or hear phantom splashes, glance at your HUD acoustic meter.
+   - If the meter shows 0 dB, the stimulus is a sensory lie and will not alert the monster. Approach or ignore it safely.
+5. **Descending Further:** Locate the emergency stairwell shaft (`descending_stairs`) and descend to Stage 3.
+
+### Stage 3: Level 0 — The Drained Finale
+1. **The 30-Second Drainage:**
+   - Upon entry, the flooded hall drains through floor grates over 30 seconds until the floor is completely dry.
+   - Overhead yellow sodium lighting illuminates cracked ceramic tiles and peeling plaster walls.
+2. **The Inverted Acoustic Rule:**
+   - The rules reverse: dry tile floors now echo loudly underfoot.
+   - **Crouch-creep (`Ctrl`):** Generates only 0.12 loudness (4m hearing range). This is your primary movement mode.
+   - **Walking:** Generates 0.35 loudness (12m hearing range). Use sparingly when monster is distant.
+   - **Sprinting (`Shift`):** Emits a thunderous slap-echo at 0.75 loudness (28m hearing range). Do not sprint unless fleeing an imminent attack.
+3. **Creature Dynamics in Level 0:**
+   - The monster has reduced traction on dry concrete, slowing its stalk speed to 1.4 m/s (down from 2.4 m/s in water).
+   - However, its hearing sensitivity widens. Rely on thrown pebbles and distant echo distractions.
+4. **The White Doorway:**
+   - Sneak past the creature toward the shifting white light doorframe (`shifting_door`) at the far end of the hall to complete the descent and unlock the "Dry Descent" achievement.
+

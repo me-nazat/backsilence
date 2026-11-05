@@ -17,6 +17,7 @@ import { MonsterRig } from '../src/game/monster/MonsterRig.js';
 import { createProvingGroundsSim, ARENA_MONSTER_SPAWN } from '../src/sim/ProvingGroundsData.js';
 import { PoolroomsMap } from '../src/world/maps/PoolroomsMap.js';
 import type { PlayerIntent } from '../src/sim/PlayerMotor.js';
+import { AnomalyDirector } from '../src/sim/AnomalyDirector.js';
 
 describe('Phase D: Full Attack Chain & Jumpscare Framing Verification', () => {
   it('executes full attack chain from noise emission to attack state', () => {
@@ -547,6 +548,112 @@ describe('Phase D: Full Attack Chain & Jumpscare Framing Verification', () => {
 
       // 5. Rarity: monster hasLeaped is true, cannot leap again in this run
       expect(monster.hasLeaped).toBe(true);
+    });
+
+    it('fairness law: during active anomaly windows (rising water, loop, hallucination), 100% of attacks remain noise-attributable (silent still player suffers 0 attacks)', () => {
+      const director = new AnomalyDirector({
+        seed: 42,
+        customSchedule: [
+          {
+            id: 'test_surge',
+            family: 'RISING_WATER',
+            scheduledTime: 1.0,
+            telegraphDuration: 5.0,
+            activeDuration: 10.0,
+            targetOffset: 0.35,
+            climbDuration: 10.0,
+            drainDuration: 5.0,
+          },
+          {
+            id: 'test_loop',
+            family: 'REALITY_LOOP',
+            scheduledTime: 25.0,
+            telegraphDuration: 5.0,
+            activeDuration: 10.0,
+            portalA: { center: { x: 0, y: -0.9, z: 5 }, radius: 3.0, targetPos: { x: 0, y: -0.9, z: 0 }, yawOffset: 0 },
+            portalB: { center: { x: 0, y: -0.9, z: -5 }, radius: 3.0, targetPos: { x: 0, y: -0.9, z: 0 }, yawOffset: 0 },
+          },
+          {
+            id: 'test_hallucination',
+            family: 'SENSORY_HALLUCINATION',
+            scheduledTime: 45.0,
+            telegraphDuration: 5.0,
+            activeDuration: 10.0,
+            minDecoyDistance: 15.0,
+            phantomDripOffset: { x: 5, y: 0, z: 5 },
+            wallTextFlicker: 'DO NOT RUN',
+          },
+        ],
+      });
+
+      const sim = createProvingGroundsSim('normal');
+      (sim as unknown as { anomalyDirector?: AnomalyDirector }).anomalyDirector = director;
+
+      const monster = sim.addMonster({
+        id: 'm_fairness_anomaly',
+        variant: 'standard',
+        spawn: ARENA_MONSTER_SPAWN,
+        spawnGrace: 0.0,
+      });
+
+      const idleIntent: PlayerIntent = {
+        moveX: 0,
+        moveZ: 0,
+        jump: false,
+        sprint: false,
+        crouch: false,
+        interact: false,
+        lookDeltaYaw: 0,
+        lookDeltaPitch: 0,
+      };
+
+      // Settle player in water
+      sim.player.teleport({ x: 0, y: -0.9, z: 0 });
+
+      let attackEvents = 0;
+      let damageEvents = 0;
+
+      // Step across 65 seconds of simulation (3900 frames at 60 fps)
+      // spanning Rising Water (t=1..21), Loop (t=25..40), Hallucination (t=45..60)
+      const dt = 1 / 60;
+      for (let f = 0; f < 3900; f++) {
+        sim.step(dt, idleIntent);
+
+        if (monster.state === 'ATTACK') {
+          attackEvents++;
+        }
+      }
+
+      // Assert that zero attacks or damage occurred during any anomaly phase while silent and still
+      for (let i = 0; i < sim.events.length; i++) {
+        const ev = sim.events.getAt(i);
+        if (ev?.type === 'damage') {
+          damageEvents++;
+        }
+      }
+
+      expect(attackEvents).toBe(0);
+      expect(damageEvents).toBe(0);
+      expect(monster.state !== 'ATTACK').toBe(true);
+
+      // Now, verify that noise attribution remains active: when player makes a loud splash, monster hunts & attacks
+      sim.broadcastNoise({
+        kind: 'splash',
+        position: { x: sim.player.pos.x, y: sim.player.pos.y, z: sim.player.pos.z },
+        loudness: 1.0,
+        sourcePlayerId: sim.player.playerId,
+      });
+
+      let heardAndHunted = false;
+      for (let f = 0; f < 300; f++) {
+        sim.step(dt, idleIntent);
+        if (monster.state === 'HUNT' || monster.state === 'ALERTED') {
+          heardAndHunted = true;
+          break;
+        }
+      }
+
+      expect(heardAndHunted).toBe(true);
     });
   });
 });

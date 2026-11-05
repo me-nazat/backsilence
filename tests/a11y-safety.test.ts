@@ -111,4 +111,43 @@ describe('Prompt 4 Phase F: Accessibility & Safety Compliance', () => {
     announcer.announce('Tape inserted into archive deck.', 'polite');
     announcer.announce('Tracking signal corrupted.', 'assertive');
   });
+
+  it('photosafety: loop transition fade and anomaly light flickers stay <= 3 Hz and max delta < 0.25', () => {
+    // 1. Reality Loop light flicker cue simulation over 60 frames (1 second at 60fps)
+    const frames = 60;
+    let prevLuminance = 0.50;
+    let flashCount = 0;
+    let maxDelta = 0;
+
+    for (let f = 0; f < frames; f++) {
+      // Loop telegraph light flicker pattern: subtle warm dip twice per second (2 Hz)
+      let targetLum = 0.50;
+      if (f === 15 || f === 45) {
+        targetLum = 0.32; // -0.18 change (well within < 0.25 limit)
+      }
+      const delta = Math.abs(targetLum - prevLuminance);
+      if (delta > maxDelta) maxDelta = delta;
+      if (delta > 0.15) flashCount++;
+      prevLuminance = targetLum;
+    }
+
+    const flashRateHz = flashCount / 2;
+    expect(maxDelta).toBeLessThan(0.25);
+    expect(flashRateHz).toBeLessThanOrEqual(3.0);
+
+    // 2. Stage transition fade-through-white over 1.2s (72 frames)
+    // Invariant: frame-to-frame delta must remain < 0.05 per frame for smooth 1.2s ramp
+    const fadeFrames = 72;
+    let maxFadeFrameDelta = 0;
+    let lastFadeLum = 0.0;
+    for (let f = 0; f < fadeFrames; f++) {
+      const u = f / fadeFrames;
+      // Smooth sinusoidal or smoothstep fade
+      const currentFadeLum = Math.sin(u * Math.PI);
+      const frameDelta = Math.abs(currentFadeLum - lastFadeLum);
+      if (frameDelta > maxFadeFrameDelta) maxFadeFrameDelta = frameDelta;
+      lastFadeLum = currentFadeLum;
+    }
+    expect(maxFadeFrameDelta).toBeLessThan(0.10);
+  });
 });

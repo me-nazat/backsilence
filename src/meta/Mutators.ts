@@ -15,7 +15,10 @@ export type MutatorId =
   | 'silent_film'
   | 'long_tape'
   | 'mirror'
-  | 'ducky';
+  | 'ducky'
+  | 'anomaly_surge'
+  | 'reality_loops'
+  | 'hallucinations';
 
 export interface MutatorDef {
   id: MutatorId;
@@ -111,6 +114,27 @@ export const MUTATORS: Record<MutatorId, MutatorDef> = {
     scoreMultiplier: 1.00,
     conflictsWith: [],
     isCosmetic: true,
+  },
+  anomaly_surge: {
+    id: 'anomaly_surge',
+    name: 'Anomaly Surge',
+    description: 'Anomaly frequency amplified; events trigger in rapid succession.',
+    scoreMultiplier: 1.35,
+    conflictsWith: [],
+  },
+  reality_loops: {
+    id: 'reality_loops',
+    name: 'Reality Loops',
+    description: 'Corridor threshold loops active in non-competitive modes.',
+    scoreMultiplier: 1.25,
+    conflictsWith: [],
+  },
+  hallucinations: {
+    id: 'hallucinations',
+    name: 'Sensory Lies',
+    description: 'Phantom fog silhouettes and spatial acoustic lies active.',
+    scoreMultiplier: 1.20,
+    conflictsWith: [],
   },
 };
 

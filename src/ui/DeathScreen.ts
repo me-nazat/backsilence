@@ -10,6 +10,7 @@ export interface DeathScreenCallbacks {
   onRetry: () => void;
   onSettings?: () => void;
   onMenu: () => void;
+  onWatchReplay?: () => void;
 }
 
 export class DeathScreen {
@@ -109,6 +110,25 @@ export class DeathScreen {
           "></div>
         </div>
 
+        <div id="death-cause-chain" style="
+          width: 100%;
+          display: none;
+          flex-direction: column;
+          gap: 4px;
+          background: rgba(0, 0, 0, 0.5);
+          padding: 8px 10px;
+          border-radius: 4px;
+          border: 1px solid rgba(255, 145, 0, 0.35);
+          font-size: 11px;
+          text-align: left;
+        ">
+          <div style="font-size: 9px; opacity: 0.8; text-transform: uppercase; letter-spacing: 0.08em; color: #ffb74d;">
+            ACOUSTIC CAUSE CHAIN (LAST 3 NOISES)
+          </div>
+          <div id="cause-chain-items" style="display: flex; flex-direction: column; gap: 3px;">
+          </div>
+        </div>
+
         <div id="death-stats-container" style="
           width: 100%;
           display: flex;
@@ -144,6 +164,9 @@ export class DeathScreen {
           <button id="death-btn-retry" class="analog-btn danger" style="border-color: rgba(179,38,30,0.85); color: #ff8a80; font-weight: bold;">
             RETRY / RESPAWN [Enter / R]
           </button>
+          <button id="death-btn-replay-scrub" class="analog-btn" style="border-color: rgba(255,145,0,0.6); color: #ffb74d;">
+            WATCH LAST 5s REPLAY [P]
+          </button>
           <button id="death-btn-settings" class="analog-btn">
             SETTINGS
           </button>
@@ -173,6 +196,11 @@ export class DeathScreen {
       engine.play('ui_confirm');
       this.hide();
       this.callbacks.onRetry();
+    });
+
+    this.el.querySelector('#death-btn-replay-scrub')?.addEventListener('click', () => {
+      engine.play('ui_click');
+      this.callbacks.onWatchReplay?.();
     });
 
     this.el.querySelector('#death-btn-settings')?.addEventListener('click', () => {
@@ -222,6 +250,30 @@ export class DeathScreen {
     }
   }
 
+  setCauseChain(events: Array<{ timeOffset: number; kind: string; loudness: number; hearingDistance: number }>): void {
+    const container = this.el?.querySelector<HTMLElement>('#death-cause-chain');
+    const itemsEl = this.el?.querySelector<HTMLElement>('#cause-chain-items');
+    if (!container || !itemsEl) return;
+
+    if (!events || events.length === 0) {
+      container.style.display = 'none';
+      return;
+    }
+
+    const last3 = events.slice(-3);
+    itemsEl.innerHTML = '';
+    for (const ev of last3) {
+      const row = document.createElement('div');
+      row.style.cssText = 'display: flex; justify-content: space-between; color: #ffcc80; font-family: monospace; font-size: 11px;';
+      const timeStr = `t-${ev.timeOffset.toFixed(1)}s`;
+      const actionStr = ev.kind.toUpperCase();
+      const loudStr = `${(ev.loudness * 100).toFixed(0)}% (~${ev.hearingDistance.toFixed(0)}m)`;
+      row.innerHTML = `<span>${timeStr} · ${actionStr}</span><span style="color: #ff8a80;">${loudStr}</span>`;
+      itemsEl.appendChild(row);
+    }
+    container.style.display = 'flex';
+  }
+
   setStats(timeSurvived: number, noisesMade: number, closestCall: number): void {
     if (!this.el) return;
     const timeEl = this.el.querySelector('#stat-time');
@@ -256,6 +308,12 @@ export class DeathScreen {
           engine.play('ui_confirm');
           this.hide();
           this.callbacks.onRetry();
+        } else if (e.code === 'KeyP') {
+          e.preventDefault();
+          e.stopPropagation();
+          const engine = AudioEngine.getInstance();
+          engine.play('ui_click');
+          this.callbacks.onWatchReplay?.();
         } else if (e.code === 'Escape') {
           e.preventDefault();
           e.stopPropagation();
