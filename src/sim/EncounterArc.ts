@@ -13,7 +13,7 @@
  * ──────────────────────────────────────────────────────────────────────── */
 
 import type { Vec3, NoiseEvent, MonsterState } from '../types/contracts.js';
-import { dHypot, dSin, dCos, dAtan2, D_PI, D_TWO_PI } from './dmath.js';
+import { dHypot, dHypot3, dSin, dAtan2, D_PI, D_TWO_PI } from './dmath.js';
 
 export type EncounterBeatKind =
   | 'telegraph'
@@ -142,7 +142,7 @@ export function evaluateCameraVisibility(
   const dy = targetPos.y - camPos.y;
   const dz = targetPos.z - camPos.z;
   const dist = dHypot(dx, dz);
-  const totalDist = Math.hypot(dx, dy, dz);
+  const totalDist = dHypot3(dx, dy, dz);
 
   if (totalDist > maxDistance || totalDist < 0.1) {
     return { inFrustum: false, distance: totalDist, signedHAngle: D_PI, signedVAngle: D_PI };
@@ -348,12 +348,11 @@ export class EncounterArc {
       if (prevT < 58.05 && this.t >= 58.05) {
         this.recordPlayerNoise({
           id: 'player_splash_lunge',
-          type: 'noise',
           kind: 'wade',
           position: { ...this.playerPos },
           loudness: 0.65,
           sourcePlayerId: 'player',
-          simTime: this.t,
+          t: this.t,
         });
         audioThisTick = 'terminal_lunge_riser';
         this.audioEvents.push('terminal_lunge_riser');

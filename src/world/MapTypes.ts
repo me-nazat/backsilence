@@ -47,6 +47,7 @@ export interface PlatformDef {
   trimColor?: string | undefined;
   railing?: 'none' | 'brass' | 'industrial' | 'stone_balustrade' | undefined;
   hasAccessRamp?: boolean | undefined;
+  bullnose?: boolean | undefined;
 }
 
 export interface BoxDef {

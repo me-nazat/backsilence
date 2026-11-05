@@ -54,6 +54,8 @@ export interface PlayerProfileData {
   activeLoadout: PlayerLoadout;
   unlockedAchievements: string[];
   personalBests: Partial<Record<MapId, MapPersonalBest>>;
+  coldOpenSeen?: boolean;
+  dryTraversalsCompleted?: number;
   stats: {
     totalEscapes: number;
     totalDeaths: number;
@@ -99,6 +101,8 @@ export function createDefaultProfile(): PlayerProfileData {
     },
     unlockedAchievements: [],
     personalBests: {},
+    coldOpenSeen: false,
+    dryTraversalsCompleted: 0,
     stats: {
       totalEscapes: 0,
       totalDeaths: 0,

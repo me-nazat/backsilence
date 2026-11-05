@@ -5,6 +5,7 @@
  * ──────────────────────────────────────────────────────────────────────── */
 
 import type { PostFXOsdState } from '../engine/PostFX.js';
+import { I18nEngine } from '../i18n/I18n.js';
 
 export interface InventorySlot {
   kind: 'pebble' | 'noisemaker' | 'fuse_core';
@@ -110,6 +111,10 @@ export interface HudData {
   pebbleCount?: number;
   pebbleEquipped?: boolean;
   checkpointSaved?: boolean;
+
+  // Prompt 7 Additions: Warning Caption and Work Order Card
+  warningCaption?: boolean | string | null;
+  workOrderState?: 'normal' | 'glitch' | 'hidden' | null;
 }
 
 export function formatRunTimer(ms: number): string {
@@ -200,6 +205,96 @@ export class Hud {
   private sectorToastEl: HTMLElement | null = null;
   private sectorToastTimeout: ReturnType<typeof setTimeout> | null = null;
   private lastSectorTitle = '';
+
+  // Prompt 7 Elements
+  private warningCaptionEl: HTMLElement | null = null;
+  private workOrderCardEl: HTMLElement | null = null;
+  private workOrderAuthorityEl: HTMLElement | null = null;
+  private workOrderTitleEl: HTMLElement | null = null;
+  private workOrderTasksEl: HTMLElement | null = null;
+  private workOrderSkipEl: HTMLElement | null = null;
+  private threeRulesEl: HTMLElement | null = null;
+  private rule1El: HTMLElement | null = null;
+  private rule2El: HTMLElement | null = null;
+  private rule3El: HTMLElement | null = null;
+  private threeRulesTimeout: ReturnType<typeof setTimeout> | null = null;
+  private promptVerbEl: HTMLElement | null = null;
+  private promptQualifierEl: HTMLElement | null = null;
+
+  showWarningCaption(visible: boolean, text?: string): void {
+    if (!this.warningCaptionEl) return;
+    if (visible) {
+      if (text) {
+        this.warningCaptionEl.textContent = text;
+      }
+      this.warningCaptionEl.style.display = 'block';
+      this.warningCaptionEl.style.opacity = '1';
+    } else {
+      this.warningCaptionEl.style.opacity = '0';
+      this.warningCaptionEl.style.display = 'none';
+    }
+  }
+
+  setWorkOrderCard(state: 'normal' | 'glitch' | 'hidden'): void {
+    if (!this.workOrderCardEl) return;
+    const i18n = I18nEngine.getInstance();
+    if (state === 'normal') {
+      if (this.workOrderAuthorityEl) this.workOrderAuthorityEl.textContent = i18n.t('coldOpen.workOrder.authority');
+      if (this.workOrderTitleEl) {
+        this.workOrderTitleEl.textContent = i18n.t('coldOpen.workOrder.title');
+        this.workOrderTitleEl.style.color = '#1a1a18';
+      }
+      if (this.workOrderTasksEl) {
+        this.workOrderTasksEl.textContent = i18n.t('coldOpen.workOrder.tasks');
+        this.workOrderTasksEl.style.color = '#2b2721';
+      }
+      if (this.workOrderSkipEl) this.workOrderSkipEl.textContent = i18n.t('coldOpen.skipPrompt');
+      this.workOrderCardEl.style.background = '#f4f0e6';
+      this.workOrderCardEl.style.filter = 'none';
+      this.workOrderCardEl.style.display = 'block';
+      this.workOrderCardEl.style.opacity = '1';
+    } else if (state === 'glitch') {
+      if (this.workOrderTitleEl) {
+        this.workOrderTitleEl.textContent = i18n.t('coldOpen.workOrder.glitchTitle');
+        this.workOrderTitleEl.style.color = '#d32f2f';
+      }
+      if (this.workOrderTasksEl) {
+        this.workOrderTasksEl.textContent = i18n.t('coldOpen.workOrder.glitchBody');
+        this.workOrderTasksEl.style.color = '#b71c1c';
+      }
+      this.workOrderCardEl.style.background = '#fff0f0';
+      this.workOrderCardEl.style.filter = 'drop-shadow(0 0 10px rgba(211,47,47,0.5))';
+      this.workOrderCardEl.style.display = 'block';
+      this.workOrderCardEl.style.opacity = '1';
+    } else {
+      this.workOrderCardEl.style.opacity = '0';
+      this.workOrderCardEl.style.display = 'none';
+    }
+  }
+
+  showThreeRulesOverlay(durationMs = 5000): void {
+    if (!this.threeRulesEl) return;
+    const i18n = I18nEngine.getInstance();
+    if (this.rule1El) this.rule1El.textContent = i18n.t('coldOpen.rule1');
+    if (this.rule2El) this.rule2El.textContent = i18n.t('coldOpen.rule2');
+    if (this.rule3El) this.rule3El.textContent = i18n.t('coldOpen.rule3');
+
+    this.threeRulesEl.style.display = 'flex';
+    this.threeRulesEl.style.opacity = '1';
+
+    if (this.threeRulesTimeout !== null) {
+      clearTimeout(this.threeRulesTimeout);
+    }
+    this.threeRulesTimeout = setTimeout(() => {
+      if (this.threeRulesEl) {
+        this.threeRulesEl.style.opacity = '0';
+        setTimeout(() => {
+          if (this.threeRulesEl) this.threeRulesEl.style.display = 'none';
+        }, 500);
+      }
+      this.threeRulesTimeout = null;
+    }, durationMs);
+  }
 
   showSectorToast(title: string, durationMs = 2000): void {
     if (!this.sectorToastEl) return;
@@ -670,6 +765,118 @@ export class Hud {
         z-index: 100;
       ">00:00.0</div>
 
+      <!-- Teaching Caption (Prompt 7 / Video-1: "Do not touch the water 💔") -->
+      <div id="hud-warning-caption" style="
+        position: absolute;
+        top: 56px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        font-size: 16px;
+        font-weight: 700;
+        color: #ffffff;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.95), 0 0 4px rgba(0,0,0,0.8);
+        letter-spacing: 0.06em;
+        white-space: nowrap;
+        pointer-events: none;
+        opacity: 0;
+        display: none;
+        transition: opacity 0.5s ease;
+        z-index: 105;
+      ">Do not touch the water 💔</div>
+
+      <!-- Work Order Clipboard Card (Prompt 7 / Cold Open) -->
+      <div id="hud-work-order-card" style="
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 380px;
+        max-width: calc(100vw - 32px);
+        background: #f4f0e6;
+        color: #1a1a18;
+        border: 2px solid #8c8270;
+        border-radius: 6px;
+        box-shadow: 0 12px 40px rgba(0,0,0,0.85);
+        padding: 24px 20px 18px 20px;
+        font-family: -apple-system, BlinkMacSystemFont, 'Courier New', monospace;
+        pointer-events: none;
+        display: none;
+        opacity: 0;
+        transition: opacity 0.4s ease, transform 0.4s ease;
+        z-index: 250;
+      ">
+        <div id="hud-work-order-clip" style="
+          position: absolute;
+          top: -14px;
+          left: 50%;
+          transform: translateX(-50%);
+          width: 90px;
+          height: 24px;
+          background: #4a453e;
+          border: 1px solid #2b2824;
+          border-radius: 4px;
+          box-shadow: 0 3px 8px rgba(0,0,0,0.4);
+        "></div>
+        <div id="hud-work-order-authority" style="
+          font-size: 11px;
+          font-weight: 800;
+          letter-spacing: 0.14em;
+          color: #595349;
+          text-align: center;
+          border-bottom: 1.5px solid #d1c9b6;
+          padding-bottom: 8px;
+          margin-bottom: 14px;
+          text-transform: uppercase;
+        ">MUNICIPAL WATER &amp; POOLS AUTHORITY</div>
+        <div id="hud-work-order-title" style="
+          font-size: 15px;
+          font-weight: 900;
+          letter-spacing: 0.08em;
+          text-align: center;
+          margin-bottom: 12px;
+          color: #1a1a18;
+        ">SHIFT 07:00 — ROUTINE MAINTENANCE</div>
+        <div id="hud-work-order-tasks" style="
+          font-size: 13px;
+          line-height: 1.8;
+          font-weight: 600;
+          letter-spacing: 0.04em;
+          color: #2b2721;
+          margin-bottom: 16px;
+          white-space: pre-line;
+        ">• CHECK POOL CHEMISTRY&#10;• EMPTY SKIMMER BASKETS&#10;• LOG GAUGE READINGS</div>
+        <div id="hud-work-order-skip" style="
+          font-size: 11px;
+          color: #7a7365;
+          text-align: center;
+          border-top: 1px dashed #d1c9b6;
+          padding-top: 10px;
+          letter-spacing: 0.08em;
+        ">Press any key to skip</div>
+      </div>
+
+      <!-- Three Rules Overlay (Prompt 7 / Cold Open Skip or Completion) -->
+      <div id="hud-three-rules" style="
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.5s ease;
+        z-index: 250;
+        text-align: center;
+      ">
+        <div id="hud-rule-1" style="font-size: 20px; font-weight: 700; color: #f2ecd8; text-shadow: 0 2px 12px rgba(0,0,0,0.9); letter-spacing: 0.08em;">It can't see you.</div>
+        <div id="hud-rule-2" style="font-size: 20px; font-weight: 700; color: #f2ecd8; text-shadow: 0 2px 12px rgba(0,0,0,0.9); letter-spacing: 0.08em;">It hears the water.</div>
+        <div id="hud-rule-3" style="font-size: 22px; font-weight: 800; color: #ff5252; text-shadow: 0 2px 14px rgba(0,0,0,0.95); letter-spacing: 0.08em;">Do not touch the water 💔</div>
+      </div>
+
       <!-- Center Reticle (Prompt 4B Section 1: 3px x 3px solid white dot) -->
       <div id="hud-reticle" style="
         position: absolute;
@@ -740,7 +947,10 @@ export class Hud {
           <circle id="hud-prompt-ring-fill" cx="12" cy="12" r="10" stroke="#00e5ff" stroke-width="2.5" fill="none"
             stroke-dasharray="62.83" stroke-dashoffset="62.83" stroke-linecap="round" transform="rotate(-90 12 12)"/>
         </svg>
-        <span id="hud-prompt-text"></span>
+        <div id="hud-prompt-text" style="display: flex; flex-direction: column; align-items: center; line-height: 1.25;">
+          <span id="hud-prompt-verb"></span>
+          <span id="hud-prompt-qualifier" style="font-size: 11px; opacity: 0.85; font-weight: 500; letter-spacing: 0.05em; display: none;"></span>
+        </div>
       </div>
 
       <!-- VHS OSD Elements -->
@@ -1486,6 +1696,20 @@ export class Hud {
     this.checkpointSavedEl = el.querySelector('#hud-checkpoint-saved');
     this.throwableHotbarEl = el.querySelector('#hud-throwable-hotbar');
 
+    // Prompt 7 Elements
+    this.warningCaptionEl = el.querySelector('#hud-warning-caption');
+    this.workOrderCardEl = el.querySelector('#hud-work-order-card');
+    this.workOrderAuthorityEl = el.querySelector('#hud-work-order-authority');
+    this.workOrderTitleEl = el.querySelector('#hud-work-order-title');
+    this.workOrderTasksEl = el.querySelector('#hud-work-order-tasks');
+    this.workOrderSkipEl = el.querySelector('#hud-work-order-skip');
+    this.threeRulesEl = el.querySelector('#hud-three-rules');
+    this.rule1El = el.querySelector('#hud-rule-1');
+    this.rule2El = el.querySelector('#hud-rule-2');
+    this.rule3El = el.querySelector('#hud-rule-3');
+    this.promptVerbEl = el.querySelector('#hud-prompt-verb');
+    this.promptQualifierEl = el.querySelector('#hud-prompt-qualifier');
+
     // Default zero-HUD presentation matching reference video
     if (!this.showMoreHud && !this.streamerMode) {
       if (this.runTimerEl) this.runTimerEl.style.display = 'none';
@@ -1739,11 +1963,34 @@ export class Hud {
       }
     }
 
-    // 4a. Interaction Prompt & Circular Hold Ring
+    // 4a. Interaction Prompt & Circular Hold Ring (Two-Line Grammar)
     if (this.promptEl) {
       if (data.interactionPrompt) {
         this.promptEl.style.display = 'flex';
-        if (this.promptTextEl) {
+        let verb = data.interactionPrompt;
+        let qualifier = '';
+
+        if (data.interactionPrompt.includes(' — ')) {
+          const parts = data.interactionPrompt.split(' — ');
+          verb = parts[0]?.trim() ?? '';
+          qualifier = parts.slice(1).join(' — ').trim();
+        } else if (data.interactionPrompt.includes(' - ')) {
+          const parts = data.interactionPrompt.split(' - ');
+          verb = parts[0]?.trim() ?? '';
+          qualifier = parts.slice(1).join(' - ').trim();
+        }
+
+        if (this.promptVerbEl) {
+          this.promptVerbEl.textContent = verb;
+          if (this.promptQualifierEl) {
+            if (qualifier) {
+              this.promptQualifierEl.textContent = qualifier;
+              this.promptQualifierEl.style.display = 'block';
+            } else {
+              this.promptQualifierEl.style.display = 'none';
+            }
+          }
+        } else if (this.promptTextEl) {
           this.promptTextEl.textContent = data.interactionPrompt;
         } else {
           this.promptEl.textContent = data.interactionPrompt;
@@ -1766,6 +2013,18 @@ export class Hud {
       } else {
         this.promptEl.style.display = 'none';
       }
+    }
+
+    // 4a-2. Teaching Warning Caption & Work Order Card
+    if (data.warningCaption !== undefined) {
+      if (typeof data.warningCaption === 'string') {
+        this.showWarningCaption(true, data.warningCaption);
+      } else {
+        this.showWarningCaption(Boolean(data.warningCaption));
+      }
+    }
+    if (data.workOrderState !== undefined && data.workOrderState !== null) {
+      this.setWorkOrderCard(data.workOrderState);
     }
 
     // 4b. Pointer Lock Hint

@@ -84,6 +84,7 @@ import { GamepadManager } from '../engine/input/GamepadManager.js';
 import { ObjectiveDirector } from './objectives/ObjectiveDirector.js';
 import { OperatorBotDirector } from './bots/OperatorBotDirector.js';
 import { GhostTrajectory } from '../meta/Ghost.js';
+import { ProfileStore } from '../meta/ProfilePersistence.js';
 
 const _scratchVecA = new Vector3();
 const _scratchVecB = new Vector3();
@@ -153,6 +154,12 @@ export class GameSession {
   private activeProjectiles: ProjectileState[] = [];
   private trajectoryLine: Line | null = null;
   private inventory: InventorySlot[] = [];
+
+  // Prompt 7 Cold Open & Warning Language State
+  private isColdOpenActive = false;
+  private coldOpenTimer = 0;
+  private coldOpenStep: 'work_order' | 'wrongness' | 'done' = 'work_order';
+  private coldOpenKeyHandler: ((e: KeyboardEvent | PointerEvent) => void) | null = null;
   private selectedInventoryIndex = 0;
 
   // Map 1 Puzzle Data
@@ -826,6 +833,7 @@ export class GameSession {
 
       this.isLoaded = true;
       console.log('[GameSession] initAsync complete, isLoaded = true');
+      this.checkAndStartColdOpen();
     } catch (err: unknown) {
       console.error('[GameSession] Failed to initialize map session:', err);
       const msg = err instanceof Error ? err.message : String(err);
@@ -833,6 +841,55 @@ export class GameSession {
       ErrorBoundary.showTrackingLostScreen(`Session Initialization Failure: ${msg}`);
       ToastManager.getInstance().show(`Initialization failed: ${msg}`, { type: 'warning' });
     }
+  }
+
+  private checkAndStartColdOpen(): void {
+    const profile = ProfileStore.load();
+    const isUrlForced = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('cold_open') === '1';
+    const isFirstTimeCampaign = (this.mapId === 'natatorium' || this.mapId === 'poolrooms') && !profile.coldOpenSeen;
+
+    if (!isUrlForced && !isFirstTimeCampaign) {
+      return;
+    }
+
+    this.isColdOpenActive = true;
+    this.coldOpenTimer = 0;
+    this.coldOpenStep = 'work_order';
+    this.playerInput.setFreeze(true);
+    this.hud.setWorkOrderCard('normal');
+
+    const handleSkip = (e: Event) => {
+      if (this.coldOpenTimer < 0.5) return;
+      e.preventDefault();
+      e.stopPropagation();
+      this.finishColdOpen(true);
+    };
+
+    this.coldOpenKeyHandler = handleSkip as (e: KeyboardEvent | PointerEvent) => void;
+    if (typeof window !== 'undefined') {
+      window.addEventListener('keydown', handleSkip, { capture: true });
+      window.addEventListener('pointerdown', handleSkip, { capture: true });
+    }
+  }
+
+  private finishColdOpen(_skipped: boolean): void {
+    if (!this.isColdOpenActive && this.coldOpenStep === 'done') return;
+    this.isColdOpenActive = false;
+    this.coldOpenStep = 'done';
+
+    if (this.coldOpenKeyHandler && typeof window !== 'undefined') {
+      window.removeEventListener('keydown', this.coldOpenKeyHandler, { capture: true } as EventListenerOptions);
+      window.removeEventListener('pointerdown', this.coldOpenKeyHandler, { capture: true } as EventListenerOptions);
+      this.coldOpenKeyHandler = null;
+    }
+
+    this.playerInput.setFreeze(false);
+    this.hud.setWorkOrderCard('hidden');
+    this.hud.showThreeRulesOverlay(5000);
+
+    const profile = ProfileStore.load();
+    profile.coldOpenSeen = true;
+    ProfileStore.save(profile);
   }
 
   private setupAtmosphere(def: MapDefinition): void {
@@ -2172,6 +2229,20 @@ export class GameSession {
       this.menuMusic.setDread(dreadTension);
     }
 
+    // Step Prompt 7 Cold Open Sequence
+    if (this.isColdOpenActive) {
+      this.coldOpenTimer += dt;
+      if (this.coldOpenTimer >= 7.0 && this.coldOpenStep === 'work_order') {
+        this.coldOpenStep = 'wrongness';
+        this.hud.setWorkOrderCard('glitch');
+        this.audio.play('pipe_groan', { gain: 0.8 });
+        this.audio.play('vhs_glitch', { gain: 0.6 });
+        this.postFX.triggerTracking(0.6);
+      } else if (this.coldOpenTimer >= 10.0) {
+        this.finishColdOpen(false);
+      }
+    }
+
     // Jumpscare update takes priority if active
     if (this.jumpscare.isActive()) {
       this.renderer.beginFrame();
@@ -2719,14 +2790,19 @@ export class GameSession {
       { x: camPos.x, y: camPos.y, z: camPos.z },
       { x: camDir.x, y: camDir.y, z: camDir.z },
     );
-    const pebblePrompt = lookPebble ? '[1 / E] Pick up Pebble' : null;
+    const pebblePrompt = lookPebble ? 'PICK UP — pebble' : null;
     const finalPrompt = promptState.visible ? promptState.label : pebblePrompt;
+
+    const profile = ProfileStore.load();
+    const dryTraversals = profile.dryTraversalsCompleted ?? 0;
+    const showTeachingCaption = (this.sessionRunTime < 120 && dryTraversals < 1) || currSnap.wet;
 
     this.hud.update({
       noiseLoudness: currSnap.agitation,
       stamina: currSnap.stamina / 100.0,
       status: statusText,
       interactionPrompt: finalPrompt,
+      warningCaption: showTeachingCaption,
       promptHoldProgress: promptState.holdProgress,
       waterNoiseRadius: calculatedRadius,
       runTimeMs: this.sessionRunTime * 1000,
@@ -4560,6 +4636,11 @@ export class GameSession {
     if (this.debugKeydownHandler && typeof window !== 'undefined') {
       window.removeEventListener('keydown', this.debugKeydownHandler);
       this.debugKeydownHandler = null;
+    }
+    if (this.coldOpenKeyHandler && typeof window !== 'undefined') {
+      window.removeEventListener('keydown', this.coldOpenKeyHandler, { capture: true } as EventListenerOptions);
+      window.removeEventListener('pointerdown', this.coldOpenKeyHandler, { capture: true } as EventListenerOptions);
+      this.coldOpenKeyHandler = null;
     }
     for (const timeoutId of this.activeTimeouts) {
       clearTimeout(timeoutId);

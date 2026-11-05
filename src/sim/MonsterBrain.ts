@@ -1045,7 +1045,7 @@ export class MonsterBrain {
           y: this.pos.y,
           z: playerPos.z,
         };
-        events.pushNoise(`noise_leap_hiss_${this.id}_${simTime}`, 'hiss', this.pos.x, this.pos.y, this.pos.z, 0.5, this.id, simTime);
+        events.pushNoise(`noise_leap_hiss_${this.id}_${simTime}`, 'roar', this.pos.x, this.pos.y, this.pos.z, 0.5, this.id, simTime);
         return;
       }
     }
@@ -1056,7 +1056,7 @@ export class MonsterBrain {
       this.rearingT = 0; // low crouch
       this.jawOpenT = 0.8; // hiss
       if (this.leapTimer >= 0.60) {
-        events.pushNoise(`noise_leap_hiss_${this.id}_${simTime}`, 'hiss', this.pos.x, this.pos.y, this.pos.z, 0.5, this.id, simTime);
+        events.pushNoise(`noise_leap_hiss_${this.id}_${simTime}`, 'roar', this.pos.x, this.pos.y, this.pos.z, 0.5, this.id, simTime);
       }
       this.leapTimer -= dt;
       if (this.leapTimer <= 0) {

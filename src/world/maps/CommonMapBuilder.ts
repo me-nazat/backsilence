@@ -15,7 +15,6 @@ import {
   BoxGeometry,
   CylinderGeometry,
   BufferGeometry,
-  Float32BufferAttribute,
   Color,
 } from 'three';
 import type { LayoutData, BuildEnv, StairDef, PlatformDef } from '../MapTypes.js';
@@ -1149,7 +1148,6 @@ export function buildStandardMapInstance(
   });
 
   // 8. Poolroom-Family Signature Landmarks & Numeral Legibility (Prompt 6.8 & 6.10)
-  const isPoolroomFamily = ['natatorium', 'poolrooms', 'orientation', 'hydro_maze', 'drowned_school'].includes(layout.mapId);
   const spawn = layout.spawns.player[0] ?? { x: 0, y: 0.3, z: 0 };
   const wallsWithDist = layout.walls.map((w) => {
     const cx = (w.min.x + w.max.x) * 0.5;

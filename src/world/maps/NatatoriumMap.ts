@@ -58,6 +58,7 @@ import {
   makePillarWayfindingArrow,
   makePuzzleDigitDecal,
   makeHandwrittenWarningGraffiti,
+  makeWarningDecal,
   makeRouteArrowDecal,
 } from '../../procedural/textures/GraffitiDecals.js';
 import type { LightStreak } from '../../game/water/WaterMaterial.js';
@@ -989,6 +990,14 @@ export const NatatoriumMap: MapDefinition = {
     hearsWaterMesh.rotation.z = Math.PI;
     hearsWaterMesh.name = 'Graffiti_Flavor_HearsWater';
     instance.root.add(hearsWaterMesh);
+
+    const tallyTex = makeWarningDecal('tally', { count: 5, seed: layout.seed + 12 });
+    const tallyMesh = DecalSystem.createWallDecalMesh(tallyTex, 1.0, 1.0);
+    tallyMesh.position.set(-3.2, 0.385, 20.0);
+    tallyMesh.rotation.x = -Math.PI * 0.5;
+    tallyMesh.rotation.z = Math.PI;
+    tallyMesh.name = 'Graffiti_Flavor_Tally';
+    instance.root.add(tallyMesh);
 
     // Route decision arrows validated with navmesh raycast
     const routeDecisions: Array<{ x: number; z: number; targetDir: '>' | '<' | '^' | 'v' }> = [

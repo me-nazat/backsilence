@@ -198,6 +198,41 @@ describe('Prompt 8 (D126): HUD Restraint & At-Most-Three Elements Contract', () 
     expect(count).toBeLessThanOrEqual(3);
   });
 
+  it('shows at most four default elements when teaching caption is active (Prompt 7 restrained HUD law)', () => {
+    const container = new MockElement('div');
+    const hud = new Hud();
+    hud.mount(container as unknown as HTMLElement);
+
+    // Update with active interactable prompt and teaching warning caption
+    hud.update({
+      objective: 'Search the drowned complex.',
+      noiseLoudness: 0.12,
+      interactionPrompt: 'PICK UP — pebble',
+      warningCaption: true,
+    });
+
+    const objectivePill = container.querySelector('#hud-objective-pill');
+    const noiseMinimal = container.querySelector('#hud-noise-minimal');
+    const prompt = container.querySelector('#hud-prompt');
+    const warningCaption = container.querySelector('#hud-warning-caption');
+
+    expect(objectivePill!.style.display !== 'none');
+    expect(noiseMinimal!.style.display !== 'none');
+    expect(prompt!.style.display).toBe('flex');
+    expect(warningCaption!.style.display).toBe('block');
+
+    // Count visible primary elements: objective + noise + prompt + warningCaption = 4 (<= 4)
+    const count = [
+      objectivePill!.style.display !== 'none',
+      noiseMinimal!.style.display !== 'none',
+      prompt!.style.display === 'flex',
+      warningCaption!.style.display === 'block',
+    ].filter(Boolean).length;
+
+    expect(count).toBe(4);
+    expect(count).toBeLessThanOrEqual(4);
+  });
+
   it('verifies status chips, inventory hints, and checklists live behind Show More HUD', () => {
     const container = new MockElement('div');
     const hud = new Hud();
