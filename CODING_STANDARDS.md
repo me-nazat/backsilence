@@ -12,7 +12,7 @@
 
 - ES modules only. No CommonJS `require()`.
 - Named exports exclusively (no default exports except config files).
-- Files must be ≤ 300 lines. Split by responsibility.
+- Target file size is ≤ 300 lines; hard architectural ceiling of ≤ 800 lines for any file on the gameplay path. Split by responsibility.
 
 ## Hot-Path Performance
 
@@ -20,12 +20,15 @@
 - No closures or array literals created inside `update()` loops.
 - Pre-allocate and pool where possible.
 
-## Resource Management
+## Resource Management (The Disposal Law)
 
 - **Every system exposes `dispose()`.** No exceptions.
-- Geometries, materials, textures, render targets, audio nodes, and event listeners must be released.
-- Use `DisposableBag` from `src/engine/Disposal.ts` to track and release resources.
+- Geometries, materials, textures, render targets, audio nodes, timers, animation frames, and DOM event listeners must be released.
+- Use `DisposalService` from `src/game/session/DisposalService.ts` or `DisposableBag` to track and release resources.
+- WebGL contexts must be released upon renderer destruction via `gl.getExtension('WEBGL_lose_context')?.loseContext()` to prevent driver-level exhaustion.
+- Procedural texture caches (`clearDecalCache()`, `clearNumberDecalCache()`, `clearPbrCache()`) must be cleared on session teardown.
 - Dispose in reverse order of creation.
+- Invariant: Zero leaked canvases or WebGL contexts across sequential sessions, with JS heap growth ≤ 10%.
 
 ## Determinism
 

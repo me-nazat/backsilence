@@ -2090,3 +2090,33 @@ Prompt 8 fulfills the Steam promise of "Anomalies Beyond Reason" and the run-lev
 **Status:** ACCEPTED  
 **Consequences:** `tests/campaign-descent.test.ts` (7/7 PASS); `scripts/audit/rulebook-sync.mjs` (32/32 PASS); all existing campaign tape suites continue to pass.
 
+## D141 — GameSession Decomposition, Subsystem Architecture, and the Disposal Law (Prompt 9)
+
+**Date:** 2026-11-05  
+**Context:**  
+`src/game/GameSession.ts` had expanded to a 4,817-line monolith encompassing session lifecycle, GPU warmup, map layout generation, player/monster spawning, puzzle logic, camera control, throwables, encounter directing, anomaly coordination, networking, and disposal. Over the project's commit history, this lack of subsystem isolation generated a recurring "glitch class": menu deadlocks during loading (`44503aa`), pointer lock crashes when paused (`080e262`), double-dispatch input during transitions (`6785222`), SPA history desynchronization (`10b3962`), WebGL driver exhaustion (`bc4a3ad`), and memory leaks across sequential runs.  
+**Decision:**  
+1. **Thin Facade & Subsystem Architecture:**  
+   - `src/game/GameSession.ts` decomposed to a thin facade (239 lines, $\le 300$) preserving full external API compatibility.  
+   - Primary orchestration delegated to `src/game/session/SessionHost.ts` (795 lines, $\le 800$).  
+   - All auxiliary systems isolated under `src/game/session/`: `SessionStateMachine.ts`, `DisposalService.ts`, `SpawnService.ts`, `CameraRig.ts`, `InputRig.ts`, `CaptureService.ts`, `ColdOpenService.ts`, `AtmosphereService.ts`, `HudBridge.ts`, `EncounterBridge.ts`, `ThrowableBridge.ts`, `AnomalyBridge.ts`, `NetBridge.ts`, `DebugBridge.ts`. Every file satisfies the $\le 800$-line limit.  
+   - Modular builder `src/world/maps/SubwayCarBuilder.ts` (272 lines) extracted from `CommonMapBuilder.ts`.  
+2. **Formal Session State Machine Invariants (`SessionStateMachine.ts`):**  
+   - States: `IDLE → LOADING → RUNNING ⇄ PAUSED ⇄ DEAD → CAPTURE → DISPOSING → DISPOSED`.  
+   - Historical bug guards codified as machine invariants:  
+     - `canOpenMenu()` returns `false` in `LOADING` and `DISPOSING` (eradicates `44503aa` menu deadlock).  
+     - `canRequestPointerLock()` returns `true` exclusively in `RUNNING` (eradicates `080e262` pointer lock crash).  
+     - `canDispatchInput()` returns `false` when not in `RUNNING`, causing `InputRig.pollIntent()` to return neutral zero intent (eradicates `6785222` double-dispatch / sticky movement).  
+     - `canNavigateHistory()` permits SPA routing only in safe states: `IDLE`, `PAUSED`, `DISPOSED` (eradicates `10b3962` history race).  
+3. **The Disposal Law & Leak Elimination (`DisposalService.ts`):**  
+   - Centralized resource tracking: meshes, geometries, materials, render targets, textures, timers, animation frames, DOM elements, and event listeners.  
+   - Explicit GPU WebGL context termination in `Renderer.dispose()` via `gl.getExtension('WEBGL_lose_context')?.loseContext()`, eliminating Chrome's 16-context cap.  
+   - Procedural decal and PBR texture caches cleared on session teardown (`clearDecalCache()`, `clearNumberDecalCache()`, `clearPbrCache()`).  
+   - `PlayerInput` and `AudioEngine` event listeners cleanly removed upon disposal.  
+   - Invariant verified via `scripts/engineering/leak-probe.mjs`: 20 sequential sessions with 0 leaked canvases/contexts and 3.86% heap growth ($\le 10\%$ target); 50 rapid start-teardown cycles in 1.29s with 0 errors ($< 30\text{s}$ target).  
+4. **Glitch-Class Regression Suite (S15–S20):**  
+   - `tests/glitch-class.test.ts` (13/13 PASS) and `scripts/smoke/glitch-scenarios.mjs` (6/6 PASS).  
+**Status:** ACCEPTED  
+**Consequences:** `GameSession.ts` reduced from 4,817 to 239 lines; zero gameplay-path files $> 800$ lines; all disposal law invariants and glitch scenarios S15–S20 pass automated gates.
+
+

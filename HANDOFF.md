@@ -26,7 +26,16 @@ src/
 │   ├── AcousticBus.ts    # Inverse-square sound propagation, hearing radius, 32-row rulebook
 │   └── MonsterAI.ts      # Blind predator state machine, navmesh/waterline traversal, freeze rule
 ├── game/                 # Game loop session, camera, water, and monster visualization
-│   ├── GameSession.ts    # Main session coordinator, input wiring, still ducking, auto-exposure
+│   ├── GameSession.ts    # Thin facade coordinating session lifecycle (239 lines)
+│   ├── session/          # Decomposed single-responsibility systems (< 800 lines each)
+│   │   ├── SessionHost.ts          # Core session orchestrator (795 lines)
+│   │   ├── SessionStateMachine.ts  # Formal invariant engine (44503aa, 080e262, 6785222, 10b3962)
+│   │   ├── DisposalService.ts      # Centralized teardown & Disposal Law (zero leaks)
+│   │   ├── SpawnService.ts         # G9 spawn clearance (>=15m) & nav repair
+│   │   ├── CameraRig.ts            # G7 near-plane (0.05m) & WebGL2 depth targets
+│   │   ├── InputRig.ts             # Pointer-lock regulation & neutral-intent dispatch
+│   │   ├── CaptureService.ts       # G5 capture mode & golden frames
+│   │   └── Bridges/Services        # Hud, Encounter, Throwable, Anomaly, Net, Debug, ColdOpen, Atmosphere
 │   ├── water/            # WaterSystem, WaterMaterial, GpuWaveSimulation, Splashes (crown/ink)
 │   └── monster/          # MonsterRig (procedural bones/skin), Jumpscare, MonsterProbe
 ├── procedural/           # Procedural asset generators
@@ -115,6 +124,7 @@ Additionally, Prompt 1 established a comprehensive, screenshot-evidenced visual 
   - **Prompt 6 Closures:** All 35 `debug-leak` defect rows closed (C3, C52, C54, C57, C60, C62, C64, C66, C68, C70, C72, C74, C76, C78, C81, C83, C86, C89, C91, C93, C95, C97, C99, C100, C102, C110, C119, C122, C124, C128, C133, C136, C141, C146, C149) via strict `?debug=1` containment check.
   - **Prompt 7 Closures:** Onboarding & diegetic loop closed: Pool Cleaner routine maintenance cold open, teaching caption ("Do not touch the water 💔"), two-line interaction prompt grammar, 7-cell chlorine filtration loop with 25m beacon attenuation law, 3-pebble carry cap, buoyant prop `PUSH` mechanic, and 20/20 lure assertion verified.
   - **Prompt 8 Closures:** Anomaly systems and Descent Campaign closed: deterministic `AnomalyDirector.ts` with Rising Water, Reality Loops, and Sensory Hallucinations; Three-Stage Descent Campaign (`Campaign.ts`) with diegetic portal transitions (`drain_pipes` $\to$ `descending_stairs` $\to$ `shifting_door`); Level 0 re-lit finale with 30s water drain and inverted acoustic rules (D140); Streamer mode 9:16 safe areas and `#death-cause-chain` last-3-noise attribution; photosafety compliance ($\le 3\text{ Hz}$, $< 0.25$ delta).
+  - **Prompt 9 Closures:** Engineering debt & glitch class eradicated: `src/game/GameSession.ts` decomposed from 4,817-line monolith to 239-line facade delegating to `src/game/session/` (all files $\le 800$ lines); formal `SessionStateMachine` enforcing `44503aa` (menu deadlock), `080e262` (pointer lock race), `6785222` (double dispatch neutrality), and `10b3962` (SPA history race); `DisposalService` enforcing the Disposal Law with zero leaked canvases/WebGL contexts across 20 sequential sessions (heap growth 3.86% $\le 10\%$) and 50 rapid start-teardown cycles in 1.29s with 0 errors; glitch regression suite S15–S20 (100% pass); modular `SubwayCarBuilder.ts` extracted.
 
 ---
 

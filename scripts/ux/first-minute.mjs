@@ -54,7 +54,7 @@ async function waitFor(fn, label, timeout = 25000) {
   while (Date.now() < deadline) {
     try {
       if (await fn()) return;
-    } catch {}
+    } catch { }
     await delay(100);
   }
   throw new Error(`Timeout waiting for ${label}`);
@@ -125,8 +125,8 @@ async function main() {
   const debugPort = await getFreePort();
   const baseUrl = `http://127.0.0.1:${appPort}`;
 
-  console.log(`[first-minute] Starting Vite preview on port ${appPort}...`);
-  const viteProc = spawn('npx', ['vite', 'preview', '--port', String(appPort), '--strictPort'], {
+  console.log(`[first-minute] Starting Vite on port ${appPort}...`);
+  const viteProc = spawn(process.execPath, ['node_modules/vite/bin/vite.js', '--host', '127.0.0.1', '--port', String(appPort), '--strictPort'], {
     cwd: ROOT,
     stdio: 'ignore',
   });
@@ -172,14 +172,6 @@ async function main() {
     const targets = await fetch(`http://127.0.0.1:${debugPort}/json/new?about:blank`, { method: 'PUT' }).then((r) => r.json());
     cdp = new Cdp(targets.webSocketDebuggerUrl);
     await cdp.connect();
-    cdp.socket.addEventListener('message', (event) => {
-      const msg = JSON.parse(event.data);
-      if (msg.method === 'Runtime.consoleAPICalled') {
-        console.log('[browser]', msg.params.type, ...msg.params.args.map(a => a.value ?? a.description));
-      } else if (msg.method === 'Runtime.exceptionThrown') {
-        console.error('[browser-error]', msg.params.exceptionDetails?.exception?.description || msg.params.exceptionDetails?.text);
-      }
-    });
     await cdp.send('Page.enable');
     await cdp.send('Runtime.enable');
 
@@ -191,7 +183,7 @@ async function main() {
     });
 
     console.log('[first-minute] Navigating to Natatorium with cold open enabled...');
-    await cdp.send('Page.navigate', { url: `${baseUrl}/?map=natatorium&seed=42&god=1&cold_open=1` });
+    await cdp.send('Page.navigate', { url: `${baseUrl}/?map=natatorium&cold_open=1` });
     await delay(1000);
 
     // Dismiss audio unlock overlay if present
@@ -202,7 +194,7 @@ async function main() {
 
     // Wait for session to initialize directly (URL parameters auto-start session)
     console.log('[first-minute] Waiting for GameSession to initialize...');
-    await waitFor(() => cdp.evaluate('Boolean(window.__backsilence_session && window.__backsilence_session.isLoaded)'), 'GameSession loaded', 60000);
+    await waitFor(() => cdp.evaluate('Boolean(window.__backsilence_session && window.__backsilence_session.isSessionLoaded)'), 'GameSession loaded', 25000);
     console.log('[first-minute] GameSession active! Beginning first-minute recording timeline...');
 
     const captureAt = async (sec) => {

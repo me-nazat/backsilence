@@ -43,10 +43,10 @@
 ### G5: Debug pink/magenta bounding box or probe markers leak into render
 - **Severity:** P1
 - **Status:** CLOSED
-- **Root Cause:** `src/game/GameSession.ts:4356` and `src/engine/Debug.ts:954` rendered `magentaMarker` mesh and debug overlay during capture mode (`?shot=`).
-- **Fix:** Added `isCapture` check detecting `?shot=` query parameters or `window.__BACKSILENCE_CAPTURE__`, suppressing all debug markers and overlays.
-- **Verification Test:** `tests/artifact-detector.test.ts`
-- **Resolution Milestone:** Prompt 10
+- **Root Cause:** Historical monolith `src/game/GameSession.ts` and `src/engine/Debug.ts:954` rendered `magentaMarker` mesh and debug overlay during capture mode (`?shot=`).
+- **Fix:** In Prompt 9 decomposition, `src/game/session/CaptureService.ts` and `SessionStateMachine.canEnterCapture()` strictly regulate capture mode, suppressing all debug markers, UI overlays, and dev telemetry during golden captures.
+- **Verification Test:** `tests/artifact-detector.test.ts`, `tests/glitch-class.test.ts`
+- **Resolution Milestone:** Prompt 9 / Prompt 10
 
 ### G6: Swimming sound plays on dry tiles / locomotion noise on dry platform alerts creature
 - **Severity:** P0
@@ -59,10 +59,10 @@
 ### G7: Camera near plane clipping through player chin / viewmodel during crouch / jump
 - **Severity:** P2
 - **Status:** CLOSED
-- **Root Cause:** `src/game/GameSession.ts:387` camera near plane at 0.1m clipped viewmodel forearm geometry during severe landing dips.
-- **Fix:** Calibrated camera near plane to 0.05m and constrained second-order spring landing displacement in `ViewModel.ts`.
-- **Verification Test:** `tests/ux-playability.test.ts`
-- **Resolution Milestone:** Prompt 10
+- **Root Cause:** Historical monolith `src/game/GameSession.ts:387` camera near plane at 0.1m clipped viewmodel forearm geometry during severe landing dips.
+- **Fix:** In Prompt 9 decomposition, `src/game/session/CameraRig.ts` establishes an immutable invariant: `camera.near` is strictly 0.05m across all camera updates, and `ViewModel.ts` spring displacement is constrained.
+- **Verification Test:** `tests/ux-playability.test.ts`, `tests/glitch-class.test.ts` (S19)
+- **Resolution Milestone:** Prompt 9 / Prompt 10
 
 ### G8: Bright white horizon fog band on water surface at grazing angles
 - **Severity:** P1

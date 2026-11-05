@@ -190,6 +190,38 @@ To ensure deterministic 60 Hz physics, zero-DOM headless simulation testing, and
 
 ---
 
+## Session Architecture & Lifecycle Decomposition (Prompt 9)
+
+In Prompt 9, the 4,817-line `GameSession.ts` monolith was decomposed into a clean subsystem hierarchy under `src/game/session/`. `GameSession.ts` now serves as a thin facade (239 lines) providing backwards-compatible API parity while delegating all lifecycle orchestration to specialized, single-responsibility modules:
+
+```
+                          ┌────────────────────────┐
+                          │   GameSession Facade   │  (src/game/GameSession.ts, 239 lines)
+                          └───────────┬────────────┘
+                                      │ delegates
+                                      ▼
+                          ┌────────────────────────┐
+                          │      SessionHost       │  (src/game/session/SessionHost.ts, 795 lines)
+                          └───┬───────┬────────┬───┘
+                              │       │        │
+       ┌──────────────────────┼───────┴────────┼──────────────────────┐
+       ▼                      ▼                ▼                      ▼
+┌──────────────┐      ┌──────────────┐  ┌──────────────┐      ┌──────────────┐
+│ SessionState │      │   Disposal   │  │  CameraRig   │      │   InputRig   │
+│   Machine    │      │   Service    │  │  (G7 Law)    │      │ (Lock & Move)│
+└──────────────┘      └──────────────┘  └──────────────┘      └──────────────┘
+```
+
+### Key Subsystems:
+1. **`SessionStateMachine.ts`**: Formal state transitions (`IDLE → LOADING → RUNNING ⇄ PAUSED ⇄ DEAD → CAPTURE → DISPOSING → DISPOSED`) with invariant guards eliminating menu deadlocks (`44503aa`), pointer lock crashes (`080e262`), and SPA history desynchronization (`10b3962`).
+2. **`DisposalService.ts`**: Implements the Disposal Law. Enforces recursive scene graph teardown, geometry/material destruction, timer/rAF handle cancellation, DOM element removal, and driver-level WebGL context release (`WEBGL_lose_context`).
+3. **`CameraRig.ts`**: Manages perspective camera invariants (`near = 0.05m` per G7 Law), aspect updates, and WebGL2 depth render targets (`opaqueDepthTarget`, `waterCompositeTarget`).
+4. **`InputRig.ts`**: Isolates DOM event listeners and enforces neutral zero-movement intent whenever the session is not in active `RUNNING` state (`6785222`).
+5. **`SpawnService.ts`**: Enforces G9 minimum distance law ($\ge 15\text{m}$ between monster and player spawns) and performs BFS walkable cell repair.
+6. **Domain Bridges & Services**: `ColdOpenService`, `AtmosphereService`, `HudBridge`, `EncounterBridge`, `ThrowableBridge`, `AnomalyBridge`, `NetBridge`, `DebugBridge`, and `CaptureService`.
+
+---
+
 ### Internationalization & In-World Lettering Architecture
 1. **Engine Architecture**: UI text, menus, navigation screens, toasts, announcements, and subtitles are fully localized across 15 launch locales (including Arabic RTL and pseudo-locales) using `src/i18n/I18n.ts` and native ECMAScript `Intl` APIs (`PluralRules`, `NumberFormat`, `DateTimeFormat`, `RelativeTimeFormat`, `ListFormat`).
 2. **In-World Lettering**: In-world lettering (stenciled wall signage, sector codes, tape cartridge serials, and vector CRT terminal stroke fonts) remains strictly Latin and numeric. This is an intentional architectural and art direction decision: the procedural vector stroke font generator is mathematically calibrated for high-speed hardware line drawing of ASCII alphanumerics, preserving the dry 1994 municipal archive aesthetic across all active locales without bloating the zero-dependency runtime.
