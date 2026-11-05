@@ -26,6 +26,7 @@ reports/visual/*.png
 !reports/release/
 !reports/glitch/
 !reports/world/
+!reports/anomaly/
 reference/out*
 reference/*.png
 !reference/frames.manifest.json

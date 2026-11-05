@@ -22,6 +22,7 @@ import type { Drone } from './Drone.js';
 import { Rng } from './rng.js';
 import { dHypot } from './dmath.js';
 import { EncounterDirector, type DirectorDifficulty } from './Director.js';
+import { AnomalyDirector } from './AnomalyDirector.js';
 import { MonsterNavigation, type PlatformRect } from './MonsterNavigation.js';
 import { AcousticBus } from './AcousticBus.js';
 
@@ -35,6 +36,7 @@ export interface SimWorldConfig {
   discreteWaterLevels?: number[] | undefined;
   difficulty?: DirectorDifficulty | undefined;
   director?: EncounterDirector | undefined;
+  anomalyDirector?: AnomalyDirector | undefined;
   ground?: GroundGrid | undefined;
   colliders?: ColliderSet | undefined;
   platforms?: PlatformRect[] | undefined;
@@ -77,6 +79,7 @@ export class SimWorld {
   readonly drones: Drone[] = [];
 
   readonly director: EncounterDirector;
+  readonly anomalyDirector?: AnomalyDirector | undefined;
   readonly difficulty: DirectorDifficulty;
   readonly mapId?: string | undefined;
   objectivesDone = 0;
@@ -92,6 +95,7 @@ export class SimWorld {
     this.difficulty = diff;
     this.mapId = config.mapId;
     this.director = config.director ?? new EncounterDirector(config.seed, diff);
+    this.anomalyDirector = config.anomalyDirector;
     if (config.mapId) {
       this.director.setMapId(config.mapId);
     }
@@ -306,6 +310,7 @@ export class SimWorld {
     this.simTime = 0;
     this.noiseSequence = 0;
     this.director.resetOnRetry(0);
+    this.anomalyDirector?.resetOnRetry();
     this.events.clear();
 
     for (const monster of this.monsters) {
@@ -361,8 +366,27 @@ export class SimWorld {
   step(dt: number, intent: PlayerIntent): void {
     this.simTime += dt;
 
-    // 0. Update dynamic water level and nav grid
-    if (this.waterLevelProvider) {
+    // 0. Update dynamic water level, anomalies and nav grid
+    if (this.anomalyDirector) {
+      this.anomalyDirector.step(
+        dt,
+        this.player.pos,
+        this.player.onGround,
+        this.currentWaterY,
+        this.player.vel,
+      );
+
+      const rel = this.anomalyDirector.relocation;
+      if (rel) {
+        this.player.teleport(rel.targetPos, this.player.yaw + rel.yawOffset);
+      }
+
+      const baseLevel = this.waterLevelProvider
+        ? this.waterLevelProvider.levelAt(this.simTime)
+        : this.baseWaterY;
+      this.currentWaterY = baseLevel + this.anomalyDirector.waterOffset;
+      this.updateActiveNavGrid();
+    } else if (this.waterLevelProvider) {
       this.currentWaterY = this.waterLevelProvider.levelAt(this.simTime);
       this.updateActiveNavGrid();
     }
