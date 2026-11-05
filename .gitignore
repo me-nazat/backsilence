@@ -16,6 +16,7 @@ reports/graphics/**/*.png
 !reports/audio/
 reports/audio/**/*.wav
 !reports/ux/
+reports/ux/**/*.png
 !reports/visual/
 reports/visual/*.png
 !reports/visual/creature_close_6m.png

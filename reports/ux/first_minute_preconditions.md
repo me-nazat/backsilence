@@ -40,3 +40,4 @@ An audit of the first 60 seconds of player onboarding in *BackSilence* (via `scr
 
 5. **Internationalization:**
    - All narrative strings, work orders, prompts, and captions must be added to all 13 locales with 0 missing keys.
+

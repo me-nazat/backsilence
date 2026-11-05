@@ -121,3 +121,25 @@ $$\text{Separated}(A, B) \iff (A_{right} \le B_{left}) \lor (B_{right} \le A_{le
 
 Total collisions detected across 20 layout configurations: **0**.
 
+---
+
+## 5. Prompt 7 Restrained HUD Law & Two-Line Interaction Grammar
+
+### Restrained HUD Element Budget ($\le 4$ Default Elements)
+Under Prompt 7 (D126/D139), default gameplay restricts active on-screen HUD elements to at most 4:
+1. `#hud-objective-pill` (Objective direction line)
+2. `#hud-noise-minimal` (Acoustic noise meter)
+3. `#hud-prompt` (Center two-line interaction prompt, when hovered)
+4. `#hud-warning-caption` (Teaching caption: "Do not touch the water 💔")
+
+Top-Right telemetry includes the non-obtrusive `#hud-cell-chip`:
+- **Dimensions:** $96 \times 28\text{ px}$, anchored at $[w - 120, 18 \to w - 24, 46]$.
+- **Palette:** Industrial hazard emerald `#86cfa0` with dark glass backing `rgba(8, 6, 3, 0.85)`.
+- **Clearance:** Completely clear of reticle, center prompt, and bottom stack across all viewports ($> 400\text{ px}$ separation).
+
+### Two-Line Prompt Grammar
+Interaction prompts are strictly decomposed into:
+- **Verb Line:** Bold uppercase verb (`PICK UP`, `PUSH`, `HOLD`).
+- **Qualifier Line:** Subtle lowercase detail (`pebble`, `chlorine cell 1/7`, `skimmer lid`, `crank generator`).
+- **Hold Indicator:** Circular SVG hold ring (`#hud-prompt-ring`) fills over hold duration ($3.0\text{s}$ for generator, instant for single-press items).
+

@@ -107,6 +107,7 @@ Additionally, Prompt 1 established a comprehensive, screenshot-evidenced visual 
   - **Prompt 4 Closures:** C10 (pillar UV seam), C12 (waterline wainscot contrast & horizon silhouettes), C121, C126, C140, C151 (edge aliasing on arches, slabs, and pillars via bullnose coping and filleted reveals), C123, C127, C142 (specular clipping via curved normals and wayfinding numerals), and 11-map vaulted ceiling unification (`VaultBuilder.ts`).
   - **Prompt 5 Closures:** C2 (Creature silhouette readability at 15 m and screen-space contrast vs fog closed via Creature v2 seed-pod proportions, 15 m screen coverage 0.852%, Michelson contrast 0.3536 >= 0.35, waterline law, kinematic posture library, and jumpscare framing contract).
   - **Prompt 6 Closures:** All 35 `debug-leak` defect rows closed (C3, C52, C54, C57, C60, C62, C64, C66, C68, C70, C72, C74, C76, C78, C81, C83, C86, C89, C91, C93, C95, C97, C99, C100, C102, C110, C119, C122, C124, C128, C133, C136, C141, C146, C149) via strict `?debug=1` containment check.
+  - **Prompt 7 Closures:** Onboarding & diegetic loop closed: Pool Cleaner routine maintenance cold open, teaching caption ("Do not touch the water 💔"), two-line interaction prompt grammar, 7-cell chlorine filtration loop with 25m beacon attenuation law, 3-pebble carry cap, buoyant prop `PUSH` mechanic, and 20/20 lure assertion verified.
 
 ---
 
@@ -130,6 +131,9 @@ npm run balance
 
 # Six-beat encounter rehearsal harness (Prompt 6)
 node scripts/monster/encounter-arc.mjs --map natatorium
+
+# First-minute onboarding capture harness (Prompt 7)
+node scripts/ux/first-minute.mjs
 
 # Spectral & dynamic baseline audio comparison
 npm run audio:compare

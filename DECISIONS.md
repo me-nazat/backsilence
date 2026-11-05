@@ -2028,3 +2028,37 @@ Prompt 6 addresses the encounter experience: transitioning from raw assets into 
 **Status:** ACCEPTED  
 **Consequences:** All 7 exit gates of Prompt 6 pass; `node scripts/monster/encounter-arc.mjs --map natatorium` produces 6 boards and trace matching grammar; `npm run balance` passes 13,200 runs across 11 maps with 100% noise-attributable deaths; `npm run audio:compare` maintains 12/12 PASS (100%); 35 debug-leak defect rows closed in `CENSUS.md`; 100/100 Vitest files pass (890/890 tests).
 
+## D139 — Pool Cleaner Cold Open, Diegetic Warning Language, 7-Cell Chlorine Loop & Throwable Mechanics (Prompt 7)
+
+**Date:** 2026-11-05  
+**Context:**  
+Prompt 7 establishes the human layer and core loop for *BackSilence* (inspired by *The Infinite Shift: Backrooms*, Steam 5200480): the player's identity as a routine pool cleaner, the teaching language ("Do not touch the water 💔"), the campaign objective loop ("Restore the filtration heart" via 7 chlorine cells and exit generator), and the tactical throwable/push lure mechanics.  
+**Decision:**  
+1. **Pool Cleaner Cold Open (`src/ui/Hud.ts`, `src/game/GameSession.ts`, `src/meta/ProfilePersistence.ts`):**  
+   - Opening work-order clipboard card at $t = 0\text{s}$: "SHIFT 07:00 — ROUTINE MAINTENANCE — CHECK POOL CHEMISTRY / EMPTY SKIMMER BASKETS / LOG READINGS".  
+   - Glitch transition at $t \approx 3\text{s}$ into "DO NOT TOUCH THE WATER 💔", followed by the 3 core rules: "It can't see you. It hears the water. Do not touch the water 💔".  
+   - Skippable via keypress or pointer down after 0.5s; persisted via `coldOpenSeen: boolean` in `PlayerProfileData`.  
+2. **Diegetic Warning Language & Decals (`src/procedural/textures/GraffitiDecals.ts`, `src/world/maps/NatatoriumMap.ts`):**  
+   - High-visibility warning graffiti along critical path: "DON'T SPLASH, IT KNOWS" and "WATER CARRIES SOUND // NEVER STOP".  
+   - Tally scrawls and route wayfinding arrows snapped to 0.15m ceramic tile grid.  
+   - Marker doodle throw-lure teaching decal adjacent to first pebble pile at foyer platform: hand throwing stone into splash with radiating acoustic waves pointing to creature ear silhouette.  
+3. **Two-Line Interaction Prompt Grammar (`src/ui/Hud.ts`, `src/game/interaction/InteractionSystem.ts`):**  
+   - Structured into uppercase verb line (`PICK UP`, `PUSH`, `HOLD`) and lowercase qualifier line (`pebble`, `chlorine cell 1/7`, `skimmer lid`, `crank generator`).  
+   - Dynamic hold time on interactables: instant press (0s) when locked (< 7 cells) for immediate feedback, circular hold ring for 3.0s when crankable (7/7 cells).  
+4. **7-Cell Chlorine Objective Loop & 25m Beacon Law (`src/world/maps/NatatoriumMap.ts`, `src/game/objectives/ObjectiveDirector.ts`):**  
+   - 7 deterministic cell placements in Natatorium: cell 0 (dry-room detour), cell 1 (east gap $\ge 3.5\text{m}$ water crossing), cell 2 (west colonnade), cells 3 & 4 (deep wings $\ge 4.0\text{m}$ water crossings), cell 5 (mid-hall slab), cell 6 (trench approach rim).  
+   - Beacon law: beacons only illuminate the single nearest uncollected chlorine cell; light fades to 0 beyond 25m distance (`(1 - d / 25.0) * baseIntensity`), preserving natatorium visual discipline without light bleed through fog.  
+   - Generator gate at exit plant room ($z = -57.5\text{m}$): requires all 7 cells before cranking; upon completion, triggers generator sound loops, clunk, and unlocks exit vault door.  
+5. **Throwable Mechanics & Buoyant PUSH Distractions (`src/game/ThrowableSystem.ts`, `NatatoriumMap.ts`, `GameSession.ts`):**  
+   - Carry cap strictly 3 pebbles simultaneously.  
+   - Left-click throw with parabolic arc (13.5 m/s forward, 2.2 m/s arc, -18.0 m/s^2 gravity).  
+   - Water impact triggers pebble plink, concentric ripples, and high-priority splash event (0.85 loudness, hearing radius 34m).  
+   - Buoyant props (skimmer lids, float buoys) near water edges with `PUSH` prompt: pushing into water emits splash sound + large splash noise ($R \approx 28\text{m}$) as a powerful long-range acoustic distraction.  
+   - Lure assertion verified across 20/20 trials in `tests/throwable-lure-assertion.test.ts`.  
+6. **Restrained HUD Law & 15-Locale i18n Parity:**  
+   - Default view displays at most 4 elements: objective line, minimal noise meter, prompt (when hovered), and teaching caption ("Do not touch the water 💔").  
+   - Top-right chlorine counter chip (`#hud-cell-chip`) with glowing canister icon.  
+   - 15 locales with 100% parity across 121/121 keys (`npm run i18n:check` PASS).  
+**Status:** ACCEPTED  
+**Consequences:** Defect C7 closed in `CENSUS.md`; `tests/objectives-chlorine-cells.test.ts`, `tests/throwable-lure-assertion.test.ts`, `tests/hud-default-elements.test.ts` all pass; first-minute headless verification report produced in `reports/ux/first_minute.md`.
+
