@@ -112,9 +112,11 @@ export interface HudData {
   pebbleEquipped?: boolean;
   checkpointSaved?: boolean;
 
-  // Prompt 7 Additions: Warning Caption and Work Order Card
+  // Prompt 7 Additions: Warning Caption, Work Order Card, and Chlorine Cell Chip
   warningCaption?: boolean | string | null;
   workOrderState?: 'normal' | 'glitch' | 'hidden' | null;
+  chlorineCells?: number;
+  showCellChip?: boolean;
 }
 
 export function formatRunTimer(ms: number): string {
@@ -220,6 +222,8 @@ export class Hud {
   private threeRulesTimeout: ReturnType<typeof setTimeout> | null = null;
   private promptVerbEl: HTMLElement | null = null;
   private promptQualifierEl: HTMLElement | null = null;
+  private cellChipEl: HTMLElement | null = null;
+  private cellCounterEl: HTMLElement | null = null;
 
   showWarningCaption(visible: boolean, text?: string): void {
     if (!this.warningCaptionEl) return;
@@ -747,6 +751,37 @@ export class Hud {
         transition: opacity 0.25s ease;
         z-index: 200;
       "></div>
+
+      <!-- Top-Right Chlorine Cell Counter Chip (Prompt 7) -->
+      <div id="hud-cell-chip" style="
+        position: absolute;
+        top: 18px;
+        right: 24px;
+        display: none;
+        align-items: center;
+        gap: 6px;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        font-size: 14px;
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+        color: #86cfa0;
+        background: rgba(8, 6, 3, 0.85);
+        border: 1px solid rgba(134, 207, 160, 0.4);
+        padding: 4px 10px;
+        border-radius: 14px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.7);
+        letter-spacing: 0.04em;
+        pointer-events: none;
+        z-index: 100;
+      ">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#86cfa0" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="7" y="4" width="10" height="16" rx="2"/>
+          <path d="M10 2h4"/>
+          <path d="M10 9h4"/>
+          <path d="M10 14h4"/>
+        </svg>
+        <span id="hud-cell-counter">0/7</span>
+      </div>
 
       <!-- Top-Center Run Timer (Prompt 4B Section 1) -->
       <div id="hud-run-timer" style="
@@ -1709,6 +1744,8 @@ export class Hud {
     this.rule3El = el.querySelector('#hud-rule-3');
     this.promptVerbEl = el.querySelector('#hud-prompt-verb');
     this.promptQualifierEl = el.querySelector('#hud-prompt-qualifier');
+    this.cellChipEl = el.querySelector('#hud-cell-chip');
+    this.cellCounterEl = el.querySelector('#hud-cell-counter');
 
     // Default zero-HUD presentation matching reference video
     if (!this.showMoreHud && !this.streamerMode) {
@@ -2025,6 +2062,17 @@ export class Hud {
     }
     if (data.workOrderState !== undefined && data.workOrderState !== null) {
       this.setWorkOrderCard(data.workOrderState);
+    }
+
+    // 4a-3. Chlorine Cell Counter Chip
+    if (data.showCellChip !== undefined && this.cellChipEl) {
+      this.cellChipEl.style.display = data.showCellChip ? 'flex' : 'none';
+    }
+    if (data.chlorineCells !== undefined && this.cellCounterEl) {
+      this.cellCounterEl.textContent = `${data.chlorineCells}/7`;
+      if (this.cellChipEl && data.showCellChip === undefined) {
+        this.cellChipEl.style.display = 'flex';
+      }
     }
 
     // 4b. Pointer Lock Hint

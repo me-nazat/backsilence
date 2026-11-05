@@ -22,7 +22,7 @@ import type { AudioEngine } from '../../audio/AudioEngine.js';
 
 export interface ObjectiveWaypoint {
   id: string;
-  kind: 'key' | 'tape' | 'lever' | 'exit' | 'beacon' | 'canister' | 'cache' | 'plate';
+  kind: 'key' | 'tape' | 'lever' | 'exit' | 'beacon' | 'canister' | 'cache' | 'plate' | 'chlorine_cell';
   pos: Vec3;
   label: string;
   checklistText: string;
@@ -67,6 +67,10 @@ export class ObjectiveDirector {
   public conductorKeyAcquired = false;
   public leversPulledCount = 0;
   public engineReady = false;
+
+  // Prompt 7 Chlorine Cell Loop
+  public chlorineCellsCollected = 0;
+  public readonly TOTAL_CHLORINE_CELLS = 7;
 
   // Daily descent state
   public dailyPeakNoiseDb = -60.0;
@@ -465,6 +469,63 @@ export class ObjectiveDirector {
     return wp;
   }
 
+  addChlorineCellBeacon(pos: Vec3, index: number): ObjectiveWaypoint {
+    if (!this.beaconsEnabled) {
+      const wp: ObjectiveWaypoint = {
+        id: `chlorine_cell_${index}`,
+        kind: 'chlorine_cell',
+        pos,
+        label: `Chlorine Cell #${index + 1}`,
+        checklistText: `Collect Chlorine Cell (${this.chlorineCellsCollected}/7)`,
+        completed: false,
+        pulseTimer: index * 0.3,
+      };
+      this.waypoints.push(wp);
+      return wp;
+    }
+
+    const group = new Group();
+    group.position.set(pos.x, pos.y, pos.z);
+
+    const canGeo = new CylinderGeometry(0.10, 0.10, 0.35, 12);
+    const canMat = new MeshBasicMaterial({ color: 0x4caf50 });
+    const canMesh = new Mesh(canGeo, canMat);
+    canMesh.position.y = 0.22;
+    group.add(canMesh);
+
+    // 25m attenuation law
+    const light = new PointLight(0x4caf50, 1.2, 22.0);
+    light.position.set(0, 0.3, 0);
+    group.add(light);
+
+    this.root.add(group);
+
+    const wp: ObjectiveWaypoint = {
+      id: `chlorine_cell_${index}`,
+      kind: 'chlorine_cell',
+      pos,
+      label: `Chlorine Cell #${index + 1}`,
+      checklistText: `Collect Chlorine Cell (${this.chlorineCellsCollected}/7)`,
+      completed: false,
+      light,
+      beaconMesh: canMesh,
+      pulseTimer: index * 0.3,
+    };
+    this.waypoints.push(wp);
+    return wp;
+  }
+
+  collectChlorineCell(id: string): void {
+    const wp = this.waypoints.find((w) => w.id === id);
+    if (wp && !wp.completed) {
+      wp.completed = true;
+      if (wp.light) wp.light.visible = false;
+      if (wp.beaconMesh) wp.beaconMesh.visible = false;
+      this.chlorineCellsCollected = Math.min(7, this.chlorineCellsCollected + 1);
+      this.audio.play('socket_clunk', { gain: 0.9 });
+    }
+  }
+
   setWaypointCompleted(id: string): void {
     const wp = this.waypoints.find((w) => w.id === id);
     if (!wp) return;
@@ -478,6 +539,11 @@ export class ObjectiveDirector {
       wp.beaconMesh.visible = false;
       if (wp.light) wp.light.intensity = 0.2;
     }
+  }
+
+  isWaypointCompleted(id: string): boolean {
+    const wp = this.waypoints.find((w) => w.id === id);
+    return wp ? wp.completed : false;
   }
 
   triggerSensorPing(playerPos: Vec3): string | null {
@@ -521,7 +587,7 @@ export class ObjectiveDirector {
           wp.beaconMesh.position.y += Math.sin(wp.pulseTimer * 3.0) * 0.002;
         }
       }
-      if (wp.light && !wp.completed) {
+      if (wp.light && !wp.completed && wp.kind !== 'chlorine_cell') {
         const pingBoost = this.pingTimer > 0 ? 1.6 : 1.0;
         const wave = 0.85 + Math.sin(wp.pulseTimer * 4.0) * 0.25;
         wp.light.intensity = wave * pingBoost;
@@ -550,7 +616,60 @@ export class ObjectiveDirector {
 
     let primaryTarget: { pos: Vec3; label: string } | null = null;
 
-    if (mode === 'campaign') {
+    const hasChlorineCells = this.waypoints.some((w) => w.kind === 'chlorine_cell');
+    if (mode === 'campaign' && hasChlorineCells) {
+      sectorTitle = 'THE NATATORIUM // FILTRATION HEART';
+      const cellsDone = this.chlorineCellsCollected >= 7;
+
+      let nearestCell: ObjectiveWaypoint | null = null;
+      let nearestCellDist = Infinity;
+      for (const wp of this.waypoints) {
+        if (wp.kind === 'chlorine_cell' && !wp.completed) {
+          const d = Math.hypot(wp.pos.x - playerPos.x, wp.pos.z - playerPos.z);
+          if (wp.light) {
+            wp.light.intensity = 0;
+          }
+          if (d < nearestCellDist) {
+            nearestCellDist = d;
+            nearestCell = wp;
+          }
+        } else if (wp.kind === 'chlorine_cell' && wp.light) {
+          wp.light.intensity = 0;
+        }
+      }
+
+      // Beacon Law: only illuminate the single nearest uncollected cell; fade beyond 25m
+      if (nearestCell && nearestCell.light) {
+        if (nearestCellDist > 25.0) {
+          nearestCell.light.intensity = 0;
+        } else {
+          const baseAtten = (1 - nearestCellDist / 25.0) * 1.5;
+          const wave = 0.85 + Math.sin(nearestCell.pulseTimer * 4.0) * 0.25;
+          nearestCell.light.intensity = Math.max(0, baseAtten * wave);
+        }
+      }
+
+      checklist.push({
+        text: `[${this.chlorineCellsCollected}/7] Restore filtration: collect chlorine cells`,
+        done: cellsDone,
+        distanceM: cellsDone ? null : (Number.isFinite(nearestCellDist) ? Math.round(nearestCellDist) : null),
+      });
+
+      const exitWp = this.waypoints.find((w) => w.kind === 'exit');
+      const exitDist = exitWp ? Math.round(Math.hypot(exitWp.pos.x - playerPos.x, exitWp.pos.z - playerPos.z)) : null;
+
+      checklist.push({
+        text: 'Filtration primed: activate generator at exit vault',
+        done: this.engineReady,
+        distanceM: cellsDone ? exitDist : null,
+      });
+
+      if (!cellsDone && nearestCell) {
+        primaryTarget = { pos: nearestCell.pos, label: `CHLORINE CELL (${this.chlorineCellsCollected}/7)` };
+      } else if (exitWp) {
+        primaryTarget = { pos: exitWp.pos, label: 'EXIT GENERATOR' };
+      }
+    } else if (mode === 'campaign') {
       sectorTitle = 'THE ARCHIVE TAPES // SECTOR 01';
       const tapesDone = this.archiveTapesCollected >= 3;
       const nearestTape = this.waypoints.find((w) => w.kind === 'tape' && !w.completed);
@@ -755,11 +874,19 @@ export class ObjectiveDirector {
     }
 
     // 5. Update Persistent HUD
-    this.hud.update({
+    const hudUpdatePayload: Partial<HudData> = {
       sectorTitle,
       checklist,
       objectiveIndicator,
-    });
+    };
+    if (hasChlorineCells) {
+      hudUpdatePayload.chlorineCells = this.chlorineCellsCollected;
+      hudUpdatePayload.showCellChip = true;
+      hudUpdatePayload.objective = this.chlorineCellsCollected >= 7
+        ? 'Filtration primed: activate generator at exit vault'
+        : `Restore filtration: collect chlorine cells (${this.chlorineCellsCollected}/7)`;
+    }
+    this.hud.update(hudUpdatePayload as HudData);
   }
 
   dispose(): void {

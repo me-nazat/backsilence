@@ -1452,20 +1452,97 @@ export class GameSession {
       case 'natatorium': {
         this.throwableSystem.reset();
         this.hud.update({
-          objective: 'Find the four numbered pillars. Stay on dry tile.',
+          objective: 'Restore filtration: collect chlorine cells (0/7)',
+          chlorineCells: 0,
+          showCellChip: true,
           notebookNumbers: ['#1: ?', '#2: ?', '#3: ?', '#4: ?'],
           pebbleCount: this.throwableSystem.pebbleCount,
           pebbleEquipped: false,
         });
 
+        // 7 Chlorine Cell Beacons and Pickups (Prompt 7)
+        for (let i = 0; i < 7; i++) {
+          const cellProp = this.layout.props.find((p) => p.id === `chlorine_cell_${i}`);
+          if (!cellProp) continue;
+          const cellId = cellProp.id;
+          this.objectiveDirector?.addChlorineCellBeacon(cellProp.position, i);
+
+          this.interactions.register({
+            id: cellId,
+            position: cellProp.position,
+            radius: 2.2,
+            label: () => `PICK UP — chlorine cell ${(this.objectiveDirector?.chlorineCellsCollected ?? 0) + 1}/7`,
+            canUse: () => !(this.objectiveDirector?.isWaypointCompleted(cellId) ?? false),
+            onUse: () => {
+              if (this.objectiveDirector) {
+                this.objectiveDirector.collectChlorineCell(cellId);
+                const collected = this.objectiveDirector.chlorineCellsCollected;
+                this.hud.update({
+                  chlorineCells: collected,
+                  showCellChip: true,
+                });
+                const cellNode = this.scene.getObjectByName(`ChlorineCellNode_${cellId}`);
+                if (cellNode) {
+                  cellNode.visible = false;
+                }
+              }
+            },
+          });
+        }
+
+        // Generator Crank at Exit Plant Room (Prompt 7)
+        const genProp = this.layout.props.find((p) => p.kind === 'generator');
+        const genPos = genProp?.position ?? { x: 0.0, y: WORLD.PLATFORM_TOP_Y, z: -57.5 };
+        this.interactions.register({
+          id: 'exit_generator',
+          position: genPos,
+          radius: 2.8,
+          holdTime: () => ((this.objectiveDirector?.chlorineCellsCollected ?? 0) >= 7 ? 3.0 : 0),
+          label: () => {
+            const cells = this.objectiveDirector?.chlorineCellsCollected ?? 0;
+            if (cells < 7) {
+              return `[LOCKED] — Requires all 7 chlorine cells (${cells}/7)`;
+            }
+            return this.powerRestored ? '[ACTIVE] — Generator running' : 'HOLD — crank generator';
+          },
+          canUse: () => !this.powerRestored,
+          onUse: () => {
+            const cells = this.objectiveDirector?.chlorineCellsCollected ?? 0;
+            if (cells < 7) {
+              this.audio.play('ui_error', { gain: 0.8 });
+              return;
+            }
+            this.powerRestored = true;
+            if (this.objectiveDirector) {
+              this.objectiveDirector.engineReady = true;
+            }
+            this.audio.play('generator_cord', { gain: 1.0 });
+            setTimeout(() => {
+              this.audio.play('generator_loop', { gain: 0.9 });
+              this.audio.play('door_clunk', { gain: 1.0 });
+            }, 400);
+            this.simWorld.broadcastNoise({
+              kind: 'creak',
+              position: genPos,
+              loudness: 1.0,
+              sourcePlayerId: 'player_local',
+            });
+            this.exitUnlocked = true;
+            this.hud.update({
+              objective: 'Filtration online! Exit vault door unlocked.',
+            });
+          },
+        });
+
+        // Retain drain wheel and keypad as auxiliary / alternative interactions
         const wheelProp = this.layout.props.find((p) => p.kind === 'drain_wheel');
-        const wheelPos = wheelProp?.position ?? { x: 0, y: 0.3, z: -48 };
+        const wheelPos = wheelProp?.position ?? { x: 0, y: 0.3, z: -54 };
         this.interactions.register({
           id: 'drain_wheel',
           position: wheelPos,
           radius: 2.5,
           holdTime: 6.0,
-          label: () => (this.powerRestored ? '[POWER ON] Drain Wheel Locked' : '[HOLD E] Restore Power via Drain Wheel'),
+          label: () => (this.powerRestored ? '[POWER ON] — Drain wheel locked' : '[HOLD] — turn drain wheel'),
           canUse: () => !this.powerRestored,
           onUse: () => {
             this.powerRestored = true;
@@ -1476,9 +1553,6 @@ export class GameSession {
               loudness: 0.8,
               sourcePlayerId: 'player_local',
             });
-            this.hud.update({
-              objective: 'Power restored! Enter the 4-digit code at the North Grand Doors keypad.',
-            });
           },
         });
 
@@ -1486,7 +1560,7 @@ export class GameSession {
           id: 'exit_keypad',
           position: this.layout.exit.position,
           radius: 2.4,
-          label: () => (!this.powerRestored ? '[UNPOWERED] Restore Power at Plant Room' : this.exitUnlocked ? '[E] Exit Open' : '[E] Enter 4-Digit Keypad Code'),
+          label: () => (!this.powerRestored ? '[UNPOWERED] — Activate generator at plant room' : this.exitUnlocked ? '[E] — Exit open' : '[E] — Enter 4-digit keypad code'),
           canUse: () => this.powerRestored && !this.exitUnlocked,
           onUse: () => {
             this.openKeypad();
@@ -1497,7 +1571,7 @@ export class GameSession {
           id: 'keypad_console_pedestal',
           position: { x: 2.2, y: 0.38, z: -56.5 },
           radius: 2.5,
-          label: () => (!this.powerRestored ? '[UNPOWERED] Restore Power at Plant Room' : this.exitUnlocked ? '[E] Console Solved' : '[E] Enter 4-Digit Color Keypad Code'),
+          label: () => (!this.powerRestored ? '[UNPOWERED] — Activate generator at plant room' : this.exitUnlocked ? '[E] — Console solved' : '[E] — Enter 4-digit color keypad code'),
           canUse: () => this.powerRestored && !this.exitUnlocked,
           onUse: () => {
             this.openKeypad();

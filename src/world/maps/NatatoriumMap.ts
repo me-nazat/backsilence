@@ -17,6 +17,7 @@ import {
   BoxGeometry,
   CylinderGeometry,
   DodecahedronGeometry,
+  SphereGeometry,
   Group,
   Vector3,
   Color,
@@ -730,6 +731,32 @@ export const NatatoriumMap: MapDefinition = {
       });
     }
 
+    // 7 Chlorine Cells for Campaign Objective Loop (Prompt 7)
+    // Deterministic placement: >= 2 require >= 3m water crossings (1, 3, 4), >= 1 requires dry-room detour (0)
+    const chlorineSpawns = [
+      { id: 'chlorine_cell_0', x: -9.0, y: WORLD.PLATFORM_TOP_Y, z: 50.0 }, // dry-room detour on plat_dry_room
+      { id: 'chlorine_cell_1', x: 12.5, y: WORLD.PLATFORM_TOP_Y, z: 34.0 }, // east stepping stone (>= 3.5m water crossing)
+      { id: 'chlorine_cell_2', x: -12.5, y: WORLD.PLATFORM_TOP_Y, z: 9.5 }, // west colonnade on plat_b_west_lane2
+      { id: 'chlorine_cell_3', x: -30.0, y: WORLD.PLATFORM_TOP_Y, z: 1.0 }, // deep west wing on plat_b_far_w2 (>= 4.0m water crossing)
+      { id: 'chlorine_cell_4', x: 30.0, y: WORLD.PLATFORM_TOP_Y, z: 1.0 }, // deep east wing on plat_b_far_e2 (>= 4.0m water crossing)
+      { id: 'chlorine_cell_5', x: 0.0, y: WORLD.PLATFORM_TOP_Y, z: -12.0 }, // mid-hall stepping slab on plat_b_cent_5
+      { id: 'chlorine_cell_6', x: -4.0, y: WORLD.PLATFORM_TOP_Y, z: -31.0 }, // trench approach rim on plat_trench_west
+    ];
+    for (const c of chlorineSpawns) {
+      props.push({
+        id: c.id,
+        kind: 'chlorine_cell',
+        position: { x: c.x, y: c.y, z: c.z },
+      });
+    }
+
+    // Generator at exit plant room (Prompt 7)
+    props.push({
+      id: 'exit_generator',
+      kind: 'generator',
+      position: { x: 0.0, y: WORLD.PLATFORM_TOP_Y, z: -57.5 },
+    });
+
     // 3D 4-Color Keypad Console Pedestal near exit doors (Prompt 4B Section 3)
     props.push({
       id: 'keypad_console_pedestal',
@@ -1110,6 +1137,78 @@ export const NatatoriumMap: MapDefinition = {
         pebbleMesh.name = `Pebble_${prop.id}`;
         instance.root.add(pebbleMesh);
       }
+    }
+
+    // 3D Chlorine Cell Canisters (Prompt 7)
+    const cellCanisterMat = new MeshStandardMaterial({
+      color: 0x4caf50,
+      roughness: 0.35,
+      metalness: 0.4,
+      emissive: 0x1b5e20,
+      emissiveIntensity: 0.35,
+    });
+    const cellCapMat = new MeshStandardMaterial({
+      color: 0x2e7d32,
+      roughness: 0.5,
+      metalness: 0.7,
+    });
+    for (const prop of layout.props) {
+      if (prop.kind === 'chlorine_cell') {
+        const cellGroup = new Group();
+        cellGroup.name = `ChlorineCellNode_${prop.id}`;
+        cellGroup.position.set(prop.position.x, prop.position.y, prop.position.z);
+
+        const canMesh = new Mesh(new CylinderGeometry(0.12, 0.12, 0.40, 16), cellCanisterMat);
+        canMesh.position.y = 0.20;
+        canMesh.castShadow = true;
+        cellGroup.add(canMesh);
+
+        const capMesh = new Mesh(new CylinderGeometry(0.08, 0.08, 0.08, 16), cellCapMat);
+        capMesh.position.y = 0.42;
+        capMesh.castShadow = true;
+        cellGroup.add(capMesh);
+
+        instance.root.add(cellGroup);
+      }
+    }
+
+    // 3D Exit Generator Block (Prompt 7)
+    const genProp = layout.props.find((p) => p.kind === 'generator');
+    if (genProp) {
+      const genGroup = new Group();
+      genGroup.name = 'GeneratorMesh';
+      genGroup.position.set(genProp.position.x, genProp.position.y, genProp.position.z);
+
+      const genBodyMat = new MeshStandardMaterial({
+        color: 0x2a3028,
+        roughness: 0.65,
+        metalness: 0.6,
+      });
+      const bodyMesh = new Mesh(new BoxGeometry(0.8, 0.7, 0.6), genBodyMat);
+      bodyMesh.position.y = 0.35;
+      bodyMesh.castShadow = true;
+      genGroup.add(bodyMesh);
+
+      // Crank housing / handle
+      const crankMat = new MeshStandardMaterial({
+        color: 0xd32f2f,
+        roughness: 0.4,
+        metalness: 0.8,
+      });
+      const crankHandle = new Mesh(new CylinderGeometry(0.04, 0.04, 0.25, 12), crankMat);
+      crankHandle.rotation.z = Math.PI * 0.5;
+      crankHandle.position.set(0.42, 0.45, 0.0);
+      genGroup.add(crankHandle);
+
+      // Status indicator light
+      const statusLightMesh = new Mesh(
+        new SphereGeometry(0.04, 12, 12),
+        new MeshStandardMaterial({ color: 0x86cfa0, emissive: 0x86cfa0, emissiveIntensity: 0.6 })
+      );
+      statusLightMesh.position.set(0.0, 0.72, 0.22);
+      genGroup.add(statusLightMesh);
+
+      instance.root.add(genGroup);
     }
 
     // ──────────────────────────────────────────────────────────────────────────

@@ -12,7 +12,7 @@ export interface Interactable {
   position: Vec3;
   radius: number;
   label: () => string;
-  holdTime?: number; // 0 for instant press
+  holdTime?: number | (() => number); // 0 for instant press, or dynamic function
   canUse: () => boolean;
   onUse: () => void;
 }
@@ -82,7 +82,8 @@ export class InteractionSystem {
     let holdProgress = 0;
 
     if (this.currentTarget) {
-      const requiredHold = this.currentTarget.holdTime ?? 0;
+      const rawHold = this.currentTarget.holdTime;
+      const requiredHold = typeof rawHold === 'function' ? rawHold() : (rawHold ?? 0);
       if (isInteracting) {
         if (requiredHold <= 0) {
           // Instant activation
