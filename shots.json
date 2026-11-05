@@ -355,6 +355,16 @@
     "description": "Distant fog silhouette boosted by ~40% contrast attenuation"
   },
   {
+    "id": "creature_jumpscare",
+    "name": "Water Monster Jumpscare Strike (0.82m)",
+    "mapId": "natatorium",
+    "seed": 42,
+    "simTime": 50.0,
+    "creature": { "distance": 0.82, "facing": 0.0 },
+    "camera": { "x": 0.0, "y": 1.2, "z": 0.0, "target": { "x": 0.0, "y": 1.2, "z": 0.82 }, "fov": 75 },
+    "description": "F_037 jumpscare frame: creature head and torso fill lower frame at 0.82m with arms spread wide against pale fog"
+  },
+  {
     "id": "flock_overhead",
     "name": "Five Flying Skulls Overhead",
     "mapId": "natatorium",

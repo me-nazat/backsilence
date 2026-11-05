@@ -1,5 +1,35 @@
 [
   {
+    "id": "creature_jumpscare",
+    "distM": 0.82,
+    "refFrame": "f_037",
+    "shotId": "creature_jumpscare",
+    "width": 1280,
+    "height": 720,
+    "center": [
+      640,
+      518
+    ],
+    "halfBox": [
+      481,
+      419
+    ],
+    "bodyPixels": 211756,
+    "headPixels": 46086,
+    "bodyMeanRgb255": [
+      90.95,
+      81.01,
+      54.15
+    ],
+    "headMeanRgb255": [
+      82.42,
+      73.57,
+      44.47
+    ],
+    "maxROverG": 1.1429,
+    "minLuminance": 0.2102
+  },
+  {
     "id": "creature_close_6m",
     "distM": 6,
     "refFrame": "f_018",
@@ -11,23 +41,23 @@
       360
     ],
     "halfBox": [
-      150,
-      130
+      198,
+      173
     ],
-    "bodyPixels": 16589,
-    "headPixels": 3820,
+    "bodyPixels": 29021,
+    "headPixels": 6719,
     "bodyMeanRgb255": [
-      89.94,
-      80.03,
-      53.37
+      90.63,
+      80.74,
+      53.97
     ],
     "headMeanRgb255": [
-      83.98,
-      74.98,
-      45.67
+      82.41,
+      73.56,
+      44.46
     ],
-    "maxROverG": 1.1351,
-    "minLuminance": 0.2623
+    "maxROverG": 1.1429,
+    "minLuminance": 0.2102
   },
   {
     "id": "creature_mid_15m",
@@ -41,23 +71,23 @@
       353
     ],
     "halfBox": [
-      78,
-      68
+      93,
+      81
     ],
-    "bodyPixels": 4453,
-    "headPixels": 1041,
+    "bodyPixels": 6371,
+    "headPixels": 1479,
     "bodyMeanRgb255": [
-      89.95,
-      80.04,
-      53.37
+      90.63,
+      80.73,
+      53.96
     ],
     "headMeanRgb255": [
-      84.05,
-      75.05,
-      45.76
+      84.81,
+      75.81,
+      46.37
     ],
-    "maxROverG": 1.1343,
-    "minLuminance": 0.2623
+    "maxROverG": 1.1333,
+    "minLuminance": 0.2856
   },
   {
     "id": "creature_far_35m",
@@ -71,22 +101,22 @@
       346
     ],
     "halfBox": [
-      39,
-      34
+      47,
+      41
     ],
-    "bodyPixels": 1109,
-    "headPixels": 262,
+    "bodyPixels": 1634,
+    "headPixels": 384,
     "bodyMeanRgb255": [
-      89.84,
-      79.94,
-      53.29
+      90.61,
+      80.71,
+      53.94
     ],
     "headMeanRgb255": [
-      84.24,
-      75.24,
-      45.9
+      84.79,
+      75.79,
+      46.34
     ],
-    "maxROverG": 1.1343,
-    "minLuminance": 0.2623
+    "maxROverG": 1.1333,
+    "minLuminance": 0.2856
   }
 ]

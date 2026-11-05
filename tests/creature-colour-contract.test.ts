@@ -40,11 +40,12 @@ async function sampleCreatureMaskFromPng(shotId: string, distM: number) {
   const pngPath = path.resolve(process.cwd(), `reports/visual/${shotId}.png`);
   const { width, height, data } = compare.decodePng(fs.readFileSync(pngPath));
 
-  const scale = distM <= 7 ? 1.0 : distM <= 16 ? 0.52 : 0.26;
+  const isJumpscare = distM <= 1.5;
+  const scale = isJumpscare ? 3.10 : distM <= 7 ? 1.28 : distM <= 16 ? 0.60 : 0.30;
   const cx = Math.round(width * 0.50);
-  const cy = Math.round(height * (distM <= 7 ? 0.50 : distM <= 16 ? 0.49 : 0.48));
-  const halfW = Math.round(150 * scale);
-  const halfH = Math.round(130 * scale);
+  const cy = Math.round(height * (isJumpscare ? 0.72 : distM <= 7 ? 0.50 : distM <= 16 ? 0.49 : 0.48));
+  const halfW = Math.round(155 * scale);
+  const halfH = Math.round(135 * scale);
 
   let bodyPix = 0;
   let bodyRSum = 0;
@@ -67,27 +68,43 @@ async function sampleCreatureMaskFromPng(shotId: string, distM: number) {
       if (px < 0 || px >= width) continue;
       const nx = dx / halfW;
 
-      const headEll = Math.hypot(nx / 0.26, (ny + 0.28) / 0.24);
-      const isHead = headEll <= 1.0;
+      let isHead = false;
+      let isTorso = false;
+      let isForelimb = false;
+      let isTail = false;
 
-      const torsoEll = Math.hypot(nx / 0.48, (ny + 0.08) / 0.32);
-      const isTorso = !isHead && torsoEll <= 1.0;
+      if (isJumpscare) {
+        const jumpHeadEll = Math.hypot(nx / 0.28, (ny + 0.18) / 0.26);
+        isHead = jumpHeadEll <= 1.0;
+        const jumpTorsoEll = Math.hypot(nx / 0.62, (ny - 0.25) / 0.45);
+        isTorso = !isHead && jumpTorsoEll <= 1.0;
+        const armLeft = Math.hypot((nx + 0.68) / 0.18, (ny - 0.10) / 0.50);
+        const armRight = Math.hypot((nx - 0.68) / 0.18, (ny - 0.10) / 0.50);
+        isForelimb = !isHead && !isTorso && (armLeft <= 1.0 || armRight <= 1.0);
+        if (!isHead && !isTorso && !isForelimb) continue;
+      } else {
+        const headEll = Math.hypot(nx / 0.26, (ny + 0.28) / 0.24);
+        isHead = headEll <= 1.0;
 
-      const armDistX = Math.abs(Math.abs(nx) - 0.48);
-      const isForelimb = !isHead && !isTorso && armDistX <= 0.13 && ny >= -0.22 && ny <= 0.88;
+        const torsoEll = Math.hypot(nx / 0.48, (ny + 0.08) / 0.32);
+        isTorso = !isHead && torsoEll <= 1.0;
 
-      const tailProgress = (nx - 0.35) / 0.50;
-      const tailRadius = 0.10 * (1.0 - tailProgress * 0.82);
-      const tailCenterY = 0.12 + tailProgress * 0.16;
-      const isTail =
-        !isHead &&
-        !isTorso &&
-        !isForelimb &&
-        tailProgress >= 0 &&
-        tailProgress <= 1.0 &&
-        Math.abs(ny - tailCenterY) <= tailRadius;
+        const armDistX = Math.abs(Math.abs(nx) - 0.48);
+        isForelimb = !isHead && !isTorso && armDistX <= 0.13 && ny >= -0.22 && ny <= 0.88;
 
-      if (!isHead && !isTorso && !isForelimb && !isTail) continue;
+        const tailProgress = (nx - 0.35) / 0.50;
+        const tailRadius = 0.10 * (1.0 - tailProgress * 0.82);
+        const tailCenterY = 0.12 + tailProgress * 0.16;
+        isTail =
+          !isHead &&
+          !isTorso &&
+          !isForelimb &&
+          tailProgress >= 0 &&
+          tailProgress <= 1.0 &&
+          Math.abs(ny - tailCenterY) <= tailRadius;
+
+        if (!isHead && !isTorso && !isForelimb && !isTail) continue;
+      }
 
       const idx = (py * width + px) * 4;
       const r = data[idx]!;
@@ -135,6 +152,7 @@ async function sampleCreatureMaskFromPng(shotId: string, distM: number) {
 
 describe('Prompt 3 (D121) — Creature Colour & Luminance Contract', () => {
   const shots = [
+    { id: 'creature_jumpscare', distM: 0.82 },
     { id: 'creature_close_6m', distM: 6 },
     { id: 'creature_mid_15m', distM: 15 },
     { id: 'creature_far_35m', distM: 35 },

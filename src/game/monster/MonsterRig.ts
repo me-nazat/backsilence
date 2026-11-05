@@ -82,6 +82,44 @@ export function buildCurvedClawGeometry(length = 0.28, baseRadius = 0.022): Buff
 }
 
 /**
+ * Builds a broad, flat wading foot geometry (0.28m length, 0.16m width, 0.05m thickness)
+ * specifically designed for stability and high water resistance in the wading stance (f_018).
+ */
+export function buildFlatWadingFootGeometry(
+  length = 0.28,
+  width = 0.16,
+  thickness = 0.05,
+  segments = 8,
+  rings = 6,
+): BufferGeometry {
+  const geom = new BufferGeometry();
+  const positions: number[] = [];
+  const indices: number[] = [];
+
+  for (let r = 0; r <= rings; r++) {
+    const v = r / rings;
+    const y = -v * length;
+    const w = (width * 0.70 + width * 0.45 * Math.sin(v * Math.PI * 0.6)) * 0.5;
+    const h = (thickness * (1.10 - v * 0.40)) * 0.5;
+
+    for (let s = 0; s <= segments; s++) {
+      const u = s / segments;
+      const angle = (u - 0.5) * Math.PI * 2;
+      const px = Math.cos(angle) * w;
+      const pz = Math.sin(angle) * h;
+      positions.push(px, y, pz);
+    }
+  }
+
+  addGridIndices(indices, rings, segments);
+
+  geom.setAttribute('position', new Float32BufferAttribute(positions, 3));
+  geom.setIndex(new Uint16BufferAttribute(indices, 1));
+  geom.computeVertexNormals();
+  return geom;
+}
+
+/**
  * Builds an organic curved jaw petal geometry for the 4-lobe flared maw.
  */
 export function buildJawPetalGeometry(length = 0.20, baseWidth = 0.12, tipWidth = 0.03): BufferGeometry {
@@ -1081,7 +1119,7 @@ export class MonsterRig {
     this.shinL.add(this.ankleL);
 
     this.footL.name = 'Rig_FootL';
-    const footGeom = buildMuscularSegmentGeometry(0.22, 0.09, 0.10, 0.06, 8, 4);
+    const footGeom = buildFlatWadingFootGeometry(0.26, 0.15, 0.05, 8, 6);
     const footMeshL = new Mesh(footGeom, this.monsterSkinMat);
     footMeshL.rotation.x = -Math.PI * 0.45;
     this.footL.add(footMeshL);
