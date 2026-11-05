@@ -154,6 +154,7 @@ export type NoiseKind =
   | 'door'
   | 'scream'
   | 'roar'
+  | 'hiss'
   | 'clang'
   | 'alarm'
   | 'bell'

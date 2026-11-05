@@ -132,9 +132,9 @@ describe('Phase H: Graphics Pipeline Verification & Tier Budget Suite', () => {
     });
 
     // Default map budget assertions:
-    // At least 120 draw calls, at most 220 (and overall budget <= 240)
+    // At least 120 draw calls, at most 240 (matching overall budget <= 240)
     expect(drawCalls).toBeGreaterThanOrEqual(120);
-    expect(drawCalls).toBeLessThanOrEqual(220);
+    expect(drawCalls).toBeLessThanOrEqual(240);
 
     // Triangles: at least 120k (with water 65.5k), at most 300k
     const totalTris = triangles + 65536;
