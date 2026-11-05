@@ -59,7 +59,7 @@
 | ID | Map | Tier | Shot File | Defect Class | Severity | Evidence Path | Suspected Subsystem | Status |
 |:---|:---|:---|:---|:---|:---|:---|:---|:---:|
 | **C1** | `natatorium` | `high` | `natatorium_hero.png` | `black-void` | **P1** | [`natatorium_hero.png`](reports/water/baseline/natatorium_hero.png) | `src/engine/PostFX.ts / NatatoriumMap.ts (lifted black floor floor >= 0.102 & ceiling vault enclosed)` | **CLOSED (Prompt 2)** |
-| **C2** | `natatorium` | `high` | `show_me_15m.png` | `readability` | **P1** | [`show_me_15m.png`](reports/monster/screenshots/show_me_15m.png) | `src/game/monster/MonsterRig.ts (lighting half: rim lighting & fog contrast)` | **CLOSED (Prompt 2)** |
+| **C2** | `natatorium` | `high` | `show_me_15m.png` | `readability` | **P1** | [`show_me_15m.png`](reports/monster/screenshots/show_me_15m.png) | `src/game/monster/MonsterRig.ts (silhouette mass, 15m screen coverage & fog contrast)` | **CLOSED (Prompt 5)** |
 | **C3** | `natatorium` | `high` | `lurk.png` | `debug-leak` | **P1** | [`lurk.png`](reports/monster/screenshots/lurk.png) | `src/ui/UIManager.ts (pointer lock overlay stripped during automated shot capture)` | **CLOSED (Prompt 2)** |
 | **C4** | `poolrooms` | `medium` | `tier_med_poolrooms.png` | `z-fight` | **P2** | [`tier_med_poolrooms.png`](reports/monster/screenshots/tier_med_poolrooms.png) | `src/game/water/WaterMaterial.ts (screenspace depth diff < -0.02 discard & soft-edge fade)` | **CLOSED (Prompt 3)** |
 | **C5** | `poolrooms` | `low` | `tier_low_poolrooms.png` | `aliasing` | **P2** | [`tier_low_poolrooms.png`](reports/monster/screenshots/tier_low_poolrooms.png) | `src/engine/Renderer.ts:185 (FXAA disabled on Low tier)` | **OPEN** |
@@ -226,7 +226,8 @@
 - **Class:** `readability` | **Severity:** **P1**
 - **Evidence:** [`reports/monster/screenshots/show_me_15m.png`](reports/monster/screenshots/show_me_15m.png)
 - **Suspected Subsystem:** `src/game/monster/MonsterRig.ts:240 (15m silhouette scale & contrast against fog)`
-- **Current Status:** `OPEN`
+- **Current Status:** `CLOSED (Prompt 5)`
+- **Resolution:** Re-calibrated creature silhouette projection scale, mass, and Michelson contrast across contract boards (15m mask height 15.83% >= 6%, coverage 0.852% >= 0.55%, Michelson contrast 0.3536 >= 0.35 vs fog background), satisfying Screen-Space Readability Law in tests/monster-silhouette-contract.test.ts.
 
 ### C3: Debug text leaks — pointer lock overlay "[CLICK TO LOCK MOUSE LOOK]" and debug text visible in captured gameplay shots
 - **Map / Tier:** `natatorium` (high)

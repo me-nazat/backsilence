@@ -101,13 +101,16 @@ export class MonsterGaitGenerator {
       const fwdHR = Math.cos(phaseR * Math.PI * 2) * 0.45;
       this.updateLimb(this.handR, rootPos, fwdX, fwdZ, rightX, rightZ, -0.55, 0.3 + fwdHR, liftHR, ground, true);
 
+      // Knees parting around water drag (lateral flare during leg swing)
       const liftFL = phaseR > 0.5 ? Math.sin((phaseR - 0.5) * Math.PI * 2) * stepHeight : 0;
       const fwdFL = Math.cos(phaseR * Math.PI * 2) * 0.35;
-      this.updateLimb(this.footL, rootPos, fwdX, fwdZ, rightX, rightZ, 0.35, -0.5 + fwdFL, liftFL, ground);
+      const kneeAbductL = liftFL > 0.04 ? 0.06 * Math.sin((liftFL / stepHeight) * Math.PI) : 0.0;
+      this.updateLimb(this.footL, rootPos, fwdX, fwdZ, rightX, rightZ, 0.35 + kneeAbductL, -0.5 + fwdFL, liftFL, ground);
 
       const liftFR = phaseL > 0.5 ? Math.sin((phaseL - 0.5) * Math.PI * 2) * stepHeight : 0;
       const fwdFR = Math.cos(phaseL * Math.PI * 2) * 0.35;
-      this.updateLimb(this.footR, rootPos, fwdX, fwdZ, rightX, rightZ, -0.35, -0.5 + fwdFR, liftFR, ground);
+      const kneeAbductR = liftFR > 0.04 ? 0.06 * Math.sin((liftFR / stepHeight) * Math.PI) : 0.0;
+      this.updateLimb(this.footR, rootPos, fwdX, fwdZ, rightX, rightZ, -(0.35 + kneeAbductR), -0.5 + fwdFR, liftFR, ground);
 
       if (liftHL < 0.03 && !this.wasPlantedHL && onPlant) onPlant(this.handL.pos, 0.5, false);
       if (liftHR < 0.03 && !this.wasPlantedHR && onPlant) onPlant(this.handR.pos, 0.5, false);

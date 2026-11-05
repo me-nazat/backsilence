@@ -21,6 +21,7 @@ reports/visual/*.png
 !reports/visual/creature_close_6m.png
 !reports/visual/creature_mid_15m.png
 !reports/visual/creature_far_35m.png
+!reports/visual/creature_jumpscare.png
 !reports/release/
 !reports/glitch/
 !reports/world/

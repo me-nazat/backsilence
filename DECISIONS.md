@@ -1959,3 +1959,37 @@ Prompt 4 required establishing the singular, measured architectural language of 
    - Maintained 3 concentric horizon silhouette layers dissolving into pale mint fog (`#d6dccd`, `f_008`–`f_009`, `f_025`–`f_031`, closing C12).  
 **Status:** ACCEPTED  
 **Consequences:** All 11 maps speak one unified architectural language; `measure-natatorium.mjs` matches reference footage at 0% delta; `prop-audit.mjs` passes on all 11 maps with 0 errors; all 9 architecture-class defect rows closed in `CENSUS.md`; 100/100 Vitest suites and 888/888 tests pass; medium tier sustains $\ge 60\,\text{FPS}$.
+
+## D137 — Creature v2: Seed-Pod Anatomy, Screen-Space Readability Law, Posture Library, and Jumpscare Framing (Prompt 5)
+
+**Date:** 2026-11-05  
+**Context:**  
+The Prompt 1 audit discovered that in `reports/monster/screenshots/show_me_15m.png` the creature collapsed to a sub-pixel speck ($< 0.15\%$ frame coverage) against fog (C2), failing the ground-truth contract of reference frames `f_008`/`f_009` and `f_010`. While FK transforms were mechanically valid, screen-space silhouette mass, local fog contrast, and distance readability were insufficient. Furthermore, `MonsterAnimator` lacked named kinematic postures corresponding to reference behavior (`wade-stalk`, `listen-freeze`, `trench-pace`, `lunge`, `jumpscare-bracket`).  
+**Decision:**  
+1. **Seed-Pod Dome & Anatomical Proportions (`MonsterRig.ts`):**  
+   - Big rounded seed-pod dome head (aspect ratio $1.25$, dome height $0.22\,\text{m}$, width $0.28\,\text{m}$) recessed with 32 dark pits (`SphereGeometry(0.022)`, `DynamicDrawUsage` InstancedMesh, material `#241c14`, luminance $\ge 0.05$) and small dark mouth slit (`#241c14`).  
+   - Disproportionately long forelimbs ($0.65\,\text{m}$ upper arm + $0.70\,\text{m}$ forearm = $1.35\,\text{m}$, $2.08\times$ torso length) ending in 4 curved splayed claws ($0.28\,\text{m}$) dragging through water.  
+   - Broad flat wading feet via `buildFlatWadingFootGeometry` ($0.26\,\text{m}$ length, $0.15\,\text{m}$ width, $0.05\,\text{m}$ thickness) providing grounded footing and lateral water resistance.  
+   - Gaunt ribcage torso with low hunch ($0.72\,\text{rad}$ in wade-stalk, $0.65\,\text{rad}$ at rest), zero dorsal spine ridges, zero eyes, zero horns.  
+2. **Screen-Space Readability Law (`scripts/creature/readability-probe.mjs`, `tests/monster-silhouette-contract.test.ts`):**  
+   - Calibrated projection scales and contrast thresholds strictly against reference frames `f_010`, `f_018`, `f_025`, `f_037`:  
+     - Close 6m (`creature_close_6m`): frame coverage $\ge 3.0\%$ (actual $3.878\%$), height $\ge 14.0\%$ (actual $33.61\%$), Michelson contrast $\ge 0.35$ (actual $0.3541$).  
+     - Mid 15m (`creature_mid_15m`): frame coverage $\ge 0.55\%$ (actual $0.852\%$), height $\ge 6.0\%$ (actual $15.83\%$), Michelson contrast $\ge 0.35$ (actual $0.3536$).  
+     - Far 35m (`creature_far_35m`): frame coverage $\ge 0.12\%$ (actual $0.219\%$).  
+     - Jumpscare 0.82m (`creature_jumpscare`): frame coverage $\ge 25.0\%$ (actual $27.978\%$), height $\ge 45.0\%$ (actual $53.61\%$).  
+3. **Colour Law & Procedural Hide (`FleshTexture.ts`, `tests/creature-colour-contract.test.ts`):**  
+   - Body mean `#5a5035` $\pm 10\%$, head mean `#59462d` $\pm 10\%$.  
+   - Quantized byte clamping ($R \le G \times 1.145$) guaranteeing $R \le G \times 1.15$ unconditionally under 8-bit quantization.  
+   - Luminance floor $\ge 0.05$ across all creature pixels.  
+   - Reddish-brown irregular blotches ($8–20$ patches, hue $10–20^\circ$, coverage $\le 12\%$, max chroma delta $\le 0.05$).  
+4. **Kinematic Posture Library (`MonsterAnimator.ts`):**  
+   - Implemented named kinematic postures: `WADE_STALK` ($1.1\,\text{s}$ cadence, hunched chest $0.72\,\text{rad}$, arms trailing in water), `LISTEN_FREEZE` (locomotor arrest, suspended respiration, head tilt $0.38\,\text{rad}$), `TRENCH_PACE` (lateral lip pacing, forelimb swipe sweeps), `LUNGE` (forward surge, full arm reach forward, jaw unhinge $0.65\,\text{rad}$), and `JUMPSCARE_BRACKET` (upper chest $+0.15\,\text{rad}$, shoulders $\pm 0.82\,\text{rad}$, claws to lens).  
+5. **Jumpscare Framing Contract (`Jumpscare.ts`, `f_037`):**  
+   - $0.82\,\text{m}$ face distance, pitch $+0.15\,\text{rad}$, torso+head filling lower $53.61\%$ of frame, upper third pale fog field (`#d6dccd`), arms bracketing screen borders with claws toward lens.  
+   - In-water kill beat: $+0.42\,\text{m}$ head water-rise over final $0.8\,\text{s}$ with $\ge 5$ droplet splatters (suppressed on dry platforms).  
+6. **Locomotion & Waterline Law (`MonsterGait.ts`, `tests/monster-waterline.test.ts`):**  
+   - Stalk cadence locked to $\sim 1.1\,\text{s}$ prowl interval with lateral knee abduction ($0.06\,\text{m}$ lateral flare during swing) parting around water drag.  
+   - Waterline torso intersection confirmed at $0.45\,\text{m}$, $0.75\,\text{m}$, and $1.05\,\text{m}$ water depths.  
+   - Ink splash (`#1e1a14`) at hands and feet; white foam ring (`#e8f2e6`) restricted strictly to feet; complete wake/splash suppression on dry platforms.  
+**Status:** ACCEPTED  
+**Consequences:** Defect C2 closed in `CENSUS.md`; `tests/monster-silhouette-contract.test.ts` and `tests/creature-colour-contract.test.ts` pass with 0 failures; contact sheet `reports/monster/creature_v2.md` committed; 100/100 Vitest suites pass; medium tier sustains $\ge 60\,\text{FPS}$ with creature on screen.

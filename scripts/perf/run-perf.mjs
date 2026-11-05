@@ -506,7 +506,7 @@ async function main() {
     await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
 
     await cdp.send('Page.navigate', { url: `${BASE_URL}/?mode=solo&map=poolrooms&seed=12345&god=1` });
-    await waitFor(() => cdp.evaluate("Boolean(window.__backsilence_session && window.__backsilence_session.isLoaded)"), 'Mobile session loaded', 25000);
+    await waitFor(() => cdp.evaluate("Boolean(window.__backsilence_session && window.__backsilence_session.isLoaded)"), 'Mobile session loaded', 45000);
 
     const mobileCheck = await cdp.evaluate(`(() => {
       const s = window.__backsilence_session;

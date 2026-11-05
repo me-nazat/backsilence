@@ -25,7 +25,17 @@ export type MonsterAnimState =
   | 'GALLOP_CHARGE'
   | 'REAR_UP_ROAR'
   | 'JUMPSCARE_GRAB'
-  | 'TRENCH_CLAW_LUNGE';
+  | 'TRENCH_CLAW_LUNGE'
+  | 'WADE_STALK'
+  | 'LISTEN_FREEZE'
+  | 'TRENCH_PACE'
+  | 'LUNGE'
+  | 'JUMPSCARE_BRACKET'
+  | 'wade-stalk'
+  | 'listen-freeze'
+  | 'trench-pace'
+  | 'lunge'
+  | 'jumpscare-bracket';
 
 export interface MonsterAnimatorCallbacks {
   onForelimbSlam?: (pos: Vector3, force: number) => void;
@@ -97,6 +107,50 @@ export class MonsterAnimator {
     return this.state === 'TRENCH_CLAW_LUNGE';
   }
 
+  setState(name: MonsterAnimState | string): void {
+    this.state = name as MonsterAnimState;
+  }
+
+  triggerWadeStalk(): void {
+    this.state = 'WADE_STALK';
+  }
+
+  isWadeStalk(): boolean {
+    return this.state === 'WADE_STALK' || (this.state as string) === 'wade-stalk';
+  }
+
+  triggerListenFreeze(): void {
+    this.state = 'LISTEN_FREEZE';
+  }
+
+  isListenFreeze(): boolean {
+    return this.state === 'LISTEN_FREEZE' || (this.state as string) === 'listen-freeze';
+  }
+
+  triggerTrenchPace(): void {
+    this.state = 'TRENCH_PACE';
+  }
+
+  isTrenchPace(): boolean {
+    return this.state === 'TRENCH_PACE' || (this.state as string) === 'trench-pace';
+  }
+
+  triggerLunge(): void {
+    this.state = 'LUNGE';
+  }
+
+  isLunge(): boolean {
+    return this.state === 'LUNGE' || (this.state as string) === 'lunge';
+  }
+
+  triggerJumpscareBracket(): void {
+    this.state = 'JUMPSCARE_BRACKET';
+  }
+
+  isJumpscareBracket(): boolean {
+    return this.state === 'JUMPSCARE_BRACKET' || (this.state as string) === 'jumpscare-bracket';
+  }
+
   update(
     dt: number,
     speed: number,
@@ -124,6 +178,28 @@ export class MonsterAnimator {
         this.state = speed > 3.5 ? 'GALLOP_CHARGE' : speed > 0.2 ? 'PROWL_WALK' : 'PROWL_IDLE';
         this.trenchLungeTimer = 0.0;
       }
+    } else if (
+      this.state === 'WADE_STALK' ||
+      (this.state as string) === 'wade-stalk' ||
+      this.state === 'LISTEN_FREEZE' ||
+      (this.state as string) === 'listen-freeze' ||
+      this.state === 'TRENCH_PACE' ||
+      (this.state as string) === 'trench-pace' ||
+      this.state === 'LUNGE' ||
+      (this.state as string) === 'lunge' ||
+      this.state === 'JUMPSCARE_BRACKET' ||
+      (this.state as string) === 'jumpscare-bracket'
+    ) {
+      if (simState === 'ARRIVE_AND_ROAR') {
+        this.state = 'REAR_UP_ROAR';
+        this.roarTimer = 0.0;
+      } else if (simState === 'JUMPSCARE_GRAB') {
+        this.state = 'JUMPSCARE_GRAB';
+        this.jumpscareTimer = 0.0;
+      } else if (simState === 'TRENCH_CLAW_LUNGE') {
+        this.state = 'TRENCH_CLAW_LUNGE';
+        this.trenchLungeTimer = 0.0;
+      }
     } else {
       // Automatic state selection based on speed and sim state
       if (simState === 'TRENCH_CLAW_LUNGE') {
@@ -132,6 +208,16 @@ export class MonsterAnimator {
       } else if (simState === 'ARRIVE_AND_ROAR') {
         this.state = 'REAR_UP_ROAR';
         this.roarTimer = 0.0;
+      } else if (simState === 'WADE_STALK' || simState === 'wade-stalk') {
+        this.state = 'WADE_STALK';
+      } else if (simState === 'LISTEN_FREEZE' || simState === 'listen-freeze') {
+        this.state = 'LISTEN_FREEZE';
+      } else if (simState === 'TRENCH_PACE' || simState === 'trench-pace') {
+        this.state = 'TRENCH_PACE';
+      } else if (simState === 'LUNGE' || simState === 'lunge') {
+        this.state = 'LUNGE';
+      } else if (simState === 'JUMPSCARE_BRACKET' || simState === 'jumpscare-bracket') {
+        this.state = 'JUMPSCARE_BRACKET';
       } else if (simState === 'ATTACK' || simState === 'HUNT' || simState === 'ALERT_AND_CHARGE' || speed > 3.5) {
         this.state = 'GALLOP_CHARGE';
       } else if (speed > 0.15) {
@@ -424,6 +510,148 @@ export class MonsterAnimator {
         this.rig.handR.rotation.set(-0.35 + reachR * 0.20, 0, 0);
 
         this.rig.pelvis.position.y = 0.65;
+        break;
+      }
+
+      case 'WADE_STALK':
+      case 'wade-stalk': {
+        // Reference cadence: prowl interval ~1.1s (Phase C item 1)
+        this.phase += (speed > 0.1 ? speed : 0.8) * dt * ((Math.PI * 2) / 1.1);
+        const p = this.phase;
+
+        // Hunched chest (0.72 rad thoracic curve), head carried low between shoulders
+        this.chestPitch = MathUtils.damp(this.chestPitch, 0.72, 8.0, dt);
+        this.chestRoll = Math.sin(p) * 0.40;
+        this.jawSplit = 0.10 + (Math.sin(t * 1.5) * 0.5 + 0.5) * 0.08;
+
+        this.rig.upperChest.rotation.x = this.chestPitch;
+        this.rig.upperChest.rotation.z = this.chestRoll;
+        this.rig.upperChest.rotation.y = Math.sin(p) * 0.15;
+        this.rig.lowerSpine.rotation.y = Math.sin(p - 0.75) * 0.15;
+
+        // Head carried low between shoulders (neck.x = -0.22, head.x = 0.12)
+        this.rig.neck.rotation.x = -0.22;
+        this.rig.neck.rotation.y = Math.sin(t * 1.5) * 0.35;
+        this.rig.headGroup.rotation.x = 0.12;
+        this.rig.headGroup.rotation.z = Math.cos(t * 1.1) * 0.15;
+
+        // Arms trailing in water, swinging low with hands slicing surface
+        const armSwingL = Math.sin(p) * 0.35;
+        this.rig.shoulderL.rotation.set(0.35 + armSwingL, 0, 0.12 + Math.sin(p) * 0.25);
+        this.rig.elbowL.rotation.set(-0.25 + Math.max(0, -armSwingL) * 0.20, 0, 0);
+        this.rig.handL.rotation.set(-0.20, 0, 0);
+
+        this.rig.shoulderR.rotation.set(0.35 - armSwingL, 0, -0.12 - Math.sin(p) * 0.25);
+        this.rig.elbowR.rotation.set(-0.25 + Math.max(0, armSwingL) * 0.20, 0, 0);
+        this.rig.handR.rotation.set(-0.20, 0, 0);
+
+        // Hindlegs: heavy wading stance with lateral knee clearance
+        const legSwingL = -armSwingL * 0.70;
+        this.rig.hipL.rotation.set(-0.20 + legSwingL, 0, 0.08 + Math.sin(p) * 0.35);
+        this.rig.kneeL.rotation.set(0.50 + Math.max(0, -legSwingL) * 0.25, 0, 0);
+        this.rig.hipR.rotation.set(-0.20 - legSwingL, 0, -0.08 - Math.sin(p) * 0.35);
+        this.rig.kneeR.rotation.set(0.50 + Math.max(0, legSwingL) * 0.25, 0, 0);
+
+        this.rig.pelvis.position.y = 0.68 + Math.abs(Math.sin(p * 2.0)) * 0.03;
+        this.rig.setJawSplit(this.jawSplit);
+        break;
+      }
+
+      case 'LISTEN_FREEZE':
+      case 'listen-freeze': {
+        // Perfectly still, suspended respiration, head tilted listening to water (f_018)
+        this.chestPitch = MathUtils.damp(this.chestPitch, 0.70, 8.0, dt);
+        this.rig.upperChest.rotation.set(this.chestPitch, 0, 0);
+        this.rig.lowerSpine.rotation.set(0, 0, 0);
+
+        // Head tilt (headGroup.rotation.z = 0.38)
+        this.rig.neck.rotation.set(-0.18, 0.15, 0);
+        this.rig.headGroup.rotation.set(0.10, 0.12, 0.38);
+
+        // Frozen limbs
+        this.rig.shoulderL.rotation.set(0.20, 0, 0.05);
+        this.rig.elbowL.rotation.set(-0.45, 0, 0);
+        this.rig.shoulderR.rotation.set(0.20, 0, -0.05);
+        this.rig.elbowR.rotation.set(-0.45, 0, 0);
+
+        this.rig.hipL.rotation.set(-0.25, 0, 0.10);
+        this.rig.kneeL.rotation.set(0.55, 0, 0);
+        this.rig.hipR.rotation.set(-0.25, 0, -0.10);
+        this.rig.kneeR.rotation.set(0.55, 0, 0);
+
+        this.rig.pelvis.position.y = 0.70;
+        this.jawSplit = 0.12;
+        this.rig.setJawSplit(this.jawSplit);
+        break;
+      }
+
+      case 'TRENCH_PACE':
+      case 'trench-pace': {
+        // Lateral movement pacing along trench lip, forelimb swipe reach (f_035–f_036)
+        const p = t * 2.5;
+        this.chestPitch = MathUtils.damp(this.chestPitch, 0.60, 8.0, dt);
+
+        this.rig.upperChest.rotation.x = this.chestPitch;
+        this.rig.upperChest.rotation.y = Math.sin(p) * 0.25;
+        this.rig.upperChest.rotation.z = Math.cos(p) * 0.15;
+
+        this.rig.neck.rotation.set(-0.15, Math.sin(p * 0.8) * 0.30, 0);
+        this.rig.headGroup.rotation.set(0.12, 0, 0.15);
+
+        // Lateral swipe reach with forelimbs
+        const swipeL = Math.sin(p) * 0.45;
+        this.rig.shoulderL.rotation.set(0.20 + swipeL, Math.sin(p) * 0.35, 0.15);
+        this.rig.elbowL.rotation.set(-0.35, 0, 0);
+        this.rig.shoulderR.rotation.set(0.20 - swipeL, -Math.sin(p) * 0.35, -0.15);
+        this.rig.elbowR.rotation.set(-0.35, 0, 0);
+
+        this.rig.pelvis.position.y = 0.68;
+        this.jawSplit = 0.45;
+        this.rig.setJawSplit(this.jawSplit);
+        break;
+      }
+
+      case 'LUNGE':
+      case 'lunge': {
+        // Full extension forward surge, jaw unhinge 0.65 rad
+        this.chestPitch = MathUtils.damp(this.chestPitch, 0.40, 10.0, dt);
+        this.rig.upperChest.rotation.set(this.chestPitch, 0, 0);
+
+        // Full arm reach forward
+        this.rig.shoulderL.rotation.set(-1.35, 0.12, 0.05);
+        this.rig.elbowL.rotation.set(-0.15, 0, 0);
+        this.rig.handL.rotation.set(-0.30, 0, 0);
+
+        this.rig.shoulderR.rotation.set(-1.35, -0.12, -0.05);
+        this.rig.elbowR.rotation.set(-0.15, 0, 0);
+        this.rig.handR.rotation.set(-0.30, 0, 0);
+
+        this.rig.neck.rotation.set(0.28, 0, 0);
+        this.rig.headGroup.rotation.set(-0.15, 0, 0);
+
+        this.jawSplit = 0.65;
+        this.rig.setJawSplit(0.65);
+        this.rig.pelvis.position.y = 0.62;
+        break;
+      }
+
+      case 'JUMPSCARE_BRACKET':
+      case 'jumpscare-bracket': {
+        // f_037 bracket: shoulders ±0.82 rad, claws toward lens, upper chest +0.15 rad
+        this.rig.upperChest.rotation.set(0.15, 0, 0);
+        this.rig.neck.rotation.set(-0.25, 0, 0);
+        this.rig.headGroup.rotation.set(0.20, 0, 0);
+
+        this.rig.shoulderL.rotation.set(-0.82, 0.25, 0.82);
+        this.rig.elbowL.rotation.set(-0.65, 0, 0);
+        this.rig.handL.rotation.set(-0.45, 0, 0.35);
+
+        this.rig.shoulderR.rotation.set(-0.82, -0.25, -0.82);
+        this.rig.elbowR.rotation.set(-0.65, 0, 0);
+        this.rig.handR.rotation.set(-0.45, 0, -0.35);
+
+        this.jawSplit = 0.65;
+        this.rig.setJawSplit(0.65);
         break;
       }
     }

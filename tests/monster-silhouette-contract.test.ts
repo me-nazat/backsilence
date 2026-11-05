@@ -155,4 +155,46 @@ describe('Prompt 3A: Reference Creature Silhouette Contract (vs reports/monster/
 
     rig.dispose();
   });
+
+  it('Prompt 5: asserts Screen-Space Readability Law (coverage, height, Michelson contrast) across contract shots', async () => {
+    const probeModName = '../scripts/creature/readability-probe.mjs';
+    const pathModName = 'node:path';
+    const probe = (await import(/* @vite-ignore */ probeModName)) as unknown as {
+      measureReadability: (p: string, distM: number) => {
+        maskPixels: number;
+        coveragePercent: number;
+        heightPercent: number;
+        michelsonContrast: number;
+      };
+    };
+    const path = (await import(/* @vite-ignore */ pathModName)) as unknown as PathModule;
+
+    // 1. creature_close_6m (calibrated vs f_018 reference: hunched silhouette against water)
+    // Contract: mask coverage >= 3.0%, height >= 14% of frame, Michelson contrast >= 0.35
+    const close6mPath = path.resolve(process.cwd(), 'reports/visual/creature_close_6m.png');
+    const res6m = probe.measureReadability(close6mPath, 6.0);
+    expect(res6m.coveragePercent).toBeGreaterThanOrEqual(3.0);
+    expect(res6m.heightPercent).toBeGreaterThanOrEqual(14.0);
+    expect(res6m.michelsonContrast).toBeGreaterThanOrEqual(0.35);
+
+    // 2. creature_mid_15m (calibrated vs f_010 reference: clear vertical band at 6–12m / 15m)
+    // Contract: mask coverage >= 0.55%, height >= 6.0% of frame, Michelson contrast >= 0.35
+    const mid15mPath = path.resolve(process.cwd(), 'reports/visual/creature_mid_15m.png');
+    const res15m = probe.measureReadability(mid15mPath, 15.0);
+    expect(res15m.coveragePercent).toBeGreaterThanOrEqual(0.55);
+    expect(res15m.heightPercent).toBeGreaterThanOrEqual(6.0);
+    expect(res15m.michelsonContrast).toBeGreaterThanOrEqual(0.35);
+
+    // 3. creature_far_35m (calibrated vs f_025 reference: distant dark silhouette in dense fog)
+    // Contract: mask coverage >= 0.12% of frame
+    const far35mPath = path.resolve(process.cwd(), 'reports/visual/creature_far_35m.png');
+    const res35m = probe.measureReadability(far35mPath, 35.0);
+    expect(res35m.coveragePercent).toBeGreaterThanOrEqual(0.12);
+
+    // 4. creature_jumpscare (calibrated vs f_037 reference: torso+head fill lower ~65% of frame)
+    // Contract: mask coverage >= 25.0% of frame
+    const jumpscarePath = path.resolve(process.cwd(), 'reports/visual/creature_jumpscare.png');
+    const resJumpscare = probe.measureReadability(jumpscarePath, 0.82);
+    expect(resJumpscare.coveragePercent).toBeGreaterThanOrEqual(25.0);
+  });
 });
