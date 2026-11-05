@@ -704,12 +704,16 @@ export class GameSession {
             { x: camDir.x, y: camDir.y, z: camDir.z },
           );
           if (lookingPebble) {
-            this.throwableSystem.pickupPebble(lookingPebble.id);
-            this.audio.play('pebble_clack', { gain: 0.5 });
-            this.hud.update({
-              pebbleCount: this.throwableSystem.pebbleCount,
-              interactionPrompt: null,
-            });
+            const picked = this.throwableSystem.pickupPebble(lookingPebble.id);
+            if (picked) {
+              this.throwableSystem.setEquipped(true);
+              this.audio.play('pebble_clack', { gain: 0.5 });
+              this.hud.update({
+                pebbleCount: this.throwableSystem.pebbleCount,
+                pebbleEquipped: true,
+                interactionPrompt: null,
+              });
+            }
           } else {
             const equipped = this.throwableSystem.toggleEquip();
             this.hud.update({
@@ -719,7 +723,8 @@ export class GameSession {
           }
         },
         onLeftClickInGame: () => {
-          if (this.throwableSystem.isEquipped && this.throwableSystem.pebbleCount > 0) {
+          if (this.throwableSystem.pebbleCount > 0) {
+            this.throwableSystem.setEquipped(true);
             const camPos = this.camera.position;
             const camDir = _scratchVecA;
             this.camera.getWorldDirection(camDir);
@@ -1577,6 +1582,39 @@ export class GameSession {
             this.openKeypad();
           },
         });
+
+        // Buoyant Props: PUSH mechanic into water (Prompt 7)
+        const buoyantProps = this.layout.props.filter((p) => p.kind === 'skimmer_lid' || p.kind === 'buoy');
+        for (const bp of buoyantProps) {
+          let pushed = false;
+          const qualifier = bp.kind === 'skimmer_lid' ? 'skimmer lid' : 'float buoy';
+          this.interactions.register({
+            id: `buoyant_${bp.id}`,
+            position: bp.position,
+            radius: 2.2,
+            label: () => (pushed ? `[PUSHED] — ${qualifier}` : `PUSH — ${qualifier}`),
+            canUse: () => !pushed,
+            onUse: () => {
+              pushed = true;
+              this.audio.play('pebble_plink', { position: bp.position, gain: 1.0 });
+              const mesh = this.scene.getObjectByName(`BuoyantProp_${bp.id}`);
+              if (mesh) {
+                mesh.position.y = 0.02; // slides/tips into water
+                mesh.rotation.z += 0.25;
+              }
+              // Powerful acoustic distraction (loudness 0.70 gives hearing radius 28m)
+              this.simWorld.broadcastNoise({
+                kind: 'splash',
+                position: bp.position,
+                loudness: 0.70,
+                sourcePlayerId: 'player_local',
+              });
+              this.simWorld.acousticBus.emitStoneSplash(bp.position, this.simWorld.simTime, 0.70);
+              this.water?.splashes.burst(bp.position, 1.2);
+              this.water?.rippleManager.spawnPebbleImpact(bp.position.x, bp.position.z);
+            },
+          });
+        }
         break;
       }
 

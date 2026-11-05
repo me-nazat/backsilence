@@ -97,6 +97,9 @@ export class MonsterBrain {
   private currentPath: PathPoint[] = [];
   private currentPathIndex = 0;
   private currentTarget: Vec3 | null = null;
+  public get target(): Vec3 | null {
+    return this.currentTarget;
+  }
   private currentTargetScore = 0;
   private patrolBias: { center: Vec3; radius: number; strength: number } | null = null;
 

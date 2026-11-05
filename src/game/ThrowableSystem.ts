@@ -60,7 +60,7 @@ export class ThrowableSystem {
   constructor(cfg?: ThrowableSystemConfig) {
     this.config = {
       initialPebbles: cfg?.initialPebbles ?? 2,
-      maxPebbles: cfg?.maxPebbles ?? 9,
+      maxPebbles: cfg?.maxPebbles ?? 3,
       throwSpeed: cfg?.throwSpeed ?? 13.5,
       throwUpwardArc: cfg?.throwUpwardArc ?? 2.2,
       gravity: cfg?.gravity ?? 18.0,

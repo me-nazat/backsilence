@@ -61,6 +61,7 @@ import {
   makeHandwrittenWarningGraffiti,
   makeWarningDecal,
   makeRouteArrowDecal,
+  makeThrowLureTeachingDecal,
 } from '../../procedural/textures/GraffitiDecals.js';
 import type { LightStreak } from '../../game/water/WaterMaterial.js';
 
@@ -715,8 +716,9 @@ export const NatatoriumMap: MapDefinition = {
       position: { x: 0.0, y: WORLD.PLATFORM_TOP_Y, z: -54.0 },
     });
 
-    // Collectible pebble props on dry platforms (Prompt 4B Section 2)
+    // Collectible pebble props on dry platforms (Prompt 4B Section 2, Prompt 7)
     const pebbleSpawns = [
+      { id: 'pebble_prop_0', x: -2.0, y: WORLD.PLATFORM_TOP_Y, z: 46.0 }, // First pile near foyer / spawn
       { id: 'pebble_prop_1', x: -0.5, y: WORLD.PLATFORM_TOP_Y, z: 8.5 },
       { id: 'pebble_prop_2', x: 0.0, y: WORLD.PLATFORM_TOP_Y, z: -6.0 },
       { id: 'pebble_prop_3', x: -12.5, y: WORLD.PLATFORM_TOP_Y, z: 9.5 },
@@ -756,6 +758,16 @@ export const NatatoriumMap: MapDefinition = {
       kind: 'generator',
       position: { x: 0.0, y: WORLD.PLATFORM_TOP_Y, z: -57.5 },
     });
+
+    // Buoyant props near water edges (Prompt 7 PUSH mechanic)
+    const buoyantProps = [
+      { id: 'skimmer_lid_foyer', kind: 'skimmer_lid', position: { x: 2.5, y: WORLD.PLATFORM_TOP_Y, z: 44.2 } },
+      { id: 'skimmer_lid_stepping', kind: 'skimmer_lid', position: { x: -2.2, y: WORLD.PLATFORM_TOP_Y, z: 35.0 } },
+      { id: 'buoy_midhall', kind: 'buoy', position: { x: 1.8, y: WORLD.PLATFORM_TOP_Y, z: 23.5 } },
+    ];
+    for (const bp of buoyantProps) {
+      props.push(bp);
+    }
 
     // 3D 4-Color Keypad Console Pedestal near exit doors (Prompt 4B Section 3)
     props.push({
@@ -1026,6 +1038,15 @@ export const NatatoriumMap: MapDefinition = {
     tallyMesh.name = 'Graffiti_Flavor_Tally';
     instance.root.add(tallyMesh);
 
+    // Prompt 7: Marker doodle teaching decal placed beside the first pebble pile
+    const throwLureTex = makeThrowLureTeachingDecal({ seed: layout.seed + 19 });
+    const throwLureMesh = DecalSystem.createWallDecalMesh(throwLureTex, 2.4, 1.2);
+    throwLureMesh.position.set(-2.0, 0.388, 45.2);
+    throwLureMesh.rotation.x = -Math.PI * 0.5;
+    throwLureMesh.rotation.z = Math.PI;
+    throwLureMesh.name = 'Decal_ThrowLure_Teaching';
+    instance.root.add(throwLureMesh);
+
     // Route decision arrows validated with navmesh raycast
     const routeDecisions: Array<{ x: number; z: number; targetDir: '>' | '<' | '^' | 'v' }> = [
       { x: 0.0, z: 43.5, targetDir: '^' },      // Foyer stepping stones forward
@@ -1209,6 +1230,36 @@ export const NatatoriumMap: MapDefinition = {
       genGroup.add(statusLightMesh);
 
       instance.root.add(genGroup);
+    }
+
+    // 3D Buoyant Props (Skimmer Lids & Float Buoys) (Prompt 7)
+    const skimmerMat = new MeshStandardMaterial({
+      color: 0xded8ce,
+      roughness: 0.5,
+      metalness: 0.1,
+    });
+    const buoyMat = new MeshStandardMaterial({
+      color: 0xf57c00,
+      roughness: 0.3,
+      metalness: 0.2,
+      emissive: 0xe65100,
+      emissiveIntensity: 0.25,
+    });
+    for (const prop of layout.props) {
+      if (prop.kind === 'skimmer_lid') {
+        const lidMesh = new Mesh(new CylinderGeometry(0.28, 0.28, 0.04, 24), skimmerMat);
+        lidMesh.position.set(prop.position.x, prop.position.y + 0.02, prop.position.z);
+        lidMesh.castShadow = true;
+        lidMesh.name = `BuoyantProp_${prop.id}`;
+        instance.root.add(lidMesh);
+      } else if (prop.kind === 'buoy') {
+        const buoyMesh = new Mesh(new CylinderGeometry(0.16, 0.16, 0.35, 16), buoyMat);
+        buoyMesh.position.set(prop.position.x, prop.position.y + 0.18, prop.position.z);
+        buoyMesh.rotation.z = 0.2;
+        buoyMesh.castShadow = true;
+        buoyMesh.name = `BuoyantProp_${prop.id}`;
+        instance.root.add(buoyMesh);
+      }
     }
 
     // ──────────────────────────────────────────────────────────────────────────

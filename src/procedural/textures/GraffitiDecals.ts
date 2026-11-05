@@ -724,3 +724,118 @@ export function makeRouteArrowDecal(options: {
   decalCache.set(cacheKey, texture);
   return texture;
 }
+
+/**
+ * Prompt 7: Marker doodle teaching decal placed beside the first pebble pile.
+ * Depicts:
+ * 1. Hand throwing a stone.
+ * 2. Parabolic trajectory arc dropping into water.
+ * 3. Water surface ripple and splash droplets.
+ * 4. Radiating acoustic sound waves.
+ * 5. Arrow pointing to ear/listening entity indicating sound lure distraction.
+ */
+export function makeThrowLureTeachingDecal(options: {
+  width?: number;
+  height?: number;
+  seed?: number;
+} = {}): CanvasTexture {
+  const width = options.width ?? 512;
+  const height = options.height ?? 256;
+  const seed = options.seed ?? 101;
+
+  const cacheKey = `throw_lure_teaching_${seed}_${width}_${height}`;
+  if (decalCache.has(cacheKey)) {
+    return decalCache.get(cacheKey)!;
+  }
+
+  const pooled = acquireCanvas(width, height);
+  const ctx = pooled.ctx;
+  ctx.clearRect(0, 0, width, height);
+
+  const color = '#0d0b06';
+  const strokes: Polyline[] = [];
+
+  // 1. Hand / fingers holding stone on left (x: 50..110, y: 120..180)
+  strokes.push([
+    [50, 170],
+    [75, 145],
+    [95, 140],
+    [105, 150],
+    [85, 175],
+    [55, 175],
+  ]);
+  // Finger release
+  strokes.push([[95, 140], [115, 130]]);
+  strokes.push([[100, 148], [118, 142]]);
+  // Stone (small polygon)
+  strokes.push([
+    [125, 126],
+    [132, 124],
+    [135, 130],
+    [130, 134],
+    [124, 131],
+    [125, 126],
+  ]);
+
+  // 2. Parabolic flight trajectory arc (x: 135 -> 280, y: 130 -> 60 -> 180)
+  strokes.push([[145, 120], [160, 105]]);
+  strokes.push([[175, 92], [195, 80]]);
+  strokes.push([[210, 75], [230, 80]]);
+  strokes.push([[245, 95], [260, 120]]);
+  strokes.push([[270, 145], [280, 175]]);
+
+  // 3. Water line & Splash impact at (280, 180)
+  strokes.push([[220, 185], [360, 185]]); // Water surface baseline
+  // Splash droplet crown
+  strokes.push([[270, 185], [262, 160], [268, 170]]);
+  strokes.push([[280, 185], [280, 150], [284, 168]]);
+  strokes.push([[290, 185], [298, 160], [292, 170]]);
+  // Concentric ripples on water
+  strokes.push([[255, 192], [305, 192]]);
+  strokes.push([[240, 198], [320, 198]]);
+
+  // 4. Acoustic sound wave radiating rings ((((
+  strokes.push([[315, 155], [325, 170], [315, 185]]);
+  strokes.push([[330, 145], [345, 170], [330, 195]]);
+  strokes.push([[345, 135], [365, 170], [345, 205]]);
+
+  // 5. Arrow from sound waves pointing to monster ear silhouette
+  strokes.push([[375, 170], [425, 170]]);
+  strokes.push([[415, 160], [425, 170], [415, 180]]);
+
+  // 6. Ear / Creature Head doodle (x: 435..485)
+  // Large cupped listening ear
+  strokes.push([
+    [440, 185],
+    [435, 160],
+    [445, 135],
+    [465, 130],
+    [478, 145],
+    [475, 170],
+    [460, 185],
+    [450, 185],
+  ]);
+  // Inner ear fold
+  strokes.push([[455, 145], [465, 155], [458, 170]]);
+
+  drawMarker(ctx, strokes, { width: 5.0, color, seed });
+
+  // Diegetic hand-scrawled text at top: "SPLASH = DISTRACTION"
+  ctx.save();
+  ctx.fillStyle = color;
+  ctx.font = '700 16px monospace';
+  ctx.fillText('SPLASH = LURE', 180, 40);
+  ctx.restore();
+
+  const texture = new CanvasTexture(pooled.canvas as HTMLCanvasElement);
+  texture.wrapS = ClampToEdgeWrapping;
+  texture.wrapT = ClampToEdgeWrapping;
+  texture.minFilter = LinearFilter;
+  texture.magFilter = LinearFilter;
+  texture.colorSpace = SRGBColorSpace;
+  texture.generateMipmaps = true;
+  texture.needsUpdate = true;
+
+  decalCache.set(cacheKey, texture);
+  return texture;
+}
