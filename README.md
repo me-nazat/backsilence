@@ -31,7 +31,7 @@ open http://localhost:5173/
 | `npm run dev:api` | Run local zero-credential FakeLibsql API proxy on port 8787 |
 | `npm run typecheck` | Run TypeScript strict type checking |
 | `npm run lint` | Run ESLint verification |
-| `npm run test` | Run Vitest unit & integration test suite (925 tests across 104 files) |
+| `npm run test` | Run Vitest unit & integration test suite (947 tests across 106 files) |
 | `npm run balance` | Run Headless Balance Bot Swarm (13,200 simulated runs across all 11 maps) |
 | `npm run smoke` | Run Headless CDP Smoke Bot covering all 14 end-to-end scenarios (S1–S14) |
 | `npm run secret:scan` | Scan repository, git history, and built bundles for exposed credentials |
@@ -39,7 +39,7 @@ open http://localhost:5173/
 | `npm run reference:verify` | Verify SHA-256 integrity of all 37 reference frames and audio files |
 | `npm run reference:compare` | Run SSIM, MAE, and colour band comparison against reference frames |
 | `npm run audio:compare` | Verify procedural Web Audio synthesis against reference spectrum |
-| `npm run shots:check` | Check 47 golden baseline screenshots for pixel regressions |
+| `npm run shots:check` | Check 48 golden baseline screenshots for pixel regressions |
 | `npm run audit` | Comprehensive audit gate: bundle size, rulebook sync, appearance lock, no tautology, claim traceability, reports honesty, docs truth, golden sync |
 | `npm run audit:reports-honesty` | Fatal check asserting zero self-assigned rubric grades across reports |
 | `npm run audit:docs-truth` | Verify documentation script names and test claims against codebase reality |
@@ -53,11 +53,35 @@ Run the full verification pipeline before any production deployment:
 
 ```bash
 npm run verify
+node scripts/gates/summary.mjs
 npm run smoke
 npm run balance
 ```
 
-All 14 headless Chrome CDP smoke scenarios validate real DOM interactions, WebGL shader execution, monster hearing physics, results score breakdown, Turso proxy run submissions, WebRTC multiplayer coordination, and offline IndexedDB synchronization.
+### Gate Summary Table (`v2.1.0-rc1` — 2026-11-05)
+
+| Gate | Status | Detail |
+| :--- | :--- | :--- |
+| `typecheck` | **PASS** | tsc --noEmit clean (0 errors) |
+| `lint` | **PASS** | eslint clean (0 warnings, 0 errors) |
+| `test` | **PASS** | Tests  947 passed across 106 files |
+| `build` | **PASS** | vite production build succeeded (core bundle 481.00 KB / 500.00 KB) |
+| `audit:bundle` | **PASS** | zero forbidden external asset references in dist/ |
+| `audit:rulebook-sync` | **PASS** | ACOUSTIC_RULEBOOK.md 8/8 rows synced with AcousticBus.ts |
+| `audit:appearance-lock` | **PASS** | procedural skin locked; zero .glb/.gltf references |
+| `audit:no-tautology` | **PASS** | zero source-file text/AST tautologies in tests/ |
+| `audit:claim-traceability` | **PASS** | 37/37 pairings valid; zero self-assigned grades in reports/ |
+| `audit:reports-honesty` | **PASS** | zero subjective grades or evaluation scores detected |
+| `audit:docs-truth` | **PASS** | all documentation claims verified against live codebase |
+| `audit:sync-golden` | **PASS** | golden baseline shots synchronized across all directories |
+| `glitch:scan` | **PASS** | zero visual artifacts across 48 golden baseline shots |
+| `secret:scan` | **PASS** | zero secrets detected |
+| `i18n:check` | **PASS** | all 15 locale keys aligned (121/121 keys) |
+| `reference:verify` | **PASS** | 37 SHA-256 reference frames + 3 WAVs verified against manifest |
+| `shots:check` | **PASS** | 48/48 shots match golden baselines (SSIM 1.0000, MAE 0.0000) |
+| `gates:play` | **PASS** | 8/8 checks passed (deterministic simHash 5c080b9d) |
+| `reference:compare` | **PASS** | 146 checks pass; residual deltas documented |
+| `audio:compare` | **PASS** | procedural audio within measured reference envelope |
 
 ---
 
@@ -112,6 +136,10 @@ api/
 ## Documentation
 
 - [UPGRADE_PROTOCOL.md](UPGRADE_PROTOCOL.md) — Release rules, evidence verification, and safety protocol
+- [HANDOFF.md](HANDOFF.md) — Production architecture guide, state machine, and evidence-chain map
+- [reports/release/BETTER_THAN_VIDEO.md](reports/release/BETTER_THAN_VIDEO.md) — Review pack with 37 side-by-side pairings and 3x3 cover board
+- [reports/release/evidence/INDEX.md](reports/release/evidence/INDEX.md) — Play evidence pack (E1–E7) with reproducible headless sessions
+- [reports/release/KNOWN_LIMITATIONS.md](reports/release/KNOWN_LIMITATIONS.md) — Known technical boundaries & platform trade-offs
 - [ARCHITECTURE.md](ARCHITECTURE.md) — System diagram and data flow
 - [ACOUSTIC_RULEBOOK.md](ACOUSTIC_RULEBOOK.md) — Monster hearing mechanics & noise levels
 - [BALANCE.md](BALANCE.md) — Win-rate targets, par times, and tuning philosophy

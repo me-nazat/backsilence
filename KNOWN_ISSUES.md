@@ -1,4 +1,4 @@
-# Known Issues & Operational Considerations — BackSilence Release Candidate (Batch 8)
+# Known Issues & Operational Considerations — BackSilence Release Candidate (v2.1.0-rc1)
 
 ## [P2] Binary Model Assets (GLB) Unverified in Git (Zero-Asset Rule Safeguard)
 - **Status:** RESOLVED / DETERMINISTIC PROCEDURAL DEFAULT
@@ -25,3 +25,6 @@
 - **Status:** MITIGATED
 - **Detail:** Multi-player Silent Race uses WebRTC data channels with public STUN servers for peer discovery. Strict symmetric corporate firewalls may fail direct peer connectivity without a TURN relay.
 - **Mitigation:** Local tab (`?net=local`) and loopback adapters provide 100% offline and automated test coverage. Turn server configuration can be injected into `TursoProxyAdapter` / `WebRtcDbAdapter` via environment options.
+
+## [P7] Historical Defect Resolutions
+- **G1–G17:** All closed with evidence links documented in `reports/release/KNOWN_LIMITATIONS.md` and verified in regression suites S15–S20 (`scripts/smoke/glitch-scenarios.mjs`).

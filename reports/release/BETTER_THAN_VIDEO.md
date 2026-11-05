@@ -1,6 +1,6 @@
 # BackSilence: The Better-Than-Video Review Pack (v2.1.0-rc1)
 
-**Date:** 2026-11-05T15:50:25.963Z  
+**Date:** 2026-11-05T16:12:20.814Z  
 **Commit SHA:** `23cb858`  
 **Reference Manifest SHA-256:** `94e00f1eff14c185906da61201cc3044cc50454ea812590c7ce853e82aeec772`  
 **Pairings Evaluated:** 37 / 37  

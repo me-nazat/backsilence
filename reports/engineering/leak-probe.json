@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-11-05T15:17:05.675Z",
+  "timestamp": "2026-11-05T16:10:02.585Z",
   "summary": {
     "status": "PASS",
     "sequential20Pass": true,
@@ -9,115 +9,115 @@
   "sequential20": {
     "cycles": 20,
     "finalLeakedCanvases": 0,
-    "initialHeapMB": 28.44,
-    "finalHeapMB": 29.58,
-    "heapGrowthPct": 4.01,
+    "initialHeapMB": 28.47,
+    "finalHeapMB": 29.59,
+    "heapGrowthPct": 3.93,
     "records": [
       {
         "cycle": 1,
         "leakedCanvases": 0,
-        "memoryMB": 27.24
+        "memoryMB": 27.23
       },
       {
         "cycle": 2,
         "leakedCanvases": 0,
-        "memoryMB": 27.86
+        "memoryMB": 27.89
       },
       {
         "cycle": 3,
         "leakedCanvases": 0,
-        "memoryMB": 28.14
+        "memoryMB": 28.16
       },
       {
         "cycle": 4,
         "leakedCanvases": 0,
-        "memoryMB": 28.19
+        "memoryMB": 28.21
       },
       {
         "cycle": 5,
         "leakedCanvases": 0,
-        "memoryMB": 28.44
+        "memoryMB": 28.47
       },
       {
         "cycle": 6,
         "leakedCanvases": 0,
-        "memoryMB": 28.63
+        "memoryMB": 28.67
       },
       {
         "cycle": 7,
         "leakedCanvases": 0,
-        "memoryMB": 28.73
+        "memoryMB": 28.76
       },
       {
         "cycle": 8,
         "leakedCanvases": 0,
-        "memoryMB": 28.8
+        "memoryMB": 28.83
       },
       {
         "cycle": 9,
         "leakedCanvases": 0,
-        "memoryMB": 29.13
+        "memoryMB": 29.15
       },
       {
         "cycle": 10,
         "leakedCanvases": 0,
-        "memoryMB": 29.16
+        "memoryMB": 29.2
       },
       {
         "cycle": 11,
         "leakedCanvases": 0,
-        "memoryMB": 29.29
+        "memoryMB": 29.27
       },
       {
         "cycle": 12,
         "leakedCanvases": 0,
-        "memoryMB": 29.24
+        "memoryMB": 29.28
       },
       {
         "cycle": 13,
         "leakedCanvases": 0,
-        "memoryMB": 29.25
+        "memoryMB": 29.31
       },
       {
         "cycle": 14,
         "leakedCanvases": 0,
-        "memoryMB": 29.27
+        "memoryMB": 29.31
       },
       {
         "cycle": 15,
         "leakedCanvases": 0,
-        "memoryMB": 29.27
+        "memoryMB": 29.31
       },
       {
         "cycle": 16,
         "leakedCanvases": 0,
-        "memoryMB": 29.28
+        "memoryMB": 29.32
       },
       {
         "cycle": 17,
         "leakedCanvases": 0,
-        "memoryMB": 29.38
+        "memoryMB": 29.42
       },
       {
         "cycle": 18,
         "leakedCanvases": 0,
-        "memoryMB": 29.57
+        "memoryMB": 29.52
       },
       {
         "cycle": 19,
         "leakedCanvases": 0,
-        "memoryMB": 29.53
+        "memoryMB": 29.52
       },
       {
         "cycle": 20,
         "leakedCanvases": 0,
-        "memoryMB": 29.58
+        "memoryMB": 29.59
       }
     ]
   },
   "rapid50": {
     "cycles": 50,
-    "durationMs": 1294,
+    "durationMs": 1120,
     "errorCount": 0
   },
   "unhandledErrors": []

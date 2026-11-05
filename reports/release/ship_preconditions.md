@@ -41,3 +41,4 @@
 - **Subsystem Size:** All 15 files in `src/game/session/` strictly <= 800 lines (largest: `SessionHost.ts` at 797 lines).
 - **Appearance Lock:** Procedural creature skin default locked; zero runtime GLB dependencies.
 - **Reference Pack Integrity:** All 37 frames and 3 audio clips bit-for-bit verified.
+

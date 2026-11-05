@@ -5,6 +5,71 @@ This project follows strict deterministic, zero-external-binary-asset design pri
 
 ---
 
+## [v2.1.0-rc1] — 2026-11-05 (The Better-Than-Video Ship Gate & Engineering Perfection)
+
+### 🌊 Player-Visible Evolutions & Content Systems
+- **Measured Look & Calibration (Prompts 1–2):**
+  - Cryptographic 37-frame reference pack (`reference/video/frames/` `f_001`–`f_037`) with SHA-256 manifest and glitch census.
+  - Measured palette calibration: luminance mean 0.63, water hue $85^\circ\text{--}113^\circ$, slab hue $38^\circ\text{--}48^\circ$, soft volumetric lighting, and 0 black void pixels outside jump-scare frames.
+- **Water v5: Viscous Depth & Transmittance (Prompt 3):**
+  - Replaced opaque water paint with physical Beer–Lambert depth transmittance model ($\mu_a = [0.82, 0.44, 0.98]$).
+  - Shallow water ($\le 0.35\text{ m}$) reveals the cracked mosaic tile floor with effective alpha 0.20–0.35.
+  - Ink splashes `#1e1a14`, footfall-only white foam `#e8f2e6` (0.32m, 0.38s decay), pale-green specular `#7b9e5e`, and zero ambient crest foam.
+- **Canonical Architecture across All 11 Maps (Prompt 4):**
+  - Unified vaulted cream ceiling (`VaultBuilder.ts`), grand archways, low thin tan slabs with bullnose tile edge ($0.3\text{ m}$ elevation), and clean 10–15m sighting lanes across all 11 maps.
+- **Creature v2: The Seed-Pod Wader (Prompt 5):**
+  - Seed-pod pitted head (32 dark pits `#241c14`), hunched posture, long forearms ($1.35\text{ m}$), flat wading feet, and posture library (`wade-stalk`, `listen-freeze`, `trench-pace`, `lunge`, `jumpscare-bracket`).
+  - Screen-space readability certified across all distance tiers: 6m, 15m, 25m, 35m.
+- **The Sound-First Encounter Arc (Prompt 6):**
+  - Directed six-beat encounter grammar: Telegraph ($1.5\text{s}$ acoustic stinger) $\to$ Silhouette Hold ($3\text{s}$ at $10\text{--}15\text{m}$) $\to$ Stalk ($2.4\text{ m/s}$) $\to$ Trench Standoff $\to$ Silence Window $\to$ Terminal Lunge.
+  - Fairness laws strictly enforced: speed ceiling $\le 7.4\text{ m/s}$ (zero teleportation), standoff trench uncrossed, $0\text{ damage}$ during dry stillness, 100% noise-attributable attacks.
+- **The Opening Minute & Objective Loop (Prompt 7):**
+  - Pool cleaner cold open with maintenance work-order card and teaching caption (*"Do not touch the water 💔"*).
+  - Pebble throwing distraction mechanic diverting acoustic tracking, and 7-cell chlorine reagent filtration loop.
+- **Anomalies & Level 0 Descent (Prompt 8):**
+  - Rising water events, reality loop warps, and hallucination decoys (zero true acoustic signature).
+  - Three-stage campaign descent down to Level 0 with a 30s drainage finale and inverted acoustic rules.
+  - Streamer mode with 9:16 portrait viewport (720x1280) and top 28% facecam safe zone.
+
+### ⚙️ Engine Decomposition & Memory Architecture (Prompt 9)
+- **Monolith Decomposition:**
+  - Decomposed 4,593-line `GameSession.ts` monolith into a 251-line facade coordinating 15 single-responsibility systems in `src/game/session/` (all files $\le 800$ lines).
+- **Session State Machine:**
+  - 8-state formal automaton (`SessionStateMachine.ts`) enforcing `44503aa` (menu deadlock), `080e262` (pointer lock race), `6785222` (double dispatch neutrality), and `10b3962` (SPA history race).
+- **The Disposal Law:**
+  - `DisposalService` performs complete WebGL2, audio, and DOM resource teardown.
+  - Validated by `leak-probe.mjs`: 20 sequential sessions heap growth $+4.01\% \le 10\%$, and 50 rapid start/teardown cycles in 1.29s with 0 errors.
+
+### 🛡️ Full Verification, Play Evidence & Review Pack (Prompt 10)
+- **Play Evidence Pack (E1–E7):** Headless recorded sessions in `reports/release/evidence/` with timestamped frames and trace logs covering Cold Start, Encounter Arc, Objective Loop, Anomalies, Descent Finale, Death Loop, and Streamer Mode.
+- **Better-Than-Video Review Pack:** 37 side-by-side ladder boards (`reports/release/review_pack_v2/ladder/f_001.png` .. `f_037.png`), 3x3 cover board, and `reports/release/BETTER_THAN_VIDEO.md`.
+- **20/20 Release Gates Passed:**
+
+| Gate | Status | Detail |
+| :--- | :--- | :--- |
+| `typecheck` | **PASS** | tsc --noEmit clean (0 errors) |
+| `lint` | **PASS** | eslint clean (0 warnings, 0 errors) |
+| `test` | **PASS** | Tests  947 passed across 106 files |
+| `build` | **PASS** | Vite production build succeeded (core bundle 481.00 KB / 500.00 KB) |
+| `audit:bundle` | **PASS** | Zero forbidden external asset references in dist/ |
+| `audit:rulebook-sync` | **PASS** | ACOUSTIC_RULEBOOK.md 8/8 rows synced with AcousticBus.ts |
+| `audit:appearance-lock` | **PASS** | Procedural skin locked; zero .glb/.gltf references |
+| `audit:no-tautology` | **PASS** | Zero source-file text/AST tautologies in tests/ |
+| `audit:claim-traceability` | **PASS** | 37/37 pairings valid; zero self-assigned grades in reports/ |
+| `audit:reports-honesty` | **PASS** | Zero subjective grades or evaluation scores detected |
+| `audit:docs-truth` | **PASS** | All documentation claims verified against live codebase |
+| `audit:sync-golden` | **PASS** | Golden baseline shots synchronized across all directories |
+| `glitch:scan` | **PASS** | Zero visual artifacts across 48 golden baseline shots |
+| `secret:scan` | **PASS** | Zero secrets detected |
+| `i18n:check` | **PASS** | All 15 locale keys aligned (121/121 keys) |
+| `reference:verify` | **PASS** | 37 SHA-256 reference frames + 3 WAVs verified against manifest |
+| `shots:check` | **PASS** | 48/48 shots match golden baselines (SSIM 1.0000, MAE 0.0000) |
+| `gates:play` | **PASS** | 8/8 checks passed (deterministic simHash 5c080b9d) |
+| `reference:compare` | **PASS** | 146 checks pass; residual deltas documented |
+| `audio:compare` | **PASS** | Procedural audio within measured reference envelope |
+
+---
+
 ## [v2.0.0] — 2026-11-02 (Batches 1–5: Truth, The Creature, The World, Water & Feel, Perfection)
 
 ### 📐 Prompt 1–2: Truth & Calibration (Batch 1)

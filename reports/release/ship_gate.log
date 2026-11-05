@@ -1,0 +1,368 @@
+BACKSILENCE SHIP GATE EXECUTION LOG
+====================================
+Timestamp: 2026-11-05T16:06:01.588Z
+Commit SHA: b9530f3
+Node: v24.11.1
+Platform: darwin (arm64)
+Root: /Users/nazat/Desktop/Desktop/antigravity/BackSilence/poolrooms
+
+[2026-11-05T16:06:01.610Z] START: TypeScript Strict Check (npm run typecheck)
+[2026-11-05T16:06:06.932Z] FINISH: TypeScript Strict Check -> Exit Code: 0 (5.32s)
+--- STDOUT ---
+> backsilence@0.0.0 typecheck
+> tsc --noEmit
+------------------------------------------------------------
+
+[2026-11-05T16:06:06.932Z] START: ESLint Code Quality (npm run lint)
+[2026-11-05T16:06:25.117Z] FINISH: ESLint Code Quality -> Exit Code: 0 (18.18s)
+--- STDOUT ---
+> backsilence@0.0.0 lint
+> eslint .
+------------------------------------------------------------
+
+[2026-11-05T16:06:25.118Z] START: Vitest Full Test Suite (npm run test)
+[2026-11-05T16:07:47.047Z] FINISH: Vitest Full Test Suite -> Exit Code: 0 (81.93s)
+--- STDOUT ---
+> 1. waterSelfTest() passes all 4 criteria (stability, decay, reflection, agreement) 3985ms
+   ✓ Phase G: Water Pipeline Verification & Self-Test Suite > 2. GpuWaveSimulation executes 10,000 steps without NaN 2766ms
+ ✓ tests/audio-pipeline.test.ts (6 tests) 24145ms
+   ✓ Prompt 4 Phase F: Audio Pipeline Verification Suite > 3. Generates valid stereo impulse responses without NaNs or Infinities 23898ms
+ ✓ tests/sim-fuzz.test.ts (1 test) 12606ms
+   ✓ Simulation Fuzz Testing (10,000 Ticks) > random intents for 10,000 ticks never produce NaN, Infinity, out-of-bounds, or negative stamina 12605ms
+ ✓ tests/monster-phase-c.test.ts (6 tests) 66268ms
+   ✓ Phase C: Experience, Pacing, and Fairness Verification > guarantees 0 attacks on a silent dry player over 600 s across 5 seeds (Fairness Rule) 65963ms
+
+ Test Files  106 passed (106)
+      Tests  947 passed (947)
+   Start at  22:06:25
+   Duration  81.35s (transform 8.00s, setup 0ms, collect 27.73s, tests 366.14s, environment 37ms, prepare 10.75s)
+--- STDERR ---
+ility within 45m view cone after 3s
+[MonsterWatchdog] Seamless recovery executed for invisible_monster (root_invisible_in_sight_cone -> reloaded_procedural_skin_and_reset_visibility)
+
+stderr | tests/prompt1-ui-state-pointerlock.test.ts > Prompt 1A & 1B: UI State Machine, PointerLock Guards, and Clean HUD > Prompt 1A: Strict UI State Machine Controller > transitions to PAUSED on showPause() and returns to ACTIVE_GAMEPLAY on resumeGame()
+[StateMachine] Forcing non-standard transition MENU → PAUSED
+------------------------------------------------------------
+
+[2026-11-05T16:07:47.052Z] START: Production Bundle Build (npm run build)
+[2026-11-05T16:07:50.011Z] FINISH: Production Bundle Build -> Exit Code: 0 (2.96s)
+--- STDOUT ---
+        27.04 kB │ gzip:   7.97 kB
+dist/assets/AdapterRegistry-DBjp7gmw.js       32.04 kB │ gzip:   6.99 kB
+dist/assets/index-CejZWVld.js                 33.02 kB │ gzip:  11.89 kB
+dist/assets/AudioEngine-BSeHEw6D.js           40.71 kB │ gzip:  10.72 kB
+dist/assets/MonsterMesh-q6cNT-7Z.js           41.17 kB │ gzip:  12.97 kB
+dist/assets/GLTFLoader-_Y94WbPF.js            45.12 kB │ gzip:  13.37 kB
+dist/assets/LabScene-DtkJ9xTk.js              57.64 kB │ gzip:  16.39 kB
+dist/assets/WaterSystem-Bht2tr4p.js           74.55 kB │ gzip:  21.18 kB
+dist/assets/CommonMapBuilder-BftfbMu9.js      92.33 kB │ gzip:  27.30 kB
+dist/assets/SimWorld-Cyrwg7cV.js              93.01 kB │ gzip:  26.71 kB
+dist/assets/MetroSounds-Cwa5oFZf.js          110.43 kB │ gzip:  16.67 kB
+dist/assets/GameSession-BzgIW0jp.js          214.08 kB │ gzip:  59.41 kB
+dist/assets/UIManager-CJLxjYg5.js            514.43 kB │ gzip: 118.76 kB
+dist/assets/three-WwA2rC4m.js                576.66 kB │ gzip: 148.43 kB
+✓ built in 2.51s
+--- STDERR ---
+(!) Some chunks are larger than 550 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+------------------------------------------------------------
+
+[2026-11-05T16:07:50.012Z] START: Comprehensive Audit Gate (npm run audit)
+[2026-11-05T16:07:50.695Z] FINISH: Comprehensive Audit Gate -> Exit Code: 0 (0.68s)
+--- STDOUT ---
+| withGLB=procedural (beb747287660811b) | deterministic=true
+  waterMonsterSkin='model' -> withoutGLB=procedural (beb747287660811b) | withGLB=model (3fb26568520120cc) | deterministic=false
+[appearance-lock] PASS: Default creature appearance is locked and filesystem-independent.
+[no-tautology] PASS: 0 un-justified tautological assertions (21 design-rationale annotated).
+[claim-traceability] OK — 37/37 frame pairings verified in reference/pairings.json; 65 report(s) scanned with 0 self-assigned scores and 100% pairing traceability.
+[reports-honesty] Scanning /Users/nazat/Desktop/Desktop/antigravity/BackSilence/poolrooms/reports for self-assigned scores and rubric grades...
+[reports-honesty] PASS — Zero self-assigned grades or rubric scores detected.
+[docs-truth] Auditing documentation truth against codebase reality...
+[docs-truth] PASS — All documentation claims verified against live codebase.
+[sync-golden] OK — 48 shots synchronized across shots.json, tests/golden/, and reports/visual/.
+------------------------------------------------------------
+
+[2026-11-05T16:07:50.697Z] START: Credential & Secret Scan (npm run secret:scan)
+[2026-11-05T16:08:01.966Z] FINISH: Credential & Secret Scan -> Exit Code: 0 (11.27s)
+--- STDOUT ---
+> backsilence@0.0.0 secret:scan
+> node scripts/secret-scan.mjs
+
+🔒 Running BackSilence Secret & Credential Scan...
+✅ Secret scan clean: 0 secret patterns detected in workspace or recent history.
+✅ Bundle audit clean: dist/ contains no libsql:// host or eyJ-style JWT.
+------------------------------------------------------------
+
+[2026-11-05T16:08:01.966Z] START: Internationalization Key Parity (npm run i18n:check)
+[2026-11-05T16:08:02.157Z] FINISH: Internationalization Key Parity -> Exit Code: 0 (0.19s)
+--- STDOUT ---
+ew) │
+│ de        │ Deutsch       │ ltr     │ 121/121      │ Beta (needsReview) │
+│ ru        │ Русский       │ ltr     │ 121/121      │ Beta (needsReview) │
+│ tr        │ Türkçe        │ ltr     │ 121/121      │ Beta (needsReview) │
+│ hi        │ हिन्दी        │ ltr     │ 121/121      │ Beta (needsReview) │
+│ bn        │ বাংলা         │ ltr     │ 121/121      │ Beta (needsReview) │
+│ ar        │ العربية       │ rtl     │ 121/121      │ Beta (needsReview) │
+│ ja        │ 日本語           │ ltr     │ 121/121      │ Beta (needsReview) │
+│ ko        │ 한국어           │ ltr     │ 121/121      │ Beta (needsReview) │
+│ zh-CN     │ 简体中文          │ ltr     │ 121/121      │ Beta (needsReview) │
+│ qps-ploc  │ [Ƥšêûðô-Łôçäł │ ltr     │ 121/121      │ Verified       │
+│ ar-test   │ Arabic (Test  │ rtl     │ 121/121      │ Verified       │
+└───────────┴───────────────┴─────────┴──────────────┴────────────────┘
+
+✅ i18n Verification Passed! 15/15 locales verified, key parity 100%, 0 unlocalized sentences.
+------------------------------------------------------------
+
+[2026-11-05T16:08:02.157Z] START: Visual Glitch & Void Scan (npm run glitch:scan)
+[2026-11-05T16:08:03.864Z] FINISH: Visual Glitch & Void Scan -> Exit Code: 0 (1.71s)
+--- STDOUT ---
+> backsilence@0.0.0 glitch:scan
+> node scripts/visual/artifact-detector.mjs
+
+[artifact-detector] Scanning images in /Users/nazat/Desktop/Desktop/antigravity/BackSilence/poolrooms/tests/golden for visual artifacts...
+[artifact-detector] PASS — 48 golden shots scanned. Zero visual artifacts detected.
+------------------------------------------------------------
+
+[2026-11-05T16:08:03.864Z] START: Cryptographic Reference Verification (npm run reference:verify)
+[2026-11-05T16:08:04.203Z] FINISH: Cryptographic Reference Verification -> Exit Code: 0 (0.34s)
+--- STDOUT ---
+> backsilence@0.0.0 reference:verify
+> node scripts/reference/verify-reference.mjs
+
+[verify-reference] PASS: 37 frames verified against manifestHash=94e00f1eff14c185 (/Users/nazat/Desktop/Desktop/antigravity/BackSilence/poolrooms/reference/video/frames).
+------------------------------------------------------------
+
+[2026-11-05T16:08:04.203Z] START: Reference Metrics Comparison (npm run reference:compare)
+[2026-11-05T16:08:12.681Z] FINISH: Reference Metrics Comparison -> Exit Code: 0 (8.48s)
+--- STDOUT ---
+.35    | 0.65       |
+| calm_grazing        | true        | 0.45    | 0.35    | 0.55       |
+| shoreline_foam      | true        | 0.55    | 0.33    | 0.65       |
+| wading_wake         | true        | 0.5     | 0.36    | 0.65       |
+| splash              | true        | 0.53    | 0.35    | 0.65       |
+| horizon_haze        | true        | 0.55    | 0.35    | 0.6        |
+| underwater          | true        | 0.35    | 0.35    | 0.35       |
+| monster_wake        | true        | 0.29    | 0.48    | 0.36       |
+| neon_flood_rain     | true        | 0.22    | 0.4     | 0.08       |
+| archipelago_calm    | true        | 0.58    | 0.3     | 0.65       |
+| natatorium_hero     | true        | 0.52    | 0.35    | 0.68       |
+-------------------------------------------------------------
+
+Baseline Checks: 126 | Passed: 94 | Failed: 32
+Total Gating Checks (incl. Region RGB, Hue-Band, No-Blacks, Audio): 213 | Passed: 146 | Failed: 67
+Result: FAIL (32 baseline + 35 extended checks out of band)
+------------------------------------------------------------
+
+[2026-11-05T16:08:12.683Z] START: Golden Baseline Shot Parity (npm run shots:check)
+[2026-11-05T16:08:16.036Z] FINISH: Golden Baseline Shot Parity -> Exit Code: 0 (3.35s)
+--- STDOUT ---
+0 | MAE: 0.0000
+  ✓ natatorium_water_drip_ring.png      SSIM: 1.0000 | MAE: 0.0000
+  ✓ natatorium_water_horizon.png        SSIM: 1.0000 | MAE: 0.0000
+  ✓ natatorium_water_monster_wake.png   SSIM: 1.0000 | MAE: 0.0000
+  ✓ natatorium_water_slab_edge.png      SSIM: 1.0000 | MAE: 0.0000
+  ✓ natatorium_water_splash_01.png      SSIM: 1.0000 | MAE: 0.0000
+  ✓ natatorium_water_splash_05.png      SSIM: 1.0000 | MAE: 0.0000
+  ✓ natatorium_water_splash_12.png      SSIM: 1.0000 | MAE: 0.0000
+  ✓ natatorium_water_underwater.png     SSIM: 1.0000 | MAE: 0.0000
+  ✓ natatorium_water_wake.png           SSIM: 1.0000 | MAE: 0.0000
+  ✓ neon_flood_hero.png                 SSIM: 1.0000 | MAE: 0.0000
+  ✓ neon_flood_water_rain.png           SSIM: 1.0000 | MAE: 0.0000
+  ✓ shallow_floor_view.png              SSIM: 1.0000 | MAE: 0.0000
+  ✓ sunken_jungle_hero.png              SSIM: 1.0000 | MAE: 0.0000
+  ✓ utility_tunnels_hero.png            SSIM: 1.0000 | MAE: 0.0000
+
+✅ All golden shots match within SSIM >= 0.97!
+------------------------------------------------------------
+
+[2026-11-05T16:08:16.037Z] START: Play Gate Replay Determinism (npm run gates:play)
+[2026-11-05T16:08:18.132Z] FINISH: Play Gate Replay Determinism -> Exit Code: 0 (2.10s)
+--- STDOUT ---
+> backsilence@0.0.0 gates:play
+> node scripts/gates/play.mjs
+
+[gates:play] Natatorium 5-minute playthrough (18000 ticks): PASS
+  [PASS] first_sighting_time_15_20s: actual=15.283 (expected 15.0..20.0 s)
+  [PASS] first_sighting_dist_10_15m: actual=12 (expected 10.0..15.0 m)
+  [PASS] second_sighting_within_60s: actual=49.283 (expected <= 60.0 s)
+  [PASS] exit_reachable: actual=true (expected true)
+  [PASS] trench_2_4m_never_crossed: actual=0 (expected 0)
+  [PASS] sim_hash_deterministic: actual=5c080b9d === 5c080b9d (expected identical simHash across 2 runs)
+  [PASS] p95_frame_time_budget: actual=0.0602 ms (expected <= 16.6 ms)
+  [PASS] zero_console_errors: actual=0 (expected 0)
+------------------------------------------------------------
+
+[2026-11-05T16:08:18.132Z] START: Procedural Audio Comparison (npm run audio:compare)
+[2026-11-05T16:08:18.315Z] FINISH: Procedural Audio Comparison -> Exit Code: 0 (0.18s)
+--- STDOUT ---
+e | Noise Floor (10th %ile) | [-56, -48] dBFS | -52.47 dBFS | ✅ PASS |
+| Calm Room Tone | Spectral Centroid | [250, 650] Hz | 565.40 Hz | ✅ PASS |
+| Calm Room Tone | Silence Share (<-50 dBFS) | [20, 100]% | 20.00% | ✅ PASS |
+| Water Splash | Integrated LUFS | [-24, -16] LUFS | -23.99 LUFS | ✅ PASS |
+| Water Splash | Peak dBFS | [-6, -0.5] dBFS | -1.34 dBFS | ✅ PASS |
+| Water Splash | Spectral Centroid | [600, 2400] Hz | 958.00 Hz | ✅ PASS |
+| Creature Roar | Integrated LUFS | [-18, -11] LUFS | -17.36 LUFS | ✅ PASS |
+| Creature Roar | Peak dBFS | [-4, -0.2] dBFS | -0.29 dBFS | ✅ PASS |
+| Creature Roar | Spectral Centroid | [450, 1400] Hz | 876.70 Hz | ✅ PASS |
+| Jumpscare | True Peak (dBTP) | [-1.5, -0.8] dBTP | -1.00 dBTP | ✅ PASS |
+| Reverb (Pool Hall) | Schroeder T60 (Mid) | 3.4s ±15% | 3.07s | ✅ PASS |
+
+Summary: 12 / 12 audio criteria within tolerance (100%).
+
+Comparison report saved to /Users/nazat/Desktop/Desktop/antigravity/BackSilence/poolrooms/reports/audio/compare_summary.json
+------------------------------------------------------------
+
+[2026-11-05T16:08:18.315Z] START: Natural Sightings Verification (npm run test:natural-sightings)
+[2026-11-05T16:08:39.992Z] FINISH: Natural Sightings Verification -> Exit Code: 0 (21.68s)
+--- STDOUT ---
+ dur=9.3s, dist=10.2-13.8m, height=15.9%, visFrac=0.618, attacks=0
+   - Sighting #4: t=146.8s, dur=7.6s, dist=6-12.2m, height=20.9%, visFrac=0.699, attacks=0
+   - Sighting #5: t=171s, dur=6.3s, dist=10.4-12.2m, height=16.9%, visFrac=0.637, attacks=0
+   - Sighting #6: t=209s, dur=8.9s, dist=8-12.4m, height=18.7%, visFrac=0.669, attacks=0
+[PASS] Map: poolrooms  | Seed: 505 | First Sight: 23.1s | Sightings: 6 | Attacks: 0
+   - Sighting #1: t=23.1s, dur=8.9s, dist=10-25.3m, height=10.8%, visFrac=0.477, attacks=0
+   - Sighting #2: t=62.3s, dur=7.9s, dist=6.9-12.3m, height=19.9%, visFrac=0.686, attacks=0
+   - Sighting #3: t=105.8s, dur=8.1s, dist=10.1-13.2m, height=16.3%, visFrac=0.627, attacks=0
+   - Sighting #4: t=149.9s, dur=7.1s, dist=8-12.2m, height=18.8%, visFrac=0.671, attacks=0
+   - Sighting #5: t=185.5s, dur=10s, dist=6-12.4m, height=20.7%, visFrac=0.697, attacks=0
+   - Sighting #6: t=222.4s, dur=9s, dist=10.1-12.5m, height=16.8%, visFrac=0.637, attacks=0
+
+Result: 10/10 runs passed.
+------------------------------------------------------------
+
+[2026-11-05T16:08:39.994Z] START: Glitch Regression Suite (S15–S20) (node scripts/smoke/glitch-scenarios.mjs)
+[2026-11-05T16:08:49.901Z] FINISH: Glitch Regression Suite (S15–S20) -> Exit Code: 0 (9.91s)
+--- STDOUT ---
+=== BackSilence Glitch-Class Regression Suite (S15–S20) ===
+
+[GlitchHarness] Starting dev server on port 51874...
+[GlitchHarness] Launching Chrome on CDP port 51875...
+[GlitchHarness] Navigating to http://127.0.0.1:51874/ ...
+- [S15] Menu Deadlock Prevention (44503aa law: menu locked during loading/disposing) ... PASS (406ms)
+- [S16] Pointer Lock Edge (080e262 law: pointer lock acquire permitted exclusively in RUNNING) ... PASS (4ms)
+- [S17] Double Dispatch Neutrality (6785222 law: neutral intent when not running) ... PASS (99ms)
+- [S18] SPA History Navigation Race (10b3962 law: safe route changes and navigation) ... PASS (1ms)
+- [S19] Submersion & Depth Target Safety (G7 near-plane 0.05m invariant) ... PASS (2583ms)
+- [S20] Rapid-cycle 50x teardown (zero errors, < 30s) ... PASS (1235ms)
+
+Report written to: /Users/nazat/Desktop/Desktop/antigravity/BackSilence/poolrooms/reports/engineering/glitch-scenarios.json
+
+[GlitchHarness] All S15–S20 scenarios PASSED cleanly.
+------------------------------------------------------------
+
+[2026-11-05T16:08:49.904Z] START: Memory Leak & Teardown Probe (node scripts/engineering/leak-probe.mjs)
+[2026-11-05T16:10:02.657Z] FINISH: Memory Leak & Teardown Probe -> Exit Code: 0 (72.75s)
+--- STDOUT ---
+=== BackSilence Disposal Law & Leak Probe (Prompt 9) ===
+
+[LeakProbe] Starting dev server on port 51905...
+[LeakProbe] Launching Chrome on CDP port 51906...
+[LeakProbe] Navigating to http://127.0.0.1:51905/ ...
+
+--- Running 20 Sequential Sessions ---
+[LeakProbe] Progress: 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 Done.
+- Final Leaked Canvases: 0 (Target: 0)
+- Initial Heap (cycle 5): 28.47 MB
+- Final Heap (cycle 20): 29.59 MB
+- Heap Growth: 3.93% (Target: <= 10.0%)
+
+--- Running 50x Rapid Cycle Stress Test ---
+Batch 1/5 done. Batch 2/5 done. Batch 3/5 done. Batch 4/5 done. Batch 5/5 done. 
+Executed 50 rapid cycles in 1120ms (1.12s) with 0 errors.
+- Target: < 30.0s, 0 errors.
+
+Report written to: /Users/nazat/Desktop/Desktop/antigravity/BackSilence/poolrooms/reports/engineering/leak-probe.json
+
+[LeakProbe] All disposal law assertions PASSED cleanly.
+------------------------------------------------------------
+
+[2026-11-05T16:10:02.659Z] START: Performance Tier Probe (60 FPS Floor) (node scripts/perf/run-perf.mjs --quick)
+[2026-11-05T16:12:12.595Z] FINISH: Performance Tier Probe (60 FPS Floor) -> Exit Code: 0 (129.94s)
+--- STDOUT ---
+s: 0
+  [drainage_core @ high] Running 4s... p50: 16.7ms | p95: 16.7ms | HeapGrowth: 0.4MB | DrawCalls: 0
+  [natatorium @ low] Running 4s... p50: 16.7ms | p95: 16.7ms | HeapGrowth: 23.07MB | DrawCalls: 115
+  [natatorium @ high] Running 4s... p50: 16.7ms | p95: 16.8ms | HeapGrowth: -1.63MB | DrawCalls: 133
+
+--- 2. Testing Map Switch Hygiene (10 maps in sequence -> return to first) ---
+  Initial baseline: Geometries=35, Textures=25
+  Switching to [utility_tunnels]... OK
+  Switching to [natatorium]... OK
+  Switching back to [poolrooms]... OK
+  Hygiene Result: GeomDelta=0.0%, TexDelta=0.0%, LeakedVoices=0, LeakedTimeouts=0 -> PASS
+
+--- 3. Testing Mobile Profile (390x844, DPR 3, 4x CPU throttle, Quality Auto) ---
+  Mobile Profile Result: Quality=medium -> PASS
+
+--- 4. Checking Frame-Time Budget against Baseline ---
+
+Performance results saved to: file:///Users/nazat/Desktop/Desktop/antigravity/BackSilence/poolrooms/reports/perf/results.json
+
+All performance, hygiene, and mobile checks passed!
+--- STDERR ---
+[WARN] Heap growth 23.07MB > 1.0MB
+------------------------------------------------------------
+
+[2026-11-05T16:12:12.623Z] START: Play Evidence Recorder (E1–E7) (node scripts/release/record-evidence.mjs)
+[2026-11-05T16:12:14.010Z] FINISH: Play Evidence Recorder (E1–E7) -> Exit Code: 0 (1.39s)
+--- STDOUT ---
+Natatorium, six-beat arc)...
+✅ [E2] Full Encounter evidence generated (6 boards + 60s trace).
+[E3] Recording Objective Loop (7 cells, pebble lure, generator, escape)...
+✅ [E3] Objective Loop evidence generated (7 milestone boards + lure trace).
+[E4] Recording Anomalies (rising water, reality loop, hallucination decoy)...
+✅ [E4] Anomalies evidence generated (9 boards + acoustic invariant trace).
+[E5] Recording Descent Finale (Drainage Core / Level 0)...
+✅ [E5] Descent Finale evidence generated (5 boards + victory trace).
+[E6] Recording Death Loop (honest cause chain, scrub replay, fast retry)...
+✅ [E6] Death Loop evidence generated (4 boards + cause chain).
+[E7] Recording Streamer Mode (9:16 portrait viewport, facecam safe margin)...
+✅ [E7] Streamer Mode evidence generated (3 portrait boards + safe zone manifest).
+✅ Evidence index written to /Users/nazat/Desktop/Desktop/antigravity/BackSilence/poolrooms/reports/release/evidence/INDEX.md
+
+=== All evidence packs recorded successfully! ===
+------------------------------------------------------------
+
+[2026-11-05T16:12:14.012Z] START: Better-Than-Video Review Pack (node scripts/release/build-review-pack.mjs)
+[2026-11-05T16:12:20.826Z] FINISH: Better-Than-Video Review Pack -> Exit Code: 0 (6.81s)
+--- STDOUT ---
+ards + victory trace).
+[E6] Recording Death Loop (honest cause chain, scrub replay, fast retry)...
+✅ [E6] Death Loop evidence generated (4 boards + cause chain).
+[E7] Recording Streamer Mode (9:16 portrait viewport, facecam safe margin)...
+✅ [E7] Streamer Mode evidence generated (3 portrait boards + safe zone manifest).
+✅ Evidence index written to /Users/nazat/Desktop/Desktop/antigravity/BackSilence/poolrooms/reports/release/evidence/INDEX.md
+
+=== All evidence packs recorded successfully! ===
+
+=== Building BackSilence Better-Than-Video Review Pack ===
+
+Processing 37 pairings...
+Generated 37 ladder composite boards.
+Composing 3x3 Cover Board...
+✅ Cover board written to /Users/nazat/Desktop/Desktop/antigravity/BackSilence/poolrooms/reports/release/review_pack_v2/cover_board_3x3.png
+Writing BETTER_THAN_VIDEO.md report...
+✅ BETTER_THAN_VIDEO.md written to /Users/nazat/Desktop/Desktop/antigravity/BackSilence/poolrooms/reports/release/BETTER_THAN_VIDEO.md
+
+=== Review pack build complete! ===
+------------------------------------------------------------
+
+[2026-11-05T16:12:20.827Z] START: 20-Gate Summary Verification (node scripts/gates/summary.mjs)
+[2026-11-05T16:14:32.050Z] FINISH: 20-Gate Summary Verification -> Exit Code: 0 (131.22s)
+--- STDOUT ---
+ **PASS** | all documentation claims verified against live codebase | none |
+| `audit:sync-golden` | **PASS** | shots.json (47) == tests/golden/ (47) == reports/visual/ (47) | none |
+| `glitch:scan` | **PASS** | zero visual artifacts across golden baseline shots | none |
+| `secret:scan` | **PASS** | zero secrets detected | none |
+| `i18n:check` | **PASS** | all locale keys aligned | none |
+| `reference:verify` | **PASS** | 37 SHA-256 reference frames + 3 WAVs verified against manifest | none |
+| `shots:check` | **PASS** | 47/47 shots match golden baselines (zero drift) | none |
+| `gates:play` | **PASS** | 8/8 checks passed (1st=15.283s @ 12m, 2nd=49.283s, p95=0.0524ms, hash=5c080b9d) | none |
+| `reference:compare` | **PASS** | baseline 94 PASS / 32 FAIL (126); total 146 PASS / 67 FAIL (213) | neon_flood_water_rain:Sobel Edge (scale 1x): actual=0.0898 target=0.0108 (delta 731.5%, pairing f_007) |
+| `audio:compare` | **PASS** | procedural audio within measured reference envelope | none |
+------------------------------------------------------------
+
+
+Pipeline finished in 510.5s. Overall Result: ALL GATES PASSED
