@@ -1,0 +1,20 @@
+{
+  "scenario": "E7",
+  "name": "Streamer Mode",
+  "mapId": "natatorium",
+  "seed": 707,
+  "reproductionCommand": "node scripts/release/record-evidence.mjs --scenario E7",
+  "assertions": {
+    "viewportAspect9x16": true,
+    "facecamSafeZoneReserved": true,
+    "zeroHudFacecamOverlap": true,
+    "verticalFrustumReadable": true,
+    "zeroDebugPixels": true
+  },
+  "artifacts": [
+    "streamer_9_16_calm.png",
+    "streamer_9_16_sighting.png",
+    "streamer_9_16_stalk.png"
+  ],
+  "status": "PASS"
+}

@@ -152,6 +152,10 @@ export class GameSession {
     return this.host.settings;
   }
 
+  get interactions() {
+    return this.host.interactions;
+  }
+
   get playerPosition(): Vec3 | null {
     if (!this.host.simWorld?.player?.pos) return null;
     const p = this.host.simWorld.player.pos;

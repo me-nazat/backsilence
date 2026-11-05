@@ -1,0 +1,22 @@
+{
+  "scenario": "E6",
+  "name": "The Death Loop",
+  "mapId": "natatorium",
+  "seed": 606,
+  "reproductionCommand": "node scripts/release/record-evidence.mjs --scenario E6",
+  "assertions": {
+    "deathNoiseAttributable": true,
+    "causeChainRendered": true,
+    "last5SecondScrubActive": true,
+    "retryLatencyLe2Seconds": true,
+    "actualRetryLatencySeconds": 1.42,
+    "zeroDebugPixels": true
+  },
+  "artifacts": [
+    "d1_death_moment.png",
+    "d2_cause_chain_display.png",
+    "d3_scrub_replay.png",
+    "d4_retry_respawn.png"
+  ],
+  "status": "PASS"
+}

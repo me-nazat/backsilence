@@ -1,0 +1,17 @@
+{
+  "risingWaterEvent": {
+    "peakDepthMeters": 1.85,
+    "surgeDurationSeconds": 15,
+    "sumpRecoverySeconds": 12
+  },
+  "realityLoopEvent": {
+    "loopDetected": true,
+    "spatialWarpInvariancePassed": true
+  },
+  "hallucinationDecoyEvent": {
+    "visualSilhouetteDistanceMeters": 8,
+    "trueAcousticEnergyDb": -120,
+    "zeroTrueAcousticInvariantPassed": true,
+    "dispersedByTorch": true
+  }
+}

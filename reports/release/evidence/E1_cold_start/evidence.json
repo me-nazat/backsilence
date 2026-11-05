@@ -1,0 +1,32 @@
+{
+  "scenario": "E1",
+  "name": "The Cold Start",
+  "mapId": "orientation",
+  "seed": 101,
+  "reproductionCommand": "node scripts/release/record-evidence.mjs --scenario E1",
+  "assertions": {
+    "workOrderVisibleBy8s": true,
+    "captionActiveBy20s": true,
+    "firstSightingInWindow": true,
+    "firstSightingTimeSeconds": 52.4,
+    "objectiveChipInitialZero": true,
+    "firstCellAcquiredBy120s": true,
+    "zeroDebugPixels": true
+  },
+  "artifacts": [
+    "t000s.png",
+    "t010s.png",
+    "t020s.png",
+    "t030s.png",
+    "t040s.png",
+    "t050s.png",
+    "t060s.png",
+    "t070s.png",
+    "t080s.png",
+    "t090s.png",
+    "t100s.png",
+    "t110s.png",
+    "t120s.png"
+  ],
+  "status": "PASS"
+}

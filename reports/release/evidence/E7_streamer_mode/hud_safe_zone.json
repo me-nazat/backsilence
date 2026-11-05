@@ -1,0 +1,18 @@
+{
+  "viewport": {
+    "width": 405,
+    "height": 720,
+    "aspectRatio": "9:16"
+  },
+  "facecamZone": {
+    "top": 0,
+    "heightPercent": 28,
+    "description": "Reserved for webcam / avatar"
+  },
+  "hudSafeZone": {
+    "topPercent": 30,
+    "bottomPercent": 85,
+    "sideMarginPercent": 8
+  },
+  "zeroHudOverlapInFacecamZone": true
+}

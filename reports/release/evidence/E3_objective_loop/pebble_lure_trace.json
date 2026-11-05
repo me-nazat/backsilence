@@ -1,0 +1,19 @@
+{
+  "throwTimestamp": 34.2,
+  "playerPos": {
+    "x": 0,
+    "y": 0.3,
+    "z": -10
+  },
+  "pebbleImpactPos": {
+    "x": 12,
+    "y": 0,
+    "z": -18.5
+  },
+  "impactLoudness": 0.85,
+  "acousticRadiusMeters": 16,
+  "creatureOriginalTarget": "PLAYER",
+  "creatureDivertedTarget": "LURE_IMPACT",
+  "diversionDurationSeconds": 6.8,
+  "playerCrossedDuringDiversion": true
+}

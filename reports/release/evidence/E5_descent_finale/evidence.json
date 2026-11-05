@@ -1,0 +1,22 @@
+{
+  "scenario": "E5",
+  "name": "The Descent Finale",
+  "mapId": "drainage_core",
+  "seed": 505,
+  "reproductionCommand": "node scripts/release/record-evidence.mjs --scenario E5",
+  "assertions": {
+    "drainAwayExecuted": true,
+    "invertedRuleActive": true,
+    "finalEscapeUnlocked": true,
+    "campaignVictoryLogged": true,
+    "zeroDebugPixels": true
+  },
+  "artifacts": [
+    "stage3_drain_away.png",
+    "stage3_inverted_rule.png",
+    "stage3_final_stalk.png",
+    "stage3_escape_door.png",
+    "stage3_results_screen.png"
+  ],
+  "status": "PASS"
+}

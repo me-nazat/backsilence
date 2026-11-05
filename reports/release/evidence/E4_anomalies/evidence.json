@@ -1,0 +1,25 @@
+{
+  "scenario": "E4",
+  "name": "Anomalies",
+  "mapId": "drowned_metro",
+  "seed": 404,
+  "reproductionCommand": "node scripts/release/record-evidence.mjs --scenario E4",
+  "assertions": {
+    "risingWaterSurgeAndDrainVerified": true,
+    "realityLoopSpatialInvarianceVerified": true,
+    "decoyZeroTrueAcousticEnergyVerified": true,
+    "zeroDebugPixels": true
+  },
+  "artifacts": [
+    "rising_water_telegraph.png",
+    "rising_water_peak.png",
+    "rising_water_decay.png",
+    "reality_loop_telegraph.png",
+    "reality_loop_peak.png",
+    "reality_loop_decay.png",
+    "hallucination_decoy_telegraph.png",
+    "hallucination_decoy_peak.png",
+    "hallucination_decoy_decay.png"
+  ],
+  "status": "PASS"
+}

@@ -1,0 +1,14 @@
+{
+  "timestamp": 62.14,
+  "killerState": "ATTACK",
+  "playerNoiseEvent": {
+    "type": "WATER_SPLASH",
+    "loudness": 0.82,
+    "timeBeforeContactSeconds": 1.4
+  },
+  "acousticProof": "100% noise-attributable; zero unprovoked attacks",
+  "scrubWindowSeconds": 5,
+  "retryLatencySeconds": 1.42,
+  "retryBudgetSeconds": 2,
+  "retryBudgetPassed": true
+}

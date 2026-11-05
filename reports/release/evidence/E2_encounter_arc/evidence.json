@@ -1,0 +1,24 @@
+{
+  "scenario": "E2",
+  "name": "The Full Encounter",
+  "mapId": "natatorium",
+  "seed": 202,
+  "reproductionCommand": "node scripts/release/record-evidence.mjs --scenario E2",
+  "fairnessAssertions": {
+    "speedCeilingLe74Mps": true,
+    "maxObservedSpeedMps": 7.2,
+    "standoffTrenchUncrossed": true,
+    "investigateDamageZero": true,
+    "terminalLungeRequiresQualifyingNoise": true,
+    "zeroDebugPixels": true
+  },
+  "artifacts": [
+    "b1_telegraph.png",
+    "b2_silhouette.png",
+    "b3_stalk.png",
+    "b4_standoff.png",
+    "b5_silence.png",
+    "b6_lunge.png"
+  ],
+  "status": "PASS"
+}

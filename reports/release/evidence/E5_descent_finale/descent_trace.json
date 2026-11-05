@@ -1,0 +1,13 @@
+{
+  "drainDurationSeconds": 8.5,
+  "finalWaterDepthMeters": 0.04,
+  "invertedAcousticsActive": true,
+  "escapeDoorUnlockedTimestamp": 254.2,
+  "results": {
+    "time": "4:18",
+    "cells": "7/7",
+    "sightings": 3,
+    "deaths": 0,
+    "victory": true
+  }
+}

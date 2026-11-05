@@ -1,0 +1,482 @@
+[
+  {
+    "t": 1,
+    "beat": "telegraph",
+    "distance": 14.8,
+    "speed": 0,
+    "investigateDamageDealt": 0,
+    "trenchCrossed": false
+  },
+  {
+    "t": 2,
+    "beat": "telegraph",
+    "distance": 14.8,
+    "speed": 0,
+    "investigateDamageDealt": 0,
+    "trenchCrossed": false
+  },
+  {
+    "t": 3,
+    "beat": "telegraph",
+    "distance": 14.8,
+    "speed": 0,
+    "investigateDamageDealt": 0,
+    "trenchCrossed": false
+  },
+  {
+    "t": 4,
+    "beat": "telegraph",
+    "distance": 14.8,
+    "speed": 0,
+    "investigateDamageDealt": 0,
+    "trenchCrossed": false
+  },
+  {
+    "t": 5,
+    "beat": "telegraph",
+    "distance": 14.8,
+    "speed": 0,
+    "investigateDamageDealt": 0,
+    "trenchCrossed": false
+  },
+  {
+    "t": 6,
+    "beat": "telegraph",
+    "distance": 14.8,
+    "speed": 0,
+    "investigateDamageDealt": 0,
+    "trenchCrossed": false
+  },
+  {
+    "t": 7,
+    "beat": "telegraph",
+    "distance": 14.8,
+    "speed": 0,
+    "investigateDamageDealt": 0,
+    "trenchCrossed": false
+  },
+  {
+    "t": 8,
+    "beat": "telegraph",
+    "distance": 14.8,
+    "speed": 0,
+    "investigateDamageDealt": 0,
+    "trenchCrossed": false
+  },
+  {
+    "t": 9,
+    "beat": "telegraph",
+    "distance": 14.8,
+    "speed": 0,
+    "investigateDamageDealt": 0,
+    "trenchCrossed": false
+  },
+  {
+    "t": 10,
+    "beat": "telegraph",
+    "distance": 14.8,
+    "speed": 0,
+    "investigateDamageDealt": 0,
+    "trenchCrossed": false
+  },
+  {
+    "t": 11,
+    "beat": "telegraph",
+    "distance": 14.8,
+    "speed": 0,
+    "investigateDamageDealt": 0,
+    "trenchCrossed": false
+  },
+  {
+    "t": 12,
+    "beat": "telegraph",
+    "distance": 14.8,
+    "speed": 0,
+    "investigateDamageDealt": 0,
+    "trenchCrossed": false
+  },
+  {
+    "t": 13,
+    "beat": "telegraph",
+    "distance": 14.8,
+    "speed": 0,
+    "investigateDamageDealt": 0,
+    "trenchCrossed": false
+  },
+  {
+    "t": 14,
+    "beat": "telegraph",
+    "distance": 14.8,
+    "speed": 0,
+    "investigateDamageDealt": 0,
+    "trenchCrossed": false
+  },
+  {
+    "t": 15,
+    "beat": "telegraph",
+    "distance": 14.8,
+    "speed": 0,
+    "investigateDamageDealt": 0,
+    "trenchCrossed": false
+  },
+  {
+    "t": 16,
+    "beat": "telegraph",
+    "distance": 14.8,
+    "speed": 0,
+    "investigateDamageDealt": 0,
+    "trenchCrossed": false
+  },
+  {
+    "t": 17,
+    "beat": "telegraph",
+    "distance": 14.8,
+    "speed": 0,
+    "investigateDamageDealt": 0,
+    "trenchCrossed": false
+  },
+  {
+    "t": 18,
+    "beat": "telegraph",
+    "distance": 14.8,
+    "speed": 0,
+    "investigateDamageDealt": 0,
+    "trenchCrossed": false
+  },
+  {
+    "t": 19,
+    "beat": "silhouette_hold",
+    "distance": 12.5,
+    "speed": 0,
+    "investigateDamageDealt": 0,
+    "trenchCrossed": false
+  },
+  {
+    "t": 20,
+    "beat": "silhouette_hold",
+    "distance": 12.5,
+    "speed": 0,
+    "investigateDamageDealt": 0,
+    "trenchCrossed": false
+  },
+  {
+    "t": 21,
+    "beat": "silhouette_hold",
+    "distance": 12.5,
+    "speed": 0,
+    "investigateDamageDealt": 0,
+    "trenchCrossed": false
+  },
+  {
+    "t": 22,
+    "beat": "stalk",
+    "distance": 12.5,
+    "speed": 2.4,
+    "investigateDamageDealt": 0,
+    "trenchCrossed": false
+  },
+  {
+    "t": 23,
+    "beat": "stalk",
+    "distance": 11.88,
+    "speed": 2.4,
+    "investigateDamageDealt": 0,
+    "trenchCrossed": false
+  },
+  {
+    "t": 24,
+    "beat": "stalk",
+    "distance": 11.26,
+    "speed": 2.4,
+    "investigateDamageDealt": 0,
+    "trenchCrossed": false
+  },
+  {
+    "t": 25,
+    "beat": "stalk",
+    "distance": 10.64,
+    "speed": 2.4,
+    "investigateDamageDealt": 0,
+    "trenchCrossed": false
+  },
+  {
+    "t": 26,
+    "beat": "stalk",
+    "distance": 10.01,
+    "speed": 2.4,
+    "investigateDamageDealt": 0,
+    "trenchCrossed": false
+  },
+  {
+    "t": 27,
+    "beat": "stalk",
+    "distance": 9.39,
+    "speed": 2.4,
+    "investigateDamageDealt": 0,
+    "trenchCrossed": false
+  },
+  {
+    "t": 28,
+    "beat": "stalk",
+    "distance": 8.77,
+    "speed": 2.4,
+    "investigateDamageDealt": 0,
+    "trenchCrossed": false
+  },
+  {
+    "t": 29,
+    "beat": "stalk",
+    "distance": 8.15,
+    "speed": 2.4,
+    "investigateDamageDealt": 0,
+    "trenchCrossed": false
+  },
+  {
+    "t": 30,
+    "beat": "stalk",
+    "distance": 7.53,
+    "speed": 2.4,
+    "investigateDamageDealt": 0,
+    "trenchCrossed": false
+  },
+  {
+    "t": 31,
+    "beat": "stalk",
+    "distance": 6.91,
+    "speed": 2.4,
+    "investigateDamageDealt": 0,
+    "trenchCrossed": false
+  },
+  {
+    "t": 32,
+    "beat": "stalk",
+    "distance": 6.29,
+    "speed": 2.4,
+    "investigateDamageDealt": 0,
+    "trenchCrossed": false
+  },
+  {
+    "t": 33,
+    "beat": "stalk",
+    "distance": 5.66,
+    "speed": 2.4,
+    "investigateDamageDealt": 0,
+    "trenchCrossed": false
+  },
+  {
+    "t": 34,
+    "beat": "stalk",
+    "distance": 5.04,
+    "speed": 2.4,
+    "investigateDamageDealt": 0,
+    "trenchCrossed": false
+  },
+  {
+    "t": 35,
+    "beat": "stalk",
+    "distance": 4.42,
+    "speed": 2.4,
+    "investigateDamageDealt": 0,
+    "trenchCrossed": false
+  },
+  {
+    "t": 36,
+    "beat": "standoff",
+    "distance": 3.8,
+    "speed": 0,
+    "investigateDamageDealt": 0,
+    "trenchCrossed": false
+  },
+  {
+    "t": 37,
+    "beat": "standoff",
+    "distance": 3.18,
+    "speed": 0,
+    "investigateDamageDealt": 0,
+    "trenchCrossed": false
+  },
+  {
+    "t": 38,
+    "beat": "standoff",
+    "distance": 2.56,
+    "speed": 0,
+    "investigateDamageDealt": 0,
+    "trenchCrossed": false
+  },
+  {
+    "t": 39,
+    "beat": "standoff",
+    "distance": 1.94,
+    "speed": 0,
+    "investigateDamageDealt": 0,
+    "trenchCrossed": false
+  },
+  {
+    "t": 40,
+    "beat": "standoff",
+    "distance": 1.31,
+    "speed": 0,
+    "investigateDamageDealt": 0,
+    "trenchCrossed": false
+  },
+  {
+    "t": 41,
+    "beat": "standoff",
+    "distance": 0.69,
+    "speed": 0,
+    "investigateDamageDealt": 0,
+    "trenchCrossed": false
+  },
+  {
+    "t": 42,
+    "beat": "standoff",
+    "distance": 0.07,
+    "speed": 0,
+    "investigateDamageDealt": 0,
+    "trenchCrossed": false
+  },
+  {
+    "t": 43,
+    "beat": "standoff",
+    "distance": -0.55,
+    "speed": 0,
+    "investigateDamageDealt": 0,
+    "trenchCrossed": false
+  },
+  {
+    "t": 44,
+    "beat": "standoff",
+    "distance": -1.17,
+    "speed": 0,
+    "investigateDamageDealt": 0,
+    "trenchCrossed": false
+  },
+  {
+    "t": 45,
+    "beat": "standoff",
+    "distance": -1.79,
+    "speed": 0,
+    "investigateDamageDealt": 0,
+    "trenchCrossed": false
+  },
+  {
+    "t": 46,
+    "beat": "standoff",
+    "distance": -2.41,
+    "speed": 0,
+    "investigateDamageDealt": 0,
+    "trenchCrossed": false
+  },
+  {
+    "t": 47,
+    "beat": "standoff",
+    "distance": -3.04,
+    "speed": 0,
+    "investigateDamageDealt": 0,
+    "trenchCrossed": false
+  },
+  {
+    "t": 48,
+    "beat": "standoff",
+    "distance": -3.66,
+    "speed": 0,
+    "investigateDamageDealt": 0,
+    "trenchCrossed": false
+  },
+  {
+    "t": 49,
+    "beat": "silence_window",
+    "distance": -4.28,
+    "speed": 0,
+    "investigateDamageDealt": 0,
+    "trenchCrossed": false
+  },
+  {
+    "t": 50,
+    "beat": "silence_window",
+    "distance": -4.9,
+    "speed": 0,
+    "investigateDamageDealt": 0,
+    "trenchCrossed": false
+  },
+  {
+    "t": 51,
+    "beat": "silence_window",
+    "distance": -5.52,
+    "speed": 0,
+    "investigateDamageDealt": 0,
+    "trenchCrossed": false
+  },
+  {
+    "t": 52,
+    "beat": "silence_window",
+    "distance": -6.14,
+    "speed": 0,
+    "investigateDamageDealt": 0,
+    "trenchCrossed": false
+  },
+  {
+    "t": 53,
+    "beat": "silence_window",
+    "distance": -6.76,
+    "speed": 0,
+    "investigateDamageDealt": 0,
+    "trenchCrossed": false
+  },
+  {
+    "t": 54,
+    "beat": "silence_window",
+    "distance": -7.39,
+    "speed": 0,
+    "investigateDamageDealt": 0,
+    "trenchCrossed": false
+  },
+  {
+    "t": 55,
+    "beat": "silence_window",
+    "distance": -8.01,
+    "speed": 0,
+    "investigateDamageDealt": 0,
+    "trenchCrossed": false
+  },
+  {
+    "t": 56,
+    "beat": "silence_window",
+    "distance": -8.63,
+    "speed": 0,
+    "investigateDamageDealt": 0,
+    "trenchCrossed": false
+  },
+  {
+    "t": 57,
+    "beat": "silence_window",
+    "distance": -9.25,
+    "speed": 0,
+    "investigateDamageDealt": 0,
+    "trenchCrossed": false
+  },
+  {
+    "t": 58,
+    "beat": "silence_window",
+    "distance": -9.87,
+    "speed": 0,
+    "investigateDamageDealt": 0,
+    "trenchCrossed": false
+  },
+  {
+    "t": 59,
+    "beat": "terminal_lunge",
+    "distance": -10.49,
+    "speed": 7.2,
+    "investigateDamageDealt": 0,
+    "trenchCrossed": false
+  },
+  {
+    "t": 60,
+    "beat": "terminal_lunge",
+    "distance": -11.11,
+    "speed": 7.2,
+    "investigateDamageDealt": 0,
+    "trenchCrossed": false
+  }
+]

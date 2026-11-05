@@ -1,0 +1,25 @@
+{
+  "scenario": "E3",
+  "name": "The Objective Loop",
+  "mapId": "poolrooms",
+  "seed": 303,
+  "reproductionCommand": "node scripts/release/record-evidence.mjs --scenario E3",
+  "assertions": {
+    "cellsTotalCollected": 7,
+    "waterCrossingsSuccessful": 2,
+    "pebbleLureAcousticDiversionSuccessful": true,
+    "generatorOnline": true,
+    "escapeDoorUnsealed": true,
+    "zeroNoiseAttributableDeaths": true
+  },
+  "artifacts": [
+    "m1_start_0_of_7.png",
+    "m2_water_crossing_1.png",
+    "m3_pebble_lure.png",
+    "m4_water_crossing_2.png",
+    "m5_cells_collected_7_of_7.png",
+    "m6_generator_restored.png",
+    "m7_escape_door_opened.png"
+  ],
+  "status": "PASS"
+}
