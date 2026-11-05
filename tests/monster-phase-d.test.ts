@@ -285,4 +285,268 @@ describe('Phase D: Full Attack Chain & Jumpscare Framing Verification', () => {
     expect(snap.firstContactScheduledTime).toBeLessThanOrEqual(45.0);
     expect(snap.firstContactScheduledTime).toBeGreaterThanOrEqual(30.0);
   });
+
+  describe('Prompt 6 Phase B & D: Fairness Laws, Anti-Cheap-Scare & Video-3 Leap-Cross', () => {
+    const idleIntent: PlayerIntent = {
+      moveX: 0,
+      moveZ: 0,
+      jump: false,
+      sprint: false,
+      crouch: false,
+      interact: false,
+      lookDeltaYaw: 0,
+      lookDeltaPitch: 0,
+    };
+
+    const movingIntent: PlayerIntent = {
+      moveX: 0,
+      moveZ: 0.2,
+      jump: false,
+      sprint: false,
+      crouch: false,
+      interact: false,
+      lookDeltaYaw: 0,
+      lookDeltaPitch: 0,
+    };
+
+    it('fairness law: INVESTIGATE state never deals damage', () => {
+      const sim = createProvingGroundsSim('normal');
+      const monster = sim.addMonster({
+        id: 'm_inv_fairness',
+        variant: 'standard',
+        spawn: { x: 0, y: -0.9, z: 5 },
+        spawnGrace: 0.0,
+      });
+
+      // Place player in water and settle physics
+      sim.player.teleport({ x: 0, y: -0.9, z: 6 });
+      for (let i = 0; i < 5; i++) {
+        sim.step(1 / 60, idleIntent);
+      }
+
+      // Force monster into INVESTIGATE
+      monster.forceState('INVESTIGATE', { stateTimer: 5.0, investigatePhase: 'sniff', searchTimer: 10.0 });
+
+      let damageCount = 0;
+      for (let i = 0; i < sim.events.length; i++) {
+        if (sim.events.getAt(i)?.type === 'damage') damageCount++;
+      }
+
+      // Step simulation while in INVESTIGATE
+      for (let i = 0; i < 60; i++) {
+        sim.step(1 / 60, idleIntent);
+        expect(monster.state).toBe('INVESTIGATE');
+      }
+
+      let newDamageCount = 0;
+      for (let i = 0; i < sim.events.length; i++) {
+        if (sim.events.getAt(i)?.type === 'damage') newDamageCount++;
+      }
+      expect(newDamageCount).toBe(damageCount);
+    });
+
+    it('fairness law: terminal lunge strictly requires qualifying noise <= 4s old within <= 4m', () => {
+      const sim = createProvingGroundsSim('normal');
+      const monster = sim.addMonster({
+        id: 'm_lunge_fairness',
+        variant: 'standard',
+        spawn: { x: 0, y: -0.9, z: 0 },
+        spawnGrace: 0.0,
+      });
+
+      // Player is at 2.5m in water (> TOUCH_RANGE 1.15m and <= LUNGE_RANGE 3.8m)
+      sim.player.teleport({ x: 0, y: -0.9, z: 2.5 });
+      for (let i = 0; i < 5; i++) {
+        sim.step(1 / 60, idleIntent);
+      }
+
+      monster.forceState('HUNT', { stateTimer: 10.0 });
+      monster.lastQualifyingNoiseTime = -999;
+      monster.lastQualifyingNoisePos = null;
+
+      // Without qualifying noise (e.g. noise is 10s old): lunge must NOT fire
+      monster.lastQualifyingNoiseTime = sim.simTime - 10.0;
+      sim.step(1 / 60, movingIntent);
+      expect(monster.lastLungeTime).toBe(-999);
+
+      // Now emit fresh qualifying noise within 4m
+      monster.lastQualifyingNoiseTime = sim.simTime;
+      monster.lastQualifyingNoisePos = { x: 0, y: -0.9, z: 2.5 };
+
+      monster.forceState('HUNT', { stateTimer: 10.0 });
+      sim.step(1 / 60, movingIntent);
+      expect(monster.lastLungeTime).toBeGreaterThan(0);
+    });
+
+    it('fairness law: zero teleportation (speed <= 7.4 m/s ceiling)', () => {
+      const sim = createProvingGroundsSim('normal');
+      const monster = sim.addMonster({
+        id: 'm_speed_test',
+        variant: 'standard',
+        spawn: { x: 0, y: -0.9, z: 0 },
+        spawnGrace: 0.0,
+      });
+
+      monster.forceState('HUNT', { stateTimer: 10.0 });
+      sim.player.teleport({ x: 0, y: -0.9, z: 3.2 });
+      sim.broadcastNoise({
+        kind: 'splash',
+        position: { x: 0, y: -0.9, z: 3.2 },
+        loudness: 0.9,
+        sourcePlayerId: sim.player.playerId,
+      });
+
+      let maxSpeed = 0;
+      let prevPos = { ...monster.pos };
+
+      for (let i = 0; i < 60; i++) {
+        sim.step(1 / 60, movingIntent);
+        const speed = Math.hypot(monster.pos.x - prevPos.x, monster.pos.z - prevPos.z) / (1 / 60);
+        if (speed > maxSpeed) maxSpeed = speed;
+        prevPos = { ...monster.pos };
+      }
+
+      expect(maxSpeed).toBeLessThanOrEqual(7.4);
+    });
+
+    it('anti-cheap-scare: no off-screen kills at > 1.5m (requires visibility or <= 1.5m)', () => {
+      const sim = createProvingGroundsSim('normal');
+      const monster = sim.addMonster({
+        id: 'm_offscreen_test',
+        variant: 'standard',
+        spawn: { x: 0, y: -0.9, z: 2.2 }, // 2.2m behind player (> 1.5m)
+        spawnGrace: 0.0,
+      });
+
+      // Player facing forward (yaw 0, towards -Z). Monster is at +Z (behind player, 180° away)
+      sim.player.teleport({ x: 0, y: -0.9, z: 0 });
+      monster.forceState('ALERTED', { stateTimer: 0.1 });
+
+      let damageCount = 0;
+      for (let i = 0; i < sim.events.length; i++) {
+        if (sim.events.getAt(i)?.type === 'damage') damageCount++;
+      }
+
+      // Step simulation while player is facing away
+      sim.step(1 / 60, idleIntent);
+
+      // At 2.2m behind the player, monster cannot kill off-screen
+      let newDamageCount = 0;
+      for (let i = 0; i < sim.events.length; i++) {
+        if (sim.events.getAt(i)?.type === 'damage') newDamageCount++;
+      }
+      expect(newDamageCount).toBe(damageCount);
+    });
+
+    it('anti-cheap-scare: enforces >= 20s recovery window between lunges', () => {
+      const sim = createProvingGroundsSim('normal');
+      const monster = sim.addMonster({
+        id: 'm_recovery_test',
+        variant: 'standard',
+        spawn: { x: 0, y: -0.9, z: 0 },
+        spawnGrace: 0.0,
+      });
+
+      sim.player.teleport({ x: 0, y: -0.9, z: 3.0 });
+      sim.broadcastNoise({
+        kind: 'splash',
+        position: { x: 0, y: -0.9, z: 3.0 },
+        loudness: 0.8,
+        sourcePlayerId: sim.player.playerId,
+      });
+
+      monster.forceState('HUNT', { stateTimer: 10.0 });
+      sim.step(1 / 60, movingIntent);
+
+      const firstLungeTime = monster.lastLungeTime;
+      expect(firstLungeTime).toBeGreaterThan(0);
+
+      // Attempt second lunge 5 seconds later
+      monster.forceState('HUNT', { stateTimer: 10.0 });
+      sim.broadcastNoise({
+        kind: 'splash',
+        position: { x: 0, y: -0.9, z: 3.0 },
+        loudness: 0.8,
+        sourcePlayerId: sim.player.playerId,
+      });
+
+      // Fast-forward 5s (300 ticks)
+      for (let i = 0; i < 300; i++) {
+        sim.step(1 / 60, movingIntent);
+      }
+
+      // lastLungeTime must NOT have been updated during those 5s because < 20s recovery
+      expect(monster.lastLungeTime).toBe(firstLungeTime);
+    });
+
+    it('Video-3 Leap-Cross Variant: executes telegraphed leap-cross across trench <= 3m with double ink-splash', () => {
+      const sim = createProvingGroundsSim('normal');
+      const monster = sim.addMonster({
+        id: 'm_leap_test',
+        variant: 'standard',
+        spawn: { x: 0, y: -0.9, z: -28.6 }, // at trench lip
+        spawnGrace: 0.0,
+      });
+
+      monster.forceState('BLOCKED', { stateTimer: 10.0 });
+      // Player is 2.6m across the trench
+      sim.player.teleport({ x: 0, y: -0.9, z: -26.0 });
+
+      // Player makes qualifying noise
+      sim.broadcastNoise({
+        kind: 'splash',
+        position: { x: 0, y: -0.9, z: -26.0 },
+        loudness: 0.8,
+        sourcePlayerId: sim.player.playerId,
+      });
+
+      // 1. First step triggers TELEGRAPH (crouch + hiss >= 0.6s)
+      sim.step(1 / 60, idleIntent);
+      expect(monster.leapState).toBe('TELEGRAPH');
+      expect(monster.leapTimer).toBeGreaterThanOrEqual(0.6);
+      expect(monster.rearingT).toBe(0); // low crouch
+
+      // Verify hiss noise event emitted
+      let hissEmitted = false;
+      for (let i = 0; i < sim.events.length; i++) {
+        const ev = sim.events.getAt(i);
+        if (ev?.type === 'noise' && (ev.data as { kind?: string }).kind === 'hiss') {
+          hissEmitted = true;
+          break;
+        }
+      }
+      expect(hissEmitted).toBe(true);
+
+      // 2. Step through telegraph duration (0.65s = 39 ticks)
+      for (let i = 0; i < 39; i++) {
+        sim.step(1 / 60, idleIntent);
+      }
+      expect(monster.leapState).toBe('AIRBORNE');
+      expect(monster.hasLeaped).toBe(true);
+
+      // 3. Step through airborne ballistic arc (0.65s = 39 ticks)
+      let peakHeight = 0;
+      for (let i = 0; i < 45; i++) {
+        sim.step(1 / 60, idleIntent);
+        if (monster.pos.y > peakHeight) peakHeight = monster.pos.y;
+      }
+
+      // Ballistic height arc reached above ground
+      expect(peakHeight).toBeGreaterThan(-0.8);
+      expect(monster.leapState).toBe('NONE');
+
+      // 4. Verify landing emitted double splash noise events
+      let splashCount = 0;
+      for (let i = 0; i < sim.events.length; i++) {
+        const ev = sim.events.getAt(i);
+        if (ev?.type === 'noise' && (ev.data as { id?: string }).id?.includes('noise_leap_land_splash')) {
+          splashCount++;
+        }
+      }
+      expect(splashCount).toBe(2);
+
+      // 5. Rarity: monster hasLeaped is true, cannot leap again in this run
+      expect(monster.hasLeaped).toBe(true);
+    });
+  });
 });

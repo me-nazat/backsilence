@@ -73,10 +73,59 @@ export interface DirectorSnapshot {
   nextSightingTargetTime?: number;
 }
 
+export interface ModePacingConfig {
+  mode: string;
+  calmStretchMin: number;
+  firstSightingWindow: [number, number];
+  breatherMin: number;
+  breatherMax: number;
+  stalkDistances: number[];
+  holdDurations: number[];
+  lungeProbabilities: number[];
+  finaleWindowStart: number;
+}
+
+export const PACING_TABLE: Record<string, ModePacingConfig> = {
+  campaign: {
+    mode: 'campaign',
+    calmStretchMin: 45.0,
+    firstSightingWindow: [40.0, 75.0],
+    breatherMin: 25.0,
+    breatherMax: 40.0,
+    stalkDistances: [14.0, 10.0, 7.0],
+    holdDurations: [3.0, 2.0, 1.5],
+    lungeProbabilities: [0.3, 0.6, 0.9],
+    finaleWindowStart: 240.0,
+  },
+  training_pool: {
+    mode: 'training_pool',
+    calmStretchMin: 45.0,
+    firstSightingWindow: [40.0, 75.0],
+    breatherMin: 30.0,
+    breatherMax: 45.0,
+    stalkDistances: [16.0, 12.0, 9.0],
+    holdDurations: [3.5, 2.5, 2.0],
+    lungeProbabilities: [0.2, 0.4, 0.7],
+    finaleWindowStart: 280.0,
+  },
+  default: {
+    mode: 'default',
+    calmStretchMin: 30.0,
+    firstSightingWindow: [30.0, 60.0],
+    breatherMin: 20.0,
+    breatherMax: 35.0,
+    stalkDistances: [12.0, 9.0, 6.0],
+    holdDurations: [3.0, 2.0, 1.0],
+    lungeProbabilities: [0.4, 0.7, 1.0],
+    finaleWindowStart: 180.0,
+  },
+};
+
 export class EncounterDirector {
   readonly seed: number;
   private readonly rng: Rng;
   readonly difficulty: DirectorDifficulty;
+  private gameMode = 'default';
 
   private simTime = 0;
   private currentDreadPhase: DreadPhase = 'CALM';
@@ -108,15 +157,37 @@ export class EncounterDirector {
   readonly dreadBeats: DreadBeat[] = [];
   private readonly playerTracks = new Map<PlayerId, PlayerTrack>();
 
-  constructor(seed = 4242, difficulty: DirectorDifficulty = 'normal', fogDensity = 0.045) {
+  constructor(
+    seed = 4242,
+    difficulty: DirectorDifficulty = 'normal',
+    fogDensity = 0.045,
+    gameMode = 'default',
+  ) {
     this.seed = seed;
     this.rng = new Rng(seed ^ 0x9e3779b9);
     this.difficulty = difficulty;
     this.fogDensity = fogDensity > 0 ? fogDensity : 0.045;
+    this.gameMode = gameMode;
 
     const diffCfg = balanceData.difficulty[difficulty] ?? balanceData.difficulty.normal;
-    this.firstContactScheduledTime = this.rng.range(diffCfg.firstContactMin, diffCfg.firstContactMax);
+    if (this.gameMode === 'campaign' || this.gameMode === 'training_pool') {
+      this.firstContactScheduledTime = this.rng.range(42.0, 68.0);
+    } else {
+      this.firstContactScheduledTime = this.rng.range(diffCfg.firstContactMin, diffCfg.firstContactMax);
+    }
     this.nextSightingTargetTime = this.firstContactScheduledTime;
+  }
+
+  setMode(mode: string): void {
+    this.gameMode = mode;
+    if ((mode === 'campaign' || mode === 'training_pool') && !this.firstContactDone && this.simTime === 0) {
+      this.firstContactScheduledTime = this.rng.range(42.0, 68.0);
+      this.nextSightingTargetTime = this.firstContactScheduledTime;
+    }
+  }
+
+  getMode(): string {
+    return this.gameMode;
   }
 
   setFogDensity(density: number): void {
@@ -129,7 +200,13 @@ export class EncounterDirector {
     this.mapId = mapId;
     const mapCfg = (balanceData.maps as Record<string, Record<string, number>>)[mapId];
     if (mapCfg?.firstContactMin !== undefined && mapCfg?.firstContactMax !== undefined && !this.firstContactDone && this.simTime === 0) {
-      this.firstContactScheduledTime = this.rng.range(mapCfg.firstContactMin, mapCfg.firstContactMax);
+      if (this.gameMode === 'campaign' || this.gameMode === 'training_pool') {
+        const minT = Math.max(40.0, mapCfg.firstContactMin);
+        const maxT = Math.min(75.0, Math.max(minT + 4.0, mapCfg.firstContactMax));
+        this.firstContactScheduledTime = this.rng.range(minT, maxT);
+      } else {
+        this.firstContactScheduledTime = this.rng.range(mapCfg.firstContactMin, mapCfg.firstContactMax);
+      }
       this.nextSightingTargetTime = this.firstContactScheduledTime;
     }
   }
@@ -211,8 +288,12 @@ export class EncounterDirector {
     this.lastSightingTime = 0;
     this.sightingTelegraphTriggered = false;
     this.activeSightingDuration = 0;
-    const diffCfg = balanceData.difficulty[this.difficulty] ?? balanceData.difficulty.normal;
-    this.firstContactScheduledTime = simTime + this.rng.range(diffCfg.firstContactMin, diffCfg.firstContactMax);
+    if (this.gameMode === 'campaign' || this.gameMode === 'training_pool') {
+      this.firstContactScheduledTime = simTime + this.rng.range(42.0, 68.0);
+    } else {
+      const diffCfg = balanceData.difficulty[this.difficulty] ?? balanceData.difficulty.normal;
+      this.firstContactScheduledTime = simTime + this.rng.range(diffCfg.firstContactMin, diffCfg.firstContactMax);
+    }
     this.nextSightingTargetTime = this.firstContactScheduledTime;
     this.lastThreatBeatTime = simTime;
     this.breatherTimer = 0;
@@ -483,8 +564,9 @@ export class EncounterDirector {
 
     // 4. First Sight Guarantee & Sighting Cadence
     const phase = this.getCurrentPhase(objectivesDone);
+    const isCampaignMode = this.gameMode === 'campaign' || this.gameMode === 'training_pool';
 
-    if (!this.firstContactDone && this.simTime >= this.firstContactScheduledTime) {
+    if (!this.firstContactDone && this.simTime >= this.firstContactScheduledTime && (!isCampaignMode || this.simTime >= 30.0)) {
       if (this.firstContactRetryTimer <= 0) {
         const success = this.executeCrossing(monster, primaryTarget, nav, this.firstContactAttempts);
         if (success) {
@@ -507,7 +589,7 @@ export class EncounterDirector {
     }
 
     // Sighting telegraph (Prompt 4C: 1–2s before scheduled sighting, wet footfall + low resonance)
-    if (!this.sightingTelegraphTriggered && this.simTime >= this.nextSightingTargetTime - 1.5) {
+    if (!this.sightingTelegraphTriggered && this.simTime >= this.nextSightingTargetTime - 1.5 && (!isCampaignMode || this.simTime >= 28.5)) {
       this.sightingTelegraphTriggered = true;
       const yaw = primaryTarget.yaw ?? 0;
       const side = this.rng.next() < 0.5 ? 1 : -1;

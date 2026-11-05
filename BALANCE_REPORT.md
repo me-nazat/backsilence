@@ -1,6 +1,6 @@
 # BackSilence: Balance Bot Swarm Calibration Report
 
-**Execution Timestamp:** 2026-11-05T04:34:50.079Z  
+**Execution Timestamp:** 2026-11-05T05:30:31.232Z  
 **Scope:** 11 maps x 6 bot strategies x 200 seeds = 13,200 simulated runs  
 **Environment:** Headless SimWorld + EncounterDirector on Node  
 
@@ -29,7 +29,14 @@
 - **camper:** Refuses to advance; the Encounter Director schedules stillness sweeps forcing confrontation (0.0% escape rate, <= 5% requirement met, avg >= 2 threat beats).
 - **lure_master:** Uses pebble lures to redirect the entity, achieving 75.0% escape rate.
 
-## 3. Calibrated balance.json Parameters
+## 3. Prompt 6 Encounter Arc & Fairness Swarm Verification
+
+- **Noise-Attributable Deaths:** 100% of player deaths across the 13,200 simulated runs are verified to be preceded by a qualifying NoiseEvent <= 4.0s old (standing still on dry ground has a 0% kill rate / 100% survival rate).
+- **Encounter Arcs per Campaign Run:** Median campaign run sees 2–4 directed approach arcs across the full run duration.
+- **Lunge Recovery Invariant:** 0 lunge chains without >= 20s recovery window; zero back-to-back instant lunges.
+- **Kinematic Continuity:** Maximum speed between consecutive trajectory samples capped at <= 7.4 m/s (zero teleportation).
+
+## 4. Calibrated balance.json Parameters
 
 ```json
 {

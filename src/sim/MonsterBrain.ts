@@ -47,6 +47,8 @@ export interface MonsterSnapshot {
   isSighting?: boolean;
   headScanYaw?: number;
   lipPaceCount?: number;
+  hasLeaped?: boolean;
+  leapState?: string;
 }
 
 export interface MonsterNetState {
@@ -113,6 +115,19 @@ export class MonsterBrain {
   lastSplashTime = -999;
   isSighting = false;
   private sightingTimer = 0;
+
+  // Anti-cheap-scare & fairness trackers
+  lastLungeTime = -999;
+  lastQualifyingNoiseTime = -999;
+  lastQualifyingNoisePos: Vec3 | null = null;
+  playerYaw = 0;
+
+  // Phase D: Leap-cross variant (rare <= 1 per run across trench <= 3.0m)
+  hasLeaped = false;
+  leapState: 'NONE' | 'TELEGRAPH' | 'AIRBORNE' = 'NONE';
+  leapTimer = 0;
+  leapStartPos: Vec3 = { x: 0, y: 0, z: 0 };
+  leapTargetPos: Vec3 = { x: 0, y: 0, z: 0 };
 
   // Running trajectory hash for determinism testing
   private trajectoryHash = 0x811c9dc5;
@@ -238,6 +253,8 @@ export class MonsterBrain {
       isSighting: this.isSighting,
       headScanYaw: this.headScanYaw,
       lipPaceCount: this.lipPaceCount,
+      hasLeaped: this.hasLeaped,
+      leapState: this.leapState,
     };
   }
 
@@ -303,7 +320,9 @@ export class MonsterBrain {
     isPlayerPerched = false,
     isPlayerInWater = false,
     isPlayerMoving = false,
+    playerYaw = 0,
   ): void {
+    this.playerYaw = playerYaw;
     if (this.astar.nav !== nav) {
       this.setNav(nav);
     }
@@ -324,6 +343,11 @@ export class MonsterBrain {
 
     if (this.state === 'STUNNED') {
       this.stepStunned(dt, nav, playerPos);
+      return;
+    }
+
+    if (this.leapState === 'AIRBORNE') {
+      this.stepBlocked(dt, nav, events, simTime, playerPos);
       return;
     }
 
@@ -354,14 +378,14 @@ export class MonsterBrain {
       } else {
         // Player is actively in the water
         if (this.state === 'LURK' && distToPlayer <= 2.5) {
-          this.triggerAttack(events, simTime);
+          this.triggerAttack(events, simTime, playerPos);
           return;
         }
 
         // Direct physical body touch contact (< 0.85m) in any active state
         if (distToPlayer <= MonsterBrain.TOUCH_RANGE && vertDistToPlayer <= 2.2) {
           if (!this.isSighting) {
-            this.triggerAttack(events, simTime);
+            this.triggerAttack(events, simTime, playerPos);
             return;
           }
         }
@@ -372,7 +396,7 @@ export class MonsterBrain {
             // Actively moving / splashing in water: lethal strike within ATTACK_RANGE
             if (distToPlayer <= MonsterBrain.ATTACK_RANGE && vertDistToPlayer <= 2.2) {
               if (!this.isSighting) {
-                this.triggerAttack(events, simTime);
+                this.triggerAttack(events, simTime, playerPos);
                 return;
               }
             }
@@ -396,7 +420,7 @@ export class MonsterBrain {
           const inNarrowTrench = this.monsterNav ? this.monsterNav.isInsideNarrowTrench(playerPos.x, playerPos.z) : false;
           if (distToPlayer <= (inNarrowTrench ? 1.45 : MonsterBrain.ATTACK_RANGE) && vertDistToPlayer <= 2.2) {
             if (!this.isSighting) {
-              this.triggerAttack(events, simTime);
+              this.triggerAttack(events, simTime, playerPos);
               return;
             }
           }
@@ -494,7 +518,7 @@ export class MonsterBrain {
         this.stepInvestigate(dt, nav, events, simTime, playerPos, isPlayerMoving);
         break;
       case 'BLOCKED':
-        this.stepBlocked(dt, nav, events, simTime);
+        this.stepBlocked(dt, nav, events, simTime, playerPos);
         break;
       case 'ATTACK':
         this.stepAttack(dt);
@@ -569,6 +593,11 @@ export class MonsterBrain {
       return false;
     }
 
+    if (noise.sourcePlayerId && noise.sourcePlayerId !== 'world' && noise.loudness >= 0.15) {
+      this.lastQualifyingNoiseTime = simTime;
+      this.lastQualifyingNoisePos = { ...noise.position };
+    }
+
     const dx = noise.position.x - this.pos.x;
     const dz = noise.position.z - this.pos.z;
     const isWaterSplash = noise.kind === 'splash' || (noise as unknown as { type?: string }).type === 'jump_in' || (noise.kind === 'wade' && noise.id.startsWith('noise_jump'));
@@ -593,6 +622,24 @@ export class MonsterBrain {
     }
 
     const score = calculateNoiseScore(noise, this.pos);
+
+    // Phase D: When BLOCKED, if player is within 3.5m and makes noise, trigger leap-cross telegraph
+    if (this.state === 'BLOCKED') {
+      const distToNoise = dHypot(noise.position.x - this.pos.x, noise.position.z - this.pos.z);
+      if (!this.hasLeaped && distToNoise <= 3.5) {
+        this.leapState = 'TELEGRAPH';
+        this.leapTimer = 0.65;
+        this.rearingT = 0; // low crouch
+        this.jawOpenT = 0.7; // hiss
+        this.leapStartPos = { ...this.pos };
+        this.leapTargetPos = {
+          x: noise.position.x,
+          y: this.pos.y,
+          z: noise.position.z,
+        };
+        return true;
+      }
+    }
 
     if (
       this.state === 'DORMANT' ||
@@ -655,8 +702,26 @@ export class MonsterBrain {
     this.jawOpenT = 1.0; // roar
   }
 
-  private triggerAttack(events: EventRingBuffer, simTime: number): void {
+  private triggerAttack(events: EventRingBuffer, simTime: number, playerPos?: Vec3): void {
     if (this.isSighting) return;
+    // Fairness Law: INVESTIGATE state never deals damage
+    if (this.state === 'INVESTIGATE') return;
+
+    // Anti-cheap-scare: No off-screen kills (kill requires visibility or <= 1.5m distance)
+    if (playerPos) {
+      const dist = dHypot(this.pos.x - playerPos.x, this.pos.z - playerPos.z);
+      if (dist > 1.5) {
+        const toMonsterYaw = dAtan2(this.pos.x - playerPos.x, -(this.pos.z - playerPos.z));
+        let diff = (toMonsterYaw - this.playerYaw) % (Math.PI * 2);
+        if (diff < -Math.PI) diff += Math.PI * 2;
+        if (diff > Math.PI) diff -= Math.PI * 2;
+        if (Math.abs(diff) > 1.05) {
+          // Off-screen behind player at > 1.5m -> cannot deal damage off-screen!
+          return;
+        }
+      }
+    }
+
     this.state = 'ATTACK';
     this.stateTimer = 2.0;
     this.jawOpenT = 1.0;
@@ -791,9 +856,19 @@ export class MonsterBrain {
       const vertDistToPlayer = Math.abs(playerPos.y - this.pos.y);
 
       // Hydro-Lunge Pounce within LUNGE_RANGE (3.8m) - only if moving or very close in water
-      if (distToPlayer <= MonsterBrain.LUNGE_RANGE && vertDistToPlayer <= 2.2 && (isPlayerMoving || distToPlayer <= 1.0)) {
+      // Fairness Laws:
+      // 1. Lunge requires qualifying NoiseEvent <= 4s old within <= 4m range
+      // 2. Recovery window >= 20s between lunges
+      // 3. Max speed <= 7.2 m/s (strictly capped at SPEED_TERMINAL_LUNGE)
+      const noiseAge = simTime - this.lastQualifyingNoiseTime;
+      const noiseDist = this.lastQualifyingNoisePos ? dHypot(this.lastQualifyingNoisePos.x - playerPos.x, this.lastQualifyingNoisePos.z - playerPos.z) : 999;
+      const hasQualifyingNoise = noiseAge <= 4.0 && noiseDist <= 4.0;
+      const hasLungeRecovery = simTime - this.lastLungeTime >= 20.0;
+
+      if (distToPlayer <= MonsterBrain.LUNGE_RANGE && vertDistToPlayer <= 2.2 && (isPlayerMoving || distToPlayer <= 1.0) && hasQualifyingNoise && hasLungeRecovery) {
+        this.lastLungeTime = simTime;
         this.yaw = dAtan2(dx, -dz);
-        const lungeSpeed = 18.0 * this.speedMul;
+        const lungeSpeed = MonsterBrain.SPEED_TERMINAL_LUNGE * this.speedMul;
         const stepDist = Math.min(distToPlayer, lungeSpeed * dt);
         const nextX = this.pos.x + dSin(this.yaw) * stepDist;
         const nextZ = this.pos.z - dCos(this.yaw) * stepDist;
@@ -806,7 +881,7 @@ export class MonsterBrain {
         this.jawOpenT = 1.0;
         const postLungeDist = dHypot(playerPos.x - this.pos.x, playerPos.z - this.pos.z);
         if (postLungeDist <= MonsterBrain.ATTACK_RANGE) {
-          this.triggerAttack(events, simTime);
+          this.triggerAttack(events, simTime, playerPos);
           return;
         }
         events.pushFootfall(this.id, this.pos.x, this.pos.y, this.pos.z, 1.35, true, simTime);
@@ -823,7 +898,7 @@ export class MonsterBrain {
         const dP = dHypot(playerPos.x - this.pos.x, playerPos.z - this.pos.z);
         const lethalRange = isPlayerMoving ? MonsterBrain.ATTACK_RANGE : MonsterBrain.TOUCH_RANGE;
         if (dP <= lethalRange && Math.abs(playerPos.y - this.pos.y) <= 2.2) {
-          this.triggerAttack(events, simTime);
+          this.triggerAttack(events, simTime, playerPos);
           return;
         }
       }
@@ -942,7 +1017,83 @@ export class MonsterBrain {
     }
   }
 
-  private stepBlocked(dt: number, nav: NavGrid, events: EventRingBuffer, simTime: number): void {
+  private stepBlocked(
+    dt: number,
+    nav: NavGrid,
+    events: EventRingBuffer,
+    simTime: number,
+    playerPos?: Vec3,
+  ): void {
+    // Phase D: Leap-cross variant (rare <= 1 per run across trench <= 3.0m)
+    if (!this.hasLeaped && this.leapState === 'NONE' && playerPos) {
+      const distToPlayer = dHypot(playerPos.x - this.pos.x, playerPos.z - this.pos.z);
+      const noiseAge = simTime - this.lastQualifyingNoiseTime;
+      const noiseDist = this.lastQualifyingNoisePos
+        ? dHypot(this.lastQualifyingNoisePos.x - playerPos.x, this.lastQualifyingNoisePos.z - playerPos.z)
+        : 999;
+      const hasQualifyingNoise = noiseAge <= 4.0 && noiseDist <= 4.0;
+
+      if (distToPlayer <= 3.5 && hasQualifyingNoise) {
+        this.leapState = 'TELEGRAPH';
+        this.leapTimer = 0.65; // crouch + hiss >= 0.6s
+        this.rearingT = 0; // low crouch
+        this.jawOpenT = 0.7; // hiss
+        this.leapStartPos = { ...this.pos };
+        this.leapTargetPos = {
+          x: playerPos.x,
+          y: this.pos.y,
+          z: playerPos.z,
+        };
+        events.pushNoise(`noise_leap_hiss_${this.id}_${simTime}`, 'hiss', this.pos.x, this.pos.y, this.pos.z, 0.5, this.id, simTime);
+        return;
+      }
+    }
+
+    if (this.leapState === 'TELEGRAPH') {
+      this.vel.x = 0;
+      this.vel.z = 0;
+      this.rearingT = 0; // low crouch
+      this.jawOpenT = 0.8; // hiss
+      if (this.leapTimer >= 0.60) {
+        events.pushNoise(`noise_leap_hiss_${this.id}_${simTime}`, 'hiss', this.pos.x, this.pos.y, this.pos.z, 0.5, this.id, simTime);
+      }
+      this.leapTimer -= dt;
+      if (this.leapTimer <= 0) {
+        this.leapState = 'AIRBORNE';
+        this.hasLeaped = true;
+        this.leapTimer = 0.65; // airtime <= 0.7s
+      }
+      return;
+    }
+
+    if (this.leapState === 'AIRBORNE') {
+      this.leapTimer -= dt;
+      const progress = Math.max(0, Math.min(1.0, 1.0 - (this.leapTimer / 0.65)));
+      this.pos.x = this.leapStartPos.x + (this.leapTargetPos.x - this.leapStartPos.x) * progress;
+      this.pos.z = this.leapStartPos.z + (this.leapTargetPos.z - this.leapStartPos.z) * progress;
+      this.pos.y = this.leapStartPos.y + 0.8 * 4.0 * progress * (1.0 - progress);
+
+      if (this.leapTimer <= 0) {
+        this.pos.x = this.leapTargetPos.x;
+        this.pos.y = this.leapTargetPos.y;
+        this.pos.z = this.leapTargetPos.z;
+        this.leapState = 'NONE';
+        events.pushFootfall(this.id, this.pos.x, this.pos.y, this.pos.z, 1.5, true, simTime);
+        events.pushNoise(`noise_leap_land_splash1_${this.id}_${simTime}`, 'splash', this.pos.x - 0.3, this.pos.y, this.pos.z, 0.85, this.id, simTime);
+        events.pushNoise(`noise_leap_land_splash2_${this.id}_${simTime}`, 'splash', this.pos.x + 0.3, this.pos.y, this.pos.z, 0.85, this.id, simTime);
+
+        if (playerPos) {
+          const postLandingDist = dHypot(playerPos.x - this.pos.x, playerPos.z - this.pos.z);
+          if (postLandingDist <= MonsterBrain.ATTACK_RANGE) {
+            this.triggerAttack(events, simTime, playerPos);
+            return;
+          }
+        }
+        this.state = 'HUNT';
+      }
+      return;
+    }
+
     const speed = MonsterBrain.SPEED_STALK * this.speedMul;
     this.followPath(dt, speed, MonsterBrain.TURN_RATE_WANDER, nav, events, simTime);
 

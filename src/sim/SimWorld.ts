@@ -114,6 +114,7 @@ export class SimWorld {
 
     if (config.mode !== undefined) {
       this.mode = config.mode;
+      this.director.setMode(this.mode === 'solo' ? 'campaign' : this.mode);
     }
 
     this.ground = config.ground ?? new GroundGrid(config.bounds, 0.25);
@@ -504,6 +505,7 @@ export class SimWorld {
           isPerched,
           isPlayerInWater,
           isPlayerMoving,
+          this.player.yaw,
         );
       }
     }

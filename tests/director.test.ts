@@ -247,4 +247,61 @@ describe('Prompt 3 Section 4: Encounter Director & Dread Rhythm', () => {
     expect(newDist).toBeLessThanOrEqual(24.5);
     expect(monster.state).toBe('HUNT');
   });
+
+  describe('Prompt 6 Phase B: First-Sight Guarantee (Campaign & Training Pool)', () => {
+    it('passes 100/100 seeded cold starts for campaign and training_pool with exactly one sighting in [40s, 75s], none before 30s', () => {
+      const modes: Array<'campaign' | 'training_pool'> = ['campaign', 'training_pool'];
+      let totalColdStartsTested = 0;
+
+      for (const mode of modes) {
+        for (let seed = 1; seed <= 50; seed++) {
+          totalColdStartsTested++;
+          const director = new EncounterDirector(seed * 777 + 101, 'normal');
+          director.setMode(mode);
+          const sim = createProvingGroundsSim('normal');
+          const monster = sim.addMonster({
+            id: 'm1',
+            variant: 'elder',
+            spawn: ARENA_MONSTER_SPAWN,
+            spawnGrace: 0.0,
+          });
+
+          let firstSightingTime = -1;
+          let sightingsBefore30s = 0;
+          let sightingsInWindow = 0;
+
+          // Step up to 90 seconds (5400 ticks at 60Hz)
+          for (let tick = 0; tick < 5400; tick++) {
+            const dt = 1 / 60;
+            const t = tick / 60;
+            director.updatePlayer('player1', { x: 0, y: 0.3, z: 20 }, true, false, false, 0);
+            director.step(dt, [monster], sim.nav, 0);
+
+            for (const beat of director.dreadBeats) {
+              if (beat.kind === 'glimpse' || beat.kind === 'first_contact') {
+                if (firstSightingTime < 0) {
+                  firstSightingTime = t;
+                }
+                if (t < 30.0) {
+                  sightingsBefore30s++;
+                }
+                if (t >= 40.0 && t <= 75.0) {
+                  sightingsInWindow++;
+                }
+                break;
+              }
+            }
+            if (firstSightingTime >= 0 && t > 75.0) break;
+          }
+
+          expect(sightingsBefore30s).toBe(0);
+          expect(firstSightingTime).toBeGreaterThanOrEqual(40.0);
+          expect(firstSightingTime).toBeLessThanOrEqual(75.0);
+          expect(sightingsInWindow).toBe(1);
+        }
+      }
+
+      expect(totalColdStartsTested).toBe(100);
+    });
+  });
 });
