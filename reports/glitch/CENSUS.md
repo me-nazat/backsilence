@@ -121,45 +121,45 @@
 | **C61** | `drowned_metro` | `high` | `map_drowned_metro_high.png` | `aliasing` | **P2** | [`map_drowned_metro_high.png`](reports/monster/screenshots/map_drowned_metro_high.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
 | **C62** | `drowned_metro` | `high` | `map_drowned_metro_high.png` | `debug-leak` | **P1** | [`map_drowned_metro_high.png`](reports/monster/screenshots/map_drowned_metro_high.png) | `src/ui/UIManager.ts (pointer lock overlay stripped during automated shot capture)` | **CLOSED (Prompt 2)** |
 | **C63** | `drowned_school` | `high` | `map_drowned_school_high.png` | `aliasing` | **P2** | [`map_drowned_school_high.png`](reports/monster/screenshots/map_drowned_school_high.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
-| **C64** | `drowned_school` | `high` | `map_drowned_school_high.png` | `debug-leak` | **P1** | [`map_drowned_school_high.png`](reports/monster/screenshots/map_drowned_school_high.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
+| **C64** | `drowned_school` | `high` | `map_drowned_school_high.png` | `debug-leak` | **P1** | [`map_drowned_school_high.png`](reports/monster/screenshots/map_drowned_school_high.png) | `src/game/monster/MonsterBody.ts (debug containment: ?debug=1 only)` | **CLOSED (Prompt 6)** |
 | **C65** | `hydro_maze` | `high` | `map_hydro_maze_high.png` | `aliasing` | **P2** | [`map_hydro_maze_high.png`](reports/monster/screenshots/map_hydro_maze_high.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
-| **C66** | `hydro_maze` | `high` | `map_hydro_maze_high.png` | `debug-leak` | **P1** | [`map_hydro_maze_high.png`](reports/monster/screenshots/map_hydro_maze_high.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
+| **C66** | `hydro_maze` | `high` | `map_hydro_maze_high.png` | `debug-leak` | **P1** | [`map_hydro_maze_high.png`](reports/monster/screenshots/map_hydro_maze_high.png) | `src/game/monster/MonsterBody.ts (debug containment: ?debug=1 only)` | **CLOSED (Prompt 6)** |
 | **C67** | `marble_atrium` | `high` | `map_marble_atrium_high.png` | `aliasing` | **P2** | [`map_marble_atrium_high.png`](reports/monster/screenshots/map_marble_atrium_high.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
-| **C68** | `marble_atrium` | `high` | `map_marble_atrium_high.png` | `debug-leak` | **P1** | [`map_marble_atrium_high.png`](reports/monster/screenshots/map_marble_atrium_high.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
+| **C68** | `marble_atrium` | `high` | `map_marble_atrium_high.png` | `debug-leak` | **P1** | [`map_marble_atrium_high.png`](reports/monster/screenshots/map_marble_atrium_high.png) | `src/game/monster/MonsterBody.ts (debug containment: ?debug=1 only)` | **CLOSED (Prompt 6)** |
 | **C69** | `natatorium` | `high` | `map_natatorium_high.png` | `aliasing` | **P2** | [`map_natatorium_high.png`](reports/monster/screenshots/map_natatorium_high.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
-| **C70** | `natatorium` | `high` | `map_natatorium_high.png` | `debug-leak` | **P1** | [`map_natatorium_high.png`](reports/monster/screenshots/map_natatorium_high.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
+| **C70** | `natatorium` | `high` | `map_natatorium_high.png` | `debug-leak` | **P1** | [`map_natatorium_high.png`](reports/monster/screenshots/map_natatorium_high.png) | `src/game/monster/MonsterBody.ts (debug containment: ?debug=1 only)` | **CLOSED (Prompt 6)** |
 | **C71** | `neon_flood` | `high` | `map_neon_flood_high.png` | `aliasing` | **P2** | [`map_neon_flood_high.png`](reports/monster/screenshots/map_neon_flood_high.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
-| **C72** | `neon_flood` | `high` | `map_neon_flood_high.png` | `debug-leak` | **P1** | [`map_neon_flood_high.png`](reports/monster/screenshots/map_neon_flood_high.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
+| **C72** | `neon_flood` | `high` | `map_neon_flood_high.png` | `debug-leak` | **P1** | [`map_neon_flood_high.png`](reports/monster/screenshots/map_neon_flood_high.png) | `src/game/monster/MonsterBody.ts (debug containment: ?debug=1 only)` | **CLOSED (Prompt 6)** |
 | **C73** | `orientation` | `high` | `map_orientation_high.png` | `aliasing` | **P2** | [`map_orientation_high.png`](reports/monster/screenshots/map_orientation_high.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
-| **C74** | `orientation` | `high` | `map_orientation_high.png` | `debug-leak` | **P1** | [`map_orientation_high.png`](reports/monster/screenshots/map_orientation_high.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
+| **C74** | `orientation` | `high` | `map_orientation_high.png` | `debug-leak` | **P1** | [`map_orientation_high.png`](reports/monster/screenshots/map_orientation_high.png) | `src/game/monster/MonsterBody.ts (debug containment: ?debug=1 only)` | **CLOSED (Prompt 6)** |
 | **C75** | `poolrooms` | `high` | `map_poolrooms_high.png` | `aliasing` | **P2** | [`map_poolrooms_high.png`](reports/monster/screenshots/map_poolrooms_high.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
-| **C76** | `poolrooms` | `high` | `map_poolrooms_high.png` | `debug-leak` | **P1** | [`map_poolrooms_high.png`](reports/monster/screenshots/map_poolrooms_high.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
+| **C76** | `poolrooms` | `high` | `map_poolrooms_high.png` | `debug-leak` | **P1** | [`map_poolrooms_high.png`](reports/monster/screenshots/map_poolrooms_high.png) | `src/game/monster/MonsterBody.ts (debug containment: ?debug=1 only)` | **CLOSED (Prompt 6)** |
 | **C77** | `sunken_jungle` | `high` | `map_sunken_jungle_high.png` | `aliasing` | **P2** | [`map_sunken_jungle_high.png`](reports/monster/screenshots/map_sunken_jungle_high.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
-| **C78** | `sunken_jungle` | `high` | `map_sunken_jungle_high.png` | `debug-leak` | **P1** | [`map_sunken_jungle_high.png`](reports/monster/screenshots/map_sunken_jungle_high.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
+| **C78** | `sunken_jungle` | `high` | `map_sunken_jungle_high.png` | `debug-leak` | **P1** | [`map_sunken_jungle_high.png`](reports/monster/screenshots/map_sunken_jungle_high.png) | `src/game/monster/MonsterBody.ts (debug containment: ?debug=1 only)` | **CLOSED (Prompt 6)** |
 | **C79** | `sunken_jungle` | `high` | `map_sunken_jungle_high.png` | `specular-blowout` | **P2** | [`map_sunken_jungle_high.png`](reports/monster/screenshots/map_sunken_jungle_high.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
 | **C80** | `utility_tunnels` | `high` | `map_utility_tunnels_high.png` | `aliasing` | **P2** | [`map_utility_tunnels_high.png`](reports/monster/screenshots/map_utility_tunnels_high.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
-| **C81** | `utility_tunnels` | `high` | `map_utility_tunnels_high.png` | `debug-leak` | **P1** | [`map_utility_tunnels_high.png`](reports/monster/screenshots/map_utility_tunnels_high.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
+| **C81** | `utility_tunnels` | `high` | `map_utility_tunnels_high.png` | `debug-leak` | **P1** | [`map_utility_tunnels_high.png`](reports/monster/screenshots/map_utility_tunnels_high.png) | `src/game/monster/MonsterBody.ts (debug containment: ?debug=1 only)` | **CLOSED (Prompt 6)** |
 | **C82** | `orientation` | `high` | `mobile_orientation.png` | `aliasing` | **P2** | [`mobile_orientation.png`](reports/monster/screenshots/mobile_orientation.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
-| **C83** | `orientation` | `high` | `mobile_orientation.png` | `debug-leak` | **P1** | [`mobile_orientation.png`](reports/monster/screenshots/mobile_orientation.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
+| **C83** | `orientation` | `high` | `mobile_orientation.png` | `debug-leak` | **P1** | [`mobile_orientation.png`](reports/monster/screenshots/mobile_orientation.png) | `src/game/monster/MonsterBody.ts (debug containment: ?debug=1 only)` | **CLOSED (Prompt 6)** |
 | **C84** | `orientation` | `high` | `mobile_orientation.png` | `specular-blowout` | **P2** | [`mobile_orientation.png`](reports/monster/screenshots/mobile_orientation.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
 | **C85** | `poolrooms` | `high` | `mobile_poolrooms.png` | `aliasing` | **P2** | [`mobile_poolrooms.png`](reports/monster/screenshots/mobile_poolrooms.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
-| **C86** | `poolrooms` | `high` | `mobile_poolrooms.png` | `debug-leak` | **P1** | [`mobile_poolrooms.png`](reports/monster/screenshots/mobile_poolrooms.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
+| **C86** | `poolrooms` | `high` | `mobile_poolrooms.png` | `debug-leak` | **P1** | [`mobile_poolrooms.png`](reports/monster/screenshots/mobile_poolrooms.png) | `src/game/monster/MonsterBody.ts (debug containment: ?debug=1 only)` | **CLOSED (Prompt 6)** |
 | **C87** | `poolrooms` | `high` | `mobile_poolrooms.png` | `specular-blowout` | **P2** | [`mobile_poolrooms.png`](reports/monster/screenshots/mobile_poolrooms.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
 | **C88** | `natatorium` | `high` | `retry_spawn.png` | `aliasing` | **P2** | [`retry_spawn.png`](reports/monster/screenshots/retry_spawn.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
-| **C89** | `natatorium` | `high` | `retry_spawn.png` | `debug-leak` | **P1** | [`retry_spawn.png`](reports/monster/screenshots/retry_spawn.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
+| **C89** | `natatorium` | `high` | `retry_spawn.png` | `debug-leak` | **P1** | [`retry_spawn.png`](reports/monster/screenshots/retry_spawn.png) | `src/game/monster/MonsterBody.ts (debug containment: ?debug=1 only)` | **CLOSED (Prompt 6)** |
 | **C90** | `natatorium` | `high` | `show_me_15m.png` | `aliasing` | **P2** | [`show_me_15m.png`](reports/monster/screenshots/show_me_15m.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
-| **C91** | `natatorium` | `high` | `show_me_15m.png` | `debug-leak` | **P1** | [`show_me_15m.png`](reports/monster/screenshots/show_me_15m.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
+| **C91** | `natatorium` | `high` | `show_me_15m.png` | `debug-leak` | **P1** | [`show_me_15m.png`](reports/monster/screenshots/show_me_15m.png) | `src/game/monster/MonsterBody.ts (debug containment: ?debug=1 only)` | **CLOSED (Prompt 6)** |
 | **C92** | `natatorium` | `high` | `show_me_25m.png` | `aliasing` | **P2** | [`show_me_25m.png`](reports/monster/screenshots/show_me_25m.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
-| **C93** | `natatorium` | `high` | `show_me_25m.png` | `debug-leak` | **P1** | [`show_me_25m.png`](reports/monster/screenshots/show_me_25m.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
+| **C93** | `natatorium` | `high` | `show_me_25m.png` | `debug-leak` | **P1** | [`show_me_25m.png`](reports/monster/screenshots/show_me_25m.png) | `src/game/monster/MonsterBody.ts (debug containment: ?debug=1 only)` | **CLOSED (Prompt 6)** |
 | **C94** | `natatorium` | `high` | `show_me_40m.png` | `aliasing` | **P2** | [`show_me_40m.png`](reports/monster/screenshots/show_me_40m.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
-| **C95** | `natatorium` | `high` | `show_me_40m.png` | `debug-leak` | **P1** | [`show_me_40m.png`](reports/monster/screenshots/show_me_40m.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
+| **C95** | `natatorium` | `high` | `show_me_40m.png` | `debug-leak` | **P1** | [`show_me_40m.png`](reports/monster/screenshots/show_me_40m.png) | `src/game/monster/MonsterBody.ts (debug containment: ?debug=1 only)` | **CLOSED (Prompt 6)** |
 | **C96** | `natatorium` | `high` | `show_me_6m.png` | `aliasing` | **P2** | [`show_me_6m.png`](reports/monster/screenshots/show_me_6m.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
-| **C97** | `natatorium` | `high` | `show_me_6m.png` | `debug-leak` | **P1** | [`show_me_6m.png`](reports/monster/screenshots/show_me_6m.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
+| **C97** | `natatorium` | `high` | `show_me_6m.png` | `debug-leak` | **P1** | [`show_me_6m.png`](reports/monster/screenshots/show_me_6m.png) | `src/game/monster/MonsterBody.ts (debug containment: ?debug=1 only)` | **CLOSED (Prompt 6)** |
 | **C98** | `natatorium` | `high` | `sleeper_from_spawn.png` | `aliasing` | **P2** | [`sleeper_from_spawn.png`](reports/monster/screenshots/sleeper_from_spawn.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
-| **C99** | `natatorium` | `high` | `sleeper_from_spawn.png` | `debug-leak` | **P1** | [`sleeper_from_spawn.png`](reports/monster/screenshots/sleeper_from_spawn.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
-| **C100** | `poolrooms` | `low` | `tier_low_poolrooms.png` | `debug-leak` | **P1** | [`tier_low_poolrooms.png`](reports/monster/screenshots/tier_low_poolrooms.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
+| **C99** | `natatorium` | `high` | `sleeper_from_spawn.png` | `debug-leak` | **P1** | [`sleeper_from_spawn.png`](reports/monster/screenshots/sleeper_from_spawn.png) | `src/game/monster/MonsterBody.ts (debug containment: ?debug=1 only)` | **CLOSED (Prompt 6)** |
+| **C100** | `poolrooms` | `low` | `tier_low_poolrooms.png` | `debug-leak` | **P1** | [`tier_low_poolrooms.png`](reports/monster/screenshots/tier_low_poolrooms.png) | `src/game/monster/MonsterBody.ts (debug containment: ?debug=1 only)` | **CLOSED (Prompt 6)** |
 | **C101** | `poolrooms` | `medium` | `tier_med_poolrooms.png` | `aliasing` | **P2** | [`tier_med_poolrooms.png`](reports/monster/screenshots/tier_med_poolrooms.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
-| **C102** | `poolrooms` | `medium` | `tier_med_poolrooms.png` | `debug-leak` | **P1** | [`tier_med_poolrooms.png`](reports/monster/screenshots/tier_med_poolrooms.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
+| **C102** | `poolrooms` | `medium` | `tier_med_poolrooms.png` | `debug-leak` | **P1** | [`tier_med_poolrooms.png`](reports/monster/screenshots/tier_med_poolrooms.png) | `src/game/monster/MonsterBody.ts (debug containment: ?debug=1 only)` | **CLOSED (Prompt 6)** |
 | **C103** | `drowned_metro` | `high` | `drowned_metro_t20s.png` | `aliasing` | **P2** | [`drowned_metro_t20s.png`](reports/graphics/prompt1_after/drowned_metro_t20s.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
 | **C104** | `drowned_school` | `high` | `map_drowned_school_t5s.png` | `specular-blowout` | **P2** | [`map_drowned_school_t5s.png`](reports/graphics/prompt1_after/map_drowned_school_t5s.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
 | **C105** | `hydro_maze` | `high` | `map_hydro_maze_t5s.png` | `aliasing` | **P2** | [`map_hydro_maze_t5s.png`](reports/graphics/prompt1_after/map_hydro_maze_t5s.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
@@ -167,7 +167,7 @@
 | **C107** | `marble_atrium` | `high` | `map_marble_atrium_t5s.png` | `specular-blowout` | **P2** | [`map_marble_atrium_t5s.png`](reports/graphics/prompt1_after/map_marble_atrium_t5s.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
 | **C108** | `neon_flood` | `high` | `map_neon_flood_t5s.png` | `aliasing` | **P2** | [`map_neon_flood_t5s.png`](reports/graphics/prompt1_after/map_neon_flood_t5s.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
 | **C109** | `orientation` | `high` | `map_orientation_t5s.png` | `aliasing` | **P2** | [`map_orientation_t5s.png`](reports/graphics/prompt1_after/map_orientation_t5s.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
-| **C110** | `orientation` | `high` | `map_orientation_t5s.png` | `debug-leak` | **P1** | [`map_orientation_t5s.png`](reports/graphics/prompt1_after/map_orientation_t5s.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
+| **C110** | `orientation` | `high` | `map_orientation_t5s.png` | `debug-leak` | **P1** | [`map_orientation_t5s.png`](reports/graphics/prompt1_after/map_orientation_t5s.png) | `src/game/monster/MonsterBody.ts (debug containment: ?debug=1 only)` | **CLOSED (Prompt 6)** |
 | **C111** | `orientation` | `high` | `map_orientation_t5s.png` | `specular-blowout` | **P2** | [`map_orientation_t5s.png`](reports/graphics/prompt1_after/map_orientation_t5s.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
 | **C112** | `utility_tunnels` | `high` | `map_utility_tunnels_t5s.png` | `aliasing` | **P2** | [`map_utility_tunnels_t5s.png`](reports/graphics/prompt1_after/map_utility_tunnels_t5s.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
 | **C113** | `utility_tunnels` | `high` | `map_utility_tunnels_t5s.png` | `specular-blowout` | **P2** | [`map_utility_tunnels_t5s.png`](reports/graphics/prompt1_after/map_utility_tunnels_t5s.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
@@ -176,37 +176,37 @@
 | **C116** | `natatorium` | `high` | `creature_far_35m.png` | `specular-blowout` | **P2** | [`creature_far_35m.png`](reports/visual/creature_far_35m.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
 | **C117** | `natatorium` | `high` | `creature_mid_15m.png` | `specular-blowout` | **P2** | [`creature_mid_15m.png`](reports/visual/creature_mid_15m.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
 | **C118** | `natatorium` | `high` | `flock_overhead.png` | `aliasing` | **P2** | [`flock_overhead.png`](reports/visual/flock_overhead.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
-| **C119** | `natatorium` | `high` | `flock_overhead.png` | `debug-leak` | **P1** | [`flock_overhead.png`](reports/visual/flock_overhead.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
+| **C119** | `natatorium` | `high` | `flock_overhead.png` | `debug-leak` | **P1** | [`flock_overhead.png`](reports/visual/flock_overhead.png) | `src/game/monster/MonsterBody.ts (debug containment: ?debug=1 only)` | **CLOSED (Prompt 6)** |
 | **C120** | `natatorium` | `high` | `flock_overhead.png` | `specular-blowout` | **P2** | [`flock_overhead.png`](reports/visual/flock_overhead.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
 | **C121** | `natatorium` | `high` | `natatorium_arch_fog_25m.png` | `aliasing` | **P2** | [`natatorium_arch_fog_25m.png`](reports/visual/natatorium_arch_fog_25m.png) | `src/procedural/geometry/ArchBuilder.ts (filleted arch reveals)` | **CLOSED (Prompt 4)** |
-| **C122** | `natatorium` | `high` | `natatorium_arch_fog_25m.png` | `debug-leak` | **P1** | [`natatorium_arch_fog_25m.png`](reports/visual/natatorium_arch_fog_25m.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
+| **C122** | `natatorium` | `high` | `natatorium_arch_fog_25m.png` | `debug-leak` | **P1** | [`natatorium_arch_fog_25m.png`](reports/visual/natatorium_arch_fog_25m.png) | `src/game/monster/MonsterBody.ts (debug containment: ?debug=1 only)` | **CLOSED (Prompt 6)** |
 | **C123** | `natatorium` | `high` | `natatorium_arch_fog_25m.png` | `specular-blowout` | **P2** | [`natatorium_arch_fog_25m.png`](reports/visual/natatorium_arch_fog_25m.png) | `src/procedural/geometry/VaultBuilder.ts (vault ceiling & filleted arch normal roll-off)` | **CLOSED (Prompt 4)** |
-| **C124** | `natatorium` | `high` | `natatorium_arch_fog_25m_portrait.png` | `debug-leak` | **P1** | [`natatorium_arch_fog_25m_portrait.png`](reports/visual/natatorium_arch_fog_25m_portrait.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
+| **C124** | `natatorium` | `high` | `natatorium_arch_fog_25m_portrait.png` | `debug-leak` | **P1** | [`natatorium_arch_fog_25m_portrait.png`](reports/visual/natatorium_arch_fog_25m_portrait.png) | `src/game/monster/MonsterBody.ts (debug containment: ?debug=1 only)` | **CLOSED (Prompt 6)** |
 | **C125** | `natatorium` | `high` | `natatorium_arch_fog_25m_portrait.png` | `specular-blowout` | **P2** | [`natatorium_arch_fog_25m_portrait.png`](reports/visual/natatorium_arch_fog_25m_portrait.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
 | **C126** | `natatorium` | `high` | `natatorium_close_tile_wall.png` | `aliasing` | **P2** | [`natatorium_close_tile_wall.png`](reports/visual/natatorium_close_tile_wall.png) | `src/procedural/geometry/TiledBox.ts (bullnose slab edge coping)` | **CLOSED (Prompt 4)** |
 | **C127** | `natatorium` | `high` | `natatorium_close_tile_wall_portrait.png` | `specular-blowout` | **P2** | [`natatorium_close_tile_wall_portrait.png`](reports/visual/natatorium_close_tile_wall_portrait.png) | `src/world/maps/CommonMapBuilder.ts (wayfinding numerals & bullnose coping)` | **CLOSED (Prompt 4)** |
-| **C128** | `natatorium` | `high` | `natatorium_horizon_long.png` | `debug-leak` | **P1** | [`natatorium_horizon_long.png`](reports/visual/natatorium_horizon_long.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
+| **C128** | `natatorium` | `high` | `natatorium_horizon_long.png` | `debug-leak` | **P1** | [`natatorium_horizon_long.png`](reports/visual/natatorium_horizon_long.png) | `src/game/monster/MonsterBody.ts (debug containment: ?debug=1 only)` | **CLOSED (Prompt 6)** |
 | **C129** | `natatorium` | `high` | `natatorium_horizon_long.png` | `specular-blowout` | **P2** | [`natatorium_horizon_long.png`](reports/visual/natatorium_horizon_long.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
 | **C130** | `natatorium` | `high` | `natatorium_horizon_long_portrait.png` | `aliasing` | **P2** | [`natatorium_horizon_long_portrait.png`](reports/visual/natatorium_horizon_long_portrait.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
 | **C131** | `natatorium` | `high` | `natatorium_horizon_long_portrait.png` | `specular-blowout` | **P2** | [`natatorium_horizon_long_portrait.png`](reports/visual/natatorium_horizon_long_portrait.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
 | **C132** | `natatorium` | `high` | `natatorium_monster_25m.png` | `aliasing` | **P2** | [`natatorium_monster_25m.png`](reports/visual/natatorium_monster_25m.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
-| **C133** | `natatorium` | `high` | `natatorium_monster_25m.png` | `debug-leak` | **P1** | [`natatorium_monster_25m.png`](reports/visual/natatorium_monster_25m.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
+| **C133** | `natatorium` | `high` | `natatorium_monster_25m.png` | `debug-leak` | **P1** | [`natatorium_monster_25m.png`](reports/visual/natatorium_monster_25m.png) | `src/game/monster/MonsterBody.ts (debug containment: ?debug=1 only)` | **CLOSED (Prompt 6)** |
 | **C134** | `natatorium` | `high` | `natatorium_monster_25m.png` | `specular-blowout` | **P2** | [`natatorium_monster_25m.png`](reports/visual/natatorium_monster_25m.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
 | **C135** | `natatorium` | `high` | `natatorium_monster_25m_portrait.png` | `aliasing` | **P2** | [`natatorium_monster_25m_portrait.png`](reports/visual/natatorium_monster_25m_portrait.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
-| **C136** | `natatorium` | `high` | `natatorium_monster_25m_portrait.png` | `debug-leak` | **P1** | [`natatorium_monster_25m_portrait.png`](reports/visual/natatorium_monster_25m_portrait.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
+| **C136** | `natatorium` | `high` | `natatorium_monster_25m_portrait.png` | `debug-leak` | **P1** | [`natatorium_monster_25m_portrait.png`](reports/visual/natatorium_monster_25m_portrait.png) | `src/game/monster/MonsterBody.ts (debug containment: ?debug=1 only)` | **CLOSED (Prompt 6)** |
 | **C137** | `natatorium` | `high` | `natatorium_monster_25m_portrait.png` | `specular-blowout` | **P2** | [`natatorium_monster_25m_portrait.png`](reports/visual/natatorium_monster_25m_portrait.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
 | **C138** | `natatorium` | `high` | `natatorium_pillar_numeral_8m.png` | `aliasing` | **P2** | [`natatorium_pillar_numeral_8m.png`](tests/golden/natatorium_pillar_numeral_8m.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
 | **C139** | `natatorium` | `high` | `natatorium_pillar_numeral_8m.png` | `specular-blowout` | **P2** | [`natatorium_pillar_numeral_8m.png`](tests/golden/natatorium_pillar_numeral_8m.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
 | **C140** | `natatorium` | `high` | `natatorium_pillar_numeral_8m_portrait.png` | `aliasing` | **P2** | [`natatorium_pillar_numeral_8m_portrait.png`](reports/visual/natatorium_pillar_numeral_8m_portrait.png) | `src/procedural/textures/TileMaterialFactory.ts (pillar UV quantization)` | **CLOSED (Prompt 4)** |
-| **C141** | `natatorium` | `high` | `natatorium_pillar_numeral_8m_portrait.png` | `debug-leak` | **P1** | [`natatorium_pillar_numeral_8m_portrait.png`](reports/visual/natatorium_pillar_numeral_8m_portrait.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
+| **C141** | `natatorium` | `high` | `natatorium_pillar_numeral_8m_portrait.png` | `debug-leak` | **P1** | [`natatorium_pillar_numeral_8m_portrait.png`](reports/visual/natatorium_pillar_numeral_8m_portrait.png) | `src/game/monster/MonsterBody.ts (debug containment: ?debug=1 only)` | **CLOSED (Prompt 6)** |
 | **C142** | `natatorium` | `high` | `natatorium_pillar_numeral_8m_portrait.png` | `specular-blowout` | **P2** | [`natatorium_pillar_numeral_8m_portrait.png`](reports/visual/natatorium_pillar_numeral_8m_portrait.png) | `src/world/maps/CommonMapBuilder.ts (wayfinding numerals & smooth normal roll-off)` | **CLOSED (Prompt 4)** |
 | **C143** | `natatorium` | `high` | `natatorium_spawn_view.png` | `aliasing` | **P2** | [`natatorium_spawn_view.png`](reports/visual/natatorium_spawn_view.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
 | **C144** | `natatorium` | `high` | `natatorium_spawn_view_portrait.png` | `aliasing` | **P2** | [`natatorium_spawn_view_portrait.png`](reports/visual/natatorium_spawn_view_portrait.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
 | **C145** | `natatorium` | `high` | `natatorium_tagline_wall.png` | `aliasing` | **P2** | [`natatorium_tagline_wall.png`](reports/visual/natatorium_tagline_wall.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
-| **C146** | `natatorium` | `high` | `natatorium_tagline_wall.png` | `debug-leak` | **P1** | [`natatorium_tagline_wall.png`](reports/visual/natatorium_tagline_wall.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
+| **C146** | `natatorium` | `high` | `natatorium_tagline_wall.png` | `debug-leak` | **P1** | [`natatorium_tagline_wall.png`](reports/visual/natatorium_tagline_wall.png) | `src/game/monster/MonsterBody.ts (debug containment: ?debug=1 only)` | **CLOSED (Prompt 6)** |
 | **C147** | `natatorium` | `high` | `natatorium_tagline_wall.png` | `specular-blowout` | **P2** | [`natatorium_tagline_wall.png`](reports/visual/natatorium_tagline_wall.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
 | **C148** | `natatorium` | `high` | `natatorium_tagline_wall_portrait.png` | `aliasing` | **P2** | [`natatorium_tagline_wall_portrait.png`](reports/visual/natatorium_tagline_wall_portrait.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
-| **C149** | `natatorium` | `high` | `natatorium_tagline_wall_portrait.png` | `debug-leak` | **P1** | [`natatorium_tagline_wall_portrait.png`](reports/visual/natatorium_tagline_wall_portrait.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
+| **C149** | `natatorium` | `high` | `natatorium_tagline_wall_portrait.png` | `debug-leak` | **P1** | [`natatorium_tagline_wall_portrait.png`](reports/visual/natatorium_tagline_wall_portrait.png) | `src/game/monster/MonsterBody.ts (debug containment: ?debug=1 only)` | **CLOSED (Prompt 6)** |
 | **C150** | `natatorium` | `high` | `natatorium_tagline_wall_portrait.png` | `specular-blowout` | **P2** | [`natatorium_tagline_wall_portrait.png`](reports/visual/natatorium_tagline_wall_portrait.png) | `src/engine/PostFX.ts or MapBuilder` | **OPEN** |
 | **C151** | `natatorium` | `high` | `natatorium_trench_view_portrait.png` | `aliasing` | **P2** | [`natatorium_trench_view_portrait.png`](reports/visual/natatorium_trench_view_portrait.png) | `src/procedural/geometry/TiledBox.ts (bullnose trench slab coping)` | **CLOSED (Prompt 4)** |
 
@@ -234,7 +234,7 @@
 - **Class:** `debug-leak` | **Severity:** **P1**
 - **Evidence:** [`reports/monster/screenshots/lurk.png`](reports/monster/screenshots/lurk.png)
 - **Suspected Subsystem:** `src/ui/UIManager.ts / src/game/GameSession.ts:4356 (pointer lock overlay text leak in capture mode)`
-- **Current Status:** `OPEN`
+- **Current Status:** `CLOSED (Prompt 6)`
 
 ### C4: Z-fighting on submerged tile floors at low/medium quality tiers (high-frequency alternating scanline banding)
 - **Map / Tier:** `poolrooms` (medium)
@@ -577,7 +577,7 @@
 - **Class:** `debug-leak` | **Severity:** **P1**
 - **Evidence:** [`reports/monster/screenshots/crossing.png`](reports/monster/screenshots/crossing.png)
 - **Suspected Subsystem:** `src/engine/PostFX.ts or MapBuilder`
-- **Current Status:** `OPEN`
+- **Current Status:** `CLOSED (Prompt 6)`
 
 ### C53: Un-antialiased hard edges: 82.15% of edges exceed magnitude 0.8
 - **Map / Tier:** `natatorium` (high)
@@ -591,7 +591,7 @@
 - **Class:** `debug-leak` | **Severity:** **P1**
 - **Evidence:** [`reports/monster/screenshots/jumpscare_0.2s.png`](reports/monster/screenshots/jumpscare_0.2s.png)
 - **Suspected Subsystem:** `src/engine/PostFX.ts or MapBuilder`
-- **Current Status:** `OPEN`
+- **Current Status:** `CLOSED (Prompt 6)`
 
 ### C55: Pure black void region occupying 30.08% of frame area in upper third
 - **Map / Tier:** `natatorium` (high)
@@ -612,7 +612,7 @@
 - **Class:** `debug-leak` | **Severity:** **P1**
 - **Evidence:** [`reports/monster/screenshots/jumpscare_0.6s.png`](reports/monster/screenshots/jumpscare_0.6s.png)
 - **Suspected Subsystem:** `src/engine/PostFX.ts or MapBuilder`
-- **Current Status:** `OPEN`
+- **Current Status:** `CLOSED (Prompt 6)`
 
 ### C58: Un-antialiased hard edges: 58.55% of edges exceed magnitude 0.8
 - **Map / Tier:** `natatorium` (high)
@@ -633,7 +633,7 @@
 - **Class:** `debug-leak` | **Severity:** **P1**
 - **Evidence:** [`reports/monster/screenshots/map_drainage_core_high.png`](reports/monster/screenshots/map_drainage_core_high.png)
 - **Suspected Subsystem:** `src/engine/PostFX.ts or MapBuilder`
-- **Current Status:** `OPEN`
+- **Current Status:** `CLOSED (Prompt 6)`
 
 ### C61: Un-antialiased hard edges: 57.23% of edges exceed magnitude 0.8
 - **Map / Tier:** `drowned_metro` (high)
@@ -647,7 +647,7 @@
 - **Class:** `debug-leak` | **Severity:** **P1**
 - **Evidence:** [`reports/monster/screenshots/map_drowned_metro_high.png`](reports/monster/screenshots/map_drowned_metro_high.png)
 - **Suspected Subsystem:** `src/engine/PostFX.ts or MapBuilder`
-- **Current Status:** `OPEN`
+- **Current Status:** `CLOSED (Prompt 6)`
 
 ### C63: Un-antialiased hard edges: 61.34% of edges exceed magnitude 0.8
 - **Map / Tier:** `drowned_school` (high)
@@ -661,7 +661,7 @@
 - **Class:** `debug-leak` | **Severity:** **P1**
 - **Evidence:** [`reports/monster/screenshots/map_drowned_school_high.png`](reports/monster/screenshots/map_drowned_school_high.png)
 - **Suspected Subsystem:** `src/engine/PostFX.ts or MapBuilder`
-- **Current Status:** `OPEN`
+- **Current Status:** `CLOSED (Prompt 6)`
 
 ### C65: Un-antialiased hard edges: 56.55% of edges exceed magnitude 0.8
 - **Map / Tier:** `hydro_maze` (high)
@@ -675,7 +675,7 @@
 - **Class:** `debug-leak` | **Severity:** **P1**
 - **Evidence:** [`reports/monster/screenshots/map_hydro_maze_high.png`](reports/monster/screenshots/map_hydro_maze_high.png)
 - **Suspected Subsystem:** `src/engine/PostFX.ts or MapBuilder`
-- **Current Status:** `OPEN`
+- **Current Status:** `CLOSED (Prompt 6)`
 
 ### C67: Un-antialiased hard edges: 26.25% of edges exceed magnitude 0.8
 - **Map / Tier:** `marble_atrium` (high)
@@ -689,7 +689,7 @@
 - **Class:** `debug-leak` | **Severity:** **P1**
 - **Evidence:** [`reports/monster/screenshots/map_marble_atrium_high.png`](reports/monster/screenshots/map_marble_atrium_high.png)
 - **Suspected Subsystem:** `src/engine/PostFX.ts or MapBuilder`
-- **Current Status:** `OPEN`
+- **Current Status:** `CLOSED (Prompt 6)`
 
 ### C69: Un-antialiased hard edges: 51.31% of edges exceed magnitude 0.8
 - **Map / Tier:** `natatorium` (high)
@@ -703,7 +703,7 @@
 - **Class:** `debug-leak` | **Severity:** **P1**
 - **Evidence:** [`reports/monster/screenshots/map_natatorium_high.png`](reports/monster/screenshots/map_natatorium_high.png)
 - **Suspected Subsystem:** `src/engine/PostFX.ts or MapBuilder`
-- **Current Status:** `OPEN`
+- **Current Status:** `CLOSED (Prompt 6)`
 
 ### C71: Un-antialiased hard edges: 63.47% of edges exceed magnitude 0.8
 - **Map / Tier:** `neon_flood` (high)
@@ -717,7 +717,7 @@
 - **Class:** `debug-leak` | **Severity:** **P1**
 - **Evidence:** [`reports/monster/screenshots/map_neon_flood_high.png`](reports/monster/screenshots/map_neon_flood_high.png)
 - **Suspected Subsystem:** `src/engine/PostFX.ts or MapBuilder`
-- **Current Status:** `OPEN`
+- **Current Status:** `CLOSED (Prompt 6)`
 
 ### C73: Un-antialiased hard edges: 50.3% of edges exceed magnitude 0.8
 - **Map / Tier:** `orientation` (high)
@@ -731,7 +731,7 @@
 - **Class:** `debug-leak` | **Severity:** **P1**
 - **Evidence:** [`reports/monster/screenshots/map_orientation_high.png`](reports/monster/screenshots/map_orientation_high.png)
 - **Suspected Subsystem:** `src/engine/PostFX.ts or MapBuilder`
-- **Current Status:** `OPEN`
+- **Current Status:** `CLOSED (Prompt 6)`
 
 ### C75: Un-antialiased hard edges: 50.55% of edges exceed magnitude 0.8
 - **Map / Tier:** `poolrooms` (high)
@@ -745,7 +745,7 @@
 - **Class:** `debug-leak` | **Severity:** **P1**
 - **Evidence:** [`reports/monster/screenshots/map_poolrooms_high.png`](reports/monster/screenshots/map_poolrooms_high.png)
 - **Suspected Subsystem:** `src/engine/PostFX.ts or MapBuilder`
-- **Current Status:** `OPEN`
+- **Current Status:** `CLOSED (Prompt 6)`
 
 ### C77: Un-antialiased hard edges: 37.24% of edges exceed magnitude 0.8
 - **Map / Tier:** `sunken_jungle` (high)
@@ -759,7 +759,7 @@
 - **Class:** `debug-leak` | **Severity:** **P1**
 - **Evidence:** [`reports/monster/screenshots/map_sunken_jungle_high.png`](reports/monster/screenshots/map_sunken_jungle_high.png)
 - **Suspected Subsystem:** `src/engine/PostFX.ts or MapBuilder`
-- **Current Status:** `OPEN`
+- **Current Status:** `CLOSED (Prompt 6)`
 
 ### C79: Specular highlight saturation blowout: 2215 clamped pixels (0.17%)
 - **Map / Tier:** `sunken_jungle` (high)
@@ -780,7 +780,7 @@
 - **Class:** `debug-leak` | **Severity:** **P1**
 - **Evidence:** [`reports/monster/screenshots/map_utility_tunnels_high.png`](reports/monster/screenshots/map_utility_tunnels_high.png)
 - **Suspected Subsystem:** `src/engine/PostFX.ts or MapBuilder`
-- **Current Status:** `OPEN`
+- **Current Status:** `CLOSED (Prompt 6)`
 
 ### C82: Un-antialiased hard edges: 64.47% of edges exceed magnitude 0.8
 - **Map / Tier:** `orientation` (high)
@@ -794,7 +794,7 @@
 - **Class:** `debug-leak` | **Severity:** **P1**
 - **Evidence:** [`reports/monster/screenshots/mobile_orientation.png`](reports/monster/screenshots/mobile_orientation.png)
 - **Suspected Subsystem:** `src/engine/PostFX.ts or MapBuilder`
-- **Current Status:** `OPEN`
+- **Current Status:** `CLOSED (Prompt 6)`
 
 ### C84: Specular highlight saturation blowout: 7568 clamped pixels (0.26%)
 - **Map / Tier:** `orientation` (high)
@@ -815,7 +815,7 @@
 - **Class:** `debug-leak` | **Severity:** **P1**
 - **Evidence:** [`reports/monster/screenshots/mobile_poolrooms.png`](reports/monster/screenshots/mobile_poolrooms.png)
 - **Suspected Subsystem:** `src/engine/PostFX.ts or MapBuilder`
-- **Current Status:** `OPEN`
+- **Current Status:** `CLOSED (Prompt 6)`
 
 ### C87: Specular highlight saturation blowout: 5137 clamped pixels (0.17%)
 - **Map / Tier:** `poolrooms` (high)
@@ -836,7 +836,7 @@
 - **Class:** `debug-leak` | **Severity:** **P1**
 - **Evidence:** [`reports/monster/screenshots/retry_spawn.png`](reports/monster/screenshots/retry_spawn.png)
 - **Suspected Subsystem:** `src/engine/PostFX.ts or MapBuilder`
-- **Current Status:** `OPEN`
+- **Current Status:** `CLOSED (Prompt 6)`
 
 ### C90: Un-antialiased hard edges: 65.93% of edges exceed magnitude 0.8
 - **Map / Tier:** `natatorium` (high)
@@ -850,7 +850,7 @@
 - **Class:** `debug-leak` | **Severity:** **P1**
 - **Evidence:** [`reports/monster/screenshots/show_me_15m.png`](reports/monster/screenshots/show_me_15m.png)
 - **Suspected Subsystem:** `src/engine/PostFX.ts or MapBuilder`
-- **Current Status:** `OPEN`
+- **Current Status:** `CLOSED (Prompt 6)`
 
 ### C92: Un-antialiased hard edges: 66.51% of edges exceed magnitude 0.8
 - **Map / Tier:** `natatorium` (high)
@@ -864,7 +864,7 @@
 - **Class:** `debug-leak` | **Severity:** **P1**
 - **Evidence:** [`reports/monster/screenshots/show_me_25m.png`](reports/monster/screenshots/show_me_25m.png)
 - **Suspected Subsystem:** `src/engine/PostFX.ts or MapBuilder`
-- **Current Status:** `OPEN`
+- **Current Status:** `CLOSED (Prompt 6)`
 
 ### C94: Un-antialiased hard edges: 67.45% of edges exceed magnitude 0.8
 - **Map / Tier:** `natatorium` (high)
@@ -878,7 +878,7 @@
 - **Class:** `debug-leak` | **Severity:** **P1**
 - **Evidence:** [`reports/monster/screenshots/show_me_40m.png`](reports/monster/screenshots/show_me_40m.png)
 - **Suspected Subsystem:** `src/engine/PostFX.ts or MapBuilder`
-- **Current Status:** `OPEN`
+- **Current Status:** `CLOSED (Prompt 6)`
 
 ### C96: Un-antialiased hard edges: 63.87% of edges exceed magnitude 0.8
 - **Map / Tier:** `natatorium` (high)
@@ -892,7 +892,7 @@
 - **Class:** `debug-leak` | **Severity:** **P1**
 - **Evidence:** [`reports/monster/screenshots/show_me_6m.png`](reports/monster/screenshots/show_me_6m.png)
 - **Suspected Subsystem:** `src/engine/PostFX.ts or MapBuilder`
-- **Current Status:** `OPEN`
+- **Current Status:** `CLOSED (Prompt 6)`
 
 ### C98: Un-antialiased hard edges: 59.7% of edges exceed magnitude 0.8
 - **Map / Tier:** `natatorium` (high)
@@ -906,14 +906,14 @@
 - **Class:** `debug-leak` | **Severity:** **P1**
 - **Evidence:** [`reports/monster/screenshots/sleeper_from_spawn.png`](reports/monster/screenshots/sleeper_from_spawn.png)
 - **Suspected Subsystem:** `src/engine/PostFX.ts or MapBuilder`
-- **Current Status:** `OPEN`
+- **Current Status:** `CLOSED (Prompt 6)`
 
 ### C100: Detected 2180 magenta debug marker pixels (first at x:649, y:435)
 - **Map / Tier:** `poolrooms` (low)
 - **Class:** `debug-leak` | **Severity:** **P1**
 - **Evidence:** [`reports/monster/screenshots/tier_low_poolrooms.png`](reports/monster/screenshots/tier_low_poolrooms.png)
 - **Suspected Subsystem:** `src/engine/PostFX.ts or MapBuilder`
-- **Current Status:** `OPEN`
+- **Current Status:** `CLOSED (Prompt 6)`
 
 ### C101: Un-antialiased hard edges: 50.4% of edges exceed magnitude 0.8
 - **Map / Tier:** `poolrooms` (medium)
@@ -927,7 +927,7 @@
 - **Class:** `debug-leak` | **Severity:** **P1**
 - **Evidence:** [`reports/monster/screenshots/tier_med_poolrooms.png`](reports/monster/screenshots/tier_med_poolrooms.png)
 - **Suspected Subsystem:** `src/engine/PostFX.ts or MapBuilder`
-- **Current Status:** `OPEN`
+- **Current Status:** `CLOSED (Prompt 6)`
 
 ### C103: Un-antialiased hard edges: 44.39% of edges exceed magnitude 0.8
 - **Map / Tier:** `drowned_metro` (high)
@@ -983,7 +983,7 @@
 - **Class:** `debug-leak` | **Severity:** **P1**
 - **Evidence:** [`reports/graphics/prompt1_after/map_orientation_t5s.png`](reports/graphics/prompt1_after/map_orientation_t5s.png)
 - **Suspected Subsystem:** `src/engine/PostFX.ts or MapBuilder`
-- **Current Status:** `OPEN`
+- **Current Status:** `CLOSED (Prompt 6)`
 
 ### C111: Specular highlight saturation blowout: 2308 clamped pixels (0.25%)
 - **Map / Tier:** `orientation` (high)
@@ -1046,7 +1046,7 @@
 - **Class:** `debug-leak` | **Severity:** **P1**
 - **Evidence:** [`reports/visual/flock_overhead.png`](reports/visual/flock_overhead.png)
 - **Suspected Subsystem:** `src/engine/PostFX.ts or MapBuilder`
-- **Current Status:** `OPEN`
+- **Current Status:** `CLOSED (Prompt 6)`
 
 ### C120: Specular highlight saturation blowout: 1067 clamped pixels (0.12%)
 - **Map / Tier:** `natatorium` (high)
@@ -1067,7 +1067,7 @@
 - **Class:** `debug-leak` | **Severity:** **P1**
 - **Evidence:** [`reports/visual/natatorium_arch_fog_25m.png`](reports/visual/natatorium_arch_fog_25m.png)
 - **Suspected Subsystem:** `src/engine/PostFX.ts or MapBuilder`
-- **Current Status:** `OPEN`
+- **Current Status:** `CLOSED (Prompt 6)`
 
 ### C123: Specular highlight saturation blowout: 1055 clamped pixels (0.11%)
 - **Map / Tier:** `natatorium` (high)
@@ -1081,7 +1081,7 @@
 - **Class:** `debug-leak` | **Severity:** **P1**
 - **Evidence:** [`reports/visual/natatorium_arch_fog_25m_portrait.png`](reports/visual/natatorium_arch_fog_25m_portrait.png)
 - **Suspected Subsystem:** `src/engine/PostFX.ts or MapBuilder`
-- **Current Status:** `OPEN`
+- **Current Status:** `CLOSED (Prompt 6)`
 
 ### C125: Specular highlight saturation blowout: 1025 clamped pixels (0.11%)
 - **Map / Tier:** `natatorium` (high)
@@ -1109,7 +1109,7 @@
 - **Class:** `debug-leak` | **Severity:** **P1**
 - **Evidence:** [`reports/visual/natatorium_horizon_long.png`](reports/visual/natatorium_horizon_long.png)
 - **Suspected Subsystem:** `src/engine/PostFX.ts or MapBuilder`
-- **Current Status:** `OPEN`
+- **Current Status:** `CLOSED (Prompt 6)`
 
 ### C129: Specular highlight saturation blowout: 1135 clamped pixels (0.12%)
 - **Map / Tier:** `natatorium` (high)
@@ -1144,7 +1144,7 @@
 - **Class:** `debug-leak` | **Severity:** **P1**
 - **Evidence:** [`reports/visual/natatorium_monster_25m.png`](reports/visual/natatorium_monster_25m.png)
 - **Suspected Subsystem:** `src/engine/PostFX.ts or MapBuilder`
-- **Current Status:** `OPEN`
+- **Current Status:** `CLOSED (Prompt 6)`
 
 ### C134: Specular highlight saturation blowout: 1057 clamped pixels (0.11%)
 - **Map / Tier:** `natatorium` (high)
@@ -1165,7 +1165,7 @@
 - **Class:** `debug-leak` | **Severity:** **P1**
 - **Evidence:** [`reports/visual/natatorium_monster_25m_portrait.png`](reports/visual/natatorium_monster_25m_portrait.png)
 - **Suspected Subsystem:** `src/engine/PostFX.ts or MapBuilder`
-- **Current Status:** `OPEN`
+- **Current Status:** `CLOSED (Prompt 6)`
 
 ### C137: Specular highlight saturation blowout: 1023 clamped pixels (0.11%)
 - **Map / Tier:** `natatorium` (high)
@@ -1200,7 +1200,7 @@
 - **Class:** `debug-leak` | **Severity:** **P1**
 - **Evidence:** [`reports/visual/natatorium_pillar_numeral_8m_portrait.png`](reports/visual/natatorium_pillar_numeral_8m_portrait.png)
 - **Suspected Subsystem:** `src/engine/PostFX.ts or MapBuilder`
-- **Current Status:** `OPEN`
+- **Current Status:** `CLOSED (Prompt 6)`
 
 ### C142: Specular highlight saturation blowout: 1069 clamped pixels (0.12%)
 - **Map / Tier:** `natatorium` (high)
@@ -1235,7 +1235,7 @@
 - **Class:** `debug-leak` | **Severity:** **P1**
 - **Evidence:** [`reports/visual/natatorium_tagline_wall.png`](reports/visual/natatorium_tagline_wall.png)
 - **Suspected Subsystem:** `src/engine/PostFX.ts or MapBuilder`
-- **Current Status:** `OPEN`
+- **Current Status:** `CLOSED (Prompt 6)`
 
 ### C147: Specular highlight saturation blowout: 1081 clamped pixels (0.12%)
 - **Map / Tier:** `natatorium` (high)
@@ -1256,7 +1256,7 @@
 - **Class:** `debug-leak` | **Severity:** **P1**
 - **Evidence:** [`reports/visual/natatorium_tagline_wall_portrait.png`](reports/visual/natatorium_tagline_wall_portrait.png)
 - **Suspected Subsystem:** `src/engine/PostFX.ts or MapBuilder`
-- **Current Status:** `OPEN`
+- **Current Status:** `CLOSED (Prompt 6)`
 
 ### C150: Specular highlight saturation blowout: 1058 clamped pixels (0.11%)
 - **Map / Tier:** `natatorium` (high)

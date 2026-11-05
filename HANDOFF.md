@@ -1,7 +1,7 @@
 # BackSilence — Project Handover & Architecture Guide
 
-**Version:** 2.0.0  
-**Date:** 2026-11-02  
+**Version:** 2.2.0  
+**Date:** 2026-11-05  
 **Target:** Engineering Handover, Production Operation, and Architecture Reference  
 
 ---
@@ -61,6 +61,12 @@ src/
    - Long forelimbs (1.35m = 2.08x torso length) ending in 4 curved splayed claws (0.28m) dragging through water; broad flat wading feet (`buildFlatWadingFootGeometry`, 0.26m length, 0.15m width).
    - Screen-space readability law enforced across contract shots: 6m coverage $\ge 3.0\%$ (height $\ge 14\%$, contrast $\ge 0.35$), 15m coverage $\ge 0.55\%$ (height $\ge 6\%$, contrast $\ge 0.35$), 35m coverage $\ge 0.12\%$, jumpscare coverage $\ge 25.0\%$.
    - Named kinematic posture library: `wade-stalk` (1.1s cadence, 0.72 rad hunch), `listen-freeze` (still, 0.38 rad tilt), `trench-pace` (lateral lip pacing), `lunge` (forward surge, 0.65 rad unhinge), and `jumpscare-bracket` (0.82m face distance, pitch +0.15 rad, arms bracketing viewport, in-water +0.42m head water-rise with $\ge 5$ droplet splatters).
+6. **Directed Encounter Arc, Fairness Laws & Video-3 Leap-Cross (`EncounterArc.ts`, `Director.ts`, `MonsterBrain.ts`, `MonsterAudio.ts`):**
+   - Canonical 6-beat encounter arc (Telegraph, Silhouette Hold, Stalk, Trench Standoff, Silence Window, Terminal Lunge) matching Video-2.
+   - First-sight guarantee: exactly one sighting in $[40\text{ s}, 75\text{ s}]$ (0 before $30\text{ s}$) across 100/100 seeded cold starts for `campaign` and `training_pool`.
+   - Fairness laws: `INVESTIGATE` state deals 0 damage, terminal lunge strictly requires qualifying noise $\le 4.0\text{ s}$ within $\le 4.0\text{ m}$, movement speed capped at $\le 7.4\text{ m/s}$, no off-screen kills at $> 1.5\text{ m}$, recovery window $\ge 20.0\text{ s}$ between lunges, standing still on dry tile 100% survivable.
+   - Video-3 Leap-Cross Variant: rare ($\le 1$ per run), pre-leap crouch + hiss $\ge 0.6\text{ s}$, single parabolic arc $\le 0.7\text{ s}$, double ink-splash on landing.
+   - Layered encounter audio mix: 6 layers, silence-as-information snapshot ducking (-18dB ambient, -24dB music, -12dB SFX, un-ducked breath) with $\ge 250\text{ ms}$ crossfades.
 
 ---
 
@@ -100,6 +106,7 @@ Additionally, Prompt 1 established a comprehensive, screenshot-evidenced visual 
   - **Prompt 3 Closures:** C4 (submerged floor z-fighting), C21, C22, C27..C45 (waterline meniscus, viscous low-frequency swell, ink & foam contact vocabulary).
   - **Prompt 4 Closures:** C10 (pillar UV seam), C12 (waterline wainscot contrast & horizon silhouettes), C121, C126, C140, C151 (edge aliasing on arches, slabs, and pillars via bullnose coping and filleted reveals), C123, C127, C142 (specular clipping via curved normals and wayfinding numerals), and 11-map vaulted ceiling unification (`VaultBuilder.ts`).
   - **Prompt 5 Closures:** C2 (Creature silhouette readability at 15 m and screen-space contrast vs fog closed via Creature v2 seed-pod proportions, 15 m screen coverage 0.852%, Michelson contrast 0.3536 >= 0.35, waterline law, kinematic posture library, and jumpscare framing contract).
+  - **Prompt 6 Closures:** All 35 `debug-leak` defect rows closed (C3, C52, C54, C57, C60, C62, C64, C66, C68, C70, C72, C74, C76, C78, C81, C83, C86, C89, C91, C93, C95, C97, C99, C100, C102, C110, C119, C122, C124, C128, C133, C136, C141, C146, C149) via strict `?debug=1` containment check.
 
 ---
 
@@ -120,5 +127,11 @@ npm run smoke
 
 # Headless balance bot swarm (13,200 simulated runs)
 npm run balance
+
+# Six-beat encounter rehearsal harness (Prompt 6)
+node scripts/monster/encounter-arc.mjs --map natatorium
+
+# Spectral & dynamic baseline audio comparison
+npm run audio:compare
 ```
 

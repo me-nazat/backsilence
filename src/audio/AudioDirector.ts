@@ -241,6 +241,25 @@ export class AudioDirector {
   }
 
   /**
+   * Silence-as-information (Prompt 6 Phase C):
+   * When player is silent and creature is INVESTIGATE/BLOCKED within 8m,
+   * ducks mix to silence_investigate snapshot (ambient -18dB, music -24dB, SFX -12dB)
+   * isolating creature breath, subtle footfalls, and slow heartbeat pulse.
+   */
+  updateSilenceInformation(isPlayerSilent: boolean, monsterDistance: number, monsterState: string): void {
+    const shouldDuck = isPlayerSilent && (monsterState === 'INVESTIGATE' || monsterState === 'BLOCKED') && monsterDistance <= 8.0;
+    const current = this.engine.getSnapshotState();
+
+    if (shouldDuck) {
+      if (current !== 'silence_investigate' && current !== 'jumpscare' && current !== 'tinnitus_quiet') {
+        this.engine.applySnapshot('silence_investigate', 0.35);
+      }
+    } else if (current === 'silence_investigate') {
+      this.engine.applySnapshot('default', 0.50);
+    }
+  }
+
+  /**
    * Start default ambience (natatorium).
    */
   startAmbience(): void {

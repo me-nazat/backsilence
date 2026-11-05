@@ -1993,3 +1993,38 @@ The Prompt 1 audit discovered that in `reports/monster/screenshots/show_me_15m.p
    - Ink splash (`#1e1a14`) at hands and feet; white foam ring (`#e8f2e6`) restricted strictly to feet; complete wake/splash suppression on dry platforms.  
 **Status:** ACCEPTED  
 **Consequences:** Defect C2 closed in `CENSUS.md`; `tests/monster-silhouette-contract.test.ts` and `tests/creature-colour-contract.test.ts` pass with 0 failures; contact sheet `reports/monster/creature_v2.md` committed; 100/100 Vitest suites pass; medium tier sustains $\ge 60\,\text{FPS}$ with creature on screen.
+
+## D138 — Canonical Encounter Arc Pacing, Fairness Laws & Video-3 Leap-Cross (Prompt 6)
+
+**Date:** 2026-11-05  
+**Context:**  
+Prompt 6 addresses the encounter experience: transitioning from raw assets into the deliberate psychological dread demonstrated in reference Video-2 (seconds 8–72) and Video-3. Prior to Prompt 6, encounters lacked guaranteed first-sight timing, camera-frustum visibility verification, strictly enforced fairness boundaries (anti-cheap-scares and lunge noise qualifications), and silence-as-information audio ducking.  
+**Decision:**  
+1. **Canonical Six-Beat Directed Encounter Arc (`EncounterArc.ts`, `scripts/monster/encounter-arc.mjs`):**  
+   - Implemented deterministic 60-second encounter arc:
+     - Beat 1 Telegraph ($t = 16\text{s}$): Sub-bass pulse + wade stinger acoustic warning at $13.2\text{m}$.
+     - Beat 2 Silhouette Hold ($t = 20\text{s}$): 3-second quadrupedal silhouette pause at $12.5\text{m}$ in camera frustum.
+     - Beat 3 Stalk ($t = 28\text{s}$): Steady $2.4\text{ m/s}$ wade toward player sound with 1.1s footfall cadence.
+     - Beat 4 Trench Standoff ($t = 40\text{s}$): Entity reaches $\ge 2.4\text{m}$ trench, enters `BLOCKED`, paces lip and reaches across with agitated click bursts. Zero teleportation or wall-phasing.
+     - Beat 5 Silence Window ($t = 53\text{s}$): Player stationary on dry tile; creature at $3.7\text{m}$ enters `INVESTIGATE`, sweeps head $\ge 0.22\text{ rad}$ for 10s, finds nothing, and de-escalates.
+     - Beat 6 Terminal Lunge ($t = 58\text{s}$): Player enters water within $3.5\text{m}$; entity lunges at $7.2\text{ m/s}$ into jumpscare lock (matching $f\_037$).
+   - Rehearsal harness renders 6 full-resolution boards in `reports/monster/arc/` and records `trace.json`, asserting camera frustum visibility at all sighting beats and zero magenta debug pixels (#FF00FF).
+2. **Fairness Laws & Anti-Cheap-Scare Protections (`MonsterBrain.ts`, `tests/monster-phase-d.test.ts`):**  
+   - `INVESTIGATE` state deals strictly $0$ damage.
+   - Terminal lunge strictly requires qualifying noise event $\le 4.0\text{ s}$ old within $\le 4.0\text{ m}$.
+   - Movement speed strictly capped at $\le 7.4\text{ m/s}$ ceiling (actual lunge speed $7.2\text{ m/s}$).
+   - No off-screen kills at distance $> 1.5\text{ m}$: kill requires camera view frustum visibility OR physical touch $\le 1.5\text{ m}$.
+   - Mandatory recovery window $\ge 20.0\text{ s}$ between lunges preventing lunge chaining.
+   - Standing still on dry tile is 100% survivable (verified across 600s headless simulation).
+3. **Video-3 Leap-Cross Variant (`MonsterBrain.ts`, `MonsterBody.ts`):**  
+   - Rare ($\le 1$ per run) platform approach: when entity is `BLOCKED` across trench $\le 3.0\text{ m}$ wide and player makes noise within $\le 3.5\text{ m}$, entity performs a leap-cross (single parabolic ballistic arc, airtime $\le 0.7\text{ s}$, double ink-splash on landing). Telegraphed by a distinct pre-leap crouch + hiss $\ge 0.6\text{ s}$.
+4. **Director Run-Level Pacing & First-Sight Guarantee (`Director.ts`, `tests/director.test.ts`):**  
+   - Cold starts for `campaign` and `training_pool` guarantee exactly one sighting within $[40\text{ s}, 75\text{ s}]$, with zero sightings before $30\text{ s}$ across 100/100 seeded runs.
+   - `PACING_TABLE` governs breathers ($15–25\text{ s}$) and maximum encounter arcs ($3–6$) per mode.
+5. **Layered Encounter Audio & Silence-as-Information Ducking (`MonsterAudio.ts`, `AudioDirector.ts`, `Mixer.ts`):**  
+   - Six audio encounter layers: distant calm bed, telegraph stinger, 1.1s cadence stalk footfalls + wet clicks, standoff agitated click bursts, lunge riser into jumpscare, and post-kill/post-escape tinnitus-quiet aftermath.
+   - Silence-as-information: when player is silent on dry tile and creature investigates within $8.0\text{ m}$, mixer engages `silence_investigate` snapshot (ambient $-18\text{ dB}$, music $-24\text{ dB}$, SFX $-12\text{ dB}$, monster breath un-ducked at $1.0$).
+   - Snapshot crossfades enforce $\ge 250\text{ ms}$ ramps (no hard cuts).
+**Status:** ACCEPTED  
+**Consequences:** All 7 exit gates of Prompt 6 pass; `node scripts/monster/encounter-arc.mjs --map natatorium` produces 6 boards and trace matching grammar; `npm run balance` passes 13,200 runs across 11 maps with 100% noise-attributable deaths; `npm run audio:compare` maintains 12/12 PASS (100%); 35 debug-leak defect rows closed in `CENSUS.md`; 100/100 Vitest files pass (890/890 tests).
+

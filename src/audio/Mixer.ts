@@ -66,6 +66,7 @@ function makeSoftClipCurve(knee: number): Float32Array {
 }
 
 export type OutputProfile = 'headphones' | 'speakers' | 'phone' | 'night' | 'mono';
+export type MixerSnapshot = 'default' | 'silence_investigate' | 'jumpscare' | 'tinnitus_quiet';
 
 export class Mixer {
   readonly ctx: BaseAudioContext;
@@ -98,6 +99,48 @@ export class Mixer {
   private activeVoices = new Map<string, ManagedVoice>();
   private currentProfile: OutputProfile = 'headphones';
   private listeningDipActive = false;
+  private currentSnapshot: MixerSnapshot = 'default';
+
+  getSnapshotState(): MixerSnapshot {
+    return this.currentSnapshot;
+  }
+
+  /**
+   * Snapshot transitions with >= 250ms crossfades (no hard cuts).
+   * Prompt 6 Phase C: silence-as-information ducks everything except monster breath and heartbeat.
+   */
+  applySnapshot(snapshot: MixerSnapshot, transitionSec = 0.35): void {
+    if (!this.duckingEnabled) return;
+    this.currentSnapshot = snapshot;
+    const ramp = Math.max(0.25, transitionSec); // Enforce >= 250ms crossfades
+
+    if (snapshot === 'silence_investigate') {
+      this.rampNodeGain(this.ambientGain, this.baseVolumes.ambient * 0.125, ramp); // -18 dB
+      this.rampNodeGain(this.musicGain, this.baseVolumes.music * 0.06, ramp);     // -24 dB
+      this.rampNodeGain(this.sfxGain, this.baseVolumes.sfx * 0.25, ramp);         // -12 dB
+      this.rampNodeGain(this.monsterGain, this.baseVolumes.monster, ramp);        // un-ducked breath/clicks
+      this.rampNodeGain(this.uiGain, this.baseVolumes.ui, ramp);
+    } else if (snapshot === 'tinnitus_quiet') {
+      this.rampNodeGain(this.ambientGain, this.baseVolumes.ambient * 0.20, ramp);
+      this.rampNodeGain(this.musicGain, this.baseVolumes.music * 0.10, ramp);
+      this.rampNodeGain(this.sfxGain, this.baseVolumes.sfx * 0.15, ramp);
+      this.rampNodeGain(this.monsterGain, this.baseVolumes.monster * 0.15, ramp);
+      this.rampNodeGain(this.uiGain, this.baseVolumes.ui, ramp);
+    } else if (snapshot === 'jumpscare') {
+      this.rampNodeGain(this.ambientGain, this.baseVolumes.ambient * 0.10, ramp);
+      this.rampNodeGain(this.musicGain, this.baseVolumes.music * 0.05, ramp);
+      this.rampNodeGain(this.sfxGain, this.baseVolumes.sfx * 0.15, ramp);
+      this.rampNodeGain(this.monsterGain, this.baseVolumes.monster, ramp);
+      this.rampNodeGain(this.uiGain, this.baseVolumes.ui, ramp);
+    } else {
+      const ambTarget = this.listeningDipActive ? this.baseVolumes.ambient * 0.40 : this.baseVolumes.ambient;
+      this.rampNodeGain(this.ambientGain, ambTarget, ramp);
+      this.rampNodeGain(this.musicGain, this.baseVolumes.music, ramp);
+      this.rampNodeGain(this.sfxGain, this.baseVolumes.sfx, ramp);
+      this.rampNodeGain(this.monsterGain, this.baseVolumes.monster, ramp);
+      this.rampNodeGain(this.uiGain, this.baseVolumes.ui, ramp);
+    }
+  }
   private duckingEnabled = true;
 
   // Base volume levels configured by user settings (aligned with Settings.ts defaults)

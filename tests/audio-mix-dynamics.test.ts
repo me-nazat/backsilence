@@ -131,4 +131,28 @@ describe('Phase D: Mix, Dynamics, Silence & Output Profiles Suite', () => {
     // Should steal v2 because it has lowest priority (2) and is older than v1 (0.5 < 1.0)
     expect(victim?.id).toBe('v2');
   });
+
+  it('5. Mixer snapshot transitions (Prompt 6 Phase C: silence-as-information & encounter states)', () => {
+    const mockCtx = createMockAudioContext();
+    const mixer = new Mixer(mockCtx);
+
+    expect(mixer.getSnapshotState()).toBe('default');
+
+    // Apply silence_investigate: ducks ambient (-18dB / 0.125), music (-24dB / 0.06), sfx (-12dB / 0.25)
+    // while keeping monster bus un-ducked (1.0)
+    mixer.applySnapshot('silence_investigate', 0.35);
+    expect(mixer.getSnapshotState()).toBe('silence_investigate');
+
+    // Test transition to jumpscare
+    mixer.applySnapshot('jumpscare', 0.25);
+    expect(mixer.getSnapshotState()).toBe('jumpscare');
+
+    // Test transition to tinnitus_quiet
+    mixer.applySnapshot('tinnitus_quiet', 0.40);
+    expect(mixer.getSnapshotState()).toBe('tinnitus_quiet');
+
+    // Return to default
+    mixer.applySnapshot('default', 0.50);
+    expect(mixer.getSnapshotState()).toBe('default');
+  });
 });

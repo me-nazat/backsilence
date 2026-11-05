@@ -792,6 +792,7 @@ export class GameSession {
                 return;
               }
             }
+            this.audio.applySnapshot('tinnitus_quiet', 0.40);
             this.audio.play('tape_rewind');
             this.postFX.triggerDeathRewind();
             // Video timing: 1.0–1.5s dark/void hold before showing death screen UI
@@ -3006,6 +3007,21 @@ export class GameSession {
       this.audio.setListeningDip(false);
     }
 
+    // Silence-as-information (Prompt 6 Phase C):
+    // Ducks non-essential soundscape when player is stationary on dry tile and creature investigates
+    const isPlayerSilent = speed < 0.15 && !pSnap.wet;
+    let closestMonsterDist = 999;
+    let closestMonsterState = 'WANDER';
+    for (let mi = 0; mi < this.simWorld.monsters.length; mi++) {
+      const mSnap = this.simWorld.monsters[mi]!.getSnapshot();
+      const mDist = Math.hypot(mSnap.pos.x - pSnap.pos.x, mSnap.pos.z - pSnap.pos.z);
+      if (mDist < closestMonsterDist) {
+        closestMonsterDist = mDist;
+        closestMonsterState = mSnap.state;
+      }
+    }
+    this.audio.updateSilenceInformation(isPlayerSilent, closestMonsterDist, closestMonsterState);
+
     // Auto exposure adaptation (1.2s time constant) & stable directional shadow texel snapping
     if (++this.autoExposureFrameCount % 4 === 0) {
       const inWater = pSnap.pos.y < (this.water?.currentWaterY ?? 0) + 0.1;
@@ -3648,6 +3664,7 @@ export class GameSession {
       if (typeof localStorage !== 'undefined') {
         localStorage.setItem('backsilence_last_tape', String(this.mapId));
       }
+      this.audio.applySnapshot('tinnitus_quiet', 0.50);
       this.audio.play('tape_eject');
       this.postFX.triggerTapeEjected();
 

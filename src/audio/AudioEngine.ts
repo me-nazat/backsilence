@@ -7,7 +7,7 @@
 import type { Vec3, Settings } from '../types/contracts.js';
 import { createNoiseBuffers, type NoiseBuffers } from './Noise.js';
 import { ReverbUnit, type ReverbPreset } from './Reverb.js';
-import { Mixer, type AudioBusName, type OutputProfile, BUS_PRIORITIES } from './Mixer.js';
+import { Mixer, type AudioBusName, type OutputProfile, type MixerSnapshot, BUS_PRIORITIES } from './Mixer.js';
 import { AudioDirector } from './AudioDirector.js';
 import { AudioBufferPool, type PooledVoiceCategory } from './AudioBufferPool.js';
 import ambienceWorkletUrl from './worklets/AmbienceProcessor.ts?worker&url';
@@ -1171,6 +1171,22 @@ export class AudioEngine implements AudioEngineApi {
 
   setListeningDip(active: boolean): void {
     this.mixer?.setListeningDip(active);
+  }
+
+  applySnapshot(snapshot: MixerSnapshot, transitionSec?: number): void {
+    this.mixer?.applySnapshot(snapshot, transitionSec);
+  }
+
+  getSnapshotState(): MixerSnapshot {
+    return this.mixer?.getSnapshotState() ?? 'default';
+  }
+
+  getDirector(): AudioDirector | null {
+    return this.director;
+  }
+
+  updateSilenceInformation(isPlayerSilent: boolean, monsterDistance: number, monsterState: string): void {
+    this.director?.updateSilenceInformation(isPlayerSilent, monsterDistance, monsterState);
   }
 
   setDread(level: number): void {

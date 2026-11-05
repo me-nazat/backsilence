@@ -18,10 +18,37 @@ export class MonsterAudio {
   private sniffTimer = 0;
   private stalkTimer = 4.0;
   private closeHeartbeatTimer = 0.8;
+  private standoffTimer = 1.0;
 
   constructor(id: string, audio: AudioEngine) {
     this.id = id;
     this.audio = audio;
+  }
+
+  /**
+   * Telegraph acoustic cue (Prompt 6 Phase C):
+   * Sub-bass pulse + low wade stinger ~1.5s pre-sight.
+   */
+  playTelegraph(pos?: Vec3): void {
+    const p = pos ?? { x: 0, y: 0, z: 0 };
+    this.audio.play('heartbeat', {
+      position: p,
+      gain: 0.50,
+      bus: 'monster',
+    });
+    this.audio.play('monster_wade', {
+      position: p,
+      gain: 0.60,
+      bus: 'monster',
+    });
+  }
+
+  /**
+   * Post-encounter quiet bed (Prompt 6 Phase C):
+   * Ducks mix into tinnitus-quiet snapshot.
+   */
+  triggerTinnitusQuiet(): void {
+    this.audio.applySnapshot('tinnitus_quiet', 0.40);
   }
 
   update(dt: number, snapshot: MonsterSnapshot, listenerPos: Vec3): void {
@@ -112,12 +139,21 @@ export class MonsterAudio {
           monsterDistance: dist,
           bus: 'monster',
         });
+        // Prompt 6 Phase C Layer (c): spatialized low wet clicks alongside steady 1.1s stalk footfalls
+        if (!isCharging) {
+          this.audio.play('pebble_plink', {
+            position: pos,
+            gain: 0.15,
+            monsterDistance: dist,
+            bus: 'monster',
+          });
+        }
       }
     } else {
       this.gallopTimer = 0.08;
     }
 
-    // 4. State transition sounds (Roar on ALERT, ALERT_AND_CHARGE, ARRIVE_AND_ROAR)
+    // 4. State transition sounds (Roar on ALERT, ALERT_AND_CHARGE, ARRIVE_AND_ROAR, HUNT lunge)
     if (snapshot.state !== this.lastState) {
       if (
         snapshot.state === 'ALERTED' ||
@@ -130,12 +166,39 @@ export class MonsterAudio {
           monsterDistance: dist,
           bus: 'monster',
         });
+      } else if (snapshot.state === 'HUNT' || snapshot.state === 'ATTACK') {
+        // Prompt 6 Phase C Layer (e): lunge riser / jumpscare snapshot ducking
+        this.audio.applySnapshot('jumpscare', 0.25);
+        this.audio.play('creature_roar', {
+          position: pos,
+          gain: 1.0,
+          monsterDistance: dist,
+          bus: 'monster',
+        });
       }
       this.lastState = snapshot.state;
     }
 
     // 5. Periodic behavioral sounds (Prompt 3.12: snarl 4.0+rand*3.0s, sniff 3.5+rand*2.5s)
     if (snapshot.state === 'BLOCKED') {
+      // Prompt 6 Phase C Layer (d): Standoff agitated click bursts + water disturbance
+      this.standoffTimer -= dt;
+      if (this.standoffTimer <= 0) {
+        this.audio.play('pebble_plink', {
+          position: pos,
+          gain: 0.20,
+          monsterDistance: dist,
+          bus: 'monster',
+        });
+        this.audio.play('splash_small', {
+          position: pos,
+          gain: 0.35,
+          monsterDistance: dist,
+          bus: 'monster',
+        });
+        this.standoffTimer = 1.6 + Math.random() * 0.8;
+      }
+
       this.snarlTimer -= dt;
       if (this.snarlTimer <= 0) {
         this.audio.play('monster_snarl', {
@@ -148,6 +211,7 @@ export class MonsterAudio {
       }
     } else {
       this.snarlTimer = 0.5;
+      this.standoffTimer = 1.0;
     }
 
     if (snapshot.state === 'INVESTIGATE') {

@@ -708,7 +708,8 @@ export class MonsterBrain {
     if (this.state === 'INVESTIGATE') return;
 
     // Anti-cheap-scare: No off-screen kills (kill requires visibility or <= 1.5m distance)
-    if (playerPos) {
+    // Lurking perch ambushes (LURK) trigger on water entry within 2.5m
+    if (playerPos && this.state !== 'LURK') {
       const dist = dHypot(this.pos.x - playerPos.x, this.pos.z - playerPos.z);
       if (dist > 1.5) {
         const toMonsterYaw = dAtan2(this.pos.x - playerPos.x, -(this.pos.z - playerPos.z));
