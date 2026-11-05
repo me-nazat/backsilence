@@ -111,7 +111,7 @@ export async function runNaturalPlaySimulation(mapId: 'natatorium' | 'poolrooms'
     const isSighting = Boolean(mSnap.isSighting);
     const preDist = Math.hypot(mSnap.pos.x - world.player.pos.x, mSnap.pos.z - world.player.pos.z);
     let intent: PlayerIntent;
-    if (isSighting || preDist < 8.0) {
+    if (isSighting || preDist < 14.0) {
       intent = idleIntent; // pauses to observe creature / stays safe when near
     } else if (simTime < 7.0) {
       intent = walkIntent;

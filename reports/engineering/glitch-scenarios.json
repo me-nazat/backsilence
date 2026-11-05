@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-11-05T14:44:40.690Z",
+  "timestamp": "2026-11-05T15:15:46.876Z",
   "summary": {
     "total": 6,
     "passed": 6,
@@ -11,7 +11,7 @@
       "id": "S15",
       "title": "Menu Deadlock Prevention (44503aa law: menu locked during loading/disposing)",
       "status": "PASS",
-      "durationMs": 59,
+      "durationMs": 94,
       "detail": {
         "verifiedDeadlockFree": true
       }
@@ -20,7 +20,7 @@
       "id": "S16",
       "title": "Pointer Lock Edge (080e262 law: pointer lock acquire permitted exclusively in RUNNING)",
       "status": "PASS",
-      "durationMs": 1,
+      "durationMs": 19,
       "detail": {
         "allowed": [
           "RUNNING"
@@ -40,7 +40,7 @@
       "id": "S17",
       "title": "Double Dispatch Neutrality (6785222 law: neutral intent when not running)",
       "status": "PASS",
-      "durationMs": 82,
+      "durationMs": 164,
       "detail": {
         "intentLoading": {
           "moveX": 0,
@@ -68,7 +68,7 @@
       "id": "S18",
       "title": "SPA History Navigation Race (10b3962 law: safe route changes and navigation)",
       "status": "PASS",
-      "durationMs": 2421,
+      "durationMs": 1,
       "detail": {
         "routeGuardsVerified": true
       }
@@ -77,7 +77,7 @@
       "id": "S19",
       "title": "Submersion & Depth Target Safety (G7 near-plane 0.05m invariant)",
       "status": "PASS",
-      "durationMs": 51,
+      "durationMs": 2479,
       "detail": {
         "near": 0.05,
         "far": 200,
@@ -88,10 +88,10 @@
       "id": "S20",
       "title": "Rapid-cycle 50x teardown (zero errors, < 30s)",
       "status": "PASS",
-      "durationMs": 1103,
+      "durationMs": 1150,
       "detail": {
         "cycles": 50,
-        "durationMs": 1081,
+        "durationMs": 1065,
         "errors": 0
       }
     }

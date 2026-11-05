@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-11-05T14:40:17.221Z",
+  "timestamp": "2026-11-05T15:17:05.675Z",
   "summary": {
     "status": "PASS",
     "sequential20Pass": true,
@@ -9,9 +9,9 @@
   "sequential20": {
     "cycles": 20,
     "finalLeakedCanvases": 0,
-    "initialHeapMB": 28.48,
+    "initialHeapMB": 28.44,
     "finalHeapMB": 29.58,
-    "heapGrowthPct": 3.86,
+    "heapGrowthPct": 4.01,
     "records": [
       {
         "cycle": 1,
@@ -21,92 +21,92 @@
       {
         "cycle": 2,
         "leakedCanvases": 0,
-        "memoryMB": 27.89
+        "memoryMB": 27.86
       },
       {
         "cycle": 3,
         "leakedCanvases": 0,
-        "memoryMB": 28.16
+        "memoryMB": 28.14
       },
       {
         "cycle": 4,
         "leakedCanvases": 0,
-        "memoryMB": 28.22
+        "memoryMB": 28.19
       },
       {
         "cycle": 5,
         "leakedCanvases": 0,
-        "memoryMB": 28.48
+        "memoryMB": 28.44
       },
       {
         "cycle": 6,
         "leakedCanvases": 0,
-        "memoryMB": 28.67
+        "memoryMB": 28.63
       },
       {
         "cycle": 7,
         "leakedCanvases": 0,
-        "memoryMB": 28.77
+        "memoryMB": 28.73
       },
       {
         "cycle": 8,
         "leakedCanvases": 0,
-        "memoryMB": 28.89
+        "memoryMB": 28.8
       },
       {
         "cycle": 9,
         "leakedCanvases": 0,
-        "memoryMB": 29.17
+        "memoryMB": 29.13
       },
       {
         "cycle": 10,
         "leakedCanvases": 0,
-        "memoryMB": 29.2
+        "memoryMB": 29.16
       },
       {
         "cycle": 11,
         "leakedCanvases": 0,
-        "memoryMB": 29.27
+        "memoryMB": 29.29
       },
       {
         "cycle": 12,
         "leakedCanvases": 0,
-        "memoryMB": 29.28
+        "memoryMB": 29.24
       },
       {
         "cycle": 13,
         "leakedCanvases": 0,
-        "memoryMB": 29.29
+        "memoryMB": 29.25
       },
       {
         "cycle": 14,
         "leakedCanvases": 0,
-        "memoryMB": 29.31
+        "memoryMB": 29.27
       },
       {
         "cycle": 15,
         "leakedCanvases": 0,
-        "memoryMB": 29.31
+        "memoryMB": 29.27
       },
       {
         "cycle": 16,
         "leakedCanvases": 0,
-        "memoryMB": 29.32
+        "memoryMB": 29.28
       },
       {
         "cycle": 17,
         "leakedCanvases": 0,
-        "memoryMB": 29.36
+        "memoryMB": 29.38
       },
       {
         "cycle": 18,
         "leakedCanvases": 0,
-        "memoryMB": 29.52
+        "memoryMB": 29.57
       },
       {
         "cycle": 19,
         "leakedCanvases": 0,
-        "memoryMB": 29.54
+        "memoryMB": 29.53
       },
       {
         "cycle": 20,

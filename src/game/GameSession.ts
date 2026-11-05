@@ -144,6 +144,14 @@ export class GameSession {
     return this.host.isLoaded;
   }
 
+  get isLoaded(): boolean {
+    return this.host.isLoaded;
+  }
+
+  get settings(): Settings {
+    return this.host.settings;
+  }
+
   get playerPosition(): Vec3 | null {
     if (!this.host.simWorld?.player?.pos) return null;
     const p = this.host.simWorld.player.pos;
