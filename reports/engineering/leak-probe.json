@@ -1,0 +1,124 @@
+{
+  "timestamp": "2026-11-05T14:40:17.221Z",
+  "summary": {
+    "status": "PASS",
+    "sequential20Pass": true,
+    "rapid50Pass": true,
+    "zeroErrorsPass": true
+  },
+  "sequential20": {
+    "cycles": 20,
+    "finalLeakedCanvases": 0,
+    "initialHeapMB": 28.48,
+    "finalHeapMB": 29.58,
+    "heapGrowthPct": 3.86,
+    "records": [
+      {
+        "cycle": 1,
+        "leakedCanvases": 0,
+        "memoryMB": 27.24
+      },
+      {
+        "cycle": 2,
+        "leakedCanvases": 0,
+        "memoryMB": 27.89
+      },
+      {
+        "cycle": 3,
+        "leakedCanvases": 0,
+        "memoryMB": 28.16
+      },
+      {
+        "cycle": 4,
+        "leakedCanvases": 0,
+        "memoryMB": 28.22
+      },
+      {
+        "cycle": 5,
+        "leakedCanvases": 0,
+        "memoryMB": 28.48
+      },
+      {
+        "cycle": 6,
+        "leakedCanvases": 0,
+        "memoryMB": 28.67
+      },
+      {
+        "cycle": 7,
+        "leakedCanvases": 0,
+        "memoryMB": 28.77
+      },
+      {
+        "cycle": 8,
+        "leakedCanvases": 0,
+        "memoryMB": 28.89
+      },
+      {
+        "cycle": 9,
+        "leakedCanvases": 0,
+        "memoryMB": 29.17
+      },
+      {
+        "cycle": 10,
+        "leakedCanvases": 0,
+        "memoryMB": 29.2
+      },
+      {
+        "cycle": 11,
+        "leakedCanvases": 0,
+        "memoryMB": 29.27
+      },
+      {
+        "cycle": 12,
+        "leakedCanvases": 0,
+        "memoryMB": 29.28
+      },
+      {
+        "cycle": 13,
+        "leakedCanvases": 0,
+        "memoryMB": 29.29
+      },
+      {
+        "cycle": 14,
+        "leakedCanvases": 0,
+        "memoryMB": 29.31
+      },
+      {
+        "cycle": 15,
+        "leakedCanvases": 0,
+        "memoryMB": 29.31
+      },
+      {
+        "cycle": 16,
+        "leakedCanvases": 0,
+        "memoryMB": 29.32
+      },
+      {
+        "cycle": 17,
+        "leakedCanvases": 0,
+        "memoryMB": 29.36
+      },
+      {
+        "cycle": 18,
+        "leakedCanvases": 0,
+        "memoryMB": 29.52
+      },
+      {
+        "cycle": 19,
+        "leakedCanvases": 0,
+        "memoryMB": 29.54
+      },
+      {
+        "cycle": 20,
+        "leakedCanvases": 0,
+        "memoryMB": 29.58
+      }
+    ]
+  },
+  "rapid50": {
+    "cycles": 50,
+    "durationMs": 1294,
+    "errorCount": 0
+  },
+  "unhandledErrors": []
+}

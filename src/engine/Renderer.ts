@@ -208,6 +208,12 @@ export class EngineRenderer {
       this.resizeObserver.disconnect();
       this.resizeObserver = null;
     }
+    try {
+      const gl = this.renderer.getContext();
+      gl?.getExtension('WEBGL_lose_context')?.loseContext();
+    } catch {
+      /* ignore */
+    }
     this.renderer.dispose();
     if (this.canvas.parentElement) {
       this.canvas.parentElement.removeChild(this.canvas);

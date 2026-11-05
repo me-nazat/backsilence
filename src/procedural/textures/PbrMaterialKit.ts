@@ -50,6 +50,19 @@ export interface PbrKitOptions {
 const pbrCache = new Map<string, PbrSetResult>();
 
 /**
+ * Clear cached PBR texture sets and release their underlying textures.
+ */
+export function clearPbrCache(): void {
+  for (const set of pbrCache.values()) {
+    set.albedo.dispose();
+    set.normal.dispose();
+    set.roughness.dispose();
+    set.ao.dispose();
+  }
+  pbrCache.clear();
+}
+
+/**
  * Procedural generator for 13 distinct PBR surface sets.
  */
 export function makePbrMaterialSet(options: PbrKitOptions): PbrSetResult {

@@ -339,6 +339,7 @@ export class AudioEngine implements AudioEngineApi {
   private tapeHissSource: AudioBufferSourceNode | null = null;
   private tapeHissGain: GainNode | null = null;
   private vhsIntensity = 0.5;
+  private unbinds: Array<() => void> = [];
 
   static getInstance(): AudioEngine {
     if (!AudioEngine.instance) {
@@ -412,13 +413,15 @@ export class AudioEngine implements AudioEngineApi {
     (this as { analyser: AnalyserNode }).analyser = analyserNode;
 
     // Window visibility lifecycle: mute on blur if configured
-    document.addEventListener('visibilitychange', () => {
+    const onVisibilityChange = () => {
       if (document.hidden && this.muteOnBlur && this.ctx?.state === 'running') {
         this.ctx.suspend().catch(() => {});
       } else if (!document.hidden && this.ctx?.state === 'suspended') {
         this.ctx.resume().catch(() => {});
       }
-    });
+    };
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    this.unbinds.push(() => document.removeEventListener('visibilitychange', onVisibilityChange));
 
     // Reliable First-Gesture Unlock (Section 2.1):
     // Resume AudioContext on any pointerdown, mousedown, or keydown event.
@@ -430,6 +433,11 @@ export class AudioEngine implements AudioEngineApi {
     window.addEventListener('pointerdown', unlockGesture, { passive: true });
     window.addEventListener('mousedown', unlockGesture, { passive: true });
     window.addEventListener('keydown', unlockGesture, { passive: true });
+    this.unbinds.push(() => {
+      window.removeEventListener('pointerdown', unlockGesture);
+      window.removeEventListener('mousedown', unlockGesture);
+      window.removeEventListener('keydown', unlockGesture);
+    });
 
     this.isInitialized = true;
 
@@ -1241,6 +1249,10 @@ export class AudioEngine implements AudioEngineApi {
     if (this.ctx && this.ctx.state !== 'closed') {
       this.ctx.close().catch(() => {});
     }
+    for (const unbind of this.unbinds) {
+      unbind();
+    }
+    this.unbinds.length = 0;
     this.isInitialized = false;
   }
 }

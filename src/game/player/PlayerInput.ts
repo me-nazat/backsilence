@@ -56,6 +56,7 @@ export class PlayerInput {
   private wasGpCrank = false;
   private wasGpCycleItem = false;
   private wasGpPing = false;
+  private unbinds: Array<() => void> = [];
 
   constructor(settings: Settings, callbacks: PlayerInputCallbacks) {
     this.settings = settings;
@@ -88,10 +89,32 @@ export class PlayerInput {
     };
     canvas.addEventListener('pointerdown', onCanvasActivate);
     canvas.addEventListener('click', onCanvasActivate);
+    this.unbinds.push(() => {
+      canvas.removeEventListener('pointerdown', onCanvasActivate);
+      canvas.removeEventListener('click', onCanvasActivate);
+    });
+  }
+
+  private addWindowListener<K extends keyof WindowEventMap>(
+    type: K,
+    listener: (ev: WindowEventMap[K]) => void,
+    options?: boolean | AddEventListenerOptions,
+  ): void {
+    window.addEventListener(type, listener, options);
+    this.unbinds.push(() => window.removeEventListener(type, listener, options));
+  }
+
+  private addDocListener<K extends keyof DocumentEventMap>(
+    type: K,
+    listener: (ev: DocumentEventMap[K]) => void,
+    options?: boolean | AddEventListenerOptions,
+  ): void {
+    document.addEventListener(type, listener, options);
+    this.unbinds.push(() => document.removeEventListener(type, listener, options));
   }
 
   private bindEvents(): void {
-    window.addEventListener('keydown', (e) => {
+    this.addWindowListener('keydown', (e) => {
       if (this.freezeInput) return;
       this.keysDown.add(e.code);
 
@@ -136,7 +159,7 @@ export class PlayerInput {
       }
     });
 
-    window.addEventListener('keyup', (e) => {
+    this.addWindowListener('keyup', (e) => {
       this.keysDown.delete(e.code);
       if (e.code === 'KeyG') {
         if (this.isThrowing) {
@@ -150,7 +173,7 @@ export class PlayerInput {
     });
 
     // Mouse button events for throw, interact, and pointer lock
-    window.addEventListener('mousedown', (e) => {
+    this.addWindowListener('mousedown', (e) => {
       if (this.freezeInput) return;
       this.isMouseDown = true;
       this.lastClientX = e.clientX;
@@ -171,7 +194,7 @@ export class PlayerInput {
       }
     });
 
-    window.addEventListener('mouseup', (e) => {
+    this.addWindowListener('mouseup', (e) => {
       this.isMouseDown = false;
       this.lastClientX = null;
       this.lastClientY = null;
@@ -186,13 +209,13 @@ export class PlayerInput {
       }
     });
 
-    window.addEventListener('contextmenu', (e) => {
+    this.addWindowListener('contextmenu', (e) => {
       if (this.isLocked) {
         e.preventDefault();
       }
     });
 
-    window.addEventListener('mousemove', (e) => {
+    this.addWindowListener('mousemove', (e) => {
       if (this.freezeInput) return;
 
       let dx = e.movementX;
@@ -214,19 +237,19 @@ export class PlayerInput {
       }
     });
 
-    document.addEventListener('pointerlockchange', () => {
+    this.addDocListener('pointerlockchange', () => {
       this.isLocked = document.pointerLockElement === this.canvas;
     });
 
     // Auto-pause and clear keys on window blur or visibility loss
-    window.addEventListener('blur', () => {
+    this.addWindowListener('blur', () => {
       this.keysDown.clear();
       this.isThrowing = false;
       this.isCranking = false;
       this.callbacks.onPauseRequested();
     });
 
-    document.addEventListener('visibilitychange', () => {
+    this.addDocListener('visibilitychange', () => {
       if (document.hidden) {
         this.keysDown.clear();
         this.isThrowing = false;
@@ -486,5 +509,9 @@ export class PlayerInput {
     this.exitPointerLock();
     this.keysDown.clear();
     this.touchControls.dispose();
+    for (const unbind of this.unbinds) {
+      unbind();
+    }
+    this.unbinds.length = 0;
   }
 }

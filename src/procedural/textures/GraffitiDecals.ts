@@ -28,6 +28,9 @@ export interface WarningDecalOptions {
 const decalCache = new Map<string, CanvasTexture>();
 
 export function clearDecalCache(): void {
+  for (const tex of decalCache.values()) {
+    tex.dispose();
+  }
   decalCache.clear();
 }
 

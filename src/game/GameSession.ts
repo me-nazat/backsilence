@@ -80,6 +80,10 @@ export class GameSession {
 
   // ── Public Properties & Delegating Getters ────────────────────────────────
 
+  get initPromise(): Promise<void> {
+    return this.host.initPromise;
+  }
+
   get scene(): Scene {
     return this.host.scene;
   }

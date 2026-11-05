@@ -70,6 +70,9 @@ import { NetBridge } from './NetBridge.js';
 import { DebugBridge } from './DebugBridge.js';
 import { ColdOpenService } from './ColdOpenService.js';
 import { setupAtmosphere } from './AtmosphereService.js';
+import { clearDecalCache } from '../../procedural/textures/GraffitiDecals.js';
+import { clearNumberDecalCache } from '../../procedural/textures/NumberDecals.js';
+import { clearPbrCache } from '../../procedural/textures/PbrMaterialKit.js';
 
 const _scratchVecA = new Vector3();
 
@@ -104,6 +107,7 @@ export class SessionHost {
   readonly audio = AudioEngine.getInstance();
   private menuMusic: MenuMusic | null = null;
   readonly callbacks: SessionHostCallbacks;
+  readonly initPromise: Promise<void>;
 
   readonly container: HTMLElement;
   settings: Settings;
@@ -224,7 +228,7 @@ export class SessionHost {
       }
     }
 
-    void this.initAsync(netSession);
+    this.initPromise = this.initAsync(netSession);
   }
 
   async initAsync(netSession?: NetSession): Promise<void> {
@@ -232,6 +236,8 @@ export class SessionHost {
 
     // 1. Resolve map definition and layout
     this.mapDef = await getMapDefinition(this.mapId);
+    if (this.disposal.isTerminated || this.sm.isTerminated()) return;
+
     const playerCount = netSession ? netSession.getPlayerCount() : 1;
     this.layout = generateValidLayout(this.mapDef, {
       seed: this.seed,
@@ -248,6 +254,10 @@ export class SessionHost {
       audio: this.audio,
       renderer: this.renderer.renderer,
     });
+    if (this.disposal.isTerminated || this.sm.isTerminated()) {
+      this.mapInstance?.dispose();
+      return;
+    }
 
     // 3. Resolve spawns
     const pSpawn = this.spawnService.resolvePlayerSpawn(this.layout, netSession);
@@ -741,6 +751,15 @@ export class SessionHost {
     setMenuRoute();
 
     // 1. Takedown subsystems in reverse order
+    this.audio.setColliders(null);
+    this.audio.dispose();
+    this.interactions?.dispose();
+    this.acoustics?.dispose();
+    this.footsteps?.dispose();
+    clearDecalCache();
+    clearNumberDecalCache();
+    clearPbrCache();
+
     this.coldOpen.dispose();
     this.inputRig?.dispose();
     this.debugBridge?.dispose();
@@ -753,7 +772,15 @@ export class SessionHost {
     this.flock?.dispose();
     this.weatherDirector?.dispose();
     this.lensOverlay?.dispose();
-    this.mapInstance?.dispose();
+    if (this.mapInstance) {
+      this.disposal.disposeThreeHierarchy(this.mapInstance.root, 'map');
+      this.mapInstance.dispose();
+    }
+
+    if (this.scene) {
+      this.disposal.disposeThreeHierarchy(this.scene, 'scene');
+      this.scene.clear();
+    }
 
     if (this.envTexture) {
       this.envTexture.dispose();
