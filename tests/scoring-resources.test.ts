@@ -187,8 +187,8 @@ describe('Prompt 3 Section 8 & 9: Scoring, Resources, Loadout & Mutators', () =>
   });
 
   describe('Mutators & Economy', () => {
-    it('validates 12 mutators, detects conflicts, and computes total multipliers', () => {
-      expect(Object.keys(MUTATORS)).toHaveLength(12);
+    it('validates 15 mutators, detects conflicts, and computes total multipliers', () => {
+      expect(Object.keys(MUTATORS)).toHaveLength(15);
 
       // Glass Water (1.25) + Blackout (1.30)
       const valid = MutatorManager.validateMutators(['glass_water', 'blackout']);

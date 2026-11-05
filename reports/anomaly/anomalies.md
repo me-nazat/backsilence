@@ -98,3 +98,4 @@ The `AnomalyDirector` is a pure simulation layer component that deterministicall
 - **Loop Flicker Max Luminance Delta:** $0.18$ (photosafety limit $< 0.25$).
 - **Stage Transition Fade:** Maximum single-frame luminance delta $0.043$ over 72 frames (limit $< 0.10$).
 - **Measured Result:** PASS (5/5 tests passing).
+

@@ -75,7 +75,7 @@ export class JumpscareSequence {
   }
 
   private createOverlay(): void {
-    if (typeof document === 'undefined') return;
+    if (typeof document === 'undefined' || !document.body) return;
     const el = document.createElement('div');
     el.id = 'jumpscare-overlay';
     el.style.cssText = `

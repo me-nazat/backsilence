@@ -127,3 +127,4 @@ Audited via `node scripts/audit/rulebook-sync.mjs`:
 - **Cause Chain UI:** Verified `#death-cause-chain` renders last 3 noise events with exact millisecond timestamps and loudness percentages.
 - **Replay Scrub:** Verified `watchReplay` trigger and `KeyP` keyboard shortcut.
 - **Safe Area Invariant:** 9:16 portrait layout leaves top $28\%$ clear for streamer facecam.
+

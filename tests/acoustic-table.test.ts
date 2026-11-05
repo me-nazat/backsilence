@@ -23,10 +23,10 @@ describe('Prompt 8 (D126): Acoustic Contract & Rulebook Verification', () => {
   });
 
   // ──────────────────────────────────────────────────────────────────────────
-  // 1. Full 29-Row Rulebook Noise Table: Loudness & Radius Verification
+  // 1. Full 32-Row Rulebook Noise Table: Loudness & Radius Verification
   // ──────────────────────────────────────────────────────────────────────────
   it('asserts exact loudness and hearing radius for all rulebook noise entries', () => {
-    expect(RULEBOOK_NOISE_TABLE.length).toBe(29);
+    expect(RULEBOOK_NOISE_TABLE.length).toBe(32);
 
     const testOrigin: Vec3 = { x: 0, y: 0, z: 0 };
 

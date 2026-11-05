@@ -75,3 +75,4 @@ The 10 existing game modes and their win conditions:
    - Verify 9:16 portrait layout safe areas across all 3 descent stages and anomaly HUD cues.
    - Extend `tests/a11y-safety.test.ts` for photosafety flash compliance ($\le 3$ Hz, $< 0.25$ delta).
    - Author `reports/anomaly/anomalies.md` and `reports/release/campaign_v2.md`.
+
