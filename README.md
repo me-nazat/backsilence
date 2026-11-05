@@ -31,7 +31,7 @@ open http://localhost:5173/
 | `npm run dev:api` | Run local zero-credential FakeLibsql API proxy on port 8787 |
 | `npm run typecheck` | Run TypeScript strict type checking |
 | `npm run lint` | Run ESLint verification |
-| `npm run test` | Run Vitest unit & integration test suite (887 tests across 100 files) |
+| `npm run test` | Run Vitest unit & integration test suite (925 tests across 104 files) |
 | `npm run balance` | Run Headless Balance Bot Swarm (13,200 simulated runs across all 11 maps) |
 | `npm run smoke` | Run Headless CDP Smoke Bot covering all 14 end-to-end scenarios (S1–S14) |
 | `npm run secret:scan` | Scan repository, git history, and built bundles for exposed credentials |

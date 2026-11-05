@@ -111,6 +111,9 @@ export const RULEBOOK_CONSTANTS = {
   THROTTLE_HOLD: 0.8,
   EMP_USE: 0.3,
   GHOST_TRAIN: 0,
+  LEVEL0_WET_STEP: 0.35,
+  LEVEL0_WET_SPRINT: 0.75,
+  LEVEL0_CROUCH_CREEP: 0.12,
 } as const;
 
 /**
@@ -384,6 +387,33 @@ export const RULEBOOK_NOISE_TABLE: readonly RulebookNoiseEntry[] = [
     rawLoudnessSpec: '0 (ignored by monsters as lure)',
     rawHearSpec: 'Applies mask zones (0.6 / 0.2 / 0.5)',
   },
+  {
+    key: 'LEVEL0_WET_STEP',
+    action: 'Wet footstep on dry tile (Level 0 Inversion)',
+    surface: 'dry tile (Level 0)',
+    loudness: RULEBOOK_CONSTANTS.LEVEL0_WET_STEP,
+    maxRadiusMeters: 14,
+    rawLoudnessSpec: '0.35 (`wade`)',
+    rawHearSpec: 'Within ~14 m',
+  },
+  {
+    key: 'LEVEL0_WET_SPRINT',
+    action: 'Wet sprint on dry tile (Level 0 Inversion)',
+    surface: 'dry tile (Level 0)',
+    loudness: RULEBOOK_CONSTANTS.LEVEL0_WET_SPRINT,
+    maxRadiusMeters: 30,
+    rawLoudnessSpec: '0.75 (`wade`)',
+    rawHearSpec: 'Within ~30 m',
+  },
+  {
+    key: 'LEVEL0_CROUCH_CREEP',
+    action: 'Crouch-creep on dry tile (Level 0 Inversion)',
+    surface: 'dry tile (Level 0)',
+    loudness: RULEBOOK_CONSTANTS.LEVEL0_CROUCH_CREEP,
+    maxRadiusMeters: 5,
+    rawLoudnessSpec: '0.12 (`wade`)',
+    rawHearSpec: 'Within ~5 m',
+  },
 ] as const;
 
 export type AcousticEventListener = (event: AcousticEvent) => void;
@@ -401,7 +431,16 @@ export class AcousticBus {
   private lastSoundTarget: Vec3 | null = null;
   private currentNoiseLevel = 0;
   private isPlayerFrozen = true;
+  private isLevel0Inversion = false;
   private eventSequence = 0;
+
+  setLevel0Inversion(active: boolean): void {
+    this.isLevel0Inversion = active;
+  }
+
+  getLevel0Inversion(): boolean {
+    return this.isLevel0Inversion;
+  }
 
   private readonly listeners: AcousticEventListener[] = [];
 
@@ -605,9 +644,40 @@ export class AcousticBus {
     this.wasOnGround = player.onGround;
 
     // ──────────────────────────────────────────────────────────────────────────
-    // 2. Dry Platform Rule: ZERO water sound
+    // 2. Dry Platform Rule vs Level 0 Inversion
     // ──────────────────────────────────────────────────────────────────────────
     if (onDry) {
+      if (this.isLevel0Inversion) {
+        if (horizSpeed < AcousticBus.STILL_SPEED_THRESHOLD) {
+          this.currentNoiseLevel = RULEBOOK_CONSTANTS.STANDING_STILL_ANY;
+          this.stepTimer = 0;
+          this.isPlayerFrozen = true;
+          return emittedEvent;
+        }
+        this.isPlayerFrozen = false;
+        if (player.sprinting) {
+          this.currentNoiseLevel = RULEBOOK_CONSTANTS.LEVEL0_WET_SPRINT;
+        } else if (player.crouching) {
+          this.currentNoiseLevel = RULEBOOK_CONSTANTS.LEVEL0_CROUCH_CREEP;
+        } else {
+          this.currentNoiseLevel = RULEBOOK_CONSTANTS.LEVEL0_WET_STEP;
+        }
+        this.stepTimer += dt;
+        if (this.stepTimer >= AcousticBus.STEP_CADENCE) {
+          this.stepTimer -= AcousticBus.STEP_CADENCE;
+          const dryStep = this.emitSound({
+            kind: 'FOOTFALL_DRY',
+            pos: { x: player.pos.x, y: player.pos.y, z: player.pos.z },
+            loudness: this.currentNoiseLevel,
+            priority: 5,
+            simTime,
+            source: 'player',
+          });
+          if (!emittedEvent) emittedEvent = dryStep;
+        }
+        return emittedEvent;
+      }
+
       this.currentNoiseLevel = RULEBOOK_CONSTANTS.DRY_PLATFORM_LOCOMOTION;
       this.stepTimer = 0;
       this.isPlayerFrozen = false;

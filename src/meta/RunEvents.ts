@@ -92,6 +92,11 @@ export interface RescueEvent {
   t: number;
 }
 
+export interface LoopEscapedEvent {
+  type: 'loop_escaped';
+  t: number;
+}
+
 export type RunEvent =
   | NoiseMadeEvent
   | JumpCleanEvent
@@ -103,7 +108,8 @@ export type RunEvent =
   | DeathEvent
   | EscapeEvent
   | HauntEvent
-  | RescueEvent;
+  | RescueEvent
+  | LoopEscapedEvent;
 
 export type RunEventType = RunEvent['type'];
 

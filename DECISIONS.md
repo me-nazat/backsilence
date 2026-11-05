@@ -2062,3 +2062,31 @@ Prompt 7 establishes the human layer and core loop for *BackSilence* (inspired b
 **Status:** ACCEPTED  
 **Consequences:** Defect C7 closed in `CENSUS.md`; `tests/objectives-chlorine-cells.test.ts`, `tests/throwable-lure-assertion.test.ts`, `tests/hud-default-elements.test.ts` all pass; first-minute headless verification report produced in `reports/ux/first_minute.md`.
 
+## D140 — Three-Stage Descent Campaign (Poolrooms -> The Drain -> Level 0), Inverted Acoustic Rule & Anomaly Architecture (Prompt 8)
+
+**Date:** 2026-11-05  
+**Context:**  
+Prompt 8 fulfills the Steam promise of "Anomalies Beyond Reason" and the run-level journey from "the Poolrooms to Level 0." The campaign requires an integrated 3-stage descent reusing existing maps, fair deterministic anomaly families (Rising Water, Reality Loops, Sensory Hallucinations), an acoustic rule inversion in Level 0, and expanded achievements.  
+**Decision:**  
+1. **Three-Stage Descent Progression (`src/meta/Campaign.ts`):**  
+   - **Stage 1 — The Poolrooms (`natatorium`)**: The Prompt 7 loop (7 chlorine cells + plant room generator escape) under gentle anomaly pacing. Exits via `drain_pipes` diegetic transition.  
+   - **Stage 2 — The Drain (`drainage_core`)**: Permanent rising water pressure ($+0.1\text{ m/min}$, rate $= 0.00167\text{ m/s}$) under pressure anomaly pacing. Objectives pivot to machinery puzzles (FuseCores + ValveSequence) and flooded trench standoff. Exits via `descending_stairs` transition.  
+   - **Stage 3 — Level 0 (`poolrooms` re-lit)**: The climactic finale where water drains away over $30\text{s}$ into the void. The acoustic rule inverts: wet footsteps now echo on dry tile, while the creature, out of its water element, slows to $1.4\text{ m/s}$ ($58.3\%$ of stalk speed) with widened hearing. Exits via `shifting_door` light exit.  
+2. **Level 0 Re-Lit Palette Swatches (`src/world/maps/PoolroomsMap.ts`):**  
+   - *Level 0 Sodium Haze Fog*: `#c8bc82` (derived from f_013–f_015 dry plaster walls and mono-yellow tint; thin density $0.022$ vs standard $0.065$).  
+   - *Level 0 Ceiling Receded Ambient*: `#d6ca8e` (warm aged fluorescent overhead illumination matching the Level 0 mood).  
+   - *Level 0 Dry Tile Sun Tint*: `#ebe3a6` (dry cream wallpaper reflection, exposure 1.05).  
+3. **Inverted Acoustic Rule & Rulebook Sync (`ACOUSTIC_RULEBOOK.md`, `src/sim/AcousticBus.ts`):**  
+   - Documented as an authoritative mode change in `ACOUSTIC_RULEBOOK.md`:  
+     - Wet footstep on dry tile: loudness $0.35$ (`Within ~14 m`).  
+     - Wet sprint on dry tile: loudness $0.75$ (`Within ~30 m`).  
+     - Crouch-creep on dry tile: loudness $0.12$ (`Within ~5 m`).  
+     - Standing still on dry tile: loudness $0$ (`Never`).  
+   - Synced with 32 rulebook rows verified in `scripts/audit/rulebook-sync.mjs`.  
+4. **Three Prompt 8 Achievements (`src/meta/Achievements.ts`):**  
+   - `dry_descent`: Complete Stage 1 (The Poolrooms) without touching water or splashing.  
+   - `loopbreaker`: Escape 3 reality loops through stillness or taking the water route.  
+   - `stillness`: Survive an entity INVESTIGATE phase while frozen still at $\le 3.0\text{ m}$.  
+**Status:** ACCEPTED  
+**Consequences:** `tests/campaign-descent.test.ts` (7/7 PASS); `scripts/audit/rulebook-sync.mjs` (32/32 PASS); all existing campaign tape suites continue to pass.
+

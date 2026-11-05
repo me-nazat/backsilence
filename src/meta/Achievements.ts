@@ -360,6 +360,60 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     icon: '🎖️',
     checkProfile: (p) => p.achievementsUnlockedCount >= 25,
   },
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // Prompt 8: Descent Campaign & Anomaly Achievements
+  // ──────────────────────────────────────────────────────────────────────────
+
+  // 31. Dry Descent: no water entry Stage 1
+  {
+    id: 'dry_descent',
+    title: 'Dry Descent',
+    description: 'Complete Stage 1 (The Poolrooms) of the descent without touching the water.',
+    category: 'challenge',
+    icon: '✨',
+    checkRun: (r) => {
+      if (!r.escaped || r.mapId !== 'natatorium') return false;
+      const waterEvents = r.events.filter(
+        (e) =>
+          e.type === 'noise_made' &&
+          ((e as unknown as { kind?: string }).kind === 'wade' ||
+            (e as unknown as { kind?: string }).kind === 'splash' ||
+            (e as unknown as { kind?: string }).kind === 'jump_in'),
+      );
+      return waterEvents.length === 0;
+    },
+  },
+
+  // 32. Loopbreaker: escape 3 reality loops
+  {
+    id: 'loopbreaker',
+    title: 'Loopbreaker',
+    description: 'Escape 3 reality loops through disciplined stillness or taking the water route.',
+    category: 'exploration',
+    icon: '🌀',
+    checkRun: (r) => {
+      const loopEscapes = r.events.filter((e) => e.type === 'loop_escaped');
+      return loopEscapes.length >= 3;
+    },
+  },
+
+  // 33. Stillness: survive an INVESTIGATE at <= 3m
+  {
+    id: 'stillness',
+    title: 'Stillness',
+    description: 'Survive an entity INVESTIGATE phase while frozen still at <= 3m distance.',
+    category: 'skill',
+    icon: '🧘',
+    checkRun: (r) => {
+      return r.events.some(
+        (e) =>
+          e.type === 'lurk_survived' &&
+          (e as unknown as { distance?: number }).distance !== undefined &&
+          (e as unknown as { distance: number }).distance <= 3.0,
+      );
+    },
+  },
 ];
 
 export const AchievementEngine = {

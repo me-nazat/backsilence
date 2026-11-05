@@ -1021,3 +1021,177 @@ export class Campaign {
 
 export type CampaignArchive = Campaign;
 export const CampaignArchive = Campaign;
+
+// ────────────────────────────────────────────────────────────────────────────
+// Prompt 8: The 3-Stage Descent Campaign (Poolrooms -> The Drain -> Level 0)
+// ────────────────────────────────────────────────────────────────────────────
+
+export type DescentStageId = 'stage_1_poolrooms' | 'stage_2_the_drain' | 'stage_3_level_0';
+
+export interface DescentStageDef {
+  stageId: DescentStageId;
+  stageIndex: number; // 1, 2, 3
+  title: string;
+  mapId: string;
+  logline: string;
+  transitionType: 'drain_pipes' | 'descending_stairs' | 'shifting_door';
+  objectivesText: string[];
+  risingWaterPressureRate: number; // m/s (0.0 in stage 1, +0.1m/min = 0.00167 in stage 2, negative in stage 3)
+  isInvertedAcoustics: boolean; // true in stage 3
+  anomalyPacing: 'gentle' | 'pressure' | 'finale';
+}
+
+export const DESCENT_STAGES: readonly DescentStageDef[] = [
+  {
+    stageId: 'stage_1_poolrooms',
+    stageIndex: 1,
+    title: 'Stage 1 — The Poolrooms',
+    mapId: 'natatorium',
+    logline: 'Collect the 7 chlorine cells across the flooded natatorium, crank the plant room generator, and breach the drain intake.',
+    transitionType: 'drain_pipes',
+    objectivesText: [
+      'Collect 7 Chlorine Cells (0/7)',
+      'Hold Crank on Plant Room Generator',
+      'Descend into Main Drain Intake',
+    ],
+    risingWaterPressureRate: 0.0,
+    isInvertedAcoustics: false,
+    anomalyPacing: 'gentle',
+  },
+  {
+    stageId: 'stage_2_the_drain',
+    stageIndex: 2,
+    title: 'Stage 2 — The Drain',
+    mapId: 'drainage_core',
+    logline: 'Survive the rising water pressure (+0.1 m/min). Restore the Fuse Cores, sequence the equalizing valves, and hold the trench line.',
+    transitionType: 'descending_stairs',
+    objectivesText: [
+      'Secure 3 Fuse Cores from High Catwalks',
+      'Sequence Intake & Equalizing Valves 1-3',
+      'Survive the Flooded Trench Standoff',
+      'Unlock Sub-Level Bulkhead Stairs',
+    ],
+    risingWaterPressureRate: 0.1 / 60.0, // +0.1 m / min
+    isInvertedAcoustics: false,
+    anomalyPacing: 'pressure',
+  },
+  {
+    stageId: 'stage_3_level_0',
+    stageIndex: 3,
+    title: 'Stage 3 — Level 0',
+    mapId: 'poolrooms',
+    logline: 'The water drains away into the void. The acoustic rule inverts: wet tile footsteps echo across the dry expanse. Stalk to the light door.',
+    transitionType: 'shifting_door',
+    objectivesText: [
+      'Survive Water Drainage Sequence (30s)',
+      'Tread Carefully: Dry Tiles Echo Wet Steps',
+      'Evade the Slowed Entity (1.4 m/s)',
+      'Reach the Light Door to Escape the Liminal Depths',
+    ],
+    risingWaterPressureRate: -0.015, // Drains water away over 30s
+    isInvertedAcoustics: true,
+    anomalyPacing: 'finale',
+  },
+];
+
+export interface DescentRunStageStats {
+  stageId: DescentStageId;
+  timeSeconds: number;
+  noiseUnits: number;
+  anomaliesSurvived: number;
+  completed: boolean;
+  waterTouched: boolean;
+}
+
+export interface DescentRunSnapshot {
+  seed: number;
+  currentStageIndex: number;
+  stages: DescentRunStageStats[];
+  isCompleted: boolean;
+  isFailed: boolean;
+  totalTimeSeconds: number;
+  totalNoiseUnits: number;
+  totalAnomaliesSurvived: number;
+}
+
+export class DescentCampaignRun {
+  readonly seed: number;
+  private currentStageIdx = 0;
+  private stageStats: DescentRunStageStats[] = [];
+  private isCompleted = false;
+  private isFailed = false;
+
+  constructor(seed: number = 1001) {
+    this.seed = seed;
+  }
+
+  getCurrentStage(): DescentStageDef {
+    const stage = DESCENT_STAGES[this.currentStageIdx];
+    return stage ?? DESCENT_STAGES[0]!;
+  }
+
+  get stageIndex(): number {
+    return this.currentStageIdx + 1; // 1-based
+  }
+
+  get isRunCompleted(): boolean {
+    return this.isCompleted;
+  }
+
+  get isRunFailed(): boolean {
+    return this.isFailed;
+  }
+
+  completeCurrentStage(stats: {
+    timeSeconds: number;
+    noiseUnits: number;
+    anomaliesSurvived: number;
+    waterTouched: boolean;
+  }): { nextStage: DescentStageDef | null; runCompleted: boolean } {
+    const current = this.getCurrentStage();
+    this.stageStats.push({
+      stageId: current.stageId,
+      timeSeconds: stats.timeSeconds,
+      noiseUnits: stats.noiseUnits,
+      anomaliesSurvived: stats.anomaliesSurvived,
+      completed: true,
+      waterTouched: stats.waterTouched,
+    });
+
+    if (this.currentStageIdx + 1 >= DESCENT_STAGES.length) {
+      this.isCompleted = true;
+      return { nextStage: null, runCompleted: true };
+    }
+
+    this.currentStageIdx++;
+    return {
+      nextStage: this.getCurrentStage(),
+      runCompleted: false,
+    };
+  }
+
+  failRun(): void {
+    this.isFailed = true;
+  }
+
+  getSummary(): DescentRunSnapshot {
+    let totalTime = 0;
+    let totalNoise = 0;
+    let totalAnomalies = 0;
+    for (const s of this.stageStats) {
+      totalTime += s.timeSeconds;
+      totalNoise += s.noiseUnits;
+      totalAnomalies += s.anomaliesSurvived;
+    }
+    return {
+      seed: this.seed,
+      currentStageIndex: this.currentStageIdx,
+      stages: [...this.stageStats],
+      isCompleted: this.isCompleted,
+      isFailed: this.isFailed,
+      totalTimeSeconds: totalTime,
+      totalNoiseUnits: totalNoise,
+      totalAnomaliesSurvived: totalAnomalies,
+    };
+  }
+}

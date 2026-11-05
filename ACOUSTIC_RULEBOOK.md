@@ -37,6 +37,9 @@
 | Throttle hold (`generator`) | metro | 0.8 sustained | Within ~32 m |
 | EMP use (`clack`) | city | 0.3 | Within ~12 m |
 | Ghost train (`train`) | metro | 0 (ignored by monsters as lure) | Applies mask zones (0.6 / 0.2 / 0.5) |
+| Wet footstep on dry tile (Level 0 Inversion) | dry tile (Level 0) | 0.35 (`wade`) | Within ~14 m |
+| Wet sprint on dry tile (Level 0 Inversion) | dry tile (Level 0) | 0.75 (`wade`) | Within ~30 m |
+| Crouch-creep on dry tile (Level 0 Inversion) | dry tile (Level 0) | 0.12 (`wade`) | Within ~5 m |
 
 
 ## Hearing Radius Formula

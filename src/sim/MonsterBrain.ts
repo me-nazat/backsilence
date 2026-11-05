@@ -86,7 +86,7 @@ export class MonsterBrain {
   static readonly LUNGE_RANGE = 3.8; // high-speed hydro-lunge pounce range
 
   readonly hearingMul: number;
-  readonly speedMul: number;
+  speedMul: number;
   readonly scale: number;
   readonly candidateSpawns: Vec3[] = [];
 
@@ -131,6 +131,18 @@ export class MonsterBrain {
   leapTimer = 0;
   leapStartPos: Vec3 = { x: 0, y: 0, z: 0 };
   leapTargetPos: Vec3 = { x: 0, y: 0, z: 0 };
+
+  // Level 0 Inversion (Prompt 8 Stage 3): water drained, monster slows to 1.4 m/s, hearing widens
+  isLevel0Drained = false;
+
+  setLevel0Drained(drained: boolean): void {
+    this.isLevel0Drained = drained;
+    if (drained) {
+      this.speedMul = 1.4 / MonsterBrain.SPEED_STALK;
+    } else {
+      this.speedMul = 1.0;
+    }
+  }
 
   // Running trajectory hash for determinism testing
   private trajectoryHash = 0x811c9dc5;
