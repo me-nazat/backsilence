@@ -1,0 +1,1202 @@
+[
+  {
+    "t": 1,
+    "beat": "telegraph",
+    "monsterState": "WANDER",
+    "monsterPos": {
+      "x": 0,
+      "y": 0,
+      "z": -39.43333333333334
+    },
+    "playerPos": {
+      "x": 0,
+      "y": 0.3,
+      "z": -25
+    },
+    "distance": 14.45,
+    "speed": 0.07,
+    "visible": true,
+    "inFrustum": true,
+    "audioEvent": null
+  },
+  {
+    "t": 2.02,
+    "beat": "telegraph",
+    "monsterState": "WANDER",
+    "monsterPos": {
+      "x": 0,
+      "y": 0,
+      "z": -39.36555555555556
+    },
+    "playerPos": {
+      "x": 0,
+      "y": 0.3,
+      "z": -25
+    },
+    "distance": 14.38,
+    "speed": 0.07,
+    "visible": true,
+    "inFrustum": true,
+    "audioEvent": null
+  },
+  {
+    "t": 3.02,
+    "beat": "telegraph",
+    "monsterState": "WANDER",
+    "monsterPos": {
+      "x": 0,
+      "y": 0,
+      "z": -39.29888888888889
+    },
+    "playerPos": {
+      "x": 0,
+      "y": 0.3,
+      "z": -25
+    },
+    "distance": 14.32,
+    "speed": 0.07,
+    "visible": true,
+    "inFrustum": true,
+    "audioEvent": null
+  },
+  {
+    "t": 4.02,
+    "beat": "telegraph",
+    "monsterState": "WANDER",
+    "monsterPos": {
+      "x": 0,
+      "y": 0,
+      "z": -39.23222222222222
+    },
+    "playerPos": {
+      "x": 0,
+      "y": 0.3,
+      "z": -25
+    },
+    "distance": 14.25,
+    "speed": 0.07,
+    "visible": true,
+    "inFrustum": true,
+    "audioEvent": null
+  },
+  {
+    "t": 5.02,
+    "beat": "telegraph",
+    "monsterState": "WANDER",
+    "monsterPos": {
+      "x": 0,
+      "y": 0,
+      "z": -39.16555555555556
+    },
+    "playerPos": {
+      "x": 0,
+      "y": 0.3,
+      "z": -25
+    },
+    "distance": 14.18,
+    "speed": 0.07,
+    "visible": true,
+    "inFrustum": true,
+    "audioEvent": null
+  },
+  {
+    "t": 6.02,
+    "beat": "telegraph",
+    "monsterState": "WANDER",
+    "monsterPos": {
+      "x": 0,
+      "y": 0,
+      "z": -39.098888888888894
+    },
+    "playerPos": {
+      "x": 0,
+      "y": 0.3,
+      "z": -25
+    },
+    "distance": 14.12,
+    "speed": 0.07,
+    "visible": true,
+    "inFrustum": true,
+    "audioEvent": null
+  },
+  {
+    "t": 7.02,
+    "beat": "telegraph",
+    "monsterState": "WANDER",
+    "monsterPos": {
+      "x": 0,
+      "y": 0,
+      "z": -39.032222222222224
+    },
+    "playerPos": {
+      "x": 0,
+      "y": 0.3,
+      "z": -25
+    },
+    "distance": 14.05,
+    "speed": 0.07,
+    "visible": true,
+    "inFrustum": true,
+    "audioEvent": null
+  },
+  {
+    "t": 8.02,
+    "beat": "telegraph",
+    "monsterState": "WANDER",
+    "monsterPos": {
+      "x": 0,
+      "y": 0,
+      "z": -38.965555555555554
+    },
+    "playerPos": {
+      "x": 0,
+      "y": 0.3,
+      "z": -25
+    },
+    "distance": 13.98,
+    "speed": 0.07,
+    "visible": true,
+    "inFrustum": true,
+    "audioEvent": null
+  },
+  {
+    "t": 9,
+    "beat": "telegraph",
+    "monsterState": "WANDER",
+    "monsterPos": {
+      "x": 0,
+      "y": 0,
+      "z": -38.9
+    },
+    "playerPos": {
+      "x": 0,
+      "y": 0.3,
+      "z": -25
+    },
+    "distance": 13.92,
+    "speed": 0.07,
+    "visible": true,
+    "inFrustum": true,
+    "audioEvent": null
+  },
+  {
+    "t": 10,
+    "beat": "telegraph",
+    "monsterState": "WANDER",
+    "monsterPos": {
+      "x": 0,
+      "y": 0,
+      "z": -38.83333333333333
+    },
+    "playerPos": {
+      "x": 0,
+      "y": 0.3,
+      "z": -25
+    },
+    "distance": 13.85,
+    "speed": 0.07,
+    "visible": true,
+    "inFrustum": true,
+    "audioEvent": null
+  },
+  {
+    "t": 11,
+    "beat": "telegraph",
+    "monsterState": "WANDER",
+    "monsterPos": {
+      "x": 0,
+      "y": 0,
+      "z": -38.76666666666666
+    },
+    "playerPos": {
+      "x": 0,
+      "y": 0.3,
+      "z": -25
+    },
+    "distance": 13.78,
+    "speed": 0.07,
+    "visible": true,
+    "inFrustum": true,
+    "audioEvent": null
+  },
+  {
+    "t": 12,
+    "beat": "telegraph",
+    "monsterState": "WANDER",
+    "monsterPos": {
+      "x": 0,
+      "y": 0,
+      "z": -38.69999999999999
+    },
+    "playerPos": {
+      "x": 0,
+      "y": 0.3,
+      "z": -25
+    },
+    "distance": 13.72,
+    "speed": 0.07,
+    "visible": true,
+    "inFrustum": true,
+    "audioEvent": null
+  },
+  {
+    "t": 13,
+    "beat": "telegraph",
+    "monsterState": "WANDER",
+    "monsterPos": {
+      "x": 0,
+      "y": 0,
+      "z": -38.63333333333332
+    },
+    "playerPos": {
+      "x": 0,
+      "y": 0.3,
+      "z": -25
+    },
+    "distance": 13.65,
+    "speed": 0.07,
+    "visible": true,
+    "inFrustum": true,
+    "audioEvent": null
+  },
+  {
+    "t": 14,
+    "beat": "telegraph",
+    "monsterState": "WANDER",
+    "monsterPos": {
+      "x": 0,
+      "y": 0,
+      "z": -38.56666666666665
+    },
+    "playerPos": {
+      "x": 0,
+      "y": 0.3,
+      "z": -25
+    },
+    "distance": 13.58,
+    "speed": 0.07,
+    "visible": true,
+    "inFrustum": true,
+    "audioEvent": null
+  },
+  {
+    "t": 15,
+    "beat": "telegraph",
+    "monsterState": "WANDER",
+    "monsterPos": {
+      "x": 0,
+      "y": 0,
+      "z": -38.49999999999989
+    },
+    "playerPos": {
+      "x": 0,
+      "y": 0.3,
+      "z": -25
+    },
+    "distance": 13.52,
+    "speed": 0.07,
+    "visible": true,
+    "inFrustum": true,
+    "audioEvent": null
+  },
+  {
+    "t": 16,
+    "beat": "telegraph",
+    "monsterState": "WANDER",
+    "monsterPos": {
+      "x": 0,
+      "y": 0,
+      "z": -38.16666666666654
+    },
+    "playerPos": {
+      "x": 0,
+      "y": 0.3,
+      "z": -25
+    },
+    "distance": 13.19,
+    "speed": 0.33,
+    "visible": true,
+    "inFrustum": true,
+    "audioEvent": null
+  },
+  {
+    "t": 17,
+    "beat": "telegraph",
+    "monsterState": "WANDER",
+    "monsterPos": {
+      "x": 0,
+      "y": 0,
+      "z": -37.83333333333323
+    },
+    "playerPos": {
+      "x": 0,
+      "y": 0.3,
+      "z": -25
+    },
+    "distance": 12.85,
+    "speed": 0.33,
+    "visible": true,
+    "inFrustum": true,
+    "audioEvent": null
+  },
+  {
+    "t": 18,
+    "beat": "silhouette_hold",
+    "monsterState": "WANDER",
+    "monsterPos": {
+      "x": 0,
+      "y": 0,
+      "z": -37.5
+    },
+    "playerPos": {
+      "x": 0,
+      "y": 0.3,
+      "z": -25
+    },
+    "distance": 12.52,
+    "speed": 0.33,
+    "visible": true,
+    "inFrustum": true,
+    "audioEvent": null
+  },
+  {
+    "t": 19,
+    "beat": "silhouette_hold",
+    "monsterState": "WANDER",
+    "monsterPos": {
+      "x": 0,
+      "y": 0,
+      "z": -37.5
+    },
+    "playerPos": {
+      "x": 0,
+      "y": 0.3,
+      "z": -25
+    },
+    "distance": 12.52,
+    "speed": 0,
+    "visible": true,
+    "inFrustum": true,
+    "audioEvent": null
+  },
+  {
+    "t": 20,
+    "beat": "silhouette_hold",
+    "monsterState": "WANDER",
+    "monsterPos": {
+      "x": 0,
+      "y": 0,
+      "z": -37.5
+    },
+    "playerPos": {
+      "x": 0,
+      "y": 0.3,
+      "z": -25
+    },
+    "distance": 12.52,
+    "speed": 0,
+    "visible": true,
+    "inFrustum": true,
+    "audioEvent": null
+  },
+  {
+    "t": 21,
+    "beat": "stalk",
+    "monsterState": "HUNT",
+    "monsterPos": {
+      "x": 0,
+      "y": 0,
+      "z": -37.49999999999994
+    },
+    "playerPos": {
+      "x": 0,
+      "y": 0.3,
+      "z": -25
+    },
+    "distance": 12.52,
+    "speed": 0,
+    "visible": true,
+    "inFrustum": true,
+    "audioEvent": null
+  },
+  {
+    "t": 22,
+    "beat": "stalk",
+    "monsterState": "HUNT",
+    "monsterPos": {
+      "x": 0,
+      "y": 0,
+      "z": -36.86428571428569
+    },
+    "playerPos": {
+      "x": 0,
+      "y": 0.3,
+      "z": -25
+    },
+    "distance": 11.88,
+    "speed": 0.64,
+    "visible": true,
+    "inFrustum": true,
+    "audioEvent": "stalk_footfall_wet"
+  },
+  {
+    "t": 23.02,
+    "beat": "stalk",
+    "monsterState": "HUNT",
+    "monsterPos": {
+      "x": 0,
+      "y": 0,
+      "z": -36.21797619047621
+    },
+    "playerPos": {
+      "x": 0,
+      "y": 0.3,
+      "z": -25
+    },
+    "distance": 11.24,
+    "speed": 0.64,
+    "visible": true,
+    "inFrustum": true,
+    "audioEvent": null
+  },
+  {
+    "t": 24.02,
+    "beat": "stalk",
+    "monsterState": "HUNT",
+    "monsterPos": {
+      "x": 0,
+      "y": 0,
+      "z": -35.58226190476196
+    },
+    "playerPos": {
+      "x": 0,
+      "y": 0.3,
+      "z": -25
+    },
+    "distance": 10.61,
+    "speed": 0.64,
+    "visible": true,
+    "inFrustum": true,
+    "audioEvent": null
+  },
+  {
+    "t": 25.02,
+    "beat": "stalk",
+    "monsterState": "HUNT",
+    "monsterPos": {
+      "x": 0,
+      "y": 0,
+      "z": -34.946547619047706
+    },
+    "playerPos": {
+      "x": 0,
+      "y": 0.3,
+      "z": -25
+    },
+    "distance": 9.97,
+    "speed": 0.64,
+    "visible": true,
+    "inFrustum": true,
+    "audioEvent": null
+  },
+  {
+    "t": 26.02,
+    "beat": "stalk",
+    "monsterState": "HUNT",
+    "monsterPos": {
+      "x": 0,
+      "y": 0,
+      "z": -34.31083333333346
+    },
+    "playerPos": {
+      "x": 0,
+      "y": 0.3,
+      "z": -25
+    },
+    "distance": 9.34,
+    "speed": 0.64,
+    "visible": true,
+    "inFrustum": true,
+    "audioEvent": null
+  },
+  {
+    "t": 27.02,
+    "beat": "stalk",
+    "monsterState": "HUNT",
+    "monsterPos": {
+      "x": 0,
+      "y": 0,
+      "z": -33.675119047619205
+    },
+    "playerPos": {
+      "x": 0,
+      "y": 0.3,
+      "z": -25
+    },
+    "distance": 8.7,
+    "speed": 0.64,
+    "visible": true,
+    "inFrustum": true,
+    "audioEvent": null
+  },
+  {
+    "t": 28.02,
+    "beat": "stalk",
+    "monsterState": "HUNT",
+    "monsterPos": {
+      "x": 0,
+      "y": 0,
+      "z": -33.03940476190496
+    },
+    "playerPos": {
+      "x": 0,
+      "y": 0.3,
+      "z": -25
+    },
+    "distance": 8.07,
+    "speed": 0.64,
+    "visible": true,
+    "inFrustum": true,
+    "audioEvent": null
+  },
+  {
+    "t": 29.02,
+    "beat": "stalk",
+    "monsterState": "HUNT",
+    "monsterPos": {
+      "x": 0,
+      "y": 0,
+      "z": -32.40369047619071
+    },
+    "playerPos": {
+      "x": 0,
+      "y": 0.3,
+      "z": -25
+    },
+    "distance": 7.44,
+    "speed": 0.64,
+    "visible": true,
+    "inFrustum": true,
+    "audioEvent": null
+  },
+  {
+    "t": 30.02,
+    "beat": "stalk",
+    "monsterState": "HUNT",
+    "monsterPos": {
+      "x": 0,
+      "y": 0,
+      "z": -31.76797619047646
+    },
+    "playerPos": {
+      "x": 0,
+      "y": 0.3,
+      "z": -25
+    },
+    "distance": 6.8,
+    "speed": 0.64,
+    "visible": true,
+    "inFrustum": true,
+    "audioEvent": null
+  },
+  {
+    "t": 31.02,
+    "beat": "stalk",
+    "monsterState": "HUNT",
+    "monsterPos": {
+      "x": 0,
+      "y": 0,
+      "z": -31.13226190476221
+    },
+    "playerPos": {
+      "x": 0,
+      "y": 0.3,
+      "z": -25
+    },
+    "distance": 6.17,
+    "speed": 0.64,
+    "visible": true,
+    "inFrustum": true,
+    "audioEvent": null
+  },
+  {
+    "t": 32.02,
+    "beat": "stalk",
+    "monsterState": "HUNT",
+    "monsterPos": {
+      "x": 0,
+      "y": 0,
+      "z": -30.49654761904796
+    },
+    "playerPos": {
+      "x": 0,
+      "y": 0.3,
+      "z": -25
+    },
+    "distance": 5.54,
+    "speed": 0.64,
+    "visible": true,
+    "inFrustum": true,
+    "audioEvent": null
+  },
+  {
+    "t": 33.02,
+    "beat": "stalk",
+    "monsterState": "HUNT",
+    "monsterPos": {
+      "x": 0,
+      "y": 0,
+      "z": -29.86083333333371
+    },
+    "playerPos": {
+      "x": 0,
+      "y": 0.3,
+      "z": -25
+    },
+    "distance": 4.91,
+    "speed": 0.64,
+    "visible": true,
+    "inFrustum": true,
+    "audioEvent": "stalk_footfall_wet"
+  },
+  {
+    "t": 34.02,
+    "beat": "stalk",
+    "monsterState": "HUNT",
+    "monsterPos": {
+      "x": 0,
+      "y": 0,
+      "z": -29.225119047619458
+    },
+    "playerPos": {
+      "x": 0,
+      "y": 0.3,
+      "z": -25
+    },
+    "distance": 4.28,
+    "speed": 0.64,
+    "visible": true,
+    "inFrustum": true,
+    "audioEvent": null
+  },
+  {
+    "t": 35.02,
+    "beat": "standoff",
+    "monsterState": "BLOCKED",
+    "monsterPos": {
+      "x": 0.012888445857679318,
+      "y": 0,
+      "z": -28.6
+    },
+    "playerPos": {
+      "x": 0,
+      "y": 0.3,
+      "z": -25
+    },
+    "distance": 3.67,
+    "speed": 0.77,
+    "visible": true,
+    "inFrustum": true,
+    "audioEvent": null
+  },
+  {
+    "t": 36.02,
+    "beat": "standoff",
+    "monsterState": "BLOCKED",
+    "monsterPos": {
+      "x": 0.7549451031394525,
+      "y": 0,
+      "z": -28.6
+    },
+    "playerPos": {
+      "x": 0,
+      "y": 0.3,
+      "z": -25
+    },
+    "distance": 3.74,
+    "speed": 0.68,
+    "visible": true,
+    "inFrustum": true,
+    "audioEvent": "standoff_agitated_click"
+  },
+  {
+    "t": 37.02,
+    "beat": "standoff",
+    "monsterState": "BLOCKED",
+    "monsterPos": {
+      "x": 1.3240529353667645,
+      "y": 0,
+      "z": -28.6
+    },
+    "playerPos": {
+      "x": 0,
+      "y": 0.3,
+      "z": -25
+    },
+    "distance": 3.9,
+    "speed": 0.44,
+    "visible": true,
+    "inFrustum": true,
+    "audioEvent": null
+  },
+  {
+    "t": 38.02,
+    "beat": "standoff",
+    "monsterState": "BLOCKED",
+    "monsterPos": {
+      "x": 1.5898361966692247,
+      "y": 0,
+      "z": -28.6
+    },
+    "playerPos": {
+      "x": 0,
+      "y": 0.3,
+      "z": -25
+    },
+    "distance": 4,
+    "speed": 0.09,
+    "visible": true,
+    "inFrustum": true,
+    "audioEvent": null
+  },
+  {
+    "t": 39.02,
+    "beat": "standoff",
+    "monsterState": "BLOCKED",
+    "monsterPos": {
+      "x": 1.4914071449179698,
+      "y": 0,
+      "z": -28.6
+    },
+    "playerPos": {
+      "x": 0,
+      "y": 0.3,
+      "z": -25
+    },
+    "distance": 3.96,
+    "speed": 0.28,
+    "visible": true,
+    "inFrustum": true,
+    "audioEvent": null
+  },
+  {
+    "t": 40.02,
+    "beat": "standoff",
+    "monsterState": "BLOCKED",
+    "monsterPos": {
+      "x": 1.0513146896705456,
+      "y": 0,
+      "z": -28.6
+    },
+    "playerPos": {
+      "x": 0,
+      "y": 0.3,
+      "z": -25
+    },
+    "distance": 3.82,
+    "speed": 0.58,
+    "visible": true,
+    "inFrustum": true,
+    "audioEvent": null
+  },
+  {
+    "t": 41.02,
+    "beat": "standoff",
+    "monsterState": "BLOCKED",
+    "monsterPos": {
+      "x": 0.37037870873509554,
+      "y": 0,
+      "z": -28.6
+    },
+    "playerPos": {
+      "x": 0,
+      "y": 0.3,
+      "z": -25
+    },
+    "distance": 3.69,
+    "speed": 0.75,
+    "visible": true,
+    "inFrustum": true,
+    "audioEvent": null
+  },
+  {
+    "t": 42.02,
+    "beat": "standoff",
+    "monsterState": "BLOCKED",
+    "monsterPos": {
+      "x": -0.3954065708242452,
+      "y": 0,
+      "z": -28.6
+    },
+    "playerPos": {
+      "x": 0,
+      "y": 0.3,
+      "z": -25
+    },
+    "distance": 3.69,
+    "speed": 0.75,
+    "visible": true,
+    "inFrustum": true,
+    "audioEvent": null
+  },
+  {
+    "t": 43.02,
+    "beat": "standoff",
+    "monsterState": "BLOCKED",
+    "monsterPos": {
+      "x": -1.0706089701735066,
+      "y": 0,
+      "z": -28.6
+    },
+    "playerPos": {
+      "x": 0,
+      "y": 0.3,
+      "z": -25
+    },
+    "distance": 3.82,
+    "speed": 0.58,
+    "visible": true,
+    "inFrustum": true,
+    "audioEvent": null
+  },
+  {
+    "t": 44.02,
+    "beat": "standoff",
+    "monsterState": "BLOCKED",
+    "monsterPos": {
+      "x": -1.500547756692801,
+      "y": 0,
+      "z": -28.6
+    },
+    "playerPos": {
+      "x": 0,
+      "y": 0.3,
+      "z": -25
+    },
+    "distance": 3.96,
+    "speed": 0.27,
+    "visible": true,
+    "inFrustum": true,
+    "audioEvent": null
+  },
+  {
+    "t": 45.02,
+    "beat": "standoff",
+    "monsterState": "BLOCKED",
+    "monsterPos": {
+      "x": -1.586729135714626,
+      "y": 0,
+      "z": -28.6
+    },
+    "playerPos": {
+      "x": 0,
+      "y": 0.3,
+      "z": -25
+    },
+    "distance": 4,
+    "speed": 0.1,
+    "visible": true,
+    "inFrustum": true,
+    "audioEvent": null
+  },
+  {
+    "t": 46.02,
+    "beat": "standoff",
+    "monsterState": "BLOCKED",
+    "monsterPos": {
+      "x": -1.3094099919032904,
+      "y": 0,
+      "z": -28.6
+    },
+    "playerPos": {
+      "x": 0,
+      "y": 0.3,
+      "z": -25
+    },
+    "distance": 3.89,
+    "speed": 0.44,
+    "visible": true,
+    "inFrustum": true,
+    "audioEvent": null
+  },
+  {
+    "t": 47.02,
+    "beat": "standoff",
+    "monsterState": "BLOCKED",
+    "monsterPos": {
+      "x": -0.732120799047987,
+      "y": 0,
+      "z": -28.6
+    },
+    "playerPos": {
+      "x": 0,
+      "y": 0.3,
+      "z": -25
+    },
+    "distance": 3.74,
+    "speed": 0.69,
+    "visible": true,
+    "inFrustum": true,
+    "audioEvent": null
+  },
+  {
+    "t": 48.02,
+    "beat": "silence_window",
+    "monsterState": "INVESTIGATE",
+    "monsterPos": {
+      "x": 0.008377427292271169,
+      "y": 0,
+      "z": -28.6
+    },
+    "playerPos": {
+      "x": 0,
+      "y": 0.3,
+      "z": -25
+    },
+    "distance": 3.67,
+    "speed": 0.5,
+    "visible": true,
+    "inFrustum": true,
+    "audioEvent": null
+  },
+  {
+    "t": 49.02,
+    "beat": "silence_window",
+    "monsterState": "INVESTIGATE",
+    "monsterPos": {
+      "x": 0.4769798999718873,
+      "y": 0,
+      "z": -28.6
+    },
+    "playerPos": {
+      "x": 0,
+      "y": 0.3,
+      "z": -25
+    },
+    "distance": 3.7,
+    "speed": 0.41,
+    "visible": true,
+    "inFrustum": true,
+    "audioEvent": "silence_ducking_active"
+  },
+  {
+    "t": 50.02,
+    "beat": "silence_window",
+    "monsterState": "INVESTIGATE",
+    "monsterPos": {
+      "x": 0.7633922628127875,
+      "y": 0,
+      "z": -28.6
+    },
+    "playerPos": {
+      "x": 0,
+      "y": 0.3,
+      "z": -25
+    },
+    "distance": 3.75,
+    "speed": 0.15,
+    "visible": true,
+    "inFrustum": true,
+    "audioEvent": null
+  },
+  {
+    "t": 51.02,
+    "beat": "silence_window",
+    "monsterState": "INVESTIGATE",
+    "monsterPos": {
+      "x": 0.7582147280079274,
+      "y": 0,
+      "z": -28.6
+    },
+    "playerPos": {
+      "x": 0,
+      "y": 0.3,
+      "z": -25
+    },
+    "distance": 3.74,
+    "speed": 0.16,
+    "visible": true,
+    "inFrustum": true,
+    "audioEvent": null
+  },
+  {
+    "t": 52.02,
+    "beat": "silence_window",
+    "monsterState": "INVESTIGATE",
+    "monsterPos": {
+      "x": 0.46342493787482764,
+      "y": 0,
+      "z": -28.6
+    },
+    "playerPos": {
+      "x": 0,
+      "y": 0.3,
+      "z": -25
+    },
+    "distance": 3.7,
+    "speed": 0.41,
+    "visible": true,
+    "inFrustum": true,
+    "audioEvent": null
+  },
+  {
+    "t": 53.02,
+    "beat": "silence_window",
+    "monsterState": "INVESTIGATE",
+    "monsterPos": {
+      "x": -0.008377427292128136,
+      "y": 0,
+      "z": -28.6
+    },
+    "playerPos": {
+      "x": 0,
+      "y": 0.3,
+      "z": -25
+    },
+    "distance": 3.67,
+    "speed": 0.5,
+    "visible": true,
+    "inFrustum": true,
+    "audioEvent": null
+  },
+  {
+    "t": 54.02,
+    "beat": "silence_window",
+    "monsterState": "INVESTIGATE",
+    "monsterPos": {
+      "x": -0.47697989997177254,
+      "y": 0,
+      "z": -28.6
+    },
+    "playerPos": {
+      "x": 0,
+      "y": 0.3,
+      "z": -25
+    },
+    "distance": 3.7,
+    "speed": 0.41,
+    "visible": true,
+    "inFrustum": true,
+    "audioEvent": null
+  },
+  {
+    "t": 55.02,
+    "beat": "silence_window",
+    "monsterState": "INVESTIGATE",
+    "monsterPos": {
+      "x": -0.7633922628127446,
+      "y": 0,
+      "z": -28.6
+    },
+    "playerPos": {
+      "x": 0,
+      "y": 0.3,
+      "z": -25
+    },
+    "distance": 3.75,
+    "speed": 0.15,
+    "visible": true,
+    "inFrustum": true,
+    "audioEvent": null
+  },
+  {
+    "t": 56.02,
+    "beat": "silence_window",
+    "monsterState": "INVESTIGATE",
+    "monsterPos": {
+      "x": -0.758214728007973,
+      "y": 0,
+      "z": -28.6
+    },
+    "playerPos": {
+      "x": 0,
+      "y": 0.3,
+      "z": -25
+    },
+    "distance": 3.74,
+    "speed": 0.16,
+    "visible": true,
+    "inFrustum": true,
+    "audioEvent": null
+  },
+  {
+    "t": 57.02,
+    "beat": "silence_window",
+    "monsterState": "INVESTIGATE",
+    "monsterPos": {
+      "x": -0.46342493787494404,
+      "y": 0,
+      "z": -28.6
+    },
+    "playerPos": {
+      "x": 0,
+      "y": 0.3,
+      "z": -25
+    },
+    "distance": 3.7,
+    "speed": 0.41,
+    "visible": true,
+    "inFrustum": true,
+    "audioEvent": null
+  },
+  {
+    "t": 58.02,
+    "beat": "terminal_lunge",
+    "monsterState": "ATTACK",
+    "monsterPos": {
+      "x": -9.6462295232951e-13,
+      "y": 0,
+      "z": -28.48
+    },
+    "playerPos": {
+      "x": 0,
+      "y": 0.3,
+      "z": -26
+    },
+    "distance": 2.58,
+    "speed": 7.2,
+    "visible": true,
+    "inFrustum": true,
+    "audioEvent": null
+  },
+  {
+    "t": 59.02,
+    "beat": "terminal_lunge",
+    "monsterState": "ATTACK",
+    "monsterPos": {
+      "x": -3.111686942998397e-13,
+      "y": 0,
+      "z": -26.799999999999986
+    },
+    "playerPos": {
+      "x": 0,
+      "y": 0.3,
+      "z": -26
+    },
+    "distance": 1.06,
+    "speed": 0,
+    "visible": false,
+    "inFrustum": false,
+    "audioEvent": null
+  },
+  {
+    "t": 60.02,
+    "beat": "terminal_lunge",
+    "monsterState": "ATTACK",
+    "monsterPos": {
+      "x": -3.111686942998397e-13,
+      "y": 0,
+      "z": -26.799999999999986
+    },
+    "playerPos": {
+      "x": 0,
+      "y": 0.3,
+      "z": -26
+    },
+    "distance": 1.06,
+    "speed": 0,
+    "visible": false,
+    "inFrustum": false,
+    "audioEvent": null
+  }
+]
