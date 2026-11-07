@@ -39,7 +39,7 @@ Quantitative comparison emitted by `node scripts/reference/compare.mjs` (`report
 - **Per-Region Colour Checks (±8% RGB vs `reference/video/palette.json`):** `5 PASS / 34 FAIL`
 - **Hue-Band Checks (`[85°, 113°]` water, `[38°, 48°]` slab):** `4 PASS / 26 FAIL` (`WATER_PROFILES.natatorium.shallow = #48ab72` at `145.5°` and `deep = #338858` at `146.1°` fail the `[85°, 113°]` water hue band)
 - **No-Blacks Checks (`fraction_pixels_below_0.1 === 0.0`):** `0 PASS / 14 FAIL`
-- **Audio Reference Checks (`reference/video/measured_targets.json -> audio`):** `4 PASS / 0 FAIL`
+- **Audio Reference Checks (`reference/video/measured_targets.json -> audio`):** `4 / 4 PASS`
 
 ---
 

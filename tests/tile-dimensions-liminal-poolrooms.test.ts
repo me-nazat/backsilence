@@ -7,7 +7,7 @@
  * ──────────────────────────────────────────────────────────────────────── */
 
 import { describe, it, expect } from 'vitest';
-import { Scene, Mesh, MeshStandardMaterial, HemisphereLight, AmbientLight } from 'three';
+import { Scene, Mesh, MeshStandardMaterial, HemisphereLight, AmbientLight, FogExp2 } from 'three';
 import {
   TileMaterialFactory,
   TILE_PRESETS,
@@ -40,20 +40,20 @@ describe('Lead Environment & Technical Material Artist Suite', () => {
     factory.applyRepeat(mat, 0.85);
 
     // DESIGN_RATIONALE: Horizontal UV repeat must be 0.85 for 1:1 square tile aspect ratio
-    expect(mat.map!.repeat.x).toBeCloseTo(0.85, 2);
+    expect(mat.map?.repeat.x).toBeCloseTo(0.85, 2);
     // DESIGN_RATIONALE: Vertical UV repeat must equal horizontal repeat at 0.85 for 1:1 tiles
-    expect(mat.map!.repeat.y).toBeCloseTo(0.85, 2);
+    expect(mat.map?.repeat.y).toBeCloseTo(0.85, 2);
     // DESIGN_RATIONALE: Normal map horizontal repeat must match diffuse repeat at 0.85
-    expect(mat.normalMap!.repeat.x).toBeCloseTo(0.85, 2);
+    expect(mat.normalMap?.repeat.x).toBeCloseTo(0.85, 2);
     // DESIGN_RATIONALE: Normal map vertical repeat must match diffuse repeat at 0.85
-    expect(mat.normalMap!.repeat.y).toBeCloseTo(0.85, 2);
+    expect(mat.normalMap?.repeat.y).toBeCloseTo(0.85, 2);
     // DESIGN_RATIONALE: Anisotropic filtering must be set to 16 to eliminate grazing angle blur
-    expect(mat.map!.anisotropy).toBe(16);
+    expect(mat.map?.anisotropy).toBe(16);
 
     // Also test module-level export
     applyRepeat(mat, 0.85);
     // DESIGN_RATIONALE: Module-level applyRepeat export must set uniform 0.85 repeat scaling
-    expect(mat.roughnessMap!.repeat.x).toBeCloseTo(0.85, 2);
+    expect(mat.roughnessMap?.repeat.x).toBeCloseTo(0.85, 2);
   });
 
   it('generates uniform 1:1 ceramic tile box material without asymmetric horizontal UV squishing', () => {
@@ -120,11 +120,11 @@ describe('Lead Environment & Technical Material Artist Suite', () => {
         toneMappingExposure: 1.0,
       },
       setToneMapping: () => {},
-    } as any;
+    } as unknown as Parameters<typeof setupAtmosphere>[1];
 
     const dummySettings: Settings = {
       graphics: { toneMapping: 'agx', quality: 'high', bloom: true },
-    } as any;
+    } as unknown as Settings;
 
     // Test NatatoriumMap atmosphere
     setupAtmosphere(scene, fakeRenderer, NatatoriumMap, dummySettings);
@@ -132,9 +132,9 @@ describe('Lead Environment & Technical Material Artist Suite', () => {
     // DESIGN_RATIONALE: Liminal poolroom fog color must be #cce4e8 for soft sunlit moisture haze
     expect(`#${scene.fog!.color.getHexString()}`.toLowerCase()).toBe('#cce4e8');
     // DESIGN_RATIONALE: Liminal daylight fog density must be 0.011 to reveal distant ceramic arches
-    expect((scene.fog as any).density).toBeCloseTo(0.011, 3);
+    expect((scene.fog as FogExp2).density).toBeCloseTo(0.011, 3);
     // DESIGN_RATIONALE: Tone mapping exposure must be 1.18 to let bright skylights and water glints glow
-    expect(fakeRenderer.renderer.toneMappingExposure).toBeCloseTo(1.18, 2);
+    expect((fakeRenderer.renderer as { toneMappingExposure: number }).toneMappingExposure).toBeCloseTo(1.18, 2);
 
     // Verify HemisphereLight and AmbientLight present in scene
     let foundHemi: HemisphereLight | null = null;

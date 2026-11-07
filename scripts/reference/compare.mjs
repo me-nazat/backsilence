@@ -20,6 +20,7 @@
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { analyzePngBuffer, rgbToHsvDeg as rgbToHsv } from './extract-stats.mjs';
+import { compareAllPairings } from './compare-frames.mjs';
 
 const ROOT = process.cwd();
 const TARGETS_FILE = resolve(ROOT, 'reference/targets.json');
@@ -451,6 +452,8 @@ export async function runComparison(options = {}) {
     }
   }
 
+  const gatingFailures = [];
+
   // 1. Authoritative Category & Paired-Frame Comparison (14 shots x 9 metrics = 126 checks)
   for (const [shotId, catKey] of Object.entries(categoryMap)) {
     const pairedList = pairingsByShot.get(shotId) || [];
@@ -471,6 +474,7 @@ export async function runComparison(options = {}) {
       report.summary.totalChecks++;
       report.summary.failedChecks++;
       report.summary.overallPass = false;
+      gatingFailures.push(`[Baseline: ${shotId}] Shot metrics missing`);
       report.categories[shotId] = {
         category: catKey,
         pairedFrame: primaryPairedFrameId || null,
@@ -603,6 +607,7 @@ export async function runComparison(options = {}) {
         report.summary.baselineFailed++;
         report.summary.failedChecks++;
         report.summary.overallPass = false;
+        gatingFailures.push(`[Baseline: ${shotId} -> ${c.name}] actual=${c.actual} target=${c.target} delta=${c.relPct}%`);
         trackWorstFailure(`${shotId}:${c.name}`, c.relPct || c.diff * 100, c.actual, c.target);
       }
     });
@@ -673,6 +678,7 @@ export async function runComparison(options = {}) {
         report.summary.regionColourFailed++;
         report.summary.failedChecks++;
         report.summary.overallPass = false;
+        gatingFailures.push(`[Region RGB: ${shotId}.${regionName}] maxDelta=${cmp.maxChannelDelta} > ${regionChannelTol}`);
         trackWorstFailure(
           `${shotId}:${regionName}.meanDeltaRGB`,
           Number((cmp.maxChannelDelta * 100).toFixed(1)),
@@ -717,6 +723,7 @@ export async function runComparison(options = {}) {
         report.summary.hueBandFailed++;
         report.summary.failedChecks++;
         report.summary.overallPass = false;
+        gatingFailures.push(`[Hue-Band: ${item.targetId}] HSV=[${item.hsv.join(', ')}] outside band`);
         const hueDelta = h < 85 ? 85 - h : h > 113 ? h - 113 : 0;
         trackWorstFailure(`WATER_PROFILES.${mapId}.${bandName}(${hex})`, Number(hueDelta.toFixed(1)), h, '85..113 deg');
       }
@@ -745,6 +752,7 @@ export async function runComparison(options = {}) {
       report.summary.hueBandFailed++;
       report.summary.failedChecks++;
       report.summary.overallPass = false;
+      gatingFailures.push(`[Hue-Band: ${shotId}.waterRegion] HSV=[${wh.toFixed(1)}, ${ws.toFixed(3)}, ${wv.toFixed(3)}] outside band`);
     }
 
     const sRgb = actual.slabRegion?.meanRGB || [0, 0, 0];
@@ -765,6 +773,7 @@ export async function runComparison(options = {}) {
       report.summary.hueBandFailed++;
       report.summary.failedChecks++;
       report.summary.overallPass = false;
+      gatingFailures.push(`[Hue-Band: ${shotId}.slabRegion] HSV=[${sh.toFixed(1)}, ${ss.toFixed(3)}, ${sv.toFixed(3)}] outside band`);
     }
   }
 
@@ -793,6 +802,7 @@ export async function runComparison(options = {}) {
       report.summary.noBlacksFailed++;
       report.summary.failedChecks++;
       report.summary.overallPass = false;
+      gatingFailures.push(`[No-Blacks: ${shotId}] fractionBelow01=${fracBelow01} > 0.0`);
       trackWorstFailure(`${shotId}:fraction_pixels_below_0.1`, Number((fracBelow01 * 100).toFixed(1)), fracBelow01, 0.0);
     }
   }
@@ -833,77 +843,116 @@ export async function runComparison(options = {}) {
         report.summary.audioFailed++;
         report.summary.failedChecks++;
         report.summary.overallPass = false;
+        gatingFailures.push(`[Audio: ${ac.name}] actual=${ac.actual} target=${ac.target}`);
       }
     }
   }
 
-  // 6. Direct Frame-to-Shot Pairings Summary (37 frames from reference/pairings.json)
-  for (const pairing of pairingsData.pairings || []) {
-    const fStats = derivedTargets?.frames?.[pairing.frameId];
-    const sStats = getEnrichedShotMetrics(pairing.shotId);
-    if (!fStats || !sStats) continue;
+  // 6. Direct Frame-to-Shot Pairings (Perceptual Comparison of All 37 Frames)
+  const frameCompReport = compareAllPairings();
+  report.frameComparison = {
+    manifestHash: frameCompReport.manifestHash,
+    totalPairings: frameCompReport.totalPairings,
+    matchCount: frameCompReport.matchCount,
+    exceedsCount: frameCompReport.exceedsCount,
+    failCount: frameCompReport.failCount,
+  };
 
-    const target = pairing.target || {};
-    const tol = pairing.tolerance || {};
-    let passed = true;
+  report.summary.perceptualPairings = frameCompReport.totalPairings;
+  report.summary.perceptualPassed = frameCompReport.matchCount + frameCompReport.exceedsCount;
+  report.summary.perceptualFailed = frameCompReport.failCount;
+
+  for (const comp of frameCompReport.results) {
+    const pairing = pairingsData.pairings?.find((p) => p.frameId === comp.frameId);
+    const fStats = derivedTargets?.frames?.[comp.frameId];
+    const sStats = getEnrichedShotMetrics(comp.shotId);
+
+    const target = pairing?.target || {};
+    const tol = pairing?.tolerance || {};
+    let scalarPassed = true;
     let deltaPct = 0;
 
     if (target.tileMeters !== undefined) {
       const diff = Math.abs(target.tileMeters - 0.15);
-      if (diff > (tol.tilePitchPct ?? 0.03) * 0.15 + 1e-4) passed = false;
+      if (diff > (tol.tilePitchPct ?? 0.03) * 0.15 + 1e-4) scalarPassed = false;
     }
     if (target.trenchBlockMaxWidthMeters !== undefined) {
-      if (Math.abs(target.trenchBlockMaxWidthMeters - 2.4) > 0.01) passed = false;
+      if (Math.abs(target.trenchBlockMaxWidthMeters - 2.4) > 0.01) scalarPassed = false;
     }
     if (target.numeralHeightMeters !== undefined) {
-      if (Math.abs(target.numeralHeightMeters - 0.5) > 0.01) passed = false;
+      if (Math.abs(target.numeralHeightMeters - 0.5) > 0.01) scalarPassed = false;
     }
-    if (target.horizonBlowoutTypical !== undefined) {
+    if (target.horizonBlowoutTypical !== undefined && sStats) {
       const blowout = sStats.horizonBlowout ?? sStats.horizonBlowoutFraction ?? 0;
       const maxB = tol.blowoutAbs ?? 0.035;
-      if (blowout > maxB) passed = false;
+      if (blowout > maxB) scalarPassed = false;
       deltaPct = Number((Math.abs(blowout - target.horizonBlowoutTypical) * 100).toFixed(1));
     }
-    if (target.waterValRange) {
+    if (target.waterValRange && sStats && fStats) {
       const minVal = target.waterValRange[0];
       const maxVal = target.waterValRange[1];
       const val = sStats.waterRegion?.meanHSV?.[2] ?? sStats.luminanceMean ?? fStats.waterRegion?.meanHSV?.[2] ?? fStats.luminanceMean ?? 0.5;
       const fVal = fStats.luminanceMean ?? fStats.waterRegion?.meanHSV?.[2] ?? 0.5;
       if (!((val >= minVal * 0.8 && val <= maxVal * 1.2) || (fVal >= minVal && fVal <= maxVal))) {
-        passed = false;
+        scalarPassed = false;
       }
     }
-    if (target.floorGroutEdgeRatioMin !== undefined) {
+    if (target.floorGroutEdgeRatioMin !== undefined && sStats) {
       const grout = sStats.floorGroutEdgeRatio ?? 0.4;
-      if (grout < target.floorGroutEdgeRatioMin * 0.8) passed = false;
+      if (grout < target.floorGroutEdgeRatioMin * 0.8) scalarPassed = false;
     }
-    if (target.sobelEdge1xMin !== undefined) {
+    if (target.sobelEdge1xMin !== undefined && sStats) {
       const edge = sStats.sobelEdgeDensity ?? sStats.sobelEdges?.scale1x ?? 0.15;
-      if (edge < target.sobelEdge1xMin * 0.5) passed = false;
+      if (edge < target.sobelEdge1xMin * 0.5) scalarPassed = false;
     }
-    if (target.glintFractionMax !== undefined) {
+    if (target.glintFractionMax !== undefined && sStats) {
       const glint = sStats.waterRegion?.glintFraction ?? 0;
-      if (glint > target.glintFractionMax * 2) passed = false;
+      if (glint > target.glintFractionMax * 2) scalarPassed = false;
     }
 
-    for (const [k, v] of Object.entries(target)) {
-      if (typeof v === 'string' && v.startsWith('#')) {
-        const rgb = hexToNormalizedRgb(v);
-        if (!rgb || rgb.some(isNaN)) passed = false;
-      }
+    const overallPairingPassed = comp.passed && scalarPassed;
+
+    if (!overallPairingPassed) {
+      const reasons = [...comp.failureReasons];
+      if (!scalarPassed) reasons.push('Structural scalar target mismatch');
+      gatingFailures.push(
+        `[Pairing ${comp.frameId} -> ${comp.shotId}] ${reasons.join('; ')}`,
+      );
     }
 
     report.pairingChecks.push({
-      id: pairing.frameId,
-      frameId: pairing.frameId,
-      shotId: pairing.shotId,
-      property: pairing.property,
-      actualLum: sStats.luminanceMean ?? 0,
-      frameLum: fStats.luminanceMean,
+      id: comp.frameId,
+      frameId: comp.frameId,
+      shotId: comp.shotId,
+      property: pairing?.property || '',
+      whatToLookAt: pairing?.whatToLookAt || '',
+      actualLum: sStats?.luminanceMean ?? 0,
+      frameLum: fStats?.luminanceMean,
       deltaPct,
-      passed,
+      ssim: comp.ssim,
+      perChannelMae: comp.perChannelMae,
+      wholeFrameDeltaE: comp.wholeFrameDeltaE,
+      regions: comp.regions,
+      regionDeltasSummary: comp.regionDeltasSummary,
+      semantics: comp.semantics,
+      verdict: comp.verdict,
+      failureReasons: comp.failureReasons,
+      passed: overallPairingPassed,
     });
   }
+
+  // Update totalChecks & failedChecks to account for all gating checks
+  report.summary.gatingFailures = gatingFailures;
+  report.summary.failedChecks = gatingFailures.length;
+  report.summary.totalChecks =
+    report.summary.baselineChecks +
+    report.summary.regionColourChecks +
+    report.summary.hueBandChecks +
+    report.summary.noBlacksChecks +
+    report.summary.audioChecks +
+    frameCompReport.totalPairings;
+  report.summary.passedChecks = Math.max(0, report.summary.totalChecks - gatingFailures.length);
+  report.summary.overallPass = gatingFailures.length === 0;
 
   // Print Summary of New First-Class Metrics
   console.log(`=============================================================`);
@@ -949,10 +998,13 @@ export async function runComparison(options = {}) {
     `Baseline Checks: ${report.summary.baselineChecks} | Passed: ${report.summary.baselinePassed} | Failed: ${report.summary.baselineFailed}`,
   );
   console.log(
-    `Total Gating Checks (incl. Region RGB, Hue-Band, No-Blacks, Audio): ${report.summary.totalChecks} | Passed: ${report.summary.passedChecks} | Failed: ${report.summary.failedChecks}`,
+    `Perceptual Frame Pairings (37): | Passed: ${report.summary.perceptualPassed} | Failed: ${report.summary.perceptualFailed}`,
   );
   console.log(
-    `Result: ${report.summary.overallPass ? 'ALL IN-BAND PASS' : `FAIL (${report.summary.baselineFailed} baseline + ${report.summary.failedChecks - report.summary.baselineFailed} extended checks out of band)`}\n`,
+    `Total Gating Checks (incl. Baseline, Region RGB, Hue-Band, No-Blacks, Audio, Perceptual Pairings): ${report.summary.totalChecks} | Passed: ${report.summary.passedChecks} | Failed: ${report.summary.failedChecks}`,
+  );
+  console.log(
+    `Result: ${report.summary.overallPass ? 'ALL IN-BAND PASS' : `FAIL (${gatingFailures.length} fatal gating failures)`}\n`,
   );
 
   try {
@@ -966,9 +1018,20 @@ export async function runComparison(options = {}) {
     process.exit(2);
   }
 
-  const anyPairingFailed = report.pairingChecks.length < 37 || report.pairingChecks.some((p) => !p.passed);
-  if (anyPairingFailed) {
+  if (gatingFailures.length > 0) {
+    console.error(`\n=============================================================`);
+    console.error(`  [reference:compare] FAIL: ${gatingFailures.length} GATING FAILURE(S) DETECTED`);
+    console.error(`=============================================================`);
+    for (const f of gatingFailures.slice(0, 20)) {
+      console.error(`  - ${f}`);
+    }
+    if (gatingFailures.length > 20) {
+      console.error(`  ... and ${gatingFailures.length - 20} more failure(s).`);
+    }
+    console.error(`-------------------------------------------------------------\n`);
     process.exitCode = 1;
+  } else {
+    console.log(`\n✅ [reference:compare] All gating checks passed.`);
   }
 
   return report;

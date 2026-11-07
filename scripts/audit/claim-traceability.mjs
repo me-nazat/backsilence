@@ -46,6 +46,17 @@ function main() {
   const shotsDoc = JSON.parse(readFileSync(SHOTS_PATH, 'utf8'));
   const validShotIds = new Set(shotsDoc.map((s) => s.id));
 
+  const manifestPath = resolve(ROOT, 'reference/frames.manifest.json');
+  if (existsSync(manifestPath)) {
+    const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
+    if (manifest.manifestHash && pairingsDoc.manifestHash !== manifest.manifestHash) {
+      console.error(
+        `[claim-traceability] FAIL: pairings.json manifestHash (${pairingsDoc.manifestHash}) does not match frames.manifest.json (${manifest.manifestHash})`,
+      );
+      process.exit(1);
+    }
+  }
+
   const pairings = pairingsDoc.pairings || [];
   if (pairings.length < 37) {
     console.error(

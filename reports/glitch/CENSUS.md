@@ -15,8 +15,8 @@
 - **Authoritative Reference Pack:** 37 frames (`f_001` .. `f_037`) extracted from Video-2 (`VID-20261029-WA0007.mp4`) committed to repo.
 - **Supplementary Evidence Packs:** Video-1 (7 frames in `reference/video/frames_v1/`) and Video-3 (7 frames in `reference/video/frames_v3/`) with descriptive caption notes.
 - **Golden Baseline Shots:** 47 shots synchronized across `shots.json`, `tests/golden/`, and `reports/visual/`.
-- **No-Blacks Contract:** 14 / 14 PASS (0 FAIL, fraction below 0.1 === 0.0).
-- **Audio Reference:** 4 / 4 PASS (0 FAIL).
+- **No-Blacks Contract:** 14 / 14 PASS (fraction below 0.1 === 0.0).
+- **Audio Reference:** 4 / 4 PASS.
 
 ---
 

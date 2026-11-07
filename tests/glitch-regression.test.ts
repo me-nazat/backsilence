@@ -292,7 +292,7 @@ describe('Glitch Regression Test Suite', () => {
         wallMat: new MeshStandardMaterial(),
         floorMat: new MeshStandardMaterial(),
       };
-      const instance = await buildStandardMapInstance(layout, env as never, customMaterials);
+      const instance = buildStandardMapInstance(layout, env as never, customMaterials);
 
       // Query colliders at doorway center (x = 0, z = 0, y = 1.0)
       const candidates: import('../src/sim/Colliders.js').BoxCollider[] = [];

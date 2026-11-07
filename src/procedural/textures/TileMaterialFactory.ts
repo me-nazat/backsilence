@@ -29,7 +29,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { WORLD } from '../../app/Config.js';
 import { Rng } from '../core/prng.js';
 import { acquireCanvas } from '../core/canvasPool.js';
-import { makeTileSet } from './TileTexture.js';
+import { makeTileSet, type TileVariant } from './TileTexture.js';
 
 export interface TileMaterialPreset {
   tileColor: string;
@@ -289,8 +289,9 @@ export class TileMaterialFactory {
       metalness: 0.04,
       envMapIntensity: 0.45,
     });
-    (this.wallTileMaterial as any).clearcoat = 0.60;
-    (this.wallTileMaterial as any).clearcoatRoughness = 0.14;
+    const wallPhysical = this.wallTileMaterial as unknown as { clearcoat?: number; clearcoatRoughness?: number };
+    wallPhysical.clearcoat = 0.60;
+    wallPhysical.clearcoatRoughness = 0.14;
     this.wallTileMaterial.name = 'WallTileMaterial';
 
     // Ceiling uses warm dry plaster / arch material (#b7a775)
@@ -399,7 +400,7 @@ export class TileMaterialFactory {
   ): MeshStandardMaterial {
     const preset = TILE_PRESETS[presetName] ?? TILE_PRESETS['clean-white']!;
     const textures = makeTileSet({
-      variant: (presetName as any) || 'clean-white',
+      variant: (presetName as TileVariant) || 'clean-white',
       size: 512,
       anisotropy: 16,
       tileColor: preset.tileColor,

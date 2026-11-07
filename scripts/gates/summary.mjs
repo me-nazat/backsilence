@@ -43,7 +43,7 @@ function runCmd(cmd, args) {
   };
 }
 
-const GATES = [
+export const GATES = [
   {
     name: 'typecheck',
     cmd: 'npm',
@@ -210,13 +210,16 @@ const GATES = [
       if (existsSync(playPath)) {
         const p = JSON.parse(readFileSync(playPath, 'utf8'));
         const passedCount = p.checks.filter((c) => c.passed).length;
+        const failedCount = p.checks.filter((c) => !c.passed).length;
         const failedCheck = p.checks.find((c) => !c.passed);
         return {
+          failures: failedCount,
           detail: `${passedCount}/${p.checks.length} checks passed (1st=${p.run1.firstSightingTime}s @ ${p.run1.firstSightingDist}m, 2nd=${p.run1.secondSightingTime}s, p95=${p.run1.p95FrameTimeMs}ms, hash=${p.run1.finalSimHash})`,
           worst: failedCheck ? `${failedCheck.id}: actual=${failedCheck.actual} (expected ${failedCheck.expected})` : 'none',
         };
       }
       return {
+        failures: r.ok ? 0 : 1,
         detail: r.ok ? '5-minute natatorium playthrough passed' : '5-minute playthrough failed',
         worst: r.ok ? 'none' : 'play gate failure',
       };
@@ -231,8 +234,10 @@ const GATES = [
       if (existsSync(compPath)) {
         const c = JSON.parse(readFileSync(compPath, 'utf8'));
         const s = c.summary || {};
+        const failedCount = s.failedChecks ?? (s.gatingFailures?.length || 0);
         const w = s.worstFailingMetric;
         return {
+          failures: failedCount,
           detail: `baseline ${s.baselinePassed} PASS / ${s.baselineFailed} FAIL (${s.baselineChecks}); total ${s.passedChecks} PASS / ${s.failedChecks} FAIL (${s.totalChecks})`,
           worst: w
             ? `${w.metric}: actual=${w.actual} target=${w.target} (delta ${w.deltaPct}%, pairing f_007)`
@@ -240,6 +245,7 @@ const GATES = [
         };
       }
       return {
+        failures: r.ok ? 0 : 1,
         detail: r.ok ? 'all reference checks passed' : 'reference comparison failed',
         worst: r.ok ? 'none' : 'reference mismatch',
       };
@@ -256,51 +262,80 @@ const GATES = [
   },
 ];
 
-const results = [];
-let anyFailed = false;
+export function evaluateGateSummary(customGates = GATES, root = ROOT) {
+  const results = [];
+  let anyFailed = false;
+  let totalFailures = 0;
 
-for (const gate of GATES) {
-  const res = runCmd(gate.cmd, gate.args);
-  const { detail, worst } = gate.summarize(res);
-  const status = res.ok ? 'PASS' : 'FAIL';
-  if (!res.ok) anyFailed = true;
-  results.push({
-    gate: gate.name,
-    status,
-    detail,
-    worst,
-  });
-}
+  for (const gate of customGates) {
+    const res = runCmd(gate.cmd, gate.args);
+    const summary = gate.summarize(res);
+    const failureCount = summary.failures !== undefined ? summary.failures : (res.ok ? 0 : 1);
+    const status = (!res.ok || failureCount > 0) ? 'FAIL' : 'PASS';
+    if (status === 'FAIL') {
+      anyFailed = true;
+    }
+    totalFailures += failureCount;
 
-const gitSha = getGitSha();
-const manifestHash = getManifestHash();
+    results.push({
+      gate: gate.name,
+      status,
+      failures: failureCount,
+      detail: summary.detail,
+      worst: summary.worst,
+    });
+  }
 
-const tableLines = [
-  '| gate | status | detail | worst failing metric |',
-  '| :--- | :--- | :--- | :--- |',
-  ...results.map((r) => `| \`${r.gate}\` | **${r.status}** | ${r.detail} | ${r.worst} |`),
-];
+  const gitSha = getGitSha();
+  const manifestHash = getManifestHash();
 
-const markdown = `# Release & Verification Gate Summary
+  const tableLines = [
+    '| gate | status | failures | detail | worst failing metric |',
+    '| :--- | :--- | :--- | :--- | :--- |',
+    ...results.map((r) => `| \`${r.gate}\` | **${r.status}** | ${r.failures} | ${r.detail} | ${r.worst} |`),
+  ];
+
+  const overallVerdict = (anyFailed || totalFailures > 0)
+    ? `FAIL (${totalFailures} failures)`
+    : 'PASS';
+
+  const markdown = `# Release & Verification Gate Summary
 
 - **Git Commit SHA:** \`${gitSha}\`
 - **Reference Manifest SHA-256:** \`${manifestHash}\`
 - **Reference Pairings Verified:** \`f_001\` .. \`f_037\` (\`reference/pairings.json\` & \`reference/derived_targets.json\`)
-- **Overall Gate Verdict:** **${anyFailed ? 'FAIL (blocked by fatal reference gates)' : 'PASS'}**
+- **Overall Gate Verdict:** **${overallVerdict}**
 
 ## Gate Summary Table (\`f_001\` .. \`f_037\`)
 
 ${tableLines.join('\n')}
 `;
 
-const outDir = resolve(ROOT, 'reports/release');
-mkdirSync(outDir, { recursive: true });
-const outPath = resolve(outDir, 'gates.md');
-writeFileSync(outPath, markdown, 'utf8');
+  return {
+    results,
+    anyFailed: anyFailed || totalFailures > 0,
+    totalFailures,
+    overallVerdict,
+    markdown,
+  };
+}
 
-console.log(markdown);
+export function main() {
+  const { anyFailed, markdown } = evaluateGateSummary();
 
-if (anyFailed) {
-  process.exit(1);
+  const outDir = resolve(ROOT, 'reports/release');
+  mkdirSync(outDir, { recursive: true });
+  const outPath = resolve(outDir, 'gates.md');
+  writeFileSync(outPath, markdown, 'utf8');
+
+  console.log(markdown);
+
+  if (anyFailed) {
+    process.exit(1);
+  }
+}
+
+if (process.argv[1] && resolve(process.argv[1]) === resolve(import.meta.filename)) {
+  main();
 }
 

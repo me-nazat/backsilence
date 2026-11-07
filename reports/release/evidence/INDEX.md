@@ -1,7 +1,7 @@
 # BackSilence Play Evidence Pack (E1–E7)
 
 **Release Target:** `v2.1.0-rc1`  
-**Generated:** 2026-11-05T16:12:15.284Z  
+**Generated:** 2026-11-07T10:43:05.412Z  
 **Scope:** Verified recorded play evidence across all headline gameplay systems.
 
 ---

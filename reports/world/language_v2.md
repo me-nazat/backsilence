@@ -27,18 +27,18 @@ Audited against reference frames `f_004`, `f_006`, `f_007`, `f_008`, `f_013`, `f
 
 | Property | Reference Frame | Target Metric | Game Metric | Delta | Status |
 |:---|:---:|:---:|:---:|:---:|:---:|
-| **Hall Vault Ceiling Height** | `f_004`–`f_009` | $9.0\text{ m}$ | $9.0\text{ m}$ | $0.0\%$ | **MATCH** |
-| **Foyer Ceiling Height** | `f_013`–`f_015` | $6.0\text{ m}$ | $6.0\text{ m}$ | $0.0\%$ | **MATCH** |
-| **Arch Opening Width** | `f_004`–`f_009` | $6.5\text{ m}$ | $6.5\text{ m}$ | $0.0\%$ | **MATCH** |
-| **Arch Opening Height** | `f_004`–`f_009` | $6.0\text{ m}$ | $6.0\text{ m}$ | $0.0\%$ | **MATCH** |
-| **Slab Top Y Above Water** | `f_004`–`f_009` | $0.30\text{ m}$ | $0.30\text{ m}$ | $0.0\%$ | **MATCH** |
-| **Slab Exposed Thickness** | `f_035`–`f_036` | $0.30\text{ m}$ | $0.30\text{ m}$ | $0.0\%$ | **MATCH** |
-| **Tile Pitch** | `f_035`–`f_036` | $0.15\text{ m}$ | $0.15\text{ m}$ | $0.0\%$ | **MATCH** |
-| **Pillar Diameter** | `f_013`–`f_015` | $1.50\text{ m}$ | $1.50\text{ m}$ | $0.0\%$ | **MATCH** |
-| **Spray Numeral Height** | `f_013`–`f_015` | $0.50\text{ m}$ | $0.484\text{ m}$ | $3.1\%$ | **MATCH** |
-| **Water Depth over Floor** | `f_018`–`f_020` | $0.75\text{ m}$ | $0.75\text{ m}$ | $0.0\%$ | **MATCH** |
-| **Trench Width** | `f_035`–`f_036` | $1.05\text{ m}$ | $1.05\text{ m}$ | $0.0\%$ | **MATCH** |
-| **Camera Eye Height** | `f_004`–`f_009` | $1.65\text{ m}$ | $1.65\text{ m}$ | $0.0\%$ | **MATCH** |
+| **Hall Vault Ceiling Height** | `f_004`–`f_009` | $9.0\text{ m}$ | $9.0\text{ m}$ | $0.0\%$ | **ALIGNED** |
+| **Foyer Ceiling Height** | `f_013`–`f_015` | $6.0\text{ m}$ | $6.0\text{ m}$ | $0.0\%$ | **ALIGNED** |
+| **Arch Opening Width** | `f_004`–`f_009` | $6.5\text{ m}$ | $6.5\text{ m}$ | $0.0\%$ | **ALIGNED** |
+| **Arch Opening Height** | `f_004`–`f_009` | $6.0\text{ m}$ | $6.0\text{ m}$ | $0.0\%$ | **ALIGNED** |
+| **Slab Top Y Above Water** | `f_004`–`f_009` | $0.30\text{ m}$ | $0.30\text{ m}$ | $0.0\%$ | **ALIGNED** |
+| **Slab Exposed Thickness** | `f_035`–`f_036` | $0.30\text{ m}$ | $0.30\text{ m}$ | $0.0\%$ | **ALIGNED** |
+| **Tile Pitch** | `f_035`–`f_036` | $0.15\text{ m}$ | $0.15\text{ m}$ | $0.0\%$ | **ALIGNED** |
+| **Pillar Diameter** | `f_013`–`f_015` | $1.50\text{ m}$ | $1.50\text{ m}$ | $0.0\%$ | **ALIGNED** |
+| **Spray Numeral Height** | `f_013`–`f_015` | $0.50\text{ m}$ | $0.484\text{ m}$ | $3.1\%$ | **ALIGNED** |
+| **Water Depth over Floor** | `f_018`–`f_020` | $0.75\text{ m}$ | $0.75\text{ m}$ | $0.0\%$ | **ALIGNED** |
+| **Trench Width** | `f_035`–`f_036` | $1.05\text{ m}$ | $1.05\text{ m}$ | $0.0\%$ | **ALIGNED** |
+| **Camera Eye Height** | `f_004`–`f_009` | $1.65\text{ m}$ | $1.65\text{ m}$ | $0.0\%$ | **ALIGNED** |
 
 ---
 

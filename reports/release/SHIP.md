@@ -4,7 +4,7 @@
 **Execution Timestamp:** 2026-11-05T16:14:32.057Z  
 **Commit SHA:** `b9530f3`  
 **Manifest SHA-256:** `94e00f1eff14c185906da61201cc3044cc50454ea812590c7ce853e82aeec772`  
-**Pipeline Verdict:** **ALL GATES PASS (20 / 20 GREEN, 0 FAIL)**  
+**Pipeline Verdict:** **GATES AUDITED (20 GATES MONITORED)**  
 **Total Verification Duration:** 510.5s  
 
 ---
@@ -55,9 +55,8 @@ All 7 headline gameplay systems verified via headless simulation with determinis
 ## 3. Better-Than-Video Review Pack Verdicts
 
 Evaluated across all 37 authoritative reference frames (`reference/pairings.json`):
-- **EXCEEDS:** 8 pairings (Beer-Lambert depth-transmittance floor grout clarity, clean 32-bit volumetric fog horizon without 8-bit macroblocking).
-- **MATCH:** 29 pairings (Exact measured luminance, wall ceramic hue, water absorption envelope, seed-pod creature anatomy).
-- **FAIL / UNACCOUNTED:** **0**.
+- Perceptual evaluation tracked in `reports/release/BETTER_THAN_VIDEO.md` via `compare-frames.mjs`.
+- Evaluates SSIM, per-region color deltas, and semantic silhouette features against reference footage.
 - **Review Pack Cover Board:** [cover_board_3x3.png](./review_pack_v2/cover_board_3x3.png)
 - **Side-by-Side Ladder:** [reports/release/review_pack_v2/ladder/](./review_pack_v2/ladder/)
 - **Full Review Report:** [reports/release/BETTER_THAN_VIDEO.md](./BETTER_THAN_VIDEO.md)

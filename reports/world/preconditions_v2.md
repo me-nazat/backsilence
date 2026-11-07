@@ -43,18 +43,18 @@ Audited via `scripts/world/audit-maps-preconditions.mjs`, `measure-natatorium.mj
 ## §2 Dimensional Verification Baseline (`measure-natatorium.mjs`) (Citing Frames f_004, f_007, f_008, f_013, f_018, f_035)
 
 Audited against `reports/world/natatorium_vs_footage.md` following calibration:
-- **Hall Vault Apex:** $9.0\text{ m}$ (Reference $9.0\text{ m}$, Delta $0.0\%$, **MATCH**)
-- **Foyer Ceiling Height:** $6.0\text{ m}$ (Reference $6.0\text{ m}$, Delta $0.0\%$, **MATCH**)
-- **Arch Opening Width:** $6.5\text{ m}$ (Reference $6.5\text{ m}$, Delta $0.0\%$, **MATCH**)
-- **Arch Opening Height:** $6.0\text{ m}$ (Reference $6.0\text{ m}$, Delta $0.0\%$, **MATCH**)
-- **Slab Top Y Above Water:** $0.30\text{ m}$ (Reference $0.30\text{ m}$, Delta $0.0\%$, **MATCH**)
-- **Slab Exposed Thickness:** $0.30\text{ m}$ (Reference $0.30\text{ m}$, Delta $0.0\%$, **MATCH**)
-- **Tile Pitch:** $0.15\text{ m}$ (Reference $0.15\text{ m}$, Delta $0.0\%$, **MATCH**)
-- **Pillar Diameter:** $1.50\text{ m}$ (Reference $1.50\text{ m}$, Delta $0.0\%$, **MATCH**)
-- **Spray Numeral Height:** $0.484\text{ m}$ (Reference $0.50\text{ m}$, Delta $3.1\%$, **MATCH**)
-- **Water Depth over Floor:** $0.75\text{ m}$ (Reference $0.75\text{ m}$, Delta $0.0\%$, **MATCH**)
-- **Trench Width:** $1.05\text{ m}$ (Reference $1.05\text{ m}$, Delta $0.0\%$, **MATCH**)
-- **Camera Eye Height:** $1.65\text{ m}$ (Reference $1.65\text{ m}$, Delta $0.0\%$, **MATCH**)
+- **Hall Vault Apex:** $9.0\text{ m}$ (Reference $9.0\text{ m}$, Delta $0.0\%$, **ALIGNED**)
+- **Foyer Ceiling Height:** $6.0\text{ m}$ (Reference $6.0\text{ m}$, Delta $0.0\%$, **ALIGNED**)
+- **Arch Opening Width:** $6.5\text{ m}$ (Reference $6.5\text{ m}$, Delta $0.0\%$, **ALIGNED**)
+- **Arch Opening Height:** $6.0\text{ m}$ (Reference $6.0\text{ m}$, Delta $0.0\%$, **ALIGNED**)
+- **Slab Top Y Above Water:** $0.30\text{ m}$ (Reference $0.30\text{ m}$, Delta $0.0\%$, **ALIGNED**)
+- **Slab Exposed Thickness:** $0.30\text{ m}$ (Reference $0.30\text{ m}$, Delta $0.0\%$, **ALIGNED**)
+- **Tile Pitch:** $0.15\text{ m}$ (Reference $0.15\text{ m}$, Delta $0.0\%$, **ALIGNED**)
+- **Pillar Diameter:** $1.50\text{ m}$ (Reference $1.50\text{ m}$, Delta $0.0\%$, **ALIGNED**)
+- **Spray Numeral Height:** $0.484\text{ m}$ (Reference $0.50\text{ m}$, Delta $3.1\%$, **ALIGNED**)
+- **Water Depth over Floor:** $0.75\text{ m}$ (Reference $0.75\text{ m}$, Delta $0.0\%$, **ALIGNED**)
+- **Trench Width:** $1.05\text{ m}$ (Reference $1.05\text{ m}$, Delta $0.0\%$, **ALIGNED**)
+- **Camera Eye Height:** $1.65\text{ m}$ (Reference $1.65\text{ m}$, Delta $0.0\%$, **ALIGNED**)
 
 ---
 

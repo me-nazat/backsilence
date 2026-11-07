@@ -51,7 +51,7 @@ export function setupAtmosphere(
     renderer.renderer.toneMappingExposure = exposure;
 
     let envTexture: Texture | null = null;
-    if (typeof (renderer.renderer as any)?.compile === 'function') {
+    if (typeof (renderer.renderer as unknown as { compile?: unknown })?.compile === 'function') {
       const pmrem = new PMREMGenerator(renderer.renderer);
       pmrem.compileEquirectangularShader();
       const envScene = new Scene();

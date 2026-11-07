@@ -1,5 +1,5 @@
 {
-  "date": "2026-11-07T06:30:20.979Z",
+  "date": "2026-11-07T10:49:11.537Z",
   "manifestHash": "94e00f1eff14c185906da61201cc3044cc50454ea812590c7ce853e82aeec772",
   "derivedTargetsGeneratedAt": "2026-11-02T11:55:00.000Z",
   "referenceSource": "Authoritative Reference Pack (37 frames, manifest=94e00f1eff14c185)",
@@ -2946,149 +2946,2928 @@
       "frameId": "f_001",
       "shotId": "natatorium_tagline_wall",
       "property": "tilePitchMetersAndWallHueDeg",
+      "whatToLookAt": "wall_tile_pitch_and_graffiti_contrast",
       "actualLum": 0.603,
       "frameLum": 0.6101,
       "deltaPct": 0,
-      "passed": true
+      "ssim": 0.2114,
+      "perChannelMae": {
+        "maeR": 0.1608,
+        "maeG": 0.1283,
+        "maeB": 0.0943,
+        "meanMae": 0.1278
+      },
+      "wholeFrameDeltaE": {
+        "meanRgbA": [
+          0.675,
+          0.611,
+          0.411
+        ],
+        "meanRgbB": [
+          0.664,
+          0.6,
+          0.453
+        ],
+        "deltaE": 3.587
+      },
+      "regions": {
+        "wall": {
+          "ref": {
+            "rect": {
+              "x0": 72,
+              "y0": 192,
+              "x1": 648,
+              "y1": 832
+            },
+            "meanRGB": [
+              0.66,
+              0.586,
+              0.403
+            ],
+            "meanHSV": [
+              42.6,
+              0.3895,
+              0.6604
+            ],
+            "luminance": 0.5885,
+            "edgeDensity": 0.4589
+          },
+          "shot": {
+            "rect": {
+              "x0": 128,
+              "y0": 108,
+              "x1": 1152,
+              "y1": 468
+            },
+            "meanRGB": [
+              0.67,
+              0.618,
+              0.453
+            ],
+            "meanHSV": [
+              45.8,
+              0.3243,
+              0.6698
+            ],
+            "luminance": 0.6174,
+            "edgeDensity": 0.4444
+          },
+          "deltaRGB": [
+            0.01,
+            0.032,
+            0.05
+          ],
+          "maxDelta": 0.05,
+          "passed": true
+        },
+        "water": {
+          "ref": {
+            "rect": {
+              "x0": 36,
+              "y0": 896,
+              "x1": 684,
+              "y1": 1216
+            },
+            "meanRGB": [
+              0.662,
+              0.607,
+              0.396
+            ],
+            "meanHSV": [
+              47.6,
+              0.4013,
+              0.6621
+            ],
+            "luminance": 0.6036,
+            "edgeDensity": 0.3989
+          },
+          "shot": {
+            "rect": {
+              "x0": 64,
+              "y0": 503,
+              "x1": 1216,
+              "y1": 684
+            },
+            "meanRGB": [
+              0.745,
+              0.639,
+              0.473
+            ],
+            "meanHSV": [
+              36.6,
+              0.365,
+              0.745
+            ],
+            "luminance": 0.6496,
+            "edgeDensity": 0.4308
+          },
+          "deltaRGB": [
+            0.083,
+            0.032,
+            0.077
+          ],
+          "maxDelta": 0.083,
+          "passed": false
+        },
+        "fog": {
+          "ref": {
+            "rect": {
+              "x0": 144,
+              "y0": 448,
+              "x1": 576,
+              "y1": 832
+            },
+            "meanRGB": [
+              0.632,
+              0.556,
+              0.374
+            ],
+            "meanHSV": [
+              42.3,
+              0.4083,
+              0.6316
+            ],
+            "luminance": 0.5587,
+            "edgeDensity": 0.4579
+          },
+          "shot": {
+            "rect": {
+              "x0": 256,
+              "y0": 251,
+              "x1": 1024,
+              "y1": 468
+            },
+            "meanRGB": [
+              0.677,
+              0.626,
+              0.456
+            ],
+            "meanHSV": [
+              46.1,
+              0.327,
+              0.677
+            ],
+            "luminance": 0.6243,
+            "edgeDensity": 0.4316
+          },
+          "deltaRGB": [
+            0.045,
+            0.07,
+            0.082
+          ],
+          "maxDelta": 0.082,
+          "passed": false
+        }
+      },
+      "regionDeltasSummary": "wall:ΔRGB=[0.01,0.03,0.05]; water:ΔRGB=[0.08,0.03,0.08]; fog:ΔRGB=[0.05,0.07,0.08]",
+      "semantics": {
+        "inkPresent": false,
+        "pittedHeadSilhouette": false,
+        "darkMassOnWater": false
+      },
+      "verdict": "FAIL",
+      "failureReasons": [
+        "SSIM 0.2114 < 0.55",
+        "Region water max ΔRGB 0.083 > 0.08",
+        "Region fog max ΔRGB 0.082 > 0.08",
+        "Missing semantic: inkPresent"
+      ],
+      "passed": false
     },
     {
       "id": "f_002",
       "frameId": "f_002",
       "shotId": "natatorium_tagline_wall_portrait",
       "property": "wallHueDegAndWaterHueDeg",
+      "whatToLookAt": "portrait_tagline_wall_and_waterline_contact",
       "actualLum": 0.6133,
       "frameLum": 0.5886,
       "deltaPct": 0,
-      "passed": true
+      "ssim": 0.4855,
+      "perChannelMae": {
+        "maeR": 0.1819,
+        "maeG": 0.1144,
+        "maeB": 0.0991,
+        "meanMae": 0.1318
+      },
+      "wholeFrameDeltaE": {
+        "meanRgbA": [
+          0.628,
+          0.597,
+          0.394
+        ],
+        "meanRgbB": [
+          0.677,
+          0.61,
+          0.456
+        ],
+        "deltaE": 5.451
+      },
+      "regions": {
+        "wall": {
+          "ref": {
+            "rect": {
+              "x0": 72,
+              "y0": 192,
+              "x1": 648,
+              "y1": 832
+            },
+            "meanRGB": [
+              0.648,
+              0.569,
+              0.388
+            ],
+            "meanHSV": [
+              41.8,
+              0.4004,
+              0.6478
+            ],
+            "luminance": 0.5728,
+            "edgeDensity": 0.4618
+          },
+          "shot": {
+            "rect": {
+              "x0": 72,
+              "y0": 192,
+              "x1": 648,
+              "y1": 832
+            },
+            "meanRGB": [
+              0.678,
+              0.625,
+              0.456
+            ],
+            "meanHSV": [
+              45.7,
+              0.3274,
+              0.678
+            ],
+            "luminance": 0.6241,
+            "edgeDensity": 0.319
+          },
+          "deltaRGB": [
+            0.03,
+            0.056,
+            0.068
+          ],
+          "maxDelta": 0.068,
+          "passed": true
+        },
+        "water": {
+          "ref": {
+            "rect": {
+              "x0": 36,
+              "y0": 896,
+              "x1": 684,
+              "y1": 1216
+            },
+            "meanRGB": [
+              0.542,
+              0.614,
+              0.382
+            ],
+            "meanHSV": [
+              78.5,
+              0.3772,
+              0.6135
+            ],
+            "luminance": 0.5816,
+            "edgeDensity": 0.3322
+          },
+          "shot": {
+            "rect": {
+              "x0": 36,
+              "y0": 896,
+              "x1": 684,
+              "y1": 1216
+            },
+            "meanRGB": [
+              0.746,
+              0.641,
+              0.474
+            ],
+            "meanHSV": [
+              36.8,
+              0.3644,
+              0.7458
+            ],
+            "luminance": 0.6509,
+            "edgeDensity": 0.3193
+          },
+          "deltaRGB": [
+            0.204,
+            0.027,
+            0.092
+          ],
+          "maxDelta": 0.204,
+          "passed": false
+        },
+        "fog": {
+          "ref": {
+            "rect": {
+              "x0": 144,
+              "y0": 448,
+              "x1": 576,
+              "y1": 832
+            },
+            "meanRGB": [
+              0.649,
+              0.565,
+              0.377
+            ],
+            "meanHSV": [
+              41.4,
+              0.4199,
+              0.6492
+            ],
+            "luminance": 0.5691,
+            "edgeDensity": 0.4346
+          },
+          "shot": {
+            "rect": {
+              "x0": 144,
+              "y0": 448,
+              "x1": 576,
+              "y1": 832
+            },
+            "meanRGB": [
+              0.683,
+              0.632,
+              0.459
+            ],
+            "meanHSV": [
+              46.1,
+              0.3289,
+              0.6834
+            ],
+            "luminance": 0.6301,
+            "edgeDensity": 0.3229
+          },
+          "deltaRGB": [
+            0.034,
+            0.067,
+            0.082
+          ],
+          "maxDelta": 0.082,
+          "passed": false
+        }
+      },
+      "regionDeltasSummary": "wall:ΔRGB=[0.03,0.06,0.07]; water:ΔRGB=[0.20,0.03,0.09]; fog:ΔRGB=[0.03,0.07,0.08]",
+      "semantics": {
+        "inkPresent": false,
+        "pittedHeadSilhouette": false,
+        "darkMassOnWater": false
+      },
+      "verdict": "FAIL",
+      "failureReasons": [
+        "SSIM 0.4855 < 0.55",
+        "Region water max ΔRGB 0.204 > 0.08",
+        "Region fog max ΔRGB 0.082 > 0.08",
+        "Missing semantic: inkPresent"
+      ],
+      "passed": false
     },
     {
       "id": "f_003",
       "frameId": "f_003",
       "shotId": "natatorium_close_tile_wall",
       "property": "tileGrid16x16AndWallRgb",
+      "whatToLookAt": "close_tile_grout_grid_and_ceramic_albedo",
       "actualLum": 0.5929,
       "frameLum": 0.5612,
       "deltaPct": 0,
-      "passed": true
+      "ssim": 0.4476,
+      "perChannelMae": {
+        "maeR": 0.1761,
+        "maeG": 0.1919,
+        "maeB": 0.1511,
+        "meanMae": 0.173
+      },
+      "wholeFrameDeltaE": {
+        "meanRgbA": [
+          0.583,
+          0.568,
+          0.426
+        ],
+        "meanRgbB": [
+          0.642,
+          0.593,
+          0.443
+        ],
+        "deltaE": 4.502
+      },
+      "regions": {
+        "wall": {
+          "ref": {
+            "rect": {
+              "x0": 72,
+              "y0": 192,
+              "x1": 648,
+              "y1": 832
+            },
+            "meanRGB": [
+              0.66,
+              0.612,
+              0.48
+            ],
+            "meanHSV": [
+              44.2,
+              0.2723,
+              0.6597
+            ],
+            "luminance": 0.6129,
+            "edgeDensity": 0.1677
+          },
+          "shot": {
+            "rect": {
+              "x0": 128,
+              "y0": 108,
+              "x1": 1152,
+              "y1": 468
+            },
+            "meanRGB": [
+              0.653,
+              0.604,
+              0.447
+            ],
+            "meanHSV": [
+              45.6,
+              0.315,
+              0.653
+            ],
+            "luminance": 0.6029,
+            "edgeDensity": 0.1644
+          },
+          "deltaRGB": [
+            0.007,
+            0.008,
+            0.033
+          ],
+          "maxDelta": 0.033,
+          "passed": true
+        },
+        "water": {
+          "ref": {
+            "rect": {
+              "x0": 36,
+              "y0": 896,
+              "x1": 684,
+              "y1": 1216
+            },
+            "meanRGB": [
+              0.603,
+              0.681,
+              0.463
+            ],
+            "meanHSV": [
+              81.5,
+              0.3206,
+              0.6812
+            ],
+            "luminance": 0.6488,
+            "edgeDensity": 0.3364
+          },
+          "shot": {
+            "rect": {
+              "x0": 64,
+              "y0": 503,
+              "x1": 1216,
+              "y1": 684
+            },
+            "meanRGB": [
+              0.64,
+              0.592,
+              0.442
+            ],
+            "meanHSV": [
+              45.4,
+              0.309,
+              0.6403
+            ],
+            "luminance": 0.5916,
+            "edgeDensity": 0.1659
+          },
+          "deltaRGB": [
+            0.037,
+            0.089,
+            0.021
+          ],
+          "maxDelta": 0.089,
+          "passed": false
+        },
+        "fog": {
+          "ref": {
+            "rect": {
+              "x0": 144,
+              "y0": 448,
+              "x1": 576,
+              "y1": 832
+            },
+            "meanRGB": [
+              0.754,
+              0.718,
+              0.555
+            ],
+            "meanHSV": [
+              48.9,
+              0.2636,
+              0.7543
+            ],
+            "luminance": 0.7137,
+            "edgeDensity": 0.0425
+          },
+          "shot": {
+            "rect": {
+              "x0": 256,
+              "y0": 251,
+              "x1": 1024,
+              "y1": 468
+            },
+            "meanRGB": [
+              0.649,
+              0.601,
+              0.446
+            ],
+            "meanHSV": [
+              45.7,
+              0.3121,
+              0.6488
+            ],
+            "luminance": 0.5996,
+            "edgeDensity": 0.1922
+          },
+          "deltaRGB": [
+            0.105,
+            0.117,
+            0.109
+          ],
+          "maxDelta": 0.117,
+          "passed": false
+        }
+      },
+      "regionDeltasSummary": "wall:ΔRGB=[0.01,0.01,0.03]; water:ΔRGB=[0.04,0.09,0.02]; fog:ΔRGB=[0.10,0.12,0.11]",
+      "semantics": {
+        "inkPresent": false,
+        "pittedHeadSilhouette": false,
+        "darkMassOnWater": false
+      },
+      "verdict": "FAIL",
+      "failureReasons": [
+        "SSIM 0.4476 < 0.55",
+        "Region water max ΔRGB 0.089 > 0.08",
+        "Region fog max ΔRGB 0.117 > 0.08"
+      ],
+      "passed": false
     },
     {
       "id": "f_004",
       "frameId": "f_004",
       "shotId": "natatorium_spawn_view",
       "property": "luminanceMeanAndWaterHueBand",
+      "whatToLookAt": "vaulted_hall_luminance_and_olive_water_hue",
       "actualLum": 0.6163,
       "frameLum": 0.4748,
       "deltaPct": 0,
-      "passed": true
+      "ssim": 0.5406,
+      "perChannelMae": {
+        "maeR": 0.2026,
+        "maeG": 0.1505,
+        "maeB": 0.1872,
+        "meanMae": 0.1801
+      },
+      "wholeFrameDeltaE": {
+        "meanRgbA": [
+          0.469,
+          0.495,
+          0.292
+        ],
+        "meanRgbB": [
+          0.652,
+          0.622,
+          0.458
+        ],
+        "deltaE": 13.679
+      },
+      "regions": {
+        "wall": {
+          "ref": {
+            "rect": {
+              "x0": 72,
+              "y0": 91,
+              "x1": 648,
+              "y1": 455
+            },
+            "meanRGB": [
+              0.556,
+              0.542,
+              0.358
+            ],
+            "meanHSV": [
+              55.8,
+              0.355,
+              0.5556
+            ],
+            "luminance": 0.5314,
+            "edgeDensity": 0.2199
+          },
+          "shot": {
+            "rect": {
+              "x0": 128,
+              "y0": 36,
+              "x1": 1152,
+              "y1": 324
+            },
+            "meanRGB": [
+              0.68,
+              0.624,
+              0.461
+            ],
+            "meanHSV": [
+              44.5,
+              0.3219,
+              0.6804
+            ],
+            "luminance": 0.6241,
+            "edgeDensity": 0.4064
+          },
+          "deltaRGB": [
+            0.124,
+            0.082,
+            0.103
+          ],
+          "maxDelta": 0.124,
+          "passed": false
+        },
+        "water": {
+          "ref": {
+            "rect": {
+              "x0": 36,
+              "y0": 500,
+              "x1": 684,
+              "y1": 864
+            },
+            "meanRGB": [
+              0.344,
+              0.432,
+              0.226
+            ],
+            "meanHSV": [
+              85.7,
+              0.4756,
+              0.4318
+            ],
+            "luminance": 0.3982,
+            "edgeDensity": 0.1773
+          },
+          "shot": {
+            "rect": {
+              "x0": 64,
+              "y0": 360,
+              "x1": 1216,
+              "y1": 684
+            },
+            "meanRGB": [
+              0.636,
+              0.643,
+              0.461
+            ],
+            "meanHSV": [
+              62.3,
+              0.2832,
+              0.6428
+            ],
+            "luminance": 0.6282,
+            "edgeDensity": 0.2713
+          },
+          "deltaRGB": [
+            0.292,
+            0.211,
+            0.235
+          ],
+          "maxDelta": 0.292,
+          "passed": false
+        },
+        "fog": {
+          "ref": {
+            "rect": {
+              "x0": 144,
+              "y0": 318,
+              "x1": 576,
+              "y1": 546
+            },
+            "meanRGB": [
+              0.539,
+              0.575,
+              0.426
+            ],
+            "meanHSV": [
+              74.3,
+              0.2584,
+              0.5747
+            ],
+            "luminance": 0.5564,
+            "edgeDensity": 0.1974
+          },
+          "shot": {
+            "rect": {
+              "x0": 256,
+              "y0": 216,
+              "x1": 1024,
+              "y1": 396
+            },
+            "meanRGB": [
+              0.695,
+              0.638,
+              0.467
+            ],
+            "meanHSV": [
+              45,
+              0.3279,
+              0.6953
+            ],
+            "luminance": 0.6381,
+            "edgeDensity": 0.4482
+          },
+          "deltaRGB": [
+            0.156,
+            0.063,
+            0.041
+          ],
+          "maxDelta": 0.156,
+          "passed": false
+        }
+      },
+      "regionDeltasSummary": "wall:ΔRGB=[0.12,0.08,0.10]; water:ΔRGB=[0.29,0.21,0.24]; fog:ΔRGB=[0.16,0.06,0.04]",
+      "semantics": {
+        "inkPresent": false,
+        "pittedHeadSilhouette": false,
+        "darkMassOnWater": false
+      },
+      "verdict": "FAIL",
+      "failureReasons": [
+        "SSIM 0.5406 < 0.55",
+        "Region wall max ΔRGB 0.124 > 0.08",
+        "Region water max ΔRGB 0.292 > 0.08",
+        "Region fog max ΔRGB 0.156 > 0.08"
+      ],
+      "passed": false
     },
     {
       "id": "f_005",
       "frameId": "f_005",
       "shotId": "natatorium_spawn_view_portrait",
       "property": "ceilingArchHexAndWaterNearHex",
+      "whatToLookAt": "ceiling_arch_tan_and_near_water_swell",
       "actualLum": 0.6356,
       "frameLum": 0.5624,
       "deltaPct": 0,
-      "passed": true
+      "ssim": 0.6747,
+      "perChannelMae": {
+        "maeR": 0.1228,
+        "maeG": 0.1043,
+        "maeB": 0.1408,
+        "meanMae": 0.1226
+      },
+      "wholeFrameDeltaE": {
+        "meanRgbA": [
+          0.568,
+          0.58,
+          0.373
+        ],
+        "meanRgbB": [
+          0.667,
+          0.644,
+          0.464
+        ],
+        "deltaE": 6.825
+      },
+      "regions": {
+        "wall": {
+          "ref": {
+            "rect": {
+              "x0": 72,
+              "y0": 91,
+              "x1": 648,
+              "y1": 455
+            },
+            "meanRGB": [
+              0.676,
+              0.681,
+              0.521
+            ],
+            "meanHSV": [
+              62.1,
+              0.2357,
+              0.6813
+            ],
+            "luminance": 0.6685,
+            "edgeDensity": 0.0658
+          },
+          "shot": {
+            "rect": {
+              "x0": 72,
+              "y0": 128,
+              "x1": 648,
+              "y1": 704
+            },
+            "meanRGB": [
+              0.711,
+              0.649,
+              0.472
+            ],
+            "meanHSV": [
+              44.4,
+              0.3361,
+              0.7112
+            ],
+            "luminance": 0.6495,
+            "edgeDensity": 0.3251
+          },
+          "deltaRGB": [
+            0.035,
+            0.032,
+            0.049
+          ],
+          "maxDelta": 0.049,
+          "passed": true
+        },
+        "water": {
+          "ref": {
+            "rect": {
+              "x0": 36,
+              "y0": 500,
+              "x1": 684,
+              "y1": 864
+            },
+            "meanRGB": [
+              0.452,
+              0.483,
+              0.233
+            ],
+            "meanHSV": [
+              67.5,
+              0.5181,
+              0.4831
+            ],
+            "luminance": 0.4584,
+            "edgeDensity": 0.2016
+          },
+          "shot": {
+            "rect": {
+              "x0": 36,
+              "y0": 704,
+              "x1": 684,
+              "y1": 1216
+            },
+            "meanRGB": [
+              0.609,
+              0.651,
+              0.458
+            ],
+            "meanHSV": [
+              73.1,
+              0.2967,
+              0.6509
+            ],
+            "luminance": 0.628,
+            "edgeDensity": 0.2032
+          },
+          "deltaRGB": [
+            0.157,
+            0.168,
+            0.225
+          ],
+          "maxDelta": 0.225,
+          "passed": false
+        },
+        "fog": {
+          "ref": {
+            "rect": {
+              "x0": 144,
+              "y0": 318,
+              "x1": 576,
+              "y1": 546
+            },
+            "meanRGB": [
+              0.568,
+              0.631,
+              0.443
+            ],
+            "meanHSV": [
+              80,
+              0.2988,
+              0.6311
+            ],
+            "luminance": 0.6042,
+            "edgeDensity": 0.1159
+          },
+          "shot": {
+            "rect": {
+              "x0": 144,
+              "y0": 448,
+              "x1": 576,
+              "y1": 832
+            },
+            "meanRGB": [
+              0.703,
+              0.647,
+              0.47
+            ],
+            "meanHSV": [
+              45.6,
+              0.3311,
+              0.703
+            ],
+            "luminance": 0.6462,
+            "edgeDensity": 0.3055
+          },
+          "deltaRGB": [
+            0.135,
+            0.016,
+            0.027
+          ],
+          "maxDelta": 0.135,
+          "passed": false
+        }
+      },
+      "regionDeltasSummary": "wall:ΔRGB=[0.03,0.03,0.05]; water:ΔRGB=[0.16,0.17,0.23]; fog:ΔRGB=[0.14,0.02,0.03]",
+      "semantics": {
+        "inkPresent": false,
+        "pittedHeadSilhouette": false,
+        "darkMassOnWater": false
+      },
+      "verdict": "FAIL",
+      "failureReasons": [
+        "Region water max ΔRGB 0.225 > 0.08",
+        "Region fog max ΔRGB 0.135 > 0.08"
+      ],
+      "passed": false
     },
     {
       "id": "f_006",
       "frameId": "f_006",
       "shotId": "natatorium_hero",
       "property": "slabTopHexAndFogHue",
+      "whatToLookAt": "slab_bullnose_elevation_and_hall_fog_falloff",
       "actualLum": 0.587,
       "frameLum": 0.6223,
       "deltaPct": 0,
-      "passed": true
+      "ssim": 0.4741,
+      "perChannelMae": {
+        "maeR": 0.1423,
+        "maeG": 0.1118,
+        "maeB": 0.1398,
+        "meanMae": 0.1313
+      },
+      "wholeFrameDeltaE": {
+        "meanRgbA": [
+          0.706,
+          0.621,
+          0.39
+        ],
+        "meanRgbB": [
+          0.59,
+          0.608,
+          0.472
+        ],
+        "deltaE": 11.045
+      },
+      "regions": {
+        "wall": {
+          "ref": {
+            "rect": {
+              "x0": 72,
+              "y0": 91,
+              "x1": 648,
+              "y1": 455
+            },
+            "meanRGB": [
+              0.719,
+              0.699,
+              0.51
+            ],
+            "meanHSV": [
+              54.3,
+              0.2906,
+              0.7188
+            ],
+            "luminance": 0.6896,
+            "edgeDensity": 0.0373
+          },
+          "shot": {
+            "rect": {
+              "x0": 128,
+              "y0": 36,
+              "x1": 1152,
+              "y1": 324
+            },
+            "meanRGB": [
+              0.605,
+              0.601,
+              0.509
+            ],
+            "meanHSV": [
+              57.3,
+              0.1588,
+              0.6048
+            ],
+            "luminance": 0.5948,
+            "edgeDensity": 0.1421
+          },
+          "deltaRGB": [
+            0.114,
+            0.098,
+            0.001
+          ],
+          "maxDelta": 0.114,
+          "passed": false
+        },
+        "water": {
+          "ref": {
+            "rect": {
+              "x0": 36,
+              "y0": 500,
+              "x1": 684,
+              "y1": 864
+            },
+            "meanRGB": [
+              0.693,
+              0.549,
+              0.275
+            ],
+            "meanHSV": [
+              39.3,
+              0.6026,
+              0.693
+            ],
+            "luminance": 0.5598,
+            "edgeDensity": 0.3742
+          },
+          "shot": {
+            "rect": {
+              "x0": 64,
+              "y0": 360,
+              "x1": 1216,
+              "y1": 684
+            },
+            "meanRGB": [
+              0.588,
+              0.638,
+              0.458
+            ],
+            "meanHSV": [
+              76.4,
+              0.2823,
+              0.6375
+            ],
+            "luminance": 0.6141,
+            "edgeDensity": 0.2085
+          },
+          "deltaRGB": [
+            0.105,
+            0.089,
+            0.183
+          ],
+          "maxDelta": 0.183,
+          "passed": false
+        },
+        "fog": {
+          "ref": {
+            "rect": {
+              "x0": 144,
+              "y0": 318,
+              "x1": 576,
+              "y1": 546
+            },
+            "meanRGB": [
+              0.688,
+              0.634,
+              0.396
+            ],
+            "meanHSV": [
+              49,
+              0.4242,
+              0.6878
+            ],
+            "luminance": 0.6285,
+            "edgeDensity": 0.16
+          },
+          "shot": {
+            "rect": {
+              "x0": 256,
+              "y0": 216,
+              "x1": 1024,
+              "y1": 396
+            },
+            "meanRGB": [
+              0.645,
+              0.622,
+              0.475
+            ],
+            "meanHSV": [
+              52,
+              0.2632,
+              0.6447
+            ],
+            "luminance": 0.6162,
+            "edgeDensity": 0.1945
+          },
+          "deltaRGB": [
+            0.043,
+            0.012,
+            0.079
+          ],
+          "maxDelta": 0.079,
+          "passed": true
+        }
+      },
+      "regionDeltasSummary": "wall:ΔRGB=[0.11,0.10,0.00]; water:ΔRGB=[0.10,0.09,0.18]; fog:ΔRGB=[0.04,0.01,0.08]",
+      "semantics": {
+        "inkPresent": false,
+        "pittedHeadSilhouette": false,
+        "darkMassOnWater": false
+      },
+      "verdict": "FAIL",
+      "failureReasons": [
+        "SSIM 0.4741 < 0.55",
+        "Region wall max ΔRGB 0.114 > 0.08",
+        "Region water max ΔRGB 0.183 > 0.08"
+      ],
+      "passed": false
     },
     {
       "id": "f_007",
       "frameId": "f_007",
       "shotId": "natatorium_water_calm_axial",
       "property": "waterMeanRgbAndGlintFraction",
+      "whatToLookAt": "calm_axial_water_swell_and_minimal_foam",
       "actualLum": 0.5729,
       "frameLum": 0.6472,
       "deltaPct": 0,
-      "passed": true
+      "ssim": 0.5962,
+      "perChannelMae": {
+        "maeR": 0.1175,
+        "maeG": 0.1307,
+        "maeB": 0.1449,
+        "meanMae": 0.131
+      },
+      "wholeFrameDeltaE": {
+        "meanRgbA": [
+          0.625,
+          0.672,
+          0.469
+        ],
+        "meanRgbB": [
+          0.552,
+          0.606,
+          0.455
+        ],
+        "deltaE": 6.094
+      },
+      "regions": {
+        "wall": {
+          "ref": {
+            "rect": {
+              "x0": 72,
+              "y0": 91,
+              "x1": 648,
+              "y1": 455
+            },
+            "meanRGB": [
+              0.764,
+              0.758,
+              0.626
+            ],
+            "meanHSV": [
+              57.6,
+              0.18,
+              0.7636
+            ],
+            "luminance": 0.7498,
+            "edgeDensity": 0.0522
+          },
+          "shot": {
+            "rect": {
+              "x0": 128,
+              "y0": 36,
+              "x1": 1152,
+              "y1": 324
+            },
+            "meanRGB": [
+              0.602,
+              0.584,
+              0.469
+            ],
+            "meanHSV": [
+              52.1,
+              0.2205,
+              0.6017
+            ],
+            "luminance": 0.5796,
+            "edgeDensity": 0.3339
+          },
+          "deltaRGB": [
+            0.162,
+            0.174,
+            0.157
+          ],
+          "maxDelta": 0.174,
+          "passed": false
+        },
+        "water": {
+          "ref": {
+            "rect": {
+              "x0": 36,
+              "y0": 500,
+              "x1": 684,
+              "y1": 864
+            },
+            "meanRGB": [
+              0.477,
+              0.598,
+              0.325
+            ],
+            "meanHSV": [
+              86.7,
+              0.4561,
+              0.5982
+            ],
+            "luminance": 0.5526,
+            "edgeDensity": 0.1017
+          },
+          "shot": {
+            "rect": {
+              "x0": 64,
+              "y0": 360,
+              "x1": 1216,
+              "y1": 684
+            },
+            "meanRGB": [
+              0.525,
+              0.651,
+              0.449
+            ],
+            "meanHSV": [
+              97.5,
+              0.31,
+              0.6513
+            ],
+            "luminance": 0.6099,
+            "edgeDensity": 0.0955
+          },
+          "deltaRGB": [
+            0.048,
+            0.053,
+            0.124
+          ],
+          "maxDelta": 0.124,
+          "passed": false
+        },
+        "fog": {
+          "ref": {
+            "rect": {
+              "x0": 144,
+              "y0": 318,
+              "x1": 576,
+              "y1": 546
+            },
+            "meanRGB": [
+              0.724,
+              0.75,
+              0.596
+            ],
+            "meanHSV": [
+              70.3,
+              0.2057,
+              0.7503
+            ],
+            "luminance": 0.7335,
+            "edgeDensity": 0.1435
+          },
+          "shot": {
+            "rect": {
+              "x0": 256,
+              "y0": 216,
+              "x1": 1024,
+              "y1": 396
+            },
+            "meanRGB": [
+              0.649,
+              0.622,
+              0.462
+            ],
+            "meanHSV": [
+              51.3,
+              0.2875,
+              0.6485
+            ],
+            "luminance": 0.6158,
+            "edgeDensity": 0.3632
+          },
+          "deltaRGB": [
+            0.075,
+            0.128,
+            0.134
+          ],
+          "maxDelta": 0.134,
+          "passed": false
+        }
+      },
+      "regionDeltasSummary": "wall:ΔRGB=[0.16,0.17,0.16]; water:ΔRGB=[0.05,0.05,0.12]; fog:ΔRGB=[0.07,0.13,0.13]",
+      "semantics": {
+        "inkPresent": false,
+        "pittedHeadSilhouette": false,
+        "darkMassOnWater": false
+      },
+      "verdict": "FAIL",
+      "failureReasons": [
+        "Region wall max ΔRGB 0.174 > 0.08",
+        "Region water max ΔRGB 0.124 > 0.08",
+        "Region fog max ΔRGB 0.134 > 0.08"
+      ],
+      "passed": false
     },
     {
       "id": "f_008",
       "frameId": "f_008",
       "shotId": "natatorium_water_horizon",
       "property": "horizonBlowoutAndFogRgb",
+      "whatToLookAt": "first_sighting_10_to_15m_and_pale_mint_horizon",
       "actualLum": 0.5831,
       "frameLum": 0.6253,
       "deltaPct": 0.5,
-      "passed": true
+      "ssim": 0.4707,
+      "perChannelMae": {
+        "maeR": 0.1594,
+        "maeG": 0.1214,
+        "maeB": 0.1756,
+        "meanMae": 0.1521
+      },
+      "wholeFrameDeltaE": {
+        "meanRgbA": [
+          0.646,
+          0.639,
+          0.429
+        ],
+        "meanRgbB": [
+          0.628,
+          0.588,
+          0.44
+        ],
+        "deltaE": 6.188
+      },
+      "regions": {
+        "wall": {
+          "ref": {
+            "rect": {
+              "x0": 72,
+              "y0": 91,
+              "x1": 648,
+              "y1": 455
+            },
+            "meanRGB": [
+              0.66,
+              0.701,
+              0.555
+            ],
+            "meanHSV": [
+              76.9,
+              0.2091,
+              0.7012
+            ],
+            "luminance": 0.6819,
+            "edgeDensity": 0.2314
+          },
+          "shot": {
+            "rect": {
+              "x0": 128,
+              "y0": 36,
+              "x1": 1152,
+              "y1": 324
+            },
+            "meanRGB": [
+              0.633,
+              0.592,
+              0.442
+            ],
+            "meanHSV": [
+              47.3,
+              0.3023,
+              0.6331
+            ],
+            "luminance": 0.5902,
+            "edgeDensity": 0.1299
+          },
+          "deltaRGB": [
+            0.027,
+            0.109,
+            0.113
+          ],
+          "maxDelta": 0.113,
+          "passed": false
+        },
+        "water": {
+          "ref": {
+            "rect": {
+              "x0": 36,
+              "y0": 500,
+              "x1": 684,
+              "y1": 864
+            },
+            "meanRGB": [
+              0.628,
+              0.571,
+              0.293
+            ],
+            "meanHSV": [
+              49.8,
+              0.5334,
+              0.6275
+            ],
+            "luminance": 0.5628,
+            "edgeDensity": 0.2899
+          },
+          "shot": {
+            "rect": {
+              "x0": 64,
+              "y0": 360,
+              "x1": 1216,
+              "y1": 684
+            },
+            "meanRGB": [
+              0.632,
+              0.592,
+              0.442
+            ],
+            "meanHSV": [
+              47.3,
+              0.3014,
+              0.6321
+            ],
+            "luminance": 0.5894,
+            "edgeDensity": 0.1396
+          },
+          "deltaRGB": [
+            0.004,
+            0.021,
+            0.149
+          ],
+          "maxDelta": 0.149,
+          "passed": false
+        },
+        "fog": {
+          "ref": {
+            "rect": {
+              "x0": 144,
+              "y0": 318,
+              "x1": 576,
+              "y1": 546
+            },
+            "meanRGB": [
+              0.408,
+              0.501,
+              0.283
+            ],
+            "meanHSV": [
+              85.6,
+              0.4343,
+              0.5008
+            ],
+            "luminance": 0.4654,
+            "edgeDensity": 0.3805
+          },
+          "shot": {
+            "rect": {
+              "x0": 256,
+              "y0": 216,
+              "x1": 1024,
+              "y1": 396
+            },
+            "meanRGB": [
+              0.639,
+              0.598,
+              0.444
+            ],
+            "meanHSV": [
+              47.5,
+              0.3058,
+              0.639
+            ],
+            "luminance": 0.5958,
+            "edgeDensity": 0.1211
+          },
+          "deltaRGB": [
+            0.231,
+            0.097,
+            0.161
+          ],
+          "maxDelta": 0.231,
+          "passed": false
+        }
+      },
+      "regionDeltasSummary": "wall:ΔRGB=[0.03,0.11,0.11]; water:ΔRGB=[0.00,0.02,0.15]; fog:ΔRGB=[0.23,0.10,0.16]",
+      "semantics": {
+        "inkPresent": false,
+        "pittedHeadSilhouette": false,
+        "darkMassOnWater": false
+      },
+      "verdict": "FAIL",
+      "failureReasons": [
+        "SSIM 0.4707 < 0.55",
+        "Region wall max ΔRGB 0.113 > 0.08",
+        "Region water max ΔRGB 0.149 > 0.08",
+        "Region fog max ΔRGB 0.231 > 0.08"
+      ],
+      "passed": false
     },
     {
       "id": "f_009",
       "frameId": "f_009",
       "shotId": "natatorium_water_calm_grazing",
       "property": "waterMidhallRgbAndStreaksRgb",
+      "whatToLookAt": "midhall_water_colour_and_specular_streaks",
       "actualLum": 0.5874,
       "frameLum": 0.6305,
       "deltaPct": 0,
-      "passed": true
+      "ssim": 0.3919,
+      "perChannelMae": {
+        "maeR": 0.1483,
+        "maeG": 0.1519,
+        "maeB": 0.1873,
+        "meanMae": 0.1625
+      },
+      "wholeFrameDeltaE": {
+        "meanRgbA": [
+          0.656,
+          0.642,
+          0.437
+        ],
+        "meanRgbB": [
+          0.619,
+          0.597,
+          0.454
+        ],
+        "deltaE": 5.145
+      },
+      "regions": {
+        "wall": {
+          "ref": {
+            "rect": {
+              "x0": 72,
+              "y0": 91,
+              "x1": 648,
+              "y1": 455
+            },
+            "meanRGB": [
+              0.668,
+              0.712,
+              0.571
+            ],
+            "meanHSV": [
+              78.9,
+              0.1989,
+              0.7122
+            ],
+            "luminance": 0.6925,
+            "edgeDensity": 0.1905
+          },
+          "shot": {
+            "rect": {
+              "x0": 128,
+              "y0": 36,
+              "x1": 1152,
+              "y1": 324
+            },
+            "meanRGB": [
+              0.596,
+              0.57,
+              0.447
+            ],
+            "meanHSV": [
+              49.6,
+              0.2507,
+              0.5963
+            ],
+            "luminance": 0.5669,
+            "edgeDensity": 0.4157
+          },
+          "deltaRGB": [
+            0.072,
+            0.142,
+            0.124
+          ],
+          "maxDelta": 0.142,
+          "passed": false
+        },
+        "water": {
+          "ref": {
+            "rect": {
+              "x0": 36,
+              "y0": 500,
+              "x1": 684,
+              "y1": 864
+            },
+            "meanRGB": [
+              0.639,
+              0.568,
+              0.295
+            ],
+            "meanHSV": [
+              47.5,
+              0.5377,
+              0.6392
+            ],
+            "luminance": 0.5632,
+            "edgeDensity": 0.3968
+          },
+          "shot": {
+            "rect": {
+              "x0": 64,
+              "y0": 360,
+              "x1": 1216,
+              "y1": 684
+            },
+            "meanRGB": [
+              0.65,
+              0.637,
+              0.461
+            ],
+            "meanHSV": [
+              56,
+              0.2905,
+              0.6499
+            ],
+            "luminance": 0.6273,
+            "edgeDensity": 0.3889
+          },
+          "deltaRGB": [
+            0.011,
+            0.069,
+            0.166
+          ],
+          "maxDelta": 0.166,
+          "passed": false
+        },
+        "fog": {
+          "ref": {
+            "rect": {
+              "x0": 144,
+              "y0": 318,
+              "x1": 576,
+              "y1": 546
+            },
+            "meanRGB": [
+              0.436,
+              0.515,
+              0.302
+            ],
+            "meanHSV": [
+              82.2,
+              0.4132,
+              0.5149
+            ],
+            "luminance": 0.4828,
+            "edgeDensity": 0.3737
+          },
+          "shot": {
+            "rect": {
+              "x0": 256,
+              "y0": 216,
+              "x1": 1024,
+              "y1": 396
+            },
+            "meanRGB": [
+              0.622,
+              0.603,
+              0.454
+            ],
+            "meanHSV": [
+              53.3,
+              0.2708,
+              0.6221
+            ],
+            "luminance": 0.5965,
+            "edgeDensity": 0.397
+          },
+          "deltaRGB": [
+            0.186,
+            0.088,
+            0.152
+          ],
+          "maxDelta": 0.186,
+          "passed": false
+        }
+      },
+      "regionDeltasSummary": "wall:ΔRGB=[0.07,0.14,0.12]; water:ΔRGB=[0.01,0.07,0.17]; fog:ΔRGB=[0.19,0.09,0.15]",
+      "semantics": {
+        "inkPresent": false,
+        "pittedHeadSilhouette": false,
+        "darkMassOnWater": false
+      },
+      "verdict": "FAIL",
+      "failureReasons": [
+        "SSIM 0.3919 < 0.55",
+        "Region wall max ΔRGB 0.142 > 0.08",
+        "Region water max ΔRGB 0.166 > 0.08",
+        "Region fog max ΔRGB 0.186 > 0.08"
+      ],
+      "passed": false
     },
     {
       "id": "f_010",
       "frameId": "f_010",
       "shotId": "natatorium_monster_25m",
       "property": "creatureSilhouetteContrastAndWaterHue",
+      "whatToLookAt": "hunched_creature_silhouette_and_dark_ink_splashes",
       "actualLum": 0.5951,
       "frameLum": 0.6485,
       "deltaPct": 0,
-      "passed": true
+      "ssim": 0.3477,
+      "perChannelMae": {
+        "maeR": 0.1806,
+        "maeG": 0.1523,
+        "maeB": 0.1929,
+        "meanMae": 0.1753
+      },
+      "wholeFrameDeltaE": {
+        "meanRgbA": [
+          0.684,
+          0.656,
+          0.466
+        ],
+        "meanRgbB": [
+          0.599,
+          0.608,
+          0.458
+        ],
+        "deltaE": 6.023
+      },
+      "regions": {
+        "wall": {
+          "ref": {
+            "rect": {
+              "x0": 72,
+              "y0": 91,
+              "x1": 648,
+              "y1": 455
+            },
+            "meanRGB": [
+              0.686,
+              0.755,
+              0.628
+            ],
+            "meanHSV": [
+              92.6,
+              0.1686,
+              0.7551
+            ],
+            "luminance": 0.7312,
+            "edgeDensity": 0.2747
+          },
+          "shot": {
+            "rect": {
+              "x0": 128,
+              "y0": 36,
+              "x1": 1152,
+              "y1": 324
+            },
+            "meanRGB": [
+              0.628,
+              0.594,
+              0.467
+            ],
+            "meanHSV": [
+              47.2,
+              0.2572,
+              0.6284
+            ],
+            "luminance": 0.5921,
+            "edgeDensity": 0.3456
+          },
+          "deltaRGB": [
+            0.058,
+            0.161,
+            0.161
+          ],
+          "maxDelta": 0.161,
+          "passed": false
+        },
+        "water": {
+          "ref": {
+            "rect": {
+              "x0": 36,
+              "y0": 500,
+              "x1": 684,
+              "y1": 864
+            },
+            "meanRGB": [
+              0.682,
+              0.547,
+              0.282
+            ],
+            "meanHSV": [
+              39.8,
+              0.5865,
+              0.6822
+            ],
+            "luminance": 0.557,
+            "edgeDensity": 0.3956
+          },
+          "shot": {
+            "rect": {
+              "x0": 64,
+              "y0": 360,
+              "x1": 1216,
+              "y1": 684
+            },
+            "meanRGB": [
+              0.598,
+              0.644,
+              0.454
+            ],
+            "meanHSV": [
+              74.7,
+              0.2946,
+              0.6441
+            ],
+            "luminance": 0.6205,
+            "edgeDensity": 0.1831
+          },
+          "deltaRGB": [
+            0.084,
+            0.097,
+            0.172
+          ],
+          "maxDelta": 0.172,
+          "passed": false
+        },
+        "fog": {
+          "ref": {
+            "rect": {
+              "x0": 144,
+              "y0": 318,
+              "x1": 576,
+              "y1": 546
+            },
+            "meanRGB": [
+              0.515,
+              0.613,
+              0.389
+            ],
+            "meanHSV": [
+              86.3,
+              0.3656,
+              0.6134
+            ],
+            "luminance": 0.5763,
+            "edgeDensity": 0.2847
+          },
+          "shot": {
+            "rect": {
+              "x0": 256,
+              "y0": 216,
+              "x1": 1024,
+              "y1": 396
+            },
+            "meanRGB": [
+              0.68,
+              0.631,
+              0.46
+            ],
+            "meanHSV": [
+              46.8,
+              0.3234,
+              0.6797
+            ],
+            "luminance": 0.6292,
+            "edgeDensity": 0.3925
+          },
+          "deltaRGB": [
+            0.165,
+            0.018,
+            0.071
+          ],
+          "maxDelta": 0.165,
+          "passed": false
+        },
+        "subject": {
+          "ref": {
+            "rect": {
+              "x0": 216,
+              "y0": 182,
+              "x1": 503,
+              "y1": 682
+            },
+            "meanRGB": [
+              0.627,
+              0.645,
+              0.439
+            ],
+            "meanHSV": [
+              65.4,
+              0.3189,
+              0.6453
+            ],
+            "luminance": 0.6265,
+            "edgeDensity": 0.3517
+          },
+          "shot": {
+            "rect": {
+              "x0": 384,
+              "y0": 144,
+              "x1": 896,
+              "y1": 540
+            },
+            "meanRGB": [
+              0.663,
+              0.635,
+              0.46
+            ],
+            "meanHSV": [
+              52,
+              0.3064,
+              0.6626
+            ],
+            "luminance": 0.6285,
+            "edgeDensity": 0.3338
+          },
+          "deltaRGB": [
+            0.036,
+            0.01,
+            0.021
+          ],
+          "maxDelta": 0.036,
+          "passed": true
+        }
+      },
+      "regionDeltasSummary": "wall:ΔRGB=[0.06,0.16,0.16]; water:ΔRGB=[0.08,0.10,0.17]; fog:ΔRGB=[0.17,0.02,0.07]; subject:ΔRGB=[0.04,0.01,0.02]",
+      "semantics": {
+        "inkPresent": false,
+        "pittedHeadSilhouette": false,
+        "darkMassOnWater": false
+      },
+      "verdict": "FAIL",
+      "failureReasons": [
+        "SSIM 0.3477 < 0.55",
+        "Region wall max ΔRGB 0.161 > 0.08",
+        "Region water max ΔRGB 0.172 > 0.08",
+        "Region fog max ΔRGB 0.165 > 0.08",
+        "Missing semantic: pittedHeadSilhouette"
+      ],
+      "passed": false
     },
     {
       "id": "f_011",
       "frameId": "f_011",
       "shotId": "natatorium_monster_25m_portrait",
       "property": "slabTilePitchAndWakeContrast",
+      "whatToLookAt": "mid_distance_wading_wake_and_foreground_slab_grid",
       "actualLum": 0.6118,
       "frameLum": 0.6055,
       "deltaPct": 0,
-      "passed": true
+      "ssim": 0.4601,
+      "perChannelMae": {
+        "maeR": 0.1173,
+        "maeG": 0.1169,
+        "maeB": 0.1693,
+        "meanMae": 0.1345
+      },
+      "wholeFrameDeltaE": {
+        "meanRgbA": [
+          0.682,
+          0.604,
+          0.392
+        ],
+        "meanRgbB": [
+          0.631,
+          0.622,
+          0.456
+        ],
+        "deltaE": 6.775
+      },
+      "regions": {
+        "wall": {
+          "ref": {
+            "rect": {
+              "x0": 72,
+              "y0": 91,
+              "x1": 648,
+              "y1": 455
+            },
+            "meanRGB": [
+              0.686,
+              0.608,
+              0.405
+            ],
+            "meanHSV": [
+              43.4,
+              0.4088,
+              0.6859
+            ],
+            "luminance": 0.6101,
+            "edgeDensity": 0.4265
+          },
+          "shot": {
+            "rect": {
+              "x0": 72,
+              "y0": 128,
+              "x1": 648,
+              "y1": 704
+            },
+            "meanRGB": [
+              0.67,
+              0.623,
+              0.46
+            ],
+            "meanHSV": [
+              46.6,
+              0.3139,
+              0.6698
+            ],
+            "luminance": 0.621,
+            "edgeDensity": 0.3239
+          },
+          "deltaRGB": [
+            0.016,
+            0.015,
+            0.055
+          ],
+          "maxDelta": 0.055,
+          "passed": true
+        },
+        "water": {
+          "ref": {
+            "rect": {
+              "x0": 36,
+              "y0": 500,
+              "x1": 684,
+              "y1": 864
+            },
+            "meanRGB": [
+              0.671,
+              0.588,
+              0.357
+            ],
+            "meanHSV": [
+              44.1,
+              0.4682,
+              0.6711
+            ],
+            "luminance": 0.5889,
+            "edgeDensity": 0.2983
+          },
+          "shot": {
+            "rect": {
+              "x0": 36,
+              "y0": 704,
+              "x1": 684,
+              "y1": 1216
+            },
+            "meanRGB": [
+              0.617,
+              0.639,
+              0.454
+            ],
+            "meanHSV": [
+              67.1,
+              0.2887,
+              0.6386
+            ],
+            "luminance": 0.6207,
+            "edgeDensity": 0.1559
+          },
+          "deltaRGB": [
+            0.054,
+            0.051,
+            0.097
+          ],
+          "maxDelta": 0.097,
+          "passed": false
+        },
+        "fog": {
+          "ref": {
+            "rect": {
+              "x0": 144,
+              "y0": 318,
+              "x1": 576,
+              "y1": 546
+            },
+            "meanRGB": [
+              0.625,
+              0.54,
+              0.318
+            ],
+            "meanHSV": [
+              43.4,
+              0.4901,
+              0.6245
+            ],
+            "luminance": 0.5419,
+            "edgeDensity": 0.4372
+          },
+          "shot": {
+            "rect": {
+              "x0": 144,
+              "y0": 448,
+              "x1": 576,
+              "y1": 832
+            },
+            "meanRGB": [
+              0.676,
+              0.634,
+              0.467
+            ],
+            "meanHSV": [
+              48,
+              0.3096,
+              0.6758
+            ],
+            "luminance": 0.6307,
+            "edgeDensity": 0.2391
+          },
+          "deltaRGB": [
+            0.051,
+            0.094,
+            0.149
+          ],
+          "maxDelta": 0.149,
+          "passed": false
+        }
+      },
+      "regionDeltasSummary": "wall:ΔRGB=[0.02,0.02,0.05]; water:ΔRGB=[0.05,0.05,0.10]; fog:ΔRGB=[0.05,0.09,0.15]",
+      "semantics": {
+        "inkPresent": false,
+        "pittedHeadSilhouette": false,
+        "darkMassOnWater": false
+      },
+      "verdict": "FAIL",
+      "failureReasons": [
+        "SSIM 0.4601 < 0.55",
+        "Region water max ΔRGB 0.097 > 0.08",
+        "Region fog max ΔRGB 0.149 > 0.08",
+        "Missing semantic: darkMassOnWater"
+      ],
+      "passed": false
     },
     {
       "id": "f_012",
       "frameId": "f_012",
       "shotId": "natatorium_water_monster_wake",
       "property": "monsterWakeDarkeningAndWaterRgb",
+      "whatToLookAt": "monster_hand_and_foot_ink_splashes_in_green_water",
       "actualLum": 0.6169,
       "frameLum": 0.6709,
       "deltaPct": 0,
-      "passed": true
+      "ssim": 0.5908,
+      "perChannelMae": {
+        "maeR": 0.1106,
+        "maeG": 0.0934,
+        "maeB": 0.0978,
+        "meanMae": 0.1006
+      },
+      "wholeFrameDeltaE": {
+        "meanRgbA": [
+          0.715,
+          0.675,
+          0.497
+        ],
+        "meanRgbB": [
+          0.67,
+          0.619,
+          0.468
+        ],
+        "deltaE": 4.65
+      },
+      "regions": {
+        "wall": {
+          "ref": {
+            "rect": {
+              "x0": 72,
+              "y0": 91,
+              "x1": 648,
+              "y1": 455
+            },
+            "meanRGB": [
+              0.685,
+              0.657,
+              0.492
+            ],
+            "meanHSV": [
+              51.1,
+              0.2826,
+              0.6853
+            ],
+            "luminance": 0.6508,
+            "edgeDensity": 0.1399
+          },
+          "shot": {
+            "rect": {
+              "x0": 128,
+              "y0": 36,
+              "x1": 1152,
+              "y1": 324
+            },
+            "meanRGB": [
+              0.639,
+              0.617,
+              0.479
+            ],
+            "meanHSV": [
+              51.7,
+              0.2495,
+              0.6386
+            ],
+            "luminance": 0.6114,
+            "edgeDensity": 0.3171
+          },
+          "deltaRGB": [
+            0.046,
+            0.04,
+            0.013
+          ],
+          "maxDelta": 0.046,
+          "passed": true
+        },
+        "water": {
+          "ref": {
+            "rect": {
+              "x0": 36,
+              "y0": 500,
+              "x1": 684,
+              "y1": 864
+            },
+            "meanRGB": [
+              0.745,
+              0.705,
+              0.523
+            ],
+            "meanHSV": [
+              49.2,
+              0.2978,
+              0.7451
+            ],
+            "luminance": 0.7006,
+            "edgeDensity": 0.1382
+          },
+          "shot": {
+            "rect": {
+              "x0": 64,
+              "y0": 360,
+              "x1": 1216,
+              "y1": 684
+            },
+            "meanRGB": [
+              0.715,
+              0.634,
+              0.474
+            ],
+            "meanHSV": [
+              39.9,
+              0.3377,
+              0.7152
+            ],
+            "luminance": 0.64,
+            "edgeDensity": 0.3121
+          },
+          "deltaRGB": [
+            0.03,
+            0.071,
+            0.049
+          ],
+          "maxDelta": 0.071,
+          "passed": true
+        },
+        "fog": {
+          "ref": {
+            "rect": {
+              "x0": 144,
+              "y0": 318,
+              "x1": 576,
+              "y1": 546
+            },
+            "meanRGB": [
+              0.695,
+              0.702,
+              0.565
+            ],
+            "meanHSV": [
+              63.2,
+              0.1959,
+              0.7021
+            ],
+            "luminance": 0.6906,
+            "edgeDensity": 0.1251
+          },
+          "shot": {
+            "rect": {
+              "x0": 256,
+              "y0": 216,
+              "x1": 1024,
+              "y1": 396
+            },
+            "meanRGB": [
+              0.665,
+              0.633,
+              0.465
+            ],
+            "meanHSV": [
+              50.4,
+              0.3005,
+              0.6646
+            ],
+            "luminance": 0.6273,
+            "edgeDensity": 0.2834
+          },
+          "deltaRGB": [
+            0.03,
+            0.069,
+            0.1
+          ],
+          "maxDelta": 0.1,
+          "passed": false
+        }
+      },
+      "regionDeltasSummary": "wall:ΔRGB=[0.05,0.04,0.01]; water:ΔRGB=[0.03,0.07,0.05]; fog:ΔRGB=[0.03,0.07,0.10]",
+      "semantics": {
+        "inkPresent": false,
+        "pittedHeadSilhouette": false,
+        "darkMassOnWater": false
+      },
+      "verdict": "FAIL",
+      "failureReasons": [
+        "Region fog max ΔRGB 0.1 > 0.08",
+        "Missing semantic: darkMassOnWater"
+      ],
+      "passed": false
     },
     {
       "id": "f_013",
       "frameId": "f_013",
       "shotId": "natatorium_pillar_numeral_8m",
       "property": "dryFloorAndPlasterWallRgb",
+      "whatToLookAt": "round_tiled_pillar_numeral_2_and_dry_plaster_wall",
       "actualLum": 0.5962,
       "frameLum": 0.572,
       "deltaPct": 0,
-      "passed": true
+      "ssim": 0.6498,
+      "perChannelMae": {
+        "maeR": 0.0946,
+        "maeG": 0.0906,
+        "maeB": 0.1342,
+        "meanMae": 0.1065
+      },
+      "wholeFrameDeltaE": {
+        "meanRgbA": [
+          0.647,
+          0.572,
+          0.352
+        ],
+        "meanRgbB": [
+          0.653,
+          0.594,
+          0.453
+        ],
+        "deltaE": 5.432
+      },
+      "regions": {
+        "wall": {
+          "ref": {
+            "rect": {
+              "x0": 72,
+              "y0": 91,
+              "x1": 648,
+              "y1": 455
+            },
+            "meanRGB": [
+              0.661,
+              0.57,
+              0.33
+            ],
+            "meanHSV": [
+              43.4,
+              0.5007,
+              0.661
+            ],
+            "luminance": 0.5717,
+            "edgeDensity": 0.2442
+          },
+          "shot": {
+            "rect": {
+              "x0": 128,
+              "y0": 36,
+              "x1": 1152,
+              "y1": 324
+            },
+            "meanRGB": [
+              0.585,
+              0.549,
+              0.436
+            ],
+            "meanHSV": [
+              45.3,
+              0.2548,
+              0.5852
+            ],
+            "luminance": 0.5483,
+            "edgeDensity": 0.2641
+          },
+          "deltaRGB": [
+            0.076,
+            0.021,
+            0.106
+          ],
+          "maxDelta": 0.106,
+          "passed": false
+        },
+        "water": {
+          "ref": {
+            "rect": {
+              "x0": 36,
+              "y0": 500,
+              "x1": 684,
+              "y1": 864
+            },
+            "meanRGB": [
+              0.652,
+              0.594,
+              0.392
+            ],
+            "meanHSV": [
+              46.6,
+              0.3984,
+              0.6522
+            ],
+            "luminance": 0.5919,
+            "edgeDensity": 0.2628
+          },
+          "shot": {
+            "rect": {
+              "x0": 64,
+              "y0": 360,
+              "x1": 1216,
+              "y1": 684
+            },
+            "meanRGB": [
+              0.721,
+              0.643,
+              0.472
+            ],
+            "meanHSV": [
+              41.2,
+              0.3463,
+              0.7213
+            ],
+            "luminance": 0.6475,
+            "edgeDensity": 0.4026
+          },
+          "deltaRGB": [
+            0.069,
+            0.049,
+            0.08
+          ],
+          "maxDelta": 0.08,
+          "passed": true
+        },
+        "fog": {
+          "ref": {
+            "rect": {
+              "x0": 144,
+              "y0": 318,
+              "x1": 576,
+              "y1": 546
+            },
+            "meanRGB": [
+              0.649,
+              0.566,
+              0.331
+            ],
+            "meanHSV": [
+              44.3,
+              0.4906,
+              0.6491
+            ],
+            "luminance": 0.5667,
+            "edgeDensity": 0.2505
+          },
+          "shot": {
+            "rect": {
+              "x0": 256,
+              "y0": 216,
+              "x1": 1024,
+              "y1": 396
+            },
+            "meanRGB": [
+              0.666,
+              0.617,
+              0.457
+            ],
+            "meanHSV": [
+              45.8,
+              0.3141,
+              0.6664
+            ],
+            "luminance": 0.6159,
+            "edgeDensity": 0.482
+          },
+          "deltaRGB": [
+            0.017,
+            0.051,
+            0.126
+          ],
+          "maxDelta": 0.126,
+          "passed": false
+        }
+      },
+      "regionDeltasSummary": "wall:ΔRGB=[0.08,0.02,0.11]; water:ΔRGB=[0.07,0.05,0.08]; fog:ΔRGB=[0.02,0.05,0.13]",
+      "semantics": {
+        "inkPresent": false,
+        "pittedHeadSilhouette": false,
+        "darkMassOnWater": false
+      },
+      "verdict": "FAIL",
+      "failureReasons": [
+        "Region wall max ΔRGB 0.106 > 0.08",
+        "Region fog max ΔRGB 0.126 > 0.08"
+      ],
+      "passed": false
     },
     {
       "id": "f_014",
       "frameId": "f_014",
       "shotId": "natatorium_pillar_numeral_8m_portrait",
       "property": "numeralHeightMetersAndWallHue",
+      "whatToLookAt": "pillar_numeral_stencil_height_and_distance_tile_fade",
       "actualLum": 0.5857,
       "frameLum": 0.5566,
       "deltaPct": 0,
-      "passed": true
+      "ssim": 0.6503,
+      "perChannelMae": {
+        "maeR": 0.1968,
+        "maeG": 0.1278,
+        "maeB": 0.1404,
+        "meanMae": 0.155
+      },
+      "wholeFrameDeltaE": {
+        "meanRgbA": [
+          0.539,
+          0.578,
+          0.395
+        ],
+        "meanRgbB": [
+          0.639,
+          0.584,
+          0.449
+        ],
+        "deltaE": 10.403
+      },
+      "regions": {
+        "wall": {
+          "ref": {
+            "rect": {
+              "x0": 72,
+              "y0": 91,
+              "x1": 648,
+              "y1": 455
+            },
+            "meanRGB": [
+              0.585,
+              0.642,
+              0.492
+            ],
+            "meanHSV": [
+              82.5,
+              0.2337,
+              0.6418
+            ],
+            "luminance": 0.619,
+            "edgeDensity": 0.1021
+          },
+          "shot": {
+            "rect": {
+              "x0": 72,
+              "y0": 128,
+              "x1": 648,
+              "y1": 704
+            },
+            "meanRGB": [
+              0.608,
+              0.571,
+              0.441
+            ],
+            "meanHSV": [
+              46.9,
+              0.2744,
+              0.6078
+            ],
+            "luminance": 0.5698,
+            "edgeDensity": 0.2449
+          },
+          "deltaRGB": [
+            0.023,
+            0.071,
+            0.051
+          ],
+          "maxDelta": 0.071,
+          "passed": true
+        },
+        "water": {
+          "ref": {
+            "rect": {
+              "x0": 36,
+              "y0": 500,
+              "x1": 684,
+              "y1": 864
+            },
+            "meanRGB": [
+              0.474,
+              0.526,
+              0.309
+            ],
+            "meanHSV": [
+              74.4,
+              0.4128,
+              0.5257
+            ],
+            "luminance": 0.4989,
+            "edgeDensity": 0.1453
+          },
+          "shot": {
+            "rect": {
+              "x0": 36,
+              "y0": 704,
+              "x1": 684,
+              "y1": 1216
+            },
+            "meanRGB": [
+              0.719,
+              0.637,
+              0.468
+            ],
+            "meanHSV": [
+              40.4,
+              0.3493,
+              0.7192
+            ],
+            "luminance": 0.6424,
+            "edgeDensity": 0.3356
+          },
+          "deltaRGB": [
+            0.245,
+            0.111,
+            0.159
+          ],
+          "maxDelta": 0.245,
+          "passed": false
+        },
+        "fog": {
+          "ref": {
+            "rect": {
+              "x0": 144,
+              "y0": 318,
+              "x1": 576,
+              "y1": 546
+            },
+            "meanRGB": [
+              0.437,
+              0.523,
+              0.334
+            ],
+            "meanHSV": [
+              87.5,
+              0.3615,
+              0.5232
+            ],
+            "luminance": 0.4911,
+            "edgeDensity": 0.1301
+          },
+          "shot": {
+            "rect": {
+              "x0": 144,
+              "y0": 448,
+              "x1": 576,
+              "y1": 832
+            },
+            "meanRGB": [
+              0.662,
+              0.619,
+              0.454
+            ],
+            "meanHSV": [
+              47.5,
+              0.3141,
+              0.6623
+            ],
+            "luminance": 0.6163,
+            "edgeDensity": 0.3219
+          },
+          "deltaRGB": [
+            0.225,
+            0.096,
+            0.12
+          ],
+          "maxDelta": 0.225,
+          "passed": false
+        }
+      },
+      "regionDeltasSummary": "wall:ΔRGB=[0.02,0.07,0.05]; water:ΔRGB=[0.24,0.11,0.16]; fog:ΔRGB=[0.23,0.10,0.12]",
+      "semantics": {
+        "inkPresent": false,
+        "pittedHeadSilhouette": false,
+        "darkMassOnWater": false
+      },
+      "verdict": "FAIL",
+      "failureReasons": [
+        "Region water max ΔRGB 0.245 > 0.08",
+        "Region fog max ΔRGB 0.225 > 0.08"
+      ],
+      "passed": false
     },
     {
       "id": "f_015",
       "frameId": "f_015",
       "shotId": "natatorium_arch_fog_25m",
       "property": "archFogLuminanceAndSaturation",
+      "whatToLookAt": "arch_opening_into_flooded_hall_pale_fog",
       "actualLum": 0.5818,
       "frameLum": 0.6021,
       "deltaPct": 0,
+      "ssim": 0.5636,
+      "perChannelMae": {
+        "maeR": 0.1278,
+        "maeG": 0.1113,
+        "maeB": 0.1119,
+        "meanMae": 0.117
+      },
+      "wholeFrameDeltaE": {
+        "meanRgbA": [
+          0.66,
+          0.604,
+          0.414
+        ],
+        "meanRgbB": [
+          0.601,
+          0.589,
+          0.45
+        ],
+        "deltaE": 5.576
+      },
+      "regions": {
+        "wall": {
+          "ref": {
+            "rect": {
+              "x0": 72,
+              "y0": 91,
+              "x1": 648,
+              "y1": 455
+            },
+            "meanRGB": [
+              0.683,
+              0.611,
+              0.417
+            ],
+            "meanHSV": [
+              43.7,
+              0.3891,
+              0.683
+            ],
+            "luminance": 0.6122,
+            "edgeDensity": 0.1772
+          },
+          "shot": {
+            "rect": {
+              "x0": 128,
+              "y0": 36,
+              "x1": 1152,
+              "y1": 324
+            },
+            "meanRGB": [
+              0.614,
+              0.58,
+              0.46
+            ],
+            "meanHSV": [
+              46.7,
+              0.2517,
+              0.6144
+            ],
+            "luminance": 0.5787,
+            "edgeDensity": 0.2126
+          },
+          "deltaRGB": [
+            0.069,
+            0.031,
+            0.043
+          ],
+          "maxDelta": 0.069,
+          "passed": true
+        },
+        "water": {
+          "ref": {
+            "rect": {
+              "x0": 36,
+              "y0": 500,
+              "x1": 684,
+              "y1": 864
+            },
+            "meanRGB": [
+              0.637,
+              0.585,
+              0.394
+            ],
+            "meanHSV": [
+              47.3,
+              0.3819,
+              0.6372
+            ],
+            "luminance": 0.5826,
+            "edgeDensity": 0.1562
+          },
+          "shot": {
+            "rect": {
+              "x0": 64,
+              "y0": 360,
+              "x1": 1216,
+              "y1": 684
+            },
+            "meanRGB": [
+              0.623,
+              0.623,
+              0.45
+            ],
+            "meanHSV": [
+              60,
+              0.2772,
+              0.6227
+            ],
+            "luminance": 0.6102,
+            "edgeDensity": 0.1933
+          },
+          "deltaRGB": [
+            0.014,
+            0.038,
+            0.056
+          ],
+          "maxDelta": 0.056,
+          "passed": true
+        },
+        "fog": {
+          "ref": {
+            "rect": {
+              "x0": 144,
+              "y0": 318,
+              "x1": 576,
+              "y1": 546
+            },
+            "meanRGB": [
+              0.664,
+              0.579,
+              0.375
+            ],
+            "meanHSV": [
+              42.4,
+              0.4343,
+              0.6636
+            ],
+            "luminance": 0.5824,
+            "edgeDensity": 0.1413
+          },
+          "shot": {
+            "rect": {
+              "x0": 256,
+              "y0": 216,
+              "x1": 1024,
+              "y1": 396
+            },
+            "meanRGB": [
+              0.665,
+              0.614,
+              0.452
+            ],
+            "meanHSV": [
+              45.7,
+              0.3202,
+              0.6646
+            ],
+            "luminance": 0.613,
+            "edgeDensity": 0.2592
+          },
+          "deltaRGB": [
+            0.001,
+            0.035,
+            0.077
+          ],
+          "maxDelta": 0.077,
+          "passed": true
+        }
+      },
+      "regionDeltasSummary": "wall:ΔRGB=[0.07,0.03,0.04]; water:ΔRGB=[0.01,0.04,0.06]; fog:ΔRGB=[0.00,0.04,0.08]",
+      "semantics": {
+        "inkPresent": false,
+        "pittedHeadSilhouette": false,
+        "darkMassOnWater": false
+      },
+      "verdict": "MATCH",
+      "failureReasons": [],
       "passed": true
     },
     {
@@ -3096,220 +5875,4474 @@
       "frameId": "f_016",
       "shotId": "natatorium_close_tile_wall_portrait",
       "property": "tileGroutEdgeDensityAndWallHue",
+      "whatToLookAt": "tiled_wall_corner_marker_1_and_grout_lines",
       "actualLum": 0.5457,
       "frameLum": 0.5814,
       "deltaPct": 0,
-      "passed": true
+      "ssim": 0.4993,
+      "perChannelMae": {
+        "maeR": 0.1264,
+        "maeG": 0.171,
+        "maeB": 0.1612,
+        "meanMae": 0.1529
+      },
+      "wholeFrameDeltaE": {
+        "meanRgbA": [
+          0.611,
+          0.594,
+          0.373
+        ],
+        "meanRgbB": [
+          0.545,
+          0.552,
+          0.484
+        ],
+        "deltaE": 11.756
+      },
+      "regions": {
+        "wall": {
+          "ref": {
+            "rect": {
+              "x0": 72,
+              "y0": 136,
+              "x1": 648,
+              "y1": 591
+            },
+            "meanRGB": [
+              0.694,
+              0.614,
+              0.398
+            ],
+            "meanHSV": [
+              43.8,
+              0.4261,
+              0.6939
+            ],
+            "luminance": 0.6155,
+            "edgeDensity": 0.1993
+          },
+          "shot": {
+            "rect": {
+              "x0": 72,
+              "y0": 192,
+              "x1": 648,
+              "y1": 832
+            },
+            "meanRGB": [
+              0.653,
+              0.664,
+              0.562
+            ],
+            "meanHSV": [
+              66.2,
+              0.1533,
+              0.664
+            ],
+            "luminance": 0.6544,
+            "edgeDensity": 0.1494
+          },
+          "deltaRGB": [
+            0.041,
+            0.05,
+            0.164
+          ],
+          "maxDelta": 0.164,
+          "passed": false
+        },
+        "water": {
+          "ref": {
+            "rect": {
+              "x0": 36,
+              "y0": 637,
+              "x1": 684,
+              "y1": 864
+            },
+            "meanRGB": [
+              0.429,
+              0.535,
+              0.291
+            ],
+            "meanHSV": [
+              86.2,
+              0.4552,
+              0.5347
+            ],
+            "luminance": 0.4945,
+            "edgeDensity": 0.0467
+          },
+          "shot": {
+            "rect": {
+              "x0": 36,
+              "y0": 896,
+              "x1": 684,
+              "y1": 1216
+            },
+            "meanRGB": [
+              0.335,
+              0.335,
+              0.335
+            ],
+            "meanHSV": [
+              0,
+              0.0004,
+              0.335
+            ],
+            "luminance": 0.3349,
+            "edgeDensity": 0.0277
+          },
+          "deltaRGB": [
+            0.094,
+            0.2,
+            0.044
+          ],
+          "maxDelta": 0.2,
+          "passed": false
+        },
+        "fog": {
+          "ref": {
+            "rect": {
+              "x0": 144,
+              "y0": 318,
+              "x1": 576,
+              "y1": 591
+            },
+            "meanRGB": [
+              0.655,
+              0.576,
+              0.355
+            ],
+            "meanHSV": [
+              44.3,
+              0.4577,
+              0.6546
+            ],
+            "luminance": 0.5769,
+            "edgeDensity": 0.1431
+          },
+          "shot": {
+            "rect": {
+              "x0": 144,
+              "y0": 448,
+              "x1": 576,
+              "y1": 832
+            },
+            "meanRGB": [
+              0.661,
+              0.672,
+              0.568
+            ],
+            "meanHSV": [
+              66.2,
+              0.1548,
+              0.6721
+            ],
+            "luminance": 0.6623,
+            "edgeDensity": 0.1507
+          },
+          "deltaRGB": [
+            0.006,
+            0.096,
+            0.213
+          ],
+          "maxDelta": 0.213,
+          "passed": false
+        }
+      },
+      "regionDeltasSummary": "wall:ΔRGB=[0.04,0.05,0.16]; water:ΔRGB=[0.09,0.20,0.04]; fog:ΔRGB=[0.01,0.10,0.21]",
+      "semantics": {
+        "inkPresent": false,
+        "pittedHeadSilhouette": true,
+        "darkMassOnWater": true
+      },
+      "verdict": "FAIL",
+      "failureReasons": [
+        "SSIM 0.4993 < 0.55",
+        "Region wall max ΔRGB 0.164 > 0.08",
+        "Region water max ΔRGB 0.2 > 0.08",
+        "Region fog max ΔRGB 0.213 > 0.08"
+      ],
+      "passed": false
     },
     {
       "id": "f_017",
       "frameId": "f_017",
       "shotId": "natatorium_arch_fog_25m_portrait",
       "property": "luminanceMeanAndNoTrueBlacks",
+      "whatToLookAt": "camera_turn_transition_from_tiled_corner_to_pool",
       "actualLum": 0.6006,
       "frameLum": 0.5734,
       "deltaPct": 0,
-      "passed": true
+      "ssim": 0.5523,
+      "perChannelMae": {
+        "maeR": 0.1847,
+        "maeG": 0.124,
+        "maeB": 0.1335,
+        "meanMae": 0.1474
+      },
+      "wholeFrameDeltaE": {
+        "meanRgbA": [
+          0.539,
+          0.6,
+          0.417
+        ],
+        "meanRgbB": [
+          0.652,
+          0.601,
+          0.446
+        ],
+        "deltaE": 10.581
+      },
+      "regions": {
+        "wall": {
+          "ref": {
+            "rect": {
+              "x0": 72,
+              "y0": 91,
+              "x1": 648,
+              "y1": 455
+            },
+            "meanRGB": [
+              0.546,
+              0.587,
+              0.416
+            ],
+            "meanHSV": [
+              74.3,
+              0.2917,
+              0.587
+            ],
+            "luminance": 0.5659,
+            "edgeDensity": 0.2674
+          },
+          "shot": {
+            "rect": {
+              "x0": 72,
+              "y0": 128,
+              "x1": 648,
+              "y1": 704
+            },
+            "meanRGB": [
+              0.662,
+              0.61,
+              0.45
+            ],
+            "meanHSV": [
+              45.5,
+              0.3203,
+              0.6617
+            ],
+            "luminance": 0.6097,
+            "edgeDensity": 0.1154
+          },
+          "deltaRGB": [
+            0.116,
+            0.023,
+            0.034
+          ],
+          "maxDelta": 0.116,
+          "passed": false
+        },
+        "water": {
+          "ref": {
+            "rect": {
+              "x0": 36,
+              "y0": 500,
+              "x1": 684,
+              "y1": 864
+            },
+            "meanRGB": [
+              0.46,
+              0.555,
+              0.345
+            ],
+            "meanHSV": [
+              87.2,
+              0.3778,
+              0.5546
+            ],
+            "luminance": 0.5193,
+            "edgeDensity": 0.2829
+          },
+          "shot": {
+            "rect": {
+              "x0": 36,
+              "y0": 704,
+              "x1": 684,
+              "y1": 1216
+            },
+            "meanRGB": [
+              0.654,
+              0.603,
+              0.447
+            ],
+            "meanHSV": [
+              45.3,
+              0.3161,
+              0.6535
+            ],
+            "luminance": 0.6023,
+            "edgeDensity": 0.1226
+          },
+          "deltaRGB": [
+            0.194,
+            0.048,
+            0.102
+          ],
+          "maxDelta": 0.194,
+          "passed": false
+        },
+        "fog": {
+          "ref": {
+            "rect": {
+              "x0": 144,
+              "y0": 318,
+              "x1": 576,
+              "y1": 546
+            },
+            "meanRGB": [
+              0.394,
+              0.475,
+              0.308
+            ],
+            "meanHSV": [
+              89.1,
+              0.3524,
+              0.4751
+            ],
+            "luminance": 0.4458,
+            "edgeDensity": 0.3949
+          },
+          "shot": {
+            "rect": {
+              "x0": 144,
+              "y0": 448,
+              "x1": 576,
+              "y1": 832
+            },
+            "meanRGB": [
+              0.665,
+              0.614,
+              0.451
+            ],
+            "meanHSV": [
+              45.6,
+              0.3215,
+              0.6653
+            ],
+            "luminance": 0.6131,
+            "edgeDensity": 0.1228
+          },
+          "deltaRGB": [
+            0.271,
+            0.139,
+            0.143
+          ],
+          "maxDelta": 0.271,
+          "passed": false
+        }
+      },
+      "regionDeltasSummary": "wall:ΔRGB=[0.12,0.02,0.03]; water:ΔRGB=[0.19,0.05,0.10]; fog:ΔRGB=[0.27,0.14,0.14]",
+      "semantics": {
+        "inkPresent": false,
+        "pittedHeadSilhouette": false,
+        "darkMassOnWater": false
+      },
+      "verdict": "FAIL",
+      "failureReasons": [
+        "Region wall max ΔRGB 0.116 > 0.08",
+        "Region water max ΔRGB 0.194 > 0.08",
+        "Region fog max ΔRGB 0.271 > 0.08"
+      ],
+      "passed": false
     },
     {
       "id": "f_018",
       "frameId": "f_018",
       "shotId": "creature_close_6m",
       "property": "creatureHeadBodyRgbAndShallowWaterRgb",
+      "whatToLookAt": "pitted_pod_head_mottled_hide_and_shallow_cracked_floor",
       "actualLum": 0.5994,
       "frameLum": 0.6359,
       "deltaPct": 0,
-      "passed": true
+      "ssim": 0.5152,
+      "perChannelMae": {
+        "maeR": 0.1698,
+        "maeG": 0.1314,
+        "maeB": 0.1311,
+        "meanMae": 0.1441
+      },
+      "wholeFrameDeltaE": {
+        "meanRgbA": [
+          0.596,
+          0.664,
+          0.478
+        ],
+        "meanRgbB": [
+          0.637,
+          0.603,
+          0.451
+        ],
+        "deltaE": 9.627
+      },
+      "regions": {
+        "wall": {
+          "ref": {
+            "rect": {
+              "x0": 72,
+              "y0": 91,
+              "x1": 648,
+              "y1": 455
+            },
+            "meanRGB": [
+              0.578,
+              0.619,
+              0.45
+            ],
+            "meanHSV": [
+              74.6,
+              0.2722,
+              0.6187
+            ],
+            "luminance": 0.5978,
+            "edgeDensity": 0.2808
+          },
+          "shot": {
+            "rect": {
+              "x0": 128,
+              "y0": 36,
+              "x1": 1152,
+              "y1": 324
+            },
+            "meanRGB": [
+              0.644,
+              0.605,
+              0.456
+            ],
+            "meanHSV": [
+              47.6,
+              0.2907,
+              0.6435
+            ],
+            "luminance": 0.6023,
+            "edgeDensity": 0.4142
+          },
+          "deltaRGB": [
+            0.066,
+            0.014,
+            0.006
+          ],
+          "maxDelta": 0.066,
+          "passed": true
+        },
+        "water": {
+          "ref": {
+            "rect": {
+              "x0": 36,
+              "y0": 500,
+              "x1": 684,
+              "y1": 864
+            },
+            "meanRGB": [
+              0.554,
+              0.664,
+              0.441
+            ],
+            "meanHSV": [
+              89.6,
+              0.3353,
+              0.6636
+            ],
+            "luminance": 0.6242,
+            "edgeDensity": 0.2407
+          },
+          "shot": {
+            "rect": {
+              "x0": 64,
+              "y0": 360,
+              "x1": 1216,
+              "y1": 684
+            },
+            "meanRGB": [
+              0.661,
+              0.614,
+              0.452
+            ],
+            "meanHSV": [
+              46.5,
+              0.3158,
+              0.6612
+            ],
+            "luminance": 0.6125,
+            "edgeDensity": 0.2842
+          },
+          "deltaRGB": [
+            0.107,
+            0.05,
+            0.011
+          ],
+          "maxDelta": 0.107,
+          "passed": false
+        },
+        "fog": {
+          "ref": {
+            "rect": {
+              "x0": 144,
+              "y0": 318,
+              "x1": 576,
+              "y1": 546
+            },
+            "meanRGB": [
+              0.389,
+              0.471,
+              0.294
+            ],
+            "meanHSV": [
+              87.9,
+              0.3756,
+              0.4714
+            ],
+            "luminance": 0.4412,
+            "edgeDensity": 0.504
+          },
+          "shot": {
+            "rect": {
+              "x0": 256,
+              "y0": 216,
+              "x1": 1024,
+              "y1": 396
+            },
+            "meanRGB": [
+              0.612,
+              0.576,
+              0.42
+            ],
+            "meanHSV": [
+              48.7,
+              0.3139,
+              0.612
+            ],
+            "luminance": 0.5722,
+            "edgeDensity": 0.317
+          },
+          "deltaRGB": [
+            0.223,
+            0.105,
+            0.126
+          ],
+          "maxDelta": 0.223,
+          "passed": false
+        },
+        "subject": {
+          "ref": {
+            "rect": {
+              "x0": 180,
+              "y0": 136,
+              "x1": 540,
+              "y1": 773
+            },
+            "meanRGB": [
+              0.512,
+              0.585,
+              0.397
+            ],
+            "meanHSV": [
+              83.1,
+              0.3217,
+              0.5848
+            ],
+            "luminance": 0.5558,
+            "edgeDensity": 0.357
+          },
+          "shot": {
+            "rect": {
+              "x0": 384,
+              "y0": 108,
+              "x1": 896,
+              "y1": 612
+            },
+            "meanRGB": [
+              0.652,
+              0.598,
+              0.447
+            ],
+            "meanHSV": [
+              44.2,
+              0.3133,
+              0.6515
+            ],
+            "luminance": 0.5984,
+            "edgeDensity": 0.3155
+          },
+          "deltaRGB": [
+            0.14,
+            0.013,
+            0.05
+          ],
+          "maxDelta": 0.14,
+          "passed": false
+        }
+      },
+      "regionDeltasSummary": "wall:ΔRGB=[0.07,0.01,0.01]; water:ΔRGB=[0.11,0.05,0.01]; fog:ΔRGB=[0.22,0.10,0.13]; subject:ΔRGB=[0.14,0.01,0.05]",
+      "semantics": {
+        "inkPresent": false,
+        "pittedHeadSilhouette": true,
+        "darkMassOnWater": true
+      },
+      "verdict": "FAIL",
+      "failureReasons": [
+        "SSIM 0.5152 < 0.55",
+        "Region water max ΔRGB 0.107 > 0.1",
+        "Region fog max ΔRGB 0.223 > 0.1",
+        "Region subject max ΔRGB 0.14 > 0.1"
+      ],
+      "passed": false
     },
     {
       "id": "f_019",
       "frameId": "f_019",
       "shotId": "natatorium_floor_through_water",
       "property": "floorGroutEdgeRatioAndShallowWaterRgb",
+      "whatToLookAt": "cracked_submerged_floor_tiles_and_white_foot_foam",
       "actualLum": 0.5907,
       "frameLum": 0.706,
       "deltaPct": 0,
-      "passed": true
+      "ssim": 0.6414,
+      "perChannelMae": {
+        "maeR": 0.1273,
+        "maeG": 0.1558,
+        "maeB": 0.1957,
+        "meanMae": 0.1596
+      },
+      "wholeFrameDeltaE": {
+        "meanRgbA": [
+          0.677,
+          0.726,
+          0.589
+        ],
+        "meanRgbB": [
+          0.59,
+          0.618,
+          0.452
+        ],
+        "deltaE": 8.487
+      },
+      "regions": {
+        "wall": {
+          "ref": {
+            "rect": {
+              "x0": 72,
+              "y0": 91,
+              "x1": 648,
+              "y1": 455
+            },
+            "meanRGB": [
+              0.844,
+              0.851,
+              0.779
+            ],
+            "meanHSV": [
+              65.5,
+              0.0847,
+              0.8507
+            ],
+            "luminance": 0.8441,
+            "edgeDensity": 0.0045
+          },
+          "shot": {
+            "rect": {
+              "x0": 128,
+              "y0": 36,
+              "x1": 1152,
+              "y1": 324
+            },
+            "meanRGB": [
+              0.694,
+              0.632,
+              0.472
+            ],
+            "meanHSV": [
+              43.2,
+              0.3197,
+              0.6943
+            ],
+            "luminance": 0.6338,
+            "edgeDensity": 0.3629
+          },
+          "deltaRGB": [
+            0.15,
+            0.219,
+            0.307
+          ],
+          "maxDelta": 0.307,
+          "passed": false
+        },
+        "water": {
+          "ref": {
+            "rect": {
+              "x0": 36,
+              "y0": 318,
+              "x1": 684,
+              "y1": 864
+            },
+            "meanRGB": [
+              0.614,
+              0.686,
+              0.532
+            ],
+            "meanHSV": [
+              88.3,
+              0.2241,
+              0.6861
+            ],
+            "luminance": 0.6596,
+            "edgeDensity": 0.1938
+          },
+          "shot": {
+            "rect": {
+              "x0": 64,
+              "y0": 251,
+              "x1": 1216,
+              "y1": 684
+            },
+            "meanRGB": [
+              0.565,
+              0.617,
+              0.449
+            ],
+            "meanHSV": [
+              78.5,
+              0.2716,
+              0.6169
+            ],
+            "luminance": 0.5938,
+            "edgeDensity": 0.1609
+          },
+          "deltaRGB": [
+            0.049,
+            0.069,
+            0.083
+          ],
+          "maxDelta": 0.083,
+          "passed": false
+        },
+        "fog": {
+          "ref": {
+            "rect": {
+              "x0": 144,
+              "y0": 318,
+              "x1": 576,
+              "y1": 546
+            },
+            "meanRGB": [
+              0.803,
+              0.81,
+              0.735
+            ],
+            "meanHSV": [
+              65.9,
+              0.0934,
+              0.8104
+            ],
+            "luminance": 0.8034,
+            "edgeDensity": 0.0608
+          },
+          "shot": {
+            "rect": {
+              "x0": 256,
+              "y0": 216,
+              "x1": 1024,
+              "y1": 396
+            },
+            "meanRGB": [
+              0.752,
+              0.636,
+              0.479
+            ],
+            "meanHSV": [
+              34.5,
+              0.363,
+              0.7519
+            ],
+            "luminance": 0.6493,
+            "edgeDensity": 0.3489
+          },
+          "deltaRGB": [
+            0.051,
+            0.174,
+            0.256
+          ],
+          "maxDelta": 0.256,
+          "passed": false
+        }
+      },
+      "regionDeltasSummary": "wall:ΔRGB=[0.15,0.22,0.31]; water:ΔRGB=[0.05,0.07,0.08]; fog:ΔRGB=[0.05,0.17,0.26]",
+      "semantics": {
+        "inkPresent": false,
+        "pittedHeadSilhouette": false,
+        "darkMassOnWater": false
+      },
+      "verdict": "FAIL",
+      "failureReasons": [
+        "Region wall max ΔRGB 0.307 > 0.08",
+        "Region water max ΔRGB 0.083 > 0.08",
+        "Region fog max ΔRGB 0.256 > 0.08"
+      ],
+      "passed": false
     },
     {
       "id": "f_020",
       "frameId": "f_020",
       "shotId": "natatorium_floor_through_water_portrait",
       "property": "creatureBodyRgbAndInkSplashContrast",
+      "whatToLookAt": "close_forearms_splayed_claws_and_ink_splashes",
       "actualLum": 0.6002,
       "frameLum": 0.6922,
       "deltaPct": 0,
-      "passed": true
+      "ssim": 0.6895,
+      "perChannelMae": {
+        "maeR": 0.0782,
+        "maeG": 0.1205,
+        "maeB": 0.1482,
+        "meanMae": 0.1156
+      },
+      "wholeFrameDeltaE": {
+        "meanRgbA": [
+          0.653,
+          0.717,
+          0.565
+        ],
+        "meanRgbB": [
+          0.615,
+          0.62,
+          0.459
+        ],
+        "deltaE": 8.271
+      },
+      "regions": {
+        "wall": {
+          "ref": {
+            "rect": {
+              "x0": 72,
+              "y0": 91,
+              "x1": 648,
+              "y1": 455
+            },
+            "meanRGB": [
+              0.812,
+              0.825,
+              0.743
+            ],
+            "meanHSV": [
+              69.9,
+              0.0994,
+              0.8253
+            ],
+            "luminance": 0.8165,
+            "edgeDensity": 0.0603
+          },
+          "shot": {
+            "rect": {
+              "x0": 72,
+              "y0": 128,
+              "x1": 648,
+              "y1": 704
+            },
+            "meanRGB": [
+              0.742,
+              0.638,
+              0.483
+            ],
+            "meanHSV": [
+              35.9,
+              0.3497,
+              0.7425
+            ],
+            "luminance": 0.6491,
+            "edgeDensity": 0.2906
+          },
+          "deltaRGB": [
+            0.07,
+            0.187,
+            0.26
+          ],
+          "maxDelta": 0.26,
+          "passed": false
+        },
+        "water": {
+          "ref": {
+            "rect": {
+              "x0": 36,
+              "y0": 318,
+              "x1": 684,
+              "y1": 864
+            },
+            "meanRGB": [
+              0.58,
+              0.674,
+              0.495
+            ],
+            "meanHSV": [
+              91.5,
+              0.2664,
+              0.6743
+            ],
+            "luminance": 0.6413,
+            "edgeDensity": 0.2257
+          },
+          "shot": {
+            "rect": {
+              "x0": 36,
+              "y0": 448,
+              "x1": 684,
+              "y1": 1216
+            },
+            "meanRGB": [
+              0.573,
+              0.61,
+              0.449
+            ],
+            "meanHSV": [
+              73.9,
+              0.2647,
+              0.61
+            ],
+            "luminance": 0.5904,
+            "edgeDensity": 0.1092
+          },
+          "deltaRGB": [
+            0.007,
+            0.064,
+            0.046
+          ],
+          "maxDelta": 0.064,
+          "passed": true
+        },
+        "fog": {
+          "ref": {
+            "rect": {
+              "x0": 144,
+              "y0": 318,
+              "x1": 576,
+              "y1": 546
+            },
+            "meanRGB": [
+              0.704,
+              0.737,
+              0.615
+            ],
+            "meanHSV": [
+              76.1,
+              0.1657,
+              0.7372
+            ],
+            "luminance": 0.7214,
+            "edgeDensity": 0.2864
+          },
+          "shot": {
+            "rect": {
+              "x0": 144,
+              "y0": 448,
+              "x1": 576,
+              "y1": 832
+            },
+            "meanRGB": [
+              0.677,
+              0.587,
+              0.46
+            ],
+            "meanHSV": [
+              35.1,
+              0.321,
+              0.6775
+            ],
+            "luminance": 0.5972,
+            "edgeDensity": 0.2007
+          },
+          "deltaRGB": [
+            0.027,
+            0.15,
+            0.155
+          ],
+          "maxDelta": 0.155,
+          "passed": false
+        },
+        "subject": {
+          "ref": {
+            "rect": {
+              "x0": 216,
+              "y0": 182,
+              "x1": 503,
+              "y1": 682
+            },
+            "meanRGB": [
+              0.678,
+              0.733,
+              0.603
+            ],
+            "meanHSV": [
+              85.5,
+              0.1777,
+              0.7334
+            ],
+            "luminance": 0.7123,
+            "edgeDensity": 0.2075
+          },
+          "shot": {
+            "rect": {
+              "x0": 216,
+              "y0": 256,
+              "x1": 503,
+              "y1": 960
+            },
+            "meanRGB": [
+              0.668,
+              0.612,
+              0.465
+            ],
+            "meanHSV": [
+              43.4,
+              0.3041,
+              0.6682
+            ],
+            "luminance": 0.6134,
+            "edgeDensity": 0.2244
+          },
+          "deltaRGB": [
+            0.01,
+            0.121,
+            0.138
+          ],
+          "maxDelta": 0.138,
+          "passed": false
+        }
+      },
+      "regionDeltasSummary": "wall:ΔRGB=[0.07,0.19,0.26]; water:ΔRGB=[0.01,0.06,0.05]; fog:ΔRGB=[0.03,0.15,0.15]; subject:ΔRGB=[0.01,0.12,0.14]",
+      "semantics": {
+        "inkPresent": false,
+        "pittedHeadSilhouette": false,
+        "darkMassOnWater": false
+      },
+      "verdict": "FAIL",
+      "failureReasons": [
+        "Region wall max ΔRGB 0.26 > 0.1",
+        "Region fog max ΔRGB 0.155 > 0.1",
+        "Region subject max ΔRGB 0.138 > 0.1",
+        "Missing semantic: pittedHeadSilhouette"
+      ],
+      "passed": false
     },
     {
       "id": "f_021",
       "frameId": "f_021",
       "shotId": "natatorium_slab_edge",
       "property": "slabTopRgbAndTilePitchMeters",
+      "whatToLookAt": "slab_edge_bullnose_tile_pitch_and_creature_at_8_to_20m",
       "actualLum": 0.6127,
       "frameLum": 0.6903,
       "deltaPct": 0,
-      "passed": true
+      "ssim": 0.5249,
+      "perChannelMae": {
+        "maeR": 0.2074,
+        "maeG": 0.182,
+        "maeB": 0.1945,
+        "meanMae": 0.1946
+      },
+      "wholeFrameDeltaE": {
+        "meanRgbA": [
+          0.681,
+          0.704,
+          0.581
+        ],
+        "meanRgbB": [
+          0.671,
+          0.609,
+          0.477
+        ],
+        "deltaE": 10.987
+      },
+      "regions": {
+        "wall": {
+          "ref": {
+            "rect": {
+              "x0": 72,
+              "y0": 91,
+              "x1": 648,
+              "y1": 455
+            },
+            "meanRGB": [
+              0.805,
+              0.836,
+              0.767
+            ],
+            "meanHSV": [
+              87.2,
+              0.0817,
+              0.8355
+            ],
+            "luminance": 0.824,
+            "edgeDensity": 0.0268
+          },
+          "shot": {
+            "rect": {
+              "x0": 128,
+              "y0": 36,
+              "x1": 1152,
+              "y1": 324
+            },
+            "meanRGB": [
+              0.569,
+              0.554,
+              0.466
+            ],
+            "meanHSV": [
+              51.3,
+              0.1801,
+              0.569
+            ],
+            "luminance": 0.551,
+            "edgeDensity": 0.2507
+          },
+          "deltaRGB": [
+            0.236,
+            0.282,
+            0.301
+          ],
+          "maxDelta": 0.301,
+          "passed": false
+        },
+        "water": {
+          "ref": {
+            "rect": {
+              "x0": 36,
+              "y0": 500,
+              "x1": 684,
+              "y1": 864
+            },
+            "meanRGB": [
+              0.586,
+              0.599,
+              0.423
+            ],
+            "meanHSV": [
+              64.4,
+              0.2939,
+              0.599
+            ],
+            "luminance": 0.5835,
+            "edgeDensity": 0.1741
+          },
+          "shot": {
+            "rect": {
+              "x0": 64,
+              "y0": 360,
+              "x1": 1216,
+              "y1": 684
+            },
+            "meanRGB": [
+              0.763,
+              0.661,
+              0.491
+            ],
+            "meanHSV": [
+              37.5,
+              0.3567,
+              0.7635
+            ],
+            "luminance": 0.6708,
+            "edgeDensity": 0.304
+          },
+          "deltaRGB": [
+            0.177,
+            0.062,
+            0.068
+          ],
+          "maxDelta": 0.177,
+          "passed": false
+        },
+        "fog": {
+          "ref": {
+            "rect": {
+              "x0": 144,
+              "y0": 318,
+              "x1": 576,
+              "y1": 546
+            },
+            "meanRGB": [
+              0.719,
+              0.746,
+              0.636
+            ],
+            "meanHSV": [
+              75,
+              0.1483,
+              0.7463
+            ],
+            "luminance": 0.7324,
+            "edgeDensity": 0.0335
+          },
+          "shot": {
+            "rect": {
+              "x0": 256,
+              "y0": 216,
+              "x1": 1024,
+              "y1": 396
+            },
+            "meanRGB": [
+              0.61,
+              0.594,
+              0.484
+            ],
+            "meanHSV": [
+              52.6,
+              0.2058,
+              0.6096
+            ],
+            "luminance": 0.5895,
+            "edgeDensity": 0.2973
+          },
+          "deltaRGB": [
+            0.109,
+            0.152,
+            0.152
+          ],
+          "maxDelta": 0.152,
+          "passed": false
+        }
+      },
+      "regionDeltasSummary": "wall:ΔRGB=[0.24,0.28,0.30]; water:ΔRGB=[0.18,0.06,0.07]; fog:ΔRGB=[0.11,0.15,0.15]",
+      "semantics": {
+        "inkPresent": false,
+        "pittedHeadSilhouette": false,
+        "darkMassOnWater": false
+      },
+      "verdict": "FAIL",
+      "failureReasons": [
+        "SSIM 0.5249 < 0.55",
+        "Region wall max ΔRGB 0.301 > 0.08",
+        "Region water max ΔRGB 0.177 > 0.08",
+        "Region fog max ΔRGB 0.152 > 0.08"
+      ],
+      "passed": false
     },
     {
       "id": "f_022",
       "frameId": "f_022",
       "shotId": "natatorium_water_slab_edge",
       "property": "slabEdgeWetBandAndWaterRgb",
+      "whatToLookAt": "wet_band_along_slab_edge_and_soft_swell_lines",
       "actualLum": 0.5708,
       "frameLum": 0.665,
       "deltaPct": 0,
-      "passed": true
+      "ssim": 0.7112,
+      "perChannelMae": {
+        "maeR": 0.14,
+        "maeG": 0.1248,
+        "maeB": 0.1425,
+        "meanMae": 0.1358
+      },
+      "wholeFrameDeltaE": {
+        "meanRgbA": [
+          0.628,
+          0.688,
+          0.544
+        ],
+        "meanRgbB": [
+          0.52,
+          0.622,
+          0.444
+        ],
+        "deltaE": 6.949
+      },
+      "regions": {
+        "wall": {
+          "ref": {
+            "rect": {
+              "x0": 72,
+              "y0": 91,
+              "x1": 648,
+              "y1": 455
+            },
+            "meanRGB": [
+              0.754,
+              0.784,
+              0.685
+            ],
+            "meanHSV": [
+              78.4,
+              0.1258,
+              0.784
+            ],
+            "luminance": 0.7705,
+            "edgeDensity": 0.0504
+          },
+          "shot": {
+            "rect": {
+              "x0": 128,
+              "y0": 36,
+              "x1": 1152,
+              "y1": 324
+            },
+            "meanRGB": [
+              0.562,
+              0.585,
+              0.441
+            ],
+            "meanHSV": [
+              69.7,
+              0.2461,
+              0.5853
+            ],
+            "luminance": 0.5699,
+            "edgeDensity": 0.2286
+          },
+          "deltaRGB": [
+            0.192,
+            0.199,
+            0.244
+          ],
+          "maxDelta": 0.244,
+          "passed": false
+        },
+        "water": {
+          "ref": {
+            "rect": {
+              "x0": 36,
+              "y0": 500,
+              "x1": 684,
+              "y1": 864
+            },
+            "meanRGB": [
+              0.487,
+              0.605,
+              0.418
+            ],
+            "meanHSV": [
+              97.6,
+              0.3096,
+              0.6048
+            ],
+            "luminance": 0.5663,
+            "edgeDensity": 0.1809
+          },
+          "shot": {
+            "rect": {
+              "x0": 64,
+              "y0": 360,
+              "x1": 1216,
+              "y1": 684
+            },
+            "meanRGB": [
+              0.492,
+              0.67,
+              0.448
+            ],
+            "meanHSV": [
+              108.2,
+              0.331,
+              0.6699
+            ],
+            "luminance": 0.616,
+            "edgeDensity": 0
+          },
+          "deltaRGB": [
+            0.005,
+            0.065,
+            0.03
+          ],
+          "maxDelta": 0.065,
+          "passed": true
+        },
+        "fog": {
+          "ref": {
+            "rect": {
+              "x0": 144,
+              "y0": 318,
+              "x1": 576,
+              "y1": 546
+            },
+            "meanRGB": [
+              0.68,
+              0.756,
+              0.643
+            ],
+            "meanHSV": [
+              100.6,
+              0.1493,
+              0.756
+            ],
+            "luminance": 0.7316,
+            "edgeDensity": 0.1165
+          },
+          "shot": {
+            "rect": {
+              "x0": 256,
+              "y0": 216,
+              "x1": 1024,
+              "y1": 396
+            },
+            "meanRGB": [
+              0.508,
+              0.649,
+              0.446
+            ],
+            "meanHSV": [
+              101.7,
+              0.3137,
+              0.6493
+            ],
+            "luminance": 0.6045,
+            "edgeDensity": 0.0596
+          },
+          "deltaRGB": [
+            0.172,
+            0.107,
+            0.197
+          ],
+          "maxDelta": 0.197,
+          "passed": false
+        }
+      },
+      "regionDeltasSummary": "wall:ΔRGB=[0.19,0.20,0.24]; water:ΔRGB=[0.01,0.07,0.03]; fog:ΔRGB=[0.17,0.11,0.20]",
+      "semantics": {
+        "inkPresent": false,
+        "pittedHeadSilhouette": false,
+        "darkMassOnWater": false
+      },
+      "verdict": "FAIL",
+      "failureReasons": [
+        "Region wall max ΔRGB 0.244 > 0.08",
+        "Region fog max ΔRGB 0.197 > 0.08"
+      ],
+      "passed": false
     },
     {
       "id": "f_023",
       "frameId": "f_023",
       "shotId": "creature_mid_15m",
       "property": "creatureMidSilhouetteAndWaterRgb",
+      "whatToLookAt": "creature_stalking_at_15m_beside_slab",
       "actualLum": 0.6208,
       "frameLum": 0.6618,
       "deltaPct": 0,
-      "passed": true
+      "ssim": 0.471,
+      "perChannelMae": {
+        "maeR": 0.1579,
+        "maeG": 0.1411,
+        "maeB": 0.1539,
+        "meanMae": 0.151
+      },
+      "wholeFrameDeltaE": {
+        "meanRgbA": [
+          0.641,
+          0.681,
+          0.534
+        ],
+        "meanRgbB": [
+          0.663,
+          0.624,
+          0.463
+        ],
+        "deltaE": 8.316
+      },
+      "regions": {
+        "wall": {
+          "ref": {
+            "rect": {
+              "x0": 72,
+              "y0": 91,
+              "x1": 648,
+              "y1": 455
+            },
+            "meanRGB": [
+              0.649,
+              0.712,
+              0.6
+            ],
+            "meanHSV": [
+              94,
+              0.1572,
+              0.7124
+            ],
+            "luminance": 0.6908,
+            "edgeDensity": 0.2051
+          },
+          "shot": {
+            "rect": {
+              "x0": 128,
+              "y0": 36,
+              "x1": 1152,
+              "y1": 324
+            },
+            "meanRGB": [
+              0.65,
+              0.611,
+              0.462
+            ],
+            "meanHSV": [
+              47.8,
+              0.2883,
+              0.6496
+            ],
+            "luminance": 0.6088,
+            "edgeDensity": 0.3779
+          },
+          "deltaRGB": [
+            0.001,
+            0.101,
+            0.138
+          ],
+          "maxDelta": 0.138,
+          "passed": false
+        },
+        "water": {
+          "ref": {
+            "rect": {
+              "x0": 36,
+              "y0": 500,
+              "x1": 684,
+              "y1": 864
+            },
+            "meanRGB": [
+              0.616,
+              0.632,
+              0.448
+            ],
+            "meanHSV": [
+              65.2,
+              0.292,
+              0.6322
+            ],
+            "luminance": 0.6155,
+            "edgeDensity": 0.3472
+          },
+          "shot": {
+            "rect": {
+              "x0": 64,
+              "y0": 360,
+              "x1": 1216,
+              "y1": 684
+            },
+            "meanRGB": [
+              0.702,
+              0.657,
+              0.477
+            ],
+            "meanHSV": [
+              47.8,
+              0.3212,
+              0.7024
+            ],
+            "luminance": 0.6534,
+            "edgeDensity": 0.3083
+          },
+          "deltaRGB": [
+            0.086,
+            0.025,
+            0.029
+          ],
+          "maxDelta": 0.086,
+          "passed": true
+        },
+        "fog": {
+          "ref": {
+            "rect": {
+              "x0": 144,
+              "y0": 318,
+              "x1": 576,
+              "y1": 546
+            },
+            "meanRGB": [
+              0.382,
+              0.501,
+              0.354
+            ],
+            "meanHSV": [
+              108.6,
+              0.293,
+              0.501
+            ],
+            "luminance": 0.4651,
+            "edgeDensity": 0.4074
+          },
+          "shot": {
+            "rect": {
+              "x0": 256,
+              "y0": 216,
+              "x1": 1024,
+              "y1": 396
+            },
+            "meanRGB": [
+              0.655,
+              0.619,
+              0.455
+            ],
+            "meanHSV": [
+              49.3,
+              0.3041,
+              0.6545
+            ],
+            "luminance": 0.6148,
+            "edgeDensity": 0.3068
+          },
+          "deltaRGB": [
+            0.273,
+            0.118,
+            0.101
+          ],
+          "maxDelta": 0.273,
+          "passed": false
+        },
+        "subject": {
+          "ref": {
+            "rect": {
+              "x0": 216,
+              "y0": 182,
+              "x1": 503,
+              "y1": 682
+            },
+            "meanRGB": [
+              0.503,
+              0.574,
+              0.434
+            ],
+            "meanHSV": [
+              90.4,
+              0.2443,
+              0.5737
+            ],
+            "luminance": 0.5485,
+            "edgeDensity": 0.3736
+          },
+          "shot": {
+            "rect": {
+              "x0": 384,
+              "y0": 144,
+              "x1": 896,
+              "y1": 540
+            },
+            "meanRGB": [
+              0.682,
+              0.639,
+              0.483
+            ],
+            "meanHSV": [
+              47.2,
+              0.2914,
+              0.6818
+            ],
+            "luminance": 0.6371,
+            "edgeDensity": 0.3425
+          },
+          "deltaRGB": [
+            0.179,
+            0.065,
+            0.049
+          ],
+          "maxDelta": 0.179,
+          "passed": false
+        }
+      },
+      "regionDeltasSummary": "wall:ΔRGB=[0.00,0.10,0.14]; water:ΔRGB=[0.09,0.03,0.03]; fog:ΔRGB=[0.27,0.12,0.10]; subject:ΔRGB=[0.18,0.07,0.05]",
+      "semantics": {
+        "inkPresent": false,
+        "pittedHeadSilhouette": true,
+        "darkMassOnWater": true
+      },
+      "verdict": "FAIL",
+      "failureReasons": [
+        "SSIM 0.4710 < 0.55",
+        "Region wall max ΔRGB 0.138 > 0.1",
+        "Region fog max ΔRGB 0.273 > 0.1",
+        "Region subject max ΔRGB 0.179 > 0.1"
+      ],
+      "passed": false
     },
     {
       "id": "f_024",
       "frameId": "f_024",
       "shotId": "natatorium_water_wake",
       "property": "wakeLuminanceVarianceAndFloorGroutRatio",
+      "whatToLookAt": "wading_swell_lines_and_submerged_floor_cracks",
       "actualLum": 0.5779,
       "frameLum": 0.6686,
       "deltaPct": 0,
-      "passed": true
+      "ssim": 0.4602,
+      "perChannelMae": {
+        "maeR": 0.1955,
+        "maeG": 0.1575,
+        "maeB": 0.1678,
+        "meanMae": 0.1736
+      },
+      "wholeFrameDeltaE": {
+        "meanRgbA": [
+          0.648,
+          0.687,
+          0.544
+        ],
+        "meanRgbB": [
+          0.544,
+          0.621,
+          0.445
+        ],
+        "deltaE": 6.877
+      },
+      "regions": {
+        "wall": {
+          "ref": {
+            "rect": {
+              "x0": 72,
+              "y0": 91,
+              "x1": 648,
+              "y1": 455
+            },
+            "meanRGB": [
+              0.667,
+              0.752,
+              0.634
+            ],
+            "meanHSV": [
+              103,
+              0.1564,
+              0.7516
+            ],
+            "luminance": 0.7252,
+            "edgeDensity": 0.131
+          },
+          "shot": {
+            "rect": {
+              "x0": 128,
+              "y0": 36,
+              "x1": 1152,
+              "y1": 324
+            },
+            "meanRGB": [
+              0.62,
+              0.592,
+              0.448
+            ],
+            "meanHSV": [
+              50.2,
+              0.2778,
+              0.6203
+            ],
+            "luminance": 0.5877,
+            "edgeDensity": 0.4486
+          },
+          "deltaRGB": [
+            0.047,
+            0.16,
+            0.186
+          ],
+          "maxDelta": 0.186,
+          "passed": false
+        },
+        "water": {
+          "ref": {
+            "rect": {
+              "x0": 36,
+              "y0": 500,
+              "x1": 684,
+              "y1": 864
+            },
+            "meanRGB": [
+              0.617,
+              0.616,
+              0.442
+            ],
+            "meanHSV": [
+              59.4,
+              0.2838,
+              0.6174
+            ],
+            "luminance": 0.6035,
+            "edgeDensity": 0.3644
+          },
+          "shot": {
+            "rect": {
+              "x0": 64,
+              "y0": 360,
+              "x1": 1216,
+              "y1": 684
+            },
+            "meanRGB": [
+              0.491,
+              0.664,
+              0.447
+            ],
+            "meanHSV": [
+              107.7,
+              0.3263,
+              0.6636
+            ],
+            "luminance": 0.6114,
+            "edgeDensity": 0.0191
+          },
+          "deltaRGB": [
+            0.126,
+            0.048,
+            0.005
+          ],
+          "maxDelta": 0.126,
+          "passed": false
+        },
+        "fog": {
+          "ref": {
+            "rect": {
+              "x0": 144,
+              "y0": 318,
+              "x1": 576,
+              "y1": 546
+            },
+            "meanRGB": [
+              0.444,
+              0.585,
+              0.427
+            ],
+            "meanHSV": [
+              113.3,
+              0.2706,
+              0.5851
+            ],
+            "luminance": 0.5438,
+            "edgeDensity": 0.2115
+          },
+          "shot": {
+            "rect": {
+              "x0": 256,
+              "y0": 216,
+              "x1": 1024,
+              "y1": 396
+            },
+            "meanRGB": [
+              0.618,
+              0.626,
+              0.454
+            ],
+            "meanHSV": [
+              62.8,
+              0.2747,
+              0.6265
+            ],
+            "luminance": 0.6123,
+            "edgeDensity": 0.3706
+          },
+          "deltaRGB": [
+            0.174,
+            0.041,
+            0.027
+          ],
+          "maxDelta": 0.174,
+          "passed": false
+        }
+      },
+      "regionDeltasSummary": "wall:ΔRGB=[0.05,0.16,0.19]; water:ΔRGB=[0.13,0.05,0.01]; fog:ΔRGB=[0.17,0.04,0.03]",
+      "semantics": {
+        "inkPresent": false,
+        "pittedHeadSilhouette": false,
+        "darkMassOnWater": false
+      },
+      "verdict": "FAIL",
+      "failureReasons": [
+        "SSIM 0.4602 < 0.55",
+        "Region wall max ΔRGB 0.186 > 0.08",
+        "Region water max ΔRGB 0.126 > 0.08",
+        "Region fog max ΔRGB 0.174 > 0.08",
+        "Missing semantic: darkMassOnWater"
+      ],
+      "passed": false
     },
     {
       "id": "f_025",
       "frameId": "f_025",
       "shotId": "natatorium_horizon_long",
       "property": "denseFogSkyRgbAndWaterDenseRgb",
+      "whatToLookAt": "water_dissolving_into_dense_fog_with_no_hard_horizon_edge",
       "actualLum": 0.6119,
       "frameLum": 0.6583,
       "deltaPct": 0.5,
-      "passed": true
+      "ssim": 0.6575,
+      "perChannelMae": {
+        "maeR": 0.1068,
+        "maeG": 0.1743,
+        "maeB": 0.2125,
+        "meanMae": 0.1645
+      },
+      "wholeFrameDeltaE": {
+        "meanRgbA": [
+          0.676,
+          0.666,
+          0.534
+        ],
+        "meanRgbB": [
+          0.619,
+          0.626,
+          0.453
+        ],
+        "deltaE": 4.913
+      },
+      "regions": {
+        "wall": {
+          "ref": {
+            "rect": {
+              "x0": 72,
+              "y0": 91,
+              "x1": 648,
+              "y1": 455
+            },
+            "meanRGB": [
+              0.779,
+              0.819,
+              0.744
+            ],
+            "meanHSV": [
+              92.3,
+              0.091,
+              0.8188
+            ],
+            "luminance": 0.8049,
+            "edgeDensity": 0.0732
+          },
+          "shot": {
+            "rect": {
+              "x0": 128,
+              "y0": 36,
+              "x1": 1152,
+              "y1": 324
+            },
+            "meanRGB": [
+              0.667,
+              0.619,
+              0.456
+            ],
+            "meanHSV": [
+              46.3,
+              0.3158,
+              0.6672
+            ],
+            "luminance": 0.6176,
+            "edgeDensity": 0.4524
+          },
+          "deltaRGB": [
+            0.112,
+            0.2,
+            0.288
+          ],
+          "maxDelta": 0.288,
+          "passed": false
+        },
+        "water": {
+          "ref": {
+            "rect": {
+              "x0": 36,
+              "y0": 500,
+              "x1": 684,
+              "y1": 864
+            },
+            "meanRGB": [
+              0.577,
+              0.512,
+              0.32
+            ],
+            "meanHSV": [
+              44.7,
+              0.445,
+              0.5774
+            ],
+            "luminance": 0.5121,
+            "edgeDensity": 0.3998
+          },
+          "shot": {
+            "rect": {
+              "x0": 64,
+              "y0": 360,
+              "x1": 1216,
+              "y1": 684
+            },
+            "meanRGB": [
+              0.592,
+              0.648,
+              0.456
+            ],
+            "meanHSV": [
+              77.4,
+              0.2966,
+              0.6478
+            ],
+            "luminance": 0.6221,
+            "edgeDensity": 0.1682
+          },
+          "deltaRGB": [
+            0.015,
+            0.136,
+            0.136
+          ],
+          "maxDelta": 0.136,
+          "passed": false
+        },
+        "fog": {
+          "ref": {
+            "rect": {
+              "x0": 144,
+              "y0": 318,
+              "x1": 576,
+              "y1": 546
+            },
+            "meanRGB": [
+              0.651,
+              0.666,
+              0.53
+            ],
+            "meanHSV": [
+              66.3,
+              0.2037,
+              0.6656
+            ],
+            "luminance": 0.6528,
+            "edgeDensity": 0.1502
+          },
+          "shot": {
+            "rect": {
+              "x0": 256,
+              "y0": 216,
+              "x1": 1024,
+              "y1": 396
+            },
+            "meanRGB": [
+              0.684,
+              0.641,
+              0.474
+            ],
+            "meanHSV": [
+              47.6,
+              0.3078,
+              0.6843
+            ],
+            "luminance": 0.6381,
+            "edgeDensity": 0.352
+          },
+          "deltaRGB": [
+            0.033,
+            0.025,
+            0.056
+          ],
+          "maxDelta": 0.056,
+          "passed": true
+        }
+      },
+      "regionDeltasSummary": "wall:ΔRGB=[0.11,0.20,0.29]; water:ΔRGB=[0.02,0.14,0.14]; fog:ΔRGB=[0.03,0.03,0.06]",
+      "semantics": {
+        "inkPresent": false,
+        "pittedHeadSilhouette": false,
+        "darkMassOnWater": false
+      },
+      "verdict": "FAIL",
+      "failureReasons": [
+        "Region wall max ΔRGB 0.288 > 0.08",
+        "Region water max ΔRGB 0.136 > 0.08"
+      ],
+      "passed": false
     },
     {
       "id": "f_026",
       "frameId": "f_026",
       "shotId": "natatorium_horizon_long_portrait",
       "property": "waterDenseNearRgbAndFogFalloff",
+      "whatToLookAt": "vertical_fog_falloff_and_calm_darker_green_water",
       "actualLum": 0.6254,
       "frameLum": 0.5586,
       "deltaPct": 0,
-      "passed": true
+      "ssim": 0.7128,
+      "perChannelMae": {
+        "maeR": 0.16,
+        "maeG": 0.2071,
+        "maeB": 0.2219,
+        "meanMae": 0.1963
+      },
+      "wholeFrameDeltaE": {
+        "meanRgbA": [
+          0.551,
+          0.573,
+          0.436
+        ],
+        "meanRgbB": [
+          0.629,
+          0.641,
+          0.459
+        ],
+        "deltaE": 6.362
+      },
+      "regions": {
+        "wall": {
+          "ref": {
+            "rect": {
+              "x0": 72,
+              "y0": 91,
+              "x1": 648,
+              "y1": 455
+            },
+            "meanRGB": [
+              0.675,
+              0.7,
+              0.596
+            ],
+            "meanHSV": [
+              74.3,
+              0.149,
+              0.7004
+            ],
+            "luminance": 0.6875,
+            "edgeDensity": 0.0072
+          },
+          "shot": {
+            "rect": {
+              "x0": 72,
+              "y0": 128,
+              "x1": 648,
+              "y1": 704
+            },
+            "meanRGB": [
+              0.678,
+              0.632,
+              0.468
+            ],
+            "meanHSV": [
+              46.8,
+              0.3107,
+              0.6784
+            ],
+            "luminance": 0.6299,
+            "edgeDensity": 0.3128
+          },
+          "deltaRGB": [
+            0.003,
+            0.068,
+            0.128
+          ],
+          "maxDelta": 0.128,
+          "passed": false
+        },
+        "water": {
+          "ref": {
+            "rect": {
+              "x0": 36,
+              "y0": 500,
+              "x1": 684,
+              "y1": 864
+            },
+            "meanRGB": [
+              0.404,
+              0.402,
+              0.222
+            ],
+            "meanHSV": [
+              59.3,
+              0.4515,
+              0.4042
+            ],
+            "luminance": 0.3894,
+            "edgeDensity": 0.0631
+          },
+          "shot": {
+            "rect": {
+              "x0": 36,
+              "y0": 704,
+              "x1": 684,
+              "y1": 1216
+            },
+            "meanRGB": [
+              0.587,
+              0.669,
+              0.459
+            ],
+            "meanHSV": [
+              83.4,
+              0.3148,
+              0.6695
+            ],
+            "luminance": 0.6368,
+            "edgeDensity": 0.0532
+          },
+          "deltaRGB": [
+            0.183,
+            0.267,
+            0.237
+          ],
+          "maxDelta": 0.267,
+          "passed": false
+        },
+        "fog": {
+          "ref": {
+            "rect": {
+              "x0": 144,
+              "y0": 318,
+              "x1": 576,
+              "y1": 546
+            },
+            "meanRGB": [
+              0.528,
+              0.515,
+              0.362
+            ],
+            "meanHSV": [
+              55.4,
+              0.3145,
+              0.5276
+            ],
+            "luminance": 0.5065,
+            "edgeDensity": 0.0001
+          },
+          "shot": {
+            "rect": {
+              "x0": 144,
+              "y0": 448,
+              "x1": 576,
+              "y1": 832
+            },
+            "meanRGB": [
+              0.677,
+              0.654,
+              0.479
+            ],
+            "meanHSV": [
+              52.9,
+              0.2927,
+              0.677
+            ],
+            "luminance": 0.646,
+            "edgeDensity": 0.253
+          },
+          "deltaRGB": [
+            0.149,
+            0.139,
+            0.117
+          ],
+          "maxDelta": 0.149,
+          "passed": false
+        }
+      },
+      "regionDeltasSummary": "wall:ΔRGB=[0.00,0.07,0.13]; water:ΔRGB=[0.18,0.27,0.24]; fog:ΔRGB=[0.15,0.14,0.12]",
+      "semantics": {
+        "inkPresent": false,
+        "pittedHeadSilhouette": false,
+        "darkMassOnWater": false
+      },
+      "verdict": "FAIL",
+      "failureReasons": [
+        "Region wall max ΔRGB 0.128 > 0.08",
+        "Region water max ΔRGB 0.267 > 0.08",
+        "Region fog max ΔRGB 0.149 > 0.08"
+      ],
+      "passed": false
     },
     {
       "id": "f_027",
       "frameId": "f_027",
       "shotId": "creature_far_35m",
       "property": "farSilhouetteReadabilityAndFogExtinction",
+      "whatToLookAt": "creature_dark_silhouette_at_15_to_30m_in_dense_mist",
       "actualLum": 0.6262,
       "frameLum": 0.6268,
       "deltaPct": 0,
-      "passed": true
+      "ssim": 0.7088,
+      "perChannelMae": {
+        "maeR": 0.2059,
+        "maeG": 0.1575,
+        "maeB": 0.1844,
+        "meanMae": 0.1826
+      },
+      "wholeFrameDeltaE": {
+        "meanRgbA": [
+          0.558,
+          0.658,
+          0.524
+        ],
+        "meanRgbB": [
+          0.668,
+          0.63,
+          0.466
+        ],
+        "deltaE": 12.342
+      },
+      "regions": {
+        "wall": {
+          "ref": {
+            "rect": {
+              "x0": 72,
+              "y0": 91,
+              "x1": 648,
+              "y1": 455
+            },
+            "meanRGB": [
+              0.715,
+              0.776,
+              0.682
+            ],
+            "meanHSV": [
+              99.3,
+              0.1215,
+              0.7764
+            ],
+            "luminance": 0.7565,
+            "edgeDensity": 0.0498
+          },
+          "shot": {
+            "rect": {
+              "x0": 128,
+              "y0": 36,
+              "x1": 1152,
+              "y1": 324
+            },
+            "meanRGB": [
+              0.649,
+              0.612,
+              0.463
+            ],
+            "meanHSV": [
+              47.9,
+              0.2863,
+              0.6492
+            ],
+            "luminance": 0.609,
+            "edgeDensity": 0.3545
+          },
+          "deltaRGB": [
+            0.066,
+            0.164,
+            0.219
+          ],
+          "maxDelta": 0.219,
+          "passed": false
+        },
+        "water": {
+          "ref": {
+            "rect": {
+              "x0": 36,
+              "y0": 500,
+              "x1": 684,
+              "y1": 864
+            },
+            "meanRGB": [
+              0.388,
+              0.54,
+              0.362
+            ],
+            "meanHSV": [
+              111.2,
+              0.3303,
+              0.5403
+            ],
+            "luminance": 0.495,
+            "edgeDensity": 0.0211
+          },
+          "shot": {
+            "rect": {
+              "x0": 64,
+              "y0": 360,
+              "x1": 1216,
+              "y1": 684
+            },
+            "meanRGB": [
+              0.698,
+              0.66,
+              0.478
+            ],
+            "meanHSV": [
+              49.7,
+              0.3152,
+              0.6978
+            ],
+            "luminance": 0.6548,
+            "edgeDensity": 0.3131
+          },
+          "deltaRGB": [
+            0.31,
+            0.12,
+            0.116
+          ],
+          "maxDelta": 0.31,
+          "passed": false
+        },
+        "fog": {
+          "ref": {
+            "rect": {
+              "x0": 144,
+              "y0": 318,
+              "x1": 576,
+              "y1": 546
+            },
+            "meanRGB": [
+              0.582,
+              0.69,
+              0.558
+            ],
+            "meanHSV": [
+              109.3,
+              0.191,
+              0.6897
+            ],
+            "luminance": 0.6572,
+            "edgeDensity": 0.0456
+          },
+          "shot": {
+            "rect": {
+              "x0": 256,
+              "y0": 216,
+              "x1": 1024,
+              "y1": 396
+            },
+            "meanRGB": [
+              0.666,
+              0.631,
+              0.468
+            ],
+            "meanHSV": [
+              49.5,
+              0.2968,
+              0.6657
+            ],
+            "luminance": 0.6268,
+            "edgeDensity": 0.2799
+          },
+          "deltaRGB": [
+            0.084,
+            0.059,
+            0.09
+          ],
+          "maxDelta": 0.09,
+          "passed": false
+        },
+        "subject": {
+          "ref": {
+            "rect": {
+              "x0": 216,
+              "y0": 182,
+              "x1": 503,
+              "y1": 682
+            },
+            "meanRGB": [
+              0.58,
+              0.691,
+              0.56
+            ],
+            "meanHSV": [
+              110.8,
+              0.1902,
+              0.6913
+            ],
+            "luminance": 0.6581,
+            "edgeDensity": 0.0523
+          },
+          "shot": {
+            "rect": {
+              "x0": 384,
+              "y0": 144,
+              "x1": 896,
+              "y1": 540
+            },
+            "meanRGB": [
+              0.681,
+              0.647,
+              0.491
+            ],
+            "meanHSV": [
+              49.3,
+              0.2784,
+              0.6811
+            ],
+            "luminance": 0.6432,
+            "edgeDensity": 0.3205
+          },
+          "deltaRGB": [
+            0.101,
+            0.044,
+            0.069
+          ],
+          "maxDelta": 0.101,
+          "passed": false
+        }
+      },
+      "regionDeltasSummary": "wall:ΔRGB=[0.07,0.16,0.22]; water:ΔRGB=[0.31,0.12,0.12]; fog:ΔRGB=[0.08,0.06,0.09]; subject:ΔRGB=[0.10,0.04,0.07]",
+      "semantics": {
+        "inkPresent": false,
+        "pittedHeadSilhouette": true,
+        "darkMassOnWater": false
+      },
+      "verdict": "FAIL",
+      "failureReasons": [
+        "Region wall max ΔRGB 0.219 > 0.08",
+        "Region water max ΔRGB 0.31 > 0.08",
+        "Region fog max ΔRGB 0.09 > 0.08",
+        "Region subject max ΔRGB 0.101 > 0.08"
+      ],
+      "passed": false
     },
     {
       "id": "f_028",
       "frameId": "f_028",
       "shotId": "natatorium_water_drip_ring",
       "property": "waterRippleLuminanceAndHue",
+      "whatToLookAt": "surface_mist_and_concentric_water_ripple_rings",
       "actualLum": 0.5827,
       "frameLum": 0.6067,
       "deltaPct": 0,
-      "passed": true
+      "ssim": 0.7041,
+      "perChannelMae": {
+        "maeR": 0.154,
+        "maeG": 0.1695,
+        "maeB": 0.1976,
+        "meanMae": 0.1737
+      },
+      "wholeFrameDeltaE": {
+        "meanRgbA": [
+          0.56,
+          0.632,
+          0.499
+        ],
+        "meanRgbB": [
+          0.536,
+          0.633,
+          0.445
+        ],
+        "deltaE": 4.105
+      },
+      "regions": {
+        "wall": {
+          "ref": {
+            "rect": {
+              "x0": 72,
+              "y0": 91,
+              "x1": 648,
+              "y1": 455
+            },
+            "meanRGB": [
+              0.739,
+              0.776,
+              0.683
+            ],
+            "meanHSV": [
+              84.1,
+              0.12,
+              0.7764
+            ],
+            "luminance": 0.7617,
+            "edgeDensity": 0.0293
+          },
+          "shot": {
+            "rect": {
+              "x0": 128,
+              "y0": 36,
+              "x1": 1152,
+              "y1": 324
+            },
+            "meanRGB": [
+              0.61,
+              0.608,
+              0.447
+            ],
+            "meanHSV": [
+              59.1,
+              0.2672,
+              0.6104
+            ],
+            "luminance": 0.5969,
+            "edgeDensity": 0.3023
+          },
+          "deltaRGB": [
+            0.129,
+            0.168,
+            0.236
+          ],
+          "maxDelta": 0.236,
+          "passed": false
+        },
+        "water": {
+          "ref": {
+            "rect": {
+              "x0": 36,
+              "y0": 500,
+              "x1": 684,
+              "y1": 864
+            },
+            "meanRGB": [
+              0.356,
+              0.478,
+              0.307
+            ],
+            "meanHSV": [
+              102.8,
+              0.3589,
+              0.4783
+            ],
+            "luminance": 0.4398,
+            "edgeDensity": 0.186
+          },
+          "shot": {
+            "rect": {
+              "x0": 64,
+              "y0": 360,
+              "x1": 1216,
+              "y1": 684
+            },
+            "meanRGB": [
+              0.487,
+              0.665,
+              0.446
+            ],
+            "meanHSV": [
+              108.9,
+              0.3293,
+              0.665
+            ],
+            "luminance": 0.6113,
+            "edgeDensity": 0
+          },
+          "deltaRGB": [
+            0.131,
+            0.187,
+            0.139
+          ],
+          "maxDelta": 0.187,
+          "passed": false
+        },
+        "fog": {
+          "ref": {
+            "rect": {
+              "x0": 144,
+              "y0": 318,
+              "x1": 576,
+              "y1": 546
+            },
+            "meanRGB": [
+              0.706,
+              0.771,
+              0.674
+            ],
+            "meanHSV": [
+              100.4,
+              0.1266,
+              0.7714
+            ],
+            "luminance": 0.7503,
+            "edgeDensity": 0.1417
+          },
+          "shot": {
+            "rect": {
+              "x0": 256,
+              "y0": 216,
+              "x1": 1024,
+              "y1": 396
+            },
+            "meanRGB": [
+              0.534,
+              0.639,
+              0.447
+            ],
+            "meanHSV": [
+              92.8,
+              0.3001,
+              0.639
+            ],
+            "luminance": 0.6029,
+            "edgeDensity": 0.1336
+          },
+          "deltaRGB": [
+            0.172,
+            0.132,
+            0.227
+          ],
+          "maxDelta": 0.227,
+          "passed": false
+        }
+      },
+      "regionDeltasSummary": "wall:ΔRGB=[0.13,0.17,0.24]; water:ΔRGB=[0.13,0.19,0.14]; fog:ΔRGB=[0.17,0.13,0.23]",
+      "semantics": {
+        "inkPresent": false,
+        "pittedHeadSilhouette": false,
+        "darkMassOnWater": false
+      },
+      "verdict": "FAIL",
+      "failureReasons": [
+        "Region wall max ΔRGB 0.236 > 0.08",
+        "Region water max ΔRGB 0.187 > 0.08",
+        "Region fog max ΔRGB 0.227 > 0.08"
+      ],
+      "passed": false
     },
     {
       "id": "f_029",
       "frameId": "f_029",
       "shotId": "classic_archipelago_hero",
       "property": "paletteT57ExactMatch",
+      "whatToLookAt": "dense_fog_sky_t57_and_water_dense_t57_palette_match",
       "actualLum": 0.5727,
       "frameLum": 0.6073,
       "deltaPct": 0,
-      "passed": true
+      "ssim": 0.6793,
+      "perChannelMae": {
+        "maeR": 0.2163,
+        "maeG": 0.1891,
+        "maeB": 0.1748,
+        "meanMae": 0.1934
+      },
+      "wholeFrameDeltaE": {
+        "meanRgbA": [
+          0.56,
+          0.632,
+          0.501
+        ],
+        "meanRgbB": [
+          0.584,
+          0.586,
+          0.476
+        ],
+        "deltaE": 7.302
+      },
+      "regions": {
+        "wall": {
+          "ref": {
+            "rect": {
+              "x0": 72,
+              "y0": 91,
+              "x1": 648,
+              "y1": 455
+            },
+            "meanRGB": [
+              0.743,
+              0.781,
+              0.688
+            ],
+            "meanHSV": [
+              84.2,
+              0.1183,
+              0.7805
+            ],
+            "luminance": 0.7659,
+            "edgeDensity": 0.0167
+          },
+          "shot": {
+            "rect": {
+              "x0": 128,
+              "y0": 36,
+              "x1": 1152,
+              "y1": 324
+            },
+            "meanRGB": [
+              0.544,
+              0.543,
+              0.482
+            ],
+            "meanHSV": [
+              58.5,
+              0.1137,
+              0.5442
+            ],
+            "luminance": 0.5387,
+            "edgeDensity": 0.3226
+          },
+          "deltaRGB": [
+            0.199,
+            0.238,
+            0.206
+          ],
+          "maxDelta": 0.238,
+          "passed": false
+        },
+        "water": {
+          "ref": {
+            "rect": {
+              "x0": 36,
+              "y0": 500,
+              "x1": 684,
+              "y1": 864
+            },
+            "meanRGB": [
+              0.354,
+              0.477,
+              0.307
+            ],
+            "meanHSV": [
+              103.4,
+              0.3569,
+              0.4771
+            ],
+            "luminance": 0.4386,
+            "edgeDensity": 0.1352
+          },
+          "shot": {
+            "rect": {
+              "x0": 64,
+              "y0": 360,
+              "x1": 1216,
+              "y1": 684
+            },
+            "meanRGB": [
+              0.634,
+              0.638,
+              0.473
+            ],
+            "meanHSV": [
+              61.3,
+              0.2584,
+              0.6376
+            ],
+            "luminance": 0.625,
+            "edgeDensity": 0.158
+          },
+          "deltaRGB": [
+            0.28,
+            0.161,
+            0.166
+          ],
+          "maxDelta": 0.28,
+          "passed": false
+        },
+        "fog": {
+          "ref": {
+            "rect": {
+              "x0": 144,
+              "y0": 318,
+              "x1": 576,
+              "y1": 546
+            },
+            "meanRGB": [
+              0.713,
+              0.778,
+              0.682
+            ],
+            "meanHSV": [
+              100.3,
+              0.1236,
+              0.7777
+            ],
+            "luminance": 0.757,
+            "edgeDensity": 0.1156
+          },
+          "shot": {
+            "rect": {
+              "x0": 256,
+              "y0": 216,
+              "x1": 1024,
+              "y1": 396
+            },
+            "meanRGB": [
+              0.678,
+              0.682,
+              0.58
+            ],
+            "meanHSV": [
+              62.4,
+              0.1498,
+              0.6825
+            ],
+            "luminance": 0.6742,
+            "edgeDensity": 0.1582
+          },
+          "deltaRGB": [
+            0.035,
+            0.096,
+            0.102
+          ],
+          "maxDelta": 0.102,
+          "passed": false
+        }
+      },
+      "regionDeltasSummary": "wall:ΔRGB=[0.20,0.24,0.21]; water:ΔRGB=[0.28,0.16,0.17]; fog:ΔRGB=[0.03,0.10,0.10]",
+      "semantics": {
+        "inkPresent": false,
+        "pittedHeadSilhouette": false,
+        "darkMassOnWater": false
+      },
+      "verdict": "FAIL",
+      "failureReasons": [
+        "Region wall max ΔRGB 0.238 > 0.08",
+        "Region water max ΔRGB 0.28 > 0.08",
+        "Region fog max ΔRGB 0.102 > 0.08"
+      ],
+      "passed": false
     },
     {
       "id": "f_030",
       "frameId": "f_030",
       "shotId": "natatorium_water_splash_01",
       "property": "splashGlintAndWaterHueBand",
+      "whatToLookAt": "crown_splash_eruption_in_olive_green_water",
       "actualLum": 0.5799,
       "frameLum": 0.6086,
       "deltaPct": 0,
-      "passed": true
+      "ssim": 0.6871,
+      "perChannelMae": {
+        "maeR": 0.1526,
+        "maeG": 0.1759,
+        "maeB": 0.1975,
+        "meanMae": 0.1753
+      },
+      "wholeFrameDeltaE": {
+        "meanRgbA": [
+          0.562,
+          0.633,
+          0.503
+        ],
+        "meanRgbB": [
+          0.538,
+          0.628,
+          0.445
+        ],
+        "deltaE": 3.91
+      },
+      "regions": {
+        "wall": {
+          "ref": {
+            "rect": {
+              "x0": 72,
+              "y0": 91,
+              "x1": 648,
+              "y1": 455
+            },
+            "meanRGB": [
+              0.743,
+              0.78,
+              0.687
+            ],
+            "meanHSV": [
+              84.1,
+              0.1187,
+              0.7801
+            ],
+            "luminance": 0.7655,
+            "edgeDensity": 0.0139
+          },
+          "shot": {
+            "rect": {
+              "x0": 128,
+              "y0": 36,
+              "x1": 1152,
+              "y1": 324
+            },
+            "meanRGB": [
+              0.618,
+              0.6,
+              0.446
+            ],
+            "meanHSV": [
+              53.8,
+              0.2779,
+              0.6178
+            ],
+            "luminance": 0.5928,
+            "edgeDensity": 0.3826
+          },
+          "deltaRGB": [
+            0.125,
+            0.18,
+            0.241
+          ],
+          "maxDelta": 0.241,
+          "passed": false
+        },
+        "water": {
+          "ref": {
+            "rect": {
+              "x0": 36,
+              "y0": 500,
+              "x1": 684,
+              "y1": 864
+            },
+            "meanRGB": [
+              0.357,
+              0.479,
+              0.31
+            ],
+            "meanHSV": [
+              103.4,
+              0.3517,
+              0.4786
+            ],
+            "luminance": 0.4406,
+            "edgeDensity": 0.1389
+          },
+          "shot": {
+            "rect": {
+              "x0": 64,
+              "y0": 360,
+              "x1": 1216,
+              "y1": 684
+            },
+            "meanRGB": [
+              0.487,
+              0.664,
+              0.446
+            ],
+            "meanHSV": [
+              108.7,
+              0.3283,
+              0.6637
+            ],
+            "luminance": 0.6103,
+            "edgeDensity": 0
+          },
+          "deltaRGB": [
+            0.13,
+            0.185,
+            0.136
+          ],
+          "maxDelta": 0.185,
+          "passed": false
+        },
+        "fog": {
+          "ref": {
+            "rect": {
+              "x0": 144,
+              "y0": 318,
+              "x1": 576,
+              "y1": 546
+            },
+            "meanRGB": [
+              0.715,
+              0.779,
+              0.684
+            ],
+            "meanHSV": [
+              100.5,
+              0.1222,
+              0.779
+            ],
+            "luminance": 0.7585,
+            "edgeDensity": 0.1101
+          },
+          "shot": {
+            "rect": {
+              "x0": 256,
+              "y0": 216,
+              "x1": 1024,
+              "y1": 396
+            },
+            "meanRGB": [
+              0.573,
+              0.637,
+              0.451
+            ],
+            "meanHSV": [
+              80.6,
+              0.2923,
+              0.6374
+            ],
+            "luminance": 0.6103,
+            "edgeDensity": 0.2021
+          },
+          "deltaRGB": [
+            0.142,
+            0.142,
+            0.233
+          ],
+          "maxDelta": 0.233,
+          "passed": false
+        }
+      },
+      "regionDeltasSummary": "wall:ΔRGB=[0.13,0.18,0.24]; water:ΔRGB=[0.13,0.19,0.14]; fog:ΔRGB=[0.14,0.14,0.23]",
+      "semantics": {
+        "inkPresent": false,
+        "pittedHeadSilhouette": false,
+        "darkMassOnWater": false
+      },
+      "verdict": "FAIL",
+      "failureReasons": [
+        "Region wall max ΔRGB 0.241 > 0.08",
+        "Region water max ΔRGB 0.185 > 0.08",
+        "Region fog max ΔRGB 0.233 > 0.08"
+      ],
+      "passed": false
     },
     {
       "id": "f_031",
       "frameId": "f_031",
       "shotId": "natatorium_water_splash_05",
       "property": "splashDispersionAndNoTrueBlacks",
+      "whatToLookAt": "dispersing_splash_droplets_and_expanding_ring",
       "actualLum": 0.5798,
       "frameLum": 0.6235,
       "deltaPct": 0,
-      "passed": true
+      "ssim": 0.7124,
+      "perChannelMae": {
+        "maeR": 0.1432,
+        "maeG": 0.1015,
+        "maeB": 0.1014,
+        "meanMae": 0.1154
+      },
+      "wholeFrameDeltaE": {
+        "meanRgbA": [
+          0.626,
+          0.639,
+          0.468
+        ],
+        "meanRgbB": [
+          0.538,
+          0.627,
+          0.445
+        ],
+        "deltaE": 6.271
+      },
+      "regions": {
+        "wall": {
+          "ref": {
+            "rect": {
+              "x0": 72,
+              "y0": 91,
+              "x1": 648,
+              "y1": 455
+            },
+            "meanRGB": [
+              0.678,
+              0.699,
+              0.549
+            ],
+            "meanHSV": [
+              68.3,
+              0.2147,
+              0.6992
+            ],
+            "luminance": 0.684,
+            "edgeDensity": 0.0115
+          },
+          "shot": {
+            "rect": {
+              "x0": 128,
+              "y0": 36,
+              "x1": 1152,
+              "y1": 324
+            },
+            "meanRGB": [
+              0.618,
+              0.6,
+              0.446
+            ],
+            "meanHSV": [
+              53.9,
+              0.278,
+              0.6177
+            ],
+            "luminance": 0.5927,
+            "edgeDensity": 0.3829
+          },
+          "deltaRGB": [
+            0.06,
+            0.099,
+            0.103
+          ],
+          "maxDelta": 0.103,
+          "passed": false
+        },
+        "water": {
+          "ref": {
+            "rect": {
+              "x0": 36,
+              "y0": 500,
+              "x1": 684,
+              "y1": 864
+            },
+            "meanRGB": [
+              0.547,
+              0.565,
+              0.371
+            ],
+            "meanHSV": [
+              65.7,
+              0.3435,
+              0.565
+            ],
+            "luminance": 0.5471,
+            "edgeDensity": 0.2152
+          },
+          "shot": {
+            "rect": {
+              "x0": 64,
+              "y0": 360,
+              "x1": 1216,
+              "y1": 684
+            },
+            "meanRGB": [
+              0.487,
+              0.664,
+              0.446
+            ],
+            "meanHSV": [
+              108.7,
+              0.3284,
+              0.6637
+            ],
+            "luminance": 0.6103,
+            "edgeDensity": 0
+          },
+          "deltaRGB": [
+            0.06,
+            0.099,
+            0.075
+          ],
+          "maxDelta": 0.099,
+          "passed": false
+        },
+        "fog": {
+          "ref": {
+            "rect": {
+              "x0": 144,
+              "y0": 318,
+              "x1": 576,
+              "y1": 546
+            },
+            "meanRGB": [
+              0.684,
+              0.668,
+              0.494
+            ],
+            "meanHSV": [
+              55.1,
+              0.2783,
+              0.684
+            ],
+            "luminance": 0.6591,
+            "edgeDensity": 0.0582
+          },
+          "shot": {
+            "rect": {
+              "x0": 256,
+              "y0": 216,
+              "x1": 1024,
+              "y1": 396
+            },
+            "meanRGB": [
+              0.573,
+              0.637,
+              0.451
+            ],
+            "meanHSV": [
+              80.5,
+              0.2927,
+              0.6373
+            ],
+            "luminance": 0.6103,
+            "edgeDensity": 0.2034
+          },
+          "deltaRGB": [
+            0.111,
+            0.031,
+            0.043
+          ],
+          "maxDelta": 0.111,
+          "passed": false
+        }
+      },
+      "regionDeltasSummary": "wall:ΔRGB=[0.06,0.10,0.10]; water:ΔRGB=[0.06,0.10,0.08]; fog:ΔRGB=[0.11,0.03,0.04]",
+      "semantics": {
+        "inkPresent": false,
+        "pittedHeadSilhouette": false,
+        "darkMassOnWater": false
+      },
+      "verdict": "FAIL",
+      "failureReasons": [
+        "Region wall max ΔRGB 0.103 > 0.08",
+        "Region water max ΔRGB 0.099 > 0.08",
+        "Region fog max ΔRGB 0.111 > 0.08"
+      ],
+      "passed": false
     },
     {
       "id": "f_032",
       "frameId": "f_032",
       "shotId": "natatorium_slab_edge_portrait",
       "property": "slabTopRgbAndHorizonFogBank",
+      "whatToLookAt": "slab_standing_view_with_surface_fog_bank_and_distant_clue_prop",
       "actualLum": 0.6171,
       "frameLum": 0.698,
       "deltaPct": 0,
-      "passed": true
+      "ssim": 0.4617,
+      "perChannelMae": {
+        "maeR": 0.2059,
+        "maeG": 0.1524,
+        "maeB": 0.1632,
+        "meanMae": 0.1738
+      },
+      "wholeFrameDeltaE": {
+        "meanRgbA": [
+          0.672,
+          0.718,
+          0.575
+        ],
+        "meanRgbB": [
+          0.674,
+          0.614,
+          0.483
+        ],
+        "deltaE": 12.646
+      },
+      "regions": {
+        "wall": {
+          "ref": {
+            "rect": {
+              "x0": 72,
+              "y0": 91,
+              "x1": 648,
+              "y1": 455
+            },
+            "meanRGB": [
+              0.78,
+              0.823,
+              0.743
+            ],
+            "meanHSV": [
+              92.1,
+              0.0974,
+              0.8229
+            ],
+            "luminance": 0.808,
+            "edgeDensity": 0.0495
+          },
+          "shot": {
+            "rect": {
+              "x0": 72,
+              "y0": 128,
+              "x1": 648,
+              "y1": 704
+            },
+            "meanRGB": [
+              0.589,
+              0.575,
+              0.471
+            ],
+            "meanHSV": [
+              52.5,
+              0.2006,
+              0.5894
+            ],
+            "luminance": 0.5704,
+            "edgeDensity": 0.1677
+          },
+          "deltaRGB": [
+            0.191,
+            0.248,
+            0.272
+          ],
+          "maxDelta": 0.272,
+          "passed": false
+        },
+        "water": {
+          "ref": {
+            "rect": {
+              "x0": 36,
+              "y0": 500,
+              "x1": 684,
+              "y1": 864
+            },
+            "meanRGB": [
+              0.587,
+              0.643,
+              0.447
+            ],
+            "meanHSV": [
+              77.2,
+              0.3054,
+              0.6429
+            ],
+            "luminance": 0.6168,
+            "edgeDensity": 0.3336
+          },
+          "shot": {
+            "rect": {
+              "x0": 36,
+              "y0": 704,
+              "x1": 684,
+              "y1": 1216
+            },
+            "meanRGB": [
+              0.792,
+              0.676,
+              0.499
+            ],
+            "meanHSV": [
+              36.4,
+              0.3693,
+              0.7917
+            ],
+            "luminance": 0.6881,
+            "edgeDensity": 0.2111
+          },
+          "deltaRGB": [
+            0.205,
+            0.033,
+            0.052
+          ],
+          "maxDelta": 0.205,
+          "passed": false
+        },
+        "fog": {
+          "ref": {
+            "rect": {
+              "x0": 144,
+              "y0": 318,
+              "x1": 576,
+              "y1": 546
+            },
+            "meanRGB": [
+              0.594,
+              0.713,
+              0.566
+            ],
+            "meanHSV": [
+              108.7,
+              0.2061,
+              0.7131
+            ],
+            "luminance": 0.6771,
+            "edgeDensity": 0.0371
+          },
+          "shot": {
+            "rect": {
+              "x0": 144,
+              "y0": 448,
+              "x1": 576,
+              "y1": 832
+            },
+            "meanRGB": [
+              0.685,
+              0.638,
+              0.487
+            ],
+            "meanHSV": [
+              45.7,
+              0.2893,
+              0.6855
+            ],
+            "luminance": 0.6373,
+            "edgeDensity": 0.242
+          },
+          "deltaRGB": [
+            0.091,
+            0.075,
+            0.079
+          ],
+          "maxDelta": 0.091,
+          "passed": false
+        }
+      },
+      "regionDeltasSummary": "wall:ΔRGB=[0.19,0.25,0.27]; water:ΔRGB=[0.21,0.03,0.05]; fog:ΔRGB=[0.09,0.07,0.08]",
+      "semantics": {
+        "inkPresent": false,
+        "pittedHeadSilhouette": false,
+        "darkMassOnWater": false
+      },
+      "verdict": "FAIL",
+      "failureReasons": [
+        "SSIM 0.4617 < 0.55",
+        "Region wall max ΔRGB 0.272 > 0.08",
+        "Region water max ΔRGB 0.205 > 0.08",
+        "Region fog max ΔRGB 0.091 > 0.08"
+      ],
+      "passed": false
     },
     {
       "id": "f_033",
       "frameId": "f_033",
       "shotId": "natatorium_water_splash_12",
       "property": "residualRingDecayAndSlabHue",
+      "whatToLookAt": "residual_foam_ring_decay_and_slab_edge_perspective",
       "actualLum": 0.5799,
       "frameLum": 0.642,
       "deltaPct": 0,
-      "passed": true
+      "ssim": 0.4245,
+      "perChannelMae": {
+        "maeR": 0.1931,
+        "maeG": 0.138,
+        "maeB": 0.1449,
+        "meanMae": 0.1587
+      },
+      "wholeFrameDeltaE": {
+        "meanRgbA": [
+          0.665,
+          0.65,
+          0.493
+        ],
+        "meanRgbB": [
+          0.538,
+          0.628,
+          0.445
+        ],
+        "deltaE": 9.259
+      },
+      "regions": {
+        "wall": {
+          "ref": {
+            "rect": {
+              "x0": 72,
+              "y0": 91,
+              "x1": 648,
+              "y1": 455
+            },
+            "meanRGB": [
+              0.672,
+              0.671,
+              0.533
+            ],
+            "meanHSV": [
+              59.3,
+              0.2067,
+              0.6723
+            ],
+            "luminance": 0.6611,
+            "edgeDensity": 0.1826
+          },
+          "shot": {
+            "rect": {
+              "x0": 128,
+              "y0": 36,
+              "x1": 1152,
+              "y1": 324
+            },
+            "meanRGB": [
+              0.618,
+              0.6,
+              0.446
+            ],
+            "meanHSV": [
+              53.8,
+              0.2784,
+              0.618
+            ],
+            "luminance": 0.5928,
+            "edgeDensity": 0.384
+          },
+          "deltaRGB": [
+            0.054,
+            0.071,
+            0.087
+          ],
+          "maxDelta": 0.087,
+          "passed": false
+        },
+        "water": {
+          "ref": {
+            "rect": {
+              "x0": 36,
+              "y0": 500,
+              "x1": 684,
+              "y1": 864
+            },
+            "meanRGB": [
+              0.661,
+              0.64,
+              0.455
+            ],
+            "meanHSV": [
+              53.8,
+              0.3118,
+              0.6615
+            ],
+            "luminance": 0.6315,
+            "edgeDensity": 0.3724
+          },
+          "shot": {
+            "rect": {
+              "x0": 64,
+              "y0": 360,
+              "x1": 1216,
+              "y1": 684
+            },
+            "meanRGB": [
+              0.487,
+              0.664,
+              0.446
+            ],
+            "meanHSV": [
+              108.7,
+              0.3285,
+              0.6638
+            ],
+            "luminance": 0.6104,
+            "edgeDensity": 0
+          },
+          "deltaRGB": [
+            0.174,
+            0.024,
+            0.009
+          ],
+          "maxDelta": 0.174,
+          "passed": false
+        },
+        "fog": {
+          "ref": {
+            "rect": {
+              "x0": 144,
+              "y0": 318,
+              "x1": 576,
+              "y1": 546
+            },
+            "meanRGB": [
+              0.611,
+              0.574,
+              0.383
+            ],
+            "meanHSV": [
+              50.4,
+              0.372,
+              0.6105
+            ],
+            "luminance": 0.5681,
+            "edgeDensity": 0.3326
+          },
+          "shot": {
+            "rect": {
+              "x0": 256,
+              "y0": 216,
+              "x1": 1024,
+              "y1": 396
+            },
+            "meanRGB": [
+              0.575,
+              0.638,
+              0.451
+            ],
+            "meanHSV": [
+              80.2,
+              0.2927,
+              0.6376
+            ],
+            "luminance": 0.6107,
+            "edgeDensity": 0.206
+          },
+          "deltaRGB": [
+            0.036,
+            0.064,
+            0.068
+          ],
+          "maxDelta": 0.068,
+          "passed": true
+        }
+      },
+      "regionDeltasSummary": "wall:ΔRGB=[0.05,0.07,0.09]; water:ΔRGB=[0.17,0.02,0.01]; fog:ΔRGB=[0.04,0.06,0.07]",
+      "semantics": {
+        "inkPresent": false,
+        "pittedHeadSilhouette": false,
+        "darkMassOnWater": false
+      },
+      "verdict": "FAIL",
+      "failureReasons": [
+        "SSIM 0.4245 < 0.55",
+        "Region wall max ΔRGB 0.087 > 0.08",
+        "Region water max ΔRGB 0.174 > 0.08"
+      ],
+      "passed": false
     },
     {
       "id": "f_034",
       "frameId": "f_034",
       "shotId": "natatorium_water_underwater",
       "property": "underwaterLuminanceAndHueBand",
+      "whatToLookAt": "water_meniscus_and_olive_green_submerged_grade",
       "actualLum": 0.5691,
       "frameLum": 0.6323,
       "deltaPct": 0,
-      "passed": true
+      "ssim": 0.5328,
+      "perChannelMae": {
+        "maeR": 0.1615,
+        "maeG": 0.0961,
+        "maeB": 0.1049,
+        "meanMae": 0.1208
+      },
+      "wholeFrameDeltaE": {
+        "meanRgbA": [
+          0.659,
+          0.641,
+          0.47
+        ],
+        "meanRgbB": [
+          0.543,
+          0.604,
+          0.461
+        ],
+        "deltaE": 8.528
+      },
+      "regions": {
+        "wall": {
+          "ref": {
+            "rect": {
+              "x0": 72,
+              "y0": 91,
+              "x1": 648,
+              "y1": 455
+            },
+            "meanRGB": [
+              0.621,
+              0.607,
+              0.443
+            ],
+            "meanHSV": [
+              55.3,
+              0.2855,
+              0.6206
+            ],
+            "luminance": 0.5978,
+            "edgeDensity": 0.168
+          },
+          "shot": {
+            "rect": {
+              "x0": 128,
+              "y0": 36,
+              "x1": 1152,
+              "y1": 324
+            },
+            "meanRGB": [
+              0.494,
+              0.62,
+              0.455
+            ],
+            "meanHSV": [
+              105.9,
+              0.2657,
+              0.6196
+            ],
+            "luminance": 0.5809,
+            "edgeDensity": 0.0427
+          },
+          "deltaRGB": [
+            0.127,
+            0.013,
+            0.012
+          ],
+          "maxDelta": 0.127,
+          "passed": false
+        },
+        "water": {
+          "ref": {
+            "rect": {
+              "x0": 36,
+              "y0": 136,
+              "x1": 684,
+              "y1": 864
+            },
+            "meanRGB": [
+              0.654,
+              0.631,
+              0.45
+            ],
+            "meanHSV": [
+              53.1,
+              0.3126,
+              0.6543
+            ],
+            "luminance": 0.6227,
+            "edgeDensity": 0.3161
+          },
+          "shot": {
+            "rect": {
+              "x0": 64,
+              "y0": 108,
+              "x1": 1216,
+              "y1": 684
+            },
+            "meanRGB": [
+              0.548,
+              0.595,
+              0.461
+            ],
+            "meanHSV": [
+              81,
+              0.226,
+              0.5951
+            ],
+            "luminance": 0.5754,
+            "edgeDensity": 0.215
+          },
+          "deltaRGB": [
+            0.106,
+            0.036,
+            0.011
+          ],
+          "maxDelta": 0.106,
+          "passed": false
+        },
+        "fog": {
+          "ref": {
+            "rect": {
+              "x0": 144,
+              "y0": 318,
+              "x1": 576,
+              "y1": 546
+            },
+            "meanRGB": [
+              0.544,
+              0.563,
+              0.362
+            ],
+            "meanHSV": [
+              65.5,
+              0.356,
+              0.5628
+            ],
+            "luminance": 0.5444,
+            "edgeDensity": 0.2424
+          },
+          "shot": {
+            "rect": {
+              "x0": 256,
+              "y0": 216,
+              "x1": 1024,
+              "y1": 396
+            },
+            "meanRGB": [
+              0.466,
+              0.523,
+              0.442
+            ],
+            "meanHSV": [
+              102.6,
+              0.1539,
+              0.5229
+            ],
+            "luminance": 0.5049,
+            "edgeDensity": 0.1548
+          },
+          "deltaRGB": [
+            0.078,
+            0.04,
+            0.08
+          ],
+          "maxDelta": 0.08,
+          "passed": false
+        }
+      },
+      "regionDeltasSummary": "wall:ΔRGB=[0.13,0.01,0.01]; water:ΔRGB=[0.11,0.04,0.01]; fog:ΔRGB=[0.08,0.04,0.08]",
+      "semantics": {
+        "inkPresent": false,
+        "pittedHeadSilhouette": false,
+        "darkMassOnWater": false
+      },
+      "verdict": "FAIL",
+      "failureReasons": [
+        "SSIM 0.5328 < 0.55",
+        "Region wall max ΔRGB 0.127 > 0.08",
+        "Region water max ΔRGB 0.106 > 0.08",
+        "Region fog max ΔRGB 0.08 > 0.08"
+      ],
+      "passed": false
     },
     {
       "id": "f_035",
       "frameId": "f_035",
       "shotId": "natatorium_trench_view",
       "property": "trenchWidthAndTrenchWaterSlabRgb",
+      "whatToLookAt": "narrow_trench_between_tan_slabs_and_blocked_creature_at_end",
       "actualLum": 0.6149,
       "frameLum": 0.6452,
       "deltaPct": 0,
-      "passed": true
+      "ssim": 0.5636,
+      "perChannelMae": {
+        "maeR": 0.1496,
+        "maeG": 0.1089,
+        "maeB": 0.1189,
+        "meanMae": 0.1258
+      },
+      "wholeFrameDeltaE": {
+        "meanRgbA": [
+          0.63,
+          0.665,
+          0.49
+        ],
+        "meanRgbB": [
+          0.65,
+          0.62,
+          0.46
+        ],
+        "deltaE": 6.57
+      },
+      "regions": {
+        "wall": {
+          "ref": {
+            "rect": {
+              "x0": 72,
+              "y0": 91,
+              "x1": 648,
+              "y1": 455
+            },
+            "meanRGB": [
+              0.633,
+              0.669,
+              0.509
+            ],
+            "meanHSV": [
+              73.5,
+              0.2387,
+              0.6687
+            ],
+            "luminance": 0.6495,
+            "edgeDensity": 0.1849
+          },
+          "shot": {
+            "rect": {
+              "x0": 128,
+              "y0": 36,
+              "x1": 1152,
+              "y1": 324
+            },
+            "meanRGB": [
+              0.694,
+              0.632,
+              0.465
+            ],
+            "meanHSV": [
+              43.7,
+              0.3297,
+              0.6942
+            ],
+            "luminance": 0.6333,
+            "edgeDensity": 0.3453
+          },
+          "deltaRGB": [
+            0.061,
+            0.037,
+            0.044
+          ],
+          "maxDelta": 0.061,
+          "passed": true
+        },
+        "water": {
+          "ref": {
+            "rect": {
+              "x0": 36,
+              "y0": 500,
+              "x1": 684,
+              "y1": 864
+            },
+            "meanRGB": [
+              0.584,
+              0.638,
+              0.432
+            ],
+            "meanHSV": [
+              75.7,
+              0.3226,
+              0.6376
+            ],
+            "luminance": 0.6113,
+            "edgeDensity": 0.3317
+          },
+          "shot": {
+            "rect": {
+              "x0": 64,
+              "y0": 360,
+              "x1": 1216,
+              "y1": 684
+            },
+            "meanRGB": [
+              0.623,
+              0.619,
+              0.458
+            ],
+            "meanHSV": [
+              58.7,
+              0.2644,
+              0.6229
+            ],
+            "luminance": 0.6084,
+            "edgeDensity": 0.2371
+          },
+          "deltaRGB": [
+            0.039,
+            0.019,
+            0.026
+          ],
+          "maxDelta": 0.039,
+          "passed": true
+        },
+        "fog": {
+          "ref": {
+            "rect": {
+              "x0": 144,
+              "y0": 318,
+              "x1": 576,
+              "y1": 546
+            },
+            "meanRGB": [
+              0.542,
+              0.618,
+              0.41
+            ],
+            "meanHSV": [
+              81.9,
+              0.3368,
+              0.6178
+            ],
+            "luminance": 0.5867,
+            "edgeDensity": 0.2244
+          },
+          "shot": {
+            "rect": {
+              "x0": 256,
+              "y0": 216,
+              "x1": 1024,
+              "y1": 396
+            },
+            "meanRGB": [
+              0.744,
+              0.66,
+              0.483
+            ],
+            "meanHSV": [
+              40.8,
+              0.3501,
+              0.7436
+            ],
+            "luminance": 0.6653,
+            "edgeDensity": 0.354
+          },
+          "deltaRGB": [
+            0.202,
+            0.042,
+            0.073
+          ],
+          "maxDelta": 0.202,
+          "passed": false
+        }
+      },
+      "regionDeltasSummary": "wall:ΔRGB=[0.06,0.04,0.04]; water:ΔRGB=[0.04,0.02,0.03]; fog:ΔRGB=[0.20,0.04,0.07]",
+      "semantics": {
+        "inkPresent": false,
+        "pittedHeadSilhouette": false,
+        "darkMassOnWater": false
+      },
+      "verdict": "FAIL",
+      "failureReasons": [
+        "Region fog max ΔRGB 0.202 > 0.08"
+      ],
+      "passed": false
     },
     {
       "id": "f_036",
       "frameId": "f_036",
       "shotId": "natatorium_trench_view_portrait",
       "property": "slabSideTileRowsAndTrenchWaterRgb",
+      "whatToLookAt": "near_slab_edge_4_to_6_tile_rows_and_cracked_trench_floor",
       "actualLum": 0.6155,
       "frameLum": 0.6352,
       "deltaPct": 0,
-      "passed": true
+      "ssim": 0.5609,
+      "perChannelMae": {
+        "maeR": 0.1198,
+        "maeG": 0.1212,
+        "maeB": 0.1369,
+        "meanMae": 0.1259
+      },
+      "wholeFrameDeltaE": {
+        "meanRgbA": [
+          0.627,
+          0.652,
+          0.493
+        ],
+        "meanRgbB": [
+          0.643,
+          0.623,
+          0.457
+        ],
+        "deltaE": 4.568
+      },
+      "regions": {
+        "wall": {
+          "ref": {
+            "rect": {
+              "x0": 72,
+              "y0": 91,
+              "x1": 648,
+              "y1": 455
+            },
+            "meanRGB": [
+              0.671,
+              0.707,
+              0.589
+            ],
+            "meanHSV": [
+              78.1,
+              0.1666,
+              0.7066
+            ],
+            "luminance": 0.6906,
+            "edgeDensity": 0.0973
+          },
+          "shot": {
+            "rect": {
+              "x0": 72,
+              "y0": 128,
+              "x1": 648,
+              "y1": 704
+            },
+            "meanRGB": [
+              0.702,
+              0.633,
+              0.467
+            ],
+            "meanHSV": [
+              42.4,
+              0.3357,
+              0.7024
+            ],
+            "luminance": 0.636,
+            "edgeDensity": 0.2715
+          },
+          "deltaRGB": [
+            0.031,
+            0.074,
+            0.122
+          ],
+          "maxDelta": 0.122,
+          "passed": false
+        },
+        "water": {
+          "ref": {
+            "rect": {
+              "x0": 36,
+              "y0": 500,
+              "x1": 684,
+              "y1": 864
+            },
+            "meanRGB": [
+              0.574,
+              0.602,
+              0.405
+            ],
+            "meanHSV": [
+              68.5,
+              0.3274,
+              0.6018
+            ],
+            "luminance": 0.5816,
+            "edgeDensity": 0.4367
+          },
+          "shot": {
+            "rect": {
+              "x0": 36,
+              "y0": 704,
+              "x1": 684,
+              "y1": 1216
+            },
+            "meanRGB": [
+              0.591,
+              0.625,
+              0.453
+            ],
+            "meanHSV": [
+              71.9,
+              0.2749,
+              0.6248
+            ],
+            "luminance": 0.6051,
+            "edgeDensity": 0.1363
+          },
+          "deltaRGB": [
+            0.017,
+            0.023,
+            0.048
+          ],
+          "maxDelta": 0.048,
+          "passed": true
+        },
+        "fog": {
+          "ref": {
+            "rect": {
+              "x0": 144,
+              "y0": 318,
+              "x1": 576,
+              "y1": 546
+            },
+            "meanRGB": [
+              0.482,
+              0.526,
+              0.38
+            ],
+            "meanHSV": [
+              77.9,
+              0.2775,
+              0.5259
+            ],
+            "luminance": 0.5062,
+            "edgeDensity": 0.4225
+          },
+          "shot": {
+            "rect": {
+              "x0": 144,
+              "y0": 448,
+              "x1": 576,
+              "y1": 832
+            },
+            "meanRGB": [
+              0.681,
+              0.639,
+              0.465
+            ],
+            "meanHSV": [
+              48.5,
+              0.3169,
+              0.6806
+            ],
+            "luminance": 0.6354,
+            "edgeDensity": 0.2108
+          },
+          "deltaRGB": [
+            0.199,
+            0.113,
+            0.085
+          ],
+          "maxDelta": 0.199,
+          "passed": false
+        }
+      },
+      "regionDeltasSummary": "wall:ΔRGB=[0.03,0.07,0.12]; water:ΔRGB=[0.02,0.02,0.05]; fog:ΔRGB=[0.20,0.11,0.09]",
+      "semantics": {
+        "inkPresent": false,
+        "pittedHeadSilhouette": false,
+        "darkMassOnWater": false
+      },
+      "verdict": "FAIL",
+      "failureReasons": [
+        "Region wall max ΔRGB 0.122 > 0.08",
+        "Region fog max ΔRGB 0.199 > 0.08"
+      ],
+      "passed": false
     },
     {
       "id": "f_037",
       "frameId": "f_037",
       "shotId": "flock_overhead",
       "property": "jumpscareFramingTorsoHeadLowerFrameAndPaleFogBacklight",
+      "whatToLookAt": "creature_looming_over_low_camera_arms_spread_wide_against_pale_fog",
       "actualLum": 0.5466,
       "frameLum": 0.4847,
       "deltaPct": 0,
-      "passed": true
+      "ssim": 0.3679,
+      "perChannelMae": {
+        "maeR": 0.203,
+        "maeG": 0.1889,
+        "maeB": 0.1538,
+        "meanMae": 0.1819
+      },
+      "wholeFrameDeltaE": {
+        "meanRgbA": [
+          0.491,
+          0.494,
+          0.374
+        ],
+        "meanRgbB": [
+          0.563,
+          0.55,
+          0.467
+        ],
+        "deltaE": 7.206
+      },
+      "regions": {
+        "wall": {
+          "ref": {
+            "rect": {
+              "x0": 72,
+              "y0": 91,
+              "x1": 648,
+              "y1": 455
+            },
+            "meanRGB": [
+              0.639,
+              0.635,
+              0.495
+            ],
+            "meanHSV": [
+              58.6,
+              0.2247,
+              0.6385
+            ],
+            "luminance": 0.6258,
+            "edgeDensity": 0.0157
+          },
+          "shot": {
+            "rect": {
+              "x0": 128,
+              "y0": 36,
+              "x1": 1152,
+              "y1": 324
+            },
+            "meanRGB": [
+              0.554,
+              0.553,
+              0.491
+            ],
+            "meanHSV": [
+              58.6,
+              0.1143,
+              0.5542
+            ],
+            "luminance": 0.5485,
+            "edgeDensity": 0.1337
+          },
+          "deltaRGB": [
+            0.085,
+            0.082,
+            0.004
+          ],
+          "maxDelta": 0.085,
+          "passed": true
+        },
+        "water": {
+          "ref": {
+            "rect": {
+              "x0": 36,
+              "y0": 500,
+              "x1": 684,
+              "y1": 864
+            },
+            "meanRGB": [
+              0.304,
+              0.318,
+              0.226
+            ],
+            "meanHSV": [
+              69,
+              0.2875,
+              0.3177
+            ],
+            "luminance": 0.3082,
+            "edgeDensity": 0.1057
+          },
+          "shot": {
+            "rect": {
+              "x0": 64,
+              "y0": 360,
+              "x1": 1216,
+              "y1": 684
+            },
+            "meanRGB": [
+              0.586,
+              0.563,
+              0.459
+            ],
+            "meanHSV": [
+              48.9,
+              0.216,
+              0.586
+            ],
+            "luminance": 0.5601,
+            "edgeDensity": 0.2844
+          },
+          "deltaRGB": [
+            0.282,
+            0.245,
+            0.233
+          ],
+          "maxDelta": 0.282,
+          "passed": false
+        },
+        "fog": {
+          "ref": {
+            "rect": {
+              "x0": 144,
+              "y0": 318,
+              "x1": 576,
+              "y1": 546
+            },
+            "meanRGB": [
+              0.552,
+              0.561,
+              0.428
+            ],
+            "meanHSV": [
+              64,
+              0.237,
+              0.5605
+            ],
+            "luminance": 0.5491,
+            "edgeDensity": 0.0847
+          },
+          "shot": {
+            "rect": {
+              "x0": 256,
+              "y0": 216,
+              "x1": 1024,
+              "y1": 396
+            },
+            "meanRGB": [
+              0.576,
+              0.57,
+              0.502
+            ],
+            "meanHSV": [
+              55,
+              0.1283,
+              0.5759
+            ],
+            "luminance": 0.5662,
+            "edgeDensity": 0.1826
+          },
+          "deltaRGB": [
+            0.024,
+            0.009,
+            0.074
+          ],
+          "maxDelta": 0.074,
+          "passed": true
+        },
+        "subject": {
+          "ref": {
+            "rect": {
+              "x0": 108,
+              "y0": 45,
+              "x1": 612,
+              "y1": 773
+            },
+            "meanRGB": [
+              0.512,
+              0.515,
+              0.393
+            ],
+            "meanHSV": [
+              61.5,
+              0.2368,
+              0.5151
+            ],
+            "luminance": 0.5057,
+            "edgeDensity": 0.0599
+          },
+          "shot": {
+            "rect": {
+              "x0": 192,
+              "y0": 36,
+              "x1": 1088,
+              "y1": 612
+            },
+            "meanRGB": [
+              0.576,
+              0.565,
+              0.485
+            ],
+            "meanHSV": [
+              52.6,
+              0.1586,
+              0.5764
+            ],
+            "luminance": 0.5618,
+            "edgeDensity": 0.201
+          },
+          "deltaRGB": [
+            0.064,
+            0.05,
+            0.092
+          ],
+          "maxDelta": 0.092,
+          "passed": true
+        }
+      },
+      "regionDeltasSummary": "wall:ΔRGB=[0.08,0.08,0.00]; water:ΔRGB=[0.28,0.24,0.23]; fog:ΔRGB=[0.02,0.01,0.07]; subject:ΔRGB=[0.06,0.05,0.09]",
+      "semantics": {
+        "inkPresent": false,
+        "pittedHeadSilhouette": false,
+        "darkMassOnWater": false
+      },
+      "verdict": "FAIL",
+      "failureReasons": [
+        "SSIM 0.3679 < 0.55",
+        "Region water max ΔRGB 0.282 > 0.1",
+        "Missing semantic: pittedHeadSilhouette"
+      ],
+      "passed": false
     }
   ],
   "provisionalCategories": {
@@ -3906,15 +10939,130 @@
     "audioChecks": 4,
     "audioPassed": 4,
     "audioFailed": 0,
-    "totalChecks": 211,
-    "passedChecks": 144,
-    "failedChecks": 67,
+    "totalChecks": 248,
+    "passedChecks": 145,
+    "failedChecks": 103,
     "overallPass": false,
     "worstFailingMetric": {
       "metric": "neon_flood_water_rain:Sobel Edge (scale 1x)",
       "actual": 0.0898,
       "target": 0.0108,
       "deltaPct": 731.5
-    }
+    },
+    "perceptualPairings": 37,
+    "perceptualPassed": 1,
+    "perceptualFailed": 36,
+    "gatingFailures": [
+      "[Baseline: natatorium_water_calm_axial -> Luminance StdDev] actual=0.0754 target=0.1038 delta=27.4%",
+      "[Baseline: natatorium_water_calm_axial -> Saturation Mean] actual=0.2569 target=0.3965 delta=35.2%",
+      "[Baseline: natatorium_water_calm_axial -> Sobel Edge (scale 1x)] actual=0.0716 target=0.0543 delta=31.9%",
+      "[Baseline: natatorium_water_calm_grazing -> Luminance StdDev] actual=0.077 target=0.1308 delta=41.1%",
+      "[Baseline: natatorium_water_calm_grazing -> Saturation Mean] actual=0.2723 target=0.4076 delta=33.2%",
+      "[Baseline: natatorium_water_calm_grazing -> Sobel Edge (scale 1x)] actual=0.1849 target=0.0982 delta=88.3%",
+      "[Baseline: natatorium_water_slab_edge -> Luminance StdDev] actual=0.0559 target=0.128 delta=56.3%",
+      "[Baseline: natatorium_water_slab_edge -> Saturation Mean] actual=0.2884 target=0.226 delta=27.6%",
+      "[Baseline: natatorium_water_wake -> Luminance StdDev] actual=0.0513 target=0.1591 delta=67.8%",
+      "[Baseline: natatorium_water_wake -> Sobel Edge (scale 1x)] actual=0.0647 target=0.13 delta=50.2%",
+      "[Baseline: natatorium_water_splash_01 -> Luminance StdDev] actual=0.0417 target=0.1573 delta=73.5%",
+      "[Baseline: natatorium_water_splash_01 -> Sobel Edge (scale 1x)] actual=0.069 target=0.026 delta=165.4%",
+      "[Baseline: natatorium_water_splash_05 -> Luminance StdDev] actual=0.0417 target=0.1573 delta=73.5%",
+      "[Baseline: natatorium_water_splash_05 -> Sobel Edge (scale 1x)] actual=0.0689 target=0.026 delta=165%",
+      "[Baseline: natatorium_water_splash_12 -> Luminance StdDev] actual=0.0418 target=0.1573 delta=73.4%",
+      "[Baseline: natatorium_water_splash_12 -> Sobel Edge (scale 1x)] actual=0.0691 target=0.026 delta=165.8%",
+      "[Baseline: natatorium_water_drip_ring -> Luminance StdDev] actual=0.0365 target=0.1812 delta=79.9%",
+      "[Baseline: natatorium_water_drip_ring -> Sobel Edge (scale 1x)] actual=0.073 target=0.0249 delta=193.2%",
+      "[Baseline: natatorium_water_horizon -> Luminance StdDev] actual=0.0272 target=0.1561 delta=82.6%",
+      "[Baseline: natatorium_water_horizon -> Sobel Edge (scale 1x)] actual=0.0632 target=0.111 delta=43.1%",
+      "[Baseline: natatorium_water_underwater -> Luminance StdDev] actual=0.0706 target=0.1341 delta=47.4%",
+      "[Baseline: natatorium_water_underwater -> Saturation Mean] actual=0.2398 target=0.3243 delta=26.1%",
+      "[Baseline: natatorium_water_underwater -> Sobel Edge (scale 1x)] actual=0.1121 target=0.1509 delta=25.7%",
+      "[Baseline: natatorium_water_monster_wake -> Luminance StdDev] actual=0.0602 target=0.1157 delta=48%",
+      "[Baseline: natatorium_water_monster_wake -> Sobel Edge (scale 1x)] actual=0.2072 target=0.114 delta=81.8%",
+      "[Baseline: neon_flood_water_rain -> Luminance StdDev] actual=0.0948 target=0.1968 delta=51.8%",
+      "[Baseline: neon_flood_water_rain -> Saturation Mean] actual=0.0686 target=0.3196 delta=78.5%",
+      "[Baseline: neon_flood_water_rain -> Sobel Edge (scale 1x)] actual=0.0898 target=0.0108 delta=731.5%",
+      "[Baseline: classic_archipelago_hero -> Luminance StdDev] actual=0.0958 target=0.1826 delta=47.5%",
+      "[Baseline: classic_archipelago_hero -> Sobel Edge (scale 1x)] actual=0.0462 target=0.0222 delta=108.1%",
+      "[Baseline: natatorium_hero -> Saturation Mean] actual=0.2485 target=0.4577 delta=45.7%",
+      "[Baseline: natatorium_hero -> Sobel Edge (scale 1x)] actual=0.1162 target=0.0909 delta=27.8%",
+      "[Region RGB: natatorium_water_calm_axial.waterRegion] maxDelta=0.105 > 0.08",
+      "[Region RGB: natatorium_water_slab_edge.fogRegion] maxDelta=0.141 > 0.08",
+      "[Region RGB: natatorium_water_wake.slabRegion] maxDelta=0.092 > 0.08",
+      "[Region RGB: natatorium_water_wake.fogRegion] maxDelta=0.15 > 0.08",
+      "[Region RGB: natatorium_water_drip_ring.slabRegion] maxDelta=0.116 > 0.08",
+      "[Region RGB: natatorium_water_drip_ring.fogRegion] maxDelta=0.118 > 0.08",
+      "[Region RGB: natatorium_water_horizon.waterRegion] maxDelta=0.089 > 0.08",
+      "[Region RGB: natatorium_water_horizon.slabRegion] maxDelta=0.088 > 0.08",
+      "[Region RGB: natatorium_water_underwater.fogRegion] maxDelta=0.113 > 0.08",
+      "[Region RGB: natatorium_water_monster_wake.waterRegion] maxDelta=0.102 > 0.08",
+      "[Region RGB: classic_archipelago_hero.waterRegion] maxDelta=0.096 > 0.08",
+      "[Region RGB: classic_archipelago_hero.slabRegion] maxDelta=0.117 > 0.08",
+      "[Region RGB: natatorium_hero.slabRegion] maxDelta=0.162 > 0.08",
+      "[Hue-Band: natatorium_water_calm_axial.waterRegion] HSV=[107.1, 0.305, 0.642] outside band",
+      "[Hue-Band: natatorium_water_calm_axial.slabRegion] HSV=[46.7, 0.313, 0.662] outside band",
+      "[Hue-Band: natatorium_water_calm_grazing.waterRegion] HSV=[95.8, 0.266, 0.617] outside band",
+      "[Hue-Band: natatorium_water_slab_edge.slabRegion] HSV=[46.6, 0.310, 0.648] outside band",
+      "[Hue-Band: natatorium_water_wake.waterRegion] HSV=[107.3, 0.319, 0.653] outside band",
+      "[Hue-Band: natatorium_water_wake.slabRegion] HSV=[46.6, 0.310, 0.649] outside band",
+      "[Hue-Band: natatorium_water_splash_01.waterRegion] HSV=[107.6, 0.319, 0.652] outside band",
+      "[Hue-Band: natatorium_water_splash_01.slabRegion] HSV=[47.0, 0.307, 0.644] outside band",
+      "[Hue-Band: natatorium_water_splash_05.waterRegion] HSV=[107.6, 0.319, 0.652] outside band",
+      "[Hue-Band: natatorium_water_splash_05.slabRegion] HSV=[47.0, 0.307, 0.644] outside band",
+      "[Hue-Band: natatorium_water_splash_12.waterRegion] HSV=[107.6, 0.319, 0.652] outside band",
+      "[Hue-Band: natatorium_water_splash_12.slabRegion] HSV=[47.0, 0.307, 0.644] outside band",
+      "[Hue-Band: natatorium_water_drip_ring.slabRegion] HSV=[46.0, 0.311, 0.647] outside band",
+      "[Hue-Band: natatorium_water_horizon.waterRegion] HSV=[47.0, 0.300, 0.629] outside band",
+      "[Hue-Band: natatorium_water_horizon.slabRegion] HSV=[47.0, 0.300, 0.629] outside band",
+      "[Hue-Band: natatorium_water_underwater.waterRegion] HSV=[108.2, 0.227, 0.582] outside band",
+      "[Hue-Band: natatorium_water_underwater.slabRegion] HSV=[50.1, 0.292, 0.684] outside band",
+      "[Hue-Band: natatorium_water_monster_wake.waterRegion] HSV=[103.4, 0.268, 0.609] outside band",
+      "[Hue-Band: natatorium_water_monster_wake.slabRegion] HSV=[44.2, 0.320, 0.666] outside band",
+      "[Hue-Band: classic_archipelago_hero.waterRegion] HSV=[82.6, 0.274, 0.650] outside band",
+      "[Hue-Band: classic_archipelago_hero.slabRegion] HSV=[36.3, 0.328, 0.671] outside band",
+      "[Hue-Band: natatorium_hero.waterRegion] HSV=[106.5, 0.285, 0.624] outside band",
+      "[Pairing f_001 -> natatorium_tagline_wall] SSIM 0.2114 < 0.55; Region water max ΔRGB 0.083 > 0.08; Region fog max ΔRGB 0.082 > 0.08; Missing semantic: inkPresent",
+      "[Pairing f_002 -> natatorium_tagline_wall_portrait] SSIM 0.4855 < 0.55; Region water max ΔRGB 0.204 > 0.08; Region fog max ΔRGB 0.082 > 0.08; Missing semantic: inkPresent",
+      "[Pairing f_003 -> natatorium_close_tile_wall] SSIM 0.4476 < 0.55; Region water max ΔRGB 0.089 > 0.08; Region fog max ΔRGB 0.117 > 0.08",
+      "[Pairing f_004 -> natatorium_spawn_view] SSIM 0.5406 < 0.55; Region wall max ΔRGB 0.124 > 0.08; Region water max ΔRGB 0.292 > 0.08; Region fog max ΔRGB 0.156 > 0.08",
+      "[Pairing f_005 -> natatorium_spawn_view_portrait] Region water max ΔRGB 0.225 > 0.08; Region fog max ΔRGB 0.135 > 0.08",
+      "[Pairing f_006 -> natatorium_hero] SSIM 0.4741 < 0.55; Region wall max ΔRGB 0.114 > 0.08; Region water max ΔRGB 0.183 > 0.08",
+      "[Pairing f_007 -> natatorium_water_calm_axial] Region wall max ΔRGB 0.174 > 0.08; Region water max ΔRGB 0.124 > 0.08; Region fog max ΔRGB 0.134 > 0.08",
+      "[Pairing f_008 -> natatorium_water_horizon] SSIM 0.4707 < 0.55; Region wall max ΔRGB 0.113 > 0.08; Region water max ΔRGB 0.149 > 0.08; Region fog max ΔRGB 0.231 > 0.08",
+      "[Pairing f_009 -> natatorium_water_calm_grazing] SSIM 0.3919 < 0.55; Region wall max ΔRGB 0.142 > 0.08; Region water max ΔRGB 0.166 > 0.08; Region fog max ΔRGB 0.186 > 0.08",
+      "[Pairing f_010 -> natatorium_monster_25m] SSIM 0.3477 < 0.55; Region wall max ΔRGB 0.161 > 0.08; Region water max ΔRGB 0.172 > 0.08; Region fog max ΔRGB 0.165 > 0.08; Missing semantic: pittedHeadSilhouette",
+      "[Pairing f_011 -> natatorium_monster_25m_portrait] SSIM 0.4601 < 0.55; Region water max ΔRGB 0.097 > 0.08; Region fog max ΔRGB 0.149 > 0.08; Missing semantic: darkMassOnWater",
+      "[Pairing f_012 -> natatorium_water_monster_wake] Region fog max ΔRGB 0.1 > 0.08; Missing semantic: darkMassOnWater",
+      "[Pairing f_013 -> natatorium_pillar_numeral_8m] Region wall max ΔRGB 0.106 > 0.08; Region fog max ΔRGB 0.126 > 0.08",
+      "[Pairing f_014 -> natatorium_pillar_numeral_8m_portrait] Region water max ΔRGB 0.245 > 0.08; Region fog max ΔRGB 0.225 > 0.08",
+      "[Pairing f_016 -> natatorium_close_tile_wall_portrait] SSIM 0.4993 < 0.55; Region wall max ΔRGB 0.164 > 0.08; Region water max ΔRGB 0.2 > 0.08; Region fog max ΔRGB 0.213 > 0.08",
+      "[Pairing f_017 -> natatorium_arch_fog_25m_portrait] Region wall max ΔRGB 0.116 > 0.08; Region water max ΔRGB 0.194 > 0.08; Region fog max ΔRGB 0.271 > 0.08",
+      "[Pairing f_018 -> creature_close_6m] SSIM 0.5152 < 0.55; Region water max ΔRGB 0.107 > 0.1; Region fog max ΔRGB 0.223 > 0.1; Region subject max ΔRGB 0.14 > 0.1",
+      "[Pairing f_019 -> natatorium_floor_through_water] Region wall max ΔRGB 0.307 > 0.08; Region water max ΔRGB 0.083 > 0.08; Region fog max ΔRGB 0.256 > 0.08",
+      "[Pairing f_020 -> natatorium_floor_through_water_portrait] Region wall max ΔRGB 0.26 > 0.1; Region fog max ΔRGB 0.155 > 0.1; Region subject max ΔRGB 0.138 > 0.1; Missing semantic: pittedHeadSilhouette",
+      "[Pairing f_021 -> natatorium_slab_edge] SSIM 0.5249 < 0.55; Region wall max ΔRGB 0.301 > 0.08; Region water max ΔRGB 0.177 > 0.08; Region fog max ΔRGB 0.152 > 0.08",
+      "[Pairing f_022 -> natatorium_water_slab_edge] Region wall max ΔRGB 0.244 > 0.08; Region fog max ΔRGB 0.197 > 0.08",
+      "[Pairing f_023 -> creature_mid_15m] SSIM 0.4710 < 0.55; Region wall max ΔRGB 0.138 > 0.1; Region fog max ΔRGB 0.273 > 0.1; Region subject max ΔRGB 0.179 > 0.1",
+      "[Pairing f_024 -> natatorium_water_wake] SSIM 0.4602 < 0.55; Region wall max ΔRGB 0.186 > 0.08; Region water max ΔRGB 0.126 > 0.08; Region fog max ΔRGB 0.174 > 0.08; Missing semantic: darkMassOnWater",
+      "[Pairing f_025 -> natatorium_horizon_long] Region wall max ΔRGB 0.288 > 0.08; Region water max ΔRGB 0.136 > 0.08",
+      "[Pairing f_026 -> natatorium_horizon_long_portrait] Region wall max ΔRGB 0.128 > 0.08; Region water max ΔRGB 0.267 > 0.08; Region fog max ΔRGB 0.149 > 0.08",
+      "[Pairing f_027 -> creature_far_35m] Region wall max ΔRGB 0.219 > 0.08; Region water max ΔRGB 0.31 > 0.08; Region fog max ΔRGB 0.09 > 0.08; Region subject max ΔRGB 0.101 > 0.08",
+      "[Pairing f_028 -> natatorium_water_drip_ring] Region wall max ΔRGB 0.236 > 0.08; Region water max ΔRGB 0.187 > 0.08; Region fog max ΔRGB 0.227 > 0.08",
+      "[Pairing f_029 -> classic_archipelago_hero] Region wall max ΔRGB 0.238 > 0.08; Region water max ΔRGB 0.28 > 0.08; Region fog max ΔRGB 0.102 > 0.08",
+      "[Pairing f_030 -> natatorium_water_splash_01] Region wall max ΔRGB 0.241 > 0.08; Region water max ΔRGB 0.185 > 0.08; Region fog max ΔRGB 0.233 > 0.08",
+      "[Pairing f_031 -> natatorium_water_splash_05] Region wall max ΔRGB 0.103 > 0.08; Region water max ΔRGB 0.099 > 0.08; Region fog max ΔRGB 0.111 > 0.08",
+      "[Pairing f_032 -> natatorium_slab_edge_portrait] SSIM 0.4617 < 0.55; Region wall max ΔRGB 0.272 > 0.08; Region water max ΔRGB 0.205 > 0.08; Region fog max ΔRGB 0.091 > 0.08",
+      "[Pairing f_033 -> natatorium_water_splash_12] SSIM 0.4245 < 0.55; Region wall max ΔRGB 0.087 > 0.08; Region water max ΔRGB 0.174 > 0.08",
+      "[Pairing f_034 -> natatorium_water_underwater] SSIM 0.5328 < 0.55; Region wall max ΔRGB 0.127 > 0.08; Region water max ΔRGB 0.106 > 0.08; Region fog max ΔRGB 0.08 > 0.08",
+      "[Pairing f_035 -> natatorium_trench_view] Region fog max ΔRGB 0.202 > 0.08",
+      "[Pairing f_036 -> natatorium_trench_view_portrait] Region wall max ΔRGB 0.122 > 0.08; Region fog max ΔRGB 0.199 > 0.08",
+      "[Pairing f_037 -> flock_overhead] SSIM 0.3679 < 0.55; Region water max ΔRGB 0.282 > 0.1; Missing semantic: pittedHeadSilhouette"
+    ]
+  },
+  "frameComparison": {
+    "manifestHash": "94e00f1eff14c185906da61201cc3044cc50454ea812590c7ce853e82aeec772",
+    "totalPairings": 37,
+    "matchCount": 1,
+    "exceedsCount": 0,
+    "failCount": 36
   }
 }

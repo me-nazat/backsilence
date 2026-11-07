@@ -271,7 +271,7 @@ describe('Principal Game AI & Predator Combat Designer Suite', () => {
       }),
     };
 
-    const body = new MonsterBody('m_presentation', 1.0, '#5a5035', undefined, mockAudio as any);
+    const body = new MonsterBody('m_presentation', 1.0, '#5a5035', undefined, mockAudio as unknown as import('../src/audio/AudioEngine.js').AudioEngine);
     body.onCameraShake = (intensity: number) => {
       cameraShakeIntensity = intensity;
     };
@@ -302,7 +302,7 @@ describe('Principal Game AI & Predator Combat Designer Suite', () => {
       path: [],
     };
 
-    body.update(0.016, snap, dummyGround as any, camera);
+    body.update(0.016, snap, dummyGround as unknown as GroundGrid, camera);
 
     expect(body.animator.isRoaring()).toBe(true);
     expect(mockAudio.play).toHaveBeenCalledWith('monster_roar', expect.anything());

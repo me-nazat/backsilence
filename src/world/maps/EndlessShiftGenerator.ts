@@ -230,7 +230,7 @@ export async function buildEndlessShiftInstance(layout: LayoutData, env: BuildEn
   const wallMat = tileFactory.wallTileMaterial;
   const floorMat = tileFactory.poolFloorMaterial;
 
-  const instance = await buildStandardMapInstance(layout, env, { platformMat, wallMat, floorMat });
+  const instance = buildStandardMapInstance(layout, env, { platformMat, wallMat, floorMat });
 
   // Overhead bright white skylight panels (emissiveIntensity: 3.2)
   const skylightPanelMat = new MeshStandardMaterial({

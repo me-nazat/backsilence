@@ -375,7 +375,7 @@ export const PoolroomsMap: MapDefinition = {
     floorMat.envMapIntensity = 0.35;
     floorMat.aoMapIntensity = 0.85;
 
-    const instance = await buildStandardMapInstance(layout, env, { platformMat, wallMat, floorMat });
+    const instance = buildStandardMapInstance(layout, env, { platformMat, wallMat, floorMat });
 
     // Inset glowing white skylight panels along the ceiling (emissiveIntensity: 3.2)
     const skylightPanelMat = new MeshStandardMaterial({

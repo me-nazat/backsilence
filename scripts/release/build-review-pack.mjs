@@ -61,35 +61,6 @@ function blitResampled(srcData, srcW, srcH, dstData, dstW, dstH, dstX, dstY, tar
   }
 }
 
-// Classify pairing verdict based on objective system enhancements
-function getVerdictAndReason(pairing, compCheck) {
-  const prop = pairing.property || '';
-  const what = pairing.whatToLookAt || '';
-
-  if (prop.includes('floor') || what.includes('floor') || what.includes('grout') || what.includes('underwater')) {
-    return {
-      verdict: 'EXCEEDS',
-      reason: 'Beer-Lambert depth transmittance resolves submerged floor grout clearly; video was opaque green milk.',
-    };
-  }
-  if (prop.includes('fog') || what.includes('fog') || what.includes('horizon')) {
-    return {
-      verdict: 'EXCEEDS',
-      reason: 'Screen-space god rays & 32-bit clean fog extinction without 8-bit video macroblocking.',
-    };
-  }
-  if (what.includes('monster') || what.includes('silhouette') || prop.includes('creature')) {
-    return {
-      verdict: 'MATCH',
-      reason: 'Seed-pod anatomy, hunch posture, and water-contact ink splashes match reference silhouette.',
-    };
-  }
-  return {
-    verdict: 'MATCH',
-    reason: 'Measured palette luminance, wall ceramic hue, and water absorption match reference envelope.',
-  };
-}
-
 async function buildReviewPack() {
   console.log('=== Building BackSilence Better-Than-Video Review Pack ===\n');
 
@@ -106,7 +77,17 @@ async function buildReviewPack() {
   for (let i = 0; i < pairings.length; i++) {
     const p = pairings[i];
     const compCheck = checkMap.get(p.frameId);
-    const { verdict, reason } = getVerdictAndReason(p, compCheck);
+
+    if (!compCheck || typeof compCheck.ssim !== 'number') {
+      throw new Error(`Cannot publish pairing ${p.frameId}: missing SSIM value from comparator.`);
+    }
+
+    const verdict = compCheck.verdict;
+    const passed = compCheck.passed;
+    const ssim = compCheck.ssim;
+    const reason = compCheck.failureReasons && compCheck.failureReasons.length > 0
+      ? compCheck.failureReasons.join('; ')
+      : (compCheck.exceedsMetric ? `Beats reference on ${compCheck.exceedsMetric}` : 'Perceptual match within tolerance');
 
     const refPath = resolve(REF_FRAMES_DIR, p.file);
     const shotPath = resolve(GOLDEN_DIR, `${p.shotId}.png`);
@@ -154,13 +135,13 @@ async function buildReviewPack() {
     // Bottom Status Bar (54px)
     drawRect(canvasData, canvasW, canvasH, 0, canvasH - 54, canvasW, 54, [0.10, 0.12, 0.10, 1.0]);
 
-    const verdictColor = verdict === 'EXCEEDS' ? [0.4, 1.0, 0.5, 1.0] : [0.6, 0.85, 1.0, 1.0];
+    const verdictColor = verdict === 'EXCEEDS' ? [0.4, 1.0, 0.5, 1.0] : verdict === 'MATCH' ? [0.6, 0.85, 1.0, 1.0] : [1.0, 0.35, 0.35, 1.0];
     drawText(canvasData, canvasW, canvasH, `VERDICT: [${verdict}]`, 16, canvasH - 38, verdictColor, 1);
-    drawText(canvasData, canvasW, canvasH, reason, 16, canvasH - 20, [0.80, 0.82, 0.78, 1.0], 1);
+    const reasonShort = reason.length > 75 ? reason.slice(0, 72) + '...' : reason;
+    drawText(canvasData, canvasW, canvasH, reasonShort, 16, canvasH - 20, [0.80, 0.82, 0.78, 1.0], 1);
 
-    const deltaPct = compCheck?.deltaPct ?? 0;
-    const deltaStr = `DELTA: ${deltaPct.toFixed(1)}% | STATUS: ${compCheck?.passed ? 'PASS' : 'FAIL'}`;
-    drawText(canvasData, canvasW, canvasH, deltaStr, canvasW - (deltaStr.length * 6 + 24), canvasH - 38, [0.70, 0.88, 0.70, 1.0], 1);
+    const ssimStr = `SSIM: ${ssim.toFixed(4)} | STATUS: ${passed ? 'PASS' : 'FAIL'}`;
+    drawText(canvasData, canvasW, canvasH, ssimStr, canvasW - (ssimStr.length * 6 + 24), canvasH - 38, passed ? [0.70, 0.88, 0.70, 1.0] : [1.0, 0.45, 0.45, 1.0], 1);
 
     const outPng = encodePng(canvasW, canvasH, canvasData);
     const outFilename = `${p.frameId}.png`;
@@ -174,8 +155,11 @@ async function buildReviewPack() {
       whatToLookAt: p.whatToLookAt,
       verdict,
       reason,
-      deltaPct,
-      passed: compCheck?.passed ?? true,
+      ssim,
+      regionDeltasSummary: compCheck.regionDeltasSummary || 'N/A',
+      semantics: compCheck.semantics || {},
+      requiredSemantics: p.requiredSemantics || [],
+      passed,
       filename: outFilename,
     });
   }
@@ -189,13 +173,18 @@ async function buildReviewPack() {
   const coverH = 880;
   const coverData = new Float32Array(coverW * coverH * 4);
 
+  const exceedsCount = ladderResults.filter((r) => r.verdict === 'EXCEEDS').length;
+  const matchCount = ladderResults.filter((r) => r.verdict === 'MATCH').length;
+  const failCount = ladderResults.filter((r) => r.verdict === 'FAIL').length;
+
   // Background
   drawRect(coverData, coverW, coverH, 0, 0, coverW, coverH, [0.06, 0.07, 0.06, 1.0]);
 
   // Header Banner
   drawRect(coverData, coverW, coverH, 0, 0, coverW, 44, [0.12, 0.15, 0.12, 1.0]);
-  drawText(coverData, coverW, coverH, 'BACKSILENCE v2.1.0-rc1: THE BETTER-THAN-VIDEO REVIEW PACK', 20, 16, [0.95, 0.95, 0.90, 1.0], 1);
-  drawText(coverData, coverW, coverH, '37/37 VERIFIED PAIRINGS | 0 FAILURES | BEER-LAMBERT WATER v5', 780, 16, [0.4, 0.95, 0.6, 1.0], 1);
+  drawText(coverData, coverW, coverH, 'BACKSILENCE v2.1.0-rc1: PERCEPTUAL REVIEW PACK', 20, 16, [0.95, 0.95, 0.90, 1.0], 1);
+  const statsSummary = `${exceedsCount} EXCEEDS | ${matchCount} MATCH | ${failCount} FAIL`;
+  drawText(coverData, coverW, coverH, statsSummary, 780, 16, failCount > 0 ? [1.0, 0.6, 0.4, 1.0] : [0.4, 0.95, 0.6, 1.0], 1);
 
   const cellW = 464;
   const cellH = 260;
@@ -223,8 +212,9 @@ async function buildReviewPack() {
     drawRect(coverData, coverW, coverH, cellX, cellY, cellW, 22, [0.05, 0.07, 0.05, 0.85]);
     drawText(coverData, coverW, coverH, `${pairing.frameId} | ${pairing.shotId}`, cellX + 8, cellY + 7, [0.92, 0.92, 0.88, 1.0], 1);
 
-    const { verdict } = getVerdictAndReason(pairing, checkMap.get(fid));
-    const vColor = verdict === 'EXCEEDS' ? [0.4, 1.0, 0.5, 1.0] : [0.6, 0.85, 1.0, 1.0];
+    const comp = checkMap.get(fid);
+    const verdict = comp?.verdict || 'FAIL';
+    const vColor = verdict === 'EXCEEDS' ? [0.4, 1.0, 0.5, 1.0] : verdict === 'MATCH' ? [0.6, 0.85, 1.0, 1.0] : [1.0, 0.35, 0.35, 1.0];
     const vText = `[${verdict}]`;
     drawText(coverData, coverW, coverH, vText, cellX + cellW - 65, cellY + 7, vColor, 1);
   }
@@ -237,24 +227,27 @@ async function buildReviewPack() {
   // ── Write BETTER_THAN_VIDEO.md ───────────────────────────────────────────
   console.log('Writing BETTER_THAN_VIDEO.md report...');
 
-  const exceedsCount = ladderResults.filter((r) => r.verdict === 'EXCEEDS').length;
-  const matchCount = ladderResults.filter((r) => r.verdict === 'MATCH').length;
+  let md = `# BackSilence: Perceptual Reference Comparison & Review Pack (v2.1.0-rc1)
 
-  let md = `# BackSilence: The Better-Than-Video Review Pack (v2.1.0-rc1)
+<!-- generated-by: reference-comparator -->
 
 **Date:** ${new Date().toISOString()}  
-**Commit SHA:** \`23cb858\`  
 **Reference Manifest SHA-256:** \`94e00f1eff14c185906da61201cc3044cc50454ea812590c7ce853e82aeec772\`  
 **Pairings Evaluated:** 37 / 37  
-**Verdicts:** **${exceedsCount} EXCEEDS**, **${matchCount} MATCH**, **0 FAIL / 0 UNACCOUNTED**  
+**Verdicts:** **${exceedsCount} EXCEEDS**, **${matchCount} MATCH**, **${failCount} FAIL**  
 
 ---
 
 ## 1. Executive Summary & Verification Pedigree
 
-This review pack provides verifiable, artifact-backed proof of the release quality of BackSilence. The reference video materials (37 authoritative frames from \`reference/video/frames/\`) were measured and compared bit-by-bit against the real-time procedural rendering engine in BackSilence.
+This review pack provides verifiable, artifact-backed perceptual comparison of BackSilence against reference video materials (37 authoritative frames from \`reference/video/frames/\`). All pairings are evaluated using structural similarity (SSIM on luminance-normalized pairs), aligned semantic region color deltas, and semantic silhouette features.
 
-Across all 37 reference pairings, BackSilence satisfies every visual contract. Furthermore, in key architectural, optical, and gameplay pillars, BackSilence demonstrably **exceeds the reference video** by replacing compressed video artifacts, flat water paint, and static cinematics with a physically grounded, interactive liminal universe.
+Verdicts are strictly derived from machine-evaluated perceptual metrics:
+- **MATCH:** Requires SSIM $\\ge 0.55$, all aligned region $\\Delta\\text{RGB} \\le 0.08$ tolerance, and all required semantic features present.
+- **EXCEEDS:** Requires beating the reference on a verified named metric.
+- **FAIL:** Reported when any threshold is not satisfied.
+
+A pairing may never be marked \`MATCH\` or \`EXCEEDS\` on a structural scalar alone.
 
 ![Cover Board 3x3](./review_pack_v2/cover_board_3x3.png)
 
@@ -296,13 +289,15 @@ Across all 37 reference pairings, BackSilence satisfies every visual contract. F
 
 ## 3. Side-by-Side Pairing Ladder (All 37 Frames)
 
-| Frame | Timestamp | Shot ID | Visual Contract & Focus | Metric Delta | Verdict | Comparison Board |
-|:---|:---:|:---|:---|:---:|:---:|:---:|
+| Frame | Timestamp | Shot ID | SSIM | Aligned Region Deltas | Required Semantics | Verdict | Comparison Board |
+|:---|:---:|:---|:---:|:---|:---|:---:|:---:|
 `;
 
   for (const r of ladderResults) {
-    const verdictBadge = r.verdict === 'EXCEEDS' ? '**EXCEEDS**' : 'MATCH';
-    md += `| \`${r.frameId}\` | \`${r.timestamp}\` | \`${r.shotId}\` | ${r.whatToLookAt} | ${r.deltaPct.toFixed(1)}% | ${verdictBadge} | [${r.frameId}.png](./review_pack_v2/ladder/${r.filename}) |\n`;
+    const verdictBadge = r.verdict === 'EXCEEDS' ? '**EXCEEDS**' : r.verdict === 'MATCH' ? '**MATCH**' : '**FAIL**';
+    const req = r.requiredSemantics || [];
+    const semStr = req.length === 0 ? 'none' : req.map((s) => `${s}: ${r.semantics[s] ? 'PASS' : 'FAIL'}`).join(', ');
+    md += `| \`${r.frameId}\` | \`${r.timestamp}\` | \`${r.shotId}\` | \`${r.ssim.toFixed(4)}\` | ${r.regionDeltasSummary} | ${semStr} | ${verdictBadge} | [${r.frameId}.png](./review_pack_v2/ladder/${r.filename}) |\n`;
   }
 
   md += `\n---
@@ -327,9 +322,9 @@ In accordance with UPGRADE_PROTOCOL §3 (The Honesty Law), the following remaini
 
 To reproduce the review pack and verify all 37 composite pairings:
 \`\`\`bash
+npm run reference:compare
 node scripts/release/build-review-pack.mjs
 npm run reference:verify
-npm run reference:compare
 npm run shots:check
 \`\`\`
 `;
