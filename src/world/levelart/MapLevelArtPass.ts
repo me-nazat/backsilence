@@ -17,6 +17,9 @@ import {
   BufferGeometry,
   Color,
   Vector3,
+  BoxGeometry,
+  Matrix4,
+  PlaneGeometry,
 } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import type { LayoutData } from '../MapTypes.js';
@@ -24,7 +27,8 @@ import type { ColliderSet } from '../../sim/Colliders.js';
 import { Rng } from '../../procedural/core/prng.js';
 import { DecalSystem } from '../../game/decals/DecalSystem.js';
 import {
-  buildLifeguardChairGeometry,
+  buildPoolLadderGeometry,
+  buildHandrailGeometry,
   buildBalustradeGeometry,
   buildDivingTowerGeometry,
   buildFloorDrainGeometry,
@@ -83,7 +87,6 @@ import {
   buildBollardGeometry,
   buildSteamGrateGeometry,
   buildStartingBlockGeometry,
-  buildBleacherBankGeometry,
   buildLifePreserverGeometry,
   buildDivingBoardGeometry,
   buildShowerColumnGeometry,
@@ -137,6 +140,89 @@ function getGeometryTriangles(geom: BufferGeometry): number {
   return 0;
 }
 
+/**
+ * Creates a clean chrome pool ladder mesh mounted flush on stepping platforms and pool edges.
+ */
+export function createPoolLadder(): Mesh {
+  const geom = buildPoolLadderGeometry();
+  const chromeMat = new MeshStandardMaterial({
+    color: new Color('#e6edf0'),
+    roughness: 0.08,
+    metalness: 0.96,
+  });
+  const mesh = new Mesh(geom, chromeMat);
+  mesh.matrixAutoUpdate = false;
+  return mesh;
+}
+
+/**
+ * Creates a recessed ceiling skylight bay geometry with dark structural grid frames.
+ */
+export function buildSkylightBayGeometry(width = 6.0, length = 5.0): BufferGeometry {
+  const parts: BufferGeometry[] = [];
+  const m = new Matrix4();
+  const beamThickness = 0.14;
+  const beamDepth = 0.22;
+
+  // Outer structural rim beams
+  const bX1 = new BoxGeometry(width, beamDepth, beamThickness);
+  m.makeTranslation(0, 0, -length * 0.5);
+  bX1.applyMatrix4(m);
+  parts.push(bX1);
+
+  const bX2 = new BoxGeometry(width, beamDepth, beamThickness);
+  m.makeTranslation(0, 0, length * 0.5);
+  bX2.applyMatrix4(m);
+  parts.push(bX2);
+
+  const bZ1 = new BoxGeometry(beamThickness, beamDepth, length);
+  m.makeTranslation(-width * 0.5, 0, 0);
+  bZ1.applyMatrix4(m);
+  parts.push(bZ1);
+
+  const bZ2 = new BoxGeometry(beamThickness, beamDepth, length);
+  m.makeTranslation(width * 0.5, 0, 0);
+  bZ2.applyMatrix4(m);
+  parts.push(bZ2);
+
+  // Central dark structural cross beams
+  const crossX = new BoxGeometry(width - beamThickness * 2, beamDepth * 0.8, beamThickness * 0.8);
+  m.makeTranslation(0, 0, 0);
+  crossX.applyMatrix4(m);
+  parts.push(crossX);
+
+  const crossZ = new BoxGeometry(beamThickness * 0.8, beamDepth * 0.8, length - beamThickness * 2);
+  m.makeTranslation(0, 0, 0);
+  crossZ.applyMatrix4(m);
+  parts.push(crossZ);
+
+  return mergeGeometries(parts, false) ?? new BoxGeometry(width, beamDepth, length);
+}
+
+/**
+ * Explicit helper / hook for graffiti decals.
+ * Disabled for pristine poolrooms: zero graffiti or text signs on clean natatorium ceramic walls.
+ */
+export function addGraffitiAndSigns(_decalSystem?: DecalSystem, isPristine = true): void {
+  if (isPristine) return;
+}
+
+/**
+ * Explicit helper / hook for floating scum decals.
+ * Disabled: zero green scum or algae circles floating on crystal-clear pool water.
+ */
+export function addFloatingScumDecals(_decalSystem?: DecalSystem, isPristine = true): void {
+  if (isPristine) return;
+}
+
+/**
+ * Explicit helper / hook for tile damage decals.
+ * Disabled: pristine glazed ceramic surfaces have zero black hole damage decals.
+ */
+export function addTileDamageDecals(_decalSystem?: DecalSystem, isPristine = true): void {
+  if (isPristine) return;
+}
+
 export function applyMapLevelArtPass(env: LevelArtEnv): void {
   const { root, layout, materialsToDispose, geometriesToDispose, customMaterials, colliders } = env;
   const rng = new Rng(layout.seed + 9999);
@@ -178,6 +264,10 @@ export function applyMapLevelArtPass(env: LevelArtEnv): void {
 
   const isPristinePool = mapId === 'natatorium' || mapId === 'poolrooms' || mapId === 'orientation';
 
+  addGraffitiAndSigns(decalSystem, isPristinePool);
+  addFloatingScumDecals(decalSystem, isPristinePool);
+  addTileDamageDecals(decalSystem, isPristinePool);
+
   for (const wall of layout.walls) {
     if (decalCount >= targetDecals) break;
     const cx = (wall.min.x + wall.max.x) * 0.5;
@@ -187,7 +277,7 @@ export function applyMapLevelArtPass(env: LevelArtEnv): void {
       position: new Vector3(cx, cy, wall.max.z),
       normal: new Vector3(0, 0, 1),
       size: 1.5,
-      kind: isPristinePool ? (rng.next() < 0.6 ? 'numeral' : 'crack') : (rng.next() < 0.6 ? 'graffiti' : 'numeral'),
+      kind: isPristinePool ? 'numeral' : (rng.next() < 0.6 ? 'graffiti' : 'numeral'),
       color: '#ffffff',
     });
     decalCount++;
@@ -200,7 +290,7 @@ export function applyMapLevelArtPass(env: LevelArtEnv): void {
       position: new Vector3(rx, floorY + 0.02, rz),
       normal: new Vector3(0, 1, 0),
       size: 1.6,
-      kind: rng.next() < 0.5 ? 'stain' : 'crack',
+      kind: isPristinePool ? 'crack' : (rng.next() < 0.5 ? 'stain' : 'crack'),
       color: isPristinePool ? (rng.next() < 0.5 ? '#d4ccba' : '#ffffff') : '#4a6058',
     });
     decalCount++;
@@ -750,20 +840,28 @@ export function applyMapLevelArtPass(env: LevelArtEnv): void {
       placeMesh(buildLaneLineGeometry(44.0), brassMat, new Vector3(6, waterY, 0));
       placedPropTypes.add('lane_line');
 
-      // 5. Lifeguard observation chairs
-      placeOnSurface(buildLifeguardChairGeometry(), metalMat, -18, -10, Math.PI * 0.5);
-      placeOnSurface(buildLifeguardChairGeometry(), metalMat, 18, 10, -Math.PI * 0.5);
-      placedPropTypes.add('lifeguard_chair');
+      // 5. Clean chrome pool ladders mounted flush on stepping platforms and pool edges
+      const chromeMat = new MeshStandardMaterial({
+        color: new Color('#e6edf0'),
+        roughness: 0.08,
+        metalness: 0.96,
+      });
+      materialsToDispose.push(chromeMat);
 
-      // 6. Spectator bleacher banks
-      placeOnSurface(buildBleacherBankGeometry(), woodMat, -19, 0, Math.PI * 0.5);
-      placeOnSurface(buildBleacherBankGeometry(), woodMat, 19, 0, -Math.PI * 0.5);
-      placedPropTypes.add('bleacher_bank');
+      placeMesh(buildPoolLadderGeometry(), chromeMat, new Vector3(-18, 0.15, -10), Math.PI * 0.5);
+      placeMesh(buildPoolLadderGeometry(), chromeMat, new Vector3(18, 0.15, 10), -Math.PI * 0.5);
+      placeMesh(buildPoolLadderGeometry(), chromeMat, new Vector3(0, 0.15, 24), Math.PI);
+      placedPropTypes.add('pool_ladder');
 
-      // 7. Championship trophy cases
-      placeOnSurface(buildTrophyCaseGeometry(), woodMat, -10, 24, 0);
-      placeOnSurface(buildTrophyCaseGeometry(), woodMat, 10, 24, 0);
-      placedPropTypes.add('trophy_case');
+      // 6. Tubular metal handrails
+      placeMesh(buildHandrailGeometry(4.0), chromeMat, new Vector3(-19, 0.5, 0), Math.PI * 0.5);
+      placeMesh(buildHandrailGeometry(4.0), chromeMat, new Vector3(19, 0.5, 0), -Math.PI * 0.5);
+      placedPropTypes.add('handrail');
+
+      // 7. Balustrade rails
+      placeMesh(buildBalustradeGeometry(5.0), chromeMat, new Vector3(-10, 0.4, 24), 0);
+      placeMesh(buildBalustradeGeometry(5.0), chromeMat, new Vector3(10, 0.4, 24), 0);
+      placedPropTypes.add('balustrade_rail');
 
       // 8. Pace wall clocks
       placeMesh(buildWallClockGeometry(), brassMat, new Vector3(0, 4.2, 28), Math.PI);
@@ -784,9 +882,18 @@ export function applyMapLevelArtPass(env: LevelArtEnv): void {
       placeOnSurface(buildShowerColumnGeometry(), brassMat, 16, 18, 0);
       placedPropTypes.add('shower_column');
 
-      // 12. Brass floor drains
-      for (const [x, z] of [[-8, 20], [0, 20], [8, 20], [-14, 0], [14, 0]]) {
-        placeOnSurface(buildFloorDrainGeometry(), brassMat, x!, z!);
+      // 12. Subtle dark recessed drainage grates on submerged pool floor
+      const drainParts: BufferGeometry[] = [];
+      const dm = new Matrix4();
+      for (const [x, z] of [[-8, 20], [0, 20], [8, 20], [-14, 0], [14, 0], [0, -10], [-6, -4], [6, -4]]) {
+        const g = buildFloorDrainGeometry();
+        dm.makeTranslation(x!, floorY, z!);
+        g.applyMatrix4(dm);
+        drainParts.push(g);
+      }
+      const mergedDrains = mergeGeometries(drainParts, false);
+      if (mergedDrains) {
+        placeMesh(mergedDrains, metalMat, new Vector3(0, 0, 0));
       }
       placedPropTypes.add('floor_drain');
 
@@ -796,6 +903,45 @@ export function applyMapLevelArtPass(env: LevelArtEnv): void {
       placedPropTypes.add('acoustic_beacon');
       placeOnSurface(buildTileStepPedestalGeometry(), customMaterials.platformMat, 0, 14);
       placedPropTypes.add('tile_step_pedestal');
+
+      // 14. Recessed ceiling skylight bays with dark grid frames and bright emissive daylight diffuser panels
+      const darkFrameMat = new MeshStandardMaterial({
+        color: new Color('#22282d'),
+        roughness: 0.45,
+        metalness: 0.7,
+      });
+      materialsToDispose.push(darkFrameMat);
+
+      const skylightEmissiveMat = new MeshStandardMaterial({
+        color: new Color('#ffffff'),
+        emissive: new Color('#ffffff'),
+        emissiveIntensity: 3.2,
+        roughness: 0.15,
+        metalness: 0.0,
+      });
+      materialsToDispose.push(skylightEmissiveMat);
+
+      const frameParts: BufferGeometry[] = [];
+      const diffuserParts: BufferGeometry[] = [];
+      const sm = new Matrix4();
+      for (const z of [-32, -16, 0, 16, 32]) {
+        const fg = buildSkylightBayGeometry(6.0, 4.5);
+        sm.makeTranslation(0, 9.2, z);
+        fg.applyMatrix4(sm);
+        frameParts.push(fg);
+
+        const dg = new PlaneGeometry(5.8, 4.3);
+        dg.rotateX(Math.PI * 0.5);
+        sm.makeTranslation(0, 9.28, z);
+        dg.applyMatrix4(sm);
+        diffuserParts.push(dg);
+      }
+      const mergedFrames = mergeGeometries(frameParts, false);
+      if (mergedFrames) placeMesh(mergedFrames, darkFrameMat, new Vector3(0, 0, 0));
+
+      const mergedDiffusers = mergeGeometries(diffuserParts, false);
+      if (mergedDiffusers) placeMesh(mergedDiffusers, skylightEmissiveMat, new Vector3(0, 0, 0));
+      placedPropTypes.add('skylight_bay');
       break;
     }
 

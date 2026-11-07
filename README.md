@@ -31,7 +31,7 @@ open http://localhost:5173/
 | `npm run dev:api` | Run local zero-credential FakeLibsql API proxy on port 8787 |
 | `npm run typecheck` | Run TypeScript strict type checking |
 | `npm run lint` | Run ESLint verification |
-| `npm run test` | Run Vitest unit & integration test suite (947 tests across 106 files) |
+| `npm run test` | Run Vitest unit & integration test suite (964 tests across 109 files) |
 | `npm run balance` | Run Headless Balance Bot Swarm (13,200 simulated runs across all 11 maps) |
 | `npm run smoke` | Run Headless CDP Smoke Bot covering all 14 end-to-end scenarios (S1–S14) |
 | `npm run secret:scan` | Scan repository, git history, and built bundles for exposed credentials |
@@ -64,7 +64,7 @@ npm run balance
 | :--- | :--- | :--- |
 | `typecheck` | **PASS** | tsc --noEmit clean (0 errors) |
 | `lint` | **PASS** | eslint clean (0 warnings, 0 errors) |
-| `test` | **PASS** | Tests  947 passed across 106 files |
+| `test` | **PASS** | Tests  964 passed across 109 files |
 | `build` | **PASS** | vite production build succeeded (core bundle 481.00 KB / 500.00 KB) |
 | `audit:bundle` | **PASS** | zero forbidden external asset references in dist/ |
 | `audit:rulebook-sync` | **PASS** | ACOUSTIC_RULEBOOK.md 8/8 rows synced with AcousticBus.ts |

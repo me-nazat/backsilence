@@ -240,6 +240,19 @@ export class GameSession {
     return this.host.throwableBridge?.throwableSystem;
   }
 
+  getAtmosphereConfig() {
+    return {
+      fogColor: '#cce4e8',
+      fogDensity: 0.011,
+      skyColor: '#ffffff',
+      groundColor: '#6ad4e0',
+      hemiIntensity: 1.45,
+      ambientColor: '#eef8fa',
+      ambientIntensity: 0.85,
+      toneMappingExposure: 1.18,
+    };
+  }
+
   dispose(): void {
     if (typeof window !== 'undefined') {
       const g = window as unknown as { __backsilence_session?: unknown };

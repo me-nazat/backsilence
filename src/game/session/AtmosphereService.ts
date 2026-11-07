@@ -7,6 +7,7 @@ import {
   FogExp2,
   Color,
   HemisphereLight,
+  AmbientLight,
   DirectionalLight,
   PMREMGenerator,
   Scene,
@@ -30,7 +31,15 @@ export function setupAtmosphere(
 ): AtmosphereResult {
     let fogDensity = def.atmosphere.fog.density;
     let fogColorHex = def.atmosphere.fog.color;
-    if (def.id === 'drainage_core' || subMode === 'endless') {
+    let exposure = def.atmosphere.exposure ?? 1.12;
+
+    const isLiminalPoolroom = def.id === 'natatorium' || def.id === 'poolrooms';
+
+    if (isLiminalPoolroom) {
+      fogColorHex = '#cce4e8';
+      fogDensity = 0.011;
+      exposure = 1.18;
+    } else if (def.id === 'drainage_core' || subMode === 'endless') {
       if (fogDensity > 0.014) fogDensity = 0.013;
       if (fogColorHex === '#040d0b' || fogColorHex === '#555555') fogColorHex = '#cfe0d5';
     }
@@ -39,21 +48,31 @@ export function setupAtmosphere(
     scene.background = new Color(fogColor);
     renderer.renderer.setClearColor(fogColor, 1.0);
     renderer.setToneMapping(settings.graphics.toneMapping ?? 'agx');
-    renderer.renderer.toneMappingExposure = def.atmosphere.exposure ?? 1.12;
+    renderer.renderer.toneMappingExposure = exposure;
 
-    const pmrem = new PMREMGenerator(renderer.renderer);
-    pmrem.compileEquirectangularShader();
-    const envScene = new Scene();
-    envScene.background = new Color(fogColor);
-    const envTarget = pmrem.fromScene(envScene, 0.04);
-    const envTexture = envTarget.texture;
-    scene.environment = envTexture;
-    scene.environmentIntensity = 0.35;
-    pmrem.dispose();
+    let envTexture: Texture | null = null;
+    if (typeof (renderer.renderer as any)?.compile === 'function') {
+      const pmrem = new PMREMGenerator(renderer.renderer);
+      pmrem.compileEquirectangularShader();
+      const envScene = new Scene();
+      envScene.background = new Color(fogColor);
+      const envTarget = pmrem.fromScene(envScene, 0.04);
+      envTexture = envTarget.texture;
+      scene.environment = envTexture;
+      scene.environmentIntensity = 0.35;
+      pmrem.dispose();
+    }
 
-    const skyColor = parseInt(def.atmosphere.hemisphere.sky.replace('#', '0x'), 16);
-    const groundColor = parseInt(def.atmosphere.hemisphere.ground.replace('#', '0x'), 16);
-    const hemi = new HemisphereLight(skyColor, groundColor, def.atmosphere.hemisphere.intensity ?? 1.25);
+    let hemi: HemisphereLight;
+    if (isLiminalPoolroom) {
+      hemi = new HemisphereLight(0xffffff, 0x6ad4e0, 1.45);
+      const ambient = new AmbientLight(0xeef8fa, 0.85);
+      scene.add(ambient);
+    } else {
+      const skyColor = parseInt(def.atmosphere.hemisphere.sky.replace('#', '0x'), 16);
+      const groundColor = parseInt(def.atmosphere.hemisphere.ground.replace('#', '0x'), 16);
+      hemi = new HemisphereLight(skyColor, groundColor, def.atmosphere.hemisphere.intensity ?? 1.25);
+    }
     scene.add(hemi);
 
     let sunLight: DirectionalLight | null = null;

@@ -22,12 +22,48 @@ import {
   BufferGeometry,
   Vector2,
   Vector3,
+  Color,
   type WebGLRenderer,
 } from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { WORLD } from '../../app/Config.js';
 import { Rng } from '../core/prng.js';
 import { acquireCanvas } from '../core/canvasPool.js';
+import { makeTileSet } from './TileTexture.js';
+
+export interface TileMaterialPreset {
+  tileColor: string;
+  groutColor: string;
+  stainAmount: number;
+  waterlineTint: string;
+  roughness: number;
+  metalness: number;
+  clearcoat: number;
+  clearcoatRoughness: number;
+}
+
+export const TILE_PRESETS: Record<string, TileMaterialPreset> = {
+  white: {
+    tileColor: '#f6f7f4',
+    groutColor: '#b8c0be',
+    stainAmount: 0.03,
+    waterlineTint: '#d2ebe8',
+    roughness: 0.18,
+    metalness: 0.02,
+    clearcoat: 0.60,
+    clearcoatRoughness: 0.14,
+  },
+  'clean-white': {
+    tileColor: '#f6f7f4',
+    groutColor: '#b8c0be',
+    stainAmount: 0.03,
+    waterlineTint: '#d2ebe8',
+    roughness: 0.18,
+    metalness: 0.02,
+    clearcoat: 0.60,
+    clearcoatRoughness: 0.14,
+  },
+};
 
 export interface TileMaterialKit {
   wallTileMaterial: MeshStandardMaterial;
@@ -249,10 +285,12 @@ export class TileMaterialFactory {
       map: wallTextures.albedo,
       normalMap: wallTextures.normal,
       normalScale: new Vector2(0.015, 0.015),
-      roughness: 0.22,
+      roughness: 0.18,
       metalness: 0.04,
       envMapIntensity: 0.45,
     });
+    (this.wallTileMaterial as any).clearcoat = 0.60;
+    (this.wallTileMaterial as any).clearcoatRoughness = 0.14;
     this.wallTileMaterial.name = 'WallTileMaterial';
 
     // Ceiling uses warm dry plaster / arch material (#b7a775)
@@ -325,6 +363,63 @@ export class TileMaterialFactory {
       TileMaterialFactory.instance = new TileMaterialFactory(renderer, tileSize);
     }
     return TileMaterialFactory.instance;
+  }
+
+  /**
+   * Applies uniform 1:1 UV repeat scaling with anisotropic filtering across all material texture channels.
+   * 1.0 world meter = ~6.8 crisp square ceramic tiles (~14.7cm tiles) with zero horizontal/vertical squishing.
+   */
+  applyRepeat(mat: MeshStandardMaterial, repeatScale = 0.85): void {
+    const uvScale = repeatScale; // 0.85 * 8 tiles/tex = ~6.8 crisp square tiles per meter (14.7cm tiles)
+    for (const tex of [
+      mat.map,
+      mat.normalMap,
+      mat.roughnessMap,
+      mat.aoMap,
+      mat.bumpMap,
+      (mat as unknown as { clearcoatRoughnessMap?: import('three').Texture }).clearcoatRoughnessMap,
+    ]) {
+      if (tex) {
+        tex.repeat.set(uvScale, uvScale);
+        tex.anisotropy = 16;
+        tex.needsUpdate = true;
+      }
+    }
+  }
+
+  /**
+   * Generates or retrieves a uniform 1:1 square ceramic tile material for box geometries.
+   * Eliminates the asymmetric repeat bug (which previously squished horizontal UVs by 16x).
+   */
+  getTileMaterialForBox(
+    presetName: string = 'clean-white',
+    _width?: number,
+    _height?: number,
+    _depth?: number,
+  ): MeshStandardMaterial {
+    const preset = TILE_PRESETS[presetName] ?? TILE_PRESETS['clean-white']!;
+    const textures = makeTileSet({
+      variant: (presetName as any) || 'clean-white',
+      size: 512,
+      anisotropy: 16,
+      tileColor: preset.tileColor,
+      groutColor: preset.groutColor,
+      stainAmount: preset.stainAmount,
+      waterlineTint: preset.waterlineTint,
+    });
+    const mat = new MeshStandardMaterial({
+      map: textures.albedo,
+      normalMap: textures.normal,
+      roughnessMap: textures.roughness,
+      aoMap: textures.ao,
+      roughness: preset.roughness,
+      metalness: preset.metalness,
+      color: new Color(preset.tileColor),
+    });
+    (mat as unknown as { clearcoat?: number; clearcoatRoughness?: number }).clearcoat = preset.clearcoat;
+    (mat as unknown as { clearcoat?: number; clearcoatRoughness?: number }).clearcoatRoughness = preset.clearcoatRoughness;
+    this.applyRepeat(mat, 0.85);
+    return mat;
   }
 
   resolveThemeId(themeOrMapId: string): SectorThemeId {
@@ -1785,4 +1880,17 @@ export function applyWorldSpaceCylinderUVs(
   }
 
   uvAttr.needsUpdate = true;
+}
+
+export function applyRepeat(mat: MeshStandardMaterial, repeatScale = 0.85): void {
+  TileMaterialFactory.getInstance().applyRepeat(mat, repeatScale);
+}
+
+export function getTileMaterialForBox(
+  presetName = 'clean-white',
+  width?: number,
+  height?: number,
+  depth?: number,
+): MeshStandardMaterial {
+  return TileMaterialFactory.getInstance().getTileMaterialForBox(presetName, width, height, depth);
 }

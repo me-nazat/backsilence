@@ -16,13 +16,18 @@ import { createNoisePermutation, fbm2DTileable } from '../core/noise.js';
 import { hexToRgb, jitterColor } from '../core/color.js';
 import { acquireCanvas } from '../core/canvasPool.js';
 
-export type TileVariant = 'platform' | 'wall' | 'floorWet' | 'ceiling';
+export type TileVariant = 'platform' | 'wall' | 'floorWet' | 'ceiling' | 'white' | 'clean-white';
 
 export interface TileSetOptions {
   variant: TileVariant;
-  size?: number;
-  seed?: number;
-  anisotropy?: number;
+  size?: number | undefined;
+  seed?: number | undefined;
+  anisotropy?: number | undefined;
+  tilesPerSide?: number | undefined;
+  tileColor?: string | undefined;
+  groutColor?: string | undefined;
+  stainAmount?: number | undefined;
+  waterlineTint?: string | undefined;
 }
 
 export interface TileSetResult {
@@ -33,7 +38,19 @@ export interface TileSetResult {
   ao: CanvasTexture;
 }
 
-const PALETTE: Record<TileVariant, { base: string; grout: string; grid: number; crackRate: number }> = {
+export interface TileConfigItem {
+  base: string;
+  grout: string;
+  grid: number;
+  crackRate: number;
+  stainAmount?: number;
+  waterlineTint?: string;
+  roughness?: number;
+  clearcoat?: number;
+  clearcoatRoughness?: number;
+}
+
+const PALETTE: Record<TileVariant, TileConfigItem> = {
   platform: {
     base: '#c29b56',
     grout: '#a58a5c',
@@ -58,6 +75,28 @@ const PALETTE: Record<TileVariant, { base: string; grout: string; grid: number; 
     grid: 16,
     crackRate: 0.005,
   },
+  white: {
+    base: '#f6f7f4',
+    grout: '#b8c0be',
+    grid: 8,
+    crackRate: 0.002,
+    stainAmount: 0.03,
+    waterlineTint: '#d2ebe8',
+    roughness: 0.18,
+    clearcoat: 0.60,
+    clearcoatRoughness: 0.14,
+  },
+  'clean-white': {
+    base: '#f6f7f4',
+    grout: '#b8c0be',
+    grid: 8,
+    crackRate: 0.002,
+    stainAmount: 0.03,
+    waterlineTint: '#d2ebe8',
+    roughness: 0.18,
+    clearcoat: 0.60,
+    clearcoatRoughness: 0.14,
+  },
 };
 
 /**
@@ -68,11 +107,15 @@ export function makeTileSet(options: TileSetOptions): TileSetResult {
   const size = options.size ?? 512;
   const seed = options.seed ?? 42;
 
-  const cfg = PALETTE[variant];
-  const grid = cfg.grid;
+  const cfg = PALETTE[variant] ?? PALETTE['clean-white'];
+  const grid = options.tilesPerSide ?? cfg.grid;
   const tileSize = size / grid;
   const groutWidth = Math.max(1.5, (size / 512) * 1.5);
   const halfGrout = Math.max(0.75, groutWidth * 0.5);
+
+  const baseColor = options.tileColor ?? cfg.base;
+  const groutColor = options.groutColor ?? cfg.grout;
+  const stainRate = options.stainAmount ?? cfg.stainAmount ?? 0.04;
 
   const rng = new Rng(seed);
   const perm = createNoisePermutation(seed);
@@ -107,14 +150,14 @@ export function makeTileSet(options: TileSetOptions): TileSetResult {
     const row: TileInfo[] = [];
     for (let gx = 0; gx < grid; gx++) {
       const tileRng = rng.fork(`tile:${gx}:${gy}`);
-      const jitteredHex = jitterColor(tileRng.next.bind(tileRng), cfg.base, {
+      const jitteredHex = jitterColor(tileRng.next.bind(tileRng), baseColor, {
         h: 1.0,
         s: 0.015,
         l: 0.015,
       });
       const rgb = hexToRgb(jitteredHex);
 
-      const isDirty = tileRng.next() < 0.04;
+      const isDirty = tileRng.next() < stainRate;
       const hasCrack = tileRng.next() < cfg.crackRate;
       const hasChip = tileRng.next() < 0.01;
 
@@ -159,7 +202,7 @@ export function makeTileSet(options: TileSetOptions): TileSetResult {
     tiles.push(row);
   }
 
-  const groutRgb = hexToRgb(cfg.grout);
+  const groutRgb = hexToRgb(groutColor);
 
   // Height map 1D buffer for Sobel normal computation
   const rawHeights = new Float32Array(size * size);
@@ -383,4 +426,25 @@ export function makeTileSet(options: TileSetOptions): TileSetResult {
     roughness: createTextureFromBuffer(roughnessData, false),
     ao: createTextureFromBuffer(aoData, false),
   };
+}
+
+/**
+ * Convenience generator for tile textures matching the procedural texture contract.
+ * Generates an 8x8 grid of ceramic tiles per 512x512 canvas texture.
+ */
+export function generateTileTextures(
+  options?: Partial<TileSetOptions> & { tilesPerSide?: number; preset?: string },
+): TileSetResult {
+  const variant = (options?.preset ?? options?.variant ?? 'clean-white') as TileVariant;
+  return makeTileSet({
+    variant,
+    size: options?.size ?? 512,
+    seed: options?.seed ?? 42,
+    anisotropy: options?.anisotropy ?? 16,
+    tilesPerSide: options?.tilesPerSide ?? 8,
+    groutColor: options?.groutColor,
+    tileColor: options?.tileColor,
+    stainAmount: options?.stainAmount,
+    waterlineTint: options?.waterlineTint,
+  });
 }

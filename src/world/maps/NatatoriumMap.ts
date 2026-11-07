@@ -1495,7 +1495,7 @@ export const NatatoriumMap: MapDefinition = {
     const skylightPanelMat = new MeshStandardMaterial({
       color: 0xffffff,
       emissive: 0xffffff,
-      emissiveIntensity: 2.0,
+      emissiveIntensity: 3.2,
       roughness: 0.1,
       metalness: 0.0,
       side: DoubleSide,
