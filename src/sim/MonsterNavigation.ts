@@ -250,6 +250,8 @@ export class MonsterNavigation {
     for (let i = 0; i < all.length; i++) {
       const col = all[i]!;
       if (col.type === 'box') {
+        // Walkable platforms are navigable slabs, not tall blocking walls
+        if (col.isWalkablePlatform || !col.isTall) continue;
         this.rasterizeObstacle(col.min.x - r, col.max.x + r, col.min.z - r, col.max.z + r);
       } else if (col.type === 'cylinder') {
         const rad = col.r + r;

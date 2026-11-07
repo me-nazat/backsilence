@@ -6,12 +6,15 @@
  *  - Silence-as-information audio snapshot ducking (-18dB ambient, -24dB music).
  * ──────────────────────────────────────────────────────────────────────── */
 
-import { Vector3, type PerspectiveCamera } from 'three';
+import { Vector3, type PerspectiveCamera, type Object3D } from 'three';
 import { JumpscareSequence, type JumpscareStats } from '../monster/Jumpscare.js';
 import type { AudioEngine } from '../../audio/AudioEngine.js';
 import type { PostFX } from '../../engine/PostFX.js';
 import type { Settings } from '../../types/contracts.js';
 import type { SessionStateMachine } from './SessionStateMachine.js';
+import type { MonsterJoints } from '../monster/MonsterMesh.js';
+import type { MonsterRig } from '../monster/MonsterRig.js';
+import type { MonsterAnimator } from '../monster/MonsterAnimator.js';
 
 export interface NoiseCauseEntry {
   timeOffset: number;
@@ -77,6 +80,10 @@ export class EncounterBridge {
     noisesMade: number,
     closestCall: number,
     monsterHeadPos?: { x: number; y: number; z: number },
+    monsterJoints?: MonsterJoints,
+    monsterRig?: MonsterRig,
+    monsterRoot?: Object3D,
+    monsterAnimator?: MonsterAnimator,
   ): void {
     if (this.isDead || this.hasEscaped) return;
     this.isDead = true;
@@ -100,6 +107,10 @@ export class EncounterBridge {
       0,
       { timeSurvived, noisesMade, closestCall },
       isReducedMotion,
+      monsterJoints,
+      monsterRig,
+      monsterRoot,
+      monsterAnimator,
     );
   }
 

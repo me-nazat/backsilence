@@ -29,6 +29,7 @@ export class MonsterManager {
   private readonly water?: WaterSystem | undefined;
   private readonly audio?: AudioEngine | undefined;
   skinChoice?: 'auto' | 'model' | 'procedural' = 'auto';
+  public onCameraShake?: ((intensity: number) => void) | undefined;
 
   constructor(water?: WaterSystem, audio?: AudioEngine, skinChoice: 'auto' | 'model' | 'procedural' = 'auto') {
     this.root.name = 'Monsters';
@@ -44,6 +45,9 @@ export class MonsterManager {
     const skinChoice = this.skinChoice ?? 'auto';
     const body = new MonsterBody(def.id, scale, tint, this.water, this.audio);
     body.setSkinPreference(skinChoice);
+    if (this.onCameraShake) {
+      body.onCameraShake = this.onCameraShake;
+    }
     this.bodies.set(def.id, body);
     this.root.add(body.mesh.root);
 

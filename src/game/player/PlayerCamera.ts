@@ -40,11 +40,19 @@ export class PlayerCamera {
   private baseFov: number;
   private currentFov: number;
 
+  // Roar camera shake
+  private roarShakeIntensity = 0;
+
   constructor(camera: PerspectiveCamera, settings: Settings) {
     this.camera = camera;
     this.settings = settings;
     this.baseFov = settings.graphics.fov;
     this.currentFov = this.baseFov;
+  }
+
+  addRoarShake(intensity: number): void {
+    if (this.settings.accessibility.reducedMotion === 'on') return;
+    this.roarShakeIntensity = Math.min(1.0, this.roarShakeIntensity + intensity);
   }
 
   setSettings(settings: Settings): void {
@@ -178,6 +186,13 @@ export class PlayerCamera {
       const now = performance.now() * 0.001;
       shakeY = Math.sin(now * 38.0) * 0.006 * intensity;
       shakeX = Math.cos(now * 44.0) * 0.005 * intensity;
+    }
+
+    if (this.roarShakeIntensity > 0.001 && !reducedMotion) {
+      const now = performance.now() * 0.001;
+      shakeY += Math.sin(now * 28.0) * 0.045 * this.roarShakeIntensity;
+      shakeX += Math.cos(now * 34.0) * 0.035 * this.roarShakeIntensity;
+      this.roarShakeIntensity = Math.max(0, this.roarShakeIntensity - dt * 2.2);
     }
 
     // 9. Camera Position composition

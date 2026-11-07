@@ -14,11 +14,13 @@ import {
   Euler,
   PointLight,
   type PerspectiveCamera,
+  type Object3D,
 } from 'three';
 import type { AudioEngine } from '../../audio/AudioEngine.js';
 import { safeExitPointerLock } from '../../engine/input/PointerLock.js';
 import type { MonsterJoints } from './MonsterMesh.js';
 import type { MonsterRig } from './MonsterRig.js';
+import type { MonsterAnimator } from './MonsterAnimator.js';
 
 export interface JumpscareStats {
   timeSurvived: number;
@@ -63,6 +65,7 @@ export class JumpscareSequence {
   private jumpscareLight: PointLight | null = null;
   private joints?: MonsterJoints | undefined;
   private monsterRig?: MonsterRig | undefined;
+  private monsterRoot?: Object3D | undefined;
   public headWaterRiseOffset = 0;
   public waterDrainingRate = 0;
   public armsSpreadWide = false;
@@ -99,6 +102,8 @@ export class JumpscareSequence {
     reducedMotion = false,
     monsterJoints?: MonsterJoints,
     monsterRig?: MonsterRig,
+    monsterRoot?: Object3D,
+    monsterAnimator?: MonsterAnimator,
   ): void {
     if (this.active) return;
     this.active = true;
@@ -109,18 +114,19 @@ export class JumpscareSequence {
     this.initialFov = camera.fov;
     this.joints = monsterJoints;
     this.monsterRig = monsterRig;
+    this.monsterRoot = monsterRoot;
     this.headWaterRiseOffset = 0;
     this.waterDrainingRate = 0;
     this.armsSpreadWide = true;
-    this.headWorldPos.copy(headPos);
 
     // 1. Freeze player input & hit-stop (0.25x time-scale for 0.25s)
     this.callbacks.onFreezeInput();
     this.callbacks.setTimeScale(0.25);
 
-    // 2. Play jumpscare stinger
+    // 2. Play jumpscare stinger + synchronized monster roar audio sting
     if (this.audio) {
       this.audio.play('jumpscare', { gain: 1.0 });
+      this.audio.play('monster_roar', { gain: 1.0 });
     }
 
     // 3. Haptic vibration if supported
@@ -136,20 +142,49 @@ export class JumpscareSequence {
     _camStartPos.copy(camera.position);
     _camStartQuat.copy(camera.quaternion);
 
-    // Compute target position 0.82m in front of monster face
-    _headForward.set(Math.sin(monsterYaw), 0, -Math.cos(monsterYaw));
-    _targetPos.copy(headPos).addScaledVector(_headForward, 0.82);
-    _targetPos.y = headPos.y; // face centered at eye-level
+    if (monsterRoot) {
+      // Vector along monster-to-player direction in horizontal plane
+      const monsterToCam = new Vector3().subVectors(camera.position, headPos);
+      monsterToCam.y = 0;
+      if (monsterToCam.lengthSq() < 0.001) {
+        camera.getWorldDirection(monsterToCam).negate();
+        monsterToCam.y = 0;
+      }
+      monsterToCam.normalize();
 
-    // Compute target rotation facing monster head
-    _targetLook.copy(headPos).sub(_targetPos).normalize();
-    camera.position.copy(_targetPos);
-    camera.lookAt(headPos);
-    _targetQuat.copy(camera.quaternion);
+      // Position the monster 1.15m directly in front of the player camera along monster-to-player vector
+      const monsterTargetPos = new Vector3().copy(camera.position).addScaledVector(monsterToCam, -1.15);
+      monsterRoot.position.set(monsterTargetPos.x, camera.position.y - 0.45, monsterTargetPos.z);
+      const faceYaw = Math.atan2(camera.position.x - monsterTargetPos.x, -(camera.position.z - monsterTargetPos.z));
+      monsterRoot.rotation.y = faceYaw;
 
-    // Restore starting camera position for smooth lerp
-    camera.position.copy(_camStartPos);
-    camera.quaternion.copy(_camStartQuat);
+      headPos.set(monsterTargetPos.x, camera.position.y, monsterTargetPos.z);
+      this.headWorldPos.copy(headPos);
+      _headForward.copy(monsterToCam);
+
+      if (monsterAnimator) {
+        monsterAnimator.triggerJumpscareGrab();
+      }
+
+      // Camera stays at its position, looking straight into monster face
+      _targetPos.copy(camera.position);
+      camera.lookAt(headPos);
+      _targetQuat.copy(camera.quaternion);
+      camera.quaternion.copy(_camStartQuat);
+    } else {
+      this.headWorldPos.copy(headPos);
+      // Standalone camera motion for unit tests without monsterRoot
+      _headForward.set(Math.sin(monsterYaw), 0, -Math.cos(monsterYaw));
+      _targetPos.copy(headPos).addScaledVector(_headForward, 0.82);
+      _targetPos.y = headPos.y; // face centered at eye-level
+
+      _targetLook.copy(headPos).sub(_targetPos).normalize();
+      camera.position.copy(_targetPos);
+      camera.lookAt(headPos);
+      _targetQuat.copy(camera.quaternion);
+      camera.position.copy(_camStartPos);
+      camera.quaternion.copy(_camStartQuat);
+    }
 
     // 5. Attach dedicated high-intensity flickering cold-white/crimson Key & Rim PointLight
     if (!this.jumpscareLight) {
@@ -161,9 +196,10 @@ export class JumpscareSequence {
       camera.parent.add(this.jumpscareLight);
     }
 
-    // Show initial red vignette flash
+    // Show initial red shock vignette
     if (this.overlayEl) {
-      this.overlayEl.style.opacity = '0.9';
+      this.overlayEl.style.background = 'radial-gradient(circle, rgba(255, 10, 10, 0.95) 0%, rgba(180, 0, 0, 0.98) 70%, rgba(20, 0, 0, 1.0) 100%)';
+      this.overlayEl.style.opacity = '0.95';
     }
   }
 
@@ -179,12 +215,14 @@ export class JumpscareSequence {
     }
 
     // -------------------------------------------------------------
-    // Stage 1 (0.00s – 0.18s, Snap & Unhinge): Camera smooth look-at whip in 0.08s to face distance
+    // Stage 1 (0.00s – 0.18s, Snap & Unhinge): Camera smooth look-at snap in 0.10s to face distance
     // -------------------------------------------------------------
-    const snapT = Math.min(1.0, t / 0.08);
+    const snapT = Math.min(1.0, t / 0.10);
     const easeOutSnap = 1.0 - Math.pow(1.0 - snapT, 3);
 
-    this.camera.position.lerpVectors(_camStartPos, _targetPos, easeOutSnap);
+    if (!this.monsterRoot) {
+      this.camera.position.lerpVectors(_camStartPos, _targetPos, easeOutSnap);
+    }
     this.camera.quaternion.slerpQuaternions(_camStartQuat, _targetQuat, easeOutSnap);
 
     // Dynamic jumpscare key light
@@ -327,6 +365,7 @@ export class JumpscareSequence {
 
   private cleanup(): void {
     this.active = false;
+    this.monsterRoot = undefined;
     if (this.jumpscareLight?.parent) {
       this.jumpscareLight.parent.remove(this.jumpscareLight);
     }

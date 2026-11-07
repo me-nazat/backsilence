@@ -332,6 +332,9 @@ export class SessionHost {
 
     // 6. Spawn monsters
     this.monsters = new MonsterManager(this.water, this.audio, this.settings.creatures?.waterMonsterSkin);
+    this.monsters.onCameraShake = (intensity: number) => {
+      this.cameraRig.playerCamera.addRoarShake(intensity);
+    };
     this.scene.add(this.monsters.root);
 
     const monsterSpawns = this.spawnService.resolveMonsterSpawns(
@@ -672,7 +675,36 @@ export class SessionHost {
     }
     this.wasPlayerWet = currSnap.wet;
 
-    this.cameraRig.playerCamera.update(dt, prevSnap, currSnap, renderAlpha, undefined, this.water.currentWaterY);
+    // 3. Check creature proximity
+    let nearestMonsterDist = 999.0;
+    for (const m of this.simWorld.monsters) {
+      const d = Math.hypot(m.pos.x - currSnap.pos.x, m.pos.z - currSnap.pos.z);
+      if (d < nearestMonsterDist) nearestMonsterDist = d;
+      if (m.state === 'ATTACK' && !this.encounterBridge.dead) {
+        const body = this.monsters.getBody(m.id);
+        this.encounterBridge.triggerDeath(
+          this.cameraRig.camera,
+          this.postFX,
+          this.timeSurvived,
+          this.noisesMade,
+          this.closestCall,
+          m.pos,
+          body?.mesh.joints,
+          body?.rig,
+          body?.mesh.root,
+          body?.animator,
+        );
+      }
+    }
+    if (nearestMonsterDist < this.closestCall) {
+      this.closestCall = nearestMonsterDist;
+    }
+
+    if (this.firstCreatureSightingTime === null && nearestMonsterDist <= 25.0) {
+      this.firstCreatureSightingTime = this.timeSurvived;
+    }
+
+    this.cameraRig.playerCamera.update(dt, prevSnap, currSnap, renderAlpha, nearestMonsterDist, this.water.currentWaterY);
     this.footsteps.update(currSnap, this.cameraRig.playerCamera.getBobPhase(), this.camera, this.simWorld.waterY);
 
     // 4. Update audio listener orientation
@@ -695,31 +727,8 @@ export class SessionHost {
       }
     }
 
-    // 6. Check creature proximity
-    let nearestMonsterDist = 999.0;
-    for (const m of this.simWorld.monsters) {
-      const d = Math.hypot(m.pos.x - currSnap.pos.x, m.pos.z - currSnap.pos.z);
-      if (d < nearestMonsterDist) nearestMonsterDist = d;
-      if (m.state === 'ATTACK' && !this.encounterBridge.dead) {
-        this.encounterBridge.triggerDeath(
-          this.cameraRig.camera,
-          this.postFX,
-          this.timeSurvived,
-          this.noisesMade,
-          this.closestCall,
-          m.pos,
-        );
-      }
-    }
-    if (nearestMonsterDist < this.closestCall) {
-      this.closestCall = nearestMonsterDist;
-    }
-
-    if (this.firstCreatureSightingTime === null && nearestMonsterDist <= 25.0) {
-      this.firstCreatureSightingTime = this.timeSurvived;
-    }
-
-    // 7. Step subsystems
+    // 6. Step subsystems
+    this.monsters.update(dt, this.simWorld.monsters, this.simWorld.ground, this.camera, currSnap.pos);
     this.flock.update(dt, this.simWorld.simTime, this.camera);
     this.weatherDirector.update(dt, this.simWorld.simTime, this.camera, currSnap.pos);
     this.lensOverlay.update(dt);

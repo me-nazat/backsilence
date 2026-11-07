@@ -8,7 +8,7 @@
 import type { Vec3, MonsterState, NoiseEvent } from '../types/contracts.js';
 import type { NavGrid } from './NavGrid.js';
 import { AStarPathfinder, type PathPoint } from './AStar.js';
-import type { ColliderSet } from './Colliders.js';
+import type { ColliderSet, Collider } from './Colliders.js';
 import type { EventRingBuffer } from './Events.js';
 import { canHearNoise, calculateNoiseScore, type HearingContext } from './Hearing.js';
 import { Rng } from './rng.js';
@@ -114,6 +114,10 @@ export class MonsterBrain {
   private swipeCooldown = 0;
   private stuckTimer = 0;
   private displacementStuckTimer = 0;
+  private stuckDisplacementAccum = 0;
+  public roarTimer = 0;
+  public roarCooldown = 0;
+  public isSplashTarget = false;
   consecutiveSplashes = 0;
   lastSplashTime = -999;
   isSighting = false;
@@ -374,19 +378,63 @@ export class MonsterBrain {
         this.isSighting = false;
       }
     }
+    if (this.roarCooldown > 0) {
+      this.roarCooldown -= dt;
+    }
+
+    if (this.roarTimer > 0) {
+      this.roarTimer -= dt;
+      this.rearingT = 1.0;
+      this.jawOpenT = 1.0;
+      this.vel.x = 0;
+      this.vel.z = 0;
+      if (playerPos) {
+        const toPlayerYaw = dAtan2(playerPos.x - this.pos.x, -(playerPos.z - this.pos.z));
+        this.yaw = this.steerTowards(this.yaw, toPlayerYaw, MonsterBrain.TURN_RATE_HUNT * dt);
+      }
+      if (this.roarTimer <= 0) {
+        this.rearingT = 0;
+        this.jawOpenT = 0;
+      }
+      return;
+    }
 
     // 2. Physical Touch & Attack Check
     const distToPlayer = dHypot(playerPos.x - this.pos.x, playerPos.z - this.pos.z);
     const vertDistToPlayer = Math.abs(playerPos.y - this.pos.y);
     const isOnDryPlatform = isPlayerPerched || (this.monsterNav ? (!isPlayerInWater || this.monsterNav.isPlatformAt(playerPos.x, playerPos.z)) : false);
+    const monsterInWater = this.monsterNav ? !this.monsterNav.isPlatformAt(this.pos.x, this.pos.z) : this.pos.y < 0.2;
 
     if (this.state !== 'DORMANT' && this.state !== 'ATTACK') {
       if (isOnDryPlatform) {
+        // Trigger Condition 2: Platform-Edge Confrontation Roar (Video 2 Signature Moment)
+        // Monster in water approaches within 2.4m..4.2m of a player on a dry platform (y >= 0.30)
+        if (
+          (this.state === 'HUNT' || this.state === 'INVESTIGATE') &&
+          monsterInWater &&
+          playerPos.y >= 0.30 &&
+          distToPlayer >= 2.4 &&
+          distToPlayer <= 4.2 &&
+          this.roarCooldown <= 0
+        ) {
+          this.roarTimer = 1.75;
+          this.roarCooldown = 12.0;
+          this.rearingT = 1.0;
+          this.jawOpenT = 1.0;
+          this.vel.x = 0;
+          this.vel.z = 0;
+          const toPlayerYaw = dAtan2(playerPos.x - this.pos.x, -(playerPos.z - this.pos.z));
+          this.yaw = toPlayerYaw;
+          events.pushNoise(`noise_platform_roar_${this.id}_${simTime}`, 'roar', this.pos.x, this.pos.y, this.pos.z, 1.0, this.id, simTime);
+          return;
+        }
+
         // PROMPT 3A: Dry Platforms Are Strictly Off-Limits to the Monster.
         // Monster is 100% blind: player on dry platform is completely immune from attack.
         if (
           (this.state === 'ALERTED' || this.state === 'HUNT' || this.state === 'INVESTIGATE') &&
-          distToPlayer <= 3.0
+          distToPlayer <= 3.0 &&
+          this.roarTimer <= 0
         ) {
           this.enterLurk(playerPos, simTime);
         }
@@ -543,7 +591,59 @@ export class MonsterBrain {
         break;
     }
 
-    // 5. Minkowski Sum Dry Platform Exclusion (R_MONSTER = 0.68m)
+    // 5. Physical collider pushout against tall walls and pillars (ignoring walkable platforms topY <= 0.38m)
+    if (colliders) {
+      const rMonster = 0.68;
+      const candidates: Collider[] = [];
+      colliders.queryCircle(this.pos.x, this.pos.z, rMonster + 1.2, candidates);
+      for (let i = 0; i < candidates.length; i++) {
+        const col = candidates[i]!;
+        if (col.type === 'box') {
+          // Monster ignores walkable platforms; only collides with tall walls
+          if (col.isWalkablePlatform || !col.isTall) continue;
+          const nearestX = Math.max(col.min.x, Math.min(this.pos.x, col.max.x));
+          const nearestZ = Math.max(col.min.z, Math.min(this.pos.z, col.max.z));
+          const dx = this.pos.x - nearestX;
+          const dz = this.pos.z - nearestZ;
+          const dSq = dx * dx + dz * dz;
+          if (dSq < rMonster * rMonster) {
+            const d = Math.sqrt(dSq);
+            if (d > 1e-4) {
+              const overlap = rMonster - d;
+              this.pos.x += (dx / d) * overlap;
+              this.pos.z += (dz / d) * overlap;
+            } else {
+              const toMinX = this.pos.x - col.min.x;
+              const toMaxX = col.max.x - this.pos.x;
+              const toMinZ = this.pos.z - col.min.z;
+              const toMaxZ = col.max.z - this.pos.z;
+              const minAxis = Math.min(toMinX, toMaxX, toMinZ, toMaxZ);
+              if (minAxis === toMinX) this.pos.x = col.min.x - rMonster;
+              else if (minAxis === toMaxX) this.pos.x = col.max.x + rMonster;
+              else if (minAxis === toMinZ) this.pos.z = col.min.z - rMonster;
+              else this.pos.z = col.max.z + rMonster;
+            }
+          }
+        } else if (col.type === 'cylinder') {
+          const dx = this.pos.x - col.cx;
+          const dz = this.pos.z - col.cz;
+          const minDist = rMonster + col.r;
+          const dSq = dx * dx + dz * dz;
+          if (dSq < minDist * minDist) {
+            const d = Math.sqrt(dSq);
+            if (d > 1e-4) {
+              const overlap = minDist - d;
+              this.pos.x += (dx / d) * overlap;
+              this.pos.z += (dz / d) * overlap;
+            } else {
+              this.pos.x += minDist;
+            }
+          }
+        }
+      }
+    }
+
+    // 5b. Minkowski Sum Dry Platform Exclusion (R_MONSTER = 0.68m)
     // Guarantees monster never steps, climbs, or clips onto dry platforms
     if (this.monsterNav) {
       const resolved = this.monsterNav.resolveMonsterCollision(this.pos);
@@ -551,40 +651,48 @@ export class MonsterBrain {
       this.pos.z = resolved.z;
     }
 
-    // 6. Anti-Stuck Watchdog
-    const actualDisplacement = dt > 0.0001 ? dHypot(this.pos.x - prevX, this.pos.z - prevZ) / dt : 0;
-    const desiredSpeed =
+    // 6. Anti-Stuck & Displacement Watchdog
+    const stepDisplacement = dt > 0.0001 ? dHypot(this.pos.x - prevX, this.pos.z - prevZ) : 0;
+    const isMovingState = (this.state === 'HUNT' || this.state === 'INVESTIGATE') && this.roarTimer <= 0;
+    const targetSpeed =
       this.state === 'HUNT'
         ? MonsterBrain.SPEED_HUNT * this.speedMul
-        : this.state === 'WANDER'
-        ? MonsterBrain.SPEED_WANDER * this.speedMul
         : this.state === 'INVESTIGATE'
         ? MonsterBrain.SPEED_INVESTIGATE * this.speedMul
         : 0;
 
-    if (desiredSpeed > 0 && this.state === 'HUNT') {
-      if (actualDisplacement < 0.4 * desiredSpeed) {
-        this.displacementStuckTimer += dt;
-        if (this.displacementStuckTimer >= 0.35) {
+    if (isMovingState && targetSpeed > 2.0) {
+      this.displacementStuckTimer += dt;
+      this.stuckDisplacementAccum += stepDisplacement;
+
+      if (this.displacementStuckTimer >= 0.6) {
+        if (this.stuckDisplacementAccum < 0.35) {
+          // Smoothly steer yaw by ±0.85 rad along the open tangent
+          const testDist = 1.5;
+          const yawLeft = this.yaw - 0.85;
+          const yawRight = this.yaw + 0.85;
+          const leftWalkable = nav.isWalkableWorld(this.pos.x + dSin(yawLeft) * testDist, this.pos.z - dCos(yawLeft) * testDist);
+          const rightWalkable = nav.isWalkableWorld(this.pos.x + dSin(yawRight) * testDist, this.pos.z - dCos(yawRight) * testDist);
+          const steerSign = rightWalkable && !leftWalkable ? 1 : !rightWalkable && leftWalkable ? -1 : (dSin(simTime * 3.5) >= 0 ? 1 : -1);
+          this.yaw = (this.yaw + steerSign * 0.85) % D_TWO_PI;
+
+          // Advance to the next waypoint
           this.currentPathIndex++;
-          const perpYaw = this.yaw + Math.PI * 0.5 * (dSin(simTime * 4.0) > 0 ? 1 : -1);
-          this.pos.x += dSin(perpYaw) * 0.06;
-          this.pos.z -= dCos(perpYaw) * 0.06;
-          this.displacementStuckTimer = 0;
           if (this.currentPathIndex >= this.currentPath.length) {
             if (this.state === 'HUNT' && this.currentTarget) {
               this.currentPath = this.astar.findPath(this.pos.x, this.pos.z, this.currentTarget.x, this.currentTarget.z);
               this.currentPathIndex = 0;
             } else {
-              this.pickNextWanderWaypoint(nav, playerPos);
+              this.pickSearchWaypoint(nav, playerPos);
             }
           }
         }
-      } else {
-        this.displacementStuckTimer = Math.max(0, this.displacementStuckTimer - dt * 2.0);
+        this.displacementStuckTimer = 0;
+        this.stuckDisplacementAccum = 0;
       }
     } else {
       this.displacementStuckTimer = 0;
+      this.stuckDisplacementAccum = 0;
     }
   }
 
@@ -616,6 +724,9 @@ export class MonsterBrain {
     const dx = noise.position.x - this.pos.x;
     const dz = noise.position.z - this.pos.z;
     const isWaterSplash = noise.kind === 'splash' || (noise as unknown as { type?: string }).type === 'jump_in' || (noise.kind === 'wade' && noise.id.startsWith('noise_jump'));
+    if (isWaterSplash || noise.kind === 'splash' || (noise.loudness >= 0.35 && noise.sourcePlayerId !== 'world')) {
+      this.isSplashTarget = true;
+    }
 
     // Track consecutive loud splashes/noises within 6.0s window
     if (simTime - this.lastSplashTime < 6.0) {
@@ -946,6 +1057,27 @@ export class MonsterBrain {
     playerPos?: Vec3,
     isPlayerMoving = false,
   ): void {
+    // Trigger Condition 1 (Splash Arrival Roar):
+    // When monster arrives within 2.2m of a high-priority water splash target in INVESTIGATE
+    // (and player is not within immediate 1.8m grab range)
+    const dTarget = this.currentTarget ? dHypot(this.currentTarget.x - this.pos.x, this.currentTarget.z - this.pos.z) : 999;
+    const distToP = playerPos ? dHypot(playerPos.x - this.pos.x, playerPos.z - this.pos.z) : 999;
+    if (this.isSplashTarget && dTarget <= 2.2 && distToP > 1.8 && this.roarCooldown <= 0 && this.roarTimer <= 0) {
+      this.isSplashTarget = false;
+      this.roarTimer = 1.75;
+      this.roarCooldown = 10.0;
+      this.rearingT = 1.0;
+      this.jawOpenT = 1.0;
+      this.vel.x = 0;
+      this.vel.z = 0;
+      const faceTarget = playerPos ?? this.currentTarget;
+      if (faceTarget) {
+        this.yaw = dAtan2(faceTarget.x - this.pos.x, -(faceTarget.z - this.pos.z));
+      }
+      events.pushNoise(`noise_splash_arrival_roar_${this.id}_${simTime}`, 'roar', this.pos.x, this.pos.y, this.pos.z, 0.95, this.id, simTime);
+      return;
+    }
+
     this.rearingT = 0; // head low, listening
     this.jawOpenT = Math.max(0, this.jawOpenT - dt * 2.0);
     // Prompt 4C: Sniff/scan headYaw sweep visible to the player when silent

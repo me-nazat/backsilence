@@ -31,6 +31,7 @@ export class MonsterBody {
   readonly mesh: MonsterMeshHierarchy;
   readonly rig: MonsterRig;
   readonly animator: MonsterAnimator;
+  public onCameraShake?: ((intensity: number) => void) | undefined;
   private readonly gait = new MonsterGaitGenerator();
   private readonly water?: WaterSystem | undefined;
   private readonly audio?: AudioEngine | undefined;
@@ -101,6 +102,14 @@ export class MonsterBody {
           this.water.rippleManager?.spawnMonsterGallopSlam(pos.x, pos.z);
           this.water.waveSim.injectImpulse(pos.x, pos.z, 0.85, 0.18);
           this.water.onInkSplash(pos, 1.25, true);
+        }
+        if (this.audio) {
+          this.audio.play('splash_big', { position: pos, gain: 0.95 });
+        }
+      },
+      onCameraShake: (intensity: number) => {
+        if (this.onCameraShake) {
+          this.onCameraShake(intensity);
         }
       },
     });
@@ -317,11 +326,32 @@ export class MonsterBody {
     const speed = Math.hypot(snapshot.vel.x, snapshot.vel.z);
     _worldRoot.copy(this.mesh.root.position);
 
-    // Trigger rear up roar if brain sets rearingT or on alerted transition or arriving at splash target (HUNT -> INVESTIGATE) (Bug 4B)
+    // Trigger rear up roar if brain sets rearingT > 0.5 or on alerted transition or arriving at splash target (HUNT -> INVESTIGATE)
     const isSplashArrival = snapshot.state === 'INVESTIGATE' && this.prevState === 'HUNT';
     const isAlertedTransition = snapshot.state === 'ALERTED' && this.prevState !== 'ALERTED';
-    if ((snapshot.rearingT > 0.45 || isSplashArrival || isAlertedTransition) && !this.animator.isRoaring()) {
+    if ((snapshot.rearingT > 0.5 || isSplashArrival || isAlertedTransition) && !this.animator.isRoaring()) {
       this.animator.triggerRearUpRoar();
+      if (this.audio) {
+        this.audio.play('monster_roar', {
+          position: this.mesh.root.position,
+          gain: 1.0,
+          bus: 'monster',
+        });
+        if (this.water && !this.isOnDryPlatform) {
+          this.audio.play('splash_big', {
+            position: this.mesh.root.position,
+            gain: 0.9,
+            bus: 'monster',
+          });
+        }
+      }
+      if (camera) {
+        const distToCam = camera.position.distanceTo(this.mesh.root.position);
+        const shake = 0.035 * Math.max(0.0, Math.min(1.0, 1.0 - distToCam / 15.0));
+        if (this.onCameraShake) {
+          this.onCameraShake(shake);
+        }
+      }
     }
     this.prevState = snapshot.state;
 
