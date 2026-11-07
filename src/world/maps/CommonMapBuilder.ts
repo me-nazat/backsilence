@@ -101,7 +101,7 @@ export function buildStandardMapInstance(
   const root = new Group();
   root.name = `Map_${layout.mapId}`;
 
-  const platformSideMat = customMaterials.platformSideMat;
+  const platformSideMat = customMaterials?.platformSideMat;
 
   const reg = TextureRegistry.getInstance();
   const ceilingMat = customMaterials.ceilingMat ?? new MeshStandardMaterial({
@@ -625,13 +625,6 @@ export function buildStandardMapInstance(
     const cy = (wall.min.y + wall.max.y) * 0.5;
     const cz = (wall.min.z + wall.max.z) * 0.5;
 
-    colliders.addBox(
-      `wall_${wall.id}`,
-      wall.min,
-      wall.max,
-      wall.isWall ?? true,
-    );
-
     if (wall.kind === 'arch') {
       const wallThick = 0.6; // 0.6m thick wall opening with filleted reveal (Prompt 4)
       const wallLength = Math.max(w, d);
@@ -639,6 +632,65 @@ export function buildStandardMapInstance(
       const rawSpan = Math.max(2.4, Math.min(4.8, wallLength * 0.45));
       const tilesInSpan = Math.max(16, Math.round(rawSpan / WORLD.TILE_METERS));
       const span = tilesInSpan * WORLD.TILE_METERS;
+      const pierH = Math.max(2.40, Math.max(3.0, h * 0.6));
+      const lintelMinY = wall.min.y + pierH;
+
+      // Unobstructed doorway opening with clearance >= 2.40m: side piers + top lintel only
+      if (w >= d) {
+        const leftX = cx - span * 0.5;
+        const rightX = cx + span * 0.5;
+        if (leftX > wall.min.x) {
+          colliders.addBox(
+            `wall_${wall.id}_pier_l`,
+            { x: wall.min.x, y: wall.min.y, z: wall.min.z },
+            { x: leftX, y: wall.max.y, z: wall.max.z },
+            wall.isWall ?? true,
+          );
+        }
+        if (rightX < wall.max.x) {
+          colliders.addBox(
+            `wall_${wall.id}_pier_r`,
+            { x: rightX, y: wall.min.y, z: wall.min.z },
+            { x: wall.max.x, y: wall.max.y, z: wall.max.z },
+            wall.isWall ?? true,
+          );
+        }
+        if (wall.max.y > lintelMinY) {
+          colliders.addBox(
+            `wall_${wall.id}_lintel`,
+            { x: leftX, y: lintelMinY, z: wall.min.z },
+            { x: rightX, y: wall.max.y, z: wall.max.z },
+            wall.isWall ?? true,
+          );
+        }
+      } else {
+        const nearZ = cz - span * 0.5;
+        const farZ = cz + span * 0.5;
+        if (nearZ > wall.min.z) {
+          colliders.addBox(
+            `wall_${wall.id}_pier_near`,
+            { x: wall.min.x, y: wall.min.y, z: wall.min.z },
+            { x: wall.max.x, y: wall.max.y, z: nearZ },
+            wall.isWall ?? true,
+          );
+        }
+        if (farZ < wall.max.z) {
+          colliders.addBox(
+            `wall_${wall.id}_pier_far`,
+            { x: wall.min.x, y: wall.min.y, z: farZ },
+            { x: wall.max.x, y: wall.max.y, z: wall.max.z },
+            wall.isWall ?? true,
+          );
+        }
+        if (wall.max.y > lintelMinY) {
+          colliders.addBox(
+            `wall_${wall.id}_lintel`,
+            { x: wall.min.x, y: lintelMinY, z: nearZ },
+            { x: wall.max.x, y: wall.max.y, z: farZ },
+            wall.isWall ?? true,
+          );
+        }
+      }
       const archGeom = buildArchGeometry({
         width: span,
         height: Math.max(2.4, h * 0.4),
@@ -667,6 +719,12 @@ export function buildStandardMapInstance(
       archMesh.receiveShadow = true;
       root.add(archMesh);
     } else {
+      colliders.addBox(
+        `wall_${wall.id}`,
+        wall.min,
+        wall.max,
+        wall.isWall ?? true,
+      );
       const geom = createTiledBoxGeometry({ w, h, d, uvOffsetSeed: wall.id.charCodeAt(0) });
       applyWorldSpaceBoxUVs(geom, WORLD.TILE_METERS);
       geom.translate(cx, cy, cz);

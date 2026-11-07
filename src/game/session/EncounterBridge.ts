@@ -23,6 +23,8 @@ export interface NoiseCauseEntry {
   hearingDistance: number;
 }
 
+const _scratchHeadPos = new Vector3();
+
 export class EncounterBridge {
   readonly jumpscare: JumpscareSequence;
   private isDead = false;
@@ -98,8 +100,8 @@ export class EncounterBridge {
         window.matchMedia('(prefers-reduced-motion: reduce)').matches);
 
     const headPos = monsterHeadPos
-      ? new Vector3(monsterHeadPos.x, monsterHeadPos.y, monsterHeadPos.z)
-      : new Vector3(camera.position.x, camera.position.y, camera.position.z + 1.0);
+      ? _scratchHeadPos.set(monsterHeadPos.x, monsterHeadPos.y, monsterHeadPos.z)
+      : _scratchHeadPos.set(camera.position.x, camera.position.y, camera.position.z + 1.0);
 
     this.jumpscare.trigger(
       camera,

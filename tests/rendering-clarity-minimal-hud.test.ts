@@ -8,10 +8,8 @@
  *  5. Auto-hiding stamina and noise indicators (opacity 0 when full/quiet, opacity 1 when active)
  * ──────────────────────────────────────────────────────────────────────── */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { VHSShader } from '../src/procedural/shaders/vhs.glsl.js';
-import { PostFX } from '../src/engine/PostFX.js';
-import { defaultSettings } from '../src/app/Settings.js';
 import { Hud } from '../src/ui/Hud.js';
 
 // ── Minimal in-test DOM Mock ───────────────────────────────────────────────

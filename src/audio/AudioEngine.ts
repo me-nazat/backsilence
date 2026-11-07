@@ -10,6 +10,8 @@ import { ReverbUnit, type ReverbPreset } from './Reverb.js';
 import { Mixer, type AudioBusName, type OutputProfile, type MixerSnapshot, BUS_PRIORITIES } from './Mixer.js';
 import { AudioDirector } from './AudioDirector.js';
 import { AudioBufferPool, type PooledVoiceCategory } from './AudioBufferPool.js';
+import { AUDIO_CUES, getAudioCueProfile, type AudioCueProfile } from './cues.js';
+export { AUDIO_CUES, getAudioCueProfile, type AudioCueProfile };
 import ambienceWorkletUrl from './worklets/AmbienceProcessor.ts?worker&url';
 
 import {

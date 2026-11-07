@@ -202,16 +202,16 @@ export function playMonsterRoar(cx: MonsterVoiceContext): RawVoiceHandle {
 
   const nodesToDisconnect: AudioNode[] = [voiceGain, brickwall];
 
-  // ── Voice 1: Sub-Chest Growl ──
+  // ── Voice 1: Sub-Chest Growl (Sub-bass rumble 55 Hz – 110 Hz) ──
   const v1Saw = ctx.createOscillator();
   v1Saw.type = 'sawtooth';
-  v1Saw.frequency.setValueAtTime(58 * pitchMult, now);
-  v1Saw.frequency.exponentialRampToValueAtTime(Math.max(25, 42 * pitchMult), now + duration);
+  v1Saw.frequency.setValueAtTime(110 * pitchMult, now);
+  v1Saw.frequency.exponentialRampToValueAtTime(Math.max(25, 55 * pitchMult), now + duration);
 
   const v1Tri = ctx.createOscillator();
   v1Tri.type = 'triangle';
-  v1Tri.frequency.setValueAtTime(87 * pitchMult, now);
-  v1Tri.frequency.exponentialRampToValueAtTime(Math.max(30, 62 * pitchMult), now + duration);
+  v1Tri.frequency.setValueAtTime(82 * pitchMult, now);
+  v1Tri.frequency.exponentialRampToValueAtTime(Math.max(25, 55 * pitchMult), now + duration);
 
   const v1Lfo = ctx.createOscillator();
   v1Lfo.type = 'sine';
@@ -225,7 +225,7 @@ export function playMonsterRoar(cx: MonsterVoiceContext): RawVoiceHandle {
 
   const v1Lp = ctx.createBiquadFilter();
   v1Lp.type = 'lowpass';
-  v1Lp.frequency.setValueAtTime(320 * pitchMult, now);
+  v1Lp.frequency.setValueAtTime(220 * pitchMult, now);
   v1Lp.Q.setValueAtTime(0.707, now);
 
   const v1Gain = ctx.createGain();
@@ -267,23 +267,25 @@ export function playMonsterRoar(cx: MonsterVoiceContext): RawVoiceHandle {
   v2Osc2.connect(v2Mix);
   v2Noise.connect(v2Mix);
 
-  // Formant filters
+  // Formant filters: Wet guttural formant growl (220 Hz – 680 Hz primary formants)
   const f1 = ctx.createBiquadFilter();
   f1.type = 'bandpass';
-  f1.frequency.setValueAtTime(380 * pitchMult, now);
-  f1.frequency.exponentialRampToValueAtTime(Math.max(100, 260 * pitchMult), now + duration);
-  f1.Q.setValueAtTime(3.8, now);
+  f1.frequency.setValueAtTime(220 * pitchMult, now);
+  f1.frequency.exponentialRampToValueAtTime(Math.max(100, 340 * pitchMult), now + 0.35);
+  f1.frequency.exponentialRampToValueAtTime(Math.max(100, 220 * pitchMult), now + duration);
+  f1.Q.setValueAtTime(4.2, now);
 
   const f2 = ctx.createBiquadFilter();
   f2.type = 'bandpass';
-  f2.frequency.setValueAtTime(920 * pitchMult, now);
-  f2.frequency.exponentialRampToValueAtTime(Math.max(200, 640 * pitchMult), now + duration);
-  f2.Q.setValueAtTime(4.2, now);
+  f2.frequency.setValueAtTime(420 * pitchMult, now);
+  f2.frequency.exponentialRampToValueAtTime(Math.max(200, 680 * pitchMult), now + 0.45);
+  f2.frequency.exponentialRampToValueAtTime(Math.max(180, 360 * pitchMult), now + duration);
+  f2.Q.setValueAtTime(4.5, now);
 
   const f3 = ctx.createBiquadFilter();
   f3.type = 'bandpass';
-  f3.frequency.setValueAtTime(1850 * pitchMult, now);
-  f3.frequency.exponentialRampToValueAtTime(Math.max(400, 1200 * pitchMult), now + duration);
+  f3.frequency.setValueAtTime(1650 * pitchMult, now);
+  f3.frequency.exponentialRampToValueAtTime(Math.max(400, 1100 * pitchMult), now + duration);
   f3.Q.setValueAtTime(3.5, now);
 
   const formantSum = ctx.createGain();
@@ -337,6 +339,39 @@ export function playMonsterRoar(cx: MonsterVoiceContext): RawVoiceHandle {
   sprayNoise.start(now);
   sprayNoise.stop(now + 0.42);
   nodesToDisconnect.push(sprayNoise, sprayBp, sprayGain);
+
+  // ── Voice 4: Echoing High-Frequency Screech (REAR_UP_ROAR) ──
+  const screechOsc = ctx.createOscillator();
+  screechOsc.type = 'sawtooth';
+  screechOsc.frequency.setValueAtTime(2400 * pitchMult, now);
+  screechOsc.frequency.exponentialRampToValueAtTime(Math.min(10000, 3600 * pitchMult), now + 0.25);
+  screechOsc.frequency.exponentialRampToValueAtTime(Math.max(500, 1900 * pitchMult), now + duration * 0.85);
+
+  const screechBp = ctx.createBiquadFilter();
+  screechBp.type = 'bandpass';
+  screechBp.frequency.setValueAtTime(2800 * pitchMult, now);
+  screechBp.frequency.exponentialRampToValueAtTime(Math.min(10000, 3400 * pitchMult), now + 0.3);
+  screechBp.frequency.exponentialRampToValueAtTime(Math.max(800, 2200 * pitchMult), now + duration * 0.85);
+  screechBp.Q.setValueAtTime(3.5, now);
+
+  const screechGain = ctx.createGain();
+  screechGain.gain.setValueAtTime(0.0001, now);
+  screechGain.gain.linearRampToValueAtTime(0.38, now + 0.08);
+  screechGain.gain.setValueAtTime(0.38, now + 0.55);
+  screechGain.gain.exponentialRampToValueAtTime(0.0001, now + duration * 0.9);
+
+  const screechRev = ctx.createGain();
+  screechRev.gain.setValueAtTime(0.65, now);
+
+  screechOsc.connect(screechBp);
+  screechBp.connect(screechGain);
+  screechGain.connect(voiceGain);
+  screechGain.connect(screechRev);
+  screechRev.connect(cx.reverbSend);
+
+  screechOsc.start(now);
+  screechOsc.stop(now + duration);
+  nodesToDisconnect.push(screechOsc, screechBp, screechGain, screechRev);
 
   let endedResolve: () => void;
   const ended = new Promise<void>((r) => { endedResolve = r; });

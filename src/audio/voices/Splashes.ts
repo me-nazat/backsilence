@@ -82,7 +82,7 @@ export function playSplash(
   cavityOsc.stop(now + 0.17);
   nodesToDisconnect.push(cavityOsc, cavityGain);
 
-  // 1b. Turbulent Water Burst: Pink noise dynamic bandpass sweeping 450 Hz -> 1800 Hz -> 320 Hz over 0.48s (gain: 0.55)
+  // 1b. Turbulent Water Burst: Pink noise dynamic bandpass sweeping 400 Hz -> 2800 Hz -> 420 Hz over 0.48s (gain: 0.55)
   const plungeBurstDur = 0.48;
   const plungeNoise = ctx.createBufferSource();
   plungeNoise.buffer = cx.noise.pink;
@@ -90,10 +90,10 @@ export function playSplash(
 
   const plungeFilter = ctx.createBiquadFilter();
   plungeFilter.type = 'bandpass';
-  plungeFilter.frequency.setValueAtTime(450 * pitchMult, now);
-  plungeFilter.frequency.exponentialRampToValueAtTime(Math.min(10000, 1800 * pitchMult), now + 0.18);
-  plungeFilter.frequency.exponentialRampToValueAtTime(Math.max(100, 320 * pitchMult), now + plungeBurstDur);
-  plungeFilter.Q.setValueAtTime(1.5, now);
+  plungeFilter.frequency.setValueAtTime(400 * pitchMult, now);
+  plungeFilter.frequency.exponentialRampToValueAtTime(Math.min(10000, 2800 * pitchMult), now + 0.18);
+  plungeFilter.frequency.exponentialRampToValueAtTime(Math.max(100, 420 * pitchMult), now + plungeBurstDur);
+  plungeFilter.Q.setValueAtTime(2.2, now);
 
   const plungeNoiseGain = ctx.createGain();
   plungeNoiseGain.gain.setValueAtTime(0.0001, now);
@@ -221,23 +221,23 @@ export function playWadeStep(cx: SplashVoiceContext): RawVoiceHandle {
   voiceGain.connect(cx.destination);
 
   const revSend = ctx.createGain();
-  revSend.gain.setValueAtTime(0.35, now);
+  revSend.gain.setValueAtTime(0.48, now);
   voiceGain.connect(revSend);
   revSend.connect(cx.reverbSend);
 
   const nodesToDisconnect: AudioNode[] = [voiceGain, revSend];
 
-  // 1. Modulated bandpass noise (350 Hz – 1400 Hz, duration: 0.28s, gain: 0.35)
+  // 1. Crisp resonant indoor pool slosh (400 Hz – 2800 Hz transient sweep)
   const noise = ctx.createBufferSource();
   noise.buffer = cx.noise.pink;
   noise.loop = true;
 
   const bp = ctx.createBiquadFilter();
   bp.type = 'bandpass';
-  bp.frequency.setValueAtTime(350 * pitchMult, now);
-  bp.frequency.exponentialRampToValueAtTime(Math.min(8000, 1400 * pitchMult), now + 0.12);
-  bp.frequency.exponentialRampToValueAtTime(Math.max(100, 450 * pitchMult), now + 0.28);
-  bp.Q.setValueAtTime(1.8, now);
+  bp.frequency.setValueAtTime(400 * pitchMult, now);
+  bp.frequency.exponentialRampToValueAtTime(Math.min(8000, 2800 * pitchMult), now + 0.10);
+  bp.frequency.exponentialRampToValueAtTime(Math.max(100, 520 * pitchMult), now + 0.28);
+  bp.Q.setValueAtTime(2.2, now);
 
   const noiseGain = ctx.createGain();
   noiseGain.gain.setValueAtTime(0.0001, now);

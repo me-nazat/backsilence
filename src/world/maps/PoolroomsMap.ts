@@ -4,11 +4,20 @@
  *  4 code pillars with ordinal markers, sequence keypad exit.
  * ──────────────────────────────────────────────────────────────────────── */
 
-import { MeshStandardMaterial, Vector2 } from 'three';
+import {
+  MeshStandardMaterial,
+  InstancedMesh,
+  PlaneGeometry,
+  Matrix4,
+  Vector3,
+  Euler,
+  Quaternion,
+  DoubleSide,
+} from 'three';
 import type { LayoutCtx, LayoutData, MapDefinition, PlatformDef, PillarDef, BoxDef, PropDef, StairDef, BuildEnv } from '../MapTypes.js';
 import type { MapInstance } from './MapInstance.js';
 import { Rng } from '../../procedural/core/prng.js';
-import { TextureRegistry } from '../../procedural/textures/TextureRegistry.js';
+import { TileMaterialFactory } from '../../procedural/textures/TileMaterialFactory.js';
 import { WATER_PROFILES } from '../../game/water/WaterProfile.js';
 import { buildStandardMapInstance } from './CommonMapBuilder.js';
 
@@ -350,51 +359,56 @@ export const PoolroomsMap: MapDefinition = {
   },
 
   async build(layout: LayoutData, env: BuildEnv): Promise<MapInstance> {
-    const reg = TextureRegistry.getInstance();
-    const platTiles = reg.getTileSet('platform', layout.seed);
-    const wallTiles = reg.getTileSet('wall', layout.seed);
-    const floorTiles = reg.getTileSet('floorWet', layout.seed);
+    const tileFactory = TileMaterialFactory.getInstance(env.renderer as import('three').WebGLRenderer | undefined);
+    const platformMat = tileFactory.platformTopMaterial.clone();
+    platformMat.vertexColors = true;
+    platformMat.envMapIntensity = 0.35;
+    platformMat.aoMapIntensity = 0.85;
 
-    const platformMat = new MeshStandardMaterial({
-      map: platTiles.albedo,
-      roughnessMap: platTiles.roughness,
-      normalMap: platTiles.normal,
-      normalScale: new Vector2(0.025, 0.025),
-      aoMap: platTiles.ao,
-      aoMapIntensity: 0.85,
-      roughness: 0.35,
-      metalness: 0.05,
-      envMapIntensity: 0.35,
-      vertexColors: true,
+    const wallMat = tileFactory.wallTileMaterial.clone();
+    wallMat.vertexColors = true;
+    wallMat.envMapIntensity = 0.35;
+    wallMat.aoMapIntensity = 0.85;
+
+    const floorMat = tileFactory.poolFloorMaterial.clone();
+    floorMat.vertexColors = true;
+    floorMat.envMapIntensity = 0.35;
+    floorMat.aoMapIntensity = 0.85;
+
+    const instance = await buildStandardMapInstance(layout, env, { platformMat, wallMat, floorMat });
+
+    // Inset glowing white skylight panels along the ceiling (emissiveIntensity: 3.2)
+    const skylightPanelMat = new MeshStandardMaterial({
+      color: 0xffffff,
+      emissive: 0xffffff,
+      emissiveIntensity: 3.2,
+      roughness: 0.1,
+      metalness: 0.0,
+      side: DoubleSide,
     });
+    const skyPanelGeom = new PlaneGeometry(4.0, 4.0);
+    const skylightSlabs = layout.platforms.slice(0, 12);
+    const skylightInstMesh = new InstancedMesh(skyPanelGeom, skylightPanelMat, skylightSlabs.length);
+    skylightInstMesh.name = 'PoolroomsSkylightPanels';
+    skylightInstMesh.matrixAutoUpdate = false;
+    const mat4 = new Matrix4();
+    const posVec = new Vector3();
+    const rotEuler = new Euler(Math.PI * 0.5, 0, 0);
+    const quat = new Quaternion().setFromEuler(rotEuler);
+    const scaleVec = new Vector3(1, 1, 1);
+    for (let i = 0; i < skylightSlabs.length; i++) {
+      const p = skylightSlabs[i]!;
+      const cx = (p.rect[0] + p.rect[2]) * 0.5;
+      const cz = (p.rect[1] + p.rect[3]) * 0.5;
+      posVec.set(cx, 4.8, cz);
+      mat4.compose(posVec, quat, scaleVec);
+      skylightInstMesh.setMatrixAt(i, mat4);
+    }
+    skylightInstMesh.instanceMatrix.needsUpdate = true;
+    skylightInstMesh.updateMatrix();
+    instance.root.add(skylightInstMesh);
 
-    const wallMat = new MeshStandardMaterial({
-      map: wallTiles.albedo,
-      roughnessMap: wallTiles.roughness,
-      normalMap: wallTiles.normal,
-      normalScale: new Vector2(0.025, 0.025),
-      aoMap: wallTiles.ao,
-      aoMapIntensity: 0.85,
-      roughness: 0.45,
-      metalness: 0.02,
-      envMapIntensity: 0.35,
-      vertexColors: true,
-    });
-
-    const floorMat = new MeshStandardMaterial({
-      map: floorTiles.albedo,
-      roughnessMap: floorTiles.roughness,
-      normalMap: floorTiles.normal,
-      normalScale: new Vector2(0.04, 0.04),
-      aoMap: floorTiles.ao,
-      aoMapIntensity: 0.85,
-      roughness: 0.2,
-      metalness: 0.05,
-      envMapIntensity: 0.35,
-      vertexColors: true,
-    });
-
-    return buildStandardMapInstance(layout, env, { platformMat, wallMat, floorMat });
+    return instance;
   },
 
   drawThumbnail(g: CanvasRenderingContext2D, layout: LayoutData, w: number, h: number): void {

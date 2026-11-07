@@ -75,6 +75,7 @@ import { clearNumberDecalCache } from '../../procedural/textures/NumberDecals.js
 import { clearPbrCache } from '../../procedural/textures/PbrMaterialKit.js';
 
 const _scratchVecA = new Vector3();
+const _scratchVecB = new Vector3();
 
 export interface SessionHostCallbacks {
   onPause: () => void;
@@ -713,8 +714,8 @@ export class SessionHost {
 
     // 4. Update audio listener orientation
     _scratchVecA.set(0, 0, -1).applyQuaternion(this.camera.quaternion);
-    const upVec = new Vector3(0, 1, 0).applyQuaternion(this.camera.quaternion);
-    this.audio.setListener(this.camera.position, _scratchVecA, upVec);
+    _scratchVecB.set(0, 1, 0).applyQuaternion(this.camera.quaternion);
+    this.audio.setListener(this.camera.position, _scratchVecA, _scratchVecB);
 
     // 5. Update anomalies & encounters
     this.anomalyBridge.update(dt, this.simWorld.player, this.water.currentWaterY);
