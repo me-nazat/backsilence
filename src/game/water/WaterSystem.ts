@@ -172,6 +172,7 @@ export class WaterSystem {
 
     this.mesh = new Mesh(geom, this.material);
     this.mesh.frustumCulled = false;
+    this.mesh.receiveShadow = true;
     this.mesh.renderOrder = 10; // Render after opaque geometry
     parent.add(this.mesh);
 

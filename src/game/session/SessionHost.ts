@@ -70,6 +70,7 @@ import { NetBridge } from './NetBridge.js';
 import { DebugBridge } from './DebugBridge.js';
 import { ColdOpenService } from './ColdOpenService.js';
 import { setupAtmosphere } from './AtmosphereService.js';
+import { ShadowFollower } from './ShadowFollower.js';
 import { clearDecalCache } from '../../procedural/textures/GraffitiDecals.js';
 import { clearNumberDecalCache } from '../../procedural/textures/NumberDecals.js';
 import { clearPbrCache } from '../../procedural/textures/PbrMaterialKit.js';
@@ -154,6 +155,7 @@ export class SessionHost {
   stillnessTimer = 0;
   envTexture: Texture | null = null;
   sunLight: DirectionalLight | null = null;
+  shadowFollower: ShadowFollower | null = null;
   wakeLock: unknown = null;
   lastCachedL4Fraction = 0;
   firstCreatureSightingTime: number | null = null;
@@ -418,6 +420,7 @@ export class SessionHost {
     const atmo = setupAtmosphere(this.scene, this.renderer, this.mapDef, this.settings, this.subMode);
     this.envTexture = atmo.envTexture;
     this.sunLight = atmo.sunLight;
+    this.shadowFollower = atmo.shadowFollower;
 
     // 11. Interactions & Acoustics
     this.interactions = new InteractionSystem();
@@ -749,6 +752,9 @@ export class SessionHost {
       pebbleEquipped: this.throwableBridge.throwableSystem.isEquipped,
       warningCaption: currSnap.wet,
     });
+
+    // 8b. Update directional shadow follower to player position
+    this.shadowFollower?.update(currSnap.pos);
 
     // 9. Render Frame
     const primaryPos = this.simWorld.monsters[0]?.pos;

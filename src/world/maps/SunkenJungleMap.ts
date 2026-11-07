@@ -21,7 +21,7 @@ import type { Vec3 } from '../../types/contracts.js';
 import type { MapInstance } from './MapInstance.js';
 import { TextureRegistry } from '../../procedural/textures/TextureRegistry.js';
 import { WATER_PROFILES } from '../../game/water/WaterProfile.js';
-import { buildStandardMapInstance } from './CommonMapBuilder.js';
+import { buildStandardMapInstance, markWorldShadows } from './CommonMapBuilder.js';
 import { FlowField } from '../../sim/FlowField.js';
 import { PerchSystem } from '../../sim/PerchSystem.js';
 import { applyWetDarkening } from '../../game/rendering/WetDarkening.js';
@@ -404,6 +404,7 @@ export const SunkenJungleMap: MapDefinition = {
     });
     instance.root.add(fireflies);
 
+    markWorldShadows(instance.root, layout.bounds);
     return instance;
   },
 

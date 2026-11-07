@@ -2150,5 +2150,44 @@ Prompt 8 fulfills the Steam promise of "Anomalies Beyond Reason" and the run-lev
 **Status:** ACCEPTED  
 **Consequences:** `npm run reference:compare` honestly exits code 1 (103 gating failures detected); `f_001` reports FAIL with SSIM 0.2114; `BETTER_THAN_VIDEO.md` reflects ground truth (0 EXCEEDS / 1 MATCH / 36 FAIL); `npm run audit` passes with zero false claims.
 
+## D130 — Connected Shadow Rig, Rebalanced Atmosphere, and Calibrated Palette Pathway (Prompt 2)
+
+**Date:** 2026-11-07  
+**Context:**  
+1. Meshes throughout the world were marked for shadows (`castShadow`/`receiveShadow`), but `AtmosphereService.ts` never enabled `sun.castShadow = true`, never created an explicit `sun.target` in the scene graph, and lacked shadow camera configuration, leaving directional shadows completely unrendered.
+2. On Low quality tier, `Renderer.ts:97` disabled shadows entirely (`shadowMap.enabled = false`).
+3. Individual maps and builders had marking gaps where tall meshes lacked `castShadow = true` or horizontal surfaces lacked `receiveShadow = true`.
+4. Over-driven lighting (`AmbientLight` 0.85 + `HemisphereLight` 1.45 + cyan sky/ground `0x6ad4e0` + toneMappingExposure 1.12) washed out depth and contrast.
+5. In `natatorium` and `poolrooms`, `AtmosphereService.ts` overrode `fogDensity` to `0.011` (90% transmittance at 30m, visually unfogged) and set cyan fog `#cce4e8` instead of measured reference pale mint `#d6dccd`.
+6. `WaterProfile.ts` and `WaterMaterial.ts` contained cyan overrides (`shallowColor: '#6ef2ff'`, `deepColor: '#18a8c8'`, `causticsColor: '#aefcff'`) that overrode the canonical measured targets (`#8cb179` / `#678f44`).
+
+**Decision:**  
+1. **Connected Directional Shadow Rig (`AtmosphereService.ts` & `Renderer.ts`):**  
+   - Enabled `sun.castShadow = true`, created explicit `sun.target = new Object3D()`, added it to `scene`, and configured shadow map resolution (2048 High / 1024 Medium & Low), bias `-0.0004`, normalBias `0.02`, camera near `0.5`, far `70.0`, bounds `[-35, 35]`.
+   - Removed `shadowMap.enabled = false` on Low tier in `Renderer.ts`. Shadow maps remain enabled across all quality tiers (`PCFShadowMap` on Low/Medium, `PCFSoftShadowMap` on High).
+   - Created `ShadowFollower.ts` and wired it into `SessionHost.ts` to update `sun.position` and `sun.target.position` to track the player position each frame.
+2. **Systematic Mesh Shadow Marking (`CommonMapBuilder.ts` & individual maps):**  
+   - Implemented `markWorldShadows(root, bounds)` ensuring every tall mesh inside map bounds has `castShadow = true` and `receiveShadow = true`, and horizontal surfaces have `receiveShadow = true`.
+   - Ensured creature meshes in `MonsterMesh.ts` both cast and receive shadows (`castShadow = true; receiveShadow = true;`).
+   - Enabled `receiveShadow = true` on the water surface in `WaterSystem.ts`.
+   - Added `tests/world-shadow-marking.test.ts` verifying all 11 canonical maps mark every mesh inside bounds to cast or receive shadows.
+3. **Re-balanced Atmosphere & Water Bounce Light (`AtmosphereService.ts`):**  
+   - Purged blinding `AmbientLight(0xeef8fa, 0.85)`.
+   - Re-balanced `HemisphereLight` to `0.65` intensity (cream sky `#fff5db`, olive ground `#506e4a`).
+   - Re-balanced sun key light to `1.8` intensity with `#fffdf5`.
+   - Added water bounce directional light from below pool level pointing upwards (`#5a8c50`, intensity `0.28`) illuminating slab undersides and creature belly.
+   - Calibrated tone mapping exposure to `1.0` baseline and `scene.environmentIntensity` to `0.22`.
+   - Restored pale mint fog `#d6dccd` with calibrated density $\rho = 0.028$.
+4. **Palette Pathway & Anti-Flatness Verification:**  
+   - Purged cyan overrides from `WaterProfile.ts` and `WaterMaterial.ts`, restoring `#8cb179` shallow and `#678f44` deep.
+   - Produced `reports/graphics/palette_pathway.md` detailing source-to-pixel trace.
+   - Created `scripts/graphics/fog-audit.mjs` verifying rendered transmittance matches analytic within 15%.
+   - Created `scripts/graphics/flatness-detector.mjs` and wired it into `scripts/visual/artifact-detector.mjs` (0 flat frames across all 48 golden shots).
+   - Added `tests/shadow-rig.test.ts` verifying shadow rig configuration, spawn bounds, and contact shadow luminance drop ($\Delta L \ge 0.08$).
+
+**Status:** ACCEPTED  
+**Consequences:** Real shadows render with visible contact darkening; far field recedes into pale mint fog; water rendered colour is within $\pm 8\%$ of measured targets; all 11 maps pass shadow marking; 0 flat frames across goldens.
+
+
 
 

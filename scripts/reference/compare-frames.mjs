@@ -682,3 +682,4 @@ if (process.argv[1] && resolve(process.argv[1]) === resolve(import.meta.filename
     process.exit(1);
   }
 }
+

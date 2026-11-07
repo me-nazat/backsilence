@@ -9,6 +9,8 @@ import { buildColorPanelGeometry } from '../levelart/LevelArtProps.js';
 import {
   Group,
   Mesh,
+  InstancedMesh,
+  Object3D,
   MeshStandardMaterial,
   MeshBasicMaterial,
   PlaneGeometry,
@@ -1208,6 +1210,9 @@ export function buildStandardMapInstance(
     hooks.onPostBuild(root, { ground, colliders });
   }
 
+  // Mark shadow casting and receiving systematically for all visual geometry
+  markWorldShadows(root, layout.bounds);
+
   // Freeze matrices for all static visual geometry
   root.traverse((obj) => {
     if (obj instanceof Mesh) {
@@ -1251,4 +1256,63 @@ export function buildStandardMapInstance(
       root.clear();
     },
   };
+}
+
+/**
+ * Systematically marks shadow casting and receiving for all visual geometry
+ * within map bounds. Tall meshes cast shadows, horizontal surfaces receive shadows,
+ * and elevated structures both cast and receive.
+ */
+export function markWorldShadows(
+  root: Object3D,
+  bounds?: { minX: number; minZ: number; maxX: number; maxZ: number },
+): void {
+  root.traverse((obj) => {
+    if (obj instanceof Mesh || (obj as InstancedMesh).isInstancedMesh) {
+      const mesh = obj as Mesh;
+      if (mesh.name?.includes('FarSilhouette')) return;
+      if (bounds) {
+        const wx = mesh.position.x;
+        const wz = mesh.position.z;
+        if (
+          wx < bounds.minX - 15 ||
+          wx > bounds.maxX + 15 ||
+          wz < bounds.minZ - 15 ||
+          wz > bounds.maxZ + 15
+        ) {
+          return;
+        }
+      }
+
+      const geom = mesh.geometry;
+      if (geom) {
+        if (!geom.boundingBox) geom.computeBoundingBox();
+        const bb = geom.boundingBox;
+        if (bb) {
+          const dy = (bb.max.y - bb.min.y) * Math.abs(mesh.scale.y || 1);
+          const dx = (bb.max.x - bb.min.x) * Math.abs(mesh.scale.x || 1);
+          const dz = (bb.max.z - bb.min.z) * Math.abs(mesh.scale.z || 1);
+
+          const isFlatHorizontal = dy < 0.15 && (dx > 0.4 || dz > 0.4);
+          const isTall = dy >= 0.35;
+
+          if (isTall) {
+            mesh.castShadow = true;
+            mesh.receiveShadow = true;
+          } else if (isFlatHorizontal) {
+            mesh.receiveShadow = true;
+          } else {
+            mesh.castShadow = true;
+            mesh.receiveShadow = true;
+          }
+        } else {
+          mesh.castShadow = true;
+          mesh.receiveShadow = true;
+        }
+      } else {
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+      }
+    }
+  });
 }

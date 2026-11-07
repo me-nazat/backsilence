@@ -14,6 +14,7 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { resolve, join } from 'node:path';
 import { decodePng } from './compare.mjs';
+import { evaluateFrameFlatness } from '../graphics/flatness-detector.mjs';
 
 /**
  * Scan decoded RGBA Float32Array image data for visual artifacts.
@@ -29,6 +30,7 @@ export function scanImageArtifacts(image, options = {}) {
     checkMagenta = true,
     checkFogSeams = true,
     checkWaterEdge = true,
+    checkFlatness = false,
     tilePitch,
     hudBoxes,
     islandConnections,
@@ -200,6 +202,17 @@ export function scanImageArtifacts(image, options = {}) {
     }
   }
 
+  // 7. Anti-flatness guard (Prompt 2 / Decision D130)
+  if (checkFlatness) {
+    const flatness = evaluateFrameFlatness(image);
+    if (flatness.isFlat) {
+      issues.push({
+        type: 'FLAT_FRAME',
+        detail: flatness.reason,
+      });
+    }
+  }
+
   return issues;
 }
 
@@ -209,13 +222,13 @@ export function scanImageArtifacts(image, options = {}) {
  * @param {Object} [options]
  * @returns {Array<{ type: string, detail: string }>}
  */
-export function scanPngFile(filePath, options) {
+export function scanPngFile(filePath, options = {}) {
   if (!existsSync(filePath)) {
     throw new Error(`File not found: ${filePath}`);
   }
   const buf = readFileSync(filePath);
   const decoded = decodePng(buf);
-  return scanImageArtifacts(decoded, options);
+  return scanImageArtifacts(decoded, { checkFlatness: true, ...options });
 }
 
 function main() {

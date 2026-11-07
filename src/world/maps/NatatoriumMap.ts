@@ -45,7 +45,7 @@ import { Rng } from '../../procedural/core/prng.js';
 import { WORLD } from '../../app/Config.js';
 import { TextureRegistry } from '../../procedural/textures/TextureRegistry.js';
 import { WATER_PROFILES } from '../../game/water/WaterProfile.js';
-import { buildStandardMapInstance, scaleBoxUv, type CustomBuilderHook } from './CommonMapBuilder.js';
+import { buildStandardMapInstance, markWorldShadows, scaleBoxUv, type CustomBuilderHook } from './CommonMapBuilder.js';
 import { makeMosaicEarTexture } from '../../procedural/textures/MosaicEarTexture.js';
 import { bakeVertexAO } from '../../procedural/geometry/VertexAO.js';
 import { createLightShaftMesh, createDustMotes } from '../../game/rendering/LightShafts.js';
@@ -1613,6 +1613,7 @@ export const NatatoriumMap: MapDefinition = {
       }
     });
 
+    markWorldShadows(instance.root, layout.bounds);
     return instance;
   },
 

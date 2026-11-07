@@ -18,6 +18,7 @@ export interface ArtifactScanOptions {
   checkMagenta?: boolean;
   checkFogSeams?: boolean;
   checkWaterEdge?: boolean;
+  checkFlatness?: boolean;
   tilePitch?: number;
   hudBoxes?: HudBox[];
   islandConnections?: { id: string; connectedTo: string[] }[];

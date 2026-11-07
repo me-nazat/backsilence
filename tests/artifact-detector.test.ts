@@ -92,6 +92,12 @@ describe('Artifact Detector (scripts/visual/artifact-detector.mjs)', () => {
     expect(issues.some((i: ArtifactIssue) => i.type === 'HARD_FOG_SEAM')).toBe(true);
   });
 
+  it('fails on flat image when checkFlatness is enabled', () => {
+    const flatImg = createDummyImage(100, 100, 0.6);
+    const issues = scanImageArtifacts(flatImg, { checkFlatness: true });
+    expect(issues.some((i: ArtifactIssue) => i.type === 'FLAT_FRAME')).toBe(true);
+  });
+
   it('scans golden baseline images without defects', () => {
     const issues = scanPngFile('tests/golden/classic_archipelago_hero.png', { tilePitch: 0.15 });
     expect(issues).toHaveLength(0);

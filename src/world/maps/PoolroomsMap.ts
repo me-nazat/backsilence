@@ -19,7 +19,7 @@ import type { MapInstance } from './MapInstance.js';
 import { Rng } from '../../procedural/core/prng.js';
 import { TileMaterialFactory } from '../../procedural/textures/TileMaterialFactory.js';
 import { WATER_PROFILES } from '../../game/water/WaterProfile.js';
-import { buildStandardMapInstance } from './CommonMapBuilder.js';
+import { buildStandardMapInstance, markWorldShadows } from './CommonMapBuilder.js';
 
 export const PoolroomsMap: MapDefinition = {
   id: 'poolrooms',
@@ -408,6 +408,7 @@ export const PoolroomsMap: MapDefinition = {
     skylightInstMesh.updateMatrix();
     instance.root.add(skylightInstMesh);
 
+    markWorldShadows(instance.root, layout.bounds);
     return instance;
   },
 

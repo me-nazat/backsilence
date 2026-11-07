@@ -7,7 +7,7 @@
  * ──────────────────────────────────────────────────────────────────────── */
 
 import { describe, it, expect } from 'vitest';
-import { Scene, Mesh, MeshStandardMaterial, HemisphereLight, AmbientLight, FogExp2 } from 'three';
+import { Scene, Mesh, MeshStandardMaterial, HemisphereLight, DirectionalLight, FogExp2 } from 'three';
 import {
   TileMaterialFactory,
   TILE_PRESETS,
@@ -129,33 +129,32 @@ describe('Lead Environment & Technical Material Artist Suite', () => {
     // Test NatatoriumMap atmosphere
     setupAtmosphere(scene, fakeRenderer, NatatoriumMap, dummySettings);
 
-    // DESIGN_RATIONALE: Liminal poolroom fog color must be #cce4e8 for soft sunlit moisture haze
-    expect(`#${scene.fog!.color.getHexString()}`.toLowerCase()).toBe('#cce4e8');
-    // DESIGN_RATIONALE: Liminal daylight fog density must be 0.011 to reveal distant ceramic arches
-    expect((scene.fog as FogExp2).density).toBeCloseTo(0.011, 3);
-    // DESIGN_RATIONALE: Tone mapping exposure must be 1.18 to let bright skylights and water glints glow
-    expect((fakeRenderer.renderer as { toneMappingExposure: number }).toneMappingExposure).toBeCloseTo(1.18, 2);
+    // DESIGN_RATIONALE: Decision D130 measured reference horizon fog color #d6dccd
+    expect(`#${scene.fog!.color.getHexString()}`.toLowerCase()).toBe('#d6dccd');
+    // DESIGN_RATIONALE: Decision D130 calibrated fog recession density 0.028 (49.4% transmittance at 30m)
+    expect((scene.fog as FogExp2).density).toBeCloseTo(0.028, 3);
+    // DESIGN_RATIONALE: Decision D130 tone mapping exposure calibrated to 1.0 baseline
+    expect((fakeRenderer.renderer as { toneMappingExposure: number }).toneMappingExposure).toBeCloseTo(1.0, 2);
 
-    // Verify HemisphereLight and AmbientLight present in scene
+    // Verify HemisphereLight and bounce DirectionalLight present in scene
     let foundHemi: HemisphereLight | null = null;
-    let foundAmbient: AmbientLight | null = null;
+    let foundBounce: DirectionalLight | null = null;
     for (const child of scene.children) {
       if (child instanceof HemisphereLight) foundHemi = child;
-      if (child instanceof AmbientLight) foundAmbient = child;
+      if (child instanceof DirectionalLight && !child.castShadow) foundBounce = child;
     }
 
     expect(foundHemi).not.toBeNull();
-    // DESIGN_RATIONALE: Hemisphere sky color must be pure white for brilliant skylight illumination
-    expect(`#${foundHemi!.color.getHexString()}`.toLowerCase()).toBe('#ffffff');
-    // DESIGN_RATIONALE: Hemisphere ground color must be turquoise #6ad4e0 for water bounce illumination
-    expect(`#${foundHemi!.groundColor.getHexString()}`.toLowerCase()).toBe('#6ad4e0');
-    // DESIGN_RATIONALE: Hemisphere light intensity must be 1.45 to brighten enclosed natatorium halls
-    expect(foundHemi!.intensity).toBeCloseTo(1.45, 2);
+    // DESIGN_RATIONALE: Decision D130 hemisphere sky color is warm pale cream #fff5db
+    expect(`#${foundHemi!.color.getHexString()}`.toLowerCase()).toBe('#fff5db');
+    // DESIGN_RATIONALE: Decision D130 hemisphere ground color is muted olive #506e4a matching water bounce
+    expect(`#${foundHemi!.groundColor.getHexString()}`.toLowerCase()).toBe('#506e4a');
+    // DESIGN_RATIONALE: Decision D130 hemisphere light intensity 0.65 (range 0.55–0.75)
+    expect(foundHemi!.intensity).toBeCloseTo(0.65, 2);
 
-    expect(foundAmbient).not.toBeNull();
-    // DESIGN_RATIONALE: Ambient light color #eef8fa provides pale cyan diffuse fill across shadow areas
-    expect(`#${foundAmbient!.color.getHexString()}`.toLowerCase()).toBe('#eef8fa');
-    // DESIGN_RATIONALE: Ambient light intensity 0.85 prevents harsh pitch-black shadow crevices
-    expect(foundAmbient!.intensity).toBeCloseTo(0.85, 2);
+    expect(foundBounce).not.toBeNull();
+    // DESIGN_RATIONALE: Decision D130 upward water bounce light from below pool surface #5a8c50
+    expect(`#${foundBounce!.color.getHexString()}`.toLowerCase()).toBe('#5a8c50');
+    expect(foundBounce!.intensity).toBeCloseTo(0.28, 2);
   });
 });

@@ -390,6 +390,8 @@ export function applyMapLevelArtPass(env: LevelArtEnv): void {
   ): Mesh => {
     geometriesToDispose.push(geom);
     const mesh = new Mesh(geom, mat);
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
     mesh.position.copy(pos);
     if (rotY !== 0) mesh.rotation.y = rotY;
     mesh.matrixAutoUpdate = false;

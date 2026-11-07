@@ -188,6 +188,7 @@ export function createVaultSkylightPanels(opts: SkylightPanelOptions): Instanced
   const panelGeom = new PlaneGeometry(pWidth, pLen);
   const instMesh = new InstancedMesh(panelGeom, panelMat, zPositions.length);
   instMesh.name = 'VaultSkylightPanels';
+  instMesh.receiveShadow = true;
 
   const mat4 = new Matrix4();
   const pos = new Vector3();

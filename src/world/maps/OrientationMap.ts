@@ -20,7 +20,7 @@ import type { MapInstance } from './MapInstance.js';
 import { WORLD } from '../../app/Config.js';
 import { WATER_PROFILES } from '../../game/water/WaterProfile.js';
 import { TextureRegistry } from '../../procedural/textures/TextureRegistry.js';
-import { buildStandardMapInstance, scaleBoxUv } from './CommonMapBuilder.js';
+import { buildStandardMapInstance, markWorldShadows, scaleBoxUv } from './CommonMapBuilder.js';
 import { applyWetDarkening } from '../../game/rendering/WetDarkening.js';
 import { createSkylightAssembly } from '../../game/rendering/LightShafts.js';
 
@@ -300,6 +300,7 @@ export const OrientationMap: MapDefinition = {
     });
     instance.root.add(skylightB);
 
+    markWorldShadows(instance.root, layout.bounds);
     return instance;
   },
 

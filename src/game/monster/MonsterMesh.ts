@@ -519,10 +519,12 @@ export class MonsterMeshHierarchy {
     // 4. Build LOD1 simplified merged mesh (for distance > 35m, <= 2000 tris)
     this.buildLod1Mesh(skinMat);
 
-    // Disable frustum culling on all child meshes
+    // Disable frustum culling on all child meshes and enable shadow casting and receiving
     this.root.traverse((obj) => {
       if ((obj as Mesh).isMesh) {
         (obj as Mesh).frustumCulled = false;
+        obj.castShadow = true;
+        obj.receiveShadow = true;
       }
     });
   }
@@ -586,6 +588,12 @@ export class MonsterMeshHierarchy {
     lod1Group.add(legR);
 
     this.lod1.add(lod1Group);
+    lod1Group.traverse((obj) => {
+      if ((obj as Mesh).isMesh) {
+        obj.castShadow = true;
+        obj.receiveShadow = true;
+      }
+    });
   }
 
   setLOD(distToCamera: number): void {

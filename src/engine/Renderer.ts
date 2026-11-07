@@ -67,7 +67,7 @@ export class EngineRenderer {
 
     this.renderer.outputColorSpace = SRGBColorSpace;
     this.renderer.toneMapping = ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.12;
+    this.renderer.toneMappingExposure = 1.0;
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = PCFSoftShadowMap;
     this.setToneMapping(settings.graphics.toneMapping ?? 'agx');
@@ -82,8 +82,8 @@ export class EngineRenderer {
     const tier = resolveQualityTier(s.graphics.quality);
     const quality = resolveQuality(s.graphics.quality);
 
-    // Exposure calibrated to 1.12 baseline (reference palette alignment)
-    const exposure = 1.12 * (s.graphics.brightness ?? 1.0);
+    // Exposure calibrated to 1.0 baseline (reference palette alignment)
+    const exposure = 1.0 * (s.graphics.brightness ?? 1.0);
     this.renderer.toneMappingExposure = exposure;
 
     // Adaptive DPR based on resolution scale and quality cap
@@ -92,14 +92,14 @@ export class EngineRenderer {
     const effectiveDpr = clampedDpr * (s.graphics.resolutionScale / 100.0);
     this.renderer.setPixelRatio(Math.max(0.5, effectiveDpr));
 
-    // Dynamic Shadow Map configuration by Quality Tier
+    // Dynamic Shadow Map configuration by Quality Tier:
+    // Shadow maps remain ENABLED on all tiers including Low (quality reduced via mapSize/radius)
+    this.renderer.shadowMap.enabled = true;
     if (tier === 'low') {
-      this.renderer.shadowMap.enabled = false;
+      this.renderer.shadowMap.type = PCFShadowMap;
     } else if (tier === 'medium') {
-      this.renderer.shadowMap.enabled = true;
       this.renderer.shadowMap.type = PCFShadowMap;
     } else {
-      this.renderer.shadowMap.enabled = true;
       this.renderer.shadowMap.type = PCFSoftShadowMap;
     }
     this.renderer.shadowMap.needsUpdate = true;
