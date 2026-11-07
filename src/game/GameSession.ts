@@ -47,6 +47,7 @@ export interface GameSessionCallbacks {
 
 export class GameSession {
   private readonly host: SessionHost;
+  readonly openingTurn = { active: false, t: 0, from: Math.PI, to: 0 };
 
   constructor(
     container: HTMLElement,

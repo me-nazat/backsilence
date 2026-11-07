@@ -23,13 +23,56 @@ export interface WaterProfile {
     ambient: number;
     motes: number;
   };
+  shallowColor?: string;
+  deepColor?: string;
+  foamColor?: string;
+  causticsColor?: string;
+  causticsIntensity?: number;
+  reflectionStrength?: number;
+  fresnelPower?: number;
+  fresnelBias?: number;
+  waveAmplitude?: number;
+  rippleStrength?: number;
 }
+
+export const NATATORIUM_WATER_PROFILE: WaterProfile = {
+  shallow: '#8cb179',
+  deep: '#678f44',
+  far: '#959e69',
+  shallowColor: '#6ef2ff',
+  deepColor: '#18a8c8',
+  foamColor: '#f4feff',
+  causticsColor: '#aefcff',
+  causticsIntensity: 1.35,
+  reflectionStrength: 0.58,
+  fresnelPower: 3.8,
+  fresnelBias: 0.06,
+  waveAmplitude: 0.014,
+  rippleStrength: 1.15,
+  opacityMin: 0.20,
+  opacityMax: 0.86,
+  foam: 0.15,
+  normalStrength: 1.05,
+  scroll: 0.04,
+  specular: '#7b9e5e',
+  murk: 0.0,
+};
 
 export const WATER_PROFILES: Record<MapId, WaterProfile> = {
   poolrooms: {
     shallow: '#8cb179',
     deep: '#678f44',
     far: '#959e69',
+    shallowColor: '#6ef2ff',
+    deepColor: '#18a8c8',
+    foamColor: '#f4feff',
+    causticsColor: '#aefcff',
+    causticsIntensity: 1.35,
+    reflectionStrength: 0.58,
+    fresnelPower: 3.8,
+    fresnelBias: 0.06,
+    waveAmplitude: 0.014,
+    rippleStrength: 1.15,
     opacityMin: 0.20,
     opacityMax: 0.86,
     foam: 0.25,
@@ -93,16 +136,7 @@ export const WATER_PROFILES: Record<MapId, WaterProfile> = {
     },
   },
   natatorium: {
-    shallow: '#8cb179',
-    deep: '#678f44',
-    far: '#959e69',
-    opacityMin: 0.20,
-    opacityMax: 0.86,
-    foam: 0.15,
-    normalStrength: 1.05,
-    scroll: 0.04,
-    specular: '#7b9e5e',
-    murk: 0.0,
+    ...NATATORIUM_WATER_PROFILE,
   },
   drowned_school: {
     shallow: '#789965',
@@ -156,6 +190,16 @@ export const WATER_PROFILES: Record<MapId, WaterProfile> = {
     shallow: '#7fad68',
     deep: '#5e8542',
     far: '#959e69',
+    shallowColor: '#6ef2ff',
+    deepColor: '#18a8c8',
+    foamColor: '#f4feff',
+    causticsColor: '#aefcff',
+    causticsIntensity: 1.35,
+    reflectionStrength: 0.58,
+    fresnelPower: 3.8,
+    fresnelBias: 0.06,
+    waveAmplitude: 0.014,
+    rippleStrength: 1.15,
     opacityMin: 0.22,
     opacityMax: 0.88,
     foam: 0.35,

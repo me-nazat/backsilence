@@ -25,6 +25,7 @@ import {
   CubeCamera,
   WebGLCubeRenderTarget,
   LinearMipmapLinearFilter,
+  LinearFilter,
   WebGLRenderTarget,
   PerspectiveCamera,
   Vector2,
@@ -46,6 +47,8 @@ import type { AudioEngine } from '../../audio/AudioEngine.js';
 
 const _scratchForward = new Vector3();
 const _scratchLookTarget = new Vector3();
+
+export const WATER_DECAL_LAYER = 2;
 
 export interface WaterSystemOptions {
   scene: Scene;
@@ -136,8 +139,11 @@ export class WaterSystem {
 
     if (tier === 'high') {
       try {
-        this.planarRenderTarget = new WebGLRenderTarget(640, 360);
-        this.planarCamera = new PerspectiveCamera(60, 640 / 360, 0.1, 120.0);
+        this.planarRenderTarget = new WebGLRenderTarget(512, 512, {
+          minFilter: LinearFilter,
+          magFilter: LinearFilter,
+        });
+        this.planarCamera = new PerspectiveCamera(60, 1.0, 0.1, 120.0);
       } catch {
         // Fallback gracefully
       }
@@ -236,10 +242,10 @@ export class WaterSystem {
     }
   }
 
-  /** Update half-res planar reflection (High tier only, every 2nd frame) */
+  /** Update planar reflection (High tier, smooth 60 FPS every frame) */
   updatePlanarReflection(renderer: WebGLRenderer, scene: Scene, camera: Camera): void {
     if (this.currentTier !== 'high' || !this.planarRenderTarget || !this.planarCamera) return;
-    if (this.planarFrameCount++ % 2 !== 0) return;
+    this.planarFrameCount++;
     if (camera instanceof PerspectiveCamera) {
       this.planarCamera.fov = camera.fov;
       this.planarCamera.aspect = camera.aspect;
@@ -256,12 +262,22 @@ export class WaterSystem {
       this.planarCamera.lookAt(_scratchLookTarget);
       this.planarCamera.updateMatrixWorld();
 
+      // Ensure decals/water rings are excluded during planar reflection pass
+      const wasCameraDecalEnabled = camera.layers.isEnabled(WATER_DECAL_LAYER);
+      camera.layers.disable(WATER_DECAL_LAYER);
+      this.planarCamera.layers.disable(WATER_DECAL_LAYER);
+
       this.mesh.visible = false;
       const prevTarget = renderer.getRenderTarget();
       renderer.setRenderTarget(this.planarRenderTarget);
       renderer.render(scene, this.planarCamera);
       renderer.setRenderTarget(prevTarget);
       this.mesh.visible = true;
+
+      // Restore camera layers cleanly
+      if (wasCameraDecalEnabled) {
+        camera.layers.enable(WATER_DECAL_LAYER);
+      }
 
       if (this.material.uniforms['uPlanarReflection']) {
         this.material.uniforms['uPlanarReflection'].value = this.planarRenderTarget.texture;
@@ -355,7 +371,7 @@ export class WaterSystem {
     this.waveSim.injectImpulse(pos.x, pos.z, 0.75, strength * 0.05);
   }
 
-  update(dt: number, time: number, camera: Camera, sceneFog?: FogExp2, isMovingInWater = false, playerPos?: Vector3): void {
+  update(dt: number, time: number, camera: Camera, sceneFog?: FogExp2, _isMovingInWater = false, playerPos?: Vector3): void {
     // 1. Camera-following grid snapping to avoid vertex swimming
     const snapX = Math.floor(camera.position.x / this.segStep) * this.segStep;
     const snapZ = Math.floor(camera.position.z / this.segStep) * this.segStep;
@@ -372,9 +388,9 @@ export class WaterSystem {
     // 4. Upload wake uniforms
     this.wakes.upload();
 
-    // 5. Update splash particles & foam rings
+    // 5. Update splash particles & foam rings (player wading steps driven by Footsteps.ts)
     this.splashes.update(dt, camera.position);
-    this.rippleManager.update(dt, isMovingInWater, playerPos);
+    this.rippleManager.update(dt, false, playerPos);
 
     // 6. Update bioluminescent motes
     if (this.motesMesh && this.motesData.length > 0) {

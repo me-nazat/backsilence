@@ -159,6 +159,10 @@ export class SessionHost {
   hasShownDryHint = false;
   hasShownWaterHint = false;
   readonly monsterWatchdog = new MonsterWatchdog();
+  readonly openingTurn = { active: false, t: 0, from: Math.PI, to: 0 };
+  private wasPlayerJumping = false;
+  private wasPlayerWet = false;
+  private lastEntrySplashTime = -1.0;
 
   private accumulator = 0;
   private readonly FIXED_DT = 1 / 60;
@@ -373,6 +377,7 @@ export class SessionHost {
 
     // 8. Camera positioning
     this.simWorld.player.setYaw(initialYaw);
+    this.cameraRig.playerCamera.reset(pSpawn.y);
     this.cameraRig.initRenderTargets(this.renderer.renderer, this.container.clientWidth, this.container.clientHeight);
 
     // 9. Bridges
@@ -562,6 +567,11 @@ export class SessionHost {
     const pSpawn = this.spawnService.resolvePlayerSpawn(this.layout, this.netBridge?.netSession);
     this.simWorld.player.teleport(pSpawn);
     this.simWorld.player.setYaw(this.spawnService.calculateInitialYaw(this.mapId, pSpawn));
+    this.cameraRig.playerCamera.reset(pSpawn.y);
+    this.openingTurn.active = false;
+    this.wasPlayerJumping = false;
+    this.wasPlayerWet = false;
+    this.lastEntrySplashTime = -1.0;
 
     this.sm.transition('RUNNING', 'reset');
     this.inputRig.requestPointerLock();
@@ -611,9 +621,11 @@ export class SessionHost {
             this.noisesMade++;
           }
           if (noise.kind === 'jump_in' && noise.loudness >= 0.7) {
-            this.water?.splashes.burst({ x: noise.position.x, y: noise.position.y, z: noise.position.z }, 2.0);
-            this.water?.rippleManager.spawnPlayerJumpSplash(noise.position.x, noise.position.z);
-            this.audio.play('splash_big', { gain: 0.95 });
+            if (noise.sourcePlayerId !== this.simWorld.player.playerId) {
+              this.water?.splashes.burst({ x: noise.position.x, y: noise.position.y, z: noise.position.z }, 1.5);
+              this.water?.rippleManager.spawnPlayerJumpSplash(noise.position.x, noise.position.z);
+              this.audio.play('splash_big', { gain: 0.95 });
+            }
           }
         } else if (ev.type === 'ripple') {
           this.water?.onRipple(ev.data);
@@ -639,6 +651,26 @@ export class SessionHost {
     const renderAlpha = this.accumulator / this.FIXED_DT;
     const prevSnap = this.simWorld.player.getPreviousSnapshot();
     const currSnap = this.simWorld.player.getSnapshot();
+
+    // Clean takeoff splash when jumping off the water floor
+    const isPlayerJumping = !currSnap.onGround && currSnap.vel.y > 1.0;
+    if (!this.wasPlayerJumping && isPlayerJumping && currSnap.wet) {
+      this.water?.splashes.burst(currSnap.pos, 0.95);
+      this.water?.rippleManager.spawnPlayerJumpSplash(currSnap.pos.x, currSnap.pos.z);
+    }
+    this.wasPlayerJumping = isPlayerJumping;
+
+    // Clean entry splash when stepping/falling into water from dry land
+    if (!this.wasPlayerWet && currSnap.wet) {
+      const now = this.simWorld.simTime;
+      if (now - this.lastEntrySplashTime > 0.20) {
+        this.lastEntrySplashTime = now;
+        const entryStrength = Math.min(2.0, 0.9 + (currSnap.lastLandingSpeed ?? 2.0) * 0.25);
+        this.water?.splashes.burst(currSnap.pos, entryStrength);
+        this.water?.rippleManager.spawnPlayerJumpSplash(currSnap.pos.x, currSnap.pos.z);
+      }
+    }
+    this.wasPlayerWet = currSnap.wet;
 
     this.cameraRig.playerCamera.update(dt, prevSnap, currSnap, renderAlpha, undefined, this.water.currentWaterY);
     this.footsteps.update(currSnap, this.cameraRig.playerCamera.getBobPhase(), this.camera, this.simWorld.waterY);

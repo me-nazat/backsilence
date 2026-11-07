@@ -252,11 +252,13 @@ export function buildStandardMapInstance(
 
     // Collider for standard platforms (bridge trusses use custom thin deck + handrail + pier colliders)
     if (!isBridgeTruss) {
+      const isWalkable = topY <= 0.65;
       colliders.addBox(
         `plat_${plat.id}`,
         { x: minX, y: topY - depth, z: minZ },
         { x: maxX, y: topY, z: maxZ },
         false,
+        isWalkable,
       );
     }
 
@@ -521,7 +523,7 @@ export function buildStandardMapInstance(
       `pil_${pil.id}`,
       pil.x,
       pil.z,
-      pil.radius * 1.12,
+      pil.radius,
       -0.9,
       pil.height,
     );

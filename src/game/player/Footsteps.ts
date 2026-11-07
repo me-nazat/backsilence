@@ -62,7 +62,7 @@ export class PlayerFootsteps {
 
     // 2. Landing thuds / splashes
     if (!this.wasOnGround && snapshot.onGround) {
-      const fallSpeed = Math.abs(snapshot.vel.y);
+      const fallSpeed = Math.max(Math.abs(snapshot.vel.y), snapshot.lastLandingSpeed ?? snapshot.lastLandingImpactSpeed ?? 0);
       if (fallSpeed > 1.2) {
         if (snapshot.wet) {
           const isBig = fallSpeed > 4.0;

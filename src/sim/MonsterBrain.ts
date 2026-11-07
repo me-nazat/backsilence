@@ -918,7 +918,7 @@ export class MonsterBrain {
           return;
         }
       }
-      // Reached splash point: roar and transition to investigate
+      // Reached splash point: roar and transition to investigate (Bug 4B)
       this.rearingT = 1.0;
       this.jawOpenT = 1.0;
       events.pushNoise(`noise_roar_${this.id}_${simTime}`, 'roar', this.pos.x, this.pos.y, this.pos.z, 0.95, this.id, simTime);
@@ -958,9 +958,13 @@ export class MonsterBrain {
       this.stateTimer -= dt;
       if (this.stateTimer <= 0) {
         this.investigatePhase = 'search';
+        this.rearingT = 0;
+        this.jawOpenT = 0;
         this.pickSearchWaypoint(nav, !isPlayerMoving ? playerPos : undefined);
       }
     } else {
+      this.rearingT = 0;
+      this.jawOpenT = Math.max(0, this.jawOpenT - dt * 2.0);
       // Slow search crawl around splash point at stalk speed (2.4 m/s); if silence continues, lose interest & return to WANDER
       this.searchTimer -= dt;
       if (this.searchTimer <= 0) {
@@ -1119,6 +1123,8 @@ export class MonsterBrain {
     this.jawOpenT = 0.55;
     if (!this.lipVocalized) {
       this.lipVocalized = true;
+      this.rearingT = 1.0;
+      this.jawOpenT = 1.0;
       events.pushNoise(`noise_blocked_roar_${this.id}_${simTime}`, 'roar', this.pos.x, this.pos.y, this.pos.z, 0.85, this.id, simTime);
     }
 

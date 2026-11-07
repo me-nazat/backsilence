@@ -66,6 +66,7 @@ const vertexShader = /* glsl */ `
 uniform float uTime;
 uniform float uWaterY;
 uniform float uWaveScale;
+uniform float uWaveAmplitude;
 uniform vec4 uRipples[32];
 uniform int uRippleCount;
 uniform vec3 uMonsterPos;
@@ -114,10 +115,11 @@ void evaluateGerstner(vec2 pos, float time, float scale, out vec3 disp, out vec2
   vec2 d2 = vec2(0.7071, 0.7071);
   vec2 d3 = vec2(0.3420, 0.9397);
 
-  // Low gentle amplitude broad swell (total amplitude <= 0.035m)
-  float a1 = 0.016 * scale;
-  float a2 = 0.010 * scale;
-  float a3 = 0.005 * scale;
+  // Low gentle amplitude broad swell (gentle indoor pool slosh, amplitude ~ 0.014m)
+  float ampBase = scale * (uWaveAmplitude / 0.014);
+  float a1 = 0.0075 * ampBase;
+  float a2 = 0.0045 * ampBase;
+  float a3 = 0.0020 * ampBase;
 
   // Frequencies: long period, slow viscous breathing multiplier 0.28
   float w1 = 2.40 * 0.28;
@@ -241,6 +243,15 @@ uniform float uMurk;
 uniform float uNormalScale;
 uniform float uScrollSpeed;
 
+// Optical & Caustics tunables
+uniform vec3 uCausticsColor;
+uniform float uCausticsIntensity;
+uniform float uReflectionStrength;
+uniform float uFresnelPower;
+uniform float uFresnelBias;
+uniform float uRippleStrength;
+uniform vec3 uFoamColor;
+
 // Bioluminescence (Map 5)
 uniform vec3 uBiolumColor;
 uniform float uBiolumRipple;
@@ -264,6 +275,36 @@ varying vec2 vGerstnerSlope;
 const float RIPPLE_SPEED = 3.2;
 const float RIPPLE_LIFE  = 3.5;
 const float RIPPLE_K     = 11.0;
+
+vec2 hash2(vec2 p) {
+  p = vec2(dot(p, vec2(127.1, 311.7)), dot(p, vec2(269.5, 183.3)));
+  return fract(sin(p) * 43758.5453);
+}
+
+// 2D cellular / Voronoi caustic boundary network
+float voronoiCaustic(vec2 uv, float time) {
+  vec2 g = floor(uv);
+  vec2 f = fract(uv);
+  float d1 = 1.0;
+  float d2 = 1.0;
+  for (int y = -1; y <= 1; y++) {
+    for (int x = -1; x <= 1; x++) {
+      vec2 lattice = vec2(float(x), float(y));
+      vec2 offset = hash2(g + lattice);
+      offset = 0.5 + 0.38 * sin(time * 1.8 + 6.2831 * offset);
+      vec2 r = lattice + offset - f;
+      float d = dot(r, r);
+      if (d < d1) {
+        d2 = d1;
+        d1 = d;
+      } else if (d < d2) {
+        d2 = d;
+      }
+    }
+  }
+  float edge = sqrt(d2) - sqrt(d1);
+  return 1.0 - smoothstep(0.0, 0.22, edge);
+}
 
 float evalRipple(vec2 p, vec4 r, float time, inout vec2 grad) {
   float age = time - r.z;
@@ -403,7 +444,13 @@ void main() {
     if (i >= uRippleCount) break;
     evalRipple(p, uRipples[i], uTime, rippleGrad);
   }
-  vec2 slopeRipple = -rippleGrad * 0.012;
+  float rippleSlope = length(rippleGrad) * (0.012 * uRippleStrength);
+  vec2 slopeRipple = -rippleGrad * (0.012 * uRippleStrength);
+
+  // Concentric wave ripple specular rim and crest foam
+  float rippleRim = pow(clamp(rippleSlope * 45.0, 0.0, 1.0), 1.5) * 0.45;
+  vec3 rippleSpecular = vec3(1.0) * rippleRim;
+  float rippleCrestFoam = smoothstep(0.012, 0.038, rippleSlope) * 0.40;
 
   // Add V-shaped Kelvin wakes (19.5 degrees half-angle) with 2-3s exponential decay
   float wakeFoam = 0.0;
@@ -523,37 +570,34 @@ void main() {
   // Suspended-silt scattering (uMurk)
   scatter = mix(scatter, vec3(0.42, 0.55, 0.30), clamp(uMurk * (1.0 - exp(-thickness * 0.5)), 0.0, 0.85));
 
-  // Piecewise Beer-Lambert depth transmittance:
-  // (a) shallow water <= 0.35 m deep: effective surface alpha 0.20-0.35 revealing cracked pool floor
-  // (b) mid water 0.35-0.7 m: translucent green with floor faintly present
-  // (c) water deeper than ~0.7 m: approaches alpha 1.0
-  float depthRatio = clamp(thickness / 0.35, 0.0, 1.0);
-  float shallowAlpha = mix(uOpacityMin, 0.35, depthRatio);
-  float deepRatio = clamp((thickness - 0.35) / 0.35, 0.0, 1.0);
-  float depthAlpha = mix(shallowAlpha, 1.0, deepRatio);
+  // Dual-layer Voronoi caustic network projected onto refracted floor coordinate
+  vec3 N = normal;
+  float waterDepth = max(0.0, thickness);
+  vec2 floorPos = vWorldPos.xz + N.xz * (waterDepth * 0.38);
 
-  // Animated Caustics: broad gentle caustic webs illuminating submerged floor in shallow water (< 1.1m)
-  vec3 causticLight = vec3(0.0);
-  if (thickness < 1.1) {
-    vec2 cUv1 = p * 0.22 + vec2(uTime * 0.035, uTime * 0.028) + normal.xz * 0.02;
-    vec2 cUv2 = p * 0.30 + vec2(-uTime * 0.028, uTime * 0.035) + normal.zx * 0.02;
-    float c1 = sin(cUv1.x * 2.2 + sin(cUv1.y * 1.8 + uTime * 0.3)) * 0.5 + 0.5;
-    float c2 = cos(cUv2.x * 2.0 + cos(cUv2.y * 2.2 - uTime * 0.25)) * 0.5 + 0.5;
-    float caustic = pow(min(c1, c2), 1.6) * 0.45;
-    float causticFade = smoothstep(1.1, 0.15, thickness);
-    vec3 causticCol = mix(vec3(0.88, 0.98, 0.92), vec3(0.96, 0.96, 0.88), 0.5);
-    causticLight = causticCol * (caustic * causticFade * 0.05);
-  }
+  vec2 cUv1 = floorPos * 1.8 + vec2(uTime * 0.045, uTime * 0.032);
+  vec2 cUv2 = floorPos * 2.7 - vec2(uTime * 0.038, -uTime * 0.046);
+  float c1 = voronoiCaustic(cUv1, uTime * 1.1);
+  float c2 = voronoiCaustic(cUv2, uTime * 1.4 + 1.8);
+  float causticsNet = max(c1 * 0.85, c2 * 0.85) + (c1 * c2) * 0.65;
+
+  float causticDepthFade = exp(-waterDepth * 0.70) * smoothstep(0.01, 0.08, waterDepth);
+  vec3 causticLight = uCausticsColor * (causticsNet * uCausticsIntensity * causticDepthFade);
 
   // Veil must be gated by optical path length or it becomes a flat white sheet.
   float veilGate = (1.0 - exp(-thickness * 1.6)) * (1.0 - floorVisibility);
   vec3 milkyVeil = vec3(0.85, 0.94, 0.88) * (0.003 * veilGate);
-  vec3 transmittedFloor = (sceneSample + causticLight) * T;
-  vec3 absorbedWater = mix(transmittedFloor, scatter, depthAlpha) + milkyVeil;
 
-  // 7. Schlick Fresnel reflection with F0 = 0.02 & reflection tiers (World Space)
+  // Transmitted 3D submerged floor and wall geometry with crisp caustic illumination
+  vec3 transmittedFloor = (sceneSample + causticLight) * T;
+  transmittedFloor = 1.0 - (1.0 - transmittedFloor) * (1.0 - causticLight * 0.35);
+
+  float depthFactor = clamp(thickness / 0.85, 0.0, 1.0);
+  vec3 absorbedWater = mix(transmittedFloor, scatter, depthFactor * 0.35) + milkyVeil;
+
+  // 7. Schlick Fresnel reflection with tunable power and bias
   float NdotV = max(0.0, dot(normal, viewDir));
-  float fresnel = 0.02 + 0.98 * pow(1.0 - NdotV, 5.0);
+  float fresnel = uFresnelBias + (1.0 - uFresnelBias) * pow(1.0 - NdotV, uFresnelPower);
 
   vec3 reflectDir = reflect(-viewDir, normal);
   vec3 skyHazeColor = uSpecularColor;
@@ -564,7 +608,7 @@ void main() {
     vec2 planarUv = clamp(vec2(screenUv.x, 1.0 - screenUv.y) + normal.xz * 0.016, 0.001, 0.999);
     vec3 planarCol = texture2D(uPlanarReflection, planarUv).rgb;
     vec3 cubeCol = textureCube(uEnvCube, reflectDir).rgb;
-    reflectColor = mix(cubeCol, planarCol, 0.45);
+    reflectColor = mix(cubeCol, planarCol, 0.60);
   } else if (uReflectionTier > 0.5) {
     // Medium Tier: 64px Cube map
     reflectColor = textureCube(uEnvCube, reflectDir).rgb;
@@ -573,8 +617,9 @@ void main() {
     reflectColor = mix(skyHazeColor * 0.92, skyHazeColor * 1.08, max(0.0, reflectDir.y));
   }
 
-  float fresnelFactor = mix(0.18, 0.70, pow(1.0 - NdotV, 3.0));
+  float fresnelFactor = mix(0.18, uReflectionStrength, pow(1.0 - NdotV, 2.5));
   vec3 waterColor = mix(absorbedWater, reflectColor, fresnel * fresnelFactor);
+  waterColor += rippleSpecular;
 
   // 9. Sun GGX Specular Glint & Horizontal Pale Specular Streaks (#7b9e5e)
   vec3 sunSpec = evalGGX(normal, viewDir, uSunDir, uSpecularColor, 0.32, roughness);
@@ -644,9 +689,9 @@ void main() {
   // Foam appears strictly on shore/contact, wake, ripples, and edge rim.
   float crestFoam = 0.0;
   float rippleFoam = smoothstep(0.025, 0.055, abs(vRippleHeight)) * 0.18;
-  float totalFoam = clamp(shoreFoam + meniscusFoam + wakeFoam + rippleFoam + crestFoam + edgeRim, 0.0, 1.0);
+  float totalFoam = clamp(shoreFoam + meniscusFoam + wakeFoam + rippleFoam + crestFoam + rippleCrestFoam + edgeRim, 0.0, 1.0);
 
-  vec3 foamColor = vec3(0.90, 0.94, 0.88);
+  vec3 foamColor = uFoamColor;
   waterColor = mix(waterColor, foamColor, totalFoam * clamp(uFoamStrength * 1.2, 0.15, 0.85));
 
   // Depth-based screenspace meniscus line (2–4 cm #f5fff9, f_022)
@@ -657,16 +702,13 @@ void main() {
     waterColor = mix(waterColor, meniscusColor, meniscusLine * 0.70);
   }
 
-  // Piecewise Beer-Lambert depth transmittance:
-  // (a) shallow water <= 0.35 m deep: effective surface alpha 0.20-0.35 revealing cracked pool floor
-  // (b) mid water 0.35-0.9 m: translucent green with floor faintly present
-  // (c) water deeper than ~1.2 m: approaches alpha 0.85+
-  float fresnelTerm = pow(1.0 - max(dot(viewDir, normal), 0.0), 4.0);
-  float fresnelAlpha = mix(depthAlpha, max(depthAlpha, 0.85), fresnelTerm);
+  // Crystal-Clear Transparency: let real 3D submerged ceramic floor & walls shine through
+  float baseAlpha = mix(0.26, 0.68, clamp(fresnel * 0.85 + depthFactor * 0.25, 0.0, 1.0));
+  float alpha = clamp(baseAlpha + totalFoam * 0.75, 0.24, 0.94);
 
   // Soft Edge Alpha: smoothly fade water over the final 2-3 cm to prevent hard-edge clipping or z-fighting
   float softEdge = smoothstep(0.001, 0.028, thickness);
-  float alpha = hasTrueDepth ? softEdge : (softEdge * fresnelAlpha);
+  alpha = hasTrueDepth ? (alpha * softEdge) : alpha;
   alpha = max(alpha, totalFoam * 0.92);
   alpha = max(alpha, meniscusLine * 0.88);
 
@@ -759,18 +801,26 @@ export function createWaterMaterial(options: WaterMaterialOptions): ShaderMateri
       uHasWaveSim: { value: 0.0 },
       uWakes: { value: options.wakes },
       uWakeParams: { value: options.wakeParams },
-      uColorShallow: { value: new Color(prof?.shallow ?? '#8cb179') },
-      uColorDeep: { value: new Color(prof?.deep ?? '#678f44') },
+      uColorShallow: { value: new Color(prof?.shallowColor ?? prof?.shallow ?? '#6ef2ff') },
+      uColorDeep: { value: new Color(prof?.deepColor ?? prof?.deep ?? '#18a8c8') },
       uSpecularColor: { value: new Color(prof?.specular ?? '#d6dccd') },
       uFoamStrength: { value: prof?.foam ?? 0.15 },
       uSunDir: { value: (options.sunDir ?? new Vector3(0.4, 0.8, 0.4)).clone().normalize() },
       uMonsterPos: { value: new Vector3(0, -999, 0) },
-      uOpacityMin: { value: prof?.opacityMin ?? 0.55 },
-      uOpacityMax: { value: prof?.opacityMax ?? 0.93 },
+      uOpacityMin: { value: prof?.opacityMin ?? 0.20 },
+      uOpacityMax: { value: prof?.opacityMax ?? 0.86 },
       uUnderwater: { value: 0.0 },
       uMurk: { value: prof?.murk ?? 0.0 },
       uNormalScale: { value: prof?.normalStrength ?? 1.0 },
       uScrollSpeed: { value: prof?.scroll ?? 0.04 },
+      uWaveAmplitude: { value: prof?.waveAmplitude ?? 0.014 },
+      uCausticsColor: { value: new Color(prof?.causticsColor ?? '#aefcff') },
+      uCausticsIntensity: { value: prof?.causticsIntensity ?? 1.35 },
+      uReflectionStrength: { value: prof?.reflectionStrength ?? 0.58 },
+      uFresnelPower: { value: prof?.fresnelPower ?? 3.8 },
+      uFresnelBias: { value: prof?.fresnelBias ?? 0.06 },
+      uRippleStrength: { value: prof?.rippleStrength ?? 1.15 },
+      uFoamColor: { value: new Color(prof?.foamColor ?? '#f4feff') },
       uBiolumColor: { value: new Color(prof?.bioluminescence?.color ?? '#8ea05a') },
       uBiolumRipple: { value: prof?.bioluminescence?.ripple ?? 0.0 },
       uBiolumAmbient: { value: prof?.bioluminescence?.ambient ?? 0.0 },

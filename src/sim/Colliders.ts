@@ -13,12 +13,14 @@ export class BoxCollider {
   min: Vec3;
   max: Vec3;
   isTall: boolean;
+  readonly isWalkablePlatform: boolean;
 
-  constructor(min: Vec3, max: Vec3, id?: string, isTall = true) {
+  constructor(min: Vec3, max: Vec3, id?: string, isTall = true, isWalkablePlatform = false) {
     this.min = { ...min };
     this.max = { ...max };
     this.id = id ?? `box_${nextColliderId++}`;
     this.isTall = isTall;
+    this.isWalkablePlatform = isWalkablePlatform;
   }
 }
 
@@ -69,8 +71,8 @@ export class ColliderSet {
     }
   }
 
-  addBox(id: string, min: Vec3, max: Vec3, isTall = true): BoxCollider {
-    const box = new BoxCollider(min, max, id, isTall);
+  addBox(id: string, min: Vec3, max: Vec3, isTall = true, isWalkablePlatform = false): BoxCollider {
+    const box = new BoxCollider(min, max, id, isTall, isWalkablePlatform);
     this.add(box);
     return box;
   }
@@ -148,8 +150,11 @@ export class ColliderSet {
       const col = candidates[i]!;
 
       if (col.type === 'box') {
-        // Vertical overlap check
-        if (headY <= col.min.y || footY >= col.max.y) continue;
+        // Vertical overlap check: 8cm top-edge bevel tolerance so landing at footY >= col.max.y - 0.08 is never pushed backward
+        if (headY <= col.min.y || footY >= col.max.y - 0.08) continue;
+
+        // Furthermore, if walkable platform, only push out horizontally if feet are deep on pool floor (footY < col.max.y - 0.48)
+        if (col.isWalkablePlatform && footY >= col.max.y - 0.48) continue;
 
         // Closest point on box
         const nearestX = Math.max(col.min.x, Math.min(currX, col.max.x));

@@ -16,17 +16,21 @@ export class PlayerCamera {
   readonly camera: PerspectiveCamera;
   private settings: Settings;
 
-  // Eye height smoothing
-  private currentEyeY = WORLD.PLAYER.EYE_STAND;
+  // Smoothed vertical camera state
+  private smoothedFootY = 0.38;
+  private landingDipY = 0;
+  private landingDipVel = 0;
+  private wasOnGround = true;
 
-  // Head bob state
+  // Eye height smoothing
+  private currentEyeHeight: number = WORLD.PLAYER.EYE_STAND;
+
+  // Head bob and tilt state
   private bobPhase = 0;
   private idlePhase = 0;
-
-  // Landing dip critically damped spring (80-120ms recovery)
-  private dipOffset = 0;
-  private dipVelocity = 0;
-  private wasOnGround = true;
+  private bobOffsetX = 0;
+  private bobOffsetY = 0;
+  private currentTilt = 0;
 
   // 40ms jump anticipation dip
   private jumpAnticipationTimer = 0;
@@ -46,6 +50,21 @@ export class PlayerCamera {
   setSettings(settings: Settings): void {
     this.settings = settings;
     this.baseFov = settings.graphics.fov;
+  }
+
+  reset(spawnY = 0.38): void {
+    this.smoothedFootY = spawnY;
+    this.landingDipY = 0;
+    this.landingDipVel = 0;
+    this.wasOnGround = true;
+    this.currentEyeHeight = WORLD.PLAYER.EYE_STAND;
+    this.bobOffsetX = 0;
+    this.bobOffsetY = 0;
+    this.currentTilt = 0;
+    this.bobPhase = 0;
+    this.idlePhase = 0;
+    this.jumpAnticipationTimer = 0;
+    this.prevVelY = 0;
   }
 
   update(
@@ -70,16 +89,24 @@ export class PlayerCamera {
       MathUtils.lerp(prevSnapshot.pos.y, currSnapshot.pos.y, renderAlpha),
       MathUtils.lerp(prevSnapshot.pos.z, currSnapshot.pos.z, renderAlpha),
     );
+    const rawPosY = _interpPos.y;
 
-    // 2. Smooth Eye Height (1.65m stand -> 0.95m crouch)
+    // 2. Smoothly track footY using exponential damping so steps/ledges transition over ~80ms without snapping
+    if (Math.abs(this.smoothedFootY - rawPosY) > 4.0) {
+      this.smoothedFootY = rawPosY;
+    } else {
+      this.smoothedFootY = MathUtils.damp(this.smoothedFootY, rawPosY, 22.0, dt);
+    }
+
+    // 3. Smooth Eye Height (1.65m stand -> 0.95m crouch)
     const targetEyeY = MathUtils.lerp(
       WORLD.PLAYER.EYE_STAND,
       WORLD.PLAYER.EYE_CROUCH,
       currSnapshot.crouchT,
     );
-    this.currentEyeY += (targetEyeY - this.currentEyeY) * Math.min(1.0, dt * 12.0);
+    this.currentEyeHeight = MathUtils.damp(this.currentEyeHeight, targetEyeY, 12.0, dt);
 
-    // 3. 40ms jump anticipation dip
+    // 4. 40ms jump anticipation dip
     if (this.wasOnGround && !currSnapshot.onGround && currSnapshot.vel.y > 1.0 && this.prevVelY <= 0.2) {
       this.jumpAnticipationTimer = 0.040; // 40ms anticipation dip
     }
@@ -91,50 +118,59 @@ export class PlayerCamera {
       jumpDip = -0.024 * Math.sin(Math.max(0, this.jumpAnticipationTimer / 0.040) * Math.PI);
     }
 
-    // 4. Landing dip: critically damped spring with 80 to 120 ms recovery
+    // 5. Landing dip: critically damped spring with clean impulse based on landing impact
     if (!this.wasOnGround && currSnapshot.onGround) {
-      const impactSpeed = Math.abs(prevSnapshot.vel.y);
-      if (impactSpeed > 1.2) {
-        // Depth proportional to fall velocity
-        this.dipVelocity = -Math.min(0.35, impactSpeed * 0.045);
-      }
+      const impactSpeed = (currSnapshot.lastLandingImpactSpeed !== undefined && currSnapshot.lastLandingImpactSpeed > 0)
+        ? currSnapshot.lastLandingImpactSpeed
+        : (currSnapshot.lastLandingSpeed ?? (Math.abs(prevSnapshot.vel.y) > 0.5 ? Math.abs(prevSnapshot.vel.y) : 2.0));
+      this.landingDipVel -= Math.min(2.8, impactSpeed * 0.45);
     }
     this.wasOnGround = currSnapshot.onGround;
 
-    // Critically damped spring (omega_n = 19 rad/s -> ~100ms recovery, c = 2*omega_n = 38)
-    const k = 360.0;
-    const c = 38.0;
-    const springForce = -k * this.dipOffset - c * this.dipVelocity;
-    this.dipVelocity += springForce * dt;
-    this.dipOffset += this.dipVelocity * dt;
+    // Critically damped spring (dry land: k=360, c=38 -> 80-120ms recovery; water: k=140, c=18 -> smooth 0.35s dip)
+    const k = currSnapshot.wet ? 140.0 : 360.0;
+    const c = currSnapshot.wet ? 18.0 : 38.0;
+    const springForce = -k * this.landingDipY - c * this.landingDipVel;
+    this.landingDipVel += springForce * dt;
+    this.landingDipY += this.landingDipVel * dt;
+    this.landingDipY = MathUtils.clamp(this.landingDipY, -0.28, 0.08);
 
-    // 5. Head-bob based on horizontal movement
+    // 6. Head-bob and strafe tilt based on horizontal movement
     const horizSpeed = Math.hypot(currSnapshot.vel.x, currSnapshot.vel.z);
-    let bobVertical = 0;
-    let bobLateral = 0;
 
-    if (enableBob && currSnapshot.onGround && horizSpeed > 0.2) {
+    if (enableBob && currSnapshot.onGround && horizSpeed >= 0.15) {
       const isSprinting = horizSpeed > PlayerMotor.SPEED_WALK + 0.5;
       const isCrouching = currSnapshot.crouchT > 0.5;
 
       const strideFreq = currSnapshot.wet ? 4.6 : 8.0; // Wading adds slower, heavier sway
       this.bobPhase += dt * strideFreq * (horizSpeed / PlayerMotor.SPEED_WALK);
 
-      let ampY = 0.026; // walking
-      if (isSprinting) ampY = 0.042;
+      let ampY = 0.028; // walking
+      if (isSprinting) ampY = 0.048; // sprinting
       else if (isCrouching) ampY = 0.015;
 
-      if (currSnapshot.wet) ampY *= 1.25;
+      const targetBobY = Math.sin(this.bobPhase * 2.0) * ampY;
+      const targetBobX = Math.cos(this.bobPhase) * (ampY * 0.5);
 
-      bobVertical = Math.sin(this.bobPhase * 2.0) * ampY;
-      bobLateral = Math.cos(this.bobPhase) * (ampY * 0.5);
+      // Subtle strafe roll (max +-1.2 deg = +-0.0209 rad)
+      const maxRoll = 1.2 * (Math.PI / 180);
+      const targetRoll = Math.sin(this.bobPhase) * (currSnapshot.wet ? maxRoll : maxRoll * 0.7);
+
+      this.bobOffsetY = MathUtils.damp(this.bobOffsetY, targetBobY, 18.0, dt);
+      this.bobOffsetX = MathUtils.damp(this.bobOffsetX, targetBobX, 18.0, dt);
+      this.currentTilt = MathUtils.damp(this.currentTilt, targetRoll, 18.0, dt);
+    } else {
+      // Rock-steady when standing still, aiming, or airborne
+      this.bobOffsetX = MathUtils.damp(this.bobOffsetX, 0, 12.0, dt);
+      this.bobOffsetY = MathUtils.damp(this.bobOffsetY, 0, 12.0, dt);
+      this.currentTilt = MathUtils.damp(this.currentTilt, 0, 12.0, dt);
     }
 
-    // 6. Subtle idle breathing sway (+-0.004m at 0.25Hz)
+    // 7. Subtle idle breathing sway (+-0.004m at 0.25Hz)
     this.idlePhase += dt * (0.25 * Math.PI * 2.0);
     const idleSway = enableBob ? Math.sin(this.idlePhase) * 0.004 : 0;
 
-    // 7. Near-miss shake: when monster passes within 4m, high-frequency, low-amplitude rumble
+    // 8. Near-miss shake: when monster passes within 4m, high-frequency, low-amplitude rumble
     let shakeX = 0;
     let shakeY = 0;
     if (nearestMonsterDist !== undefined && nearestMonsterDist < 4.0 && !reducedMotion) {
@@ -144,34 +180,39 @@ export class PlayerCamera {
       shakeX = Math.cos(now * 44.0) * 0.005 * intensity;
     }
 
-    // 8. Camera Position composition
-    let camY = _interpPos.y + this.currentEyeY + bobVertical + idleSway + this.dipOffset + jumpDip + shakeY;
-    if (currSnapshot.waterFallActive && waterY !== undefined) {
-      // Water-fall submersion dip below surface (0.5s)
-      camY = Math.min(camY, waterY - 0.22);
-    } else if (waterY !== undefined && currSnapshot.wet && (currSnapshot.depth === undefined || currSnapshot.depth <= 1.55)) {
-      // Keep player head above water line in shallow / waist-deep water (avoid false submersion dip)
-      camY = Math.max(camY, waterY + 0.18);
+    // 9. Camera Position composition
+    let camY = this.smoothedFootY + this.currentEyeHeight + this.bobOffsetY + this.landingDipY + idleSway + jumpDip + shakeY;
+
+    // Normal wading / jumping: camera NEVER clips through the water plane (waterY) or triggers false underwater state
+    if (waterY !== undefined && (currSnapshot.depth === undefined || currSnapshot.depth <= 1.55)) {
+      camY = Math.max(camY, waterY + 0.28);
     }
+
     this.camera.position.set(
-      _interpPos.x + bobLateral + shakeX,
+      _interpPos.x + this.bobOffsetX + shakeX,
       camY,
       _interpPos.z,
     );
 
-    // 9. Orientation (Yaw & Pitch clamped to +-85 deg = +-1.4835 rad, plus subtle wading roll)
+    // 10. Orientation: shortest-arc angle lerp eliminates 360-degree camera whip on yaw wrap
     const pitch = MathUtils.clamp(
       MathUtils.lerp(prevSnapshot.pitch, currSnapshot.pitch, renderAlpha),
       -1.4835,
       1.4835,
     );
-    const yaw = MathUtils.lerp(prevSnapshot.yaw, currSnapshot.yaw, renderAlpha);
-    const roll = enableBob && currSnapshot.wet ? Math.sin(this.bobPhase) * 0.018 : 0;
+
+    const deltaYaw = Math.atan2(
+      Math.sin(currSnapshot.yaw - prevSnapshot.yaw),
+      Math.cos(currSnapshot.yaw - prevSnapshot.yaw),
+    );
+    const yaw = prevSnapshot.yaw + deltaYaw * renderAlpha;
+
+    const roll = enableBob ? this.currentTilt : 0;
 
     _euler.set(pitch, yaw, roll, 'YXZ');
     this.camera.quaternion.setFromEuler(_euler);
 
-    // 10. Sprint FOV Kick (+4.5 deg) & Mantle / Exhaustion Breathing FOV
+    // 11. Sprint FOV Kick (+4.5 deg) & Mantle / Exhaustion Breathing FOV
     const agitationBreath = currSnapshot.exhausted ? Math.sin(this.idlePhase * 3.0) * 1.5 : 0;
     const isSprinting = horizSpeed > PlayerMotor.SPEED_WALK + 0.5 && !currSnapshot.exhausted;
     const targetFov =
@@ -199,6 +240,10 @@ export class PlayerCamera {
   }
 
   getLandingDip(): number {
-    return this.dipOffset;
+    return this.landingDipY;
+  }
+
+  getSmoothedFootY(): number {
+    return this.smoothedFootY;
   }
 }

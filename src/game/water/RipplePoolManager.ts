@@ -61,7 +61,7 @@ export class RipplePoolManager {
   public waterY = 0.0;
   private rippleHead = 0;
   private dropletHead = 0;
-  private wadingTimer = 0.0;
+  public wadingTimer = 0.0;
 
   constructor(parent: Object3D, waterY = 0.0) {
     this.waterY = waterY;
@@ -97,22 +97,22 @@ export class RipplePoolManager {
           float d = length(vUv - vec2(0.5)) * 2.0;
           if (d > 1.0) discard;
 
-          // 3 sharp concentric white circles at r = 0.95, 0.68, and 0.40
+          // 3 soft concentric white circles at r = 0.95, 0.68, and 0.40
           float thickness = 0.045;
-          float ring1 = smoothstep(thickness, 0.0, abs(d - 0.95));
-          float ring2 = smoothstep(thickness, 0.0, abs(d - 0.68));
-          float ring3 = smoothstep(thickness, 0.0, abs(d - 0.40));
+          float ring1 = smoothstep(thickness, 0.015, abs(d - 0.95));
+          float ring2 = smoothstep(thickness, 0.015, abs(d - 0.68));
+          float ring3 = smoothstep(thickness, 0.015, abs(d - 0.40));
           float rings = max(max(ring1, ring2), ring3);
 
           // Radial sine falloff
           float sineMod = (sin(d * 3.14159265 * 6.0) * 0.5 + 0.5) * rings;
           float combined = mix(rings, sineMod, 0.25);
 
-          // Fade alpha from 0.90 to 0.0 as progress goes from 0.0 to 1.0
-          float alpha = (1.0 - vProgress) * 0.90 * combined;
+          // Fade alpha from 0.85 to 0.0 as progress goes from 0.0 to 1.0 (soft procedural fade)
+          float alpha = (1.0 - vProgress) * 0.85 * combined;
           if (alpha < 0.005) discard;
 
-          gl_FragColor = vec4(1.0, 1.0, 1.0, alpha);
+          gl_FragColor = vec4(0.95, 0.98, 1.0, alpha);
         }
       `,
       transparent: true,
@@ -128,7 +128,7 @@ export class RipplePoolManager {
       this.ripples[i] = {
         active: false,
         x: 0,
-        y: this.waterY + 0.012,
+        y: this.waterY + 0.025,
         z: 0,
         startRadius: 0.25,
         endRadius: 2.2,
@@ -152,7 +152,10 @@ export class RipplePoolManager {
         varying vec2 vUv;
         void main() {
           vUv = uv;
-          vec4 mvPosition = modelViewMatrix * instanceMatrix * vec4(position, 1.0);
+          // Camera-facing billboard quad
+          float instScale = length(vec3(instanceMatrix[0][0], instanceMatrix[0][1], instanceMatrix[0][2]));
+          vec4 mvPosition = modelViewMatrix * instanceMatrix * vec4(0.0, 0.0, 0.0, 1.0);
+          mvPosition.xy += position.xy * (instScale > 0.0 ? instScale : 1.0);
           gl_Position = projectionMatrix * mvPosition;
         }
       `,
@@ -193,6 +196,7 @@ export class RipplePoolManager {
       this.dropletMesh.setMatrixAt(i, this.dummy.matrix);
     }
     this.dropletMesh.instanceMatrix.needsUpdate = true;
+    this.dropletMesh.visible = false;
     this.root.add(this.dropletMesh);
   }
 
@@ -204,7 +208,7 @@ export class RipplePoolManager {
     const rip = this.ripples[idx]!;
     rip.active = true;
     rip.x = x;
-    rip.y = this.waterY + 0.012;
+    rip.y = this.waterY + 0.025;
     rip.z = z;
     rip.startRadius = startRadius;
     rip.endRadius = endRadius;
@@ -331,17 +335,9 @@ export class RipplePoolManager {
     d.size = 0.06 + Math.random() * 0.04;
   }
 
-  update(dt: number, isMovingInWater = false, playerPos?: Vector3): void {
-    // 1. Wading step cadence: every 0.38s while moving in water
-    if (isMovingInWater && playerPos) {
-      this.wadingTimer += dt;
-      if (this.wadingTimer >= 0.38) {
-        this.wadingTimer = 0.0;
-        this.spawnPlayerWadingStep(playerPos.x, playerPos.z);
-      }
-    } else {
-      this.wadingTimer = 0.0;
-    }
+  update(dt: number, _isMovingInWater = false, _playerPos?: Vector3): void {
+    // Ripples are phase-locked to Footsteps.ts foot plants and monster steps; disable unsynced auto-cadence
+    this.wadingTimer = 0.0;
 
     // 2. Update active concentric ripple rings
     let rippleNeedsUpdate = false;
@@ -363,7 +359,7 @@ export class RipplePoolManager {
         const radius = rip.startRadius + (rip.endRadius - rip.startRadius) * progress;
         const diameter = radius * 2.0;
 
-        this.dummy.position.set(rip.x, this.waterY + 0.012, rip.z);
+        this.dummy.position.set(rip.x, this.waterY + 0.025, rip.z);
         this.dummy.scale.set(diameter, diameter, 1.0);
         this.dummy.updateMatrix();
         this.rippleMesh.setMatrixAt(i, this.dummy.matrix);

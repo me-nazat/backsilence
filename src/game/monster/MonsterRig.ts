@@ -23,6 +23,9 @@ import {
   MeshStandardMaterial,
   Color,
   Matrix4,
+  Vector3,
+  Euler,
+  Quaternion,
   DynamicDrawUsage,
   DoubleSide,
   type Material,
@@ -152,6 +155,104 @@ export function buildJawPetalGeometry(length = 0.20, baseWidth = 0.12, tipWidth 
   geom.setIndex(new Uint16BufferAttribute(indices, 1));
   geom.computeVertexNormals();
   return geom;
+}
+
+/**
+ * Builds an inner mucosal gum cushion geometry matching the inner concave curvature of a jaw petal.
+ */
+export function buildJawGumsGeometry(length = 0.18, baseWidth = 0.10, thickness = 0.022): BufferGeometry {
+  const geom = new BufferGeometry();
+  const positions: number[] = [];
+  const indices: number[] = [];
+  const rings = 6;
+  const segments = 6;
+
+  for (let r = 0; r <= rings; r++) {
+    const v = r / rings;
+    const z = -v * length;
+    const curve = Math.sin(v * Math.PI) * 0.030;
+    const w = (baseWidth * (1.0 - v * 0.55) + 0.025 * (v * 0.55)) * 0.5;
+    const h = thickness * (1.0 - v * 0.45);
+
+    for (let s = 0; s <= segments; s++) {
+      const u = s / segments;
+      const angle = (u - 0.5) * Math.PI;
+      const px = Math.sin(angle) * w;
+      const py = Math.cos(angle) * h + curve + 0.004;
+      const pz = z;
+      positions.push(px, py, pz);
+    }
+  }
+
+  addGridIndices(indices, rings, segments);
+
+  geom.setAttribute('position', new Float32BufferAttribute(positions, 3));
+  geom.setIndex(new Uint16BufferAttribute(indices, 1));
+  geom.computeVertexNormals();
+  return geom;
+}
+
+/**
+ * Builds an InstancedMesh containing 12 curved needle teeth and corner fangs rooted on the inner petal gums:
+ * - 2 concentric rows of 5 curved needle teeth (10 needle teeth)
+ * - 2 prominent corner fangs at the basal lateral margins
+ * All pointing inward toward the throat.
+ */
+export function buildPetalTeethInstancedMesh(toothGeom: BufferGeometry, boneMat: Material): InstancedMesh {
+  const mesh = new InstancedMesh(toothGeom, boneMat, 12);
+  mesh.instanceMatrix.setUsage(DynamicDrawUsage);
+
+  const mat = new Matrix4();
+  const pos = new Vector3();
+  const rot = new Euler();
+  const quat = new Quaternion();
+  const scale = new Vector3();
+
+  // Row 1 (inner row, 5 needle teeth closer to base/throat)
+  const r1X = [-0.032, -0.016, 0.0, 0.016, 0.032];
+  const r1Z = [-0.040, -0.048, -0.052, -0.048, -0.040];
+  for (let i = 0; i < 5; i++) {
+    const x = r1X[i]!;
+    const z = r1Z[i]!;
+    pos.set(x, 0.014, z);
+    rot.set(Math.PI - 0.45, 0, -x * 5.0);
+    quat.setFromEuler(rot);
+    scale.set(0.95, 1.0, 0.95);
+    mat.compose(pos, quat, scale);
+    mesh.setMatrixAt(i, mat);
+  }
+
+  // Row 2 (outer row, 5 needle teeth along mid-petal)
+  const r2X = [-0.042, -0.021, 0.0, 0.021, 0.042];
+  const r2Z = [-0.080, -0.092, -0.100, -0.092, -0.080];
+  for (let i = 0; i < 5; i++) {
+    const x = r2X[i]!;
+    const z = r2Z[i]!;
+    pos.set(x, 0.012, z);
+    rot.set(Math.PI - 0.40, 0, -x * 4.5);
+    quat.setFromEuler(rot);
+    scale.set(0.88, 0.90, 0.88);
+    mat.compose(pos, quat, scale);
+    mesh.setMatrixAt(5 + i, mat);
+  }
+
+  // Corner fangs (2 prominent fangs at basal lateral margins)
+  pos.set(-0.046, 0.016, -0.022);
+  rot.set(Math.PI - 0.50, 0.15, 0.28);
+  quat.setFromEuler(rot);
+  scale.set(1.30, 1.35, 1.30);
+  mat.compose(pos, quat, scale);
+  mesh.setMatrixAt(10, mat);
+
+  pos.set(0.046, 0.016, -0.022);
+  rot.set(Math.PI - 0.50, -0.15, -0.28);
+  quat.setFromEuler(rot);
+  scale.set(1.30, 1.35, 1.30);
+  mat.compose(pos, quat, scale);
+  mesh.setMatrixAt(11, mat);
+
+  mesh.instanceMatrix.needsUpdate = true;
+  return mesh;
 }
 
 /**
@@ -540,6 +641,70 @@ export function createCreatureShaderHook(
   };
 }
 
+/**
+ * Mucosal tissue shader hook for inner gums and throat:
+ * Retains wet crimson-pink tones (#8f1d24) with wet specular sheen and scene fog extinction,
+ * without clamping red against green.
+ */
+export function createMucosalShaderHook(
+  waterLevelUniform: { value: number },
+) {
+  return (shader: {
+    vertexShader: string;
+    fragmentShader: string;
+    uniforms: Record<string, { value: unknown }>;
+  }): void => {
+    shader.uniforms.uWaterLevel = waterLevelUniform;
+
+    shader.vertexShader = shader.vertexShader.replace(
+      '#include <common>',
+      /* glsl */ `
+      #include <common>
+      varying vec3 vWorldPositionForWet;
+      `,
+    );
+    shader.vertexShader = shader.vertexShader.replace(
+      '#include <worldpos_vertex>',
+      /* glsl */ `
+      #include <worldpos_vertex>
+      vWorldPositionForWet = (modelMatrix * vec4(transformed, 1.0)).xyz;
+      `,
+    );
+
+    shader.fragmentShader = shader.fragmentShader.replace(
+      '#include <roughnessmap_fragment>',
+      /* glsl */ `
+      #include <roughnessmap_fragment>
+      float camDistWet = length(vViewPosition);
+      float distAtten = clamp(1.0 - camDistWet / 35.0, 0.0, 1.0);
+      float wetT = clamp((uWaterLevel + 0.30 - vWorldPositionForWet.y) / 0.30, 0.0, 1.0);
+      roughnessFactor = mix(roughnessFactor, 0.08, wetT * 0.85);
+      diffuseColor.rgb *= mix(1.0, 0.88, wetT * distAtten);
+      `,
+    );
+
+    shader.fragmentShader = shader.fragmentShader.replace(
+      '#include <fog_fragment>',
+      /* glsl */ `
+      vec3 viewDir = normalize(vViewPosition);
+      vec3 surfNormal = normalize(vNormal);
+      float mucusSheen = pow(max(0.0, dot(reflect(-viewDir, surfNormal), viewDir)), 36.0) * 0.08;
+      gl_FragColor.rgb += vec3(mucusSheen);
+
+      #ifdef USE_FOG
+        #ifdef FOG_EXP2
+          float fogFactor = 1.0 - exp( - fogDensity * fogDensity * vFogDepth * vFogDepth );
+        #else
+          float fogFactor = smoothstep( fogNear, fogFar, vFogDepth );
+        #endif
+        fogFactor = clamp( fogFactor * 1.0, 0.0, 1.0 );
+        gl_FragColor.rgb = mix( gl_FragColor.rgb, fogColor, fogFactor );
+      #endif
+      `,
+    );
+  };
+}
+
 export class MonsterRig {
   readonly rootGroup = new Group();
   readonly pelvis = new Group();
@@ -609,6 +774,7 @@ export class MonsterRig {
   readonly podHeadMesh: Mesh;
   readonly facialMarkingMesh: Mesh;
   readonly smallMouthMesh: Mesh;
+  readonly uvulaMesh: Mesh;
 
   // Measured structural descriptors exposed for contract verification
   readonly torsoLengthM = 0.65;
@@ -707,8 +873,16 @@ export class MonsterRig {
     this.headSkinMat.onBeforeCompile = applyCreatureShaderHooks;
     this.materials.push(this.headSkinMat);
 
-    // Alias shellMat to headSkinMat (#59462d) so no rust-red carapace exists anywhere
-    this.shellMat = this.headSkinMat;
+    // Outer jaw petal shell: dark organic charcoal/brown (#241c18)
+    this.shellMat = new MeshStandardMaterial({
+      color: new Color('#241c18'),
+      roughness: 0.25,
+      metalness: 0.04,
+    });
+    (this.shellMat as unknown as { clearcoat?: number; clearcoatRoughness?: number }).clearcoat = 0.65;
+    (this.shellMat as unknown as { clearcoatRoughness?: number }).clearcoatRoughness = 0.20;
+    this.shellMat.onBeforeCompile = applyCreatureShaderHooks;
+    this.materials.push(this.shellMat);
 
     // Claws & inner teeth material: muted wet bone (#b8ae94)
     this.boneMat = new MeshStandardMaterial({
@@ -728,7 +902,18 @@ export class MonsterRig {
     this.pitMat.onBeforeCompile = applyCreatureShaderHooks;
     this.materials.push(this.pitMat);
 
-    this.throatMat = this.pitMat;
+    const applyMucosalShaderHook = createMucosalShaderHook(this.waterLevelUniform);
+
+    // Deep wet throat cavity and pulsing esophagus/uvula (#4a0d12)
+    this.throatMat = new MeshStandardMaterial({
+      color: new Color('#4a0d12'),
+      roughness: 0.18,
+      metalness: 0.02,
+    });
+    (this.throatMat as unknown as { clearcoat?: number; clearcoatRoughness?: number }).clearcoat = 0.90;
+    (this.throatMat as unknown as { clearcoatRoughness?: number }).clearcoatRoughness = 0.12;
+    this.throatMat.onBeforeCompile = applyMucosalShaderHook;
+    this.materials.push(this.throatMat);
 
     // Subdued maroon facial marking (#4a2520, f_018)
     this.facialMarkingMat = new MeshStandardMaterial({
@@ -739,7 +924,16 @@ export class MonsterRig {
     this.facialMarkingMat.onBeforeCompile = applyCreatureShaderHooks;
     this.materials.push(this.facialMarkingMat);
 
-    this.gumsMat = this.facialMarkingMat;
+    // Inner petal mucosal gums: wet crimson-pink (#8f1d24, wet roughness 0.12, clearcoat 1.0)
+    this.gumsMat = new MeshStandardMaterial({
+      color: new Color('#8f1d24'),
+      roughness: 0.12,
+      metalness: 0.02,
+    });
+    (this.gumsMat as unknown as { clearcoat?: number; clearcoatRoughness?: number }).clearcoat = 1.0;
+    (this.gumsMat as unknown as { clearcoatRoughness?: number }).clearcoatRoughness = 0.10;
+    this.gumsMat.onBeforeCompile = applyMucosalShaderHook;
+    this.materials.push(this.gumsMat);
 
     this.clothMat = new MeshStandardMaterial({
       color: new Color('#524934'),
@@ -879,7 +1073,15 @@ export class MonsterRig {
     this.headPitsMesh.instanceMatrix.needsUpdate = true;
     this.splitShellMeshGroup.add(this.headPitsMesh);
 
-    // Sculpted orange-brown 4-petal split-jaw maw (#59462d) with inner black throat (#100c0a) and 32 sharp teeth ring
+    // Pulsing dark-crimson esophagus/uvula bulb (#4a0d12)
+    const uvulaGeom = new SphereGeometry(0.048, 12, 10);
+    uvulaGeom.scale(0.85, 1.3, 0.95);
+    this.uvulaMesh = new Mesh(uvulaGeom, this.throatMat);
+    this.uvulaMesh.name = 'ThroatUvulaMesh';
+    this.uvulaMesh.position.set(0, -0.025, -0.16);
+    this.splitShellMeshGroup.add(this.uvulaMesh);
+
+    // 4-petal split-jaw flower-maw (#241c18 outer shell, #8f1d24 inner gums, 12 teeth/petal = 48 teeth)
     this.jawGroup.name = 'Rig_Jaw';
     this.headGroup.add(this.jawGroup);
 
@@ -892,36 +1094,60 @@ export class MonsterRig {
     this.lowerJaw.add(singleJawMesh);
     this.jawGroup.add(this.lowerJaw);
 
-    // Sculpted jaw petal meshes on all 4 lobes (#59462d)
+    // Sculpted jaw petal meshes on all 4 lobes with inner gums and 12 attached teeth each
     const jawPetalGeom = buildJawPetalGeometry(0.20, 0.12, 0.03);
+    const jawGumsGeom = buildJawGumsGeometry(0.18, 0.10, 0.022);
+    const toothGeom = buildNeedleToothGeometry(0.040, 0.007);
 
     this.leftJawLobe.name = 'LeftJawLobe';
     this.rightJawLobe.name = 'RightJawLobe';
     this.topJawLobe.name = 'TopJawLobe';
     this.bottomJawLobe.name = 'BottomJawLobe';
 
+    // Left Petal
     this.jawPetalL.name = 'JawPetalL';
     this.jawPetalL.position.set(0.06, -0.02, -0.16);
-    const leftPetalMesh = new Mesh(jawPetalGeom, this.headSkinMat);
+    const leftPetalMesh = new Mesh(jawPetalGeom, this.shellMat);
     leftPetalMesh.rotation.z = Math.PI * 0.5;
-    this.jawPetalL.add(leftPetalMesh);
+    const leftGumsMesh = new Mesh(jawGumsGeom, this.gumsMat);
+    leftGumsMesh.rotation.z = Math.PI * 0.5;
+    leftGumsMesh.position.set(-0.003, 0, -0.005);
+    const leftTeeth = buildPetalTeethInstancedMesh(toothGeom, this.boneMat);
+    leftTeeth.rotation.z = Math.PI * 0.5;
+    this.jawPetalL.add(leftPetalMesh, leftGumsMesh, leftTeeth);
 
+    // Right Petal
     this.jawPetalR.name = 'JawPetalR';
     this.jawPetalR.position.set(-0.06, -0.02, -0.16);
-    const rightPetalMesh = new Mesh(jawPetalGeom, this.headSkinMat);
+    const rightPetalMesh = new Mesh(jawPetalGeom, this.shellMat);
     rightPetalMesh.rotation.z = -Math.PI * 0.5;
-    this.jawPetalR.add(rightPetalMesh);
+    const rightGumsMesh = new Mesh(jawGumsGeom, this.gumsMat);
+    rightGumsMesh.rotation.z = -Math.PI * 0.5;
+    rightGumsMesh.position.set(0.003, 0, -0.005);
+    const rightTeeth = buildPetalTeethInstancedMesh(toothGeom, this.boneMat);
+    rightTeeth.rotation.z = -Math.PI * 0.5;
+    this.jawPetalR.add(rightPetalMesh, rightGumsMesh, rightTeeth);
 
+    // Top Petal
     this.jawPetalTop.name = 'JawPetalTop';
     this.jawPetalTop.position.set(0, 0.05, -0.16);
-    const topPetalMesh = new Mesh(jawPetalGeom, this.headSkinMat);
+    const topPetalMesh = new Mesh(jawPetalGeom, this.shellMat);
     topPetalMesh.rotation.x = -Math.PI;
-    this.jawPetalTop.add(topPetalMesh);
+    const topGumsMesh = new Mesh(jawGumsGeom, this.gumsMat);
+    topGumsMesh.rotation.x = -Math.PI;
+    topGumsMesh.position.set(0, -0.003, -0.005);
+    const topTeeth = buildPetalTeethInstancedMesh(toothGeom, this.boneMat);
+    topTeeth.rotation.x = -Math.PI;
+    this.jawPetalTop.add(topPetalMesh, topGumsMesh, topTeeth);
 
+    // Bottom Petal
     this.jawPetalBottom.name = 'JawPetalBottom';
     this.jawPetalBottom.position.set(0, -0.07, -0.16);
-    const bottomPetalMesh = new Mesh(jawPetalGeom, this.headSkinMat);
-    this.jawPetalBottom.add(bottomPetalMesh);
+    const bottomPetalMesh = new Mesh(jawPetalGeom, this.shellMat);
+    const bottomGumsMesh = new Mesh(jawGumsGeom, this.gumsMat);
+    bottomGumsMesh.position.set(0, 0.003, -0.005);
+    const bottomTeeth = buildPetalTeethInstancedMesh(toothGeom, this.boneMat);
+    this.jawPetalBottom.add(bottomPetalMesh, bottomGumsMesh, bottomTeeth);
 
     this.jawGroup.add(
       this.leftJawLobe,
@@ -947,21 +1173,11 @@ export class MonsterRig {
     innerThroatMesh.position.set(0, -0.02, -0.14);
     this.headGroup.add(innerThroatMesh);
 
-    // Ring of 32 sharp white teeth around the inner circumference of the maw
-    const toothGeom = buildNeedleToothGeometry(0.038, 0.007);
+    // Retained legacy teethMesh reference on lowerJaw for API compatibility (hidden to prevent mid-air floating ring)
     this.teethMesh = new InstancedMesh(toothGeom, this.boneMat, 32);
     this.teethMesh.name = 'InnerMouthTeeth';
-    this.teethMesh.instanceMatrix.setUsage(DynamicDrawUsage);
-    for (let i = 0; i < 32; i++) {
-      const angle = (i / 32) * Math.PI * 2;
-      const radius = 0.075;
-      const tx = Math.cos(angle) * radius;
-      const ty = Math.sin(angle) * (radius * 0.8) - 0.02;
-      const tz = -0.19 - Math.sin(angle * 2) * 0.015;
-      pitMat4.makeTranslation(tx, ty, tz);
-      this.teethMesh.setMatrixAt(i, pitMat4);
-    }
-    this.teethMesh.instanceMatrix.needsUpdate = true;
+    this.teethMesh.count = 0;
+    this.teethMesh.visible = false;
     this.lowerJaw.add(this.teethMesh);
 
     this.setJawSplit(0.08);
@@ -1197,6 +1413,12 @@ export class MonsterRig {
     this.jawPetalR.rotation.y = -angleRad;
     this.jawPetalTop.rotation.x = -angleRad;
     this.jawPetalBottom.rotation.x = angleRad;
+
+    if (this.uvulaMesh) {
+      const flare = Math.max(0, (angleRad - 0.08) / 0.57);
+      const pulse = 1.0 + flare * 0.35 + Math.sin(angleRad * 14.0) * 0.06 * flare;
+      this.uvulaMesh.scale.set(pulse, pulse * 1.15, pulse * (1.0 + flare * 0.5));
+    }
   }
 
   getJawSplit(): number {

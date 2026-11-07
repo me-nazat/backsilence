@@ -3,7 +3,7 @@
  *  Solves inverse kinematics, secondary breathing, ear fin tracking, and footfall splatters.
  * ──────────────────────────────────────────────────────────────────────── */
 
-import { Vector3, type Camera } from 'three';
+import { Vector3, MathUtils, type Camera } from 'three';
 import type { MonsterSnapshot } from '../../sim/MonsterBrain.js';
 import type { GroundGrid } from '../../sim/GroundGrid.js';
 import { MonsterMeshHierarchy } from './MonsterMesh.js';
@@ -42,6 +42,8 @@ export class MonsterBody {
   private breathPhase = 0;
   private undulationPhase = 0;
   private wakeTimer = 0;
+  private currentRootY = 0;
+  private hasInitializedRootY = false;
 
   // Hardening and Diagnostic Probe fields (Phase B)
   skinType: 'model' | 'procedural' = 'procedural';
@@ -57,6 +59,7 @@ export class MonsterBody {
   private readonly lastGoodPos = new Vector3(0, 0, 0);
   private lastGoodYaw = 0;
   private hasLoggedNonFinite = false;
+  private prevState: string | undefined = undefined;
 
   readonly scale: number;
   readonly tint: string;
@@ -280,8 +283,27 @@ export class MonsterBody {
 
     this.isOnDryPlatform = groundY >= waterLevel + 0.05;
     const isWadeStand = false;
+    const targetBaseRootY = this.water && !this.isOnDryPlatform
+      ? Math.max(groundY + 0.32, waterLevel - 0.42)
+      : groundY;
+
+    if (!this.hasInitializedRootY) {
+      this.currentRootY = targetBaseRootY;
+      this.hasInitializedRootY = true;
+    } else {
+      this.currentRootY = MathUtils.damp(this.currentRootY, targetBaseRootY, 10.0, dt);
+    }
     const rearingLift = Math.max(0, snapshot.rearingT ?? 0) * 0.35;
-    const finalRootY = groundY + rearingLift;
+    const finalRootY = this.currentRootY + rearingLift;
+
+    // Ensure legacy primitive mesh hierarchy remains invisible when procedural rig is active
+    if (this.rig) {
+      this.mesh.lod0.visible = false;
+      this.mesh.lod1.visible = false;
+      if (this.mesh.skinnedMesh) {
+        this.mesh.skinnedMesh.visible = false;
+      }
+    }
 
     const finalPosX = snapshot.pos.x;
     const finalPosZ = snapshot.pos.z;
@@ -295,10 +317,13 @@ export class MonsterBody {
     const speed = Math.hypot(snapshot.vel.x, snapshot.vel.z);
     _worldRoot.copy(this.mesh.root.position);
 
-    // Trigger rear up roar if brain sets rearingT or on alerted transition
-    if (snapshot.rearingT > 0.6 && !this.animator.isRoaring()) {
+    // Trigger rear up roar if brain sets rearingT or on alerted transition or arriving at splash target (HUNT -> INVESTIGATE) (Bug 4B)
+    const isSplashArrival = snapshot.state === 'INVESTIGATE' && this.prevState === 'HUNT';
+    const isAlertedTransition = snapshot.state === 'ALERTED' && this.prevState !== 'ALERTED';
+    if ((snapshot.rearingT > 0.45 || isSplashArrival || isAlertedTransition) && !this.animator.isRoaring()) {
       this.animator.triggerRearUpRoar();
     }
+    this.prevState = snapshot.state;
 
     // Update procedural skeletal animation controller
     this.animator.update(

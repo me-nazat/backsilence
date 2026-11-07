@@ -1,5 +1,5 @@
 {
-  "date": "2026-11-05T16:14:24.446Z",
+  "date": "2026-11-07T06:30:20.979Z",
   "manifestHash": "94e00f1eff14c185906da61201cc3044cc50454ea812590c7ce853e82aeec772",
   "derivedTargetsGeneratedAt": "2026-11-02T11:55:00.000Z",
   "referenceSource": "Authoritative Reference Pack (37 frames, manifest=94e00f1eff14c185)",
@@ -2206,54 +2206,6 @@
   ],
   "hueBandChecks": [
     {
-      "targetId": "WATER_PROFILES.natatorium.shallow",
-      "hex": "#8cb179",
-      "hsv": [
-        99.6,
-        0.316,
-        0.694
-      ],
-      "expectedBand": {
-        "hue": [
-          85,
-          113
-        ],
-        "sat": [
-          0.32,
-          0.52
-        ],
-        "val": [
-          0.35,
-          0.69
-        ]
-      },
-      "passed": true
-    },
-    {
-      "targetId": "WATER_PROFILES.natatorium.deep",
-      "hex": "#678f44",
-      "hsv": [
-        92,
-        0.524,
-        0.561
-      ],
-      "expectedBand": {
-        "hue": [
-          85,
-          113
-        ],
-        "sat": [
-          0.32,
-          0.52
-        ],
-        "val": [
-          0.35,
-          0.69
-        ]
-      },
-      "passed": true
-    },
-    {
       "targetId": "WATER_PROFILES.poolrooms.shallow",
       "hex": "#8cb179",
       "hsv": [
@@ -3945,8 +3897,8 @@
     "regionColourChecks": 39,
     "regionColourPassed": 26,
     "regionColourFailed": 13,
-    "hueBandChecks": 30,
-    "hueBandPassed": 8,
+    "hueBandChecks": 28,
+    "hueBandPassed": 6,
     "hueBandFailed": 22,
     "noBlacksChecks": 14,
     "noBlacksPassed": 14,
@@ -3954,8 +3906,8 @@
     "audioChecks": 4,
     "audioPassed": 4,
     "audioFailed": 0,
-    "totalChecks": 213,
-    "passedChecks": 146,
+    "totalChecks": 211,
+    "passedChecks": 144,
     "failedChecks": 67,
     "overallPass": false,
     "worstFailingMetric": {

@@ -176,6 +176,8 @@ export function applyMapLevelArtPass(env: LevelArtEnv): void {
     decalCount++;
   }
 
+  const isPristinePool = mapId === 'natatorium' || mapId === 'poolrooms' || mapId === 'orientation';
+
   for (const wall of layout.walls) {
     if (decalCount >= targetDecals) break;
     const cx = (wall.min.x + wall.max.x) * 0.5;
@@ -185,7 +187,7 @@ export function applyMapLevelArtPass(env: LevelArtEnv): void {
       position: new Vector3(cx, cy, wall.max.z),
       normal: new Vector3(0, 0, 1),
       size: 1.5,
-      kind: rng.next() < 0.6 ? 'graffiti' : 'numeral',
+      kind: isPristinePool ? (rng.next() < 0.6 ? 'numeral' : 'crack') : (rng.next() < 0.6 ? 'graffiti' : 'numeral'),
       color: '#ffffff',
     });
     decalCount++;
@@ -199,7 +201,7 @@ export function applyMapLevelArtPass(env: LevelArtEnv): void {
       normal: new Vector3(0, 1, 0),
       size: 1.6,
       kind: rng.next() < 0.5 ? 'stain' : 'crack',
-      color: '#4a6058',
+      color: isPristinePool ? (rng.next() < 0.5 ? '#d4ccba' : '#ffffff') : '#4a6058',
     });
     decalCount++;
   }

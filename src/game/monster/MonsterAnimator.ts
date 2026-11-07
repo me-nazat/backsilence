@@ -52,6 +52,7 @@ export class MonsterAnimator {
   private phase = 0;
   private animTime = 0;
   private roarTimer = 0;
+  private roarSplashFired = false;
   private jumpscareTimer = 0;
   private trenchLungeTimer = 0;
 
@@ -80,6 +81,7 @@ export class MonsterAnimator {
     if (this.state === 'JUMPSCARE_GRAB') return;
     this.state = 'REAR_UP_ROAR';
     this.roarTimer = 0.0;
+    this.roarSplashFired = false;
   }
 
   isRoaring(): boolean {
@@ -164,11 +166,16 @@ export class MonsterAnimator {
     // ──────────────────────────────────────────────────────────────────────────
     // 0. State Resolution
     // ──────────────────────────────────────────────────────────────────────────
+    if (this.state !== 'REAR_UP_ROAR') {
+      this.roarSplashFired = false;
+    }
+
     if (this.state === 'REAR_UP_ROAR') {
       this.roarTimer += dt;
       if (this.roarTimer >= 1.75) {
         this.state = speed > 3.5 ? 'GALLOP_CHARGE' : speed > 0.2 ? 'PROWL_WALK' : 'PROWL_IDLE';
         this.roarTimer = 0.0;
+        this.roarSplashFired = false;
       }
     } else if (this.state === 'JUMPSCARE_GRAB') {
       this.jumpscareTimer += dt;
@@ -377,34 +384,38 @@ export class MonsterAnimator {
         const rt = this.roarTimer;
 
         if (rt < 0.35) {
-          // 0.0s – 0.35s: Brakes and pitches upright (upperChest.rotation.x: 0.65 -> -0.25),
-          // raises arms wide (leftShoulder.z = 0.95, rightShoulder.z = -0.95, claws spread),
-          // hinges jaw lobes wide open (±0.65 rad / 75°).
+          // 0.0s – 0.35s: Brakes and pitches upright (upperChest.rotation.x: 0.65 -> -0.45, lowerSpine: -0.55),
+          // raises arms wide (leftShoulder.z = 1.05, rightShoulder.z = -1.05, claws spread),
+          // hindlegs stand tall (pelvis.y -> 1.18), hinges jaw lobes wide open (0.68 -> 0.72).
           const prog = rt / 0.35;
           const ease = 1.0 - Math.pow(1.0 - prog, 3);
 
-          this.chestPitch = MathUtils.lerp(0.65, -0.25, ease);
+          this.chestPitch = MathUtils.lerp(0.65, -0.45, ease);
           this.rig.upperChest.rotation.x = this.chestPitch;
           this.rig.upperChest.rotation.y = 0.0;
           this.rig.upperChest.rotation.z = 0.0;
 
-          this.rig.shoulderL.rotation.set(-0.35 * ease, 0, 0.95 * ease);
-          this.rig.shoulderR.rotation.set(-0.35 * ease, 0, -0.95 * ease);
+          this.rig.lowerSpine.rotation.x = MathUtils.lerp(0.0, -0.55, ease);
+
+          this.rig.shoulderL.rotation.set(-0.35 * ease, 0, 1.05 * ease);
+          this.rig.shoulderR.rotation.set(-0.35 * ease, 0, -1.05 * ease);
           this.rig.elbowL.rotation.set(-0.30 * ease, 0, 0);
           this.rig.elbowR.rotation.set(-0.30 * ease, 0, 0);
 
-          // Hindlegs plant firmly and stand up taller
-          this.rig.pelvis.position.y = MathUtils.lerp(0.70, 0.95, ease);
+          // Hindlegs plant firmly and stand up taller (pelvis rises smoothly to 1.18)
+          this.rig.pelvis.position.y = MathUtils.lerp(0.70, 1.18, ease);
           this.rig.hipL.rotation.set(0.15 * ease, 0, 0.05);
           this.rig.hipR.rotation.set(0.15 * ease, 0, -0.05);
 
-          this.jawSplit = MathUtils.lerp(0.15, 0.65, ease); // flare to 75°
+          this.jawSplit = MathUtils.lerp(0.15, 0.68, ease);
           this.rig.setJawSplit(this.jawSplit);
         } else if (rt < 1.35) {
           // 0.35s – 1.35s: Violently thrashes head/upper torso side-to-side
           // (neck.y = sin(t*22)*0.28, head.z = cos(t*18)*0.22),
           // triggers camera shake (0.015 * clamp(1.0 - dist/10, 0, 1)) and waist ripples.
-          this.rig.upperChest.rotation.x = -0.25 + Math.sin(t * 14.0) * 0.05;
+          this.rig.pelvis.position.y = 1.18;
+          this.rig.lowerSpine.rotation.x = -0.55 + Math.sin(t * 12.0) * 0.03;
+          this.rig.upperChest.rotation.x = -0.45 + Math.sin(t * 14.0) * 0.05;
           this.rig.upperChest.rotation.z = Math.sin(t * 18.0) * 0.08;
 
           this.rig.neck.rotation.y = Math.sin(t * 22.0) * 0.28;
@@ -412,10 +423,10 @@ export class MonsterAnimator {
           this.rig.headGroup.rotation.z = Math.cos(t * 18.0) * 0.22;
           this.rig.headGroup.rotation.x = 0.25;
 
-          this.rig.shoulderL.rotation.set(-0.35, 0, 0.95 + Math.sin(t * 16.0) * 0.12);
-          this.rig.shoulderR.rotation.set(-0.35, 0, -0.95 - Math.sin(t * 16.0) * 0.12);
+          this.rig.shoulderL.rotation.set(-0.35, 0, 1.05 + Math.sin(t * 16.0) * 0.12);
+          this.rig.shoulderR.rotation.set(-0.35, 0, -1.05 - Math.sin(t * 16.0) * 0.12);
 
-          this.jawSplit = 0.65 + Math.sin(t * 24.0) * 0.05; // shuddering wide split
+          this.jawSplit = MathUtils.damp(this.jawSplit, 0.72 + Math.sin(t * 24.0) * 0.03, 8.0, dt);
           this.rig.setJawSplit(this.jawSplit);
 
           // Camera shake
@@ -426,28 +437,30 @@ export class MonsterAnimator {
             this.callbacks.onCameraShake(shake);
           }
         } else {
-          // 1.35s – 1.75s: Drops back to all fours (upperChest.x -> 0.65),
-          // closes jaws to 0.15 rad, heavy splash ring.
+          // 1.35s – 1.75s: Drops back to all fours (upperChest.x -> 0.65, pelvis.y -> 0.70),
+          // closes jaws to 0.15 rad, heavy splash ring at dropProg > 0.88.
           const dropProg = (rt - 1.35) / 0.40;
           const dropEase = dropProg * dropProg;
 
-          this.chestPitch = MathUtils.lerp(-0.25, 0.65, dropEase);
+          this.chestPitch = MathUtils.lerp(-0.45, 0.65, dropEase);
           this.rig.upperChest.rotation.x = this.chestPitch;
           this.rig.upperChest.rotation.z = 0.0;
           this.rig.upperChest.rotation.y = 0.0;
+          this.rig.lowerSpine.rotation.x = MathUtils.lerp(-0.55, 0.0, dropEase);
 
-          this.rig.shoulderL.rotation.set(0.20, 0, MathUtils.lerp(0.95, 0.05, dropEase));
-          this.rig.shoulderR.rotation.set(0.20, 0, MathUtils.lerp(-0.95, -0.05, dropEase));
+          this.rig.shoulderL.rotation.set(0.20, 0, MathUtils.lerp(1.05, 0.05, dropEase));
+          this.rig.shoulderR.rotation.set(0.20, 0, MathUtils.lerp(-1.05, -0.05, dropEase));
 
           this.rig.neck.rotation.y = MathUtils.lerp(this.rig.neck.rotation.y, 0.0, 0.15);
           this.rig.headGroup.rotation.z = MathUtils.lerp(this.rig.headGroup.rotation.z, 0.0, 0.15);
 
-          this.rig.pelvis.position.y = MathUtils.lerp(0.95, 0.70, dropEase);
-          this.jawSplit = MathUtils.lerp(0.65, 0.15, dropEase);
+          this.rig.pelvis.position.y = MathUtils.lerp(1.18, 0.70, dropEase);
+          this.jawSplit = MathUtils.lerp(0.72, 0.15, dropEase);
           this.rig.setJawSplit(this.jawSplit);
 
-          // Slam down splash at the end of drop
-          if (dropProg > 0.90 && this.callbacks.onRearUpSplash) {
+          // Slam down splash at the end of drop (latched to fire only once at dropProg > 0.88, Bug 4B)
+          if (dropProg > 0.88 && !this.roarSplashFired && this.callbacks.onRearUpSplash) {
+            this.roarSplashFired = true;
             this.rig.rootGroup.getWorldPosition(_scratchPosL);
             _scratchPosL.y = baseWaterY;
             this.callbacks.onRearUpSplash(_scratchPosL);
