@@ -62,6 +62,7 @@ interface VHSUniforms {
   uResolution: { value: Vector2 };
   uGlitch: { value: number };
   uTension: { value: number };
+  uPanic?: { value: number };
   uRewind: { value: number };
   uSignalLost: { value: number };
   uLines: { value: number };
@@ -240,7 +241,7 @@ export class PostFX {
 
   private updateCssOverlayVisibility(): void {
     if (!this.cssOverlay) return;
-    if (this.currentTier === 'low' && this.settings.graphics.vhsIntensity > 0) {
+    if (this.currentTier === 'low' && this.settings.graphics.vhsIntensity > 0.65) {
       this.cssOverlay.style.display = 'block';
       this.cssOverlay.style.opacity = String(this.settings.graphics.vhsIntensity);
     } else {
@@ -278,7 +279,7 @@ export class PostFX {
     }
     u.uLines.value = s.graphics.vhsLines ?? 240.0;
     u.uSafeMode.value = isSafe ? 1.0 : 0.0;
-    u.uCurvature.value = isSafe ? 0.0 : 0.02;
+    u.uCurvature.value = isSafe ? 0.0 : 0.010;
 
     if (this.bloomPass) {
       this.bloomPass.strength = isSafe ? 0.2 : 0.55;
@@ -349,12 +350,19 @@ export class PostFX {
     const u = this.getVhsUniforms();
     if (u) {
       u.uTension.value = this.tension;
+      if (u.uPanic) {
+        u.uPanic.value = this.tension;
+      }
       const baseIntensity = this.settings.graphics.vhsIntensity;
       if (baseIntensity > 0) {
         const dynamicGrade = baseIntensity * (0.6 + 0.4 * this.tension);
         u.uIntensity.value = this.isSafeMode() ? Math.min(0.25, dynamicGrade) : dynamicGrade;
       }
     }
+  }
+
+  setPanic(panic: number): void {
+    this.setTension(panic);
   }
 
   setGodRays(enabled: boolean, sunScreenPos?: Vector2): void {
@@ -511,7 +519,7 @@ export class PostFX {
       const isSafe = this.isSafeMode();
       u.uCurvature.value = isSafe
         ? 0.0
-        : 0.02 + 0.015 * this.tension * Math.sin(this.totalTime * 1.5);
+        : 0.010 + 0.008 * this.tension * Math.sin(this.totalTime * 1.5);
     }
 
     // Tape smear dynamic factor based on camera speed

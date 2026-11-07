@@ -196,6 +196,8 @@ export class Hud {
   // Batch 4 Prompt 4B Elements
   private runTimerEl: HTMLElement | null = null;
   private reticleEl: HTMLElement | null = null;
+  private staminaContainerEl: HTMLElement | null = null;
+  private noiseCardEl: HTMLElement | null = null;
   private minimalNoiseEl: HTMLElement | null = null;
   private checkpointSavedEl: HTMLElement | null = null;
   private throwableHotbarEl: HTMLElement | null = null;
@@ -651,7 +653,7 @@ export class Hud {
 
         /* Default zero-HUD presentation matching reference video (clean game footage) */
         .bs-hud:not(.show-more-hud):not(.streamer-mode):not(.hud-style-full) #hud-run-timer,
-        .bs-hud:not(.show-more-hud):not(.streamer-mode):not(.hud-style-full) #hud-reticle,
+        .bs-hud:not(.show-more-hud):not(.streamer-mode):not(.hud-style-full) #hud-reticle:not(.has-interactable),
         .bs-hud:not(.show-more-hud):not(.streamer-mode):not(.hud-style-full) #hud-throwable-hotbar,
         .bs-hud:not(.show-more-hud):not(.streamer-mode):not(.hud-style-full) #hud-noise-minimal,
         .bs-hud:not(.show-more-hud):not(.streamer-mode):not(.hud-style-full) #hud-bottom-stack,
@@ -912,7 +914,7 @@ export class Hud {
         <div id="hud-rule-3" style="font-size: 22px; font-weight: 800; color: #ff5252; text-shadow: 0 2px 14px rgba(0,0,0,0.95); letter-spacing: 0.08em;">Do not touch the water 💔</div>
       </div>
 
-      <!-- Center Reticle (Prompt 4B Section 1: 3px x 3px solid white dot) -->
+      <!-- Center Reticle (subtle 3px translucent dot, expands on interactable hover) -->
       <div id="hud-reticle" style="
         position: absolute;
         top: 50%;
@@ -922,7 +924,9 @@ export class Hud {
         border-radius: 50%;
         background-color: rgba(255, 255, 255, 0.85);
         box-shadow: 0 0 2px rgba(0,0,0,0.8);
-        transform: translate(-50%, -50%);
+        transform: translate(-50%, -50%) scale(1.0);
+        opacity: 0.25;
+        transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease-out;
         pointer-events: none;
         z-index: 90;
       "></div>
@@ -1366,14 +1370,14 @@ export class Hud {
             <span id="hud-perch-chip" class="badge" style="display: none; border-color: #b388ff; color: #b388ff; font-size: 11px; background: rgba(8, 6, 3, 0.9); font-weight: bold; padding: 2px 7px;">PERCHED</span>
           </div>
           
-          <!-- Stamina bar -->
-          <div style="width: 120px; height: 4px; background: rgba(217,211,162,0.18); border-radius: 2px; overflow: hidden;">
+          <!-- Stamina bar (auto-hides when full and quiet) -->
+          <div id="hud-stamina-container" style="width: 120px; height: 4px; background: rgba(217,211,162,0.18); border-radius: 2px; overflow: hidden; opacity: 0; transition: opacity 0.3s ease-out;">
             <div id="hud-stamina-bar" style="width: 100%; height: 100%; background: var(--water, #86cfa0); border-radius: 2px; transition: width 0.1s linear;"></div>
           </div>
         </div>
 
-        <!-- Central Noise Meter Card with Numeric Ticks and Radius Ring -->
-        <div style="
+        <!-- Central Noise Meter Card with Numeric Ticks and Radius Ring (auto-hides when quiet) -->
+        <div id="hud-noise-card" style="
           display: flex;
           flex-direction: column;
           gap: 4px;
@@ -1382,6 +1386,8 @@ export class Hud {
           padding: 8px 16px;
           border-radius: 12px;
           box-shadow: 0 4px 20px rgba(0,0,0,0.7);
+          opacity: 0;
+          transition: opacity 0.3s ease-out;
         ">
           <!-- Top Row: Icon, Water Radius readout & Title -->
           <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 10px; letter-spacing: 0.08em; opacity: 0.9;">
@@ -1458,13 +1464,15 @@ export class Hud {
         width: max-content;
         max-width: min(92vw, 560px);
       ">
-        <!-- Minimal Noise Indicator (220x6 px with numeric radius readout) -->
+        <!-- Minimal Noise Indicator (220x6 px with numeric radius readout, auto-hides when quiet) -->
         <div id="hud-noise-minimal" style="
           display: flex;
           align-items: center;
           gap: 10px;
           pointer-events: none;
           margin-bottom: 8px;
+          opacity: 0;
+          transition: opacity 0.3s ease-out;
         ">
           <div style="
             width: 220px;
@@ -1727,6 +1735,8 @@ export class Hud {
     // Batch 4 Prompt 4B Elements
     this.runTimerEl = el.querySelector('#hud-run-timer');
     this.reticleEl = el.querySelector('#hud-reticle');
+    this.staminaContainerEl = el.querySelector('#hud-stamina-container');
+    this.noiseCardEl = el.querySelector('#hud-noise-card');
     this.minimalNoiseEl = el.querySelector('#hud-noise-minimal');
     this.checkpointSavedEl = el.querySelector('#hud-checkpoint-saved');
     this.throwableHotbarEl = el.querySelector('#hud-throwable-hotbar');
@@ -1891,9 +1901,25 @@ export class Hud {
       this.minimalNoiseRadiusEl.style.color = minColor;
     }
 
-    // 2. Stamina Bar
+    // 2. Stamina Bar & Contextual Auto-Hide
     if (this.staminaBarEl) {
       this.staminaBarEl.style.width = `${Math.round(data.stamina * 100)}%`;
+    }
+
+    const isSprintingOrDepleted = data.stamina < 0.99;
+    const isPursuit = data.riskTag === 'HUNTED' || data.riskTag === 'CLOSE' || data.status === 'EXHAUSTED';
+    const showStamina = isSprintingOrDepleted || isPursuit || this.showMoreHud || this.streamerMode;
+    if (this.staminaContainerEl) {
+      this.staminaContainerEl.style.opacity = showStamina ? '1' : '0';
+    }
+
+    const isNoisy = data.noiseLoudness > 0.05;
+    const showNoise = isNoisy || isPursuit || this.showMoreHud || this.streamerMode;
+    if (this.noiseCardEl) {
+      this.noiseCardEl.style.opacity = showNoise ? '1' : '0';
+    }
+    if (this.minimalNoiseEl) {
+      this.minimalNoiseEl.style.opacity = showNoise ? '1' : '0';
     }
 
     // 3. Status Chip & Screen Reader Announcement
@@ -1997,6 +2023,26 @@ export class Hud {
           .join('');
       } else {
         this.checklistEl.style.display = 'none';
+      }
+    }
+
+    // 4a-0. Center Reticle Contextual Expansion (3px dot, expands on interactable hover)
+    if (this.reticleEl) {
+      const hasInteractable = Boolean(data.interactionPrompt);
+      if (hasInteractable) {
+        this.reticleEl.classList?.add?.('has-interactable');
+        this.reticleEl.style.display = 'block';
+        this.reticleEl.style.transform = 'translate(-50%, -50%) scale(2.2)';
+        this.reticleEl.style.opacity = '0.85';
+      } else {
+        this.reticleEl.classList?.remove?.('has-interactable');
+        if (this.showMoreHud || this.streamerMode) {
+          this.reticleEl.style.display = 'block';
+        } else {
+          this.reticleEl.style.display = 'none';
+        }
+        this.reticleEl.style.transform = 'translate(-50%, -50%) scale(1.0)';
+        this.reticleEl.style.opacity = '0.25';
       }
     }
 

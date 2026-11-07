@@ -707,6 +707,10 @@ export class SessionHost {
     this.cameraRig.playerCamera.update(dt, prevSnap, currSnap, renderAlpha, nearestMonsterDist, this.water.currentWaterY);
     this.footsteps.update(currSnap, this.cameraRig.playerCamera.getBobPhase(), this.camera, this.simWorld.waterY);
 
+    const monsterPanic = nearestMonsterDist <= 30.0 ? Math.max(0, Math.min(1, 1.0 - (nearestMonsterDist - 5.0) / 25.0)) : 0.0;
+    this.postFX.setTension(monsterPanic);
+    this.postFX.update(dt);
+
     // 4. Update audio listener orientation
     _scratchVecA.set(0, 0, -1).applyQuaternion(this.camera.quaternion);
     const upVec = new Vector3(0, 1, 0).applyQuaternion(this.camera.quaternion);

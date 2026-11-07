@@ -23,11 +23,12 @@ export const VHSShader = {
     uIntensity: { value: 1.0 },
     uGlitch: { value: 0.0 },
     uTension: { value: 0.0 },
+    uPanic: { value: 0.0 },
     uTime: { value: 0.0 },
     uResolution: { value: new Vector2(1920, 1080) },
     uLines: { value: 240.0 },
     uSafeMode: { value: 0.0 },
-    uCurvature: { value: 0.02 },
+    uCurvature: { value: 0.010 },
     uLift: { value: new Vector3(0, 0, 0) },
     uGamma: { value: new Vector3(1, 1, 1) },
     uGain: { value: new Vector3(1, 1, 1) },
@@ -56,6 +57,7 @@ export const VHSShader = {
     uniform float uIntensity;
     uniform float uGlitch;
     uniform float uTension;
+    uniform float uPanic;
     uniform float uTime;
     uniform vec2 uResolution;
     uniform float uLines;
@@ -129,12 +131,14 @@ export const VHSShader = {
 
       vec2 uv = vUv;
       float isSafe = uSafeMode > 0.5 ? 1.0 : 0.0;
+      float panicLevel = max(uTension, uPanic);
 
-      // 1. Barrel Curvature (disabled in safe mode)
-      if (isSafe < 0.5 && uCurvature > 0.001) {
+      // 1. Barrel Curvature k1: reduced to 0.010 (barely perceptible wide-angle lens curvature, disabled in safe mode)
+      float k1 = uCurvature;
+      if (isSafe < 0.5 && k1 > 0.001) {
         vec2 centered = uv - 0.5;
         float r2 = dot(centered, centered);
-        uv = uv + centered * (r2 * uCurvature * uIntensity);
+        uv = uv + centered * (r2 * k1 * uIntensity);
       }
 
       // Check bounds after curvature
@@ -146,27 +150,31 @@ export const VHSShader = {
       // 2. Horizontal Scanline Jitter and Wobble
       float jitter = 0.0;
       if (isSafe < 0.5) {
-        float jitterAmp = (pow(uTension, 1.5) * 0.004 + uGlitch * 0.02 + uRewind * 0.06) * uIntensity;
+        float jitterAmp = (pow(panicLevel, 1.5) * 0.004 + uGlitch * 0.02 + uRewind * 0.06) * uIntensity;
         jitter = sin(uv.y * 180.0 + uTime * 45.0) * cos(uv.y * 31.0 - uTime * 20.0) * jitterAmp;
 
         // High frequency micro-jitter on tape edge
         float edgeJitter = (hash11(floor(uv.y * uLines) + fract(uTime * 30.0)) - 0.5) * jitterAmp * 0.5;
         jitter += edgeJitter;
 
-        // 3. Tracking Band (rolls vertically)
-        float trackingSpeed = 0.25 + uGlitch * 0.75 + uRewind * 2.5;
-        float bandY = fract(uTime * trackingSpeed);
-        float bandDist = abs(uv.y - bandY);
-        float bandWidth = 0.04 + uRewind * 0.12 + uGlitch * 0.06;
-        if (bandDist < bandWidth) {
-          float bandFactor = 1.0 - (bandDist / bandWidth);
-          jitter += (hash11(uv.y * 50.0 + uTime * 20.0) - 0.5) * 0.04 * bandFactor * uIntensity;
+        // 3. Tracking Band (rolls vertically only during high tension / panic >= 0.35, glitch, or rewind)
+        float trackingSpeed = (panicLevel >= 0.35 ? 0.25 : 0.0) + uGlitch * 0.75 + uRewind * 2.5;
+        if (trackingSpeed > 0.001) {
+          float bandY = fract(uTime * trackingSpeed);
+          float bandDist = abs(uv.y - bandY);
+          float bandWidth = 0.04 + uRewind * 0.12 + uGlitch * 0.06;
+          if (bandDist < bandWidth) {
+            float bandFactor = 1.0 - (bandDist / bandWidth);
+            float tearMask = bandFactor * (panicLevel >= 0.35 ? smoothstep(0.35, 0.8, panicLevel) : 1.0);
+            jitter += (hash11(uv.y * 50.0 + uTime * 20.0) - 0.5) * 0.04 * tearMask * uIntensity;
+          }
         }
       }
 
-      // 4. Chroma Aberration (< 1 px extreme edges only per Prompt 2 spec)
-      float edgeDist = smoothstep(0.25, 0.75, length(uv - 0.5));
-      float chroma = (0.0006 + 0.0025 * uTension + uGlitch * 0.008 + uRewind * 0.015) * uIntensity * edgeDist;
+      // 4. Chroma Aberration: subtle base radial 0.0004 at screen edges, scaling up only when panic/tension > 0.2
+      float edgeDist = smoothstep(0.35, 0.85, length(uv - 0.5));
+      float panicAberration = panicLevel > 0.2 ? smoothstep(0.2, 1.0, panicLevel) * 0.0022 : 0.0;
+      float chroma = (0.0004 + panicAberration + uGlitch * 0.006 + uRewind * 0.012) * uIntensity * edgeDist;
       if (isSafe > 0.5) {
         chroma = min(chroma, 0.0008);
       }
@@ -276,11 +284,11 @@ export const VHSShader = {
         color += bloom;
       }
 
-      // 7. Subtle VHS Tape Track Lines (Prompt 2: soft analog feel without CRT ringing)
-      if (isSafe < 0.5 && uLines > 0.0 && uIntensity > 0.01) {
+      // 7. CRT Scanlines (disabled during normal exploration; active only when heavy VHS mode is explicitly enabled: uIntensity > 0.65)
+      if (isSafe < 0.5 && uLines > 0.0 && uIntensity > 0.65) {
         float field = mod(floor(uTime * 60.0), 2.0);
         float scanline = sin(uv.y * uLines * 3.14159265 + field * 3.14159265);
-        float scanlineMul = 1.0 - (0.0015 * uIntensity * (0.5 + 0.5 * scanline));
+        float scanlineMul = 1.0 - (0.003 * (uIntensity - 0.65) * (0.5 + 0.5 * scanline));
         color *= scanlineMul;
       }
 
@@ -318,69 +326,43 @@ export const VHSShader = {
         color = mix(color, vec3(lostNoise * 0.7), uSignalLost);
       }
 
-      // 13. Per-map Color Grade & Procedural 3D LUT (Lift, Gamma, Gain, Saturation, Tint)
-      float lum = dot(color, vec3(0.299, 0.587, 0.114));
-      float shadowMask = 1.0 - smoothstep(0.0, 0.35, lum);
-      float midsMask = smoothstep(0.15, 0.45, lum) * (1.0 - smoothstep(0.70, 0.92, lum));
-      float highsMask = smoothstep(0.65, 0.95, lum);
+      // 13. Clean, neutral filmic contrast curve & color grade
+      // Preserves pristine bright whites (#f6f7f4) and luminous turquoise water (#42d8e8)
+      vec3 gradedColor = (color - 0.5) * uGain + 0.5 + uLift;
+      gradedColor = clamp(gradedColor, vec3(0.0), vec3(1.0));
 
-      // Warm cream highs and mint-olive mids
-      vec3 warmCreamHigh = vec3(0.014, 0.010, 0.004) * highsMask;
-      vec3 mintOliveMids = vec3(0.005, 0.002, 0.001) * midsMask;
-      vec3 warmCreamLift = vec3(0.008, 0.003, 0.002);
-      vec3 tealShadow = vec3(0.0, 0.002, 0.004) * shadowMask;
+      // Neutral filmic S-curve: clean toe, linear midtones, smooth shoulder without crushing darks
+      vec3 sCurve = gradedColor * gradedColor * (3.0 - 2.0 * gradedColor);
+      color = mix(gradedColor, sCurve, 0.12);
 
-      // Contrast shaping for filmic S-curve matching reference dynamic range
-      vec3 gradedColor = (color - 0.5) * (uGain * 1.03) + 0.5 + uLift;
-      // Gamma
-      color = pow(max(gradedColor, vec3(0.0)), 1.0 / max(uGamma, vec3(0.001)));
-      // Saturation (calibrated to measured reference olive-mint & warm ochre gamut)
+      // Gamma correction
+      color = pow(max(color, vec3(0.0001)), 1.0 / max(uGamma, vec3(0.001)));
+
+      // Saturation calibration
       float postLum = dot(color, vec3(0.299, 0.587, 0.114));
       color = mix(vec3(postLum), color, uSaturation);
 
-      // Hue-aware saturation calibration: enhance olive-mint water chroma (hue 85-115°)
-      float greenChroma = max(0.0, color.g - max(color.r, color.b));
-      if (greenChroma > 0.005) {
-        color.b -= greenChroma * 0.12;
-        color.r -= greenChroma * 0.04;
-      }
+      // Apply neutral per-map tint
+      color = color * uTint;
 
-      // Enrich ceramic tile warm ochre saturation in mids (hue 38-48°)
-      float tileChroma = max(0.0, color.r - max(color.g, color.b)) * midsMask;
-      if (tileChroma > 0.005) {
-        color.r += tileChroma * 0.35;
-        color.b -= tileChroma * 0.30;
-      }
-
-      // Film grade tone curve: warm cream highs, mint-olive mids, teal shadows, and warm cream lift
-      color = color * uTint + warmCreamLift + tealShadow + mintOliveMids + warmCreamHigh;
-
-      // Tension response: as creature closes, grade drifts cooler and contrast tightens by <= 12%
-      if (uTension > 0.001) {
-        vec3 coolDrift = mix(vec3(1.0), vec3(0.95, 0.98, 1.03), uTension * 0.12);
+      // Tension response: as creature closes, grade drifts slightly cooler (< 8%)
+      if (panicLevel > 0.001) {
+        vec3 coolDrift = mix(vec3(1.0), vec3(0.96, 0.98, 1.02), panicLevel * 0.08);
         color *= coolDrift;
-        float contrastTighten = 1.0 + min(0.12, uTension * 0.12);
-        color = (color - 0.5) * contrastTighten + 0.5;
       }
 
-      // 14. Soft Vignette (~0.30 depth radial falloff per measured look specification)
+      // 14. Subtle Vignette (gentle ~0.15 falloff at outer perimeter only)
       vec2 centeredVig = uv - 0.5;
-      float vig = 1.0 - smoothstep(0.35, 1.0, length(centeredVig) * 1.25) * 0.30;
+      float vig = 1.0 - smoothstep(0.45, 1.0, length(centeredVig) * 1.25) * 0.15;
       color *= vig;
 
-      // 15. Soft Monochrome-Sepia Film Grain (Prompt 2: ~0.0019 reference noise floor)
+      // 15. Ultra-fine neutral film grain (0.008 intensity floor)
       float grainTime = floor(uTime * 24.0);
-      float lumaNoise = (hash21(uv * vec2(1280.0, 720.0) + grainTime) - 0.5) * 0.0006 * uIntensity;
-      vec3 sepiaGrainTint = vec3(1.05, 1.0, 0.92);
-      color += sepiaGrainTint * lumaNoise;
+      float lumaNoise = (hash21(uv * vec2(1280.0, 720.0) + grainTime) - 0.5) * 0.008 * uIntensity;
+      color += vec3(lumaNoise);
 
-      // 16. Final color with color grading and soft VHS integration
-      vec3 finalColor = color;
-
-      // 17. Lift black floor per reference video contract (no crushed blacks, fraction below 0.1 == 0)
-      if (uRewind == 0.0 && uGlitch == 0.0 && uSignalLost == 0.0) {
-        finalColor = max(finalColor, vec3(0.102));
-      }
+      // 16. Final color output (no artificial black-floor clamping or dark mud)
+      vec3 finalColor = clamp(color, 0.0, 1.0);
 
       gl_FragColor = vec4(finalColor, 1.0);
     }
