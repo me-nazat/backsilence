@@ -44,6 +44,7 @@ import { GpuWaveSimulation } from './GpuWaveSimulation.js';
 import { RipplePoolManager } from './RipplePoolManager.js';
 import { makeWaterNormalMap } from '../../procedural/textures/WaterNormal.js';
 import type { AudioEngine } from '../../audio/AudioEngine.js';
+import { globalWaterLevelUniform } from '../../procedural/textures/TileMaterialFactory.js';
 
 const _scratchForward = new Vector3();
 const _scratchLookTarget = new Vector3();
@@ -214,6 +215,7 @@ export class WaterSystem {
 
   updateWaterY(newY: number): void {
     this.currentWaterY = newY;
+    globalWaterLevelUniform.value = newY;
     if (this.material.uniforms['uWaterY']) {
       this.material.uniforms['uWaterY'].value = newY;
     }

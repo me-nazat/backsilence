@@ -672,6 +672,15 @@ export function createMucosalShaderHook(
     );
 
     shader.fragmentShader = shader.fragmentShader.replace(
+      '#include <common>',
+      /* glsl */ `
+      #include <common>
+      uniform float uWaterLevel;
+      varying vec3 vWorldPositionForWet;
+      `,
+    );
+
+    shader.fragmentShader = shader.fragmentShader.replace(
       '#include <roughnessmap_fragment>',
       /* glsl */ `
       #include <roughnessmap_fragment>

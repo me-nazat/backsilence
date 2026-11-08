@@ -30,7 +30,10 @@ export type PbrMaterialKind =
   | 'bark'
   | 'asphalt'
   | 'subway_tile'
-  | 'stained_glass';
+  | 'stained_glass'
+  | 'plaster'
+  | 'rubber'
+  | 'eroded_stone';
 
 export interface PbrSetResult {
   kind: PbrMaterialKind;
@@ -334,6 +337,45 @@ export function makePbrMaterialSet(options: PbrKitOptions): PbrSetResult {
             height = 0.4 + n3 * 0.2;
             ao = 250;
           }
+          break;
+        }
+
+        case 'plaster': {
+          // Matte mineral plaster with broad trowel variations and fine micro-roughness
+          const trowel = (n1 * 0.6 + n2 * 0.4);
+          const grain = (n3 - 0.5) * 8.0;
+          r = Math.floor(205 + trowel * 18 + grain);
+          g = Math.floor(196 + trowel * 16 + grain);
+          b = Math.floor(172 + trowel * 12 + grain);
+          roughness = Math.floor(215 + n3 * 30);
+          height = 0.5 + trowel * 0.25;
+          ao = Math.floor(220 + trowel * 35);
+          break;
+        }
+
+        case 'rubber': {
+          // Matte black industrial rubber / synthetic polymers
+          const speckle = (n3 - 0.5) * 6;
+          const val = Math.floor(38 + speckle);
+          r = val; g = val + 1; b = val + 2;
+          roughness = Math.floor(225 + n2 * 20);
+          height = 0.5 + n2 * 0.1;
+          ao = Math.floor(240 + n1 * 15);
+          break;
+        }
+
+        case 'eroded_stone': {
+          // Ancient weathered stone formation with sedimentary layer lines and wet base
+          const strata = Math.sin(ny * 36.0 + n1 * 5.0) * 0.5 + 0.5;
+          const pitting = (n2 * 0.7 + n3 * 0.3);
+          const isBaseWet = ny > 0.70;
+          const wetFactor = isBaseWet ? 0.76 : 1.0;
+          r = Math.floor((160 + strata * 25 - pitting * 20) * wetFactor);
+          g = Math.floor((152 + strata * 22 - pitting * 20) * wetFactor);
+          b = Math.floor((138 + strata * 18 - pitting * 18) * wetFactor);
+          roughness = isBaseWet ? 70 : Math.floor(190 + pitting * 50);
+          height = strata * 0.6 + pitting * 0.4;
+          ao = Math.floor(160 + strata * 85);
           break;
         }
       }

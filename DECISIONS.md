@@ -2222,6 +2222,47 @@ Prompt 8 fulfills the Steam promise of "Anomalies Beyond Reason" and the run-lev
 **Status:** ACCEPTED  
 **Consequences:** Continuous cream vault eliminates ceiling blade artifacts; tagline mural renders with procedural marker lettering; numeral '2' is legible at 8–10m; all 11 maps pass no-untextured and no-void audits; all 10 hero shots pass depth layer audit.
 
+## D132 — Recessed Grout with Derived Normals, Baked and Screen-Space Occlusion, Wet Band, and Ceramic Decay (Prompt 4)
+
+**Date:** 2026-11-08  
+**Context:**  
+While base tile colours matched reference medians, ceramic materials exhibited no physical surface behavior:  
+1. No ambient occlusion: slab bases, wall/floor junctions, and pillar feet had uniform flat illumination, reading as cardboard.  
+2. No contact darkening or screen-space occlusion at architectural intersections.  
+3. No wet band / tidemark: surfaces near water lacked darkening, glaze sheen, and meniscus contact highlights.  
+4. Flat grout without depth: 0.15m tile grid lacked recessed normal mapping or self-shadowing AO.  
+5. No decay or micro-variation: tiles were identical clones lacking micro-cracks, chipped corners, and subtle lightness/hue jitter.  
+6. Specular blowout (defect C6) and hard edge aliasing (defect C5) were present on close tile inspection shots.
+
+**Decision:**  
+1. **Procedural Height Field & Derived PBR Channels (`TileTexture.ts` & `TileMaterialFactory.ts`):**  
+   - Generated runtime 5-channel PBR texture sets (`albedo`, `normal`, `roughness`, `ao`, `height`) with zero binary assets.  
+   - Height field models recessed grout channels (1.2mm depth at 0.15m scale) with $C^1$ cubic hermite micro-bevels (eliminating Sobel edge discontinuity C5), per-tile height, hairline cracks crossing tiles, and chipped corners (~4% rate).  
+   - Derived normal maps via finite differences from the height field and self-shadowing AO maps.  
+   - Wired all 5 channels to standard materials with `aoMapIntensity: 1.0`, `bumpMap: height` (scale 0.0012), and `normalScale: Vector2(0.85, 0.85)`.  
+   - Tempered `clearcoat = 0.30` and `clearcoatRoughness = 0.28`, eliminating grazing specular blowout (defect C6).  
+2. **Ambient Occlusion: Baked Vertex AO & Screen-Space SSAO (`VertexAO.ts`, `CommonMapBuilder.ts`, `PostFX.ts`):**  
+   - Implemented `bakeJunctionContactAO` and `bakeVertexAO` baking contact darkening ($\ge 12\%$, $minAO = 0.72$) into vertex colors along slab bases, wall/floor junctions, and pillar feet.  
+   - Configured `SSAOPass` on Medium and High tiers in `PostFX` (`kernelRadius = 16`, `minDistance = 0.005`, `maxDistance = 0.15`).  
+   - Directional shadow maps cast cleanly on top of baked and screen-space AO terms.  
+3. **Physical Wet Band & Meniscus Contact (`TileMaterialFactory.ts`, `WaterSystem.ts`):**  
+   - Driven strictly by `globalWaterLevelUniform` synchronized with `WaterSystem.updateWaterY`.  
+   - Wet band extends $0.0 \le \Delta Y \le 0.25\text{ m}$ above waterline with sinusoidal irregular tidemark.  
+   - Luminance delta is $18\%$ at 3m (legible) attenuating to $\sim 10\%$ at 20m (subtle), satisfying the $8\% - 25\%$ contract.  
+   - $C^1$ smoothstep continuity prevents hard edges.  
+   - Thin bright specular meniscus highlight at $|\Delta Y| < 0.012\text{ m}$ and roughness drop to $0.12$.  
+4. **Non-Tile PBR Material Kit (`PbrMaterialKit.ts`):**  
+   - Extended procedural PBR material generators for plaster (matte mineral, roughness 0.85), metal (anisotropic, roughness 0.35, metalness 0.85), rubber (matte black, roughness 0.90), and eroded stone (sedimentary strata, contact darkening).  
+5. **Verification & Tests:**  
+   - Added `tests/ao-presence.test.ts` verifying $\ge 12\%$ contact darkening, 3D vertex AO, and SSAOPass configuration.  
+   - Added `tests/wet-band.test.ts` verifying $8\% - 25\%$ luminance delta, gradient continuity, distance attenuation, `uWaterLevel` sync, specular meniscus, and roughness drop.  
+   - Extended `tests/tile-pitch.test.ts` asserting $0.15\text{ m} \pm 2\%$ at 3m, 10m, and 25m with perspective correction, and rejecting asymmetric "ravioli" UV stretching.  
+   - Verified `natatorium_close_tile_wall.png` with visual glitch census scanner (`aliasing.isHit: false`, `specularBlowout.isHit: false`, resolving C5 and C6).
+
+**Status:** ACCEPTED  
+**Consequences:** Ceramic surfaces exhibit recessed grout depth, contact ambient occlusion, dynamic wet bands synchronized with water level, and micro-crack decay; defects C5 (aliasing) and C6 (specular blowout) resolved; all 120 test files (1030 tests) pass.
+
+
 
 
 

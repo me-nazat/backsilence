@@ -35,6 +35,7 @@ import { CopyShader } from 'three/examples/jsm/shaders/CopyShader.js';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
+import { SSAOPass } from 'three/examples/jsm/postprocessing/SSAOPass.js';
 import { AfterimagePass } from 'three/examples/jsm/postprocessing/AfterimagePass.js';
 import { VHSShader } from '../procedural/shaders/vhs.glsl.js';
 import type { Settings, PostGrade } from '../types/contracts.js';
@@ -83,6 +84,7 @@ interface VHSUniforms {
 export class PostFX {
   private composer: EffectComposer | null = null;
   private renderPass: RenderPass | null = null;
+  private ssaoPass: SSAOPass | null = null;
   private texturePass: TexturePass | null = null;
   private copyQuad: FullScreenQuad | null = null;
   private bloomPass: UnrealBloomPass | null = null;
@@ -180,6 +182,16 @@ export class PostFX {
       // 2. RenderPass (fallback for full 3D scene input)
       this.renderPass = new RenderPass(new Scene(), new Camera());
       this.composer.addPass(this.renderPass);
+
+      // SSAOPass (screen-space ambient occlusion on Medium and High tiers - Decision D132)
+      if (this.currentTier === 'high' || this.currentTier === 'medium') {
+        this.ssaoPass = new SSAOPass(this.renderPass.scene, this.renderPass.camera, this.width, this.height);
+        this.ssaoPass.kernelRadius = 16;
+        this.ssaoPass.minDistance = 0.005;
+        this.ssaoPass.maxDistance = 0.15;
+        this.ssaoPass.enabled = true;
+        this.composer.addPass(this.ssaoPass);
+      }
 
       this.copyQuad = new FullScreenQuad(new ShaderMaterial(CopyShader));
 
@@ -603,12 +615,18 @@ export class PostFX {
       this.texturePass.enabled = true;
       this.texturePass.map = inputTexture;
       if (this.renderPass) this.renderPass.enabled = false;
+      if (this.ssaoPass) this.ssaoPass.enabled = false;
     } else {
       if (this.texturePass) this.texturePass.enabled = false;
       if (this.renderPass) {
         this.renderPass.enabled = true;
         this.renderPass.scene = scene;
         this.renderPass.camera = camera;
+      }
+      if (this.ssaoPass) {
+        this.ssaoPass.enabled = (this.currentTier === 'high' || this.currentTier === 'medium');
+        this.ssaoPass.scene = scene;
+        this.ssaoPass.camera = camera;
       }
     }
 
@@ -621,6 +639,9 @@ export class PostFX {
 
     if (this.composer) {
       this.composer.setSize(width, height);
+    }
+    if (this.ssaoPass) {
+      this.ssaoPass.setSize(width, height);
     }
     if (this.bloomPass) {
       this.bloomPass.setSize(Math.floor(width / 2), Math.floor(height / 2));
@@ -692,7 +713,10 @@ export class PostFX {
     const prevIntensity = this.settings.graphics.vhsIntensity;
     this.settings.graphics.vhsIntensity = 0.0;
     this.applySettings(this.settings);
+    const prevSsao = this.ssaoPass?.enabled;
+    if (this.ssaoPass) this.ssaoPass.enabled = false;
     this.render(testScene, testCamera, 0.016);
+    if (this.ssaoPass && prevSsao !== undefined) this.ssaoPass.enabled = prevSsao;
 
     const composerPixels = new Uint8Array(testW * testH * 4);
     gl.readPixels(0, 0, testW, testH, gl.RGBA, gl.UNSIGNED_BYTE, composerPixels);
@@ -757,6 +781,10 @@ export class PostFX {
     if (this.bloomPass) {
       this.bloomPass.dispose();
       this.bloomPass = null;
+    }
+    if (this.ssaoPass) {
+      this.ssaoPass.dispose();
+      this.ssaoPass = null;
     }
     if (this.texturePass) {
       this.texturePass.dispose?.();

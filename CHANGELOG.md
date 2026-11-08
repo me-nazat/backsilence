@@ -24,6 +24,14 @@ This project follows strict deterministic, zero-external-binary-asset design pri
   - Replaced generator crank and status light with designed metal and indicator bezel props.
   - Oriented numeral '2' on `pil_dry_room_2` to face $+Z$ for 8–10m legibility at $\ge 24\text{px}$ projected height.
   - Added `tests/tagline-wall.test.ts`, `tests/no-untextured-props.test.ts`, extended `tests/no-void.test.ts` to 11 maps, and created `scripts/world/depth-layer-audit.mjs`.
+- **Recessed Ceramic Grout, Occlusion, Wet Band, and Decay (Prompt 4 — Decision D132):**
+  - Built procedural 5-channel PBR texture sets (`albedo`, `normal`, `roughness`, `ao`, `height`) with zero binary assets.
+  - Height field models 1.2mm recessed grout channels at 0.15m scale, $C^1$ cubic hermite micro-bevels (resolving aliasing defect C5), hairline tile cracks, and chipped corners (~4% rate).
+  - Derived normals and self-shadowing ambient occlusion via finite difference analysis; tempered clearcoat to 0.30 / 0.28 resolving specular blowout (defect C6).
+  - Implemented baked vertex ambient occlusion (`bakeVertexAO`, `bakeJunctionContactAO`) with $\ge 12\%$ contact darkening along slab bases, wall/floor junctions, and pillar feet.
+  - Enabled screen-space ambient occlusion (`SSAOPass`) on Medium and High tiers in `PostFX`.
+  - Implemented dynamic wet band with irregular sinusoidal tidemark ($0.0 \le \Delta Y \le 0.25\text{ m}$) driven by `globalWaterLevelUniform` (18% luminance drop at 3m down to ~10% at 20m), thin bright specular meniscus contact at $|\Delta Y| < 0.012\text{ m}$, and roughness lowering to 0.12.
+  - Added `tests/ao-presence.test.ts`, `tests/wet-band.test.ts`, and extended `tests/tile-pitch.test.ts` (1030 tests across 120 files, 100% passing).
 - **Creature v2: The Seed-Pod Wader (Prompt 5):**
   - Seed-pod pitted head (32 dark pits `#241c14`), hunched posture, long forearms ($1.35\text{ m}$), flat wading feet, and posture library (`wade-stalk`, `listen-freeze`, `trench-pace`, `lunge`, `jumpscare-bracket`).
   - Screen-space readability certified across all distance tiers: 6m, 15m, 25m, 35m.

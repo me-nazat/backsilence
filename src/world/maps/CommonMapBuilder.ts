@@ -52,6 +52,7 @@ import {
   applyWorldSpaceBoxUVs,
   applyWorldSpaceCylinderUVs,
 } from '../../procedural/textures/TileMaterialFactory.js';
+import { bakeVertexAO, bakeJunctionContactAO, type ObstacleBox } from '../../procedural/geometry/VertexAO.js';
 
 export interface CustomBuilderHook {
   onPlatformMesh?: (mesh: Mesh, def: LayoutData['platforms'][0]) => void;
@@ -184,6 +185,14 @@ export function buildStandardMapInstance(
     metalMat,
     accentMat,
   ];
+
+  // Ensure vertexColors is enabled across all architectural materials for baked vertex AO (Decision D132)
+  customMaterials.platformMat.vertexColors = true;
+  if (platformSideMat) platformSideMat.vertexColors = true;
+  customMaterials.wallMat.vertexColors = true;
+  customMaterials.floorMat.vertexColors = true;
+  ceilingMat.vertexColors = true;
+  trimMat.vertexColors = true;
 
   // Apply wet darkening and tidemark gloss strictly within waterline meniscus
   applyWetDarkening(customMaterials.platformMat, { waterY: 0.0 });
@@ -804,6 +813,24 @@ export function buildStandardMapInstance(
 
     const floorGeom = createTiledBoxGeometry({ w: mapW, h: 0.2, d: mapD });
     applyWorldSpaceBoxUVs(floorGeom, WORLD.TILE_METERS);
+    const obstacles: ObstacleBox[] = [];
+    for (const plat of layout.platforms) {
+      obstacles.push({
+        minX: plat.rect[0],
+        maxX: plat.rect[2],
+        minZ: plat.rect[1],
+        maxZ: plat.rect[3],
+      });
+    }
+    for (const wall of layout.walls) {
+      obstacles.push({
+        minX: wall.min.x,
+        maxX: wall.max.x,
+        minZ: wall.min.z,
+        maxZ: wall.max.z,
+      });
+    }
+    bakeJunctionContactAO(floorGeom, obstacles, 0.40, 0.72);
     geometriesToDispose.push(floorGeom);
     const floorMesh = new Mesh(floorGeom, customMaterials.floorMat);
     floorMesh.position.set(mapCx, floorY - 0.1, mapCz);
@@ -845,6 +872,7 @@ export function buildStandardMapInstance(
       lengthSegments: 24,
       uvOffsetSeed: layout.seed,
     });
+    bakeVertexAO(vaultGeom, { contactRadius: 0.5 });
     geometriesToDispose.push(vaultGeom);
     ceilingMat.side = DoubleSide;
     const ceilingMesh = new Mesh(vaultGeom, ceilingMat);
