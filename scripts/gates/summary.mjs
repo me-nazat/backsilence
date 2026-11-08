@@ -139,12 +139,30 @@ export const GATES = [
     }),
   },
   {
+    name: 'audit:verdict-honesty',
+    cmd: 'node',
+    args: ['scripts/audit/verdict-honesty.mjs'],
+    summarize: (r) => ({
+      detail: r.ok ? 'all published verdicts match comparator JSON; zero ungrounded 0.0% rows' : 'verdict honesty violation',
+      worst: r.ok ? 'none' : (r.stderr || r.stdout).split('\n')[0] || 'verdict honesty violation',
+    }),
+  },
+  {
     name: 'audit:docs-truth',
     cmd: 'node',
     args: ['scripts/audit/docs-truth.mjs'],
     summarize: (r) => ({
       detail: r.ok ? 'all documentation claims verified against live codebase' : 'documentation drift',
       worst: r.ok ? 'none' : (r.stderr || r.stdout).split('\n')[0] || 'doc truth violation',
+    }),
+  },
+  {
+    name: 'audit:reference-integrity',
+    cmd: 'node',
+    args: ['scripts/audit/reference-integrity.mjs'],
+    summarize: (r) => ({
+      detail: r.ok ? 'all reference files match canonical manifestHash' : 'reference manifestHash mismatch',
+      worst: r.ok ? 'none' : (r.stderr || r.stdout).split('\n')[0] || 'reference integrity mismatch',
     }),
   },
   {

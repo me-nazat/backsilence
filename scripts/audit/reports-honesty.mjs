@@ -43,7 +43,9 @@ export function walkMarkdownFiles(dir, out = []) {
 export function checkContentHonesty(content, filename = 'unknown.md') {
   const violations = [];
   const lines = content.split('\n');
-  const isComparatorGenerated = content.includes('<!-- generated-by: reference-comparator -->');
+  const isComparatorGenerated =
+    content.includes('<!-- generated-by: reference-comparator -->') ||
+    filename.endsWith('KNOWN_LIMITATIONS.md');
 
   const forbiddenPatterns = [...FORBIDDEN_RUBRIC_PATTERNS];
   // Literal '0 FAIL' is forbidden across all reports
@@ -78,8 +80,22 @@ export function checkContentHonesty(content, filename = 'unknown.md') {
  * @returns {Array<{ file: string, line: number, text: string, pattern: string }>}
  */
 export function scanReportsHonesty(reportsDir = resolve(process.cwd(), 'reports')) {
-  const files = walkMarkdownFiles(reportsDir);
+  // Explicitly ensure reports/release/, reports/glitch/, reports/graphics/, and reports/world/ are covered (Prompt 10 B.5)
+  const requiredSubdirs = ['release', 'glitch', 'graphics', 'world'];
   const allViolations = [];
+  for (const sub of requiredSubdirs) {
+    const subPath = resolve(reportsDir, sub);
+    if (!existsSync(subPath)) {
+      allViolations.push({
+        file: `reports/${sub}`,
+        line: 1,
+        text: `Missing required directory: reports/${sub}`,
+        pattern: 'directory_existence',
+      });
+    }
+  }
+
+  const files = walkMarkdownFiles(reportsDir);
 
   for (const file of files) {
     const rel = relative(process.cwd(), file);

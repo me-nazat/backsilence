@@ -18,6 +18,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as zlib from 'node:zlib';
 import { fileURLToPath } from 'node:url';
+import { checkReferenceIntegrity } from '../audit/reference-integrity.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '../..');
@@ -183,6 +184,14 @@ function main() {
       }
     } catch (err) {
       errors.push(`Failed to decode PNG ${entry.file}: ${err.message}`);
+    }
+  }
+
+  // Check reference-pack integrity across all reference JSON files (Prompt 10 B.5)
+  const integrity = checkReferenceIntegrity(ROOT);
+  if (integrity.violations.length > 0) {
+    for (const v of integrity.violations) {
+      errors.push(`[reference-integrity] ${v.file}: ${v.detail}`);
     }
   }
 

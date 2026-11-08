@@ -26,24 +26,60 @@ open http://localhost:5173/
 | Script | Description |
 |---|---|
 | `npm run dev` | Start Vite development server |
+| `npm run dev:api` | Run local zero-credential FakeLibsql API proxy on port 8787 |
 | `npm run build` | Build optimized production bundle (`dist/`) |
 | `npm run preview` | Preview production build on port 4173 |
-| `npm run dev:api` | Run local zero-credential FakeLibsql API proxy on port 8787 |
-| `npm run typecheck` | Run TypeScript strict type checking |
-| `npm run lint` | Run ESLint verification |
-| `npm run test` | Run Vitest unit & integration test suite (1106 tests across 133 files) |
-| `npm run balance` | Run Headless Balance Bot Swarm (13,200 simulated runs across all 11 maps) |
-| `npm run smoke` | Run Headless CDP Smoke Bot covering all 14 end-to-end scenarios (S1–S14) |
-| `npm run secret:scan` | Scan repository, git history, and built bundles for exposed credentials |
-| `npm run glitch:scan` | Scan golden shots for visual artifacts (magenta markers, pure black void, hard fog seams) |
-| `npm run reference:verify` | Verify SHA-256 integrity of all 37 reference frames and audio files |
-| `npm run reference:compare` | Run SSIM, MAE, and colour band comparison against reference frames |
-| `npm run audio:compare` | Verify procedural Web Audio synthesis against reference spectrum |
-| `npm run shots:check` | Check 48 golden baseline screenshots for pixel regressions |
-| `npm run audit` | Comprehensive audit gate: bundle size, rulebook sync, appearance lock, no tautology, claim traceability, reports honesty, docs truth, golden sync |
+| `npm run deploy:preview` | Build and preview production build on port 4173 |
+| `npm run typecheck` | Run TypeScript strict type checking (`tsc --noEmit`) |
+| `npm run lint` | Run ESLint verification (`eslint .`) |
+| `npm run test` | Run Vitest unit & integration test suite (1108 tests across 134 files) |
+| `npm run audit` | Comprehensive audit gate running all 10 sub-audits |
+| `npm run audit:bundle` | Check bundle size budgets (boot <= 35 KB gz, core <= 500 KB gz) and zero external assets |
+| `npm run audit:rulebook-sync` | Verify ACOUSTIC_RULEBOOK.md matches AcousticBus.ts acoustic constants |
+| `npm run audit:appearance-lock` | Verify creature procedural skin default and zero external `.glb`/`.gltf` references |
+| `npm run audit:no-tautology` | Check tests execute real engine code rather than raw string assertions |
+| `npm run audit:claim-traceability` | Check 37/37 pairings validity and zero self-assigned grades in reports |
 | `npm run audit:reports-honesty` | Fatal check asserting zero self-assigned rubric grades across reports |
-| `npm run audit:docs-truth` | Verify documentation script names and test claims against codebase reality |
-| `npm run verify` | Complete release gate: typecheck → lint → test → build → audit → secret:scan → i18n:check → glitch:scan → reference:verify → reference:compare → shots:check |
+| `npm run audit:verdict-honesty` | Assert published table rows have real SSIM values matching comparator |
+| `npm run audit:docs-truth` | Verify documentation script names and numeric claims against codebase reality |
+| `npm run audit:reference-integrity` | Verify reference manifest hash matches canonical SHA-256 `94e00f1eff14c185906da61201cc3044cc50454ea812590c7ce853e82aeec772` |
+| `npm run audit:sync-golden` | Golden baseline shots synchronized across all directories |
+| `npm run glitch:scan` | Scan golden shots for 10 visual defect classes (aliasing, blowout, voids, leaks) |
+| `npm run secret:scan` | Scan repository, git history, and built bundles for exposed credentials |
+| `npm run i18n:check` | Check 15 locales with 100% key parity (121/121 keys) including RTL and CJK |
+| `npm run verify` | Complete release gate: typecheck → lint → test → build → audit sub-gates → glitch:scan → secret:scan → i18n:check → reference:verify → reference:compare → shots:check → gates:play → audio:compare |
+| `npm run verify:all` | Run verify plus monster-trace, perf, and visual checks |
+| `npm run gates:summary` | Aggregate release gate execution results and generate `reports/release/gates.md` |
+| `npm run gates:play` | Run 5-minute automated Natatorium playthrough asserting sighting pacing, trench avoidance, deterministic simHash |
+| `npm run shots` | Capture visual regression baseline screenshots |
+| `npm run shots:check` | Check 48 golden baseline screenshots for pixel regressions (SSIM >= 0.97, MAE <= 0.01) |
+| `npm run shots:approve` | Approve new golden baseline screenshots |
+| `npm run smoke` | Run Headless CDP Smoke Bot covering scenarios (S1–S8) |
+| `npm run test:cross-engine` | Run cross-engine visual and physics compatibility tests |
+| `npm run test:natural-sightings` | Run headless sighting distribution simulation across play seeds |
+| `npm run balance` | Run Headless Balance Bot Swarm (13,200 simulated runs across all 11 maps) |
+| `npm run browser:acceptance` | Run browser acceptance test suite |
+| `npm run perf` | Benchmark frame times, draw calls, and memory across quality tiers |
+| `npm run reference:verify` | Verify SHA-256 integrity of all 37 reference frames and audio files against manifest `94e00f1eff14c185906da61201cc3044cc50454ea812590c7ce853e82aeec772` |
+| `npm run reference:fetch` | Download and cache reference video frames |
+| `npm run reference:compare` | Run SSIM, MAE, and colour band comparison against 37 reference frames |
+| `npm run audio:compare` | Verify procedural Web Audio synthesis against reference spectrum |
+
+---
+
+## Maps & Architectural Families
+
+BackSilence features 11 procedural maps spanning 3 architectural families:
+- **`poolroom` family (5 maps):** `natatorium`, `poolrooms`, `orientation`, `hydro_maze`, `drowned_school`
+- **`utility` family (3 maps):** `utility_tunnels`, `drainage_core`, `drowned_metro`
+- **`derelict` family (3 maps):** `marble_atrium`, `neon_flood`, `sunken_jungle`
+
+---
+
+## Reference Pack & Performance Budgets
+
+- **Reference Pack:** Evaluated against 37 reference frames from *The Infinite Shift: Backrooms* with canonical manifest SHA-256 `94e00f1eff14c185906da61201cc3044cc50454ea812590c7ce853e82aeec772`.
+- **Performance Budgets:** Boot chunk budget <= 35 KB gz (actual: 9.54 KB gz), core bundle budget <= 500 KB gz (actual: 484.70 KB gz).
 
 ---
 
@@ -58,21 +94,23 @@ npm run smoke
 npm run balance
 ```
 
-### Gate Summary Table (`v2.1.0-rc1` — 2026-11-05)
+### Gate Summary Table (`v2.1.0-rc1` — 2026-11-08)
 
 | Gate | Status | Detail |
 | :--- | :--- | :--- |
 | `typecheck` | **PASS** | tsc --noEmit clean (0 errors) |
 | `lint` | **PASS** | eslint clean (0 warnings, 0 errors) |
-| `test` | **PASS** | Tests  1106 passed across 133 files |
-| `build` | **PASS** | vite production build succeeded (core bundle 481.00 KB / 500.00 KB) |
-| `audit:bundle` | **PASS** | zero forbidden external asset references in dist/ |
+| `test` | **PASS** | Tests 1108 passed across 134 files |
+| `build` | **PASS** | vite production build succeeded (core bundle 484.70 KB / 500.00 KB) |
+| `audit:bundle` | **PASS** | zero forbidden external asset references in dist/; boot <= 35 KB gz, core <= 500 KB gz |
 | `audit:rulebook-sync` | **PASS** | ACOUSTIC_RULEBOOK.md 8/8 rows synced with AcousticBus.ts |
 | `audit:appearance-lock` | **PASS** | procedural skin locked; zero .glb/.gltf references |
 | `audit:no-tautology` | **PASS** | zero source-file text/AST tautologies in tests/ |
 | `audit:claim-traceability` | **PASS** | 37/37 pairings valid; zero self-assigned grades in reports/ |
 | `audit:reports-honesty` | **PASS** | zero subjective grades or evaluation scores detected |
+| `audit:verdict-honesty` | **PASS** | all report verdicts match computed comparator data |
 | `audit:docs-truth` | **PASS** | all documentation claims verified against live codebase |
+| `audit:reference-integrity` | **PASS** | manifest hash matches canonical SHA-256 94e00f1eff14c185906da61201cc3044cc50454ea812590c7ce853e82aeec772 |
 | `audit:sync-golden` | **PASS** | golden baseline shots synchronized across all directories |
 | `glitch:scan` | **PASS** | zero visual artifacts across 48 golden baseline shots |
 | `secret:scan` | **PASS** | zero secrets detected |

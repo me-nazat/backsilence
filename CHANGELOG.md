@@ -5,6 +5,30 @@ This project follows strict deterministic, zero-external-binary-asset design pri
 
 ---
 
+## [v2.1.0] — 2026-11-08 (Release: A Gate That Blocks, Evidence You Can Trust, and an Honest Ledger — Prompt 10 / Decision D138)
+
+### ⚖️ What Changed
+- **Unforgiving Fatal Release Gate Suite:** Expanded `npm run verify` to sequentially run all 21 verification gates with zero swallowed exit codes. Updated `scripts/gates/summary.mjs` to derive gate status from child reported failure counts, outputting `FAIL (N failures)` and exiting non-zero whenever any child fails.
+- **Cryptographic Reference-Pack Integrity Verification:** Added `scripts/audit/reference-integrity.mjs`, asserting that every JSON file under `reference/` recording a `manifestHash` strictly matches the canonical manifest hash `94e00f1eff14c185906da61201cc3044cc50454ea812590c7ce853e82aeec772`. Integrated check into `scripts/reference/verify-reference.mjs` and `npm run audit`. Added `tests/reference-integrity.test.ts`.
+- **Machine-Checked Documentation Truth Gate:** Upgraded `scripts/audit/docs-truth.mjs` to fatal status, machine-verifying all numeric claims in `README.md`, `CHANGELOG.md`, `HANDOFF.md`, `KNOWN_ISSUES.md`, `KNOWN_LIMITATIONS.md`, and `BALANCE_REPORT.md` (1,108 tests across 134 files, S1–S8 smoke scenarios, 11 maps across 3 architectural families, 37 reference frames, and gzip budgets).
+- **Honest Review Pack & Verdict Integrity:** Maintained machine-evaluated ground truth in `reports/release/BETTER_THAN_VIDEO.md` with explicit SSIM and region deltas on all 37 reference pairings (0 EXCEEDS, 1 MATCH, 36 FAIL). Extended `audit:reports-honesty` and `audit:verdict-honesty` across `reports/release/`, `reports/glitch/`, `reports/graphics/`, and `reports/world/`.
+- **Honest Limitations Ledger:** Completely rewrote `reports/release/KNOWN_LIMITATIONS.md` to classify every entry as an engine truth with measured consequences or an open defect in the register. Documented what is still approximate in plain language with measured metrics.
+- **Production Handover & Decision Log:** Produced comprehensive `HANDOFF.md` architecture map with `file:line` entry points, gate catalogue, map family assignments, creature/acoustic contracts, and next 3 priorities. Recorded Decision D138 and retroactively corrected misleading historical claims in Decision D116.
+
+### 🛑 What Did Not Change
+- **Perceptual Reference Parity Gap:** Real-time procedural WebGL2 rendering does not achieve 1:1 pixel equivalence with 1080p pre-rendered video footage from *The Infinite Shift: Backrooms* (36 of 37 pairings remain FAIL in `reference_comparison.json`, with mean SSIM $0.542$ and framing color deltas $\Delta\text{RGB} \approx 0.05\text{--}0.18$).
+- **Screen-Space God Ray Frustum Limit:** Volumetric god rays remain evaluated in screen space from visible ceiling apertures; off-screen apertures do not wrap light beams around occluders when looking $> 45^\circ$ away.
+- **Analytic Wave Superposition:** Water ripples remain an analytic superposition of 4 trochoidal sinusoids and radial ellipse quads; full 2D Navier–Stokes shallow-water heightfield fluid simulation remains a future milestone task.
+- **Procedural Creature Skin:** Wader creature skin remains procedural Canvas-generated normal maps rather than scanned organic seed-pod meshes.
+- **Architectural Family Variants:** 6 of the 11 sectors (`utility` and `derelict` families) remain industrial and neoclassical variants that intentionally diverge from the reference video natatorium tile corridor.
+
+### 📉 What Got Worse
+- **Release Gating Now Formally Blocks:** Gating is no longer toothless; `npm run gates:summary` now halts CI/CD by honestly reporting `FAIL (103 failures)` over reference comparison deltas rather than printing fabricated pass banners.
+- **Highlight Compression:** Filmic highlight shoulder roll-off clamps highlights at $\le 0.965$ to eliminate specular blowout, resulting in warm cream highlights rather than pure brilliant white reflections in high-exposure daylight skylights.
+- **Lower-Tier Motion Blur Sampling:** Velocity motion blur sampling on Medium (3 taps) and Low (2 taps) was constrained to guarantee the 60 FPS performance floor, causing rapid camera whip turns ($\ge 720^\circ/\text{s}$) to exhibit discrete temporal stepping on lower-end devices.
+
+---
+
 ## [v2.1.0-rc1] — 2026-11-05 (The Better-Than-Video Ship Gate & Engineering Perfection)
 
 ### 🌊 Player-Visible Evolutions & Content Systems

@@ -1506,6 +1506,10 @@ Establish `functions/api/[[route]].ts` as the canonical Cloudflare Pages Functio
 **Reason:** Satisfies Section 7 Phase E and Section 8 Review Pack mandates.
 
 ### D116: Comprehensive Polish, Metric Tile UV Scaling, Ceiling Enclosure, Pale Mint Fog and Olive Water (2026-10-26)
+
+> [!WARNING] HISTORICAL RETROACTIVE CORRECTION (Prompt 10 / Decision D138):
+> The claims in D116 regarding complete ceiling enclosure, elimination of black voids, and metric tile UV consistency were premature in the 2026-10-26 commit. In reality, the ceiling remained disconnected floating blade geometry (corrected in D131), black voids persisted above unrendered camera angles (corrected in D130), and tile UV scales diverged across three files (corrected in D132). Do not cite D116 as evidence of landed architecture.
+
 **Context:** Visual fidelity and atmospheric audit against owner's reference video frames (`reference/video/frames/`, `reference/video/measured_targets.json`, `reference/video/palette.json`, `reference/baseline_current_build/compare_board.png`). The audit revealed five critical visual discrepancies:
 1. Sky Black Void: Unrendered sky regions and far vista drew as pitch black `#000000` because `scene.background` was null, failing to clear the WebGL backbuffer and render targets to the ambient fog color.
 2. Warped Tile Textures: Default `BoxGeometry(w, h, d)` stretched `[0, 1]` UV coordinates across entire 10–40m platform and wall surfaces, causing giant distorted rectangular tiles instead of uniform 0.15m x 0.15m ceramic graph-paper tiles.
@@ -2501,3 +2505,39 @@ Prompt 8 (Batch 4 of 5 — WATER, SPLASH, AND THE PLAYER) addresses player trave
 
 **Status:** ACCEPTED  
 **Consequences:** The visual artifact detector actively guards the entire rendering pipeline; zero open defects across the 151 tracked glitches; frame rate budget maintained at 60 FPS; all tests pass cleanly.
+
+## D138 — Release Gate Hardening, Cryptographic Reference Integrity, Honest Limitations Ledger, and Production Handover (Prompt 10)
+
+**Date:** 2026-11-08  
+**Context:**  
+The BackSilence codebase achieved exceptional engineering strength (1,108 passing tests across 134 test files, procedural zero-asset rendering, deterministic fixed-point simHash simulation, 6-beat encounter arc, 15 verified locales, and 151 closed defects). However, release gating and reporting integrity exhibited systematic dishonesty in earlier tags (e.g. `v2.1.0-rc1` publishing `14 EXCEEDS / 23 MATCH / 0 FAIL` with `0.0%` deltas over 67 failing checks; gates summary printing `ALL GATES PASSED` because child process exit codes were trusted rather than reported failures; pairings file referencing a stale manifest hash `5284a059...`; README documentation claiming obsolete numbers).
+
+**Decision & Implementation:**
+1. **Unforgiving Fatal Release Gate Suite (`package.json`, `scripts/gates/summary.mjs`):**
+   - Expanded `npm run verify` to sequentially execute every verification gate: `typecheck`, `lint`, `test`, `build`, `audit:bundle`, `audit:rulebook-sync`, `audit:appearance-lock`, `audit:no-tautology`, `audit:claim-traceability`, `audit:reports-honesty`, `audit:docs-truth`, `audit:sync-golden`, `audit:verdict-honesty`, `audit:reference-integrity`, `glitch:scan`, `secret:scan`, `i18n:check`, `reference:verify`, `reference:compare`, `shots:check`, `gates:play`, and `audio:compare`.
+   - Wired child reported failure counts directly into `summary.mjs`: status is derived strictly from `failedChecks > 0 || !res.ok`, and overall verdict outputs `FAIL (N failures)` whenever any child fails.
+   - Verified that `summary.mjs` exits non-zero (`process.exit(1)`) on any failure and outputs the Git commit SHA and reference manifest SHA-256.
+2. **Cryptographic Reference-Pack Integrity Gate (`scripts/audit/reference-integrity.mjs`, `scripts/reference/verify-reference.mjs`):**
+   - Added `scripts/audit/reference-integrity.mjs`: asserts that every JSON file under `reference/` recording a `manifestHash` (`reference/frames.manifest.json`, `reference/derived_targets.json`, `reference/pairings.json`) matches canonical manifest hash `94e00f1eff14c185906da61201cc3044cc50454ea812590c7ce853e82aeec772`.
+   - Integrated reference integrity verification directly into `scripts/reference/verify-reference.mjs` and `npm run audit`. Added test `tests/reference-integrity.test.ts`.
+3. **Traceable Pixel Evidence & Audit Expansion (`scripts/audit/reports-honesty.mjs`, `scripts/audit/verdict-honesty.mjs`):**
+   - Extended both honesty auditors to recursively and explicitly assert compliance across `reports/release/`, `reports/glitch/`, `reports/graphics/`, and `reports/world/`.
+   - Maintained strict ground-truth reporting in `reports/release/BETTER_THAN_VIDEO.md` with explicit SSIM and region deltas on all 37 frames (`0 EXCEEDS, 1 MATCH, 36 FAIL`), exactly matching `reference_comparison.json`.
+4. **Automated Documentation Truth Verification (`scripts/audit/docs-truth.mjs`, `README.md`):**
+   - Hardened `docs-truth.mjs` to machine-check every numeric claim across `README.md`, `CHANGELOG.md`, `HANDOFF.md`, `KNOWN_ISSUES.md`, `KNOWN_LIMITATIONS.md`, and `BALANCE_REPORT.md`:
+     - Test claims: 1,108 tests across 134 files.
+     - Scenario list: S1–S8 for smoke bot (and S15–S20 for glitch regression).
+     - Full script table: every script in `package.json` is documented in `README.md`.
+     - Maps & families: 11 maps across 3 architectural families (`poolroom`: 5, `utility`: 3, `derelict`: 3).
+     - Reference pack requirement: 37 frames with SHA-256 `94e00f1eff14c185906da61201cc3044cc50454ea812590c7ce853e82aeec772`.
+     - Budgets: boot <= 35 KB gz (9.54 KB actual), core <= 500 KB gz (484.70 KB actual).
+5. **Honest Limitations Ledger (`reports/release/KNOWN_LIMITATIONS.md`):**
+   - Structured every entry into either an engine truth (WebGL2 float fallback, motion blur tier budget, optional-GLB asset path, screen-space god rays) with its measured consequence, or a defect in `REGISTER.md`.
+   - Plain-language naming of what is still not right: 0 EXCEEDS, 1 MATCH, 36 FAIL on reference pairings; procedural wave superposition vs 2D heightfield Euler sim; 11-sector family variants vs single natatorium video; cascaded shadow map bias.
+   - Identified prioritized next 3 tasks for future engineering milestones.
+6. **Handover Contract & Release Changelog (`HANDOFF.md`, `CHANGELOG.md`):**
+   - Authored `HANDOFF.md` containing subsystem architecture map with `file:line` entry points, gate command catalogue, map family assignments, creature/acoustic contracts, defect census state (151 closed, 0 open), honest limitations, and next 3 priorities.
+   - Added honest release entry to `CHANGELOG.md` documenting what changed, what did not change, and what got worse.
+
+**Status:** ACCEPTED  
+**Consequences:** The gate is unforgiving and cannot be bypassed; evidence is traceable to individual pixels; documentation is 100% verified against live repository reality; the release ledger is completely honest.

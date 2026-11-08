@@ -210,6 +210,15 @@ export function runVerdictHonestyAudit() {
     expectedFail: pairingChecks.filter((c) => c.verdict === 'FAIL').length,
   };
 
+  // Explicitly ensure reports/release/, reports/glitch/, reports/graphics/, and reports/world/ are covered (Prompt 10 B.5)
+  const requiredSubdirs = ['reports/release', 'reports/glitch', 'reports/graphics', 'reports/world'];
+  for (const sub of requiredSubdirs) {
+    const subPath = resolve(ROOT, sub);
+    if (!existsSync(subPath)) {
+      allViolations.push(`Missing required report subdirectory: ${sub}`);
+    }
+  }
+
   const mdFiles = walkMarkdownFiles(REPORTS_DIR);
   const allViolations = [];
 
