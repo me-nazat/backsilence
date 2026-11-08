@@ -112,8 +112,10 @@ export class NavGrid {
         const dRock = ground.distToClass(x, z, 'rock');
 
         // Walkable iff depth >= monsterMinDepth AND every class distance exceeds clearance threshold
+        // Prompt 6 (D134): Enforce TRENCH_BLOCK_CLEARANCE (1.2m = 2.4m / 2) as an invariant floor for platform clearance.
+        const reqPlatformClearance = Math.max(NavGrid.TRENCH_BLOCK_CLEARANCE, clear.platform * clearanceMultiplier);
         if (
-          dPlat > clear.platform * clearanceMultiplier &&
+          dPlat > reqPlatformClearance &&
           dFurn > clear.furniture * clearanceMultiplier &&
           dWall > clear.wall * clearanceMultiplier &&
           dRock > clear.rock * clearanceMultiplier

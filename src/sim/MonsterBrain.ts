@@ -72,9 +72,9 @@ export class MonsterBrain {
 
   // Speeds
   static readonly SPEED_WANDER = 3.2;
-  static readonly SPEED_STALK = 2.4; // Prompt 4C: wading stalk speed 2.2–2.6 m/s
-  static readonly SPEED_INVESTIGATE = 2.4; // Prompt 4C: slow stalk/search crawl 2.2–2.6 m/s
-  static readonly SPEED_TERMINAL_LUNGE = 7.2; // Prompt 4C: 7.2 m/s terminal lunge within <= 4m
+  static readonly SPEED_STALK = 2.4; // Prompt 6: wading stalk speed 2.2–2.6 m/s
+  static readonly SPEED_INVESTIGATE = 2.4; // slow stalk/search crawl 2.2–2.6 m/s
+  static readonly SPEED_TERMINAL_LUNGE = 7.2; // Prompt 6: 7.2 m/s terminal lunge within <= 4m
   static readonly SPEED_HUNT = 10.4;
   static readonly SPEED_APEX_SPRINT = 13.8;
   static readonly TURN_RATE_WANDER = 7.5; // rad/s
@@ -362,11 +362,6 @@ export class MonsterBrain {
 
     if (this.state === 'STUNNED') {
       this.stepStunned(dt, nav, playerPos);
-      return;
-    }
-
-    if (this.leapState === 'AIRBORNE') {
-      this.stepBlocked(dt, nav, events, simTime, playerPos);
       return;
     }
 
@@ -749,24 +744,6 @@ export class MonsterBrain {
 
     const score = calculateNoiseScore(noise, this.pos);
 
-    // Phase D: When BLOCKED, if player is within 3.5m and makes noise, trigger leap-cross telegraph
-    if (this.state === 'BLOCKED') {
-      const distToNoise = dHypot(noise.position.x - this.pos.x, noise.position.z - this.pos.z);
-      if (!this.hasLeaped && distToNoise <= 3.5) {
-        this.leapState = 'TELEGRAPH';
-        this.leapTimer = 0.65;
-        this.rearingT = 0; // low crouch
-        this.jawOpenT = 0.7; // hiss
-        this.leapStartPos = { ...this.pos };
-        this.leapTargetPos = {
-          x: noise.position.x,
-          y: this.pos.y,
-          z: noise.position.z,
-        };
-        return true;
-      }
-    }
-
     if (
       this.state === 'DORMANT' ||
       this.state === 'WANDER' ||
@@ -833,7 +810,7 @@ export class MonsterBrain {
     // Fairness Law: INVESTIGATE state never deals damage
     if (this.state === 'INVESTIGATE') return;
 
-    // Anti-cheap-scare: No off-screen kills (kill requires visibility or <= 1.5m distance)
+    // Anti-cheap-scare: No off-screen kills (kill requires player view cone facing or <= 1.5m distance)
     // Lurking perch ambushes (LURK) trigger on water entry within 2.5m
     if (playerPos && this.state !== 'LURK') {
       const dist = dHypot(this.pos.x - playerPos.x, this.pos.z - playerPos.z);
@@ -973,7 +950,11 @@ export class MonsterBrain {
         ? (MonsterBrain.SPEED_APEX_SPRINT - MonsterBrain.SPEED_HUNT) *
           Math.min(1, Math.max(0, (this.consecutiveSplashes - 1) * 0.5) + this.agitation * 0.5)
         : 0;
-    const speed = (MonsterBrain.SPEED_HUNT + sprintBonus) * this.speedMul;
+    // Prompt 6 (D134): Constrain sighting approach to readable 2.2–2.6 m/s stalk (SPEED_STALK = 2.4 m/s).
+    // Reserve terminal lunge (7.2 m/s) exclusively for <= 4m range with qualifying noise.
+    const speed = this.isSighting
+      ? MonsterBrain.SPEED_STALK * this.speedMul
+      : (MonsterBrain.SPEED_HUNT + sprintBonus) * this.speedMul;
     this.jawOpenT = 0.85;
 
     if (playerPos && !isPlayerPerched && !this.isSighting) {
@@ -1174,82 +1155,14 @@ export class MonsterBrain {
     nav: NavGrid,
     events: EventRingBuffer,
     simTime: number,
-    playerPos?: Vec3,
+    _playerPos?: Vec3,
   ): void {
-    // Phase D: Leap-cross variant (rare <= 1 per run across trench <= 3.0m)
-    if (!this.hasLeaped && this.leapState === 'NONE' && playerPos) {
-      const distToPlayer = dHypot(playerPos.x - this.pos.x, playerPos.z - this.pos.z);
-      const noiseAge = simTime - this.lastQualifyingNoiseTime;
-      const noiseDist = this.lastQualifyingNoisePos
-        ? dHypot(this.lastQualifyingNoisePos.x - playerPos.x, this.lastQualifyingNoisePos.z - playerPos.z)
-        : 999;
-      const hasQualifyingNoise = noiseAge <= 4.0 && noiseDist <= 4.0;
-
-      if (distToPlayer <= 3.5 && hasQualifyingNoise) {
-        this.leapState = 'TELEGRAPH';
-        this.leapTimer = 0.65; // crouch + hiss >= 0.6s
-        this.rearingT = 0; // low crouch
-        this.jawOpenT = 0.7; // hiss
-        this.leapStartPos = { ...this.pos };
-        this.leapTargetPos = {
-          x: playerPos.x,
-          y: this.pos.y,
-          z: playerPos.z,
-        };
-        events.pushNoise(`noise_leap_hiss_${this.id}_${simTime}`, 'hiss', this.pos.x, this.pos.y, this.pos.z, 0.5, this.id, simTime);
-        return;
-      }
-    }
-
-    if (this.leapState === 'TELEGRAPH') {
-      this.vel.x = 0;
-      this.vel.z = 0;
-      this.rearingT = 0; // low crouch
-      this.jawOpenT = 0.8; // hiss
-      if (this.leapTimer >= 0.60) {
-        events.pushNoise(`noise_leap_hiss_${this.id}_${simTime}`, 'hiss', this.pos.x, this.pos.y, this.pos.z, 0.5, this.id, simTime);
-      }
-      this.leapTimer -= dt;
-      if (this.leapTimer <= 0) {
-        this.leapState = 'AIRBORNE';
-        this.hasLeaped = true;
-        this.leapTimer = 0.65; // airtime <= 0.7s
-      }
-      return;
-    }
-
-    if (this.leapState === 'AIRBORNE') {
-      this.leapTimer -= dt;
-      const progress = Math.max(0, Math.min(1.0, 1.0 - (this.leapTimer / 0.65)));
-      this.pos.x = this.leapStartPos.x + (this.leapTargetPos.x - this.leapStartPos.x) * progress;
-      this.pos.z = this.leapStartPos.z + (this.leapTargetPos.z - this.leapStartPos.z) * progress;
-      this.pos.y = this.leapStartPos.y + 0.8 * 4.0 * progress * (1.0 - progress);
-
-      if (this.leapTimer <= 0) {
-        this.pos.x = this.leapTargetPos.x;
-        this.pos.y = this.leapTargetPos.y;
-        this.pos.z = this.leapTargetPos.z;
-        this.leapState = 'NONE';
-        events.pushFootfall(this.id, this.pos.x, this.pos.y, this.pos.z, 1.5, true, simTime);
-        events.pushNoise(`noise_leap_land_splash1_${this.id}_${simTime}`, 'splash', this.pos.x - 0.3, this.pos.y, this.pos.z, 0.85, this.id, simTime);
-        events.pushNoise(`noise_leap_land_splash2_${this.id}_${simTime}`, 'splash', this.pos.x + 0.3, this.pos.y, this.pos.z, 0.85, this.id, simTime);
-
-        if (playerPos) {
-          const postLandingDist = dHypot(playerPos.x - this.pos.x, playerPos.z - this.pos.z);
-          if (postLandingDist <= MonsterBrain.ATTACK_RANGE) {
-            this.triggerAttack(events, simTime, playerPos);
-            return;
-          }
-        }
-        this.state = 'HUNT';
-      }
-      return;
-    }
-
+    // Prompt 6 (D134): Creature is permanently grounded and blocked by trenches <= 2.4m.
+    // Never leaps into the air or sprints across open water (f_035/f_036).
     const speed = MonsterBrain.SPEED_STALK * this.speedMul;
     this.followPath(dt, speed, MonsterBrain.TURN_RATE_WANDER, nav, events, simTime);
 
-    // Prompt 4C (`f_035`/`f_036`): When blocked by a <= 2.4m trench, pace along opposite lip,
+    // Prompt 6 (D134, f_035/f_036): When blocked by a <= 2.4m trench, pace along opposite lip,
     // reach across with a forelimb (`swipeT`), and vocalise!
     this.swipeT = 0.65 + 0.35 * Math.abs(dSin(this.stateTimer * 3.5));
     this.jawOpenT = 0.55;

@@ -12,6 +12,10 @@ import { describe, it, expect } from 'vitest';
 import { Vector3, PerspectiveCamera } from 'three';
 import { SimWorld } from '../src/sim/SimWorld.js';
 import { GroundGrid } from '../src/sim/GroundGrid.js';
+import { NavGrid } from '../src/sim/NavGrid.js';
+import { ColliderSet } from '../src/sim/Colliders.js';
+import { EventRingBuffer } from '../src/sim/Events.js';
+import { MonsterBrain } from '../src/sim/MonsterBrain.js';
 import { JumpscareSequence } from '../src/game/monster/Jumpscare.js';
 import { MonsterRig } from '../src/game/monster/MonsterRig.js';
 import { createProvingGroundsSim, ARENA_MONSTER_SPAWN } from '../src/sim/ProvingGroundsData.js';
@@ -480,74 +484,54 @@ describe('Phase D: Full Attack Chain & Jumpscare Framing Verification', () => {
       expect(monster.lastLungeTime).toBe(firstLungeTime);
     });
 
-    it('Video-3 Leap-Cross Variant: executes telegraphed leap-cross across trench <= 3m with double ink-splash', () => {
-      const sim = createProvingGroundsSim('normal');
-      const monster = sim.addMonster({
-        id: 'm_leap_test',
-        variant: 'standard',
-        spawn: { x: 0, y: -0.9, z: -28.6 }, // at trench lip
-        spawnGrace: 0.0,
-      });
+    it('Prompt 6 (D134): creature is permanently grounded and blocked at trench lip, lip-paces without leaping', () => {
+      const bounds = { minX: -20, maxX: 20, minZ: -20, maxZ: 20 };
+      const ground = new GroundGrid(bounds, 0.25);
+      ground.fill(-0.9);
+      // Two slabs spanning z in [-6, 6] separated by 2.0m along X
+      ground.rasterizePlatform(-18, -6, -1.0, 6, 0.3);
+      ground.rasterizePlatform(1.0, -6, 18, 6, 0.3);
+      ground.computeDistanceTransform(0);
+      const nav = new NavGrid(ground, 0, 0.25);
+      const colliders = new ColliderSet(4);
+      const events = new EventRingBuffer(64);
 
-      monster.forceState('BLOCKED', { stateTimer: 10.0 });
-      // Player is 2.6m across the trench
-      sim.player.teleport({ x: 0, y: -0.9, z: -26.0 });
+      const monster = new MonsterBrain(
+        { id: 'm_leap_test', variant: 'standard', spawn: { x: 0, y: -0.9, z: 12 }, spawnGrace: 0 },
+        nav,
+        101,
+      );
 
-      // Player makes qualifying noise
-      sim.broadcastNoise({
-        kind: 'splash',
-        position: { x: 0, y: -0.9, z: -26.0 },
-        loudness: 0.8,
-        sourcePlayerId: sim.player.playerId,
-      });
+      const targetAcross = { x: 0, y: -0.9, z: -12 };
+      monster.onNoiseEvent(
+        { id: 'n_leap', kind: 'splash', position: targetAcross, loudness: 0.9, sourcePlayerId: 'p1', t: 0.1 },
+        colliders,
+        { difficultyHearing: 1.0 },
+        0.1,
+      );
 
-      // 1. First step triggers TELEGRAPH (crouch + hiss >= 0.6s)
-      sim.step(1 / 60, idleIntent);
-      expect(monster.leapState).toBe('TELEGRAPH');
-      expect(monster.leapTimer).toBeGreaterThanOrEqual(0.6);
-      expect(monster.rearingT).toBe(0); // low crouch
+      let maxSwipe = 0;
+      let peakY = -0.9;
+      let sawBlocked = false;
 
-      // Verify hiss noise event emitted
-      let hissEmitted = false;
-      for (let i = 0; i < sim.events.length; i++) {
-        const ev = sim.events.getAt(i);
-        if (ev?.type === 'noise' && (ev.data as { kind?: string }).kind === 'hiss') {
-          hissEmitted = true;
-          break;
-        }
-      }
-      expect(hissEmitted).toBe(true);
-
-      // 2. Step through telegraph duration (0.65s = 39 ticks)
-      for (let i = 0; i < 39; i++) {
-        sim.step(1 / 60, idleIntent);
-      }
-      expect(monster.leapState).toBe('AIRBORNE');
-      expect(monster.hasLeaped).toBe(true);
-
-      // 3. Step through airborne ballistic arc (0.65s = 39 ticks)
-      let peakHeight = 0;
-      for (let i = 0; i < 45; i++) {
-        sim.step(1 / 60, idleIntent);
-        if (monster.pos.y > peakHeight) peakHeight = monster.pos.y;
+      for (let i = 1; i <= 180; i++) {
+        const t = 0.1 + i / 60;
+        monster.step(1 / 60, targetAcross, nav, colliders, events, { difficultyHearing: 1.0 }, t, false, true, false);
+        if (monster.swipeT > maxSwipe) maxSwipe = monster.swipeT;
+        if (monster.pos.y > peakY) peakY = monster.pos.y;
+        if (monster.state === 'BLOCKED') sawBlocked = true;
+        // Never crosses z < 5.5 through the 2.0m trench
+        expect(monster.pos.z).toBeGreaterThan(5.5);
       }
 
-      // Ballistic height arc reached above ground
-      expect(peakHeight).toBeGreaterThan(-0.8);
-      expect(monster.leapState).toBe('NONE');
+      // Assert creature remains grounded: never leaves the ground in a ballistic arc
+      expect(peakY).toBeLessThanOrEqual(-0.8);
+      expect(monster.leapState).not.toBe('AIRBORNE');
 
-      // 4. Verify landing emitted double splash noise events
-      let splashCount = 0;
-      for (let i = 0; i < sim.events.length; i++) {
-        const ev = sim.events.getAt(i);
-        if (ev?.type === 'noise' && (ev.data as { id?: string }).id?.includes('noise_leap_land_splash')) {
-          splashCount++;
-        }
-      }
-      expect(splashCount).toBe(2);
-
-      // 5. Rarity: monster hasLeaped is true, cannot leap again in this run
-      expect(monster.hasLeaped).toBe(true);
+      // Assert creature is blocked and reaches across lip with forelimb swipe
+      expect(sawBlocked).toBe(true);
+      expect(maxSwipe).toBeGreaterThan(0.5);
+      expect(monster.lipPaceCount).toBeGreaterThanOrEqual(1);
     });
 
     it('fairness law: during active anomaly windows (rising water, loop, hallucination), 100% of attacks remain noise-attributable (silent still player suffers 0 attacks)', () => {

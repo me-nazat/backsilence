@@ -131,8 +131,9 @@ export class MonsterBody {
   private attackTimer = 0;
   public isOnDryPlatform = false;
   public lastPlantWaveDisplaced = false;
+  public currentSpeed = 0;
 
-  private readonly onGaitPlant = (plantPos: Vector3, force: number, isFoot = true): void => {
+  public readonly onGaitPlant = (plantPos: Vector3, force: number, isFoot = true): void => {
     // Prompt 4B: When the creature is on a dry platform, neither wake nor splash spawns.
     if (this.water && !this.isOnDryPlatform) {
       this.rippleEvent.position.x = plantPos.x;
@@ -145,17 +146,20 @@ export class MonsterBody {
       this.water.waveSim.injectImpulse(plantPos.x, plantPos.z, 0.65, force * 0.12);
       // Prompt 4B: Dark viscous ink splash at hands/feet + white foam ring at feet only
       this.water.onInkSplash(plantPos, force, isFoot);
-      // Trailing wake behind the torso
+      // Trailing wake behind the torso scaled by speed band (Prompt 6, Work Item C.8)
+      // Wander (<= 2.0 m/s): wake 0.45; Stalk (2.0–4.0 m/s): wake 0.95; Lunge (> 4.0 m/s): wake 1.65
       const fwdX = Math.sin(this.currentYaw);
       const fwdZ = -Math.cos(this.currentYaw);
+      const wakeStrength = this.currentSpeed > 4.0 ? 1.65 : this.currentSpeed > 2.0 ? 0.95 : 0.45;
+      const wakeWidth = this.currentSpeed > 4.0 ? 1.4 : this.currentSpeed > 2.0 ? 0.9 : 0.6;
       this.water.wakes.addWake(
         this.mesh.root.position.x - fwdX * 0.35,
         this.mesh.root.position.z - fwdZ * 0.35,
         fwdX,
         fwdZ,
-        Math.max(0.8, force * 2.5),
-        0.65,
-        0.95,
+        Math.max(0.8, force * 2.5 * (wakeStrength / 0.95)),
+        wakeWidth,
+        wakeStrength,
         3.8,
       );
       this.lastPlantWaveDisplaced = true;
@@ -165,13 +169,14 @@ export class MonsterBody {
       this.footfallAudioOpts.gain = force * 0.9;
       this.audio.play('monster_footfall', this.footfallAudioOpts);
 
-      // Prompt 3.13: Wire monster_wade every 4th plant so the creature audibly wades
+      // Prompt 6: Wire monster_wade scaled by speed band (0.35 wander / 0.65 stalk / 0.95 lunge)
       if (!this.isOnDryPlatform) {
         this.plantCount = (this.plantCount + 1) % 4;
         if (this.plantCount === 0) {
+          const wadeGain = this.currentSpeed > 4.0 ? 0.95 : this.currentSpeed > 2.0 ? 0.65 : 0.35;
           this.audio.play('monster_wade', {
             position: plantPos,
-            gain: force * 0.85,
+            gain: force * wadeGain,
           });
         }
       }
@@ -322,6 +327,7 @@ export class MonsterBody {
     this.rig.setAgitation(snapshot.agitation ?? 0.0);
 
     const speed = Math.hypot(snapshot.vel.x, snapshot.vel.z);
+    this.currentSpeed = speed;
     _worldRoot.copy(this.mesh.root.position);
 
     // Trigger rear up roar if brain sets rearingT > 0.5 or on alerted transition or arriving at splash target (HUNT -> INVESTIGATE)
@@ -365,10 +371,11 @@ export class MonsterBody {
     this.lastGoodPos.copy(this.mesh.root.position);
     this.lastGoodYaw = this.currentYaw;
 
-    // Concentric water ripple rings and viscous ink splashes while monster wades (Prompt 4A/4B)
+    // Concentric water ripple rings and viscous ink splashes while monster wades (Prompt 6, Work Item C.8)
     if (this.water && !this.isOnDryPlatform && speed > 0.3 && finalRootY < waterLevel + 0.05) {
       this.wakeTimer += dt;
-      const strideInterval = speed > 3.5 ? 0.18 : 0.35;
+      // Stride cadence: Wander (<=2.0 m/s: 0.45s), Stalk (2.0-4.0 m/s: 0.28s), Lunge (>4.0 m/s: 0.16s)
+      const strideInterval = speed > 4.0 ? 0.16 : speed > 2.0 ? 0.28 : 0.45;
       if (this.wakeTimer >= strideInterval) {
         this.wakeTimer = 0.0;
         this.water.rippleManager?.spawnMonsterStride(finalPosX, finalPosZ);

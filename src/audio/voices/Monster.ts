@@ -190,10 +190,10 @@ export function playMonsterRoar(cx: MonsterVoiceContext): RawVoiceHandle {
   voiceGain.gain.setValueAtTime(intensity, now + 0.95);
   voiceGain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
 
-  // Master brickwall low-pass filter at 2900 Hz
+  // Master brickwall low-pass filter at 3000 Hz (preserving 2.4-3.0 kHz pharyngeal screech bite)
   const brickwall = ctx.createBiquadFilter();
   brickwall.type = 'lowpass';
-  brickwall.frequency.setValueAtTime(2900, now);
+  brickwall.frequency.setValueAtTime(3000, now);
   brickwall.Q.setValueAtTime(0.707, now);
 
   voiceGain.connect(brickwall);
@@ -246,16 +246,18 @@ export function playMonsterRoar(cx: MonsterVoiceContext): RawVoiceHandle {
   v1Lfo.stop(now + duration);
   nodesToDisconnect.push(v1Saw, v1Tri, v1Lfo, v1LfoGain, v1Lp, v1Gain);
 
-  // ── Voice 2: Vocal Formant Roar ──
+  // ── Voice 2: Vocal Formant Roar (Rosenberg C Glottal Wave + Subharmonic Period Doubling + 3 Formants) ──
+  // Glottal pulse excitation (Rosenberg C model)
   const v2Osc1 = ctx.createOscillator();
-  v2Osc1.type = 'sawtooth';
+  v2Osc1.setPeriodicWave(getGlottalPeriodicWave(ctx));
   v2Osc1.frequency.setValueAtTime(145 * pitchMult, now);
   v2Osc1.frequency.exponentialRampToValueAtTime(Math.max(50, 95 * pitchMult), now + duration);
 
+  // Subharmonic period doubling (f0 / 2 insertion) for pathological organic terror
   const v2Osc2 = ctx.createOscillator();
-  v2Osc2.type = 'sawtooth';
-  v2Osc2.frequency.setValueAtTime(210 * pitchMult, now);
-  v2Osc2.frequency.exponentialRampToValueAtTime(Math.max(70, 138 * pitchMult), now + duration);
+  v2Osc2.setPeriodicWave(getGlottalPeriodicWave(ctx));
+  v2Osc2.frequency.setValueAtTime(72.5 * pitchMult, now);
+  v2Osc2.frequency.exponentialRampToValueAtTime(Math.max(25, 47.5 * pitchMult), now + duration);
 
   const v2Noise = ctx.createBufferSource();
   v2Noise.buffer = cx.noise.pink;
@@ -267,26 +269,26 @@ export function playMonsterRoar(cx: MonsterVoiceContext): RawVoiceHandle {
   v2Osc2.connect(v2Mix);
   v2Noise.connect(v2Mix);
 
-  // Formant filters: Wet guttural formant growl (220 Hz – 680 Hz primary formants)
+  // 3 moving resonant vocal tract formants (Prompt 6 / Acoustic Rulebook):
+  // F1: 700 -> 400 Hz
   const f1 = ctx.createBiquadFilter();
   f1.type = 'bandpass';
-  f1.frequency.setValueAtTime(220 * pitchMult, now);
-  f1.frequency.exponentialRampToValueAtTime(Math.max(100, 340 * pitchMult), now + 0.35);
-  f1.frequency.exponentialRampToValueAtTime(Math.max(100, 220 * pitchMult), now + duration);
-  f1.Q.setValueAtTime(4.2, now);
+  f1.frequency.setValueAtTime(700 * pitchMult, now);
+  f1.frequency.exponentialRampToValueAtTime(Math.max(150, 400 * pitchMult), now + duration);
+  f1.Q.setValueAtTime(4.0, now);
 
+  // F2: 1100 -> 800 Hz
   const f2 = ctx.createBiquadFilter();
   f2.type = 'bandpass';
-  f2.frequency.setValueAtTime(420 * pitchMult, now);
-  f2.frequency.exponentialRampToValueAtTime(Math.max(200, 680 * pitchMult), now + 0.45);
-  f2.frequency.exponentialRampToValueAtTime(Math.max(180, 360 * pitchMult), now + duration);
-  f2.Q.setValueAtTime(4.5, now);
+  f2.frequency.setValueAtTime(1100 * pitchMult, now);
+  f2.frequency.exponentialRampToValueAtTime(Math.max(250, 800 * pitchMult), now + duration);
+  f2.Q.setValueAtTime(4.0, now);
 
+  // F3: 2400 Hz (pharyngeal screech bite at 2.4–3.0 kHz)
   const f3 = ctx.createBiquadFilter();
   f3.type = 'bandpass';
-  f3.frequency.setValueAtTime(1650 * pitchMult, now);
-  f3.frequency.exponentialRampToValueAtTime(Math.max(400, 1100 * pitchMult), now + duration);
-  f3.Q.setValueAtTime(3.5, now);
+  f3.frequency.setValueAtTime(2400 * pitchMult, now);
+  f3.Q.setValueAtTime(3.8, now);
 
   const formantSum = ctx.createGain();
   v2Mix.connect(f1);

@@ -437,6 +437,14 @@ export class PostFX {
     this.glitch = isSafe ? Math.min(intensity, 0.25) : Math.min(1.0, intensity);
   }
 
+  resetGlitch(): void {
+    this.glitch = 0;
+    const u = this.getVhsUniforms();
+    if (u) {
+      u.uGlitch.value = 0;
+    }
+  }
+
   triggerJumpscare(): void {
     const isSafe = this.isSafeMode();
     if (isSafe) {

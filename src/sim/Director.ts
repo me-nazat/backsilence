@@ -399,13 +399,13 @@ export class EncounterDirector {
 
     let ambushCell: { x: number; z: number } | null = null;
 
-    // 1. Check patrol lane nodes first
+    // 1. Check patrol lane nodes first (10m–15m reference sighting band, f_008/f_009)
     for (const lane of this.patrolLanes) {
       for (const pt of lane.points) {
         const d = dHypot(pt.x - noisePos.x, pt.z - noisePos.z);
         if (
-          d >= 16.0 &&
-          d <= 24.0 &&
+          d >= 10.0 &&
+          d <= 15.0 &&
           isOutsideViewCone(pt.x, pt.z) &&
           nav.isWalkableWorld(pt.x, pt.z) &&
           nav.getComponentWorld(pt.x, pt.z) === myComp
@@ -417,9 +417,9 @@ export class EncounterDirector {
       if (ambushCell) break;
     }
 
-    // 2. Sample ring between 16m and 24m outside the 60° forward view cone
+    // 2. Sample ring within 10m–15m reference sighting band outside the 60° forward view cone (f_008/f_009)
     if (!ambushCell) {
-      const candidateDists = [18.0, 20.0, 16.5, 22.0, 23.5];
+      const candidateDists = [12.0, 11.5, 13.5, 10.5, 14.5, 15.0];
       const angleOffsets = [1.2, -1.2, 1.8, -1.8, 2.4, -2.4, 3.14159, 0.75, -0.75];
       for (const d of candidateDists) {
         for (const off of angleOffsets) {

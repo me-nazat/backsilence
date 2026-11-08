@@ -34,6 +34,7 @@ export class EncounterBridge {
   private readonly sm: SessionStateMachine;
   private readonly audio: AudioEngine;
   private readonly settings: Settings;
+  private postFXRef?: PostFX;
 
   constructor(
     audio: AudioEngine,
@@ -48,7 +49,11 @@ export class EncounterBridge {
       {
         onFreezeInput: () => {},
         setTimeScale: () => {},
+        onPostFXGlitch: (amount: number) => {
+          this.postFXRef?.triggerGlitch(amount);
+        },
         onDeath: (stats: JumpscareStats) => {
+          this.postFXRef?.resetGlitch();
           this.sm.transition('DEAD', 'jumpscare_finished');
           onDeath(stats);
         },
@@ -89,6 +94,7 @@ export class EncounterBridge {
   ): void {
     if (this.isDead || this.hasEscaped) return;
     this.isDead = true;
+    this.postFXRef = postFX;
 
     this.audio.play('train_horn', { gain: 1.0 });
     postFX.triggerJumpscare();

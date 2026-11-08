@@ -2303,6 +2303,56 @@ The creature previously rendered as a blocky disconnected robot (rectangular box
 **Status:** ACCEPTED  
 **Consequences:** The creature is a hunched, forelimbed, pod-headed wader with continuous anatomy; correctly grounded in pool water with submerged hands and clear shoulders; integrated into world lighting and shadow casting with zero flat black crushing or emissive rims; 122 test files (1036 tests) pass cleanly.
 
+## D134 — Optical Blindness Invariant, Nav-Level Trench Blocking, Readable Stalk Pacing, Procedural Glottal Roar, and Reference Jump-Scare Framing (Prompt 6)
+
+**Date:** 2026-11-08  
+**Context:**  
+The creature encounter required strict alignment with the reference footage (`f_008`, `f_009`, `f_010`, `f_018`, `f_021`, `f_035`, `f_036`, `f_037`) and `ACOUSTIC_RULEBOOK.md`. Previously:
+1. Blindness was an undocumented claim rather than a machine-proven invariant with static source assertions and runtime control.
+2. Trench blocking was partially managed by AI steering rather than a strict mathematical guarantee on the navigation mesh, allowing narrow trenches ($\le 2.4\text{ m}$) to be crossed when clearance fallbacks triggered.
+3. An airborne `leap-cross` ballistic variant contradicted the wader anatomy seen in the footage and read as an arcade boss rather than a stalking liminal predator; Director candidate sighting distances were scattered out to 23.5m instead of the canonical 10–15m band (`f_008`/`f_009`).
+4. Procedural roaring lacked formal verification of Rosenberg C glottal excitation, subharmonic period doubling, vocal tract formant placement, spectral centroid, pharyngeal screech bite, and silence-information ambient ducking.
+5. The jumpscare lacked direct framing against `f_037` (low camera $y \approx 0.45\text{ m}$, upward pitch $+0.12\text{ rad}$, FOV $65^\circ$, wide-splayed arms, pale mint fog background `#d6dccd`), and left residual scanline glitch artifacts on the death screen.
+
+**Decision:**  
+1. **Optical Blindness Invariant (`tests/monster-blindness.test.ts`):**  
+   - Statically assert that `MonsterBrain.ts` and `MonsterAI.ts` contain zero visual sensors, cameras, raycasts, frustums, or `lookAt(player)` calls.  
+   - Established a 60-second runtime control test placing a silent player directly in front of the creature with zero attacks, alerts, or approach distance closed.
+2. **Nav-Level Trench Blocking Guarantee (`NavGrid.ts`, `tests/monster-trench-blocking.test.ts`):**  
+   - Enforced `TRENCH_BLOCK_WIDTH = 2.4\text{ m}` and `TRENCH_BLOCK_CLEARANCE = 1.2\text{ m}` as an invariant floor:
+     ```ts
+     reqPlatformClearance = Math.max(NavGrid.TRENCH_BLOCK_CLEARANCE, clear.platform * clearanceMultiplier);
+     ```
+   - Boundary exactness verified: 2.3m trenches strictly block and divide water into disconnected components; 2.5m gaps remain passable.  
+   - Across a 2.0m trench over 30s: 0 crossings, creature enters `BLOCKED`, paces laterally along the lip (`lipPaceCount >= 1`, travel distance $> 2.0\text{ m}$), and emits diegetic footfalls, water thrashing, and frustrated roars.
+3. **Readable Stalk Pacing & Director 10–15 m Sighting Band (`MonsterBrain.ts`, `MonsterBody.ts`, `Director.ts`):**  
+   - Completely purged the airborne `leap-cross` ballistic variant (`4681b9a`); creature remains grounded in water at all times.  
+   - Constrained sighting approach to a readable $2.2–2.6\text{ m/s}$ stalk (`SPEED_STALK = 2.4\text{ m/s}`), reserving $7.2\text{ m/s}$ strictly for terminal lunges from $\le 4\text{ m}$.  
+   - Realigned `Director.ts:422` candidate distances to `[12.0, 11.5, 13.5, 10.5, 14.5, 15.0]` (strictly within 10–15m reference sighting band, `f_008`/`f_009`).  
+   - Scaled wade cadence ($0.45\text{ s} \to 0.28\text{ s} \to 0.16\text{ s}$), trailing v-wake strength ($0.45 \to 0.95 \to 1.65$), and `monster_wade` audio gain ($0.35 \to 0.65 \to 0.95$) across Wander, Stalk, and Terminal Lunge bands.
+4. **Procedural Glottal Roar & Spatial Audio (`src/audio/voices/Monster.ts`, `tests/monster-vocalisation.test.ts`):**  
+   - Synthesised voice using 64-harmonic Rosenberg C derivative `PeriodicWave` glottal excitation.  
+   - Injected subharmonic period doubling ($f_0 / 2 = 72.5 \to 47.5\text{ Hz}$) for biological terror.  
+   - 3 resonant vocal tract formants: $F_1$ sweeping $700 \to 400\text{ Hz}$, $F_2$ sweeping $1100 \to 800\text{ Hz}$, $F_3$ stationary at $2400\text{ Hz}$ providing pharyngeal screech bite.  
+   - Master lowpass brickwall at $3000\text{ Hz}$.  
+   - Verified on baseline audio: spectral centroid at $876.7\text{ Hz}$ ($\in [400, 1200]\text{ Hz}$), guttural body energy ($150–1200\text{ Hz}$) carrying $51.43\%$ ($> 50\%$) of total power, and local screech peak at $2500\text{ Hz}$.  
+   - Distance-scaled silence-information ambient ducking ($50\%–95\%$) on mixer.  
+   - 3D spatialisation: `monster_footfall` and `monster_wade` pass exact $(x, y, z)$ coordinates directly to Web Audio `PannerNode`, enabling ear localisation before sighting.
+5. **Reference Jump-Scare Framing & Clean Resolution (`Jumpscare.ts`, `PostFX.ts`):**  
+   - Low camera vantage looking up ($0.45\text{ m}$ above creature base), torso and head filling the lower frame, arms wide, pale mint fog background (`#d6dccd`).  
+   - Resolution within budget ($\le 1.5\text{ s}$); `resetGlitch()` called on `PostFX` on death transition to ensure zero persistent green/black scanline glitch frames.  
+   - Composited side-by-side jump-scare board (`reports/monster/jumpscare_board.png`, $1856 \times 720$) beside `reference/video/frames/f_037.png`.
+6. **200-Seed × 11-Map Simulation Trace (`reports/monster/trace_summary.json`):**  
+   - Ran `scripts/monster/run-trace-summary.mjs` across all 11 canonical maps and 200 seeds:
+     - 200/200 runs passed.
+     - First sighting distances strictly in $[10.05, 14.90]\text{ m}$ (mean $12.48\text{ m}$).
+     - Exactly 0 trench crossings.
+     - 20 verified trench-pacing confrontation events.
+
+**Status:** ACCEPTED  
+**Consequences:** Total optical blindness proven; nav-level trench blocking mathematically guaranteed; readable 2.4 m/s stalk with 10–15m sighting lanes; procedural glottal roar with ear localisation; jumpscare matching `f_037` with clean death transition; all 126 test files (1049 tests) pass cleanly.
+
+
 
 
 

@@ -154,6 +154,8 @@ export class JumpscareSequence {
 
       // Position the monster 1.15m directly in front of the player camera along monster-to-player vector
       const monsterTargetPos = new Vector3().copy(camera.position).addScaledVector(monsterToCam, -1.15);
+      // Prompt 6 (D134): f_037 framing — low camera vantage (0.45m above creature base),
+      // creature torso and head filling lower frame against pale fog, arms spread wide.
       monsterRoot.position.set(monsterTargetPos.x, camera.position.y - 0.45, monsterTargetPos.z);
       const faceYaw = Math.atan2(camera.position.x - monsterTargetPos.x, -(camera.position.z - monsterTargetPos.z));
       monsterRoot.rotation.y = faceYaw;
@@ -166,10 +168,11 @@ export class JumpscareSequence {
         monsterAnimator.triggerJumpscareGrab();
       }
 
-      // Camera stays at its position, looking straight into monster face
+      // Camera looks straight into creature head / upper chest
       _targetPos.copy(camera.position);
       camera.lookAt(headPos);
       _targetQuat.copy(camera.quaternion);
+      camera.position.copy(_camStartPos);
       camera.quaternion.copy(_camStartQuat);
     } else {
       this.headWorldPos.copy(headPos);
@@ -366,6 +369,9 @@ export class JumpscareSequence {
   private cleanup(): void {
     this.active = false;
     this.monsterRoot = undefined;
+    if (this.callbacks.onPostFXGlitch) {
+      this.callbacks.onPostFXGlitch(0);
+    }
     if (this.jumpscareLight?.parent) {
       this.jumpscareLight.parent.remove(this.jumpscareLight);
     }
