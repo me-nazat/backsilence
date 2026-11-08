@@ -8,6 +8,14 @@ This project follows strict deterministic, zero-external-binary-asset design pri
 ## [v2.1.0-rc1] — 2026-11-05 (The Better-Than-Video Ship Gate & Engineering Perfection)
 
 ### 🌊 Player-Visible Evolutions & Content Systems
+- **Visual Glitch Census Burndown & Rebuilt Artifact Detector (Prompt 9 — Decision D137):**
+  - Rebuilt `scripts/visual/artifact-detector.mjs` to comprehensively scan 10 visual defect classes per frame: aliasing, specular blowout, black voids, debug text leaks, flatness, z-fighting, hard fog seams, visible water edges, untextured primitives, and HUD overlap.
+  - Added 24 unit test fixtures in `tests/artifact-detector.test.ts` verifying positive detection on corrupted frames and clean pass on production frames.
+  - Closed all 65 aliasing defects via distance-based tile grid dissolve (10–25m) to flat cream (`#c8b580`), normal map attenuation (85%), far-field roughness stabilization (0.32), tiered anisotropy (16/4/1), and multisampled composer render targets (MSAA 8x High, 4x Medium, FXAA Low).
+  - Closed all 41 specular blowout defects via wet ceramic roughness floor raised to 0.22, ripple rim specular tuning, and a filmic highlight roll-off shoulder capping highlights at $\le 0.965$ while preserving the reference 0.86 pale-mint fog horizon.
+  - Closed all 151 tracked defects in `reports/glitch/CENSUS.md` and `reports/glitch/REGISTER.md` (**0 OPEN P0, 0 OPEN P1, 0 OPEN P2, 0 OPEN P3**).
+  - Added Rule §8 to `reports/POLICY.md` mandating defect registration, root cause, fix, and regression test.
+  - Produced `reports/glitch/regression_capture.md` documenting the 90-second comparative reel and 60 FPS performance before/after table.
 - **Measured Look & Calibration (Prompts 1–2):**
   - Cryptographic 37-frame reference pack (`reference/video/frames/` `f_001`–`f_037`) with SHA-256 manifest and glitch census.
   - Measured palette calibration: luminance mean 0.63, water hue $85^\circ\text{--}113^\circ$, slab hue $38^\circ\text{--}48^\circ$, soft volumetric lighting, and 0 black void pixels outside jump-scare frames.

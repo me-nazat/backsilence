@@ -213,7 +213,9 @@ export class SplashSystem {
       },
       vertexShader: /* glsl */ `
         attribute vec2 aData; // x: alpha, y: isMist
+        #ifndef USE_INSTANCING_COLOR
         attribute vec3 instanceColor;
+        #endif
         uniform vec3 uCameraPos;
 
         varying vec2 vUv;
@@ -346,7 +348,9 @@ export class SplashSystem {
     this.foamRingMat = new ShaderMaterial({
       vertexShader: /* glsl */ `
         attribute float instanceProgress;
+        #ifndef USE_INSTANCING_COLOR
         attribute vec3 instanceColor;
+        #endif
         varying vec2 vUv;
         varying float vProgress;
         varying vec3 vColor;
@@ -435,7 +439,9 @@ export class SplashSystem {
     this.crownMat = new ShaderMaterial({
       vertexShader: /* glsl */ `
         attribute float instanceProgress;
+        #ifndef USE_INSTANCING_COLOR
         attribute vec3 instanceColor;
+        #endif
         varying vec2 vUv;
         varying float vProgress;
         varying vec3 vColor;

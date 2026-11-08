@@ -48,7 +48,7 @@ export class EngineRenderer {
     this.renderer = new WebGLRenderer({
       canvas,
       powerPreference: 'high-performance',
-      antialias: resolveQualityTier(settings.graphics.quality) !== 'low',
+      antialias: true,
       alpha: false,
       depth: true,
       stencil: false,

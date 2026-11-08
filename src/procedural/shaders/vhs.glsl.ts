@@ -367,7 +367,20 @@ export const VHSShader = {
       float lumaNoise = (hash21(uv * vec2(1280.0, 720.0) + grainTime) - 0.5) * 0.008 * uIntensity;
       color += vec3(lumaNoise);
 
-      // 16. Final color output (no artificial black-floor clamping or dark mud)
+      // 16. Filmic Highlight Roll-off Shoulder (Prompt 9 Work Items C9 & C10)
+      // Softens highlights above 0.86 so specular reflections degrade to a wide soft sheen
+      // without pixel clamping or chromatic blowout. The fog horizon at 0.86 remains 100% untouched.
+      float lumaVal = dot(color, vec3(0.2126, 0.7152, 0.0722));
+      const float knee = 0.86;
+      const float maxCeiling = 0.965;
+      if (lumaVal > knee) {
+        float deltaL = lumaVal - knee;
+        float span = maxCeiling - knee;
+        float rolledLuma = knee + span * (deltaL / (deltaL + span));
+        color *= (rolledLuma / max(lumaVal, 0.0001));
+      }
+
+      // 17. Final color output (no artificial black-floor clamping or dark mud)
       vec3 finalColor = clamp(color, 0.0, 1.0);
 
       gl_FragColor = vec4(finalColor, 1.0);

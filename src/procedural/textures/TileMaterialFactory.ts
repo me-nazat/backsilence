@@ -284,7 +284,13 @@ export class TileMaterialFactory {
   readonly ceilingTileMaterial: MeshStandardMaterial;
 
   private readonly themeKits = new Map<SectorThemeId, TileMaterialKit>();
-  private readonly maxAnisotropy: number;
+  readonly maxAnisotropy: number;
+
+  static getAnisotropyForTier(tier: 'high' | 'medium' | 'low', maxSupported = 16): number {
+    if (tier === 'high') return Math.max(8, maxSupported);
+    if (tier === 'medium') return 4;
+    return 1;
+  }
 
   private constructor(renderer?: WebGLRenderer, tileSize: number = WORLD.TILE_METERS) {
     this.tileSize = tileSize;
@@ -640,11 +646,11 @@ export class TileMaterialFactory {
          float relWaterY = vTileWorldPos.y - waterLevelY;
          float tileCamDist = length(vTileViewPos);
 
-         // Prompt 4 Item 5: Distance dissolve into warm cream (#c8b580)
+         // Prompt 9 Item 7: Distance dissolve into warm cream (#c8b580) so far field never shimmers
          if (tileCamDist > 10.0) {
-           float dissolveT = smoothstep(10.0, 35.0, tileCamDist);
+           float dissolveT = smoothstep(10.0, 25.0, tileCamDist);
            vec3 creamRef = vec3(0.784, 0.710, 0.502);
-           diffuseColor.rgb = mix(diffuseColor.rgb, creamRef, dissolveT * 0.42);
+           diffuseColor.rgb = mix(diffuseColor.rgb, creamRef, dissolveT * 0.85);
          }
 
          // Prompt 4 Item 9, 10, 11: Wet band above waterline (0.0 <= dy <= 0.25m)
@@ -693,12 +699,29 @@ export class TileMaterialFactory {
       );
 
       shader.fragmentShader = shader.fragmentShader.replace(
+        '#include <normal_fragment_maps>',
+        `#include <normal_fragment_maps>
+         // Prompt 9 Item 7: Attenuate normal map with distance to prevent grazing shimmer
+         if (tileCamDist > 10.0) {
+           float normFade = 1.0 - smoothstep(10.0, 25.0, tileCamDist) * 0.85;
+           #ifdef USE_NORMALMAP
+             normal = normalize(mix(vec3(0.0, 0.0, 1.0), normal, normFade));
+           #endif
+         }`
+      );
+
+      shader.fragmentShader = shader.fragmentShader.replace(
         '#include <roughnessmap_fragment>',
         `#include <roughnessmap_fragment>
          float rRelY = vTileWorldPos.y - uWaterLevel;
          if (rRelY >= -0.5 && rRelY <= 0.25) {
            float rWet = 1.0 - smoothstep(0.0, 0.25, max(0.0, rRelY));
-           roughnessFactor = mix(roughnessFactor, 0.12, rWet * 0.65);
+           // Prompt 9 Item 9: Roughness floor 0.22 prevents pin-point specular blowout on wet ceramic
+           roughnessFactor = mix(roughnessFactor, 0.22, rWet * 0.55);
+         }
+         if (tileCamDist > 10.0) {
+           float rDissolve = smoothstep(10.0, 25.0, tileCamDist);
+           roughnessFactor = mix(roughnessFactor, 0.32, rDissolve * 0.75);
          }
         `
       );

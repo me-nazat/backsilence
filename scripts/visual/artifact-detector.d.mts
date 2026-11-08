@@ -19,6 +19,15 @@ export interface ArtifactScanOptions {
   checkFogSeams?: boolean;
   checkWaterEdge?: boolean;
   checkFlatness?: boolean;
+  checkAliasing?: boolean;
+  checkSpecularBlowout?: boolean;
+  checkZFighting?: boolean;
+  checkDebugTextLeaks?: boolean;
+  checkUntexturedPrimitives?: boolean;
+  isJumpScare?: boolean;
+  blowoutThresholdPct?: number;
+  aliasingThresholdPct?: number;
+  untexturedThresholdPct?: number;
   tilePitch?: number;
   hudBoxes?: HudBox[];
   islandConnections?: { id: string; connectedTo: string[] }[];

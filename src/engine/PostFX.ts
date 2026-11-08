@@ -51,6 +51,7 @@ const LowMotionBlurShader = {
   uniforms: {
     tDiffuse: { value: null as Texture | null },
     uVelocity: { value: new Vector2(0, 0) },
+    uResolution: { value: new Vector2(1920, 1080) },
   },
   vertexShader: /* glsl */ `
     varying vec2 vUv;
@@ -62,17 +63,71 @@ const LowMotionBlurShader = {
   fragmentShader: /* glsl */ `
     uniform sampler2D tDiffuse;
     uniform vec2 uVelocity;
+    uniform vec2 uResolution;
     varying vec2 vUv;
     void main() {
       vec2 v = clamp(uVelocity, vec2(-0.05), vec2(0.05));
+      vec3 color;
       if (length(v) <= 0.0005) {
-        gl_FragColor = texture2D(tDiffuse, vUv);
+        // Fast edge-directed FXAA smoothing on Low tier (Prompt 9 Item B5)
+        vec2 texel = 1.0 / max(uResolution, vec2(1280.0, 720.0));
+        vec3 rgbM = texture2D(tDiffuse, vUv).rgb;
+        vec3 rgbNW = texture2D(tDiffuse, vUv + vec2(-texel.x, -texel.y)).rgb;
+        vec3 rgbNE = texture2D(tDiffuse, vUv + vec2(texel.x, -texel.y)).rgb;
+        vec3 rgbSW = texture2D(tDiffuse, vUv + vec2(-texel.x, texel.y)).rgb;
+        vec3 rgbSE = texture2D(tDiffuse, vUv + vec2(texel.x, texel.y)).rgb;
+
+        const vec3 luma = vec3(0.299, 0.587, 0.114);
+        float lumaM = dot(rgbM, luma);
+        float lumaNW = dot(rgbNW, luma);
+        float lumaNE = dot(rgbNE, luma);
+        float lumaSW = dot(rgbSW, luma);
+        float lumaSE = dot(rgbSE, luma);
+
+        float lumaMin = min(lumaM, min(min(lumaNW, lumaNE), min(lumaSW, lumaSE)));
+        float lumaMax = max(lumaM, max(max(lumaNW, lumaNE), max(lumaSW, lumaSE)));
+
+        vec2 dir;
+        dir.x = -((lumaNW + lumaNE) - (lumaSW + lumaSE));
+        dir.y =  ((lumaNW + lumaSW) - (lumaNE + lumaSE));
+
+        float dirReduce = max((lumaNW + lumaNE + lumaSW + lumaSE) * (0.25 * 0.03125), 0.0078125);
+        float rcpDirMin = 1.0 / (min(abs(dir.x), abs(dir.y)) + dirReduce);
+        dir = min(vec2(8.0), max(vec2(-8.0), dir * rcpDirMin)) * texel;
+
+        vec3 rgbA = 0.5 * (
+          texture2D(tDiffuse, vUv + dir * (1.0 / 3.0 - 0.5)).rgb +
+          texture2D(tDiffuse, vUv + dir * (2.0 / 3.0 - 0.5)).rgb
+        );
+        vec3 rgbB = rgbA * 0.5 + 0.25 * (
+          texture2D(tDiffuse, vUv + dir * -0.5).rgb +
+          texture2D(tDiffuse, vUv + dir * 0.5).rgb
+        );
+        float lumaB = dot(rgbB, luma);
+        if (lumaB < lumaMin || lumaB > lumaMax) {
+          color = rgbA;
+        } else {
+          color = rgbB;
+        }
       } else {
         vec3 c0 = texture2D(tDiffuse, vUv).rgb;
         vec3 c1 = texture2D(tDiffuse, clamp(vUv - v * 0.5, 0.0, 1.0)).rgb;
         vec3 c2 = texture2D(tDiffuse, clamp(vUv - v, 0.0, 1.0)).rgb;
-        gl_FragColor = vec4((c0 + c1 + c2) / 3.0, 1.0);
+        color = (c0 + c1 + c2) / 3.0;
       }
+
+      // Prompt 9 Item C9: Highlight roll-off shoulder capping specular blowout
+      float lVal = dot(color, vec3(0.2126, 0.7152, 0.0722));
+      const float knee = 0.86;
+      const float maxCeil = 0.965;
+      if (lVal > knee) {
+        float dL = lVal - knee;
+        float sp = maxCeil - knee;
+        float rolled = knee + sp * (dL / (dL + sp));
+        color *= (rolled / max(lVal, 0.0001));
+      }
+
+      gl_FragColor = vec4(clamp(color, 0.0, 1.0), 1.0);
     }
   `,
 };
@@ -197,9 +252,10 @@ export class PostFX {
     }
 
     try {
+      const msaaSamples = this.currentTier === 'high' ? 8 : 4;
       const composerTarget = new WebGLRenderTarget(this.width, this.height, {
         type: HalfFloatType,
-        samples: 4,
+        samples: msaaSamples,
       });
       this.composer = new EffectComposer(this.renderer, composerTarget);
       this.composer.setSize(this.width, this.height);
@@ -642,6 +698,9 @@ export class PostFX {
         mat.uniforms['tDiffuse']!.value = inputTexture;
         if (mat.uniforms['uVelocity']) {
           (mat.uniforms['uVelocity'].value as Vector2).set(velX, velY);
+        }
+        if (mat.uniforms['uResolution']) {
+          (mat.uniforms['uResolution'].value as Vector2).set(this.width, this.height);
         }
         this.renderer.setRenderTarget(null);
         this.copyQuad.render(this.renderer);

@@ -190,6 +190,7 @@ void main() {
   gl_Position = clipPos;
   vScreenPos = clipPos;
 
+  vec3 transformedNormal = normalMatrix * vec3(0.0, 1.0, 0.0);
   #include <shadowmap_vertex>
   #include <fog_vertex>
 }
@@ -453,9 +454,9 @@ void main() {
   float rippleSlope = length(rippleGrad) * (0.012 * uRippleStrength);
   vec2 slopeRipple = -rippleGrad * (0.012 * uRippleStrength);
 
-  // Concentric wave ripple specular rim and crest foam
+  // Concentric wave ripple specular rim and crest foam (uSpecularColor tinted to eliminate blowout C31)
   float rippleRim = pow(clamp(rippleSlope * 45.0, 0.0, 1.0), 1.5) * 0.45;
-  vec3 rippleSpecular = vec3(1.0) * rippleRim;
+  vec3 rippleSpecular = uSpecularColor * rippleRim;
   float rippleCrestFoam = smoothstep(0.012, 0.038, rippleSlope) * 0.40;
 
   // Add V-shaped Kelvin wakes (19.5 degrees half-angle) with 2-3s exponential decay

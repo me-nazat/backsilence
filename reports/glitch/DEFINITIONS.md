@@ -38,3 +38,23 @@ Minor aesthetic nuances, subtle edge cases, minor decal depth adjustments, typog
   - Subtle decal shadow rounding.
   - Minor phrasing nuance in secondary settings tooltips.
 
+
+
+---
+
+## Defect Classes & Automated Detection Rubric (Decision D137)
+
+The visual defect detector (`scripts/visual/artifact-detector.mjs`) automatically scans all frames against this machine-checkable rubric:
+
+| Defect Class | Detection Metric | Trigger Threshold | Root Cause & Resolution |
+|:---|:---|:---:|:---|
+| `aliasing` | Sobel gradient magnitude ($>0.80$) + directional edge tangent oscillation ($\Delta_{\text{tangent}} > 0.40$) | $\ge 18.0\%$ directional staircasing on hard edges | Distance-based grid dissolve at 10–25m, normal map attenuation (85%), MSAA 8x/4x on composer, and Low-tier FXAA |
+| `specular-blowout` | Saturated clamped highlights ($L \ge 0.98$) with chromaticity loss ($\max(RGB) - \min(RGB) < 0.04$) | $\ge 0.30\%$ of total frame pixels | Wet ceramic roughness floor raised to 0.22, filmic shoulder roll-off above $L_0=0.86$ capping at $\le 0.965$ |
+| `black-void` | Contiguous unrendered black pixels ($L < 0.05$) in upper 35% of frame | $>5.0\%$ of frame area or $>15\%$ of upper third (exempts jumpscares) | Enclosed ceiling geometry closure across all 11 map builders; ray-up skybox leak prevention |
+| `debug-leak` | Pure-white text glyph clusters ($R,G,B > 0.95$, width 40–400px, height 7–35px) in perimeter bands | Cluster match detected in bottom 15% | Pointer lock overlays and debug stats panels suppressed during automated capture mode |
+| `flatness` | Luminance standard deviation & fraction near frame mean ($\pm 2\%$) | $\text{stdDev} < 0.015$ or $\text{fracNearMean} > 50\%$ | Restored multi-point illumination, directional shadows, height-fog absorption, and ambient occlusion |
+| `z-fight` | Scanline autocorrelation ($r_1 < -0.25, r_2 > 0.20$) with high-amplitude alternations ($>15$) | $\ge 2$ flagged scanlines with score $\ge 1.5$ | Depth-bias offsets on submerged surfaces, water mesh separation, and polygon offset on coping decals |
+| `hard-fog-seams` | Row-to-row average luminance step discontinuity in fog band $y \in [0.15, 0.40]$ | Step $\Delta L > 0.450$ between adjacent rows | Continuous analytical exponential-squared fog attenuation and smooth horizon gradient transitions |
+| `magenta-hue` | Isolated saturated magenta debug locator pixels ($h \in [280^\circ, 360^\circ] \cup [0^\circ, 20^\circ \land B > G], S > 0.50$) | $> 8$ magenta pixels detected in frame | Replacement of placeholder locator dummies with canonical procedural mesh models |
+| `hud-overlap` | 2D axis-aligned bounding box intersection between registered UI components | Positive overlap area between any two distinct HUD boxes | Responsive flexbox layout manager and dynamic anchoring for noise meter, telemetry, and objective HUD |
+| `untextured-primitives` | Contiguous pixels matching raw engine untextured gray (`#808080` / `vec3(0.5)`) | $\ge 5.0\%$ of frame area | Complete PBR procedural material assignment to all geometry props, vaults, and columns |
