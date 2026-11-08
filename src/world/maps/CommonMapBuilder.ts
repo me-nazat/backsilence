@@ -17,6 +17,7 @@ import {
   BoxGeometry,
   BufferGeometry,
   Color,
+  DoubleSide,
 } from 'three';
 import type { LayoutData, BuildEnv, StairDef } from '../MapTypes.js';
 import type { MapInstance } from './MapInstance.js';
@@ -607,7 +608,7 @@ export function buildStandardMapInstance(
       const decalMesh = new Mesh(decalGeom, decalMat);
       const dx = spawnPt.x - pil.x;
       const dz = spawnPt.z - pil.z;
-      const ang = Math.abs(dx) > 0.01 || Math.abs(dz) > 0.01 ? Math.atan2(dx, dz) : 0;
+      const ang = pil.id === 'pil_dry_room_2' ? 0 : (Math.abs(dx) > 0.01 || Math.abs(dz) > 0.01 ? Math.atan2(dx, dz) : 0);
       const offX = Math.sin(ang) * (r + 0.015);
       const offZ = Math.cos(ang) * (r + 0.015);
       decalMesh.position.set(pil.x + offX, pil.decalY ?? 1.8, pil.z + offZ);
@@ -823,9 +824,9 @@ export function buildStandardMapInstance(
     ground.setRectHeight(ramp.rect[0], ramp.rect[1], ramp.rect[2], ramp.rect[3], ramp.topY);
   }
 
-  // 3c. Build Vaulted Ceiling Mesh & Skylight Shafts for Enclosed Atmosphere (Prompt 4)
-  // Natatorium builds its custom 90x118m hall vault; sunken_jungle has canyon canopy
-  const customCeilingMaps = new Set(['natatorium', 'sunken_jungle']);
+  // 3c. Build Vaulted Ceiling Mesh & Skylight Shafts for Enclosed Atmosphere (Decision D131)
+  // Natatorium builds its custom 90x118m hall vault; all other maps receive enclosed vaults
+  const customCeilingMaps = new Set(['natatorium']);
   if (!customCeilingMaps.has(layout.mapId)) {
     const mapW = layout.bounds.maxX - layout.bounds.minX;
     const mapD = layout.bounds.maxZ - layout.bounds.minZ;
@@ -845,6 +846,7 @@ export function buildStandardMapInstance(
       uvOffsetSeed: layout.seed,
     });
     geometriesToDispose.push(vaultGeom);
+    ceilingMat.side = DoubleSide;
     const ceilingMesh = new Mesh(vaultGeom, ceilingMat);
     ceilingMesh.position.set(mapCx, 0, mapCz);
     ceilingMesh.receiveShadow = true;

@@ -17,6 +17,13 @@ This project follows strict deterministic, zero-external-binary-asset design pri
   - Ink splashes `#1e1a14`, footfall-only white foam `#e8f2e6` (0.32m, 0.38s decay), pale-green specular `#7b9e5e`, and zero ambient crest foam.
 - **Canonical Architecture across All 11 Maps (Prompt 4):**
   - Unified vaulted cream ceiling (`VaultBuilder.ts`), grand archways, low thin tan slabs with bullnose tile edge ($0.3\text{ m}$ elevation), and clean 10–15m sighting lanes across all 11 maps.
+- **Architecture, Vault & Props (Prompt 3):**
+  - Rebuilt `VaultBuilder.ts` with continuous inward-facing segmental/barrel curvature, integrated shallow cove ribs every ~4m, and cream vertex coloring (`#b7a775`), eliminating ceiling blade artifacts.
+  - Purged detached parabolic rib fins from `MapLevelArtPass.ts` overhead and padding batches.
+  - Procedural hand-painted tagline mural (`"IT CAN'T SEE YOU. IT HEARS THE WATER."`) in `GraffitiDecals.ts` using `strokeFont.ts` and `drawMarker` with hand-drawn underlines and water droplet crown splash motif.
+  - Replaced generator crank and status light with designed metal and indicator bezel props.
+  - Oriented numeral '2' on `pil_dry_room_2` to face $+Z$ for 8–10m legibility at $\ge 24\text{px}$ projected height.
+  - Added `tests/tagline-wall.test.ts`, `tests/no-untextured-props.test.ts`, extended `tests/no-void.test.ts` to 11 maps, and created `scripts/world/depth-layer-audit.mjs`.
 - **Creature v2: The Seed-Pod Wader (Prompt 5):**
   - Seed-pod pitted head (32 dark pits `#241c14`), hunched posture, long forearms ($1.35\text{ m}$), flat wading feet, and posture library (`wade-stalk`, `listen-freeze`, `trench-pace`, `lunge`, `jumpscare-bracket`).
   - Screen-space readability certified across all distance tiers: 6m, 15m, 25m, 35m.

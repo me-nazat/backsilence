@@ -1,7 +1,8 @@
 /* ── VaultBuilder.ts ────────────────────────────────────────────────────────
  *  Procedural barrel vault and segmental arched ceiling builder.
- *  Generates inward-facing curved intrados with meter-scaled whole-tile UV
- *  quantization and cream vertex coloring (#b7a775) per reference footage.
+ *  Generates continuous inward-facing curved intrados with meter-scaled whole-tile UV
+ *  quantization, soft shallow cove ribs every ~4m, and cream vertex coloring (#b7a775)
+ *  per reference footage. Eliminates radiating blades and void gaps.
  * ──────────────────────────────────────────────────────────────────────── */
 
 import {
@@ -19,6 +20,7 @@ import {
   Euler,
   type Material,
 } from 'three';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { WORLD } from '../../app/Config.js';
 import { bakeVertexAO } from './VertexAO.js';
 
@@ -28,22 +30,31 @@ export interface VaultOptions {
   springlineY?: number;     // Y elevation of the springline / wall cap (m), default 4.5m
   apexY?: number;           // Y elevation of the vault crown / apex (m), default 9.0m
   color?: string | number;  // Cream plaster/tile tint, default '#b7a775'
-  radialSegments?: number;  // Segments across the curved transverse arc, default 48
-  lengthSegments?: number;  // Segments along longitudinal length, default 16
+  radialSegments?: number;  // Segments across the curved transverse arc, default 64
+  lengthSegments?: number;  // Segments along longitudinal length, default 32
   uvOffsetSeed?: number;
+  ribInterval?: number;     // Interval between soft shallow cove ribs (m), default 4.0m
+  ribDepth?: number;        // Inward cove projection (m), default 0.08m
+  ribWidth?: number;        // Longitudinal width of each cove rib (m), default 0.45m
+  includeRibs?: boolean;    // Whether to integrate soft ribs into the vault, default true
 }
 
 /**
  * Builds an inward-facing curved vault BufferGeometry spanning width (X) and length (Z).
+ * Features smooth continuous curvature and integrated soft shallow cove ribs every ~4m.
  */
 export function buildVaultGeometry(opts: VaultOptions): BufferGeometry {
   const width = Math.max(2.0, opts.width);
   const length = Math.max(2.0, opts.length);
   const springY = opts.springlineY ?? 4.5;
   const apexY = opts.apexY ?? 9.0;
-  const radialSegs = opts.radialSegments ?? 48;
-  const lengthSegs = opts.lengthSegments ?? 16;
+  const radialSegs = opts.radialSegments ?? 64;
+  const lengthSegs = opts.lengthSegments ?? 32;
   const tint = new Color(opts.color ?? '#b7a775');
+  const includeRibs = opts.includeRibs ?? true;
+  const ribInterval = opts.ribInterval ?? 4.0;
+  const ribDepth = opts.ribDepth ?? 0.08;
+  const ribWidth = opts.ribWidth ?? 0.45;
 
   // Rise from springline to apex
   const rise = Math.max(0.5, apexY - springY);
@@ -67,6 +78,7 @@ export function buildVaultGeometry(opts: VaultOptions): BufferGeometry {
   const uShift = ((opts.uvOffsetSeed ?? 0) * 0.381966) % 1.0;
   const vShift = ((opts.uvOffsetSeed ?? 0) * 0.618033) % 1.0;
 
+  // 1. Build main smooth continuous curved vault intrados
   const vertexCount = (radialSegs + 1) * (lengthSegs + 1);
   const positions = new Float32Array(vertexCount * 3);
   const normals = new Float32Array(vertexCount * 3);
@@ -129,15 +141,127 @@ export function buildVaultGeometry(opts: VaultOptions): BufferGeometry {
     }
   }
 
-  const geom = new BufferGeometry();
-  geom.setAttribute('position', new Float32BufferAttribute(positions, 3));
-  geom.setAttribute('normal', new Float32BufferAttribute(normals, 3));
-  geom.setAttribute('uv', new Float32BufferAttribute(uvs, 2));
-  geom.setAttribute('color', new Float32BufferAttribute(colors, 3));
-  geom.setIndex(indices);
+  const baseGeom = new BufferGeometry();
+  baseGeom.setAttribute('position', new Float32BufferAttribute(positions, 3));
+  baseGeom.setAttribute('normal', new Float32BufferAttribute(normals, 3));
+  baseGeom.setAttribute('uv', new Float32BufferAttribute(uvs, 2));
+  baseGeom.setAttribute('color', new Float32BufferAttribute(colors, 3));
+  baseGeom.setIndex(indices);
 
-  bakeVertexAO(geom);
-  return geom;
+  if (!includeRibs || length < ribInterval * 1.5) {
+    bakeVertexAO(baseGeom);
+    return baseGeom;
+  }
+
+  // 2. Build soft shallow cove ribs every ~4m (gentle transverse coved bands, NOT detached fins)
+  const ribGeoms: BufferGeometry[] = [];
+  const halfLen = length * 0.5;
+  const startZ = -halfLen + ribInterval;
+  const endZ = halfLen - ribInterval * 0.5;
+
+  const zRibs: number[] = [];
+  for (let z = startZ; z <= endZ; z += ribInterval) {
+    zRibs.push(z);
+  }
+
+  if (zRibs.length > 0) {
+    const halfRibW = ribWidth * 0.5;
+    const bevelW = Math.min(0.08, halfRibW * 0.4);
+    const ribRadSegs = Math.max(24, Math.floor(radialSegs * 0.6));
+
+    for (const zRib of zRibs) {
+      // 4 longitudinal stations across the shallow cove rib:
+      // station 0: zRib - halfRibW           (depth = 0, at vault surface)
+      // station 1: zRib - halfRibW + bevelW  (depth = ribDepth, inner face start)
+      // station 2: zRib + halfRibW - bevelW  (depth = ribDepth, inner face end)
+      // station 3: zRib + halfRibW           (depth = 0, at vault surface)
+      const stations = [
+        { z: zRib - halfRibW, d: 0.0, nz: -0.6 },
+        { z: zRib - halfRibW + bevelW, d: ribDepth, nz: -0.2 },
+        { z: zRib + halfRibW - bevelW, d: ribDepth, nz: 0.2 },
+        { z: zRib + halfRibW, d: 0.0, nz: 0.6 },
+      ];
+
+      const rVertexCount = (ribRadSegs + 1) * stations.length;
+      const rPositions = new Float32Array(rVertexCount * 3);
+      const rNormals = new Float32Array(rVertexCount * 3);
+      const rUvs = new Float32Array(rVertexCount * 2);
+      const rColors = new Float32Array(rVertexCount * 3);
+
+      let rVIdx = 0;
+      for (let s = 0; s < stations.length; s++) {
+        const st = stations[s]!;
+        const rCurrent = radius - st.d;
+        const vCoord = ((st.z + halfLen) / texMeters) + vShift;
+
+        for (let i = 0; i <= ribRadSegs; i++) {
+          const uNorm = i / ribRadSegs;
+          const phi = -theta + uNorm * (2.0 * theta);
+
+          const x = rCurrent * Math.sin(phi);
+          const y = centerY + rCurrent * Math.cos(phi);
+          const uCoord = uNorm * repeatU + uShift;
+
+          // Inward-facing normal with subtle Z bevel tilt
+          const nx = -Math.sin(phi);
+          const ny = -Math.cos(phi);
+          const nz = st.nz;
+          const nLen = Math.hypot(nx, ny, nz) || 1.0;
+
+          const p3 = rVIdx * 3;
+          rPositions[p3 + 0] = x;
+          rPositions[p3 + 1] = y;
+          rPositions[p3 + 2] = st.z;
+
+          rNormals[p3 + 0] = nx / nLen;
+          rNormals[p3 + 1] = ny / nLen;
+          rNormals[p3 + 2] = nz / nLen;
+
+          // Soft rib has subtle depth tint (cream tile shade #b7a775)
+          const shade = st.d > 0.01 ? 0.96 : 0.92;
+          rColors[p3 + 0] = tint.r * shade;
+          rColors[p3 + 1] = tint.g * shade;
+          rColors[p3 + 2] = tint.b * shade;
+
+          const p2 = rVIdx * 2;
+          rUvs[p2 + 0] = uCoord;
+          rUvs[p2 + 1] = vCoord;
+
+          rVIdx++;
+        }
+      }
+
+      const rIndices: number[] = [];
+      const rRowStride = ribRadSegs + 1;
+      for (let s = 0; s < stations.length - 1; s++) {
+        for (let i = 0; i < ribRadSegs; i++) {
+          const a = s * rRowStride + i;
+          const b = (s + 1) * rRowStride + i;
+          const c = (s + 1) * rRowStride + (i + 1);
+          const d = s * rRowStride + (i + 1);
+
+          rIndices.push(a, c, b);
+          rIndices.push(a, d, c);
+        }
+      }
+
+      const ribGeom = new BufferGeometry();
+      ribGeom.setAttribute('position', new Float32BufferAttribute(rPositions, 3));
+      ribGeom.setAttribute('normal', new Float32BufferAttribute(rNormals, 3));
+      ribGeom.setAttribute('uv', new Float32BufferAttribute(rUvs, 2));
+      ribGeom.setAttribute('color', new Float32BufferAttribute(rColors, 3));
+      ribGeom.setIndex(rIndices);
+      ribGeoms.push(ribGeom);
+    }
+  }
+
+  const merged = mergeGeometries([baseGeom, ...ribGeoms]);
+  baseGeom.dispose();
+  ribGeoms.forEach((g) => g.dispose());
+
+  const finalGeom = merged ?? baseGeom;
+  bakeVertexAO(finalGeom);
+  return finalGeom;
 }
 
 export function createVaultMesh(opts: VaultOptions, material: Material): Mesh {
@@ -178,7 +302,7 @@ export function createVaultSkylightPanels(opts: SkylightPanelOptions): Instanced
 
   const panelMat = new MeshStandardMaterial({
     color: 0xffffff,
-    emissive: 0xfff6db,
+    emissive: 0xfff9e6,
     emissiveIntensity: 1.85,
     roughness: 0.15,
     metalness: 0.0,
@@ -196,8 +320,8 @@ export function createVaultSkylightPanels(opts: SkylightPanelOptions): Instanced
   const quat = new Quaternion().setFromEuler(rot);
   const scale = new Vector3(1, 1, 1);
 
-  // Position slightly beneath apex to prevent coplanar depth contention
-  const panelY = opts.apexY - 0.05;
+  // Position slightly beneath apex to sit flush with crown
+  const panelY = opts.apexY - 0.04;
   for (let i = 0; i < zPositions.length; i++) {
     pos.set(0, panelY, zPositions[i]!);
     mat4.compose(pos, quat, scale);

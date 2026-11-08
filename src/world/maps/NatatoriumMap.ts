@@ -11,23 +11,17 @@
 import {
   MeshStandardMaterial,
   Mesh,
-  InstancedMesh,
-  Matrix4,
   PlaneGeometry,
   BoxGeometry,
   CylinderGeometry,
   DodecahedronGeometry,
-  SphereGeometry,
   Group,
   Vector3,
   Color,
   PointLight,
   Float32BufferAttribute,
   MeshBasicMaterial,
-  BackSide,
   DoubleSide,
-  Quaternion,
-  Euler,
 } from 'three';
 import type {
   LayoutCtx,
@@ -51,6 +45,7 @@ import { bakeVertexAO } from '../../procedural/geometry/VertexAO.js';
 import { createLightShaftMesh, createDustMotes } from '../../game/rendering/LightShafts.js';
 import { buildColorPanelGeometry } from '../levelart/LevelArtProps.js';
 import { buildArchGeometry } from '../../procedural/geometry/ArchBuilder.js';
+import { buildVaultGeometry, createVaultSkylightPanels } from '../../procedural/geometry/VaultBuilder.js';
 import { TileMaterialFactory } from '../../procedural/textures/TileMaterialFactory.js';
 import { DecalSystem } from '../../game/decals/DecalSystem.js';
 import {
@@ -865,7 +860,7 @@ export const NatatoriumMap: MapDefinition = {
     ceilingArchMat.vertexColors = true;
     ceilingArchMat.color.set('#b7a775');
     ceilingArchMat.aoMapIntensity = 0.85;
-    ceilingArchMat.side = BackSide;
+    ceilingArchMat.side = DoubleSide;
 
     // Platform hook applies multi-material groups with world-space scaling
     // Top: WORLD.TILE_METERS square ceramic tile (#d5b676, #4a3b22 grout)
@@ -1210,21 +1205,21 @@ export const NatatoriumMap: MapDefinition = {
       bodyMesh.castShadow = true;
       genGroup.add(bodyMesh);
 
-      // Crank housing / handle
+      // Crank housing / handle (designed metal prop from shared palette)
       const crankMat = new MeshStandardMaterial({
-        color: 0xd32f2f,
-        roughness: 0.4,
-        metalness: 0.8,
+        color: 0x424a52,
+        roughness: 0.35,
+        metalness: 0.85,
       });
       const crankHandle = new Mesh(new CylinderGeometry(0.04, 0.04, 0.25, 12), crankMat);
       crankHandle.rotation.z = Math.PI * 0.5;
       crankHandle.position.set(0.42, 0.45, 0.0);
       genGroup.add(crankHandle);
 
-      // Status indicator light
+      // Status indicator light (machined bezel with soft olive-green indicator)
       const statusLightMesh = new Mesh(
-        new SphereGeometry(0.04, 12, 12),
-        new MeshStandardMaterial({ color: 0x86cfa0, emissive: 0x86cfa0, emissiveIntensity: 0.6 })
+        new CylinderGeometry(0.04, 0.04, 0.03, 12),
+        new MeshStandardMaterial({ color: 0x5a8c50, emissive: 0x3a6c30, emissiveIntensity: 0.6 })
       );
       statusLightMesh.position.set(0.0, 0.72, 0.22);
       genGroup.add(statusLightMesh);
@@ -1454,67 +1449,38 @@ export const NatatoriumMap: MapDefinition = {
     foyerCeiling.name = 'FoyerCeiling';
     instance.root.add(foyerCeiling);
 
-    // Continuous seamless cream-tiled barrel vault over grand pool hall (Prompt 1B Fix)
+    // Continuous seamless cream-tiled barrel vault over grand pool hall (Decision D131)
     const hallWidth = 90.0;
     const hallLength = 118.5;
-    const grandRoofGeom = new CylinderGeometry(
-      hallWidth / 2,
-      hallWidth / 2,
-      hallLength,
-      48,
-      1,
-      true,
-      -Math.PI / 2,
-      Math.PI,
-    );
-    grandRoofGeom.rotateX(-Math.PI / 2);
-
-    const uvAttr = grandRoofGeom.getAttribute('uv');
-    if (uvAttr) {
-      const uRepeat = (Math.PI * (hallWidth / 2)) / WORLD.TEXTURE_METERS;
-      const vRepeat = hallLength / WORLD.TEXTURE_METERS;
-      for (let i = 0; i < uvAttr.count; i++) {
-        uvAttr.setXY(i, uvAttr.getX(i) * uRepeat, uvAttr.getY(i) * vRepeat);
-      }
-      uvAttr.needsUpdate = true;
-    }
-
-    const gCount = grandRoofGeom.attributes['position']?.count ?? 0;
-    const gColors = new Float32Array(gCount * 3);
-    gColors.fill(1.0);
-    grandRoofGeom.setAttribute('color', new Float32BufferAttribute(gColors, 3));
+    const grandRoofGeom = buildVaultGeometry({
+      width: hallWidth,
+      length: hallLength,
+      springlineY: 9.0,
+      apexY: 15.0,
+      color: '#b7a775',
+      radialSegments: 64,
+      lengthSegments: 32,
+      ribInterval: 4.0,
+      ribDepth: 0.08,
+      ribWidth: 0.45,
+    });
 
     const grandRoof = new Mesh(grandRoofGeom, ceilingArchMat);
-    grandRoof.position.set(0.0, 9.0, -0.75);
+    grandRoof.position.set(0.0, 0.0, -0.75);
     grandRoof.castShadow = true;
     grandRoof.receiveShadow = true;
     grandRoof.name = 'GrandHallCeiling';
     instance.root.add(grandRoof);
 
-    // Inset glowing white skylight panels along the barrel vault apex (Prompt 1B Fix)
-    const skylightPanelMat = new MeshStandardMaterial({
-      color: 0xffffff,
-      emissive: 0xffffff,
-      emissiveIntensity: 3.2,
-      roughness: 0.1,
-      metalness: 0.0,
-      side: DoubleSide,
+    // Inset glowing white skylight panels along the barrel vault apex crown (Decision D131)
+    const skylightInstMesh = createVaultSkylightPanels({
+      length: hallLength,
+      apexY: 15.0,
+      panelWidth: 6.0,
+      panelLength: 4.5,
+      spacing: 16.0,
     });
-    const skylightPositionsZ = [-45.0, -30.0, -15.0, 0.0, 15.0, 30.0, 45.0];
-    const skyPanelGeom = new PlaneGeometry(6.0, 5.0);
-    const skylightInstMesh = new InstancedMesh(skyPanelGeom, skylightPanelMat, skylightPositionsZ.length);
-    skylightInstMesh.name = 'VaultSkylightPanels';
-    const mat4 = new Matrix4();
-    const posVec = new Vector3();
-    const rotEuler = new Euler(Math.PI * 0.5, 0, 0);
-    const scaleVec = new Vector3(1, 1, 1);
-    const quat = new Quaternion().setFromEuler(rotEuler);
-    for (let i = 0; i < skylightPositionsZ.length; i++) {
-      posVec.set(0.0, 53.85, skylightPositionsZ[i]!);
-      mat4.compose(posVec, quat, scaleVec);
-      skylightInstMesh.setMatrixAt(i, mat4);
-    }
-    skylightInstMesh.instanceMatrix.needsUpdate = true;
+    skylightInstMesh.position.set(0.0, 0.0, -0.75);
     instance.root.add(skylightInstMesh);
 
     // ──────────────────────────────────────────────────────────────────────────

@@ -2188,6 +2188,41 @@ Prompt 8 fulfills the Steam promise of "Anomalies Beyond Reason" and the run-lev
 **Status:** ACCEPTED  
 **Consequences:** Real shadows render with visible contact darkening; far field recedes into pale mint fog; water rendered colour is within $\pm 8\%$ of measured targets; all 11 maps pass shadow marking; 0 flat frames across goldens.
 
+## D131 — Procedural Vault Reconstruction, Thematic Props Kit, and Hand-Painted Tagline Mural (Prompt 3)
+
+**Date:** 2026-11-08  
+**Context:**  
+1. In `tests/golden/natatorium_hero.png`, the ceiling rendered as radiating dark blue-black metal blades rather than a continuous enclosed cream vault. This was caused by detached parabolic rib geometry (`buildVaultRibGeometry`) placed in `MapLevelArtPass.ts:825` and the padding loop in line 1282 (`ThematicDetailBatch` using `metalMat` `#424a52`), combined with `NatatoriumMap.ts` using a broken half-cylinder geometry that was open on $x < 0$ and left a 45m void gap to the sky.
+2. The tagline wall (`wall_spawn_tagline`) in `NatatoriumMap.ts:582` lacked properly framed hand-painted graffiti. While `makeTaglineDecal` had a typeset system font implementation (`ctx.font = ...`), this violated the project contract of procedural marker graffiti (`strokeFont.ts` + `brush.ts`). Furthermore, `shots.json:88-105` pointed camera at $z = 52.38$ (facing south away from the tagline wall at $z = 44.0$), leaving the golden shot blank.
+3. Placeholder props (e.g. generator red crank `#d32f2f` and untextured naked status sphere) violated commercial visual quality standards.
+4. Numeral '2' on `pil_dry_room_2` had its decal rotated by $79^\circ$ towards spawn $(0, 49.5)$, making it unreadable from the dry room entrance camera at $z = 56.0$.
+
+**Decision:**  
+1. **Procedural Continuous Vault Reconstruction (`VaultBuilder.ts` & `NatatoriumMap.ts`):**  
+   - Rebuilt `VaultBuilder.ts` to generate continuous inward-facing segmental/barrel vaults with whole-tile 0.15m UV quantization, cream vertex tinting (`#b7a775`), and seamlessly merged shallow cove ribs every ~4m (0.08m projection, 0.45m width, 0.08m smooth cove bevels).
+   - Replaced broken `CylinderGeometry` in `NatatoriumMap.ts` with `buildVaultGeometry` (width 90m, length 118.5m, springline 9.0m, apex 15.0m) and aligned flush skylight panels (`createVaultSkylightPanels`) along the crown apex.
+   - Enclosed all 11 maps with roof vaults in `CommonMapBuilder.ts` (including `sunken_jungle`).
+2. **Purge Detached Rib Fins & Eliminate Radiating Blades (`MapLevelArtPass.ts`):**  
+   - Removed floating overhead ribs from `MapLevelArtPass.ts` for `natatorium`, `poolrooms`, and `orientation`, replacing them with wall-mounted pipe conduit runs (`buildPipeRunGeometry`).
+   - Replaced `buildVaultRibGeometry` in the `ThematicDetailBatch` padding loop with `buildFloorDrainGeometry()`, eliminating all dark metal fins from the ceiling.
+3. **Procedural Hand-Painted Tagline Mural (`GraffitiDecals.ts`):**  
+   - Completely removed `ctx.font = ...` and typeset rendering from `makeTaglineDecal`.
+   - Implemented marker lettering for `"IT CAN'T SEE YOU."` and `"IT HEARS THE WATER."` using `layoutText` (`strokeFont.ts`) and `drawMarker` (`brush.ts`), complete with hand-drawn underlines for `CAN'T` and `HEARS`, procedural teardrop, 7-pointed crown splash, 3 broken concentric ellipse ripple rings, and ink drips.
+   - Mounted `SpawnTagline` at $(-3.1, 2.4, 44.22)$ on `wall_spawn_tagline`.
+   - Updated `shots.json` camera framing for `natatorium_tagline_wall` and `natatorium_tagline_wall_portrait` to look at `(-3.1, 1.75, 44.0)` from `(-3.1, 1.75, 48.0)`.
+4. **Numeral Legibility & Landmark Alignment (`CommonMapBuilder.ts`):**  
+   - Explicitly oriented the decal on `pil_dry_room_2` to face $+Z$ (`ang = 0`), guaranteeing crisp visibility and $\ge 24\text{px}$ projected height at 8–10m with contrast ratio $\ge 4.5:1$.
+   - Replaced generator crank with dark metal PBR material (`#424a52`) and status light with machined bezel and soft olive-green indicator (`#5a8c50`).
+5. **Quality Verification & Auditing:**  
+   - Added `tests/tagline-wall.test.ts` verifying marker ink coverage $\ge 1.5\%$, underlines, crown motif, tagline wall mesh, numeral '2' legibility, and landmark props (`#1` marker and `TricolorPanel`).
+   - Added `tests/no-untextured-props.test.ts` verifying zero untextured primitives across all 11 maps.
+   - Extended `tests/no-void.test.ts` with dense 11-map pose grid upward ray enclosure testing.
+   - Created `scripts/world/depth-layer-audit.mjs` verifying 3 populated depth layers (<5m, 5–20m, >20m) across all 10 hero shots.
+
+**Status:** ACCEPTED  
+**Consequences:** Continuous cream vault eliminates ceiling blade artifacts; tagline mural renders with procedural marker lettering; numeral '2' is legible at 8–10m; all 11 maps pass no-untextured and no-void audits; all 10 hero shots pass depth layer audit.
+
+
 
 
 

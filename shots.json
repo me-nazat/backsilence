@@ -90,7 +90,7 @@
     "mapId": "natatorium",
     "seed": 42,
     "simTime": 2.0,
-    "camera": { "x": 0.0, "y": 1.95, "z": 49.2, "target": { "x": 0.0, "y": 1.95, "z": 52.38 }, "fov": 70 },
+    "camera": { "x": -3.1, "y": 1.75, "z": 48.0, "target": { "x": -3.1, "y": 1.75, "z": 44.0 }, "fov": 70 },
     "description": "Hand-lettered black marker graffiti on cream tiles: IT CAN'T SEE YOU. IT HEARS THE WATER."
   },
   {
@@ -100,7 +100,7 @@
     "seed": 42,
     "simTime": 2.0,
     "isPortrait": true,
-    "camera": { "x": 0.0, "y": 1.95, "z": 49.2, "target": { "x": 0.0, "y": 1.95, "z": 52.38 }, "fov": 65 },
+    "camera": { "x": -3.1, "y": 1.75, "z": 48.0, "target": { "x": -3.1, "y": 1.75, "z": 44.0 }, "fov": 65 },
     "description": "Portrait framing of the iconic marker tagline with falling water droplet drawing"
   },
   {

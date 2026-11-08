@@ -8,12 +8,14 @@ import { CanvasTexture, ClampToEdgeWrapping, LinearFilter, SRGBColorSpace } from
 import { Rng } from '../core/prng.js';
 import { layoutText, type Polyline, type Point2D } from './strokeFont.js';
 import { drawMarker, drawSpray } from './brush.js';
-import { acquireCanvas } from '../core/canvasPool.js';
+import { acquireCanvas, type AnyCanvas, type AnyCanvasRenderingContext2D } from '../core/canvasPool.js';
 
 export interface TaglineDecalOptions {
   seed?: number;
   width?: number;
   height?: number;
+  canvas?: AnyCanvas;
+  ctx?: AnyCanvasRenderingContext2D;
 }
 
 export type WarningKind = 'arrow' | 'tally' | 'handprint' | 'shh' | 'listen' | 'hash';
@@ -36,6 +38,7 @@ export function clearDecalCache(): void {
 
 /**
  * Generate the iconic reference tagline wall decal.
+ * Hand-painted black marker graffiti using procedural strokeFont and brush.
  */
 export function makeTaglineDecal(options: TaglineDecalOptions = {}): CanvasTexture {
   const width = options.width ?? 1024;
@@ -43,12 +46,22 @@ export function makeTaglineDecal(options: TaglineDecalOptions = {}): CanvasTextu
   const seed = options.seed ?? 77;
 
   const cacheKey = `tagline_${width}_${height}_${seed}`;
-  if (decalCache.has(cacheKey)) {
+  if (!options.ctx && decalCache.has(cacheKey)) {
     return decalCache.get(cacheKey)!;
   }
 
-  const pooled = acquireCanvas(width, height);
-  const ctx = pooled.ctx;
+  let canvas: AnyCanvas;
+  let ctx: AnyCanvasRenderingContext2D;
+
+  if (options.ctx && options.canvas) {
+    canvas = options.canvas;
+    ctx = options.ctx;
+  } else {
+    const pooled = acquireCanvas(width, height);
+    canvas = pooled.canvas;
+    ctx = pooled.ctx;
+  }
+
   ctx.clearRect(0, 0, width, height);
 
   const rng = new Rng(seed);
@@ -56,60 +69,70 @@ export function makeTaglineDecal(options: TaglineDecalOptions = {}): CanvasTextu
 
   const line1 = "IT CAN'T SEE YOU.";
   const line2 = "IT HEARS THE WATER.";
-  const maxLineWidth = 840; // ensures >= 80px horizontal safety margin on both left and right
+  const maxLineWidth = width * 0.82; // ensures horizontal safety margins
 
-  // Auto-scale font size so line2 and line1 fit within 840px with all letters 100% visible
-  let fontSize = 62;
-  ctx.font = `900 ${fontSize}px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Impact, sans-serif`;
-  while (fontSize > 20) {
-    const w1 = ctx.measureText(line1).width;
-    const w2 = ctx.measureText(line2).width;
-    if (w1 <= maxLineWidth && w2 <= maxLineWidth) {
-      break;
-    }
+  // Auto-scale font size so line1 and line2 fit comfortably within maxLineWidth
+  let fontSize = Math.min(54, Math.floor(height * 0.085));
+  let res1 = layoutText(line1, { size: fontSize, tracking: 0.12, rng: rng.next.bind(rng), wobble: 0.04 });
+  let res2 = layoutText(line2, { size: fontSize, tracking: 0.12, rng: rng.next.bind(rng), wobble: 0.04 });
+  while ((res1.width > maxLineWidth || res2.width > maxLineWidth) && fontSize > 20) {
     fontSize -= 2;
-    ctx.font = `900 ${fontSize}px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Impact, sans-serif`;
+    res1 = layoutText(line1, { size: fontSize, tracking: 0.12, rng: rng.next.bind(rng), wobble: 0.04 });
+    res2 = layoutText(line2, { size: fontSize, tracking: 0.12, rng: rng.next.bind(rng), wobble: 0.04 });
   }
 
-  ctx.save();
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillStyle = color;
+  const offsetX1 = Math.round((width - res1.width) * 0.5);
+  const offsetX2 = Math.round((width - res2.width) * 0.5);
 
-  const centerX = width * 0.5; // 512
-  const y1 = 110;
-  const y2 = 230;
+  const y1 = Math.round(height * 0.14);
+  const y2 = Math.round(y1 + fontSize * 1.85);
 
-  ctx.fillText(line1, centerX, y1);
-  ctx.fillText(line2, centerX, y2);
+  // Transform strokes to centered positions
+  const strokes1 = res1.polylines.map((s) => s.map(([x, y]) => [x + offsetX1, y + y1] as Point2D));
+  const strokes2 = res2.polylines.map((s) => s.map(([x, y]) => [x + offsetX2, y + y2] as Point2D));
+
+  const markerW = Math.max(7.0, fontSize * 0.16);
+  drawMarker(ctx, strokes1, { width: markerW, color, seed: seed + 1 });
+  drawMarker(ctx, strokes2, { width: markerW, color, seed: seed + 2 });
 
   // Underlines under CAN'T and HEARS
-  const wIt1 = ctx.measureText("IT ").width;
-  const wCant = ctx.measureText("CAN'T").width;
-  const line1TotalW = ctx.measureText(line1).width;
-  const cantStartX = centerX - line1TotalW * 0.5 + wIt1;
+  const prefix1 = layoutText("IT ", { size: fontSize, tracking: 0.12, rng: () => 0.5, wobble: 0 });
+  const wordCant = layoutText("CAN'T", { size: fontSize, tracking: 0.12, rng: () => 0.5, wobble: 0 });
+  const cantStartX = offsetX1 + prefix1.width;
+  const cantEndX = cantStartX + wordCant.width;
+  const uY1 = y1 + fontSize * 1.05;
 
-  ctx.lineWidth = 6;
+  const underline1Strokes: Polyline[] = [
+    [
+      [cantStartX - 6, uY1],
+      [cantEndX + 8, uY1 + 2],
+    ],
+  ];
+  drawMarker(ctx, underline1Strokes, { width: markerW * 0.95, color, seed: seed + 10 });
+
+  const prefix2 = layoutText("IT ", { size: fontSize, tracking: 0.12, rng: () => 0.5, wobble: 0 });
+  const wordHears = layoutText("HEARS", { size: fontSize, tracking: 0.12, rng: () => 0.5, wobble: 0 });
+  const hearsStartX = offsetX2 + prefix2.width;
+  const hearsEndX = hearsStartX + wordHears.width;
+  const uY2 = y2 + fontSize * 1.05;
+
+  const underline2Strokes: Polyline[] = [
+    [
+      [hearsStartX - 6, uY2],
+      [hearsEndX + 8, uY2 + 2],
+    ],
+  ];
+  drawMarker(ctx, underline2Strokes, { width: markerW * 0.95, color, seed: seed + 11 });
+
+  // Procedural black ink water-splash crown:
+  // Central rising droplet column, 7-pointed crown rim, 3 broken concentric oval ripple rings
+  const dropCenterX = Math.round(width * 0.5);
+  const dropTopY = Math.round(height * 0.44);
+  const dropBotY = Math.round(height * 0.56);
+
+  ctx.save();
+  ctx.fillStyle = color;
   ctx.strokeStyle = color;
-  ctx.beginPath();
-  ctx.moveTo(cantStartX - 4, y1 + fontSize * 0.55);
-  ctx.lineTo(cantStartX + wCant + 6, y1 + fontSize * 0.58);
-  ctx.stroke();
-
-  const wIt2 = ctx.measureText("IT ").width;
-  const wHears = ctx.measureText("HEARS").width;
-  const line2TotalW = ctx.measureText(line2).width;
-  const hearsStartX = centerX - line2TotalW * 0.5 + wIt2;
-
-  ctx.beginPath();
-  ctx.moveTo(hearsStartX - 4, y2 + fontSize * 0.55);
-  ctx.lineTo(hearsStartX + wHears + 6, y2 + fontSize * 0.58);
-  ctx.stroke();
-
-  // Procedural black ink water-splash crown (central rising droplet column, 7-pointed crown rim, 4 concentric oval ripple rings)
-  const dropCenterX = centerX;
-  const dropTopY = 360;
-  const dropBotY = 440;
 
   // 1. Central rising droplet column
   ctx.beginPath();
@@ -133,9 +156,10 @@ export function makeTaglineDecal(options: TaglineDecalOptions = {}): CanvasTextu
   ctx.fill();
 
   // 2. 7-pointed splash crown rim at water contact point
-  const crownY = 460;
+  const crownY = Math.round(height * 0.59);
   const spikeCount = 7;
   const crownRadius = 52;
+  const spikeStrokes: Polyline[] = [];
   for (let i = 0; i < spikeCount; i++) {
     const angle = Math.PI * 1.02 + (i / (spikeCount - 1)) * (Math.PI * 0.96);
     const spikeLen = rng.range(32, 50);
@@ -144,11 +168,7 @@ export function makeTaglineDecal(options: TaglineDecalOptions = {}): CanvasTextu
     const sx2 = dropCenterX + Math.cos(angle) * (crownRadius * 0.55 + spikeLen);
     const sy2 = crownY + Math.sin(angle) * (crownRadius * 0.28 + spikeLen * 0.85);
 
-    ctx.lineWidth = 6;
-    ctx.beginPath();
-    ctx.moveTo(sx1, sy1);
-    ctx.lineTo(sx2, sy2);
-    ctx.stroke();
+    spikeStrokes.push([[sx1, sy1], [sx2, sy2]]);
 
     ctx.beginPath();
     ctx.arc(sx2, sy2, rng.range(4.5, 6.5), 0, Math.PI * 2);
@@ -162,50 +182,50 @@ export function makeTaglineDecal(options: TaglineDecalOptions = {}): CanvasTextu
       ctx.fill();
     }
   }
+  drawMarker(ctx, spikeStrokes, { width: 6.0, color, seed: seed + 5 });
 
-  // 3. Four concentric oval ripple rings around the base
+  // 3. Three broken concentric oval ripple rings around the base
   const ringRadii = [
-    { rx: 70, ry: 18, width: 5.5 },
-    { rx: 130, ry: 34, width: 4.5 },
-    { rx: 200, ry: 52, width: 3.5 },
-    { rx: 280, ry: 70, width: 2.8 },
+    { rx: 75, ry: 20, width: 5.5 },
+    { rx: 145, ry: 38, width: 4.5 },
+    { rx: 225, ry: 58, width: 3.5 },
   ];
-  for (const ring of ringRadii) {
-    ctx.lineWidth = ring.width;
+  for (let rIdx = 0; rIdx < ringRadii.length; rIdx++) {
+    const ring = ringRadii[rIdx]!;
     const segments = 24;
+    const rippleStrokes: Polyline[] = [];
     for (let s = 0; s < segments; s++) {
-      if (s % 4 === 3) continue;
+      if (s % 4 === 3) continue; // broken gaps
       const a1 = (s / segments) * Math.PI * 2.0;
       const a2 = ((s + 0.88) / segments) * Math.PI * 2.0;
       const px1 = dropCenterX + Math.cos(a1) * ring.rx;
       const py1 = crownY + Math.sin(a1) * ring.ry;
       const px2 = dropCenterX + Math.cos(a2) * ring.rx;
       const py2 = crownY + Math.sin(a2) * ring.ry;
-      ctx.beginPath();
-      ctx.moveTo(px1, py1);
-      ctx.lineTo(px2, py2);
-      ctx.stroke();
+      rippleStrokes.push([[px1, py1], [px2, py2]]);
     }
+    drawMarker(ctx, rippleStrokes, { width: ring.width, color, seed: seed + 20 + rIdx });
   }
 
   // Drips from letter bottoms
-  const dripXs = [cantStartX + 20, cantStartX + wCant * 0.6, hearsStartX + 20, hearsStartX + wHears * 0.6, centerX + 180];
+  const dripXs = [
+    cantStartX + 20,
+    cantStartX + wordCant.width * 0.6,
+    hearsStartX + 20,
+    hearsStartX + wordHears.width * 0.6,
+    dropCenterX + 160,
+  ];
+  const dripStrokes: Polyline[] = [];
   for (const dx of dripXs) {
     const len = rng.range(20, 45);
-    const startY = y2 + fontSize * 0.6;
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.moveTo(dx, startY);
-    ctx.lineTo(dx + (rng.next() - 0.5) * 3, startY + len);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.arc(dx, startY + len, 3.5, 0, Math.PI * 2);
-    ctx.fill();
+    const startY = y2 + fontSize * 0.95;
+    dripStrokes.push([[dx, startY], [dx + (rng.next() - 0.5) * 4, startY + len]]);
   }
+  drawMarker(ctx, dripStrokes, { width: 3.2, color, seed: seed + 30 });
 
   ctx.restore();
 
-  const texture = new CanvasTexture(pooled.canvas as HTMLCanvasElement);
+  const texture = new CanvasTexture(canvas as HTMLCanvasElement);
   texture.wrapS = ClampToEdgeWrapping;
   texture.wrapT = ClampToEdgeWrapping;
   texture.minFilter = LinearFilter;
@@ -214,7 +234,9 @@ export function makeTaglineDecal(options: TaglineDecalOptions = {}): CanvasTextu
   texture.generateMipmaps = true;
   texture.needsUpdate = true;
 
-  decalCache.set(cacheKey, texture);
+  if (!options.ctx) {
+    decalCache.set(cacheKey, texture);
+  }
   return texture;
 }
 

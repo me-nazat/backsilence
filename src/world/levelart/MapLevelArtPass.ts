@@ -98,6 +98,7 @@ import {
   buildSteamManifoldGeometry,
   buildTurbineHousingGeometry,
   buildPressureTankGeometry,
+  buildPipeRunGeometry,
 } from './LevelArtProps.js';
 
 export interface LevelArtEnv {
@@ -821,11 +822,10 @@ export function applyMapLevelArtPass(env: LevelArtEnv): void {
     case 'natatorium':
     case 'poolrooms':
     case 'orientation': {
-      // 1. Vault ribs overhead
-      for (let z = -24; z <= 24; z += 16) {
-        placeMesh(buildVaultRibGeometry(36.0, 9.5), customMaterials.wallMat, new Vector3(0, 0, z));
-      }
-      placedPropTypes.add('vault_rib');
+      // 1. Upper wall pipe conduits along the hall perimeter
+      placeMesh(buildPipeRunGeometry(16.0, 0.09), metalMat, new Vector3(20, 8.2, 0), Math.PI * 0.5);
+      placeMesh(buildPipeRunGeometry(16.0, 0.09), metalMat, new Vector3(-20, 8.2, 0), Math.PI * 0.5);
+      placedPropTypes.add('pipe_run');
 
       // 2. High diving tower
       placeMesh(buildDivingTowerGeometry(), customMaterials.platformMat, new Vector3(0, floorY, -28), Math.PI);
@@ -1273,14 +1273,11 @@ export function applyMapLevelArtPass(env: LevelArtEnv): void {
           g.translate(0, 3.2, rz);
           break;
         case 'marble_atrium':
-          g = buildVaultRibGeometry(32.0, 8.5);
-          g.translate(0, 0, rz);
-          break;
         case 'natatorium':
         case 'poolrooms':
         case 'orientation':
-          g = buildVaultRibGeometry(32.0, 8.5);
-          g.translate(0, 0, rz);
+          g = buildFloorDrainGeometry();
+          g.translate(rx, floorY, rz);
           break;
         default:
           g = buildTunnelRingGeometry(3.8);
