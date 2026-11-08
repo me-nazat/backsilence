@@ -11,7 +11,7 @@ This document records technical limitations, platform boundaries, and intentiona
 ## 1. WebGL Platform & Tier Fallbacks
 - **Low Tier Forward Rendering:** On low-end mobile devices or environments lacking WebGL2 floating-point texture support, the post-processing multi-target pipeline (screen-space volumetric god rays, camera velocity motion blur, far-field depth of field) is bypassed. The engine falls back to direct single-pass forward rendering with analytic fog and procedural caustics.
 - **Screen-Space Radial Ray Occlusion:** God rays are evaluated in screen space from visible ceiling skylights and high apertures. Light sources occluded off-screen do not project wrap-around rays into the camera frustum (inherent screen-space limitation; avoids heavy 3D volumetric raymarching overhead).
-- **Cinematic Shutter Motion Blur:** The reference video features heavy $180^\circ$ analog shutter motion blur during sudden camera turns. BackSilence implements camera velocity-derived motion blur on High tier (6 samples), but disables it on Medium and Low tiers to maintain the rigid 60 FPS performance floor.
+- **Cinematic Shutter Motion Blur (Tier Parity via Decision D136):** The reference video features heavy $180^\circ$ analog shutter motion blur during sudden camera turns. BackSilence implements camera velocity-derived motion blur across all tiers: High tier evaluates 6 samples in the VHS composite pass; Medium tier uses an optimized 3-sample directional blur (~0.3 ms); Low tier utilizes a lightweight 2-sample directional blur directly in the fullscreen blit quad, preserving whip-turn readability across all devices while maintaining the rigid 60 FPS performance floor.
 
 ---
 

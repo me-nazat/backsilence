@@ -8,6 +8,7 @@ import { PerspectiveCamera, Vector3, Euler, MathUtils } from 'three';
 import { PlayerMotor, type PlayerSnapshot } from '../../sim/PlayerMotor.js';
 import { WORLD } from '../../app/Config.js';
 import type { Settings } from '../../types/contracts.js';
+import type { ColliderSet, Collider } from '../../sim/Colliders.js';
 
 const _interpPos = new Vector3();
 const _euler = new Euler(0, 0, 0, 'YXZ');
@@ -43,11 +44,19 @@ export class PlayerCamera {
   // Roar camera shake
   private roarShakeIntensity = 0;
 
+  // Collision sweep
+  private colliders: ColliderSet | null = null;
+  private readonly candidateBuffer: Collider[] = [];
+
   constructor(camera: PerspectiveCamera, settings: Settings) {
     this.camera = camera;
     this.settings = settings;
     this.baseFov = settings.graphics.fov;
     this.currentFov = this.baseFov;
+  }
+
+  setColliders(colliders: ColliderSet | null): void {
+    this.colliders = colliders;
   }
 
   addRoarShake(intensity: number): void {
@@ -82,6 +91,7 @@ export class PlayerCamera {
     renderAlpha: number,
     nearestMonsterDist?: number,
     waterY?: number,
+    colliders?: ColliderSet,
   ): void {
     const reducedMotion = this.settings.accessibility.reducedMotion;
     const prefersReduced =
@@ -203,15 +213,66 @@ export class PlayerCamera {
       camY = Math.max(camY, waterY + 0.28);
     }
 
-    this.camera.position.set(
-      _interpPos.x + this.bobOffsetX + shakeX,
-      camY,
-      _interpPos.z,
-    );
+    let camX = _interpPos.x + this.bobOffsetX + shakeX;
+    let camZ = _interpPos.z;
 
-    // 10. Orientation: shortest-arc angle lerp eliminates 360-degree camera whip on yaw wrap
+    // Camera Collision Sweep: prevent clipping through walls, slabs, pillars, or vault ceilings
+    const activeColliders = colliders ?? this.colliders;
+    if (activeColliders) {
+      activeColliders.queryCircle(camX, camZ, 1.2, this.candidateBuffer);
+      const camClearance = 0.12;
+
+      for (let i = 0; i < this.candidateBuffer.length; i++) {
+        const col = this.candidateBuffer[i]!;
+        if (col.type === 'box') {
+          const vertOverlap = camY >= col.min.y - 0.08 && camY <= col.max.y + 0.08;
+          if (!vertOverlap) continue;
+
+          const minX = col.min.x - camClearance;
+          const maxX = col.max.x + camClearance;
+          const minZ = col.min.z - camClearance;
+          const maxZ = col.max.z + camClearance;
+
+          if (camX >= minX && camX <= maxX && camZ >= minZ && camZ <= maxZ) {
+            const dLeft = camX - minX;
+            const dRight = maxX - camX;
+            const dTop = camZ - minZ;
+            const dBottom = maxZ - camZ;
+            const minPen = Math.min(dLeft, dRight, dTop, dBottom);
+
+            // Overhead lintels, ceilings & vault ribs
+            if (camY >= col.min.y - 0.08 && camY <= col.min.y + 0.35 && minPen > 0.08) {
+              camY = col.min.y - 0.10;
+            } else if (minPen === dLeft) {
+              camX = minX - 0.01;
+            } else if (minPen === dRight) {
+              camX = maxX + 0.01;
+            } else if (minPen === dTop) {
+              camZ = minZ - 0.01;
+            } else {
+              camZ = maxZ + 0.01;
+            }
+          }
+        } else if (col.type === 'cylinder') {
+          if (camY >= col.y0 - 0.08 && camY <= col.y1 + 0.08) {
+            const dist = Math.hypot(camX - col.cx, camZ - col.cz);
+            const reqDist = col.r + camClearance;
+            if (dist < reqDist) {
+              const nx = dist > 1e-4 ? (camX - col.cx) / dist : 1;
+              const nz = dist > 1e-4 ? (camZ - col.cz) / dist : 0;
+              camX = col.cx + nx * (reqDist + 0.01);
+              camZ = col.cz + nz * (reqDist + 0.01);
+            }
+          }
+        }
+      }
+    }
+
+    this.camera.position.set(camX, camY, camZ);
+
+    // 10. Orientation: shortest-arc angle tracking without fixed-tick stepping
     const pitch = MathUtils.clamp(
-      MathUtils.lerp(prevSnapshot.pitch, currSnapshot.pitch, renderAlpha),
+      renderAlpha >= 0.999 ? currSnapshot.pitch : MathUtils.lerp(prevSnapshot.pitch, currSnapshot.pitch, renderAlpha),
       -1.4835,
       1.4835,
     );
@@ -220,7 +281,7 @@ export class PlayerCamera {
       Math.sin(currSnapshot.yaw - prevSnapshot.yaw),
       Math.cos(currSnapshot.yaw - prevSnapshot.yaw),
     );
-    const yaw = prevSnapshot.yaw + deltaYaw * renderAlpha;
+    const yaw = renderAlpha >= 0.999 ? currSnapshot.yaw : (prevSnapshot.yaw + deltaYaw * renderAlpha);
 
     const roll = enableBob ? this.currentTilt : 0;
 

@@ -37,6 +37,7 @@ export const VHSShader = {
     uRewind: { value: 0.0 },
     uSignalLost: { value: 0.0 },
     uVelocity: { value: new Vector2(0, 0) },
+    uBlurSamples: { value: 6.0 },
     uGodRays: { value: 1.0 },
     uSunScreen: { value: new Vector2(0.5, 0.35) },
     uFarDof: { value: 1.0 },
@@ -71,6 +72,7 @@ export const VHSShader = {
     uniform float uRewind;
     uniform float uSignalLost;
     uniform vec2 uVelocity;
+    uniform float uBlurSamples;
     uniform float uGodRays;
     uniform vec2 uSunScreen;
     uniform float uFarDof;
@@ -121,11 +123,13 @@ export const VHSShader = {
         // Camera motion blur runs even when VHS tape effects are disabled (clean look + motion blur)
         vec2 velDir = clamp(uVelocity, vec2(-0.06), vec2(0.06));
         vec3 accum = texture2D(tDiffuse, vUv).rgb;
+        int maxS = int(clamp(uBlurSamples > 0.5 ? uBlurSamples : 6.0, 2.0, 7.0));
         for (int s = 1; s <= 7; s++) {
-          float stepFrac = float(s) / 7.0;
+          if (s > maxS) break;
+          float stepFrac = float(s) / float(maxS);
           accum += texture2D(tDiffuse, clamp(vUv - velDir * stepFrac, 0.0, 1.0)).rgb;
         }
-        gl_FragColor = vec4(accum / 8.0, 1.0);
+        gl_FragColor = vec4(accum / float(maxS + 1), 1.0);
         return;
       }
 
@@ -216,16 +220,18 @@ export const VHSShader = {
         color = color * 0.18 + (colL + colRight) * 0.27 + (colU + colD) * 0.14;
       }
 
-      // Camera motion blur: 6 directional samples along velocity vector
+      // Camera motion blur: 2-6 directional samples along velocity vector (High: 6, Medium: 3, Low: 2)
       float velMag = length(uVelocity);
       if (isSafe < 0.5 && velMag > 0.0005) {
         vec2 velDir = clamp(uVelocity, vec2(-0.06), vec2(0.06));
         vec3 accum = color;
-        for (int s = 1; s <= 5; s++) {
-          float stepFrac = float(s) / 5.0;
+        int maxS = int(clamp(uBlurSamples > 0.5 ? uBlurSamples : 6.0, 2.0, 6.0));
+        for (int s = 1; s <= 6; s++) {
+          if (s > maxS) break;
+          float stepFrac = float(s) / float(maxS);
           accum += texture2D(tDiffuse, clamp(uvG - velDir * stepFrac, 0.0, 1.0)).rgb;
         }
-        color = accum / 6.0;
+        color = accum / float(maxS + 1);
       }
 
       // Far-field Depth of Field (subtle horizon / distance defocus)

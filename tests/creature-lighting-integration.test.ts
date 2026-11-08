@@ -35,7 +35,9 @@ describe('Prompt 5 (D133) — Creature World Lighting Integration Contract', () 
     const bodyMat = rig.monsterSkinMat;
     const headMat = rig.headSkinMat;
 
+    // DESIGN_RATIONALE: Creature body must have zero emissive output (0x000000) so it is lit purely by world illumination rather than glowing.
     expect(bodyMat.emissive.getHex()).toBe(0x000000);
+    // DESIGN_RATIONALE: Creature head must have zero emissive output (0x000000) so it is lit purely by world illumination rather than glowing.
     expect(headMat.emissive.getHex()).toBe(0x000000);
 
     // 2. Skinned mesh participates in world shadows

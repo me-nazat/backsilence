@@ -31,7 +31,6 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { TexturePass } from 'three/examples/jsm/postprocessing/TexturePass.js';
 import { FullScreenQuad } from 'three/examples/jsm/postprocessing/Pass.js';
-import { CopyShader } from 'three/examples/jsm/shaders/CopyShader.js';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
@@ -47,6 +46,36 @@ export interface PostFXOsdState {
 }
 
 export type PostFXMode = 'composer' | 'css-fallback' | 'headless';
+
+const LowMotionBlurShader = {
+  uniforms: {
+    tDiffuse: { value: null as Texture | null },
+    uVelocity: { value: new Vector2(0, 0) },
+  },
+  vertexShader: /* glsl */ `
+    varying vec2 vUv;
+    void main() {
+      vUv = uv;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  `,
+  fragmentShader: /* glsl */ `
+    uniform sampler2D tDiffuse;
+    uniform vec2 uVelocity;
+    varying vec2 vUv;
+    void main() {
+      vec2 v = clamp(uVelocity, vec2(-0.05), vec2(0.05));
+      if (length(v) <= 0.0005) {
+        gl_FragColor = texture2D(tDiffuse, vUv);
+      } else {
+        vec3 c0 = texture2D(tDiffuse, vUv).rgb;
+        vec3 c1 = texture2D(tDiffuse, clamp(vUv - v * 0.5, 0.0, 1.0)).rgb;
+        vec3 c2 = texture2D(tDiffuse, clamp(vUv - v, 0.0, 1.0)).rgb;
+        gl_FragColor = vec4((c0 + c1 + c2) / 3.0, 1.0);
+      }
+    }
+  `,
+};
 
 export interface PostFXStatus {
   mode: PostFXMode;
@@ -75,6 +104,7 @@ interface VHSUniforms {
   uSaturation: { value: number };
   uTint: { value: Vector3 };
   uVelocity?: { value: Vector2 };
+  uBlurSamples?: { value: number };
   uGodRays?: { value: number };
   uSunScreen?: { value: Vector2 };
   uFarDof?: { value: number };
@@ -193,7 +223,7 @@ export class PostFX {
         this.composer.addPass(this.ssaoPass);
       }
 
-      this.copyQuad = new FullScreenQuad(new ShaderMaterial(CopyShader));
+      this.copyQuad = new FullScreenQuad(new ShaderMaterial(LowMotionBlurShader));
 
       // 2. BloomLitePass (half-res, cheap - Prompt 4.12: 0.55, 0.70, 0.85)
       const bloomRes = new Vector2(Math.floor(this.width / 2), Math.floor(this.height / 2));
@@ -576,7 +606,7 @@ export class PostFX {
 
   copyTexture(src: Texture, dst: WebGLRenderTarget | null): void {
     if (!this.copyQuad) {
-      this.copyQuad = new FullScreenQuad(new ShaderMaterial(CopyShader));
+      this.copyQuad = new FullScreenQuad(new ShaderMaterial(LowMotionBlurShader));
     }
     (this.copyQuad.material as ShaderMaterial).uniforms['tDiffuse']!.value = src;
     const prevTarget = this.renderer.getRenderTarget();
@@ -586,12 +616,33 @@ export class PostFX {
   }
 
   render(scene: Scene, camera: Camera, dt = 0.016, inputTexture?: Texture | null): void {
+    // Camera Motion Blur: calculate velocity from camera position & rotation deltas across all tiers
+    let velX = 0;
+    let velY = 0;
+    if (this.hasPrevCamera && dt > 0.0001) {
+      const deltaX = (camera.position.x - this.prevCameraPos.x) + (camera.rotation.y - this.prevCameraRot.y) * 2.5;
+      const deltaY = (camera.position.y - this.prevCameraPos.y) - (camera.rotation.x - this.prevCameraRot.x) * 2.5;
+      const speed = Math.hypot(deltaX, deltaY);
+      if (!this.isSafeMode() && speed >= 0.001) {
+        const factor = Math.min(0.055, speed * 0.032);
+        velX = (deltaX / (speed || 1)) * factor;
+        velY = (deltaY / (speed || 1)) * factor;
+      }
+    }
+    this.prevCameraPos.copy(camera.position);
+    this.prevCameraRot.set(camera.rotation.x, camera.rotation.y, camera.rotation.z);
+    this.hasPrevCamera = true;
+
     if (this.currentTier === 'low' || !this.composer) {
       if (inputTexture) {
         if (!this.copyQuad) {
-          this.copyQuad = new FullScreenQuad(new ShaderMaterial(CopyShader));
+          this.copyQuad = new FullScreenQuad(new ShaderMaterial(LowMotionBlurShader));
         }
-        (this.copyQuad.material as ShaderMaterial).uniforms['tDiffuse']!.value = inputTexture;
+        const mat = this.copyQuad.material as ShaderMaterial;
+        mat.uniforms['tDiffuse']!.value = inputTexture;
+        if (mat.uniforms['uVelocity']) {
+          (mat.uniforms['uVelocity'].value as Vector2).set(velX, velY);
+        }
         this.renderer.setRenderTarget(null);
         this.copyQuad.render(this.renderer);
       } else {
@@ -600,24 +651,13 @@ export class PostFX {
       return;
     }
 
-    // Camera Motion Blur: calculate velocity from camera position & rotation deltas
-    if (this.hasPrevCamera && dt > 0.0001) {
-      const deltaX = (camera.position.x - this.prevCameraPos.x) + (camera.rotation.y - this.prevCameraRot.y) * 2.5;
-      const deltaY = (camera.position.y - this.prevCameraPos.y) - (camera.rotation.x - this.prevCameraRot.x) * 2.5;
-      const speed = Math.hypot(deltaX, deltaY);
-      const u = this.getVhsUniforms();
-      if (u && u.uVelocity) {
-        if (this.isSafeMode() || speed < 0.001) {
-          u.uVelocity.value.set(0, 0);
-        } else {
-          const factor = Math.min(0.055, speed * 0.032);
-          u.uVelocity.value.set((deltaX / (speed || 1)) * factor, (deltaY / (speed || 1)) * factor);
-        }
+    const u = this.getVhsUniforms();
+    if (u && u.uVelocity) {
+      u.uVelocity.value.set(velX, velY);
+      if (u.uBlurSamples) {
+        u.uBlurSamples.value = this.currentTier === 'medium' ? 3.0 : 6.0;
       }
     }
-    this.prevCameraPos.copy(camera.position);
-    this.prevCameraRot.set(camera.rotation.x, camera.rotation.y, camera.rotation.z);
-    this.hasPrevCamera = true;
 
     if (inputTexture && this.texturePass) {
       this.texturePass.enabled = true;

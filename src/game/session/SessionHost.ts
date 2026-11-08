@@ -603,13 +603,12 @@ export class SessionHost {
     // 1. Fixed timestep simulation
     this.accumulator += Math.min(dt, 0.25);
     const intent = this.inputRig.pollIntent(dt);
-    let lookPending = intent.lookDeltaYaw !== 0 || intent.lookDeltaPitch !== 0;
-    const tickIntent = { ...intent };
+    if (intent.lookDeltaYaw !== 0 || intent.lookDeltaPitch !== 0) {
+      this.simWorld.player.applyLookDelta(intent.lookDeltaYaw, intent.lookDeltaPitch);
+    }
+    const tickIntent = { ...intent, lookDeltaYaw: 0, lookDeltaPitch: 0 };
 
     while (this.accumulator >= this.FIXED_DT) {
-      tickIntent.lookDeltaYaw = lookPending ? intent.lookDeltaYaw : 0;
-      tickIntent.lookDeltaPitch = lookPending ? intent.lookDeltaPitch : 0;
-      lookPending = false;
 
       if (this.waterCycle) {
         const curWaterY = this.waterCycle.levelAt(this.simWorld.simTime);
@@ -708,7 +707,7 @@ export class SessionHost {
       this.firstCreatureSightingTime = this.timeSurvived;
     }
 
-    this.cameraRig.playerCamera.update(dt, prevSnap, currSnap, renderAlpha, nearestMonsterDist, this.water.currentWaterY);
+    this.cameraRig.playerCamera.update(dt, prevSnap, currSnap, renderAlpha, nearestMonsterDist, this.water.currentWaterY, this.simWorld.colliders);
     this.footsteps.update(currSnap, this.cameraRig.playerCamera.getBobPhase(), this.camera, this.simWorld.waterY);
 
     const monsterPanic = nearestMonsterDist <= 30.0 ? Math.max(0, Math.min(1, 1.0 - (nearestMonsterDist - 5.0) / 25.0)) : 0.0;

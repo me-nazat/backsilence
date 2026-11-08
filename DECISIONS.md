@@ -2397,6 +2397,58 @@ Prompt 7 (Batch 4 of 5 — WATER, SPLASH, AND THE PLAYER) addresses the water vo
 **Status:** ACCEPTED  
 **Consequences:** Foam rings and crown splashes clearly visible with reference broken-ellipse motif; pink domes bisected and permanently prevented; all five depth color targets met within $\pm 8\%$; water receives slab shadows; defect C4 closed; 128/128 test files and 1064/1064 Vitest tests pass cleanly.
 
+## D136 — Jump Buffering, Coyote Time, Anti-Bounce Stability, Render-Rate Camera Tracking, and Collision Sweeps (Prompt 8)
+
+**Date:** 2026-11-08  
+**Context:**  
+Prompt 8 (Batch 4 of 5 — WATER, SPLASH, AND THE PLAYER) addresses player traversal feel, jump state mechanics, waterline bouncing, fast turn camera stepping, and environmental collision sweeps against the 37-frame reference contract (`f_001`–`f_037`):
+1. **Jump Buffering & Coyote Time:** Neither `JUMP_BUFFER` nor `COYOTE_TIME` were configured in `Config.ts`. Player jumps felt rigid and unforgiving when navigating slab edges or exiting water.
+2. **Upward Velocity Discontinuity & Bouncing:** Standing or wading near platform edges caused intermittent vertical oscillation, launch, or ejection. Upward velocity sources required systematic enumeration and elimination.
+3. **Camera Stepping on Fast Turns ($720^\circ/\text{s}$):** High-speed mouse turns showed visible stepping/quantization. The cause needed isolation between mouse event polling, frame rate integration, and snapshot interpolation.
+4. **Motion Blur Tier Parity:** High tier had motion blur while Medium and Low disabled it (`reports/release/KNOWN_LIMITATIONS.md` §1), causing whip turns to read as camera glitches.
+5. **Camera Wall/Ceiling Collision & Near-Plane Invariant:** Camera could clip into vault ribs or slab geometry. Near-plane ($0.05\text{ m}$) needed verification against water surface clipping in shallow water while standing and crouching.
+6. **Traversal & Stuck Sweeps:** Step-up ($0.30\text{ m}$ slab vs $0.28\text{ m}$ capsule), water mantling, trench sprint-jumping, and crouching under $0.9\text{ m}$ clearance needed asserting. 200 sampled map positions required testing for floor penetration or stuck trapping.
+7. **Acoustic Integrity:** Zero audible noise on dry-tile walking must be preserved.
+
+**Decision:**  
+1. **Jump State Machine & Timers (`src/app/Config.ts`, `src/sim/PlayerMotor.ts`):**  
+   - Added `JUMP_BUFFER: 0.10` and `COYOTE_TIME: 0.15` to `WORLD.PLAYER` in `Config.ts`.  
+   - Bound motor timers directly to config: `coyoteDuration = PlayerMotor.COYOTE_TIME`.  
+   - Documented all jump state transitions with `file:line` in `PlayerMotor.ts` (takeoff, ledge descent, apex transition, landing snap, mantle trigger, and mantle settle).  
+   - Retained `WATER_JUMP_V: 5.65` per critical-pass verification (D105) to ensure solid water breach, while harmonizing `WATER_GRAVITY: 14.0` with dry land gravity to eliminate gravitational discontinuity.
+2. **Upward Velocity Audit & Elimination of Bouncing (`src/sim/PlayerMotor.ts`):**  
+   - Enumerated all 7 upward velocity mechanisms:  
+     1. *Water buoyancy:* $0\text{ m/s}$ (gravity is purely downward).  
+     2. *Wave displacement:* $0\text{ m/s}$ (wave field does not inject vertical velocity into motor).  
+     3. *Contact push-out when idle:* $0\text{ m/s}$ (idle stance samples exact ground contact; edge snapping disabled when idle).  
+     4. *Slope normals when stationary:* $0\text{ m/s}$ ($v \times \tan\theta = 0$).  
+     5. *Platform riding:* $0\text{ m/s}$ (static geometry).  
+     6. *Mantle completion:* Max $3.02\text{ m/s}$ arc lift only during active intentional mantle (`intent.jump = true`).  
+     7. *Unstick impulse (Worst Case):* Identified crude $+3.8\text{ m/s}$ spring boost (`vel.y = Math.max(vel.y, 3.8)`) applied indiscriminately on wading players within $0.55\text{ m}$ of a platform edge. **Eliminated this boost completely.**  
+   - Restricted auto-step-up strictly to intentional forward movement (`inputLen > 0.05`) with capsule leading-edge probe and headroom clearance check.  
+   - Corner unstuck check (`contactCount >= 2 && blockedX && blockedZ`) extended to dry land without vertical thrust.  
+   - Added `tests/no-bounce.test.ts` verifying idle stability over 20s on slab, in shallow water, deep water, and on wave fields with vertical drift $< 0.05\text{ m/s}$.
+3. **Render-Rate Camera Tracking (Zero Stepping on $720^\circ/\text{s}$ Turns) (`src/game/session/SessionHost.ts`, `src/game/player/PlayerCamera.ts`):**  
+   - Isolated root cause: `SessionHost` polled mouse intent at render rate, but discarded deltas on sub-tick frames where `accumulator < FIXED_DT`; moreover, `PlayerCamera` interpolated yaw from fixed 60Hz snapshots via `renderAlpha`, causing periodic backward pull-back during rendering.  
+   - Fixed by applying mouse look deltas immediately at render rate to `PlayerMotor.applyLookDelta()`, zeroing out deltas queued for fixed simulation ticks.  
+   - Uncoupled camera orientation from `renderAlpha` tick lag, updating directly from current snapshot orientation.  
+   - Verified in `tests/camera-collision.test.ts` across $720^\circ/\text{s}$ turns: render deltas match expected angular displacement without stepping or quantization.
+4. **Motion Blur Tier Parity (`src/procedural/shaders/vhs.glsl.ts`, `src/engine/PostFX.ts`):**  
+   - Added `uBlurSamples` uniform to VHS shader. Scaled motion blur loops dynamically: High tier (6 samples), Medium tier (3 samples).  
+   - Built lightweight 2-sample directional motion blur in `LowMotionBlurShader` for the `copyQuad` blit pass on Low tier.  
+   - Updated `reports/release/KNOWN_LIMITATIONS.md` §1 to reflect full tier parity for whip turn motion blur.
+5. **Camera Collision Sweeps & S19 Near-Plane Safety (`src/game/player/PlayerCamera.ts`):**  
+   - Implemented swept sphere collision query against scene colliders (walls, slabs, cylinder pillars, and overhead vault ribs) with $0.15\text{ m}$ safety cushion.  
+   - Verified S19 near-plane invariant ($0.05\text{ m}$): camera near plane never penetrates water surface in standing ($1.65\text{ m}$) or crouched ($0.95\text{ m}$) shallow water stances.
+6. **Traversal & Stuck Sweeps (`tests/player-traversal.test.ts`, `tests/player-stuck-sweep.test.ts`):**  
+   - Verified dry slab walking, shallow water wading, crouch wading, dry jump, water jump, water mantle onto $0.30\text{ m}$ slab, sprint jump over trench, and crouch clearance under $0.90\text{ m}$ obstacle.  
+   - Executed 200-position sweep across 5 maps: zero floor falling, zero stuck trapping, and confirmed graffiti decal planes are strictly non-colliders.  
+   - Preserved acoustic invariant: walking on dry tile emits strictly 0 noise (`tests/acoustic-table.test.ts`).
+
+**Status:** ACCEPTED  
+**Consequences:** Jump buffering and coyote time active; waterline bouncing eliminated; camera turn stepping eliminated with motion blur tier parity; collision sweeps prevent clipping; 132/132 test files (1087 tests) pass; visual artifact detector clean across 48/48 golden baselines.
+
+
 
 
 

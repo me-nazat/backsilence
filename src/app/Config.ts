@@ -19,9 +19,11 @@ export const WORLD = {
     CROUCH: 1.6,
     WADE_FACTOR: 0.68,
     JUMP_V: 4.6,
-    WATER_JUMP_V: 6.8,
+    WATER_JUMP_V: 5.65, // Retained > 5.0 m/s per critical-pass-verification (D105) to clear water breach
     GRAVITY: 14.0,
-    WATER_GRAVITY: 15.5,
+    WATER_GRAVITY: 14.0, // Harmonized with GRAVITY to eliminate waterline acceleration discontinuity (D136)
+    JUMP_BUFFER: 0.10, // ~0.10s standard input buffer (D136)
+    COYOTE_TIME: 0.15, // ~0.12-0.15s standard coyote time (matches critical-pass-verification & D136)
     MANTLE_TIME: 0.6,
   },
   MONSTER: {
