@@ -292,9 +292,7 @@ export class MonsterBody {
 
     this.isOnDryPlatform = groundY >= waterLevel + 0.05;
     const isWadeStand = false;
-    const targetBaseRootY = this.water && !this.isOnDryPlatform
-      ? Math.max(groundY + 0.32, waterLevel - 0.42)
-      : groundY;
+    const targetBaseRootY = groundY;
 
     if (!this.hasInitializedRootY) {
       this.currentRootY = targetBaseRootY;

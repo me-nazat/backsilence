@@ -28,11 +28,15 @@ import {
   Quaternion,
   DynamicDrawUsage,
   DoubleSide,
+  Bone,
+  Skeleton,
+  SkinnedMesh,
   type Material,
   type Texture,
 } from 'three';
 import type { MonsterJoints } from './MonsterMesh.js';
 import { generateFleshTextures, type FleshTextureResult } from '../../procedural/textures/FleshTexture.js';
+import { buildMonsterRigSkinnedGeometry } from './ProceduralSkinnedMeshBuilder.js';
 
 export type SkullVariant = 'splitShell' | 'mutatedSkull';
 
@@ -716,13 +720,13 @@ export function createMucosalShaderHook(
 
 export class MonsterRig {
   readonly rootGroup = new Group();
-  readonly pelvis = new Group();
-  readonly lowerSpine = new Group();
-  readonly upperChest = new Group(); // Torso
-  readonly neck = new Group();
-  readonly headGroup = new Group();
+  readonly pelvis = new Bone();
+  readonly lowerSpine = new Bone();
+  readonly upperChest = new Bone(); // Torso
+  readonly neck = new Bone();
+  readonly headGroup = new Bone();
   readonly jawGroup = new Group();
-  readonly lowerJaw = new Group();
+  readonly lowerJaw = new Bone();
   readonly tailGroup = new Group();
 
   // Retained empty groups for animator / legacy call-site safety (contain 0 split-petal meshes)
@@ -738,35 +742,35 @@ export class MonsterRig {
   readonly jawPetalBottom = new Group();
 
   // Limbs
-  readonly shoulderL = new Group();
-  readonly upperArmL = new Group();
-  readonly elbowL = new Group();
-  readonly forearmL = new Group();
-  readonly wristL = new Group();
-  readonly handL = new Group();
+  readonly shoulderL = new Bone();
+  readonly upperArmL = new Bone();
+  readonly elbowL = new Bone();
+  readonly forearmL = new Bone();
+  readonly wristL = new Bone();
+  readonly handL = new Bone();
   readonly clawsL = new Group();
 
-  readonly shoulderR = new Group();
-  readonly upperArmR = new Group();
-  readonly elbowR = new Group();
-  readonly forearmR = new Group();
-  readonly wristR = new Group();
-  readonly handR = new Group();
+  readonly shoulderR = new Bone();
+  readonly upperArmR = new Bone();
+  readonly elbowR = new Bone();
+  readonly forearmR = new Bone();
+  readonly wristR = new Bone();
+  readonly handR = new Bone();
   readonly clawsR = new Group();
 
-  readonly hipL = new Group();
-  readonly thighL = new Group();
-  readonly kneeL = new Group();
-  readonly shinL = new Group();
-  readonly ankleL = new Group();
-  readonly footL = new Group();
+  readonly hipL = new Bone();
+  readonly thighL = new Bone();
+  readonly kneeL = new Bone();
+  readonly shinL = new Bone();
+  readonly ankleL = new Bone();
+  readonly footL = new Bone();
 
-  readonly hipR = new Group();
-  readonly thighR = new Group();
-  readonly kneeR = new Group();
-  readonly shinR = new Group();
-  readonly ankleR = new Group();
-  readonly footR = new Group();
+  readonly hipR = new Bone();
+  readonly thighR = new Bone();
+  readonly kneeR = new Bone();
+  readonly shinR = new Bone();
+  readonly ankleR = new Bone();
+  readonly footR = new Bone();
 
   // Ear-fans / acoustic receptors
   readonly earLeft = new Group();
@@ -775,6 +779,9 @@ export class MonsterRig {
   // Dorsal spine group is empty per reference footage (zero dorsal ridges)
   readonly dorsalSpineGroup = new Group();
   readonly dorsalRidges: Mesh[] = [];
+
+  // Continuous skinned anatomical body mesh
+  readonly skinnedMesh: SkinnedMesh;
 
   // Seed-pod head pits & inner mouth dentition
   readonly headPitsMesh: InstancedMesh;
@@ -1400,9 +1407,76 @@ export class MonsterRig {
       this.footR.add(footClaw);
     }
 
+    // ──────────────────────────────────────────────────────────────────────────
+    // 6. Seamless Continuous Skinned Body (Anatomy & World Shadow Integration)
+    // ──────────────────────────────────────────────────────────────────────────
+    // Primitive segments remain attached for scene-graph invariants but are hidden
+    // so the single continuous organic SkinnedMesh renders with zero seams or shards.
+    pelvisMesh.visible = false;
+    midSectionMesh.visible = false;
+    torsoMesh.visible = false;
+    neckMesh.visible = false;
+    shoulderSphereL.visible = false;
+    upperArmMeshL.visible = false;
+    elbowSphereL.visible = false;
+    forearmMeshL.visible = false;
+    palmMeshL.visible = false;
+    shoulderSphereR.visible = false;
+    upperArmMeshR.visible = false;
+    elbowSphereR.visible = false;
+    forearmMeshR.visible = false;
+    palmMeshR.visible = false;
+    hipSphereL.visible = false;
+    thighMeshL.visible = false;
+    kneeSphereL.visible = false;
+    shinMeshL.visible = false;
+    footMeshL.visible = false;
+    hipSphereR.visible = false;
+    thighMeshR.visible = false;
+    kneeSphereR.visible = false;
+    shinMeshR.visible = false;
+    footMeshR.visible = false;
+
+    const continuousGeom = buildMonsterRigSkinnedGeometry(seed);
+    this.skinnedMesh = new SkinnedMesh(continuousGeom, this.monsterSkinMat);
+    this.skinnedMesh.name = 'ContinuousMonsterBody';
+    this.skinnedMesh.castShadow = true;
+    this.skinnedMesh.receiveShadow = true;
+    this.skinnedMesh.frustumCulled = false;
+
+    const bones: Bone[] = [
+      this.pelvis,
+      this.lowerSpine,
+      this.upperChest,
+      this.neck,
+      this.headGroup,
+      this.shoulderL,
+      this.elbowL,
+      this.wristL,
+      this.handL,
+      this.shoulderR,
+      this.elbowR,
+      this.wristR,
+      this.handR,
+      this.hipL,
+      this.kneeL,
+      this.ankleL,
+      this.footL,
+      this.hipR,
+      this.kneeR,
+      this.ankleR,
+      this.footR,
+    ];
+    const skeleton = new Skeleton(bones);
+    this.rootGroup.updateMatrixWorld(true);
+    this.skinnedMesh.bind(skeleton);
+    this.rootGroup.add(this.skinnedMesh);
+
     this.rootGroup.traverse((obj) => {
       if ((obj as Mesh).isMesh) {
         (obj as Mesh).frustumCulled = false;
+        (obj as Mesh).castShadow = true;
+        (obj as Mesh).receiveShadow = true;
       }
     });
   }

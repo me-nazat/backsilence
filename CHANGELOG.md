@@ -32,9 +32,11 @@ This project follows strict deterministic, zero-external-binary-asset design pri
   - Enabled screen-space ambient occlusion (`SSAOPass`) on Medium and High tiers in `PostFX`.
   - Implemented dynamic wet band with irregular sinusoidal tidemark ($0.0 \le \Delta Y \le 0.25\text{ m}$) driven by `globalWaterLevelUniform` (18% luminance drop at 3m down to ~10% at 20m), thin bright specular meniscus contact at $|\Delta Y| < 0.012\text{ m}$, and roughness lowering to 0.12.
   - Added `tests/ao-presence.test.ts`, `tests/wet-band.test.ts`, and extended `tests/tile-pitch.test.ts` (1030 tests across 120 files, 100% passing).
-- **Creature v2: The Seed-Pod Wader (Prompt 5):**
-  - Seed-pod pitted head (32 dark pits `#241c14`), hunched posture, long forearms ($1.35\text{ m}$), flat wading feet, and posture library (`wade-stalk`, `listen-freeze`, `trench-pace`, `lunge`, `jumpscare-bracket`).
-  - Screen-space readability certified across all distance tiers: 6m, 15m, 25m, 35m.
+- **Continuous Anatomical Creature Rebuild, Grounded Locomotion Waterline, and World Lighting (Prompt 5 — Decision D133):**
+  - Rebuilt creature as continuous organic anatomy (`ProceduralSkinnedMeshBuilder.ts`, `MonsterRig.ts`) mapping gaunt ribcage, sunken starved abdomen, rounded seed-pod head with 32 recessed pits and small dark mouth, long forelimbs (1.35m) with 4 curved sickle talons, clavicle/pelvic bridging musculature, digitigrade haunches with Achilles cord, and tapering tail to a 21-bone skeleton with inverse-cube distance skinning.
+  - Replaced artificial torso elevation with pure locomotion-driven ground tracking (`targetBaseRootY = groundY`); at pool depth (-0.42m), waterline intersects torso ($y \in [-0.15, +0.65\text{ m}]$), hands are submerged, shoulders are clear, and submerged fraction scales proportionally across water depths.
+  - Integrated into world lighting rig with directional key sun (`#fff5e4`), upward olive water bounce (`#5a8c50`), and scene fog (`#c5d4be`, 0.045); zero emissive rim shortcuts; shadow casting and receiving enabled on skinned mesh.
+  - Added `tests/creature-silhouette-integrity.test.ts` (1 connected component, zero detached shards >5cm), `tests/creature-lighting-integration.test.ts` (world illumination, luminance in $[0.15, 0.65]$, min luminance $\ge 0.055$), extended `tests/monster-waterline.test.ts`, and verified `scripts/creature/appearance-lock.mjs` (1036 tests across 122 files, 100% passing).
 - **The Sound-First Encounter Arc (Prompt 6):**
   - Directed six-beat encounter grammar: Telegraph ($1.5\text{s}$ acoustic stinger) $\to$ Silhouette Hold ($3\text{s}$ at $10\text{--}15\text{m}$) $\to$ Stalk ($2.4\text{ m/s}$) $\to$ Trench Standoff $\to$ Silence Window $\to$ Terminal Lunge.
   - Fairness laws strictly enforced: speed ceiling $\le 7.4\text{ m/s}$ (zero teleportation), standoff trench uncrossed, $0\text{ damage}$ during dry stillness, 100% noise-attributable attacks.

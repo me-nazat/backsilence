@@ -779,3 +779,499 @@ export function buildProceduralSkinnedMonster(
     boneMap,
   };
 }
+
+/**
+ * Builds continuous organic high-poly skinned body geometry specifically mapped
+ * to MonsterRig's 21 articulated bones:
+ * 0: pelvis, 1: lowerSpine, 2: upperChest, 3: neck, 4: headGroup,
+ * 5: shoulderL, 6: elbowL, 7: wristL, 8: handL,
+ * 9: shoulderR, 10: elbowR, 11: wristR, 12: handR,
+ * 13: hipL, 14: kneeL, 15: ankleL, 16: footL,
+ * 17: hipR, 18: kneeR, 19: ankleR, 20: footR
+ */
+export function buildMonsterRigSkinnedGeometry(seed = 54321): BufferGeometry {
+  const segments: BoneSegment[] = [
+    // Pelvis
+    { boneIndex: 0, a: new Vector3(0, 0.70, 0.15), b: new Vector3(0, 0.85, 0.03), radius: 0.28, weightScale: 1.0 },
+    // Lower Spine
+    { boneIndex: 1, a: new Vector3(0, 0.85, 0.03), b: new Vector3(0, 1.07, -0.19), radius: 0.28, weightScale: 1.0 },
+    // Upper Chest (Thorax / Ribcage / Scapulae)
+    { boneIndex: 2, a: new Vector3(0, 1.07, -0.19), b: new Vector3(0, 1.375, -0.36), radius: 0.32, weightScale: 1.1 },
+    // Neck
+    { boneIndex: 3, a: new Vector3(0, 1.375, -0.36), b: new Vector3(0, 1.54, -0.51), radius: 0.22, weightScale: 1.0 },
+    // Head / Cranium
+    { boneIndex: 4, a: new Vector3(0, 1.54, -0.51), b: new Vector3(0, 1.58, -0.75), radius: 0.24, weightScale: 1.0 },
+    // Left Arm: Shoulder
+    { boneIndex: 5, a: new Vector3(0.30, 1.15, -0.25), b: new Vector3(0.625, 1.177, -0.297), radius: 0.18, weightScale: 1.0 },
+    // Left Arm: Upper arm
+    { boneIndex: 5, a: new Vector3(0.625, 1.177, -0.297), b: new Vector3(0.625, 0.659, -0.691), radius: 0.14, weightScale: 1.0 },
+    // Left Arm: Forearm
+    { boneIndex: 6, a: new Vector3(0.625, 0.659, -0.691), b: new Vector3(0.625, 0.102, -1.114), radius: 0.12, weightScale: 1.0 },
+    // Left Arm: Wrist / Hand
+    { boneIndex: 7, a: new Vector3(0.625, 0.102, -1.114), b: new Vector3(0.625, 0.02, -1.18), radius: 0.14, weightScale: 1.1 },
+    // Left Arm: Hand / Claws
+    { boneIndex: 8, a: new Vector3(0.625, 0.02, -1.18), b: new Vector3(0.625, -0.16, -1.28), radius: 0.15, weightScale: 1.2 },
+    // Right Arm: Shoulder
+    { boneIndex: 9, a: new Vector3(-0.30, 1.15, -0.25), b: new Vector3(-0.625, 1.177, -0.297), radius: 0.18, weightScale: 1.0 },
+    // Right Arm: Upper arm
+    { boneIndex: 9, a: new Vector3(-0.625, 1.177, -0.297), b: new Vector3(-0.625, 0.659, -0.691), radius: 0.14, weightScale: 1.0 },
+    // Right Arm: Forearm
+    { boneIndex: 10, a: new Vector3(-0.625, 0.659, -0.691), b: new Vector3(-0.625, 0.102, -1.114), radius: 0.12, weightScale: 1.0 },
+    // Right Arm: Wrist / Hand
+    { boneIndex: 11, a: new Vector3(-0.625, 0.102, -1.114), b: new Vector3(-0.625, 0.02, -1.18), radius: 0.14, weightScale: 1.1 },
+    // Right Arm: Hand / Claws
+    { boneIndex: 12, a: new Vector3(-0.625, 0.02, -1.18), b: new Vector3(-0.625, -0.16, -1.28), radius: 0.15, weightScale: 1.2 },
+    // Left Leg: Hip / Thigh
+    { boneIndex: 13, a: new Vector3(0.22, 0.65, 0.15), b: new Vector3(0.380, 0.550, 0.200), radius: 0.18, weightScale: 1.0 },
+    { boneIndex: 13, a: new Vector3(0.380, 0.550, 0.200), b: new Vector3(0.380, -0.030, 0.200), radius: 0.15, weightScale: 1.0 },
+    // Left Leg: Shin
+    { boneIndex: 14, a: new Vector3(0.380, -0.030, 0.200), b: new Vector3(0.380, -0.580, 0.200), radius: 0.12, weightScale: 1.0 },
+    // Left Leg: Ankle / Foot
+    { boneIndex: 15, a: new Vector3(0.380, -0.580, 0.200), b: new Vector3(0.380, -0.60, 0.12), radius: 0.14, weightScale: 1.1 },
+    { boneIndex: 16, a: new Vector3(0.380, -0.60, 0.12), b: new Vector3(0.380, -0.620, -0.04), radius: 0.15, weightScale: 1.2 },
+    // Right Leg: Hip / Thigh
+    { boneIndex: 17, a: new Vector3(-0.22, 0.65, 0.15), b: new Vector3(-0.380, 0.550, 0.200), radius: 0.18, weightScale: 1.0 },
+    { boneIndex: 17, a: new Vector3(-0.380, 0.550, 0.200), b: new Vector3(-0.380, -0.030, 0.200), radius: 0.15, weightScale: 1.0 },
+    // Right Leg: Shin
+    { boneIndex: 18, a: new Vector3(-0.380, -0.030, 0.200), b: new Vector3(-0.380, -0.580, 0.200), radius: 0.12, weightScale: 1.0 },
+    // Right Leg: Ankle / Foot
+    { boneIndex: 19, a: new Vector3(-0.380, -0.580, 0.200), b: new Vector3(-0.380, -0.60, 0.12), radius: 0.14, weightScale: 1.1 },
+    { boneIndex: 20, a: new Vector3(-0.380, -0.60, 0.12), b: new Vector3(-0.380, -0.620, -0.04), radius: 0.15, weightScale: 1.2 },
+  ];
+
+  const positions: number[] = [];
+  const uvs: number[] = [];
+  const indices: number[] = [];
+
+  function addQuad(i0: number, i1: number, i2: number, i3: number): void {
+    indices.push(i0, i1, i2);
+    indices.push(i1, i3, i2);
+  }
+
+  type SculptModifier = (
+    vFrac: number,
+    uFrac: number,
+    angle: number,
+    normal: Vector3,
+    binormal: Vector3,
+    tangent: Vector3,
+    radius: number,
+    center: Vector3,
+  ) => { x: number; y: number; z: number };
+
+  function addSculptedTube(
+    path: Vector3[],
+    radii: number[],
+    segmentsPerRing = 24,
+    uScale = 1.0,
+    vScale = 1.0,
+    modifier?: SculptModifier,
+  ): void {
+    const ringStarts: number[] = [];
+    const ringCount = path.length;
+
+    for (let r = 0; r < ringCount; r++) {
+      const p = path[r]!;
+      const radius = radii[r]!;
+      const vFrac = r / Math.max(1, ringCount - 1);
+      const v = vFrac * vScale;
+
+      const pNext = path[Math.min(ringCount - 1, r + 1)]!;
+      const pPrev = path[Math.max(0, r - 1)]!;
+      const tangent = new Vector3().subVectors(pNext, pPrev).normalize();
+      if (tangent.lengthSq() < 1e-4) tangent.set(0, 1, 0);
+
+      let up = new Vector3(0, 1, 0);
+      if (Math.abs(tangent.y) > 0.92) up = new Vector3(0, 0, 1);
+      const normal = new Vector3().crossVectors(tangent, up).normalize();
+      const binormal = new Vector3().crossVectors(tangent, normal).normalize();
+
+      const ringStartIndex = positions.length / 3;
+      ringStarts.push(ringStartIndex);
+
+      for (let s = 0; s <= segmentsPerRing; s++) {
+        const uFrac = s / segmentsPerRing;
+        const angle = uFrac * Math.PI * 2;
+
+        if (modifier) {
+          const mod = modifier(vFrac, uFrac, angle, normal, binormal, tangent, radius, p);
+          positions.push(mod.x, mod.y, mod.z);
+        } else {
+          const cosA = Math.cos(angle);
+          const sinA = Math.sin(angle);
+          const vx = p.x + (normal.x * cosA + binormal.x * sinA) * radius;
+          const vy = p.y + (normal.y * cosA + binormal.y * sinA) * radius;
+          const vz = p.z + (normal.z * cosA + binormal.z * sinA) * radius;
+          positions.push(vx, vy, vz);
+        }
+        uvs.push(uFrac * uScale, v);
+      }
+    }
+
+    for (let r = 0; r < ringCount - 1; r++) {
+      const ringA = ringStarts[r]!;
+      const ringB = ringStarts[r + 1]!;
+      for (let s = 0; s < segmentsPerRing; s++) {
+        const a0 = ringA + s;
+        const a1 = ringA + s + 1;
+        const b0 = ringB + s;
+        const b1 = ringB + s + 1;
+        addQuad(a0, a1, b0, b1);
+      }
+    }
+  }
+
+  // --- TRUNK TUBE (Gaunt Ribcage with 7 pairs of ribs & starved abdomen) ---
+  const trunkRings = 36;
+  const trunkPath: Vector3[] = [];
+  const trunkRadii: number[] = [];
+
+  for (let i = 0; i < trunkRings; i++) {
+    const t = i / (trunkRings - 1);
+    const y = 0.70 + Math.sin(t * Math.PI * 0.70) * 0.95 - Math.max(0, t - 0.78) * 0.18;
+    const z = 0.15 - t * 0.66;
+    trunkPath.push(new Vector3(0, y, z));
+
+    let r = 0.22;
+    if (t < 0.25) {
+      r = 0.22 + t * 0.20;
+    } else if (t < 0.60) {
+      r = 0.26 + Math.sin((t - 0.25) / 0.35 * Math.PI) * 0.08;
+    } else if (t < 0.80) {
+      r = 0.22 - (t - 0.60) * 0.20;
+    } else {
+      r = 0.18 - (t - 0.80) * 0.25;
+    }
+    trunkRadii.push(Math.max(0.075, r));
+  }
+
+  const trunkModifier: SculptModifier = (vFrac, _uFrac, angle, normal, binormal, _tangent, radius, center) => {
+    const cosA = Math.cos(angle);
+    const sinA = Math.sin(angle);
+    const wScale = 1.05;
+    const hScale = 1.15;
+
+    let ribOffset = 0;
+    if (vFrac >= 0.18 && vFrac <= 0.62) {
+      const ribU = (vFrac - 0.18) / 0.44;
+      const ribCosine = Math.cos(ribU * 7.0 * Math.PI * 2.0);
+      const ribProfile = Math.pow(Math.max(0, ribCosine), 2.2);
+      const flankFactor = Math.abs(cosA) * Math.max(0, sinA + 0.4);
+      ribOffset = ribProfile * flankFactor * 0.052;
+    }
+
+    let hollowOffset = 0;
+    if (vFrac >= 0.08 && vFrac <= 0.32 && sinA < 0) {
+      const bellU = Math.sin((vFrac - 0.08) / 0.24 * Math.PI);
+      hollowOffset = -Math.pow(-sinA, 1.8) * bellU * 0.075;
+    }
+
+    let scapulaOffset = 0;
+    if (vFrac >= 0.46 && vFrac <= 0.60) {
+      const scapU = 1.0 - Math.abs(vFrac - 0.53) / 0.07;
+      const scapAngle = Math.max(0, sinA - 0.2) * Math.abs(cosA);
+      scapulaOffset = Math.pow(scapAngle, 1.6) * scapU * 0.085;
+    }
+
+    let skullMod = 0;
+    if (vFrac >= 0.68 && vFrac <= 0.90) {
+      if (vFrac >= 0.70 && vFrac <= 0.78) {
+        const zygU = Math.sin((vFrac - 0.70) / 0.08 * Math.PI);
+        skullMod += Math.abs(cosA) * zygU * 0.045;
+      }
+      if (vFrac >= 0.76 && vFrac <= 0.84) {
+        const eyeAngleL = Math.abs(angle - 0.70);
+        const eyeAngleR = Math.abs(angle - (Math.PI * 2.0 - 0.70));
+        const eyeDist = Math.min(eyeAngleL, eyeAngleR);
+        if (eyeDist < 0.45) {
+          const orbitT = 1.0 - eyeDist / 0.45;
+          skullMod += -orbitT * 0.048 + Math.sin(orbitT * Math.PI) * 0.018;
+        }
+      }
+    }
+
+    let spineRidge = 0;
+    if (sinA > 0.55 && vFrac < 0.75) {
+      spineRidge = Math.pow((sinA - 0.55) / 0.45, 2.5) * 0.038;
+    }
+
+    const rad = radius * (1.0 + ribOffset + hollowOffset + scapulaOffset + skullMod + spineRidge);
+    const vx = center.x + normal.x * cosA * rad * wScale + binormal.x * sinA * rad * hScale;
+    const vy = center.y + normal.y * cosA * rad * wScale + binormal.y * sinA * rad * hScale;
+    const vz = center.z + normal.z * cosA * rad * wScale + binormal.z * sinA * rad * hScale;
+    return { x: vx, y: vy, z: vz };
+  };
+
+  addSculptedTube(trunkPath, trunkRadii, 28, 2.5, 3.5, trunkModifier);
+
+  // --- FOREARMS & TALONS ---
+  const armRings = 28;
+  const armLPath: Vector3[] = [];
+  const armLRadii: number[] = [];
+
+  for (let i = 0; i < armRings; i++) {
+    const t = i / (armRings - 1);
+    let p: Vector3;
+    let rad = 0.11;
+    if (t < 0.25) {
+      // Clavicle / shoulder bridge from upper chest to shoulder joint
+      const u = t / 0.25;
+      p = new Vector3(
+        0.18 + u * (0.625 - 0.18),
+        1.22 - u * (1.22 - 1.177),
+        -0.24 - u * (0.297 - 0.24),
+      );
+      rad = 0.18 - u * 0.03;
+    } else if (t < 0.58) {
+      // Upper arm from shoulder to elbow
+      const u = (t - 0.25) / 0.33;
+      p = new Vector3(
+        0.625,
+        1.177 - u * 0.518,
+        -0.297 - u * 0.394,
+      );
+      rad = 0.15 - u * 0.035;
+    } else {
+      // Forearm from elbow to wrist
+      const u = (t - 0.58) / 0.42;
+      p = new Vector3(
+        0.625,
+        0.659 - u * 0.557,
+        -0.691 - u * 0.423,
+      );
+      rad = 0.12 - u * 0.025;
+    }
+    armLPath.push(p);
+    armLRadii.push(rad);
+  }
+
+  const armModifier: SculptModifier = (vFrac, _uFrac, angle, normal, binormal, _tangent, radius, center) => {
+    const cosA = Math.cos(angle);
+    const sinA = Math.sin(angle);
+    const muscleFluting = Math.sin(angle * 6.0) * 0.010 * Math.sin(vFrac * Math.PI);
+    const extensorTendon = vFrac > 0.45 ? Math.max(0, cosA) * 0.016 : 0;
+    const rad = radius + muscleFluting + extensorTendon;
+    return {
+      x: center.x + (normal.x * cosA + binormal.x * sinA) * rad,
+      y: center.y + (normal.y * cosA + binormal.y * sinA) * rad,
+      z: center.z + (normal.z * cosA + binormal.z * sinA) * rad,
+    };
+  };
+
+  addSculptedTube(armLPath, armLRadii, 20, 1.5, 2.5, armModifier);
+  const armRPath: Vector3[] = armLPath.map((v) => new Vector3(-v.x, v.y, v.z));
+  addSculptedTube(armRPath, armLRadii, 20, 1.5, 2.5, armModifier);
+
+  function addHandTalons(isRight: boolean): void {
+    const sign = isRight ? -1 : 1;
+    const wristPos = isRight
+      ? new Vector3(-0.625, 0.102, -1.114)
+      : new Vector3(0.625, 0.102, -1.114);
+
+    for (let c = 0; c < 4; c++) {
+      const spread = (c - 1.5) * 0.048 * sign;
+      const clawPath: Vector3[] = [];
+      const clawRadii: number[] = [];
+      const clawRings = 8;
+
+      for (let r = 0; r < clawRings; r++) {
+        const u = r / (clawRings - 1);
+        const hookZ = -u * 0.20 - Math.pow(u, 2.5) * 0.06;
+        const hookY = -u * 0.16 - Math.pow(u, 2.0) * 0.12;
+        const hookX = spread * (1.0 - u * 0.3);
+
+        clawPath.push(new Vector3(
+          wristPos.x + hookX,
+          wristPos.y + hookY,
+          wristPos.z + hookZ,
+        ));
+        clawRadii.push(Math.max(0.003, 0.024 * (1.0 - u * 0.92)));
+      }
+
+      addSculptedTube(clawPath, clawRadii, 10, 0.5, 1.0, (_v, _u, angle, normal, binormal, _t, rad, cPos) => {
+        const cosA = Math.cos(angle);
+        const sinA = Math.sin(angle);
+        return {
+          x: cPos.x + (normal.x * cosA * 0.5 + binormal.x * sinA * 1.4) * rad,
+          y: cPos.y + (normal.y * cosA * 0.5 + binormal.y * sinA * 1.4) * rad,
+          z: cPos.z + (normal.z * cosA * 0.5 + binormal.z * sinA * 1.4) * rad,
+        };
+      });
+    }
+
+    const dewPath: Vector3[] = [];
+    const dewRadii: number[] = [];
+    const dewRings = 6;
+    for (let r = 0; r < dewRings; r++) {
+      const u = r / (dewRings - 1);
+      dewPath.push(new Vector3(
+        wristPos.x - 0.02 * sign,
+        wristPos.y - u * 0.10,
+        wristPos.z + 0.04 + u * 0.08,
+      ));
+      dewRadii.push(Math.max(0.003, 0.016 * (1.0 - u * 0.88)));
+    }
+    addSculptedTube(dewPath, dewRadii, 8, 0.4, 0.8);
+  }
+
+  addHandTalons(false);
+  addHandTalons(true);
+
+  // --- HINDLEGS & FEET ---
+  const legRings = 26;
+  const legLPath: Vector3[] = [];
+  const legLRadii: number[] = [];
+
+  for (let i = 0; i < legRings; i++) {
+    const t = i / (legRings - 1);
+    let p: Vector3;
+    let rad = 0.12;
+    if (t < 0.22) {
+      // Pelvic haunch bridge from lower pelvis to hip joint
+      const u = t / 0.22;
+      p = new Vector3(
+        0.15 + u * (0.380 - 0.15),
+        0.68 - u * (0.68 - 0.550),
+        0.15 + u * (0.200 - 0.15),
+      );
+      rad = 0.18 - u * 0.02;
+    } else if (t < 0.58) {
+      // Thigh from hip to knee
+      const u = (t - 0.22) / 0.36;
+      p = new Vector3(
+        0.380,
+        0.550 - u * 0.580,
+        0.200,
+      );
+      rad = 0.16 - u * 0.035;
+    } else {
+      // Shin from knee to ankle
+      const u = (t - 0.58) / 0.42;
+      p = new Vector3(
+        0.380,
+        -0.030 - u * 0.550,
+        0.200,
+      );
+      rad = 0.12 - u * 0.035;
+    }
+    legLPath.push(p);
+    legLRadii.push(rad);
+  }
+
+  const legModifier: SculptModifier = (vFrac, _uFrac, angle, normal, binormal, _tangent, radius, center) => {
+    const cosA = Math.cos(angle);
+    const sinA = Math.sin(angle);
+    let achillesTendon = 0;
+    if (vFrac >= 0.50 && vFrac <= 0.92 && sinA < -0.2) {
+      const achU = Math.sin((vFrac - 0.50) / 0.42 * Math.PI);
+      achillesTendon = Math.pow(-sinA - 0.2, 2.0) * achU * 0.042;
+    }
+    const rad = radius + achillesTendon;
+    return {
+      x: center.x + (normal.x * cosA + binormal.x * sinA) * rad,
+      y: center.y + (normal.y * cosA + binormal.y * sinA) * rad,
+      z: center.z + (normal.z * cosA + binormal.z * sinA) * rad,
+    };
+  };
+
+  addSculptedTube(legLPath, legLRadii, 20, 1.5, 2.5, legModifier);
+  const legRPath: Vector3[] = legLPath.map((v) => new Vector3(-v.x, v.y, v.z));
+  addSculptedTube(legRPath, legLRadii, 20, 1.5, 2.5, legModifier);
+
+  function addFootTalons(isRight: boolean): void {
+    const sign = isRight ? -1 : 1;
+    const anklePos = isRight
+      ? new Vector3(-0.380, -0.580, 0.200)
+      : new Vector3(0.380, -0.580, 0.200);
+
+    for (let c = 0; c < 3; c++) {
+      const spread = (c - 1) * 0.05 * sign;
+      const clawPath: Vector3[] = [];
+      const clawRadii: number[] = [];
+      const clawRings = 6;
+
+      for (let r = 0; r < clawRings; r++) {
+        const u = r / (clawRings - 1);
+        clawPath.push(new Vector3(
+          anklePos.x + spread * (1.0 + u * 0.4),
+          anklePos.y - u * 0.05,
+          anklePos.z - u * 0.24,
+        ));
+        clawRadii.push(Math.max(0.004, 0.022 * (1.0 - u * 0.85)));
+      }
+
+      addSculptedTube(clawPath, clawRadii, 8, 0.5, 1.0);
+    }
+  }
+
+  addFootTalons(false);
+  addFootTalons(true);
+
+  // Noise displacement
+  const perm = createNoisePermutation(seed);
+  const vertexCount = positions.length / 3;
+
+  for (let i = 0; i < vertexCount; i++) {
+    const x = positions[i * 3]!;
+    const y = positions[i * 3 + 1]!;
+    const z = positions[i * 3 + 2]!;
+    const disp = fbm2D(x * 4.5 + z * 2.0, y * 4.5 + z * 1.2, 3, 0.5, 2.0, perm) * 0.022;
+    positions[i * 3] = x + x * disp;
+    positions[i * 3 + 1] = y + y * disp;
+    positions[i * 3 + 2] = z + z * disp;
+  }
+
+  // Inverse-cube distance bone weights
+  const skinIndices: number[] = [];
+  const skinWeights: number[] = [];
+  const tempPos = new Vector3();
+  const boneCount = 21;
+
+  for (let i = 0; i < vertexCount; i++) {
+    tempPos.set(positions[i * 3]!, positions[i * 3 + 1]!, positions[i * 3 + 2]!);
+    const boneWeights = new Float32Array(boneCount);
+
+    for (let s = 0; s < segments.length; s++) {
+      const seg = segments[s]!;
+      const dSq = distSqToSegment(tempPos, seg.a, seg.b);
+      const dist = Math.sqrt(dSq);
+      const w = (1.0 / Math.pow(dist + 0.07, 3)) * seg.weightScale;
+      boneWeights[seg.boneIndex] = (boneWeights[seg.boneIndex] ?? 0) + w;
+    }
+
+    const candidates: { index: number; weight: number }[] = [];
+    for (let b = 0; b < boneCount; b++) {
+      const w = boneWeights[b]!;
+      if (w > 1e-4) candidates.push({ index: b, weight: w });
+    }
+
+    candidates.sort((a, b) => b.weight - a.weight);
+    const top4 = candidates.slice(0, 4);
+
+    let sum = 0.0;
+    for (const c of top4) sum += c.weight;
+    if (sum < 1e-6) {
+      top4.push({ index: 0, weight: 1.0 }); // fallback to pelvis
+      sum = 1.0;
+    }
+
+    skinIndices.push(top4[0]?.index ?? 0, top4[1]?.index ?? 0, top4[2]?.index ?? 0, top4[3]?.index ?? 0);
+    skinWeights.push(
+      (top4[0]?.weight ?? 0) / sum,
+      (top4[1]?.weight ?? 0) / sum,
+      (top4[2]?.weight ?? 0) / sum,
+      (top4[3]?.weight ?? 0) / sum,
+    );
+  }
+
+  const geometry = new BufferGeometry();
+  geometry.setAttribute('position', new Float32BufferAttribute(positions, 3));
+  geometry.setAttribute('uv', new Float32BufferAttribute(uvs, 2));
+  geometry.setAttribute('skinIndex', new Uint16BufferAttribute(skinIndices, 4));
+  geometry.setAttribute('skinWeight', new Float32BufferAttribute(skinWeights, 4));
+  geometry.setIndex(indices);
+  geometry.computeVertexNormals();
+
+  return geometry;
+}
+

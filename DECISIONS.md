@@ -2262,6 +2262,48 @@ While base tile colours matched reference medians, ceramic materials exhibited n
 **Status:** ACCEPTED  
 **Consequences:** Ceramic surfaces exhibit recessed grout depth, contact ambient occlusion, dynamic wet bands synchronized with water level, and micro-crack decay; defects C5 (aliasing) and C6 (specular blowout) resolved; all 120 test files (1030 tests) pass.
 
+## D133 — Anatomical Continuous Creature Rig, Grounded Locomotion Waterline, and World Lighting Integration (Prompt 5)
+
+**Date:** 2026-11-08  
+**Context:**  
+The creature previously rendered as a blocky disconnected robot (rectangular box torso, dome head, rectangular legs, uniformly black silhouette, no hunch, no forelimbs, no organic surface). The torso was artificially elevated above water (`waterLevel - 0.42`), preventing authentic wading grounding. Furthermore, disconnected primitive meshes caused silhouette tearing during wading animations, and shadows/lighting were disconnected from the world directional sun and olive water bounce.
+
+**Decision:**  
+1. **Continuous Anatomical Organic Rig (`ProceduralSkinnedMeshBuilder.ts`, `MonsterRig.ts`):**  
+   - Modeled continuous high-poly organic geometry bound to a 21-bone skeleton with smooth inverse-cube distance-based skin weights:
+     - Gaunt ribcage torso with 7 pairs of emaciated ribs, sunken starved abdomen, and flared scapulae.
+     - Rounded seed-pod dome head covered in 32 dark recessed pits, small dark recessed mouth, and subdued maroon brow marking (`#4a2520`), with zero visible eyes, zero horns, and zero split shell.
+     - Disproportionately long forelimbs (0.65m upper + 0.70m forearm = 1.35m, 2.08x torso) ending in 4 curved sickle talons (0.28m) that drag through the water, with dewclaws and extensor tendon fluting.
+     - Seamless clavicle/shoulder and pelvic haunch musculature bridging the chest and hips to the limbs, eliminating gaps and guaranteeing a single continuous topological body.
+     - Digitigrade hind haunches with Achilles tendon cord and broad flat wading feet with 3 talons.
+     - Long tapering tail (1.15m length, 0.11m base -> 0.015m tip).
+   - Primitive segment and joint sphere meshes hidden (`visible = false`) in favour of the single continuous organic `SkinnedMesh`.
+2. **Locomotion-Driven Grounding & Waterline Proportions (`MonsterBody.ts`):**  
+   - Replaced artificial torso lift (`Math.max(groundY + 0.32, waterLevel - 0.42)`) with direct ground tracking (`targetBaseRootY = groundY`).
+   - Grounded posture at Natatorium pool depth (`-0.42m`):
+     - Waterline ($0.0\text{ m}$) cuts right across the lower torso / abdomen ($y \in [-0.15, +0.65\text{ m}]$).
+     - Hands are submerged in water ($y < 0.0\text{ m}$).
+     - Shoulders remain clear above water ($y > 0.0\text{ m}$).
+     - Waterline intersection fraction of body height $f \in [0.18, 0.35]$ at $0.42\text{ m}$, rising proportionally at $0.75\text{ m}$ ($f \in [0.32, 0.50]$) and $1.05\text{ m}$ ($f \in [0.45, 0.65]$).
+   - Continuous footfall/stride displacement feeds GPU wave simulation impulses and viscous ink splashes (#1e1a14, foam ring at feet only, zero splash on dry platforms).
+3. **World Lighting Rig & Shadow Integration (`MonsterRig.ts`, `AtmosphereService.ts`):**  
+   - Zero emissive rim shortcuts (`emissive: 0x000000`).
+   - Enabled `castShadow = true` and `receiveShadow = true` across the skinned mesh and rig hierarchy.
+   - PBR organic flesh material (`roughness: 0.34`, `metalness: 0.04`, `envMapIntensity: 0.35`) illuminated by directional sun (`#fff5e4`), upward olive water bounce (`#5a8c50`), and scene fog (`#c5d4be`, 0.045).
+   - Material shader hook enforces minimum luminance floor (0.055) to prevent flat crushing, distance-attenuated wetness darkening, mucus sheen, and full scene fog extinction.
+4. **Deterministic Appearance Lock (`scripts/creature/appearance-lock.mjs`):**  
+   - Both `'procedural'` and `'auto'` resolve deterministically to procedural on every machine regardless of whether `thumper.glb` is present on disk.
+   - Preserved CC BY 4.0 attribution in `CreditsScreen.ts:56-60` and documented P2/P3 in `KNOWN_ISSUES.md`.
+5. **Verification & Tests:**  
+   - Created `tests/creature-silhouette-integrity.test.ts` verifying zero detached vertices $> 5\text{ cm}$ and exactly 1 connected component across a 15-frame wade cycle.
+   - Created `tests/creature-lighting-integration.test.ts` verifying world lighting response (mean luminance $\in [0.15, 0.65]$, min luminance $\ge 0.055$, max luminance $\le 0.85$, zero emissive shortcuts, shadow rig integration).
+   - Updated `tests/monster-waterline.test.ts` asserting waterline on torso, hands submerged, shoulders clear, and proportional depth scaling.
+   - Verified `scripts/creature/appearance-lock.mjs` passes deterministically.
+
+**Status:** ACCEPTED  
+**Consequences:** The creature is a hunched, forelimbed, pod-headed wader with continuous anatomy; correctly grounded in pool water with submerged hands and clear shoulders; integrated into world lighting and shadow casting with zero flat black crushing or emissive rims; 122 test files (1036 tests) pass cleanly.
+
+
 
 
 

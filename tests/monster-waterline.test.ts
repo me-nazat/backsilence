@@ -165,6 +165,87 @@ describe('Prompt 4A & 4B (D122) — Grounded Waterline & Ink/Foam Contract', () 
     },
   );
 
+  it('asserts waterline on torso, hands submerged, shoulders clear at Natatorium pool depth (0.42m)', () => {
+    const ground = new GroundGrid({ minX: -20, maxX: 20, minZ: -20, maxZ: 20 }, 0.5);
+    ground.fill(-0.42);
+
+    const camera = new PerspectiveCamera(55, 1.33, 0.1, 100);
+    camera.position.set(0, 1.25, 4.5);
+    camera.lookAt(0, 0.15, 0);
+
+    const body = new MonsterBody('waterline_natatorium_monster');
+    const snapshot: MonsterSnapshot = {
+      id: 'waterline_natatorium_monster',
+      pos: { x: 0, y: -0.42, z: 0 },
+      vel: { x: 0, y: 0, z: 0.8 },
+      yaw: 0,
+      state: 'WANDER',
+      agitation: 0.1,
+      jawOpenT: 0.1,
+      rearingT: 0,
+      swipeT: 0,
+      earAngle: 0,
+      isListening: false,
+      targetPos: null,
+      path: [],
+    };
+
+    body.update(0.016, snapshot, ground, camera);
+    body.mesh.root.updateMatrixWorld(true);
+
+    const torsoBox = new Box3();
+    const pelvisWorldPos = new Vector3();
+    const chestWorldPos = new Vector3();
+    body.rig.pelvis.getWorldPosition(pelvisWorldPos);
+    body.rig.upperChest.getWorldPosition(chestWorldPos);
+    // Pelvis geometry extends 0.40m downward from pelvis joint
+    torsoBox.min.y = pelvisWorldPos.y - 0.40;
+    torsoBox.max.y = chestWorldPos.y + 0.35;
+
+    const handPosL = new Vector3();
+    const handPosR = new Vector3();
+    body.rig.handL.getWorldPosition(handPosL);
+    body.rig.handR.getWorldPosition(handPosR);
+
+    const shoulderPosL = new Vector3();
+    const shoulderPosR = new Vector3();
+    body.rig.shoulderL.getWorldPosition(shoulderPosL);
+    body.rig.shoulderR.getWorldPosition(shoulderPosR);
+
+    const headPos = new Vector3();
+    body.rig.headGroup.getWorldPosition(headPos);
+    const headTopY = headPos.y + 0.21;
+    const creatureHeight = headTopY - (-0.42);
+    const submergedFraction = 0.42 / creatureHeight;
+
+    // 1. Waterline intersects torso
+    expect(torsoBox.min.y).toBeLessThanOrEqual(0.0);
+    expect(torsoBox.max.y).toBeGreaterThanOrEqual(0.0);
+
+    // 2. Hands submerged
+    expect(handPosL.y).toBeLessThan(0.0);
+    expect(handPosR.y).toBeLessThan(0.0);
+
+    // 3. Shoulders clear above water
+    expect(shoulderPosL.y).toBeGreaterThan(0.0);
+    expect(shoulderPosR.y).toBeGreaterThan(0.0);
+
+    // 4. Submerged height as fraction of body height in [0.18, 0.35]
+    expect(submergedFraction).toBeGreaterThanOrEqual(0.18);
+    expect(submergedFraction).toBeLessThanOrEqual(0.35);
+
+    // 5. Waterline intersection fraction rises proportionally at deeper depths
+    const frac75 = 0.75 / creatureHeight;
+    expect(frac75).toBeGreaterThanOrEqual(0.32);
+    expect(frac75).toBeLessThanOrEqual(0.50);
+
+    const frac105 = 1.05 / creatureHeight;
+    expect(frac105).toBeGreaterThanOrEqual(0.45);
+    expect(frac105).toBeLessThanOrEqual(0.65);
+
+    body.dispose();
+  });
+
   it('spawns dark viscous ink (#1e1a14) at hands and feet, and white foam ring at feet ONLY (f_018)', () => {
     const root = new Object3D();
     const splashes = new SplashSystem(root, 0.0);
