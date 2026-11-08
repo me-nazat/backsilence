@@ -28,7 +28,8 @@ export interface MonsterVoiceContext {
 
 /** Pre-computed band-limited PeriodicWave for glottal pulse harmonics (Rosenberg C model) */
 let cachedGlottalWave: PeriodicWave | null = null;
-function getGlottalPeriodicWave(ctx: BaseAudioContext): PeriodicWave {
+function getGlottalPeriodicWave(ctx: BaseAudioContext): PeriodicWave | null {
+  if (typeof ctx.createPeriodicWave !== 'function') return null;
   if (cachedGlottalWave) return cachedGlottalWave;
   // Compute 64 Fourier coefficients of the derivative of Rosenberg C glottal pulse
   const numHarmonics = 64;
@@ -248,14 +249,23 @@ export function playMonsterRoar(cx: MonsterVoiceContext): RawVoiceHandle {
 
   // ── Voice 2: Vocal Formant Roar (Rosenberg C Glottal Wave + Subharmonic Period Doubling + 3 Formants) ──
   // Glottal pulse excitation (Rosenberg C model)
+  const glottalWave = getGlottalPeriodicWave(ctx);
   const v2Osc1 = ctx.createOscillator();
-  v2Osc1.setPeriodicWave(getGlottalPeriodicWave(ctx));
+  if (glottalWave && typeof v2Osc1.setPeriodicWave === 'function') {
+    v2Osc1.setPeriodicWave(glottalWave);
+  } else {
+    v2Osc1.type = 'sawtooth';
+  }
   v2Osc1.frequency.setValueAtTime(145 * pitchMult, now);
   v2Osc1.frequency.exponentialRampToValueAtTime(Math.max(50, 95 * pitchMult), now + duration);
 
   // Subharmonic period doubling (f0 / 2 insertion) for pathological organic terror
   const v2Osc2 = ctx.createOscillator();
-  v2Osc2.setPeriodicWave(getGlottalPeriodicWave(ctx));
+  if (glottalWave && typeof v2Osc2.setPeriodicWave === 'function') {
+    v2Osc2.setPeriodicWave(glottalWave);
+  } else {
+    v2Osc2.type = 'sawtooth';
+  }
   v2Osc2.frequency.setValueAtTime(72.5 * pitchMult, now);
   v2Osc2.frequency.exponentialRampToValueAtTime(Math.max(25, 47.5 * pitchMult), now + duration);
 
@@ -424,7 +434,12 @@ export function playMonsterSnarl(cx: MonsterVoiceContext): RawVoiceHandle {
   voiceGain.connect(cx.reverbSend);
 
   const osc = ctx.createOscillator();
-  osc.setPeriodicWave(getGlottalPeriodicWave(ctx));
+  const gWave = getGlottalPeriodicWave(ctx);
+  if (gWave && typeof osc.setPeriodicWave === 'function') {
+    osc.setPeriodicWave(gWave);
+  } else {
+    osc.type = 'sawtooth';
+  }
   osc.frequency.setValueAtTime(115 * pitchMult, now);
   osc.frequency.exponentialRampToValueAtTime(85 * pitchMult, now + duration);
 

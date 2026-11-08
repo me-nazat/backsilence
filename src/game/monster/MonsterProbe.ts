@@ -406,7 +406,7 @@ export function runMonsterProbe(session: GameSession): MonsterProbeResult {
   }
 
   const unlitOverrideMat = new MeshBasicMaterial({ color: 0xff00ff, fog: false });
-  const prevOverride = scene.overrideMaterial;
+  const prevOverride = scene.overrideMaterial ?? null;
   const prevTarget = renderer.getRenderTarget();
   const prevColor = new Color();
   renderer.getClearColor(prevColor);
@@ -450,8 +450,9 @@ export function runMonsterProbe(session: GameSession): MonsterProbeResult {
       }
     }
   } finally {
-    // Restore scene visibility and materials in finally block (Prompt 8.1 d)
+    // Restore scene visibility, materials, and strictly nullify override (Prompt 7 Work Item A2)
     scene.overrideMaterial = prevOverride;
+    unlitOverrideMat.dispose();
     scene.background = prevBg;
     scene.fog = prevFog;
     for (const [child, vis] of prevVisibility.entries()) {

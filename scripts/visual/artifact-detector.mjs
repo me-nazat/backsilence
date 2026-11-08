@@ -119,11 +119,24 @@ export function scanImageArtifacts(image, options = {}) {
         }
       }
 
-      // Magenta debug marker check (e.g. #ff00ff or similar vibrant pink/magenta)
+      // Magenta debug marker check (Prompt 7 Work Item A3: h > 280° or (h < 20° and b > g), s > 0.50)
       if (checkMagenta) {
-        if (r > 0.82 && g < 0.18 && b > 0.82) {
-          magentaCount++;
-          if (!firstMagentaPos) firstMagentaPos = { x, y };
+        const max = Math.max(r, g, b);
+        const min = Math.min(r, g, b);
+        const l = (max + min) * 0.5;
+        if (max !== min && l > 0.03) {
+          const d = max - min;
+          const s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+          let h = 0;
+          if (max === r) h = ((g - b) / d + (g < b ? 6 : 0)) / 6;
+          else if (max === g) h = ((b - r) / d + 2) / 6;
+          else h = ((r - g) / d + 4) / 6;
+          h *= 360;
+
+          if ((h > 280 || (h < 20 && b > g)) && s > 0.50) {
+            magentaCount++;
+            if (!firstMagentaPos) firstMagentaPos = { x, y };
+          }
         }
       }
     }

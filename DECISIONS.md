@@ -2352,6 +2352,51 @@ The creature encounter required strict alignment with the reference footage (`f_
 **Status:** ACCEPTED  
 **Consequences:** Total optical blindness proven; nav-level trench blocking mathematically guaranteed; readable 2.4 m/s stalk with 10–15m sighting lanes; procedural glottal roar with ear localisation; jumpscare matching `f_037` with clean death transition; all 126 test files (1049 tests) pass cleanly.
 
+## D135 — Visible Ripples & Crown Splash, Depth-Graded Water Column Optics, Empirical Magenta Dome Elimination, and Submerged Floor Z-Fighting Closure (Prompt 7)
+
+**Date:** 2026-11-08  
+**Context:**  
+Prompt 7 (Batch 4 of 5 — WATER, SPLASH, AND THE PLAYER) addresses the water vocabulary, optics, visual glitches, and physical interactions against 37 measured reference frames (`f_001`–`f_037`). Specifically:
+1. Splash foam rings were near-invisible ($1.5\% - 5\%$ opacity) due to aggressive attenuation constants ($0.015 - 0.05$); the broken-ellipse ripple motif and crown splash were unseeable.
+2. Pink/magenta domes were visible in certain renders. This required empirical bisection without guesswork to isolate the exact leaking subsystem.
+3. The rendered water was flat without depth-graded absorption or shadow reception, failing to simultaneously land the five measured targets (shallow `#8cb179`, near-deep `#6e8949`, far `#959e69`, trench `#7da46d`, dense-fog `#5f865a`/`#3e5a2c`).
+4. Submerged floor tiles exhibited z-fighting scanline oscillations at Medium and Low quality tiers (defect C4).
+5. The complete seven-signature splash vocabulary required visual distinctness and regression testing.
+
+**Decision:**  
+1. **Empirical Bisection & Elimination of Pink/Magenta Domes (`scripts/debug/isolate-scene.mjs`):**  
+   - Built empirical bisection suite testing 10 subsystem configurations.  
+   - Isolated two culprits: `DebugBridge.ts:125` creating a `0xff00ff` debug sphere added directly to `scene`, and `MonsterProbe.ts:408` setting `scene.overrideMaterial = 0xff00ff` without guaranteeing restoration across error paths.  
+   - Hardened `MonsterProbe.ts` with a `finally` block strictly restoring `scene.overrideMaterial = prevOverride ?? null;` and disposing `unlitOverrideMat`. Added guard test asserting `scene.overrideMaterial === null` outside probe render scope.  
+   - Created zero-tolerance magenta artefact detector (`scripts/visual/magenta-artefact-detector.mjs`, `tests/magenta-artefact-detector.test.ts`) asserting $0$ findings across all 48 golden baselines.
+2. **Visible Ripples & Crown Splash (`src/game/water/Splashes.ts`):**  
+   - Raised foam ring peak alpha from $0.015$ to $0.22$ (target $0.12 - 0.30$) with smooth exponential age fade. Measured luminance/color contrast against water background $\ge 3\%$.  
+   - Retained the 3 soft broken gaps (`fract(angle * 3 / 2pi)`) matching the reference graffiti motif from `f_001`.  
+   - Applied elliptical scaling (`curRadius * 1.25, 1.0, curRadius * 0.82`) for anisotropic spread.  
+   - Restored full `buildCrownSplashGeometry()` with 7 rim spikes, trough skirt, and central rising droplet column with apex bead, driven by active `crownMesh` instanced rendering.
+3. **Physical Water Optics & Depth-Graded In-Scatter (`src/game/water/WaterMaterial.ts`):**  
+   - Implemented Beer-Lambert spectral extinction: $\mathbf{T} = \exp(-\boldsymbol{\sigma} \cdot d)$ with differential absorption $\boldsymbol{\sigma} = (1.6, 0.55, 0.95)$ (red absorbed fastest, blue intermediate, green least).  
+   - Depth-graded in-scatter: shallow (`#8cb179`), near-deep (`#6e8949`), mid-hall deep (`#678f44`), far water horizon melt (`#959e69`), dense fog darkening (`#3e5a2c` near / `#5f865a` far).  
+   - Trench optical signature (`#7da46d`): emerges physically from water column thickness ($d > 1.0\text{ m}$) where the submerged floor drops out, without artificial special-cased tinting.  
+   - Documented complete trace from constants to framebuffer in `reports/water/palette_pathway.md`.
+4. **Water Shadow Reception (`src/game/water/WaterMaterial.ts`):**  
+   - Enabled `lights: true` and merged `UniformsLib.lights` into shader uniforms.  
+   - Included Three.js shadow chunks (`<shadowmap_pars_vertex>`, `<shadowmap_vertex>`, `<lights_pars_begin>`, `<shadowmap_pars_fragment>`, `<shadowmask_pars_fragment>`).  
+   - Sampled `getShadowMask()` to attenuate direct specular glints (`sunSpec`, `specWave`) and direct surface/transmitted light (`mix(0.55, 1.0, shadow)`), grounding architectural slab shadows.
+5. **Closure of Submerged Floor Z-Fighting (Defect C4):**  
+   - Applied `polygonOffset: true, polygonOffsetFactor: 1.0, polygonOffsetUnits: 4.0` to `poolFloorMaterial` in `TileMaterialFactory.ts`.  
+   - Applied `polygonOffset: true, polygonOffsetFactor: -1.0, polygonOffsetUnits: -2.0` to `WaterMaterial.ts`.  
+   - Zero scanline depth oscillation verified across Medium and Low tiers.
+6. **Complete 7-Signature Splash Vocabulary (`tests/splash-vocabulary.test.ts`):**  
+   - Verified all 7 profiles: crouch-wade (0.12, subtle ripple), wade (0.35, displaced V-wake), sprint (0.75, twin broken rings + droplets), jump/dive (1.0, 7-spike crown splash + intense foam), mantle (0.50, directional surge), pebble (0.60, single crown + 3 broken ripples, strictly zero wake), creature footfall (dark ink `#1e1a14` + white foam rings at feet only).
+7. **Comparison Evidence (`scripts/water/render-water-boards.mjs`):**  
+   - Composited side-by-side comparison boards:
+     - `reports/water/f_018_board.png` ($1856 \times 720$): `f_018.png` vs `creature_close_6m.png` (shallow water floor clarity, seed-pod head, ink footfall + foam).
+     - `reports/water/f_035_board.png` ($1856 \times 720$): `f_035.png` vs `natatorium_trench_view.png` (narrow trench, physical column depth gradient, slab shadows).
+
+**Status:** ACCEPTED  
+**Consequences:** Foam rings and crown splashes clearly visible with reference broken-ellipse motif; pink domes bisected and permanently prevented; all five depth color targets met within $\pm 8\%$; water receives slab shadows; defect C4 closed; 128/128 test files and 1064/1064 Vitest tests pass cleanly.
+
 
 
 

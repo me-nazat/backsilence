@@ -62,6 +62,7 @@ export interface WaterMaterialOptions {
 const vertexShader = /* glsl */ `
 #include <common>
 #include <fog_pars_vertex>
+#include <shadowmap_pars_vertex>
 
 uniform float uTime;
 uniform float uWaterY;
@@ -189,12 +190,17 @@ void main() {
   gl_Position = clipPos;
   vScreenPos = clipPos;
 
+  #include <shadowmap_vertex>
   #include <fog_vertex>
 }
 `;
 
 const fragmentShader = /* glsl */ `
 #include <common>
+#include <packing>
+#include <lights_pars_begin>
+#include <shadowmap_pars_fragment>
+#include <shadowmask_pars_fragment>
 #include <fog_pars_fragment>
 
 uniform float uTime;
@@ -621,16 +627,25 @@ void main() {
   vec3 waterColor = mix(absorbedWater, reflectColor, fresnel * fresnelFactor);
   waterColor += rippleSpecular;
 
+  // 8. Directional & Architectural Shadow Sampling (Prompt 7 Work Item C10)
+  float shadow = 1.0;
+  #ifdef USE_SHADOWMAP
+    shadow = getShadowMask();
+  #endif
+
   // 9. Sun GGX Specular Glint & Horizontal Pale Specular Streaks (#7b9e5e)
   vec3 sunSpec = evalGGX(normal, viewDir, uSunDir, uSpecularColor, 0.32, roughness);
-  waterColor += clamp(sunSpec, 0.0, 0.38);
+  waterColor += clamp(sunSpec * shadow, 0.0, 0.38);
 
   // Horizontal Pale Specular Streaks (anisotropic highlights along wave crests, no pointillist noise)
   vec3 H_glint = normalize(viewDir + uSunDir);
   vec3 anisoNormal = normalize(vec3(normal.x * 0.18, normal.y, normal.z));
   float specBase = max(0.0, dot(anisoNormal, H_glint));
   float specWave = pow(specBase, 18.0) * 0.12;
-  waterColor += uSpecularColor * specWave;
+  waterColor += uSpecularColor * (specWave * shadow);
+
+  // Slab & environment shadow attenuation: darkens pool surface beneath overhangs
+  waterColor *= mix(0.55, 1.0, shadow);
 
   // 10. LightStreaks (up to 16 area/line light proxies) evaluated via GGX
   for (int i = 0; i < 16; i++) {
@@ -777,6 +792,7 @@ export function createWaterMaterial(options: WaterMaterialOptions): ShaderMateri
 
   const uniforms = UniformsUtils.merge([
     UniformsLib.fog,
+    UniformsLib.lights,
     {
       uTime: { value: 0 },
       uWaterY: { value: options.waterY ?? 0.0 },
@@ -858,6 +874,10 @@ export function createWaterMaterial(options: WaterMaterialOptions): ShaderMateri
     depthWrite: false,
     side: FrontSide,
     fog: true,
+    lights: true,
+    polygonOffset: true,
+    polygonOffsetFactor: -1.0,
+    polygonOffsetUnits: -2.0,
   });
 
   return mat;

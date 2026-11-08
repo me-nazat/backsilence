@@ -367,6 +367,7 @@ export class TileMaterialFactory {
     this.platformSideMaterial.name = 'PlatformSideMaterial';
 
     // 4. Submerged Pool Floor Material (WORLD.TILE_METERS tiles, #cbba8b cream-green, #566852 grout)
+    // polygonOffset pushes submerged floor behind water in depth buffer to close defect C4 (z-fighting)
     const poolFloorTextures = this.generatePoolFloorTextures(maxAnisotropy);
     this.poolFloorMaterial = new MeshStandardMaterial({
       map: poolFloorTextures.albedo,
@@ -381,6 +382,9 @@ export class TileMaterialFactory {
       metalness: 0.04,
       envMapIntensity: 0.35,
       vertexColors: true,
+      polygonOffset: true,
+      polygonOffsetFactor: 1.0,
+      polygonOffsetUnits: 4.0,
     });
     this.poolFloorMaterial.name = 'PoolFloorMaterial';
 
@@ -574,6 +578,9 @@ export class TileMaterialFactory {
       metalness: cfg.poolFloor.metalness,
       envMapIntensity: 0.35,
       vertexColors: true,
+      polygonOffset: true,
+      polygonOffsetFactor: 1.0,
+      polygonOffsetUnits: 4.0,
     });
     poolFloorMaterial.name = `PoolFloorMaterial_${themeId}`;
 
